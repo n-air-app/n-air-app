@@ -1,11 +1,10 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20210525-unstable.1',
-  title: '1.1.20210525-unstable.1',
+  version: '1.1.20210727-unstable.1',
+  title: '1.1.20210727-unstable.1',
   notes: [
-    '追加: ニコニコ生放送のコメント読み上げ機能 (#494) by koizuka',
-    '変更: 利用規約の「niconico」を「ニコニコ」に改訂 (#499) by koizuka',
-    '開発: stable releaseのpatch-noteから authorを削除 (#496) by koizuka'
+    '追加: 新NVENC, 音声48kHz, 配信IPアドレス選択, リプレイ録画機能など (#505) by koizuka',
+    'コメント読み上げ辞書更新(初見追加) (#503) by koizuka'
   ]
 };
