@@ -5,7 +5,11 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import { remote } from 'electron';
 import { $t } from 'services/i18n';
 import { StreamingService } from 'services/streaming';
-import { NicoliveFailure, openErrorDialogFromFailure } from 'services/nicolive-program/NicoliveFailure';
+import {
+  NicoliveFailure,
+  openErrorDialogFromFailure,
+} from 'services/nicolive-program/NicoliveFailure';
+import { Subscription } from 'rxjs';
 
 @Component({})
 export default class ProgramInfo extends Vue {
@@ -15,6 +19,25 @@ export default class ProgramInfo extends Vue {
 
   // TODO: 後でまとめる
   programIsMemberOnlyTooltip = 'コミュニティ限定放送';
+
+  private subscription: Subscription = null;
+
+  mounted() {
+    this.subscription = this.nicoliveProgramService.stateChange.subscribe(state => {
+      if (state.status === 'end') {
+        if (this.streamingService.isStreaming) {
+          this.streamingService.toggleStreamingAsync();
+        }
+      }
+    });
+  }
+
+  destroyed() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+      this.subscription = null;
+    }
+  }
 
   isCreating: boolean = false;
   async createProgram() {
@@ -69,7 +92,7 @@ export default class ProgramInfo extends Vue {
               buttons: [$t('streaming.goLive'), $t('program-info.later')],
               noLink: true,
             },
-            idx => resolve(idx === 0)
+            idx => resolve(idx === 0),
           );
         });
         if (startStreaming) {
@@ -103,7 +126,7 @@ export default class ProgramInfo extends Vue {
             buttons: ['終了する', $t('common.cancel')],
             noLink: true,
           },
-          idx => resolve(idx === 0)
+          idx => resolve(idx === 0),
         );
       });
 
@@ -180,5 +203,4 @@ export default class ProgramInfo extends Vue {
   get communityPageURL(): string {
     return `https://com.nicovideo.jp/community/${this.communityID}`;
   }
-
 }
