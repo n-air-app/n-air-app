@@ -123,17 +123,15 @@ export class StreamingService
 
   private async showNotBroadcastingMessageBox() {
     return new Promise(resolve => {
-      electron.remote.dialog.showMessageBox(
-        electron.remote.getCurrentWindow(),
-        {
+      electron.remote.dialog
+        .showMessageBox(electron.remote.getCurrentWindow(), {
           title: $t('streaming.notBroadcasting'),
           type: 'warning',
           message: $t('streaming.notBroadcastingMessage'),
           buttons: [$t('common.close')],
           noLink: true,
-        },
-        done => resolve(done),
-      );
+        })
+        .then(({ response: done }) => resolve(done));
     });
   }
 
@@ -243,16 +241,14 @@ export class StreamingService
         }
 
         return new Promise(resolve => {
-          electron.remote.dialog.showMessageBox(
-            electron.remote.getCurrentWindow(),
-            {
+          electron.remote.dialog
+            .showMessageBox(electron.remote.getCurrentWindow(), {
               type: 'warning',
               message,
               buttons: [$t('common.close')],
               noLink: true,
-            },
-            done => resolve(done),
-          );
+            })
+            .then(({ response: done }) => resolve(done));
         });
       } finally {
         this.SET_PROGRAM_FETCHING(false);
@@ -344,17 +340,15 @@ export class StreamingService
   ) {
     if (streamingSetting.bitrate === undefined) {
       return new Promise(resolve => {
-        electron.remote.dialog.showMessageBox(
-          electron.remote.getCurrentWindow(),
-          {
+        electron.remote.dialog
+          .showMessageBox(electron.remote.getCurrentWindow(), {
             title: $t('streaming.bitrateFetchingError.title'),
             type: 'warning',
             message: $t('streaming.bitrateFetchingError.message'),
             buttons: [$t('common.close')],
             noLink: true,
-          },
-          done => resolve(done),
-        );
+          })
+          .then(({ response: done }) => resolve(done));
       });
     }
     const settings = this.settingsService.diffOptimizedSettings({
@@ -526,7 +520,6 @@ export class StreamingService
 
     const event: TUsageEvent = {
       event: eventType,
-      user_id: this.userService.isLoggedIn() ? this.userService.platformId : null,
       platform: extractPlatform(settings.streamingURL),
       stream_track_id: streamingTrackId,
       content_id: this.nicoliveProgramService.state.programID || null,
