@@ -1,6 +1,7 @@
 import { InitAfter, Inject } from 'services/core';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NVoiceCharacterService } from 'services/nvoice-character';
+import { QueueRunner } from 'util/QueueRunner';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { NVoiceClientService } from './n-voice-client';
@@ -9,7 +10,7 @@ import { PhonemeServer } from './PhonemeServer';
 import { ISpeechSynthesizer } from './speech/ISpeechSynthesizer';
 import { NVoiceSynthesizer } from './speech/NVoiceSynthesizer';
 import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
-import { NicoliveProgramStateService, SynthesizerId } from './state';
+import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
 import { WrappedChat } from './WrappedChat';
 
 export type Speech = {
@@ -25,16 +26,16 @@ export type Speech = {
   }
 };
 
-interface ICommentSynthesizerState {
+export interface ICommentSynthesizerState {
   enabled: boolean;
   pitch: number; // SpeechSynthesisUtterance.pitch; 0.1(lowest) to 2(highest) (default: 1), only for web speech
   rate: number; // SpeechSynthesisUtterence.rate; 0.1(lowest) to 10(highest); default:1
   volume: number; // SpeechSynthesisUtterance.volume; 0.1(lowest) to 1(highest)
   maxTime: number; // nVoice max time in seconds
   selector: {
-    normal: SynthesizerId;
-    operator: SynthesizerId;
-    system: SynthesizerId;
+    normal: SynthesizerSelector;
+    operator: SynthesizerSelector;
+    system: SynthesizerSelector;
   };
 }
 
@@ -57,6 +58,9 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     }
   };
 
+  // この数すでにキューに溜まっている場合は破棄してから追加する
+  NUM_COMMENTS_TO_SKIP = 5;
+
   // delegate synth
   webSpeech = new WebSpeechSynthesizer();
   nVoice: NVoiceSynthesizer;
@@ -71,10 +75,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     }
   }
 
-  currentPlayingId: SynthesizerId | null = null;
-  currentPlaying(): ISpeechSynthesizer | null {
-    return this.currentPlayingId ? this.getSynthesizer(this.currentPlayingId) : null;
-  }
+  queue = new QueueRunner();
 
   phonemeServer: PhonemeServer;
 
@@ -117,7 +118,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     return converted;
   }
 
-  private selectSpeechSynthesizer(chat: WrappedChat): SynthesizerId {
+  private selectSpeechSynthesizer(chat: WrappedChat): SynthesizerSelector {
     switch (chat.type) {
       case 'normal':
         return this.state.selector.normal;
@@ -128,8 +129,11 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     }
   }
 
-  makeSpeech(chat: WrappedChat, synthId?: SynthesizerId): Speech | null {
+  makeSpeech(chat: WrappedChat, synthId?: SynthesizerSelector): Speech | null {
     const synthesizer = synthId || this.selectSpeechSynthesizer(chat);
+    if (synthesizer === 'ignore') {
+      return null;
+    }
 
     const r = this.makeSpeechText(chat, synthesizer);
     if (r === '') {
@@ -161,7 +165,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
   async startSpeakingSimple(speech: Speech) {
     // empty anonymous functions must be created in this service
-    await this.startSpeaking(speech, () => { }, () => { }, true);
+    await this.queueToSpeech(speech, () => { }, () => { }, true);
   }
 
   async startTestSpeech(text: string, synthId: SynthesizerId) {
@@ -171,7 +175,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     }
   }
 
-  async startSpeaking(
+  async queueToSpeech(
     speech: Speech,
     onstart: () => void,
     onend: () => void,
@@ -184,44 +188,37 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     const toPlay = speech.synthesizer;
     const toPlaySynth = this.getSynthesizer(toPlay);
 
-    if (this.currentPlayingId !== null) {
-      if (this.currentPlayingId !== toPlay) {
-        if (cancelBeforeSpeaking) {
-          await this.currentPlaying()?.cancelSpeak();
-        } else {
-          await this.currentPlaying()?.waitForSpeakEnd();
-        }
-      }
+    if (cancelBeforeSpeaking) {
+      this.queue.cancel();
+    } else if (this.queue.length >= this.NUM_COMMENTS_TO_SKIP) {
+      // コメント溜まりすぎスキップ
+      // TODO 飛ばした発言
+      this.queue.cancel();
     }
 
-    const playing = this.currentPlaying();
-    this.currentPlayingId = toPlay;
-    const force = cancelBeforeSpeaking && playing && playing.speaking;
-    toPlaySynth.speakText(
-      speech,
-      () => {
-        onstart();
-        this.currentPlayingId = toPlay;
-      },
-      () => {
-        this.currentPlayingId = null;
-        onend();
-      },
-      force,
-      (phoneme) => {
-        this.phonemeServer?.emitPhoneme(phoneme);
-      });
+    this.queue.add(
+      toPlaySynth.speakText(
+        speech,
+        () => {
+          onstart();
+        },
+        () => {
+          onend();
+        },
+        (phoneme) => {
+          this.phonemeServer?.emitPhoneme(phoneme);
+        },
+      ),
+      speech.text,
+    );
+    this.queue.runNext();
   }
 
-  get speaking(): boolean {
-    return this.currentPlayingId !== null;
-  }
-
-  async cancelSpeak() {
-    await this.currentPlaying()?.cancelSpeak();
-  }
   private setEnabled(enabled: boolean) {
     this.setState({ enabled });
+    if (!enabled) {
+      this.queue.cancel();
+    }
   }
   get enabled(): boolean {
     return this.state.enabled;
@@ -271,22 +268,22 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   }
 
   // selector accessor
-  get normal(): SynthesizerId {
+  get normal(): SynthesizerSelector {
     return this.state.selector.normal;
   }
-  set normal(s: SynthesizerId) {
+  set normal(s: SynthesizerSelector) {
     this.setState({ selector: { ...this.state.selector, normal: s } });
   }
-  get operator(): SynthesizerId {
+  get operator(): SynthesizerSelector {
     return this.state.selector.operator;
   }
-  set operator(s: SynthesizerId) {
+  set operator(s: SynthesizerSelector) {
     this.setState({ selector: { ...this.state.selector, operator: s } });
   }
-  get system(): SynthesizerId {
+  get system(): SynthesizerSelector {
     return this.state.selector.system;
   }
-  set system(s: SynthesizerId) {
+  set system(s: SynthesizerSelector) {
     this.setState({ selector: { ...this.state.selector, system: s } });
   }
 
