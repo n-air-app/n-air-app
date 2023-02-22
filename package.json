@@ -6,7 +6,7 @@
   "//": {
     "version": "0.11.2"
   },
-  "version": "1.1.20230207-unstable.1",
+  "version": "1.1.20230222-unstable.1",
   "main": "main.js",
   "engines": {
     "npm": "please-use-yarn"
