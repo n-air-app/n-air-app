@@ -193,8 +193,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       componentName: 'AdvancedAudio',
       title: $t('audio.advancedAudioSettings'),
       size: {
-        width: 720,
-        height: 600,
+        width: 840,
+        height: 500,
       },
     });
   }
@@ -296,9 +296,11 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   private removeAudioSource(sourceId: string) {
-    this.sourceData[sourceId].volmeter.removeCallback(this.sourceData[sourceId].callbackInfo);
-    delete this.sourceData[sourceId];
-    this.REMOVE_AUDIO_SOURCE(sourceId);
+    if (this.sourceData[sourceId]) {
+      this.sourceData[sourceId].volmeter.removeCallback(this.sourceData[sourceId].callbackInfo);
+      delete this.sourceData[sourceId];
+      this.REMOVE_AUDIO_SOURCE(sourceId);
+    }
   }
 
   @mutation()
