@@ -1,0 +1,14 @@
+# code reviewers
+* @koizuka @taroc-dw @matsuyuki-a
+
+# planners
+/app/i18n/ @yushinakatani @Shunsuke-Yanazawa
+replace_rules.json @yushinakatani @Shunsuke-Yanazawa
+
+# designers
+*.vue @yusukess @kechino
+*.html @yusukess @kechino
+*.less @yusukess @kechino
+*.css @yusukess @kechino
+/app/styles/ @yusukess @kechino
+/media/images/ @yusukess @kechino

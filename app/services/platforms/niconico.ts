@@ -66,7 +66,7 @@ export class NiconicoService extends Service implements IPlatformService {
     const request = new Request(url, { credentials: 'same-origin' });
 
     const response = await fetch(request);
-    if (response.status === 401) {
+    if (response.status === 400 || response.status === 401) {
       return '';
     }
     const response_1 = await handleErrors(response); // !response.ok を例外にする
@@ -174,9 +174,9 @@ export class NiconicoService extends Service implements IPlatformService {
   }
 
   private async _setupStreamSettings(programId: string): Promise<IStreamingSetting> {
-    const [stream, bitrate] = await Promise.all([
+    const [stream, quality] = await Promise.all([
       this.client.fetchBroadcastStream(programId),
-      this.client.fetchMaxBitrate(programId),
+      this.client.fetchMaxQuality(programId),
     ]);
     const url = stream.url;
     const key = stream.name;
@@ -201,7 +201,7 @@ export class NiconicoService extends Service implements IPlatformService {
     this.settingsService.setSettings('Stream', settings);
 
     // 有効な番組が選択されているので stream keyを返す
-    return NiconicoService.createStreamingSetting(url, key, bitrate);
+    return NiconicoService.createStreamingSetting(url, key, quality);
   }
 
   private static emptyStreamingSetting(): IStreamingSetting {
@@ -211,9 +211,13 @@ export class NiconicoService extends Service implements IPlatformService {
   private static createStreamingSetting(
     url: string,
     key: string,
-    bitrate?: number,
+    quality?: {
+      bitrate: number,
+      height: number,
+      fps: number
+    } | undefined,
   ): IStreamingSetting {
-    return { url, key, bitrate };
+    return { url, key, quality };
   }
 
   // TODO ニコニコOAuthのtoken更新に使う

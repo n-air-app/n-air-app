@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import * as electron from 'electron';
 import moment from 'moment';
 import { Subject } from 'rxjs';
@@ -217,6 +218,10 @@ export class StreamingService
         if (streamKey === '') {
           return this.showNotBroadcastingMessageBox();
         }
+
+        // [番組情報を取得]してニコ生パネルを更新する
+        await this.nicoliveProgramService.fetchProgram();
+
         if (this.customizationService.optimizeForNiconico) {
           return this.optimizeForNiconicoAndStartStreaming(
             setting,
@@ -224,7 +229,13 @@ export class StreamingService
           );
         }
       } catch (e) {
-        console.error('StreamingService.toggleStreamAsync niconico', JSON.stringify(e));
+        Sentry.withScope(scope => {
+          scope.setLevel('error');
+          scope.setTag('service', 'StreamingService');
+          scope.setTag('method', 'toggleStreamingAsync');
+          scope.setFingerprint(['StreamingService', 'toggleStreamingAsync', 'niconico', 'exception']);
+          Sentry.captureException(e);
+        });
         let message: string;
         if (e instanceof Response) {
           if (e.status === 401) {
@@ -338,7 +349,7 @@ export class StreamingService
     streamingSetting: IStreamingSetting,
     mustShowDialog: boolean,
   ) {
-    if (streamingSetting.bitrate === undefined) {
+    if (streamingSetting.quality === undefined) {
       return new Promise(resolve => {
         electron.remote.dialog
           .showMessageBox(electron.remote.getCurrentWindow(), {
@@ -352,7 +363,9 @@ export class StreamingService
       });
     }
     const settings = this.settingsService.diffOptimizedSettings({
-      bitrate: streamingSetting.bitrate,
+      bitrate: streamingSetting.quality.bitrate,
+      height: streamingSetting.quality.height,
+      fps: streamingSetting.quality.fps,
       useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
     });
     if (Object.keys(settings.delta).length > 0 || mustShowDialog) {
@@ -405,8 +418,13 @@ export class StreamingService
         const recordingSettings = this.settingsService.getRecordingSettings();
         if (recordingSettings) {
           // send Recording type to Sentry (どれぐらいURL出力が使われているかの比率を調査する)
-          console.error('Recording / recType:' + recordingSettings.recType);
-          console.log('Recording / path:' + JSON.stringify(recordingSettings.path));
+          Sentry.withScope(scope => {
+            scope.setLevel('info');
+            scope.setExtra('recType', recordingSettings.recType);
+            scope.setExtra('path', recordingSettings.path);
+            scope.setFingerprint(['recording', 'recType', recordingSettings.recType]);
+            Sentry.captureMessage('Recording / recType:' + recordingSettings.recType);
+          });
         }
       }
 
