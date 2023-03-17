@@ -1,9 +1,11 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20230316-unstable.1',
-  title: '1.1.20230316-unstable.1',
+  version: '1.1.20230317-unstable.1',
+  title: '1.1.20230317-unstable.1',
   notes: [
+    "修正:20230316のリリースの内部的な問題を修正",
+    "以下は20230316の更新内容です：",
     "改善:琴詠ニアが各種サービス名を読める (#618) by koizuka",
     "改善:数値入力フォームの値更新を確定まで待つ (#235) by berlysia",
     "改善:配信開始時にニコ生ログイン状態なら番組情報取得も行う (#610) by koizuka",
