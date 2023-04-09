@@ -570,6 +570,9 @@ export class SettingsService
   }
 
   optimizeForNiconico(best: OptimizeSettings) {
+    Sentry.addBreadcrumb({
+      category: 'optimizeForNiconico',
+    });
     const MAX_TRY = 4;
 
     for (let retry = 0; retry < MAX_TRY; ++retry) {
@@ -587,7 +590,7 @@ export class SettingsService
             scope.setLevel('info');
             scope.setTag('optimizeForNiconico', 'retry');
             scope.setTag('retry', `${retry}`);
-            scope.setFingerprint(['optimizeForNiconico', 'retry', `${retry}`]);
+            scope.setFingerprint(['optimizeForNiconico', 'retry']);
             Sentry.captureMessage('optimizeForNiconico: リトライで成功')
           });
         } else {
@@ -806,10 +809,9 @@ export class SettingsService
             { channel },
           );
         } else {
+          source.setName(displayName);
           source.updateSettings({ device_id: deviceForm.value, name: displayName });
         }
-
-        source.setName(displayName);
       }
     });
   }
