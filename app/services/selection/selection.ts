@@ -196,7 +196,7 @@ export class SelectionService extends StatefulService<ISelectionState> {
 /**
  * Helper for working with multiple sceneItems
  */
-@ServiceHelper()
+//@ServiceHelper() // mixinでのforeachを効かすため凸れーたなしで
 export class Selection {
   @Inject() private scenesService: ScenesService;
 

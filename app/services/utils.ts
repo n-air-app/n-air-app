@@ -144,7 +144,8 @@ export default class Utils {
 
         // ignore the property already exist
         if (derivedCtor.prototype[name]) return;
-        derivedCtor.prototype[name] = baseCtor.prototype[name];
+        //derivedCtor.prototype[name] = baseCtor.prototype[name];
+        Object.defineProperty(derivedCtor.prototype, name, baseDescriptor);
       });
     });
   }
