@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { remote, ipcRenderer } from 'electron';
 import {
   ProgramSchedules,
@@ -58,7 +59,28 @@ export function isOk<T>(result: WrappedResult<T>): result is SucceededResult<T> 
   return result.ok === true;
 }
 
-export class NotLoggedInError { }
+export class NotLoggedInError {}
+
+type Quality = {
+  bitrate: number;
+  height: number;
+  fps: number;
+};
+
+export function parseMaxQuality(maxQuality: string, fallback: Quality): Quality {
+  try {
+    const match = maxQuality.match(/(\d+)([Mk])bps(\d+)p((\d+)fps)?/);
+
+    return {
+      bitrate: parseInt(match[1], 10) * (match[2] === 'M' ? 1000 : 1),
+      height: parseInt(match[3], 10),
+      fps: parseInt(match[5], 10) || 30,
+    };
+  } catch (e) {
+    console.warn('Failed to parse max quality', maxQuality, e);
+    return fallback;
+  }
+}
 
 export class NicoliveClient {
   static live2BaseURL = 'https://live2.nicovideo.jp';
@@ -108,7 +130,7 @@ export class NicoliveClient {
       console.warn('non-json body', body);
       return {
         ok: false,
-        value: e,
+        value: e as Error,
       };
     }
 
@@ -140,7 +162,7 @@ export class NicoliveClient {
    */
   private async fetchSession(): Promise<string> {
     const { session } = remote.getCurrentWebContents();
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, reject) => {
       session.cookies.get(
         { url: 'https://.nicovideo.jp', name: 'user_session' },
         (err, cookies) => {
@@ -148,8 +170,8 @@ export class NicoliveClient {
           if (cookies.length < 1) return reject(new NotLoggedInError());
           resolve(cookies[0].value);
         },
-      ),
-    );
+      );
+    });
   }
 
   private get(url: string | URL, options: RequestInit = {}): Promise<Response> {
@@ -174,7 +196,7 @@ export class NicoliveClient {
       });
       return NicoliveClient.wrapResult<ProgramSchedules['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -189,7 +211,7 @@ export class NicoliveClient {
       });
       return NicoliveClient.wrapResult<ProgramInfo['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -206,7 +228,7 @@ export class NicoliveClient {
 
       return NicoliveClient.wrapResult<Segment['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -223,7 +245,7 @@ export class NicoliveClient {
 
       return NicoliveClient.wrapResult<Segment['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -241,7 +263,7 @@ export class NicoliveClient {
 
       return NicoliveClient.wrapResult<Extension['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -262,7 +284,7 @@ export class NicoliveClient {
 
       return NicoliveClient.wrapResult<void>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -278,7 +300,7 @@ export class NicoliveClient {
 
       return NicoliveClient.wrapResult<Statistics['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -299,7 +321,7 @@ export class NicoliveClient {
 
       return NicoliveClient.wrapResult<NicoadStatistics['data']>(res);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -318,7 +340,7 @@ export class NicoliveClient {
       );
       return NicoliveClient.wrapResult<Filters['data']>(resp);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -341,7 +363,7 @@ export class NicoliveClient {
       );
       return NicoliveClient.wrapResult<Filters['data']>(resp);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -363,7 +385,7 @@ export class NicoliveClient {
       );
       return NicoliveClient.wrapResult<void>(resp);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
   }
 
@@ -391,7 +413,7 @@ export class NicoliveClient {
         },
       });
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err);
+      return NicoliveClient.wrapFetchError(err as Error);
     }
 
     const body = await res.text();
@@ -405,7 +427,7 @@ export class NicoliveClient {
       console.warn('non-json body', body);
       return {
         ok: false,
-        value: e,
+        value: e as Error,
       };
     }
 
@@ -473,7 +495,7 @@ export class NicoliveClient {
       const response = await fetch(request);
       return NicoliveClient.wrapResult<OnairChannelProgramData>(response);
     } catch (error) {
-      return NicoliveClient.wrapFetchError(error);
+      return NicoliveClient.wrapFetchError(error as Error);
     }
   }
 
@@ -489,7 +511,7 @@ export class NicoliveClient {
       const response = await fetch(new Request(url, { headers }));
       return NicoliveClient.wrapResult<OnairChannelData[]>(response);
     } catch (error) {
-      return NicoliveClient.wrapFetchError(error);
+      return NicoliveClient.wrapFetchError(error as Error);
     }
   }
 
@@ -509,26 +531,14 @@ export class NicoliveClient {
       .then(json => json.data);
   }
 
-  async fetchMaxBitrate(programId: string): Promise<number> {
+  async fetchMaxQuality(programId: string): Promise<Quality> {
+    const fallback: Quality = { bitrate: 192, height: 288, fps: 30 } as const;
     const programInformation = await this.fetchProgram(programId);
     if (!isOk(programInformation)) {
-      return 192;
+      return fallback;
     }
-    switch (programInformation.value.streamSetting.maxQuality) {
-      case '6Mbps720p':
-        return 6000;
-      case '2Mbps450p':
-        return 2000;
-      case '1Mbps450p':
-        return 1000;
-      case '384kbps288p':
-        return 384;
-      case '192kbps288p':
-        return 192;
-      default:
-        // 来ないはず
-        return 192;
-    }
+
+    return parseMaxQuality(programInformation.value.streamSetting.maxQuality, fallback);
   }
 
   /** 番組作成画面を開いて結果を返す */
@@ -542,10 +552,17 @@ export class NicoliveClient {
         nativeWindowOpen: true,
       },
     });
+    Sentry.addBreadcrumb({
+      category: 'createProgram.open',
+    });
     return new Promise<CreateResult>((resolve, _reject) => {
       addClipboardMenu(win);
       win.on('closed', () => resolve(CreateResult.OTHER));
       win.webContents.on('did-navigate', (_event, url) => {
+        Sentry.addBreadcrumb({
+          category: 'createProgram.did-navigate',
+          message: url,
+        });
         if (NicoliveClient.isProgramPage(url)) {
           resolve(CreateResult.CREATED);
           win.close();
@@ -553,6 +570,12 @@ export class NicoliveClient {
           resolve(CreateResult.RESERVED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
+          Sentry.withScope(scope => {
+            scope.setLevel('warning');
+            scope.setExtra('url', url);
+            scope.setFingerprint(['createProgram', 'did-navigate', url]);
+            Sentry.captureMessage('createProgram did-navigate to unexpected URL');
+          });
           resolve(CreateResult.OTHER);
           remote.shell.openExternal(url);
           win.close();
@@ -560,12 +583,38 @@ export class NicoliveClient {
       });
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
-      win.loadURL('https://live.nicovideo.jp/create');
+      const url = 'https://live.nicovideo.jp/create';
+      win.loadURL(url)?.catch(error => {
+        if (error instanceof Error) {
+          Sentry.withScope(scope => {
+            scope.setLevel('warning');
+            scope.setExtra('url', url);
+            scope.setFingerprint(['createProgram', 'loadURL', url]);
+            Sentry.captureException(error);
+          });
+        }
+      });
+    }).then(result => {
+      Sentry.addBreadcrumb({
+        category: 'createProgram.close',
+        message: result,
+      });
+      return result;
     });
   }
 
+  private editProgramWindow: Electron.BrowserWindow = null;
+  private editProgramId = '';
+
   /** 番組編集画面を開いて結果を返す */
   async editProgram(programID: string): Promise<EditResult> {
+    if (this.editProgramWindow) {
+      if (this.editProgramId === programID) {
+        this.editProgramWindow.focus();
+        return EditResult.OTHER;
+      }
+      this.editProgramWindow.close();
+    }
     const win = new BrowserWindow({
       width: 1200,
       height: 900,
@@ -575,14 +624,32 @@ export class NicoliveClient {
         nativeWindowOpen: true,
       },
     });
+    this.editProgramWindow = win;
+    this.editProgramId = programID;
+    Sentry.addBreadcrumb({
+      category: 'editProgram.open',
+      message: programID,
+    });
+
     return new Promise<EditResult>((resolve, _reject) => {
       addClipboardMenu(win);
-      win.on('closed', () => resolve(EditResult.OTHER));
+      win.on('closed', () => {
+        this.editProgramWindow = null;
+        this.editProgramId = '';
+        resolve(EditResult.OTHER);
+      });
       win.webContents.on('did-navigate', (_event, url) => {
         if (NicoliveClient.isProgramPage(url) || NicoliveClient.isMyPage(url)) {
           resolve(EditResult.EDITED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
+          Sentry.withScope(scope => {
+            scope.setLevel('warning');
+            scope.setExtra('url', url);
+            scope.setTag('programID', programID);
+            scope.setFingerprint(['editProgram', 'did-navigate', url]);
+            Sentry.captureMessage('editProgram did-navigate to unexpected URL');
+          });
           resolve(EditResult.OTHER);
           remote.shell.openExternal(url);
           win.close();
@@ -590,7 +657,24 @@ export class NicoliveClient {
       });
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
-      win.loadURL(`https://live.nicovideo.jp/edit/${programID}`);
+      const url = `https://live.nicovideo.jp/edit/${programID}`;
+      win.loadURL(url)?.catch(error => {
+        if (error instanceof Error) {
+          Sentry.withScope(scope => {
+            scope.setLevel('warning');
+            scope.setExtra('url', url);
+            scope.setTag('programID', programID);
+            scope.setFingerprint(['editProgram', 'loadURL', url]);
+            Sentry.captureException(error);
+          });
+        }
+      });
+    }).then(result => {
+      Sentry.addBreadcrumb({
+        category: 'editProgram.close',
+        message: result,
+      });
+      return result;
     });
   }
 }

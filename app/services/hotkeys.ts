@@ -1,6 +1,6 @@
 import { StreamingService } from 'services/streaming';
 import { ScenesService } from 'services/scenes';
-import { SourcesService } from 'services/sources';
+import { isNoAudioPropertiesManagerType, SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
 import { KeyListenerService } from 'services/key-listener';
 import { StatefulService, mutation, ServiceHelper, Inject } from './core';
@@ -159,29 +159,29 @@ const HOTKEY_ACTIONS: Dictionary<IHotkeyAction[]> = {
       name: 'TOGGLE_MUTE',
       description: () => $t('hotkeys.mute'),
       down: sourceId => getSourcesService().setMuted(sourceId, true),
-      isActive: sourceId => getSourcesService().getSource(sourceId).muted,
-      shouldApply: sourceId => getSourcesService().getSource(sourceId).audio,
+      isActive: sourceId => getSourcesService().getSource(sourceId)?.muted,
+      shouldApply: sourceId => getSourcesService().getSource(sourceId)?.audio,
     },
     {
       name: 'TOGGLE_UNMUTE',
       description: () => $t('hotkeys.unmute'),
       down: sourceId => getSourcesService().setMuted(sourceId, false),
-      isActive: sourceId => !getSourcesService().getSource(sourceId).muted,
-      shouldApply: sourceId => getSourcesService().getSource(sourceId).audio,
+      isActive: sourceId => !getSourcesService().getSource(sourceId)?.muted,
+      shouldApply: sourceId => getSourcesService().getSource(sourceId)?.audio,
     },
     {
       name: 'PUSH_TO_MUTE',
       description: () => $t('hotkeys.pushToMute'),
       down: sourceId => getSourcesService().setMuted(sourceId, true),
       up: sourceId => getSourcesService().setMuted(sourceId, false),
-      shouldApply: sourceId => getSourcesService().getSource(sourceId).audio,
+      shouldApply: sourceId => getSourcesService().getSource(sourceId)?.audio,
     },
     {
       name: 'PUSH_TO_TALK',
       description: () => $t('hotkeys.pushToTalk'),
       down: sourceId => getSourcesService().setMuted(sourceId, false),
       up: sourceId => getSourcesService().setMuted(sourceId, true),
-      shouldApply: sourceId => getSourcesService().getSource(sourceId).audio,
+      shouldApply: sourceId => getSourcesService().getSource(sourceId)?.audio,
     },
   ],
 };
@@ -312,6 +312,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
   getHotkeysSet(): IHotkeysSet {
     const sourcesHotkeys: Dictionary<Hotkey[]> = {};
     this.sourcesService.getSources().forEach(source => {
+      if (isNoAudioPropertiesManagerType(source.getPropertiesManagerType())) return;
       const sourceHotkeys = this.getSourceHotkeys(source.sourceId);
       if (sourceHotkeys.length) sourcesHotkeys[source.sourceId] = sourceHotkeys;
     });

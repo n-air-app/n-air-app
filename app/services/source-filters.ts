@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { Service } from './core/service';
 import {
   TObsFormData,
@@ -15,6 +16,7 @@ import * as obs from '../../obs-api';
 import namingHelpers from '../util/NamingHelpers';
 import { $t } from 'services/i18n';
 import { EOrderMovement } from 'obs-studio-node';
+import { TcpServerService } from './api/tcp-server';
 
 export type TSourceFilterType =
   | 'mask_filter'
@@ -84,7 +86,7 @@ export class SourceFiltersService extends Service {
     const typesList = this.getTypesList();
     const types: ISourceFilterType[] = [];
 
-    obs.FilterFactory.types().forEach((type: TSourceFilterType) => {
+    obs.FilterFactory.types().forEach(type => {
       const listItem = typesList.find(item => item.value === type);
       if (!listItem) {
         console.warn(`filter ${type} is not found in available types`);
@@ -96,7 +98,7 @@ export class SourceFiltersService extends Service {
         audio: !!(obs.ESourceOutputFlags.Audio & flags),
         video: !!(obs.ESourceOutputFlags.Video & flags),
         async: !!(obs.ESourceOutputFlags.Async & flags),
-        type,
+        type: type as TSourceFilterType,
         description,
       });
     });
@@ -173,13 +175,13 @@ export class SourceFiltersService extends Service {
   getFilters(sourceId: string): ISourceFilter[] {
     return this.sourcesService
       .getSource(sourceId)
-      .getObsInput()
+      ?.getObsInput()
       .filters.map(obsFilter => ({
         visible: obsFilter.enabled,
         name: obsFilter.name,
         type: obsFilter.id as TSourceFilterType,
         settings: obsFilter.settings,
-      }));
+      })) || [];
   }
 
   setVisibility(sourceId: string, filterName: string, visible: boolean) {
@@ -208,10 +210,20 @@ export class SourceFiltersService extends Service {
 
   getPropertiesFormData(sourceId: string, filterName: string): TObsFormData {
     if (!filterName) return [];
-    const formData = getPropertiesFormData(this.getObsFilter(sourceId, filterName));
+    const filter = this.getObsFilter(sourceId, filterName);
+    if (!filter) {
+      Sentry.withScope(scope => {
+        scope.setLevel('error');
+        scope.setExtra('sourceId', sourceId);
+        scope.setExtra('filterName', filterName);
+        Sentry.captureException(new Error('Filter not found'));
+      });
+      return [];
+    }
+    const formData = getPropertiesFormData(filter);
 
     // サイドチェーンのトリガーにする音声ソースがIDしかもらえないので、名前に変換する
-    formData.forEach((input: any) => {
+    formData?.forEach((input: any) => {
       if (input.name === 'sidechain_source') {
         (input as IObsListInput<string>).options.forEach(option => {
           if (option.value === 'none') return;

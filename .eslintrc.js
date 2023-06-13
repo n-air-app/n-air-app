@@ -8,7 +8,7 @@ module.exports = {
     es6: true,
     'jest/globals': true,
   },
-  extends: ['plugin:vue/essential', 'airbnb-base', 'prettier'],
+  extends: ['plugin:vue/essential', 'airbnb-base', 'eslint:recommended', 'prettier'],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
@@ -24,6 +24,8 @@ module.exports = {
     'brace-style': OFF,
     'generator-star-spacing': OFF,
     indent: OFF,
+
+    'vue/multi-word-component-names': OFF,
 
     // "variable-name": [ERROR, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"], // We do imports where our files are suffixed .vue and this rule would expect we import as e.g. MainVue
     'import-name': OFF,
@@ -110,4 +112,14 @@ module.exports = {
 
     'no-use-before-declare': OFF,
   },
+  // https://teratail.com/questions/295406
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        'no-undef': OFF,
+        'default-param-last': OFF,
+      },
+    },
+  ],
 };

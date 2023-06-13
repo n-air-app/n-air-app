@@ -307,6 +307,9 @@
       "RecMuxerCustom": {
         "name": "Muxerのカスタム設定"
       },
+      "RecSplitFile": {
+        "name": "自動ファイル分割"
+      },
       "MuxerCustom": {
         "name": "@:settings.Output.Recording.RecMuxerCustom.name"
       },
@@ -448,7 +451,7 @@
         "800x450": "通常配信用 (800x450)",
         "512x288": "低画質配信用 (512x288)",
         "640x360": null,
-        "1920x1080": null,
+        "1920x1080": "フルHD配信用(1920x1080)",
         "1536x864": null,
         "1440x810": null,
         "1152x648": null,
@@ -519,6 +522,8 @@
         "Partial": null,
         "Full": null
       },
+      "SdrWhiteLevel": { "name": "SDR ホワイトレベル" },
+      "HdrNominalPeakLevel": { "name": "HDR 公称ピークレベル" },
       "ForceGPUAsRenderDevice": {
         "name": "描画デバイスにGPUを強制的に指定する"
       }
@@ -531,6 +536,9 @@
       },
       "DisableAudioDucking": {
         "name": "Windowsの自動音量調整機能を無効にする"
+      },
+      "LowLatencyAudioBuffering": {
+        "name": "低遅延オーディオバッファリングモード（Decklink/NDI 出力用）、再起動が必要です"
       }
     },
     "Recording": {
@@ -604,6 +612,12 @@
       }
     }
   },
+  "Comment": {
+    "name": "コメント設定"
+  },
+  "SpeechEngine": {
+    "name": "音声エンジン"
+  },
   "listPlaceholder": "選択してください",
   "resolutionPlaceholder": "選択するか、値を入力してください",
   "addFiles": "ファイルを追加する",
@@ -648,5 +662,10 @@
     "activate": "コンパクトモード自動化設定をONにする",
     "setting": "配信中に自動でコンパクトモードに切り替える",
     "showDialog": "コンパクトモード自動化設定ダイアログを表示する"
+  },
+  "synthId": {
+    "webSpeech": "Windowsの音声合成",
+    "nVoice": "N Voice 琴詠ニア",
+    "ignore": "読み上げない"
   }
 }

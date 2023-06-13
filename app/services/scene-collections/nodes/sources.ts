@@ -1,6 +1,11 @@
 import { Node } from './node';
 import { HotkeysNode } from './hotkeys';
-import { SourcesService, TSourceType, TPropertiesManager } from 'services/sources';
+import {
+  SourcesService,
+  TSourceType,
+  TPropertiesManager,
+  isNoAudioPropertiesManagerType,
+} from 'services/sources';
 import { FontLibraryService } from 'services/font-library';
 import { AudioService } from 'services/audio';
 import { Inject } from '../../core/injector';
@@ -79,7 +84,7 @@ export class SourcesNode extends Node<ISchema, {}> {
       return new Promise(resolve => {
         const hotkeys = new HotkeysNode();
 
-        return hotkeys.save({ sourceId: source.sourceId }).then(() => {
+        hotkeys.save({ sourceId: source.sourceId }).then(() => {
           const audioSource = this.audioService.getSource(source.sourceId);
 
           const obsInput = source.getObsInput();
@@ -230,7 +235,9 @@ export class SourcesNode extends Node<ISchema, {}> {
             enabled: filter.enabled === void 0 ? true : filter.enabled,
           };
         }),
-        syncOffset: { sec: 0, nsec: 0 }, // streamlabs v0.16.3 にはないが無いとコンパイルエラーが出る
+        syncOffset: { sec: 0, nsec: 0 },
+        deinterlaceMode: source.deinterlaceMode || obs.EDeinterlaceMode.Disable,
+        deinterlaceFieldOrder: source.deinterlaceFieldOrder || obs.EDeinterlaceFieldOrder.Top,
       };
     });
 
@@ -260,7 +267,9 @@ export class SourcesNode extends Node<ISchema, {}> {
         }
       }
 
-      if (source.audioMixers) {
+      const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager);
+
+      if (useAudio && source.audioMixers) {
         this.audioService
           .getSource(sourceInfo.id)
           .setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);

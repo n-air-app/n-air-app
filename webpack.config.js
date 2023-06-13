@@ -1,10 +1,10 @@
-/* eslint-disable prettier/prettier */
 const { VueLoaderPlugin } = require('vue-loader');
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const path = require('path');
-const TerserPlugin = require('terser-webpack-plugin');
 
 const plugins = [];
 
@@ -23,6 +23,7 @@ plugins.push(
 // plugins.push(new CleanWebpackPlugin());
 
 plugins.push(new VueLoaderPlugin());
+plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'] }));
 
 module.exports = {
   entry: {
@@ -34,6 +35,13 @@ module.exports = {
     filename: '[name].js',
     publicPath: '/bundles/',
   },
+
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+    },
+  }, // if problem, clean node_modules/.cache
 
   devServer: {
     static: {
@@ -59,12 +67,12 @@ module.exports = {
     },
   },
 
-  devtool: 'cheap-module-source-map', // source-map',
+  devtool: 'source-map',
 
   target: 'electron-renderer',
 
   resolve: {
-    extensions: ['.js', '.ts'],
+    extensions: ['.js', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'app'), 'node_modules'],
   },
 
@@ -75,12 +83,13 @@ module.exports = {
     // Not actually a native addons, but for one reason or another
     // we don't want them compiled in our webpack bundle.
     'aws-sdk': 'require("aws-sdk")',
-    'asar': 'require("asar")',
-    'backtrace-node': 'require("backtrace-node")',
+    asar: 'require("asar")',
     'node-fontinfo': 'require("node-fontinfo")',
     'socket.io-client': 'require("socket.io-client")',
-    'rimraf': 'require("rimraf")',
-    'request': 'require("request")',
+    rimraf: 'require("rimraf")',
+
+    'utf-8-validate': 'require("utf-8-validate")',
+    bufferutil: 'require("bufferutil")',
   },
 
   module: {
@@ -102,9 +111,9 @@ module.exports = {
         exclude: /node_modules|vue\/src/,
       },
       {
-        test: /\.ts$/,
-        enforce: 'pre',
-        loader: 'eslint-loader',
+        test: /\.tsx$/,
+        exclude: /node_modules|vue\/src/,
+        use: ['babel-loader', { loader: 'ts-loader' }],
       },
       {
         test: /\.js$/,
@@ -121,6 +130,14 @@ module.exports = {
               importLoaders: 1,
             },
           },
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [require('autoprefixer')({ grid: true })],
+              },
+            },
+          },
         ],
       },
       {
@@ -131,6 +148,14 @@ module.exports = {
             loader: 'css-loader',
             options: {
               importLoaders: 1,
+            },
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [require('autoprefixer')({ grid: true })],
+              },
             },
           },
           'less-loader',

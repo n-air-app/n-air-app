@@ -13,8 +13,8 @@ import { WindowsService } from './services/windows';
 import { AppService } from './services/app';
 import Utils from './services/utils';
 import electron from 'electron';
-import * as Sentry from '@sentry/browser';
-import * as Integrations from '@sentry/integrations';
+import * as Sentry from '@sentry/electron/renderer';
+import { init as sentryVueInit } from '@sentry/vue';
 import VTooltip from 'v-tooltip';
 import Toasted from 'vue-toasted';
 import VueI18n from 'vue-i18n';
@@ -112,31 +112,7 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !electron.remote.proc
     dsn: sentryDsn,
     release: nAirVersion,
     sampleRate: /* isPreview ? */ 1.0 /* : 0.1 */,
-    beforeSend: event => {
-      // Because our URLs are local files and not publicly
-      // accessible URLs, we simply truncate and send only
-      // the filename.  Unfortunately sentry's electron support
-      // isn't that great, so we do this hack.
-      // Some discussion here: https://github.com/getsentry/sentry/issues/2708
-      const normalize = (filename: string) => {
-        const splitArray = filename.split('/');
-        return splitArray[splitArray.length - 1];
-      };
-
-      if (event.exception && event.exception.values[0].stacktrace) {
-        event.exception.values[0].stacktrace.frames.forEach(frame => {
-          frame.filename = /* 'app:///' + */ normalize(frame.filename);
-        });
-      }
-
-      if (event.request) {
-        event.request.url = normalize(event.request.url);
-      }
-
-      return event;
-    },
-    integrations: [new Integrations.Vue({ Vue })],
-  });
+  }, sentryVueInit);
 
   const oldConsoleError = console.error;
 
@@ -149,7 +125,7 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !electron.remote.proc
       }
 
       scope.setExtra('console-args', JSON.stringify(params, null, 2));
-      Sentry.captureMessage(msg, Sentry.Severity.Error);
+      Sentry.captureMessage(msg, 'error');
     });
   };
 }
@@ -181,16 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Utils.isChildWindow()) {
         ipcRenderer.on('closeWindow', () => windowsService.closeChildWindow());
       }
-
-      /* TODO
-      if (usingSentry) {
-        const userService = getResource<UserService>('UserService');
-
-        const ctx = userService.getSentryContext();
-        if (ctx) setSentryContext(ctx);
-        userService.sentryContext.subscribe(setSentryContext);
-      }
-      */
     }
 
     // setup VueI18n plugin
@@ -239,6 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return h(OneOffWindow);
       },
+    });
+
+    Sentry.configureScope(scope => {
+      scope.setTag('windowId', windowId);
     });
 
     setupGlobalContextMenuForEditableElement();

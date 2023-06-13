@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { IObsInput, IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { $t } from 'services/i18n';
 import { ISettingsSubCategory } from './settings-api';
@@ -506,9 +507,14 @@ class OptKeyProperty {
 
   value(v: any): string {
     if (v === undefined) {
-      console.error(
-        `value(undefined): ${i18nPath('settings', this.category, this.subCategory, this.setting)}`,
-      );
+      const path = i18nPath('settings', this.category, this.subCategory, this.setting);
+      Sentry.withScope(scope => {
+        scope.setLevel('info');
+        scope.setTag('optimization.key', this.key);
+        scope.setTag('settings.path', path);
+        scope.setFingerprint(['OptKeyProperty', 'value(undefined)']);
+        Sentry.captureMessage(`OptKeyProperty: value(undefined): ${path}`);
+      });
       return;
     }
     if (this.lookupValueName) {
@@ -652,7 +658,7 @@ export interface ISettingsAccessor {
     category: string,
     setting: string,
   ): TObsFormData[number] | undefined;
-  findSettingValue(settings: ISettingsSubCategory[], category: string, setting: string): TObsValue;
+  findSettingValue(settings: ISettingsSubCategory[], category: string, setting: string): TObsValue | undefined;
   setSettings(categoryName: string, settingsData: ISettingsSubCategory[]): void;
 }
 

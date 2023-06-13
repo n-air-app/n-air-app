@@ -7,7 +7,7 @@ import { sleep } from '../sleep';
 
 // save names of all running tests to use them in the retrying mechanism
 const pendingTests: string[] = [];
-export const test: TestInterface<ITestContext> = new Proxy(avaTest, {
+export const test: TestInterface<ITestContext> = new Proxy(avaTest as TestInterface<ITestContext>, {
   apply: (target, thisArg, args) => {
     const testName = args[0];
     pendingTests.push(testName);
@@ -36,12 +36,10 @@ async function focusWindow(t: any, regex: RegExp) {
   return false;
 }
 
-
 // Focuses the main window
 export async function focusMain(t: any) {
   await focusWindow(t, /windowId=main$/);
 }
-
 
 // Focuses the child window
 export async function focusChild(t: any) {
@@ -49,7 +47,7 @@ export async function focusChild(t: any) {
 }
 
 export async function focusSourcePropertiesWindow(t: any) {
-  while (!await focusWindow(t, /windowId=sourcePropertiesWindow/)) {
+  while (!(await focusWindow(t, /windowId=sourcePropertiesWindow/))) {
     await sleep(500);
   }
 }
@@ -134,7 +132,7 @@ export function useSpectron(options: ITestRunnerOptions = {}) {
     // Wait up to 2 seconds before giving up looking for an element.
     // This will slightly slow down negative assertions, but makes
     // the tests much more stable, especially on slow systems.
-    t.context.app.client.timeouts('implicit', 2000);
+    t.context.app.client.timeouts('implicit', 2000); // CI環境で問題が出るので試しに時間追加>ローカルテストで落ちるので戻してみる
 
     // await sleep(100000);
 

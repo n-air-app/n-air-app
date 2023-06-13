@@ -20,6 +20,7 @@ import { ScenesService } from 'services/scenes';
 import { SelectionService } from 'services/selection';
 import uuid from 'uuid/v4';
 import { SceneSourceNode } from './nodes/overlays/scene';
+import { NVoiceCharacterNode } from './nodes/overlays/nvoice-character';
 
 const NODE_TYPES = {
   RootNode,
@@ -29,6 +30,7 @@ const NODE_TYPES = {
   TextNode,
   WebcamNode,
   VideoNode,
+  NVoiceCharacterNode,
   TransitionNode,
   SceneSourceNode,
 };
@@ -51,7 +53,7 @@ export class OverlaysPersistenceService extends Service {
     const overlayPath = path.join(os.tmpdir(), overlayFilename);
     const fileStream = fs.createWriteStream(overlayPath);
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       https.get(url).on('response', response => {
         const totalSize = parseInt(response.headers['content-length'], 10);
         let downloaded = 0;
@@ -112,7 +114,7 @@ export class OverlaysPersistenceService extends Service {
     const output = fs.createWriteStream(overlayFilePath);
     const archive = archiver('zip', { zlib: { level: 9 } });
 
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       output.on('close', (err: any) => {
         resolve();
       });

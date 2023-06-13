@@ -17,7 +17,9 @@
     "getuserkey",
     "Informations",
     "injectee",
+    "Inspectable",
     "keylistener",
+    "KOTOYOMI",
     "libuiohook",
     "linebreak",
     "llhp",
@@ -33,6 +35,7 @@
     "nicoru",
     "nicovideo",
     "NVENC",
+    "nvoice",
     "Onair",
     "onairs",
     "onboarded",
@@ -78,5 +81,60 @@
     "yomiage"
   ],
   "files.eol": "\n",
-  "typescript.format.enable": true
+  "typescript.format.enable": true,
+  "json.schemas": [
+    {
+      "fileMatch": ["**/replace_rules.json"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "elements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "note": {
+                  "type": "string"
+                },
+                "onlyFor": {
+                  "enum": ["webSpeech", "nVoice"]
+                },
+                "replacement": {
+                  "type": "string"
+                }
+              },
+              "required": ["replacement"],
+              "oneOf": [
+                {
+                  "properties": {
+                    "regularExpression": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["regularExpression"]
+                },
+                {
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["text"]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.fixAll.stylelint": true
+  },
+  "css.validate": false,
+  "less.validate": false,
+  "stylelint.validate": ["css", "less", "vue"]
 }

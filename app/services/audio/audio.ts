@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { Subject, Subscription, Observable } from 'rxjs';
 import { mutation, StatefulService, ServiceHelper, InitAfter, Inject } from 'services/core';
-import { SourcesService, ISource, Source } from 'services/sources';
+import { SourcesService, ISource, Source, isNoAudioPropertiesManagerType } from 'services/sources';
 import { ScenesService } from 'services/scenes';
 import * as obs from '../../../obs-api';
 import Utils from 'services/utils';
@@ -58,18 +58,33 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   protected init() {
     this.sourcesService.sourceAdded.subscribe(sourceModel => {
       const source = this.sourcesService.getSource(sourceModel.sourceId);
-      if (!source.audio) return;
+      const useAudio =
+        source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
+      if (!useAudio) return;
       this.createAudioSource(source);
     });
 
     this.sourcesService.sourceUpdated.subscribe(source => {
       const audioSource = this.getSource(source.sourceId);
 
-      if (!audioSource && source.audio) {
+      const obsSource = this.sourcesService.getSource(source.sourceId);
+      const formData = obsSource
+        .getPropertiesFormData()
+        .find(data => data.name === 'reroute_audio');
+      if (formData) {
+        this.UPDATE_AUDIO_SOURCE(source.sourceId, {
+          isControlledViaObs: !!formData.value,
+        });
+      }
+
+      const useAudio =
+        source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
+
+      if (!audioSource && useAudio) {
         this.createAudioSource(this.sourcesService.getSource(source.sourceId));
       }
 
-      if (audioSource && !source.audio) {
+      if (audioSource && !useAudio) {
         this.removeAudioSource(source.sourceId);
       }
     });
@@ -153,6 +168,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       muted: obsSource.muted,
       resourceId: 'AudioSource' + JSON.stringify([sourceId]),
       mixerHidden: false,
+      isControlledViaObs:
+        obsSource.settings?.reroute_audio == null ? true : obsSource.settings?.reroute_audio,
     };
   }
 
@@ -161,20 +178,18 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const obsAudioInput = obs.InputFactory.create('wasapi_input_capture', uuid());
     const obsAudioOutput = obs.InputFactory.create('wasapi_output_capture', uuid());
 
-    (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach(
-      (item: { name: string; value: string }) => {
-        devices.push({
-          id: item.value,
-          description: item.name,
-          type: 'input',
-        });
-      },
-    );
+    (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach(item => {
+      devices.push({
+        id: item.value as string,
+        description: item.name,
+        type: 'input',
+      });
+    });
 
     (obsAudioOutput.properties.get('device_id') as obs.IListProperty).details.items.forEach(
-      (item: { name: string; value: string }) => {
+      item => {
         devices.push({
-          id: item.value,
+          id: item.value as string,
           description: item.name,
           type: 'output',
         });
@@ -191,8 +206,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       componentName: 'AdvancedAudio',
       title: $t('audio.advancedAudioSettings'),
       size: {
-        width: 720,
-        height: 600,
+        width: 840,
+        height: 500,
       },
     });
   }
@@ -294,9 +309,11 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   private removeAudioSource(sourceId: string) {
-    this.sourceData[sourceId].volmeter.removeCallback(this.sourceData[sourceId].callbackInfo);
-    delete this.sourceData[sourceId];
-    this.REMOVE_AUDIO_SOURCE(sourceId);
+    if (this.sourceData[sourceId]) {
+      this.sourceData[sourceId].volmeter.removeCallback(this.sourceData[sourceId].callbackInfo);
+      delete this.sourceData[sourceId];
+      this.REMOVE_AUDIO_SOURCE(sourceId);
+    }
   }
 
   @mutation()
@@ -327,6 +344,7 @@ export class AudioSource implements IAudioSourceApi {
   syncOffset: number;
   resourceId: string;
   mixerHidden: boolean;
+  isControlledViaObs: boolean;
 
   @Inject()
   private audioService: AudioService;

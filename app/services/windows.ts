@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 // This singleton class provides a renderer-space API
 // for spawning various child windows.
 import { cloneDeep } from 'lodash';
@@ -31,6 +32,8 @@ import Util from 'services/utils';
 import { Subject } from 'rxjs';
 import ExecuteInCurrentWindow from '../util/execute-in-current-window';
 
+import BrowserSourceInteraction from 'components/windows/BrowserSourceInteraction';
+
 const { ipcRenderer, remote } = electron;
 const BrowserWindow = remote.BrowserWindow;
 const uuid = window['require']('uuid/v4');
@@ -61,6 +64,7 @@ export function getComponents() {
     NicoliveProgramSelector,
     Informations,
     AutoCompactConfirmDialog,
+    BrowserSourceInteraction,
   };
 }
 
@@ -147,6 +151,11 @@ export class WindowsService extends StatefulService<IWindowsState> {
   }
 
   showWindow(options: Partial<IWindowOptions>) {
+    Sentry.addBreadcrumb({
+      category: 'showWindow',
+      message: options.componentName,
+    });
+
     // Don't center the window if it's the same component
     // This prevents "snapping" behavior when navigating settings
     if (options.componentName !== this.state.child.componentName) options.center = true;
@@ -197,8 +206,19 @@ export class WindowsService extends StatefulService<IWindowsState> {
    * already exists, this function will focus the existing window instead.
    * @return the window id of the created window
    */
-  createOneOffWindow(options: Partial<IWindowOptions & { limitMinimumSize?: boolean }>, windowId?: string): string {
+  createOneOffWindow(
+    options: Partial<IWindowOptions & { limitMinimumSize?: boolean }>,
+    windowId?: string,
+  ): string {
     windowId = windowId || uuid();
+
+    Sentry.addBreadcrumb({
+      category: 'createOneOffWindow',
+      message: options.componentName,
+      data: {
+        windowId,
+      },
+    });
 
     if (this.windows[windowId]) {
       this.windows[windowId].restore();
@@ -222,6 +242,14 @@ export class WindowsService extends StatefulService<IWindowsState> {
       this.windowDestroyed.next(windowId);
       delete this.windows[windowId];
       this.DELETE_ONE_OFF_WINDOW(windowId);
+
+      Sentry.addBreadcrumb({
+        category: 'createOneOffWindow',
+        message: 'closed',
+        data: {
+          windowId,
+        },
+      });
     });
 
     this.updateScaleFactor(windowId);

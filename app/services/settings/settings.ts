@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { StatefulService, mutation } from 'services/core/stateful-service';
 import {
@@ -166,6 +167,10 @@ export class SettingsService
 
   getCategories(): string[] {
     let categories: string[] = obs.NodeObs.OBS_settings_getListCategories();
+
+    if (this.userService.isLoggedIn()) {
+      categories = categories.concat(['Comment', 'SpeechEngine']);
+    }
 
     if (Utils.isDevMode()) {
       categories = categories.concat('Developer');
@@ -543,6 +548,8 @@ export class SettingsService
 
   diffOptimizedSettings(options: {
     bitrate: number;
+    height: number;
+    fps: number;
     useHardwareEncoder?: boolean;
   }): OptimizedSettings {
     const accessor = new SettingsKeyAccessor(this);
@@ -563,6 +570,9 @@ export class SettingsService
   }
 
   optimizeForNiconico(best: OptimizeSettings) {
+    Sentry.addBreadcrumb({
+      category: 'optimizeForNiconico',
+    });
     const MAX_TRY = 4;
 
     for (let retry = 0; retry < MAX_TRY; ++retry) {
@@ -576,19 +586,39 @@ export class SettingsService
       if (delta.length === 0) {
         // send to Sentry
         if (retry > 0) {
-          console.error(`optimizeForNiconico: リトライ ${retry} 回で救済`);
+          Sentry.withScope(scope => {
+            scope.setLevel('info');
+            scope.setTag('optimizeForNiconico', 'retry');
+            scope.setTag('retry', `${retry}`);
+            scope.setFingerprint(['optimizeForNiconico', 'retry']);
+            Sentry.captureMessage('optimizeForNiconico: リトライで成功')
+          });
         } else {
-          console.error('optimizeForNiconico: 一発で成功');
+          Sentry.withScope(scope => {
+            scope.setLevel('info');
+            scope.setTag('optimizeForNiconico', 'success');
+            scope.setFingerprint(['optimizeForNiconico', 'success']);
+            Sentry.captureMessage('optimizeForNiconico: 一発で成功')
+          });
         }
         return;
       }
-      console.info(
-        `optimizeForNiconico: #${retry}: optimization setting is not set perfectly: `,
-        JSON.stringify(delta),
-      );
+      Sentry.withScope(scope => {
+        scope.setLevel('warning');
+        scope.setTag('optimizeForNiconico', 'partial');
+        scope.setTag('retry', `${retry}`);
+        scope.setFingerprint(['optimizeForNiconico', 'partial']);
+        scope.setExtra('delta', delta);
+        Sentry.captureMessage(`optimizeForNiconico: optimization setting is not set perfectly`);
+      });
     }
     // send to Sentry
-    console.error('optimizeForNiconico: 最適化リトライ満了したが設定できなかった');
+    Sentry.withScope(scope => {
+      scope.setLevel('error');
+      scope.setTag('optimizeForNiconico', 'failed');
+      scope.setFingerprint(['optimizeForNiconico', 'failed']);
+      Sentry.captureMessage('optimizeForNiconico: 最適化リトライ満了したが設定できなかった');
+    });
   }
 
   private findSubCategory(
@@ -762,15 +792,13 @@ export class SettingsService
     settingsData[0].parameters.forEach((deviceForm, ind) => {
       const channel = ind + 1;
       const isOutput = [E_AUDIO_CHANNELS.OUTPUT_1, E_AUDIO_CHANNELS.OUTPUT_2].includes(channel);
+      const device = audioDevices.find(device => device.id === deviceForm.value);
       const source = this.sourcesService.getSources().find(source => source.channel === channel);
 
       if (source && deviceForm.value === null) {
-        if (deviceForm.value === null) {
-          this.sourcesService.removeSource(source.sourceId);
-          return;
-        }
-      } else if (deviceForm.value !== null) {
-        const device = audioDevices.find(device => device.id === deviceForm.value);
+        this.sourcesService.removeSource(source.sourceId);
+        return;
+      } else if (device && deviceForm.value !== null) {
         const displayName = device.id === 'default' ? deviceForm.name : device.description;
 
         if (!source) {

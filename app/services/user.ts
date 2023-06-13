@@ -13,7 +13,7 @@ import {
   IPlatformService,
   IStreamingSetting,
 } from './platforms';
-import * as Sentry from '@sentry/browser';
+import * as Sentry from '@sentry/vue';
 import { AppService } from 'services/app';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { Subject, Observable, merge } from 'rxjs';
@@ -100,6 +100,9 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
           this.LOGOUT();
           this.userLogout.next();
         }
+      }).catch((e) => {
+        // offline や Internal Server Error などのときなので記録するだけ
+        console.warn('validateLogin: error=' + JSON.stringify(e));
       });
     }
 
@@ -240,7 +243,17 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
       },
     });
 
+    Sentry.addBreadcrumb({
+      category: 'authWindow.open',
+      message: platform,
+    });
+
     authWindow.webContents.on('did-navigate', async (e, url) => {
+      Sentry.addBreadcrumb({
+        category: 'authWindow.did-navigate',
+        message: url,
+      });
+
       const parsed = this.parseAuthFromUrl(url);
       console.log('parsed = ' + JSON.stringify(parsed)); // DEBUG
 
@@ -257,13 +270,26 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     });
 
     authWindow.once('close', () => {
+      Sentry.addBreadcrumb({
+        category: 'authWindow.close',
+        message: platform,
+      });
       onAuthClose();
     });
 
     addClipboardMenu(authWindow);
 
     authWindow.setMenu(null);
-    authWindow.loadURL(service.authUrl);
+    authWindow.loadURL(service.authUrl).catch(error => {
+      if (error instanceof Error) {
+        Sentry.withScope(scope => {
+          scope.setLevel('warning');
+          scope.setExtra('url', service.authUrl);
+          scope.setFingerprint(['startAuth', 'loadURL', service.authUrl]);
+          Sentry.captureException(error);
+        });
+      }
+    });
   }
 
   /**

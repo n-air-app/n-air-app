@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { uniq } from 'lodash';
 import electron from 'electron';
 import { mutation, StatefulService, ServiceHelper } from 'services/core';
@@ -12,6 +13,9 @@ import {
   ISceneItemSettings,
   ISceneItemNode,
   IPartialTransform,
+  EScaleType,
+  EBlendingMode,
+  EBlendingMethod,
 } from 'services/scenes';
 import { $t } from 'services/i18n';
 import { Inject } from '../core/injector';
@@ -87,6 +91,13 @@ export class SelectionService extends StatefulService<ISelectionState> {
   rotate: (deg: number) => void;
   setContentCrop: () => void;
 
+  isScaleFilterSelected: (filter: EScaleType) => boolean;
+  isBlendingModeSelected: (mode: EBlendingMode) => boolean;
+  isBlendingMethodSelected: (method: EBlendingMethod) => boolean;
+  setScaleFilter: (filter: EScaleType) => void;
+  setBlendingMode: (mode: EBlendingMode) => void;
+  setBlendingMethod: (method: EBlendingMethod) => void;
+
   // SCENE NODES METHODS
   placeAfter: (sceneNodeId: string) => void;
   placeBefore: (sceneNodeId: string) => void;
@@ -94,7 +105,9 @@ export class SelectionService extends StatefulService<ISelectionState> {
 
   @shortcut('Delete')
   remove() {
-    const name = this.getLastSelected().name;
+    const last = this.getLastSelected();
+    if (!last) return;
+    const name = last.name;
     electron.remote.dialog
       .showMessageBox(electron.remote.getCurrentWindow(), {
         type: 'warning',
@@ -134,6 +147,11 @@ export class SelectionService extends StatefulService<ISelectionState> {
     this.getSelection().select.call(this, items);
 
     const scene = this.getScene();
+    if (!scene) {
+      Sentry.captureMessage('Selection.select: no active scene', 'warning');
+      return;
+    }
+
     const activeObsIds = this.getItems().map(sceneItem => sceneItem.obsSceneItemId);
 
     // tell OBS which sceneItems are selected
@@ -279,6 +297,21 @@ export class Selection {
    */
   isSceneItem(): boolean {
     return this.getSize() === 1 && this.getNodes()[0].isItem();
+  }
+
+  isScaleFilterSelected(filter: EScaleType): boolean {
+    const items = this.getItems().filter(item => item.scaleFilter === filter);
+    return items.length > 0;
+  }
+
+  isBlendingModeSelected(mode: EBlendingMode): boolean {
+    const items = this.getItems().filter(item => item.blendingMode === mode);
+    return items.length > 0;
+  }
+
+  isBlendingMethodSelected(method: EBlendingMethod): boolean {
+    const items = this.getItems().filter(item => item.blendingMethod === method);
+    return items.length > 0;
   }
 
   /**
@@ -522,6 +555,18 @@ export class Selection {
 
   setSettings(settings: Partial<ISceneItemSettings>) {
     this.getItems().forEach(item => item.setSettings(settings));
+  }
+
+  setScaleFilter(filter: EScaleType) {
+    this.getItems().forEach(item => item.setScaleFilter(filter));
+  }
+
+  setBlendingMode(mode: EBlendingMode) {
+    this.getItems().forEach(item => item.setBlendingMode(mode));
+  }
+
+  setBlendingMethod(method: EBlendingMethod) {
+    this.getItems().forEach(item => item.setBlendingMethod(method));
   }
 
   setVisibility(isVisible: boolean) {

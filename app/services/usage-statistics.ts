@@ -5,6 +5,7 @@ import path from 'path';
 import { Inject } from './core/injector';
 import { Service } from './core/service';
 import { HostsService } from './hosts';
+import { SynthesizerId, SynthesizerSelector } from './nicolive-program/state';
 import { QuestionaireService } from './questionaire';
 import { EncoderType } from './settings/optimizer';
 import { UserService } from './user';
@@ -53,6 +54,12 @@ export type TUsageEvent =
       pitch: number;
       rate: number;
       volume: number;
+      max_seconds: number;
+      engine: {
+        normal: SynthesizerSelector;
+        operator: SynthesizerSelector;
+        system: SynthesizerSelector;
+      };
     };
     compact_mode: {
       auto_compact_mode: boolean;
