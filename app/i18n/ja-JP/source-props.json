@@ -413,5 +413,9 @@
   "vlc_source": {
     "name": "VLCソース",
     "description": "ビデオのプレイリストをシーンに追加します。"
+  },
+  "comment_audio": {
+    "name": "コメント音声",
+    "description": "コメント音声をミキサーに追加します。"
   }
 }

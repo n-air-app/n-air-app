@@ -413,5 +413,9 @@
   "vlc_source": {
     "name": "VLC Source",
     "description": "Add playlists of videos to your scene."
+  },
+  "comment_audio": {
+    "name": "commentary audio",
+    "description": "Add commentary audio to the mixer."
   }
 }

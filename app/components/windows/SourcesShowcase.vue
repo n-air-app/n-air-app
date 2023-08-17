@@ -169,6 +169,15 @@
         <NVoiceCharacterSourceIcon slot="media" />
       </add-source-info>
 
+      <add-source-info
+        v-if="inspectedSource === 'comment_audio'"
+        @clickAdd="selectSource('comment_audio')"
+        sourceType="comment_audio"
+        key="19"
+      >
+        <WasapiOutputIcon slot="media" />
+      </add-source-info>
+
       <div class="source-info" v-if="inspectedSource === null">
         <AddFileIcon slot="media" />
         <div class="source-info__text">

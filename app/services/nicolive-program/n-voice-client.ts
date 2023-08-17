@@ -8,7 +8,7 @@ import { $t } from 'services/i18n';
 import { sleep } from 'util/sleep';
 import { getNVoicePath, NVoiceClient } from './speech/NVoiceClient';
 import { INVoiceTalker } from './speech/NVoiceSynthesizer';
-
+import { isPlayableComment, playComment } from './comment_audio_plugin';
 /** play audio from Buffer as wave file.
  * @return .cancel function to stop playing.
  * @return .done promise to wait until playing is completed.
@@ -17,8 +17,18 @@ async function playAudio(
   buffer: Buffer,
   volume: number = 1.0,
 ): Promise<{ cancel: () => void; done: Promise<void> }> {
-  const url = URL.createObjectURL(new Blob([buffer]));
   let cancel: () => void;
+
+  if (await isPlayableComment()) {
+    const done = new Promise<void>(async (resolve, reject) => {
+      await playComment(buffer);
+      resolve();
+    });
+
+    return { cancel, done };
+  }
+
+  const url = URL.createObjectURL(new Blob([buffer]));
 
   let completed = false;
   const done = new Promise<void>((resolve, reject) => {
