@@ -19,54 +19,52 @@ async function playAudio(
 ): Promise<{ cancel: () => void; done: Promise<void> }> {
   let cancel: () => void;
 
-  if (await isPlayableComment()) {
-    const done = new Promise<void>(async (resolve, reject) => {
-      await playComment(buffer);
-      resolve();
-    });
-
-    return { cancel, done };
-  }
-
-  const url = URL.createObjectURL(new Blob([buffer]));
-
-  let completed = false;
-  const done = new Promise<void>((resolve, reject) => {
-    const audio = new Audio(url);
-    audio.volume = volume;
-    audio.addEventListener('error', () => {
-      reject(audio.error);
-    });
-    audio.addEventListener('ended', () => {
-      resolve();
-    });
-    const playPromise = audio.play();
-    cancel = () => {
-      if (!completed) {
-        playPromise
-          .then(() => {
-            audio.pause();
-          })
-          .catch(err => {
-            Sentry.withScope(scope => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:cancel');
-              Sentry.captureException(err);
-            });
-          })
-          .finally(() => {
-            resolve();
-          });
-      }
-    };
-  }).finally(() => {
-    completed = true;
-    URL.revokeObjectURL(url);
+  const done = new Promise<void>(async (resolve, reject) => {
+    await playComment(buffer);
+    resolve();
   });
-  return {
-    cancel,
-    done,
-  };
+
+  return { cancel, done };
+
+  // const url = URL.createObjectURL(new Blob([buffer]));
+
+  // let completed = false;
+  // const done = new Promise<void>((resolve, reject) => {
+  //   const audio = new Audio(url);
+  //   audio.volume = volume;
+  //   audio.addEventListener('error', () => {
+  //     reject(audio.error);
+  //   });
+  //   audio.addEventListener('ended', () => {
+  //     resolve();
+  //   });
+  //   const playPromise = audio.play();
+  //   cancel = () => {
+  //     if (!completed) {
+  //       playPromise
+  //         .then(() => {
+  //           audio.pause();
+  //         })
+  //         .catch(err => {
+  //           Sentry.withScope(scope => {
+  //             scope.setLevel('error');
+  //             scope.setTag('in', 'playAudio:cancel');
+  //             Sentry.captureException(err);
+  //           });
+  //         })
+  //         .finally(() => {
+  //           resolve();
+  //         });
+  //     }
+  //   };
+  // }).finally(() => {
+  //   completed = true;
+  //   URL.revokeObjectURL(url);
+  // });
+  // return {
+  //   cancel,
+  //   done,
+  // };
 }
 
 interface INVoiceClientState {
