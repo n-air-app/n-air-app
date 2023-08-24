@@ -90,7 +90,7 @@ export class NicoliveProgramStateService extends PersistentStatefulService<IStat
       this.sourcesService.removeSource(source.sourceId);
     }
     if (enabled && !source) {
-      this.sourcesService.createSource('コメント音声', 'comment_audio', {}, { channel: 99 });
+      this.sourcesService.createSource('コメント音声', 'comment_audio', {}, { channel: 10 });
     }
   }
 }
