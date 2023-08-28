@@ -76,15 +76,8 @@ async function runScript() {
     const jsonData = fs.readFileSync('./scripts/repositories.json');
     const root = JSON.parse(jsonData.toString());
     const dependecies = root.root;
-    let os = '';
-
-    if (process.platform === 'win32') {
-      os = 'win64';
-    } else if (process.platform === 'darwin') {
-      os = 'osx';
-    } else {
-      throw new Error('Platform not supported.');
-    }
+    const os = 'win64'; // fix win64
+    const arch = '';
 
     sh.cd(node_modules);
 
@@ -99,17 +92,12 @@ async function runScript() {
           currentVersion = root['version'];
         } catch {}
 
-        let moduleVersion = '';
-
-        if (os === 'osx' && dependency['mac_version']) {
-          moduleVersion = dependency['mac_version'];
-        } else {
-          moduleVersion = dependency['version'];
-        }
+        const moduleVersion = dependency['version'];
 
         let fileName = dependency['archive'];
         fileName = fileName.replace('[VERSION]', moduleVersion);
         fileName = fileName.replace('[OS]', os);
+        fileName = fileName.replace('[ARCH]', arch);
 
         const url = dependency['url'] + fileName;
         const filePath = path.join(process.cwd(), fileName);
