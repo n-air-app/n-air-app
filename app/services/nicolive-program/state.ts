@@ -5,6 +5,7 @@ import { $t } from 'services/i18n';
 import { SourcesService } from 'services/sources';
 import { Inject } from '../core/injector';
 import * as obs from '../../../obs-api';
+import { AudioService } from 'services/audio';
 
 export const SynthesizerIds = ['webSpeech', 'nVoice'] as const;
 export type SynthesizerId = (typeof SynthesizerIds)[number];
@@ -48,6 +49,7 @@ export class NicoliveProgramStateService extends PersistentStatefulService<IStat
   };
 
   @Inject() private sourcesService: SourcesService;
+  @Inject() audioService: AudioService;
 
   private subject: Subject<IState> = new BehaviorSubject<IState>(this.state);
   updated: Observable<IState> = this.subject.asObservable();
@@ -91,12 +93,19 @@ export class NicoliveProgramStateService extends PersistentStatefulService<IStat
       this.sourcesService.removeSource(source.sourceId);
     }
     if (enabled && !source) {
-      this.sourcesService.createSource(
+      const source = this.sourcesService.createSource(
         'コメント音声',
         'comment_audio',
         {},
-        { channel: 10, audioSettings: { monitoringType: obs.EMonitoringType.MonitoringAndOutput } },
+        {
+          channel: 10,
+          audioSettings: { monitoringType: obs.EMonitoringType.MonitoringAndOutput },
+        },
       );
+
+      const volume = this.state.speechSynthesizerSettings.volume;
+      if (volume > 0.0 && volume <= 1.0)
+        this.audioService.getSource(source.sourceId).setDeflection(volume);
     }
   }
 }
