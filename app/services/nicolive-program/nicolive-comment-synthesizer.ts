@@ -13,6 +13,7 @@ import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
 import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
 import { WrappedChat } from './WrappedChat';
 import { SourcesService } from 'services/sources';
+import { AudioService } from 'services/audio';
 
 export type Speech = {
   text: string;
@@ -46,6 +47,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   @Inject() nVoiceClientService: NVoiceClientService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
   @Inject() private sourcesService: SourcesService;
+  @Inject() audioService: AudioService;
 
   static initialState: ICommentSynthesizerState = {
     enabled: true,
@@ -263,8 +265,22 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
   private setVolume(volume: number) {
     this.setState({ volume });
+
+    // pluginあればそれに反映
+    // audioSorceでもtypeはあるのだが定義にないのでSourceからで。nameは任意入力で当たる可能性があるのでtypeからで
+    const source = this.sourcesService.getSourcesByType('comment_audio');
+    if (source.length >= 1) this.audioService.getSource(source[0].sourceId).setDeflection(volume);
   }
   get volume(): number {
+    // pluginあればそちらの値を優先で取る
+    const source = this.sourcesService.getSourcesByType('comment_audio');
+    if (source.length >= 1) {
+      let v = this.audioService.getSource(source[0].sourceId).fader.deflection;
+      // 細かくはズレるので0.1刻みスライダーに値を丸める
+      v = Math.round(v * 10) / 10;
+      return v;
+    }
+
     return this.state.volume;
   }
   set volume(r: number) {
