@@ -4,6 +4,7 @@ import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { $t } from 'services/i18n';
 import { SourcesService } from 'services/sources';
 import { Inject } from '../core/injector';
+import * as obs from '../../../obs-api';
 
 export const SynthesizerIds = ['webSpeech', 'nVoice'] as const;
 export type SynthesizerId = (typeof SynthesizerIds)[number];
@@ -90,7 +91,12 @@ export class NicoliveProgramStateService extends PersistentStatefulService<IStat
       this.sourcesService.removeSource(source.sourceId);
     }
     if (enabled && !source) {
-      this.sourcesService.createSource('コメント音声', 'comment_audio', {}, { channel: 10 });
+      this.sourcesService.createSource(
+        'コメント音声',
+        'comment_audio',
+        {},
+        { channel: 10, audioSettings: { monitoringType: obs.EMonitoringType.MonitoringAndOutput } },
+      );
     }
   }
 }
