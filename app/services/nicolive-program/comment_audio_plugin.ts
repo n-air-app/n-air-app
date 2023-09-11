@@ -39,17 +39,21 @@ function makeSendData(wave: Buffer) {
   const wdata = w.data as any;
   const wfmt = w.fmt as any;
 
-  console.log(w.fmt);
-  console.log(wdata.samples.length);
+  // レベルメータを落とすため 16bit 100ms x 2 , plugin側が100ms毎なので
+  const suffixLength = wfmt.sampleRate * 0.2;
+  const suffix = Buffer.alloc(suffixLength * 2);
+
+  // console.log(w.fmt);
+  // console.log(wdata.samples.length);
   h.writeUInt16LE(0x2525, 0);
   h.writeUInt16LE(16, 2);
-  h.writeUInt32LE(wdata.samples.length, 4);
+  h.writeUInt32LE(wdata.samples.length + suffixLength, 4);
   h.writeUInt16LE(wfmt.sampleRate, 8);
   h.writeUInt16LE(wfmt.bitsPerSample, 10);
   h.writeUInt32LE(0, 12);
 
-  console.log(h);
-  const r = Buffer.concat([h, wdata.samples]);
+  // console.log(h);
+  const r = Buffer.concat([h, wdata.samples, suffix]);
   return r;
 }
 
