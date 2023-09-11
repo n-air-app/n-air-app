@@ -58,7 +58,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     selector: {
       normal: 'nVoice',
       operator: 'nVoice',
-      system: 'webSpeech',
+      system: 'nVoice', //'webSpeech',
     },
   };
 
