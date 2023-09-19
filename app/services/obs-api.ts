@@ -3,9 +3,9 @@
 
 import { Service } from './core/service';
 import electron from 'electron';
-const { ipcRenderer, remote } = electron;
+const { ipcRenderer } = electron;
 export * from '../../obs-api';
-
+import * as remote from '@electron/remote';
 let idCounter = 0;
 const callbacks = {};
 

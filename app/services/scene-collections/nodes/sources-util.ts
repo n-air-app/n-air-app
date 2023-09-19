@@ -1,7 +1,6 @@
 import { isAbsolute, relative, basename, dirname, resolve } from 'path';
-import { remote } from 'electron';
 import { ISourceInfo } from './sources';
-
+import * as remote from '@electron/remote';
 function getPresetBasePath() {
   const execFile = basename(process.execPath).toLowerCase();
   const isPackaged = execFile !== 'electron.exe';

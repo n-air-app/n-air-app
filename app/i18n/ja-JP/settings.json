@@ -664,7 +664,7 @@
     "showDialog": "コンパクトモード自動化設定ダイアログを表示する"
   },
   "synthId": {
-    "webSpeech": "Windowsの音声合成",
+    "webSpeech": "Windowsの音声合成 (デスクトップ音声で出力)",
     "nVoice": "N Voice 琴詠ニア",
     "ignore": "読み上げない"
   }

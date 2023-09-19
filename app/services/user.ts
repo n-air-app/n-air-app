@@ -36,7 +36,7 @@ import uuid from 'uuid/v4';
 import { OnboardingService } from './onboarding';
 import { QuestionaireService } from './questionaire';
 import { addClipboardMenu } from 'util/addClipboardMenu';
-
+import * as remote from '@electron/remote';
 // Eventually we will support authing multiple platforms at once
 interface IUserServiceState {
   auth?: IPlatformAuth;
@@ -95,15 +95,18 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     console.log('validateLogin: this.platform=' + JSON.stringify(this.platform));
     const service = getPlatformService(this.platform.type);
     if (service && service.isLoggedIn) {
-      return service.isLoggedIn().then(valid => {
-        if (!valid) {
-          this.LOGOUT();
-          this.userLogout.next();
-        }
-      }).catch((e) => {
-        // offline や Internal Server Error などのときなので記録するだけ
-        console.warn('validateLogin: error=' + JSON.stringify(e));
-      });
+      return service
+        .isLoggedIn()
+        .then(valid => {
+          if (!valid) {
+            this.LOGOUT();
+            this.userLogout.next();
+          }
+        })
+        .catch(e => {
+          // offline や Internal Server Error などのときなので記録するだけ
+          console.warn('validateLogin: error=' + JSON.stringify(e));
+        });
     }
 
     // ここに来るパターンは存在しないはず
@@ -211,7 +214,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     this.userLogout.next();
 
     this.LOGOUT();
-    electron.remote.session.defaultSession.clearStorageData({ storages: ['cookies'] });
+    remote.session.defaultSession.clearStorageData({ storages: ['cookies'] });
     this.appService.finishLoading();
     this.setSentryContext();
   }
@@ -232,7 +235,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     const service = getPlatformService(platform);
     console.log('startAuth service = ' + JSON.stringify(service));
 
-    const authWindow = new electron.remote.BrowserWindow({
+    const authWindow = new remote.BrowserWindow({
       ...service.authWindowOptions,
       alwaysOnTop: false,
       show: false,
@@ -301,8 +304,8 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
     this.startAuth({
       platform: this.platform.type,
-      onAuthFinish: () => { },
-      onAuthClose: () => { },
+      onAuthFinish: () => {},
+      onAuthClose: () => {},
     });
   }
 

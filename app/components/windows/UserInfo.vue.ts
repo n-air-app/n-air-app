@@ -18,7 +18,7 @@ import NicoadComment from '../nicolive-area/comment/NicoadComment.vue';
 import SystemMessage from '../nicolive-area/comment/SystemMessage.vue';
 import { getDisplayName } from 'services/nicolive-program/ChatMessage/getDisplayName';
 import electron from 'electron';
-
+import * as remote from '@electron/remote';
 const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   common: CommonComment,
   nicoad: NicoadComment,
@@ -183,6 +183,6 @@ export default class UserInfo extends Vue {
   }
 
   openUserPage() {
-    electron.remote.shell.openExternal(`https://www.nicovideo.jp/user/${this.userId}`);
+    remote.shell.openExternal(`https://www.nicovideo.jp/user/${this.userId}`);
   }
 }

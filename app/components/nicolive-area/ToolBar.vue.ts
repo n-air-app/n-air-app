@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import { remote } from 'electron';
 import { Component, Watch } from 'vue-property-decorator';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
@@ -10,7 +9,7 @@ import {
 } from 'services/nicolive-program/NicoliveFailure';
 import Popper from 'vue-popperjs';
 import { StreamingService } from 'services/streaming';
-
+import * as remote from '@electron/remote';
 @Component({
   components: { Popper },
 })

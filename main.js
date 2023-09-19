@@ -36,6 +36,8 @@ const electron = require('electron');
 const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell } = electron;
 const path = require('path');
 const rimraf = require('rimraf');
+//const { remote } = require('webdriverio');
+const remote = require('@electron/remote/main');
 
 // We use a special cache directory for running tests
 if (process.env.NAIR_CACHE_DIR) {
@@ -95,6 +97,8 @@ try {
     showRequiredSystemComponentInstallGuideDialog();
   });
 }
+
+remote.initialize();
 
 function initialize(crashHandler) {
   const fs = require('fs');
@@ -357,8 +361,16 @@ function initialize(crashHandler) {
             y: mainWindowState.y,
           }
         : {}),
-      webPreferences: { nodeIntegration: true, webviewTag: true },
+      webPreferences: {
+        nodeIntegration: true,
+        webviewTag: true,
+        contextIsolation: false,
+        worldSafeExecuteJavaScript: false,
+        // enableRemoteModule: true
+      },
     });
+
+    remote.enable(mainWindow.webContents);
 
     mainWindowState.manage(mainWindow);
 
@@ -424,8 +436,15 @@ function initialize(crashHandler) {
       show: false,
       frame: false,
       backgroundColor: '#17242D', // これいる?
-      webPreferences: { nodeIntegration: true },
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        worldSafeExecuteJavaScript: false,
+        //  enableRemoteModule: true
+      },
     });
+
+    remote.enable(childWindow.webContents);
 
     childWindow.removeMenu();
 
@@ -498,15 +517,12 @@ function initialize(crashHandler) {
     });
 
     if (isDevMode) {
-      require('devtron').install();
-
+      //      require('devtron').install();
       // Vue dev tools appears to cause strange non-deterministic
       // interference with certain NodeJS APIs, especially asynchronous
       // IO from the renderer process.  Enable at your own risk.
-
       // const devtoolsInstaller = require('electron-devtools-installer');
       // devtoolsInstaller.default(devtoolsInstaller.VUEJS_DEVTOOLS);
-
       // setTimeout(() => {
       //   openDevTools();
       // }, 10 * 1000);

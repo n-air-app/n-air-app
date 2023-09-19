@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import path from 'path';
 import fs from 'fs';
 import { UsageStatisticsService } from 'services/usage-statistics';
-
+import * as remote from '@electron/remote';
 /**
  * If we start up and the app is in anything other than the
  * CleanExit state, we know that we crashed, and we can report,
@@ -86,6 +86,6 @@ export class CrashReporterService extends Service {
   }
 
   private get appStateFile() {
-    return path.join(electron.remote.app.getPath('userData'), 'appState');
+    return path.join(remote.app.getPath('userData'), 'appState');
   }
 }

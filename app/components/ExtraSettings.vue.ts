@@ -13,7 +13,7 @@ import { AppService } from 'services/app';
 import { $t } from 'services/i18n';
 import { QuestionaireService } from 'services/questionaire';
 import ClipBoardCopy from '../../media/images/clipboard-copy.svg';
-
+import * as remote from '@electron/remote';
 @Component({
   components: {
     ObsBoolInput,
@@ -114,7 +114,7 @@ export default class ExtraSettings extends Vue {
   }
 
   showCacheDir() {
-    electron.remote.shell.openItem(electron.remote.app.getPath('userData'));
+    remote.shell.openPath(remote.app.getPath('userData'));
   }
 
   deleteCacheDir() {

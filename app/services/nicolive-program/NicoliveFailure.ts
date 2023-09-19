@@ -1,15 +1,14 @@
 import * as Sentry from '@sentry/vue';
 import { FailedResult, NotLoggedInError } from './NicoliveClient';
 import { $t } from 'services/i18n';
-import { remote } from 'electron';
-
+import * as remote from '@electron/remote';
 export class NicoliveFailure {
   constructor(
     public type: 'logic' | 'http_error' | 'network_error',
     public method: string,
     public reason: string,
     public additionalMessage: string = '',
-  ) { }
+  ) {}
 
   static fromClientError(method: string, res: FailedResult) {
     if (res.value instanceof NotLoggedInError) {

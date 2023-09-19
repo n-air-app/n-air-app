@@ -8,9 +8,7 @@ import { WindowsService } from './windows';
 import { ScalableRectangle } from '../util/ScalableRectangle';
 import { Subscription } from 'rxjs';
 import { SelectionService } from 'services/selection';
-
-const { remote } = electron;
-
+import * as remote from '@electron/remote';
 const DISPLAY_ELEMENT_POLLING_INTERVAL = 500;
 
 export interface IDisplayOptions {

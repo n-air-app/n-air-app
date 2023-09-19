@@ -1,7 +1,7 @@
 import { Component, Prop } from 'vue-property-decorator';
 import { CommentBase } from './CommentBase';
 import { NicoliveClient } from 'services/nicolive-program/NicoliveClient';
-import { remote } from 'electron';
+import * as remote from '@electron/remote';
 
 @Component({})
 export default class CommonComment extends CommentBase {
@@ -9,7 +9,10 @@ export default class CommonComment extends CommentBase {
   @Prop() speaking: boolean;
   @Prop() nameplateHint: boolean;
 
-  userIconURL: string = NicoliveClient.getUserIconURL(this.chat.value.user_id, `${this.chat.value.thread}`);
+  userIconURL: string = NicoliveClient.getUserIconURL(
+    this.chat.value.user_id,
+    `${this.chat.value.thread}`,
+  );
 
   defaultUserIconURL = NicoliveClient.defaultUserIconURL;
 

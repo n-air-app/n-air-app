@@ -3,7 +3,7 @@ import { EStreamingState, ERecordingState } from './streaming-api';
 
 import { createSetupFunction } from 'util/test-setup';
 import { RequestError } from 'util/RequestError';
-
+import * as remote from '@electron/remote';
 function noop(..._args: any[]) {}
 
 jest.mock('services/core/stateful-service');
@@ -557,11 +557,9 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   instance.toggleStreaming = jest.fn();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
 
-  jest
-    .spyOn(electron.remote.dialog, 'showMessageBox')
-    .mockImplementation(async function showMessageBox() {
-      return { response: 0, checkboxChecked: false };
-    });
+  jest.spyOn(remote.dialog, 'showMessageBox').mockImplementation(async function showMessageBox() {
+    return { response: 0, checkboxChecked: false };
+  });
 
   await instance.toggleStreamingAsync();
 
@@ -714,11 +712,9 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
     },
   });
 
-  jest
-    .spyOn(electron.remote.dialog, 'showMessageBox')
-    .mockImplementation(async function showMessageBox() {
-      return { response: 0, checkboxChecked: false };
-    });
+  jest.spyOn(remote.dialog, 'showMessageBox').mockImplementation(async function showMessageBox() {
+    return { response: 0, checkboxChecked: false };
+  });
 
   const { StreamingService } = require('./streaming');
   const { instance } = StreamingService;
@@ -749,11 +745,9 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
     },
   });
 
-  jest
-    .spyOn(electron.remote.dialog, 'showMessageBox')
-    .mockImplementation(async function showMessageBox() {
-      return { response: 0, checkboxChecked: false };
-    });
+  jest.spyOn(remote.dialog, 'showMessageBox').mockImplementation(async function showMessageBox() {
+    return { response: 0, checkboxChecked: false };
+  });
 
   const { StreamingService } = require('./streaming');
   const { instance } = StreamingService;

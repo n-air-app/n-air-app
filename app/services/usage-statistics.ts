@@ -9,7 +9,7 @@ import { SynthesizerId, SynthesizerSelector } from './nicolive-program/state';
 import { QuestionaireService } from './questionaire';
 import { EncoderType } from './settings/optimizer';
 import { UserService } from './user';
-
+import * as remote from '@electron/remote';
 function randomCharacters(len: number): string {
   const buf = randomBytes(len);
   const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -20,58 +20,59 @@ function randomCharacters(len: number): string {
 
 export type TUsageEvent =
   | {
-    event: 'boot';
-  } | {
-    event: 'stream_start' | 'stream_end';
-    platform: string;
-    stream_track_id: string;
-    content_id: string | null;
-    output_mode: 'Simple' | 'Advanced';
-    video: {
-      base_resolution: string; // eg. '1920x1080'
-      output_resolution: string; // eg. '1280x720'
-      fps: string; // "30", "29.97", "24 NTSC", ... 
-      bitrate: number;
-    };
-    audio: {
-      bitrate: number;
-      sample_rate: 44100 | 48000;
-    };
-    encoder: {
-      encoder_type: EncoderType;
-      preset: string;
-    };
-    auto_optimize: {
-      enabled: boolean;
-      use_hardware_encoder: boolean;
-    };
-    advanced?: {
-      rate_control: 'CBR' | 'VBR' | 'ABR' | 'CRF';
-      profile: 'high' | 'main' | 'baseline';
-    };
-    yomiage: {
-      enabled: boolean;
-      pitch: number;
-      rate: number;
-      volume: number;
-      max_seconds: number;
-      engine: {
-        normal: SynthesizerSelector;
-        operator: SynthesizerSelector;
-        system: SynthesizerSelector;
-      };
-    };
-    compact_mode: {
-      auto_compact_mode: boolean;
-      current: boolean;
+      event: 'boot';
     }
-  }
   | {
-    event: 'app_start' | 'app_close';
-  }
+      event: 'stream_start' | 'stream_end';
+      platform: string;
+      stream_track_id: string;
+      content_id: string | null;
+      output_mode: 'Simple' | 'Advanced';
+      video: {
+        base_resolution: string; // eg. '1920x1080'
+        output_resolution: string; // eg. '1280x720'
+        fps: string; // "30", "29.97", "24 NTSC", ...
+        bitrate: number;
+      };
+      audio: {
+        bitrate: number;
+        sample_rate: 44100 | 48000;
+      };
+      encoder: {
+        encoder_type: EncoderType;
+        preset: string;
+      };
+      auto_optimize: {
+        enabled: boolean;
+        use_hardware_encoder: boolean;
+      };
+      advanced?: {
+        rate_control: 'CBR' | 'VBR' | 'ABR' | 'CRF';
+        profile: 'high' | 'main' | 'baseline';
+      };
+      yomiage: {
+        enabled: boolean;
+        pitch: number;
+        rate: number;
+        volume: number;
+        max_seconds: number;
+        engine: {
+          normal: SynthesizerSelector;
+          operator: SynthesizerSelector;
+          system: SynthesizerSelector;
+        };
+      };
+      compact_mode: {
+        auto_compact_mode: boolean;
+        current: boolean;
+      };
+    }
   | {
-    event: 'crash';
-  };
+      event: 'app_start' | 'app_close';
+    }
+  | {
+      event: 'crash';
+    };
 
 export function track(event: TUsageEvent) {
   return (target: any, methodName: string, descriptor: PropertyDescriptor) => {
@@ -90,10 +91,9 @@ export class UsageStatisticsService extends Service {
   @Inject() hostsService: HostsService;
   @Inject() questionaireService: QuestionaireService;
 
-  version = electron.remote.process.env.NAIR_VERSION;
+  version = remote.process.env.NAIR_VERSION;
 
-  init() {
-  }
+  init() {}
 
   generateStreamingTrackID(): string {
     // 配信の開始と終了を対応付ける一時的な識別子はランダムな文字列で生成する
@@ -125,23 +125,22 @@ export class UsageStatisticsService extends Service {
 
       console.log('send boot log', request.url, body);
       return fetch(request);
-    } else
-      if (event.event === 'stream_start' || event.event === 'stream_end') {
-        console.log('send action log', `${this.hostsService.statistics}/action`);
-        const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
+    } else if (event.event === 'stream_start' || event.event === 'stream_end') {
+      console.log('send action log', `${this.hostsService.statistics}/action`);
+      const headers = new Headers();
+      headers.append('Content-Type', 'application/json');
 
-        const request = new Request(`${this.hostsService.statistics}/action`, {
-          headers,
-          method: 'POST',
-          body: JSON.stringify({
-            ...event,
-            uuid: this.questionaireService.uuid, // inject UUID
-            user_id: this.userService.isLoggedIn() ? this.userService.platformId : null,
-          }),
-        });
+      const request = new Request(`${this.hostsService.statistics}/action`, {
+        headers,
+        method: 'POST',
+        body: JSON.stringify({
+          ...event,
+          uuid: this.questionaireService.uuid, // inject UUID
+          user_id: this.userService.isLoggedIn() ? this.userService.platformId : null,
+        }),
+      });
 
-        return fetch(request);
-      }
+      return fetch(request);
+    }
   }
 }
