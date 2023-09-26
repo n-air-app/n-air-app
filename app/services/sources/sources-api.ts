@@ -111,7 +111,7 @@ export type TSourceType =
   | 'ovrstream_dc_source'
   | 'vlc_source'
   | 'wasapi_process_output_capture'
-  ;
+  | 'comment_audio';
 
 // Register new properties manager here
 export type TPropertiesManager = 'default' | 'nvoice-character';

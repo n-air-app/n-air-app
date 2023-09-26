@@ -14,6 +14,7 @@ import * as fi from 'node-fontinfo';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
 import { unapplyPathConvertForPreset, applyPathConvertForPreset } from './sources-util';
+import { NicoliveProgramStateService } from '../../nicolive-program/state';
 
 interface ISchema {
   items: ISourceInfo[];
@@ -60,6 +61,7 @@ export class SourcesNode extends Node<ISchema, {}> {
   @Inject() private sourcesService: SourcesService;
   @Inject() private audioService: AudioService;
   @Inject() private scenesService: ScenesService;
+  @Inject('NicoliveProgramStateService') stateService: NicoliveProgramStateService;
 
   getItems() {
     const linkedSourcesIds = this.scenesService
@@ -286,6 +288,9 @@ export class SourcesNode extends Node<ISchema, {}> {
         promises.push(this.data.items[index].hotkeys.load({ sourceId: sourceInfo.id }));
       }
     });
+
+    // check and adapt comment audio
+    this.stateService.adaptCommentAudio();
 
     return new Promise(resolve => {
       Promise.all(promises).then(() => resolve());

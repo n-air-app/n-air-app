@@ -3,8 +3,35 @@ import { getClient } from '../helpers/api-client';
 import { IAudioServiceApi } from 'services/audio';
 import { ScenesService } from 'services/scenes';
 import { ISceneCollectionsServiceApi } from 'services/scene-collections';
+import { ISourcesServiceApi } from 'services/sources/sources-api';
 
 useSpectron({ restartAppAfterEachTest: false });
+
+test('The default sources exists with comment audio', async t => {
+  const client = await getClient();
+  const audioService = client.getResource<IAudioServiceApi>('AudioService');
+  const audioSources = audioService.getSourcesForCurrentScene();
+
+  t.deepEqual(
+    audioSources.map(i => i.getModel().name),
+    ['デスクトップ音声', 'マイク', 'コメント音声'],
+  );
+});
+
+test('remove comment audio', async t => {
+  const client = await getClient();
+  const audioService = client.getResource<IAudioServiceApi>('AudioService');
+  const sourcesService = client.getResource<ISourcesServiceApi>('SourcesService');
+
+  const source = sourcesService.getSources().find(a => a.type === 'comment_audio');
+  sourcesService.removeSource(source.sourceId);
+  const audioSources = audioService.getSourcesForCurrentScene();
+
+  t.deepEqual(
+    audioSources.map(i => i.getModel().name),
+    ['デスクトップ音声', 'マイク'],
+  );
+});
 
 test('The default sources exists', async t => {
   const client = await getClient();

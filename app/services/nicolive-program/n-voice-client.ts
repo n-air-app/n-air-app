@@ -8,7 +8,7 @@ import { $t } from 'services/i18n';
 import { sleep } from 'util/sleep';
 import { getNVoicePath, NVoiceClient } from './speech/NVoiceClient';
 import { INVoiceTalker } from './speech/NVoiceSynthesizer';
-
+import { isPlayableComment, playComment } from './comment_audio_plugin';
 /** play audio from Buffer as wave file.
  * @return .cancel function to stop playing.
  * @return .done promise to wait until playing is completed.
@@ -17,46 +17,54 @@ async function playAudio(
   buffer: Buffer,
   volume: number = 1.0,
 ): Promise<{ cancel: () => void; done: Promise<void> }> {
-  const url = URL.createObjectURL(new Blob([buffer]));
   let cancel: () => void;
 
-  let completed = false;
-  const done = new Promise<void>((resolve, reject) => {
-    const audio = new Audio(url);
-    audio.volume = volume;
-    audio.addEventListener('error', () => {
-      reject(audio.error);
-    });
-    audio.addEventListener('ended', () => {
-      resolve();
-    });
-    const playPromise = audio.play();
-    cancel = () => {
-      if (!completed) {
-        playPromise
-          .then(() => {
-            audio.pause();
-          })
-          .catch(err => {
-            Sentry.withScope(scope => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:cancel');
-              Sentry.captureException(err);
-            });
-          })
-          .finally(() => {
-            resolve();
-          });
-      }
-    };
-  }).finally(() => {
-    completed = true;
-    URL.revokeObjectURL(url);
+  const done = new Promise<void>(async (resolve, reject) => {
+    await playComment(buffer);
+    resolve();
   });
-  return {
-    cancel,
-    done,
-  };
+
+  return { cancel, done };
+
+  // const url = URL.createObjectURL(new Blob([buffer]));
+
+  // let completed = false;
+  // const done = new Promise<void>((resolve, reject) => {
+  //   const audio = new Audio(url);
+  //   audio.volume = volume;
+  //   audio.addEventListener('error', () => {
+  //     reject(audio.error);
+  //   });
+  //   audio.addEventListener('ended', () => {
+  //     resolve();
+  //   });
+  //   const playPromise = audio.play();
+  //   cancel = () => {
+  //     if (!completed) {
+  //       playPromise
+  //         .then(() => {
+  //           audio.pause();
+  //         })
+  //         .catch(err => {
+  //           Sentry.withScope(scope => {
+  //             scope.setLevel('error');
+  //             scope.setTag('in', 'playAudio:cancel');
+  //             Sentry.captureException(err);
+  //           });
+  //         })
+  //         .finally(() => {
+  //           resolve();
+  //         });
+  //     }
+  //   };
+  // }).finally(() => {
+  //   completed = true;
+  //   URL.revokeObjectURL(url);
+  // });
+  // return {
+  //   cancel,
+  //   done,
+  // };
 }
 
 interface INVoiceClientState {

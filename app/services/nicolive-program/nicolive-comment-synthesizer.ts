@@ -12,6 +12,8 @@ import { NVoiceSynthesizer } from './speech/NVoiceSynthesizer';
 import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
 import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
 import { WrappedChat } from './WrappedChat';
+import { SourcesService } from 'services/sources';
+import { AudioService } from 'services/audio';
 
 export type Speech = {
   text: string;
@@ -19,11 +21,11 @@ export type Speech = {
   rate: number; // 速度
   webSpeech?: {
     pitch?: number; // 声の高さ
-  },
+  };
   volume?: number;
   nVoice?: {
     maxTime: number;
-  }
+  };
 };
 
 export interface ICommentSynthesizerState {
@@ -44,6 +46,8 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   @Inject('NicoliveProgramStateService') stateService: NicoliveProgramStateService;
   @Inject() nVoiceClientService: NVoiceClientService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
+  @Inject() private sourcesService: SourcesService;
+  @Inject() audioService: AudioService;
 
   static initialState: ICommentSynthesizerState = {
     enabled: true,
@@ -54,8 +58,8 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     selector: {
       normal: 'nVoice',
       operator: 'nVoice',
-      system: 'webSpeech',
-    }
+      system: 'nVoice', //'webSpeech',
+    },
   };
 
   // この数すでにキューに溜まっている場合は破棄してから追加する
@@ -82,7 +86,9 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   init(): void {
     this.setState({
       ...NicoliveCommentSynthesizerService.initialState,
-      ...(this.stateService.state.speechSynthesizerSettings ? this.stateService.state.speechSynthesizerSettings : {}),
+      ...(this.stateService.state.speechSynthesizerSettings
+        ? this.stateService.state.speechSynthesizerSettings
+        : {}),
     });
 
     this.stateService.updated.subscribe({
@@ -90,18 +96,17 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         const newState =
           {
             ...NicoliveCommentSynthesizerService.initialState,
-            ...persistentState.speechSynthesizerSettings
-          } ||
-          NicoliveCommentSynthesizerService.initialState;
+            ...persistentState.speechSynthesizerSettings,
+          } || NicoliveCommentSynthesizerService.initialState;
         this.SET_STATE(newState);
       },
     });
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
 
     this.phonemeServer = new PhonemeServer({
-      onPortAssigned: (port) => {
+      onPortAssigned: port => {
         this.nVoiceCharacterService.updateSocketIoPort(port);
-      }
+      },
     });
   }
 
@@ -154,18 +159,26 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   }
 
   makeSimpleTextSpeech(text: string, synthId?: SynthesizerId): Speech | null {
-    return this.makeSpeech({
-      type: 'normal',
-      value: {
-        content: text,
+    return this.makeSpeech(
+      {
+        type: 'normal',
+        value: {
+          content: text,
+        },
+        seqId: 1,
       },
-      seqId: 1,
-    }, synthId);
+      synthId,
+    );
   }
 
   startSpeakingSimple(speech: Speech) {
     // empty anonymous functions must be created in this service
-    this.queueToSpeech(speech, () => { }, () => { }, true);
+    this.queueToSpeech(
+      speech,
+      () => {},
+      () => {},
+      true,
+    );
   }
 
   startTestSpeech(text: string, synthId: SynthesizerId) {
@@ -205,7 +218,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         () => {
           onend();
         },
-        (phoneme) => {
+        phoneme => {
           this.phonemeServer?.emitPhoneme(phoneme);
         },
       ),
@@ -219,6 +232,9 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     if (!enabled) {
       this.queue.cancel();
     }
+
+    // check and adapt comment audio
+    this.stateService.adaptCommentAudio();
   }
   get enabled(): boolean {
     return this.state.enabled;
@@ -249,8 +265,22 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
   private setVolume(volume: number) {
     this.setState({ volume });
+
+    // pluginあればそれに反映
+    // audioSorceでもtypeはあるのだが定義にないのでSourceからで。nameは任意入力で当たる可能性があるのでtypeからで
+    const source = this.sourcesService.getSourcesByType('comment_audio');
+    if (source.length >= 1) this.audioService.getSource(source[0].sourceId).setDeflection(volume);
   }
   get volume(): number {
+    // pluginあればそちらの値を優先で取る
+    const source = this.sourcesService.getSourcesByType('comment_audio');
+    if (source.length >= 1) {
+      let v = this.audioService.getSource(source[0].sourceId).fader.deflection;
+      // 細かくはズレるので0.1刻みスライダーに値を丸める
+      v = Math.round(v * 10) / 10;
+      return v;
+    }
+
     return this.state.volume;
   }
   set volume(r: number) {
@@ -296,5 +326,4 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   private SET_STATE(nextState: ICommentSynthesizerState): void {
     this.state = nextState;
   }
-
 }

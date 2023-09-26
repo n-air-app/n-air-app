@@ -347,6 +347,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       'ovrstream_dc_source',
       'vlc_source',
       'wasapi_process_output_capture',
+      // 設定で自動選択するので手動選択リストに入れない'comment_audio',
     ];
 
     const availableWhitelistedType = whitelistedTypes.filter(type =>
