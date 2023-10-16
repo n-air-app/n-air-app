@@ -31,6 +31,7 @@
     "package:public-unstable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/unstable.config.js",
     "package:internal-stable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-stable.config.js",
     "package:internal-unstable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-unstable.config.js",
+    "package:local": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/local.config.js",
     "release": "yarn install --cwd bin && node bin/release/mini-release.js",
     "patch-note": "yarn install --cwd bin && node bin/release/generatePatchNote.js",
     "webfont": "yarn install --cwd bin && node bin/generate-webfont.js",
@@ -48,7 +49,8 @@
     "screentest": "node test/screentest/runner.js",
     "version": "git add app/services/patch-notes/notes.ts",
     "postinstall": "node --no-warnings ./scripts/install-native-deps.js",
-    "clear:cache": "npx shx rm -rf node_module/.cache dist bundles test-dist"
+    "clear:cache": "npx shx rm -rf node_module/.cache dist bundles test-dist",
+    "prettier": "eslint --fix && prettier -w ./app/**/*.{ts,vue,tsx}"
   },
   "buildProductName": "N Air",
   "ava": {
@@ -182,7 +184,7 @@
     "css-loader": "~2.1.1",
     "devtron": "1.4.0",
     "electron": "6.1.11",
-    "electron-builder": "23.6.0",
+    "electron-builder": "22.14.13",
     "emojione": "^3.1.7",
     "eslint": "^8.46.0",
     "eslint-config-airbnb-base": "^15.0.0",
