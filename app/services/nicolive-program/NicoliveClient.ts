@@ -19,7 +19,8 @@ import {
   Segment,
   Statistics,
   UserFollowStatus,
-  UserFollow
+  UserFollow,
+  AddFilterRecord
 } from './ResponseTypes';
 const { BrowserWindow } = remote;
 
@@ -384,11 +385,14 @@ export class NicoliveClient {
 
   async addFilters(
     programID: string,
-    records: Omit<FilterRecord, 'id'>[],
+    records: AddFilterRecord[],
   ): Promise<WrappedResult<Filters['data']>> {
     const session = await this.fetchSession();
+    if (records.length !== 1) {
+      throw new Error('addFilters: records.length must be 1');
+    }
     const requestInit = NicoliveClient.createRequest('POST', {
-      body: JSON.stringify(records),
+      body: JSON.stringify(records[0]),
       headers: {
         'X-Niconico-Session': session,
         'Content-Type': 'application/json',
@@ -396,7 +400,7 @@ export class NicoliveClient {
     });
     try {
       const resp = await fetch(
-        `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/ssng`,
+        `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/ssng/create`,
         requestInit,
       );
       return NicoliveClient.wrapResult<Filters['data']>(resp);
