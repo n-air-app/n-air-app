@@ -10,6 +10,7 @@ import { TransitionsService } from 'services/transitions';
 import { SourcesService } from 'services/sources';
 import { ScenesService } from 'services/scenes';
 import { VideoService } from 'services/video';
+import { VideoSettingsService } from 'services/settings-v2';
 import { track } from 'services/usage-statistics';
 import { IpcServerService } from 'services/api/ipc-server';
 import { TcpServerService } from 'services/api/tcp-server';
@@ -19,13 +20,11 @@ import { FileManagerService } from 'services/file-manager';
 import { PatchNotesService } from 'services/patch-notes';
 import { ProtocolLinksService } from 'services/protocol-links';
 import { WindowsService } from 'services/windows';
-import { QuestionaireService } from 'services/questionaire';
 import { InformationsService } from 'services/informations';
 import { CrashReporterService } from 'services/crash-reporter';
 import * as obs from '../../../obs-api';
 import { RunInLoadingMode } from './app-decorators';
 import Utils from 'services/utils';
-
 
 interface IAppState {
   loading: boolean;
@@ -58,12 +57,12 @@ export class AppService extends StatefulService<IAppState> {
   @Inject() sourcesService: SourcesService;
   @Inject() scenesService: ScenesService;
   @Inject() videoService: VideoService;
+  @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private ipcServerService: IpcServerService;
   @Inject() private tcpServerService: TcpServerService;
   @Inject() private performanceMonitorService: PerformanceMonitorService;
   @Inject() private fileManagerService: FileManagerService;
   @Inject() private protocolLinksService: ProtocolLinksService;
-  @Inject() private questionaireService: QuestionaireService;
   @Inject() private informationsService: InformationsService;
   @Inject() private crashReporterService: CrashReporterService;
   private loadingPromises: Dictionary<Promise<any>> = {};
@@ -95,9 +94,8 @@ export class AppService extends StatefulService<IAppState> {
     // await this.platformAppsService.initialize();
 
     await this.sceneCollectionsService.initialize();
-    const questionaireStarted = await this.questionaireService.startIfRequired();
 
-    const onboarded = !questionaireStarted && this.onboardingService.startOnboardingIfRequired();
+    const onboarded = this.onboardingService.startOnboardingIfRequired();
 
     electron.ipcRenderer.on('shutdown', () => {
       electron.ipcRenderer.send('acknowledgeShutdown');
@@ -141,7 +139,7 @@ export class AppService extends StatefulService<IAppState> {
       await this.sceneCollectionsService.deinitialize();
       this.performanceMonitorService.stop(); // instead this.performanceService.stop();
       this.transitionsService.shutdown();
-      // this.videoSettingsService.shutdown(); 未実装
+      this.videoSettingsService.shutdown();
       // await this.gameOverlayService.destroy(); 未実装
       await this.fileManagerService.flushAll();
       obs.NodeObs.RemoveSourceCallback();
