@@ -1,9 +1,9 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20240123-1',
-  title: '1.1.20240123-1',
+  version: '1.1.20240216-1',
+  title: '1.1.20240216-1',
   notes: [
-    "更新: 内蔵OBSを少し新しいものに(libOBS 28.2.68) (#708)",
+    "修正: ニコニコ生放送の最大放送時間を6時間から24時間に変更 (#722)",
   ]
 };
