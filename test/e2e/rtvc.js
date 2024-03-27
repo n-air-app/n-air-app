@@ -19,16 +19,23 @@ const sourceType = 'nair-rtvc-source';
 // CI対応のため一時的に中止
 test('rtvc Adding and removing source', async t => {
   const sourceName = `Example ${sourceType}`;
+  console.log('b1');
   await addSource(t, sourceType, sourceName);
+  console.log('b2');
 
   await focusMain(t);
+  console.log('b3');
 
   t.true(await sourceIsExisting(t, sourceName));
+  console.log('b4');
 
   await selectSource(t, sourceName);
+  console.log('b5');
   await clickRemoveSource(t);
+  console.log('b6');
 
   await waitForSourceExist(t, sourceName, true);
+  console.log('b7');
 });
 
 // CI対応のため一時的に中止

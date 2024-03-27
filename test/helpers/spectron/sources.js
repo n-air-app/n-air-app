@@ -4,9 +4,7 @@ import { contextMenuClick } from './context-menu';
 import { dialogDismiss } from './dialog';
 
 async function clickSourceAction(t, selector) {
-  await t.context.app.client
-    .$('[data-test="SourceSelector"]')
-    .click(selector);
+  await t.context.app.client.$('[data-test="SourceSelector"]').click(selector);
 }
 
 export async function clickAddSource(t) {
@@ -33,7 +31,7 @@ export async function selectSource(t, name) {
 }
 
 export async function selectTestSource(t) {
-  await t.context.app.client.click('.item-title*=__')
+  await t.context.app.client.click('.item-title*=__');
 }
 
 export async function rightClickSource(t, name) {
@@ -48,19 +46,26 @@ export async function rightClickSource(t, name) {
 
 export async function addSource(t, type, name, closeProps = true) {
   const app = t.context.app;
+  console.log(`addsource type=${type} name=${name}`);
 
+  console.log('a1');
   await focusMain(t);
   await clickAddSource(t);
   await focusChild(t);
+  console.log('a2');
   await app.client.click(`[data-test="${type}"`);
+  console.log('a3');
   await app.client.click('[data-test="AddSource"]');
+  console.log('a4');
   await app.client.setValue('input', name);
 
+  console.log('a5');
   if (await app.client.isExisting('[data-test="Done"]')) {
     await app.client.click('[data-test="Done"]');
   } else {
     await app.client.click('[data-test="AddNewSource"]');
   }
+  console.log('a6');
 
   // Close source properties too
   if (closeProps) {
@@ -90,7 +95,6 @@ export async function addExistingSource(t, type, name, closeProps = true) {
   await app.client.click('[data-test="AddExistingSource"]');
 }
 
-
 export async function openRenameWindow(t, sourceName) {
   await focusMain(t);
   await rightClickSource(t, sourceName);
@@ -100,9 +104,7 @@ export async function openRenameWindow(t, sourceName) {
 
 export async function sourceIsExisting(t, sourceName) {
   const app = t.context.app;
-  return app.client
-    .$('[data-test="SourceSelector"]')
-    .isExisting(`[data-test="${sourceName}"]`);
+  return app.client.$('[data-test="SourceSelector"]').isExisting(`[data-test="${sourceName}"]`);
 }
 
 export async function waitForSourceExist(t, sourceName, invert) {
@@ -113,5 +115,5 @@ export async function waitForSourceExist(t, sourceName, invert) {
 }
 
 export async function testSourceExists(t) {
-  return t.context.app.client.isExisting('.item-title*=__')
+  return t.context.app.client.isExisting('.item-title*=__');
 }
