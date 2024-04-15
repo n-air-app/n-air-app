@@ -56,8 +56,6 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     temporarySources: {}, // don't save temporarySources in the config file
   } as ISourcesState;
 
-  private static readonly sourcePropertiesWindowId = 'sourcePropertiesWindow';
-
   sourceAdded = new Subject<ISource>();
   sourceUpdated = new Subject<ISource>();
   sourceRemoved = new Subject<ISource>();
@@ -376,11 +374,16 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       const audioDevices = this.audioService
         .getVisibleSourcesForCurrentScene()
         .map(source => source.name);
-      const obsLog = ipcRenderer.sendSync('get-latest-obs-log');
+      const obsLog: { filename: string; data: string } = ipcRenderer.sendSync('get-latest-obs-log');
+      const re = /([^/']*\.dll)' not loaded/g;
+      const notLoadedDlls = [...obsLog.data.matchAll(re)].map(m => m[1]);
       const obsPluginFiles = ipcRenderer.sendSync('get-obs-plugin-files-list');
+      const rtvcRelatedLines = [...obsLog.data.matchAll(/.*nair-rtvc-source.*/g)].map(m => m[0]);
       console.info({
         audioDevices,
         obsLog: { filename: obsLog.filename, length: obsLog.data.length, obsPluginFiles },
+        notLoadedDlls,
+        rtvcRelatedLines,
       });
 
       Sentry.withScope(scope => {
@@ -388,7 +391,11 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
         scope.setTags({
           'nair-rtvc-source': 'not-available',
           audioDevices: audioDevices.length,
+          obsPluginFiles: obsPluginFiles.length,
         });
+        if (notLoadedDlls.length > 0) {
+          scope.setTag('obsPluginNotLoaded', notLoadedDlls.join(','));
+        }
 
         // attach obs log
         scope.addAttachment({
@@ -401,6 +408,8 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
         scope.setExtra('audioSource', audioDevices);
         // list of OBS plugin files
         scope.setExtra('obsPluginFiles', obsPluginFiles);
+        // list of RTVC plugin related lines
+        scope.setExtra('rtvcRelatedLines', rtvcRelatedLines);
 
         scope.setFingerprint(['nair-rtvc-source']);
         Sentry.captureMessage('nair-rtvc-source is not available');
@@ -544,7 +553,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       return;
     }
 
-    const baseConfig = {
+    const config = {
       componentName: 'SourceProperties',
       title: $t('sources.propertyWindowTitle', { sourceName: source.name }),
       queryParams: { sourceId },
@@ -554,35 +563,9 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       },
     };
 
-    if (source.type === 'nair-rtvc-source') baseConfig.componentName = 'RtvcSourceProperties';
+    if (source.type === 'nair-rtvc-source') config.componentName = 'RtvcSourceProperties';
 
-    // HACK: childWindow で表示してしまうとウィンドウキャプチャでクラッシュするので OneOffWindow で代替している
-    // StreamLabs 1.3.0 まで追従したらこのワークアラウンドはなくせる
-    this.windowsService.closeChildWindow();
-    (this.windowsService.getWindow(SourcesService.sourcePropertiesWindowId)
-      ? this.closeSourcePropertiesWindow()
-      : Promise.resolve()
-    ).then(() => {
-      if (!sourceId.startsWith('window_capture')) {
-        this.windowsService.showWindow(baseConfig);
-        return;
-      }
-      this.windowsService.createOneOffWindow(
-        {
-          ...baseConfig,
-          limitMinimumSize: true, // 小さくできなくする
-          // alwaysOnTop を利用した場合、メインウィンドウの背面に隠れることは防げるが、
-          // N Air 以外のウィンドウよりも前面に出てしまう
-          alwaysOnTop: true,
-        },
-        SourcesService.sourcePropertiesWindowId,
-      );
-    });
-  }
-
-  async closeSourcePropertiesWindow() {
-    this.windowsService.closeChildWindow();
-    await this.windowsService.closeOneOffWindow(SourcesService.sourcePropertiesWindowId);
+    this.windowsService.showWindow(config);
   }
 
   showShowcase() {
