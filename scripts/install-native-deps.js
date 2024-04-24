@@ -93,12 +93,6 @@ async function rtvc() {
   const zip = './nair-rtvc.tar.gz';
   const dst = './obs-studio-node/obs-plugins/64bit/';
 
-  if (fs.existsSync(path.join(dst, 'nair-rtvc-source.dll'))) {
-    // これで飛ばせますが、version変更には追い付かないので変更した場合はクリーンしてください
-    log_info('exists, SKip');
-    return;
-  }
-
   if (fs.existsSync('../nair-rtvc.tar.gz')) {
     log_info('use existing file');
     sh.cp('../nair-rtvc.tar.gz', zip);
