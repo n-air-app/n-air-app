@@ -39,6 +39,20 @@ function executeCmd(cmd, options) {
 }
 
 function downloadFile(srcUrl, dstPath, param) {
+  // ファイルに問題がある場合は yarn cache の native-deps を削除してください
+  const x = sh.exec('yarn cache dir', { silent: true });
+  const cacheDir = path.join(x.stdout.trim(' \n'), 'native-deps');
+  try {
+    fs.mkdirSync(cacheDir);
+  } catch (e) {}
+
+  const cacheFile = path.join(cacheDir, srcUrl.replace(/[:/&?]/g, '_'));
+  if (fs.existsSync(cacheFile)) {
+    log_info(`use cache ${cacheFile}`);
+    fs.cpSync(cacheFile, dstPath);
+    return;
+  }
+
   const tmpPath = `${dstPath}.tmp`;
   return new Promise((resolve, reject) => {
     fetch(srcUrl, param)
@@ -54,6 +68,7 @@ function downloadFile(srcUrl, dstPath, param) {
             log_error(`Error downloading ${srcUrl}`, e);
             reject(e);
           } else {
+            fs.copyFileSync(tmpPath, cacheFile);
             fs.rename(tmpPath, dstPath, e => {
               console.log(dstPath);
               if (e) {
@@ -77,6 +92,12 @@ async function rtvc() {
   const url = 'https://github.com/n-air-app/rtvc_plugin/releases/download/1.0.5/nair-rtvc.tar.gz';
   const zip = './nair-rtvc.tar.gz';
   const dst = './obs-studio-node/obs-plugins/64bit/';
+
+  if (fs.existsSync(path.join(dst, 'nair-rtvc-source.dll'))) {
+    // これで飛ばせますが、version変更には追い付かないので変更した場合はクリーンしてください
+    log_info('exists, SKip');
+    return;
+  }
 
   if (fs.existsSync('../nair-rtvc.tar.gz')) {
     log_info('use existing file');
@@ -157,7 +178,6 @@ async function runScript() {
         log_info(
           `Target ${dependency['name']} ${dependency['version']} in-current ${currentVersion}`,
         );
-        log_info(url);
 
         if (currentVersion === dependency['version']) {
           log_info('Skip');
@@ -170,9 +190,8 @@ async function runScript() {
         try {
           const downloaded = fs.readFileSync(checkFile).toString();
           if (downloaded === url) {
-            log_info(
-              'Target version is not in in-current version, but Required downloaded file URL is same, Skip',
-            );
+            //'Target version is not in in-current version, but Required downloaded file URL is same, Skip',
+            log_info('exists, Skip');
             return;
           }
         } catch {}
