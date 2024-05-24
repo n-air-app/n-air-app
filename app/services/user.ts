@@ -5,7 +5,6 @@ import { Inject } from 'services/core/injector';
 import { mutation } from 'services/core/stateful-service';
 import electron from 'electron';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
-import { HostsService } from './hosts';
 import {
   getPlatformService,
   IPlatformAuth,
@@ -17,21 +16,6 @@ import * as Sentry from '@sentry/vue';
 import { AppService } from 'services/app';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { Subject, Observable, merge } from 'rxjs';
-import { WindowsService } from 'services/windows';
-import {
-  cpu as systemInfoCpu,
-  graphics as systemInfoGraphics,
-  osInfo as systemInfoOsInfo,
-  uuid as systemInfoUuid,
-} from 'systeminformation';
-import {
-  totalmem as nodeTotalMem,
-  freemem as nodeFreeMem,
-  cpus as nodeCpus,
-  release as nodeOsRelease,
-} from 'os';
-import { memoryUsage as nodeMemUsage } from 'process';
-import { $t } from 'services/i18n';
 import uuid from 'uuid/v4';
 import { OnboardingService } from './onboarding';
 import { UuidService } from './uuid';
@@ -95,15 +79,18 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     console.log('validateLogin: this.platform=' + JSON.stringify(this.platform));
     const service = getPlatformService(this.platform.type);
     if (service && service.isLoggedIn) {
-      return service.isLoggedIn().then(valid => {
-        if (!valid) {
-          this.LOGOUT();
-          this.userLogout.next();
-        }
-      }).catch((e) => {
-        // offline や Internal Server Error などのときなので記録するだけ
-        console.warn('validateLogin: error=' + JSON.stringify(e));
-      });
+      return service
+        .isLoggedIn()
+        .then(valid => {
+          if (!valid) {
+            this.LOGOUT();
+            this.userLogout.next();
+          }
+        })
+        .catch(e => {
+          // offline や Internal Server Error などのときなので記録するだけ
+          console.warn('validateLogin: error=' + JSON.stringify(e));
+        });
     }
 
     // ここに来るパターンは存在しないはず
@@ -164,8 +151,8 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   get platformUserPageURL() {
     if (this.isLoggedIn()) {
       const platform = getPlatformService(this.state.auth.platform.type);
-      if (platform.getUserPageURL !== undefined) {
-        return platform.getUserPageURL();
+      if (platform.getMyPageURL !== undefined) {
+        return platform.getMyPageURL();
       }
       return '';
     }
@@ -301,8 +288,8 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
     this.startAuth({
       platform: this.platform.type,
-      onAuthFinish: () => { },
-      onAuthClose: () => { },
+      onAuthFinish: () => {},
+      onAuthClose: () => {},
     });
   }
 
@@ -347,16 +334,15 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
    * we can view more detailed information in sentry.
    */
   async setSentryContext() {
-    Sentry.configureScope(scope => {
-      if (this.isLoggedIn()) {
-        scope.setUser({ username: this.username, id: this.platformId });
-        scope.setExtra('platform', this.platform ? this.platform.type : 'not logged in');
-      } else {
-        scope.setUser({});
-        scope.setExtra('platform', null);
-      }
-      scope.setExtra('uuid', this.uuidService.uuid);
-    });
+    const scope = Sentry.getCurrentScope();
+    if (this.isLoggedIn()) {
+      scope.setUser({ username: this.username, id: this.platformId });
+      scope.setExtra('platform', this.platform ? this.platform.type : 'not logged in');
+    } else {
+      scope.setUser({});
+      scope.setExtra('platform', null);
+    }
+    scope.setExtra('uuid', this.uuidService.uuid);
   }
 
   async updateStreamSettings(programId: string): Promise<IStreamingSetting> {

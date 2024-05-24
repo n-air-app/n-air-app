@@ -13,6 +13,7 @@ import {
   PresetValues,
   StateParam,
   SourcePropKey,
+  PitchShiftModeValue,
 } from 'services/rtvcStateService';
 import electron from 'electron';
 import { $t } from 'services/i18n';
@@ -22,6 +23,7 @@ type SetParamKey =
   | 'name'
   | 'inputGain'
   | 'pitchShift'
+  | 'pitchShiftSong'
   | 'amount'
   | 'primaryVoice'
   | 'secondaryVoice';
@@ -58,7 +60,10 @@ export default class RtvcSourceProperties extends SourceProperties {
   primaryVoice: Extract<TObsValue, number> = 0;
   secondaryVoice: Extract<TObsValue, number> = 0;
   pitchShift: Extract<TObsValue, number> = 0;
+  pitchShiftSong: Extract<TObsValue, number> = 0;
   amount: Extract<TObsValue, number> = 0;
+
+  isSongMode = false;
 
   tab = 0;
   canAdd = false;
@@ -124,6 +129,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.description = p.description;
 
     this.pitchShift = p.pitchShift;
+    this.pitchShiftSong = p.pitchShiftSong;
     this.amount = p.amount;
     this.primaryVoice = p.primaryVoice;
     this.secondaryVoice = p.secondaryVoice;
@@ -151,6 +157,12 @@ export default class RtvcSourceProperties extends SourceProperties {
   onChangePitchShift() {
     this.setParam('pitchShift', this.pitchShift);
     this.setSourcePropertyValue('pitch_shift', this.pitchShift);
+  }
+
+  @Watch('pitchShiftSong')
+  onChangePitchShiftSong() {
+    this.setParam('pitchShiftSong', this.pitchShiftSong);
+    this.setSourcePropertyValue('pitch_shift_song', this.pitchShiftSong);
   }
 
   @Watch('amount')
@@ -195,6 +207,28 @@ export default class RtvcSourceProperties extends SourceProperties {
     const monitoringType = this.isMonitor ? onValue : obs.EMonitoringType.None;
     this.audioService.setSettings(this.sourceId, { monitoringType });
     this.currentMonitoringType = monitoringType;
+  }
+
+  @Watch('isSongMode')
+  onChangeSongMode() {
+    this.setSourcePropertyValue(
+      'pitch_shift_mode',
+      this.isSongMode ? PitchShiftModeValue.song : PitchShiftModeValue.talk,
+    );
+    // 値入れ直し
+    const p = this.rtvcStateService.stateToCommonParam(this.state, this.currentIndex);
+    this.rtvcStateService.setSourcePropertiesByCommonParam(this.source, p);
+  }
+
+  labelForPitchSong(p: number): string {
+    const vn = [
+      { v: 0, n: '±0' },
+      { v: 1200, n: '+1' },
+      { v: -1200, n: '-1' },
+    ].find(a => a.v === p);
+
+    const n = vn ? vn.n : `${p}/1200`;
+    return `${n}オクターブ`;
   }
 
   // --  param in/out
@@ -247,6 +281,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     const sceneId = this.scenesService.activeScene.id;
     if (sceneId) scenes[sceneId] = this.currentIndex;
     this.state.scenes = scenes;
+    this.state.tab = this.tab;
     this.rtvcStateService.setState(this.state);
     this.rtvcStateService.modifyEventLog();
   }
@@ -265,14 +300,24 @@ export default class RtvcSourceProperties extends SourceProperties {
       this.isMonitor = m !== obs.EMonitoringType.None;
     }
 
+    // 初期値修正
+    if (this.rtvcStateService.isEmptyState()) {
+      this.setSourcePropertyValue('latency', 13);
+    }
+
+    this.state = this.rtvcStateService.getState();
+
     this.device = this.getSourcePropertyValue('device') as number;
     this.latency = this.getSourcePropertyValue('latency') as number;
 
-    this.state = this.rtvcStateService.getState();
     this.updateManualList();
 
     this.currentIndex = this.state.currentIndex;
     this.onChangeIndex();
+
+    this.isSongMode =
+      (this.getSourcePropertyValue('pitch_shift_mode') as number) === PitchShiftModeValue.song;
+    this.tab = this.state.tab ?? 0;
   }
 
   // 右上xではOKという感じらしい
@@ -284,9 +329,7 @@ export default class RtvcSourceProperties extends SourceProperties {
       this.audioService.setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
 
     if (this.canceled) {
-      if (this.tainted) {
-        this.source.setPropertiesFormData(this.initialProperties);
-      }
+      this.source.setPropertiesFormData(this.initialProperties);
       return;
     }
 
@@ -330,6 +373,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.state.manuals.push({
       name: `オリジナル${this.state.manuals.length + 1}`,
       pitchShift: 0,
+      pitchShiftSong: 0,
       amount: 0,
       primaryVoice: 0,
       secondaryVoice: -1,
@@ -374,6 +418,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.state.manuals.push({
       name: `${v.name}のコピー`,
       pitchShift: v.pitchShift,
+      pitchShiftSong: v.pitchShiftSong,
       amount: v.amount,
       primaryVoice: v.primaryVoice,
       secondaryVoice: v.secondaryVoice,
