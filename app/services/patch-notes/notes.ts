@@ -1,11 +1,11 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20240415-unstable.1',
-  title: '1.1.20240415-unstable.1',
+  version: '1.1.20240524-unstable.1',
+  title: '1.1.20240524-unstable.1',
   notes: [
-    "修正: 放送者NGを配信用ブロックに文言変更 (#738) by koizuka",
-    "改善: ウィンドウキャプチャソースのプロパティウィンドウを開く時のちらつきを解消 (#742) by matsuyuki-a",
-    "開発: ボイスチェンジャーソースが表示されない環境調査(2) (#739) by koizuka",
+    "追加: モデレーター機能 (#743) by koizuka",
+    "追加: ボイスチェンジャーの歌モード (#745, #755, #757) by asaday",
+    "開発: ボイスチェンジャーソースが表示されない環境調査(3) (#754) by koizuka",
   ]
 };
