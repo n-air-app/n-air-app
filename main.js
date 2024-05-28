@@ -81,6 +81,41 @@ async function showRequiredSystemComponentInstallGuideDialog() {
   app.exit(0);
 }
 
+async function recollectUserSessionCookie() {
+  // electron14->15でcookieがつかない
+  // 設定されるcookieのSameSite指定がないため unspecified となり
+  // 設定が無いためchromeがcookieをつけない(通信ログを見るとフィルタされている)
+  // cookieを直せば通るようなのでそのパッチ処理
+  console.log('recollectUserSessionCookie');
+  try {
+    const cookies = await electron.session.defaultSession.cookies.get({
+      domain: '.nicovideo.jp',
+      //      name: 'user_session',
+    });
+    if (!cookies || !cookies.length) return;
+
+    for (const cookie of cookies) {
+      if (cookie.sameSite === 'no_restriction') {
+        console.log(`no-need change cookie ${cookie.name}`);
+        return;
+      }
+
+      let d = cookie.domain;
+      if (d[0] === '.') d = d.substring(1);
+
+      cookie.url = `https://${d}`; //nicovideo.jp';
+      cookie.sameSite = 'no_restriction';
+      cookie.httpOnly = true;
+      cookie.secure = true;
+
+      await electron.session.defaultSession.cookies.set(cookie);
+      console.log(`cookie changed ${JSON.stringify(cookie)}`);
+    }
+  } catch (e) {
+    console.log(`cookie error ${e.toString()}`);
+  }
+}
+
 // This ensures that only one copy of our app can run at once.
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -318,6 +353,8 @@ function initialize(crashHandler) {
 
   // eslint-disable-next-line no-inner-declarations
   async function startApp() {
+    await recollectUserSessionCookie();
+
     const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
     let crashHandlerLogPath = '';
     if (process.env.NODE_ENV !== 'production' || !!process.env.SLOBS_PREVIEW) {
@@ -749,5 +786,9 @@ function initialize(crashHandler) {
       // main window may be destroyed on shutdown
       mainWindow.send('showErrorAlert');
     }
+  });
+
+  ipcMain.handle('recollectUserSessionCookie', async () => {
+    await recollectUserSessionCookie();
   });
 }

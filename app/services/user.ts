@@ -3,7 +3,7 @@ import URI from 'urijs';
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { Inject } from 'services/core/injector';
 import { mutation } from 'services/core/stateful-service';
-import electron from 'electron';
+import electron, { ipcRenderer } from 'electron';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
 import { HostsService } from './hosts';
 import {
@@ -192,6 +192,8 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }
 
   private async login(service: IPlatformService, rawAuth: IPlatformAuth) {
+    await ipcRenderer.invoke(`recollectUserSessionCookie`);
+
     const isPremium = await service.isPremium(rawAuth.platform.token);
     const auth = { ...rawAuth, platform: { ...rawAuth.platform, isPremium } };
     this.LOGIN(auth);
