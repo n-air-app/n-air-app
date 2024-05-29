@@ -90,14 +90,14 @@ async function recollectUserSessionCookie() {
   try {
     const cookies = await electron.session.defaultSession.cookies.get({
       domain: '.nicovideo.jp',
-      //      name: 'user_session',
+      name: 'user_session', // 他のキーまでやるとNAIR_UNSTABLE=0で問題があるかもなので一旦必須だけ、状況に応じてで
     });
     if (!cookies || !cookies.length) return;
 
     for (const cookie of cookies) {
       if (cookie.sameSite === 'no_restriction') {
         console.log(`no-need change cookie ${cookie.name}`);
-        return;
+        continue;
       }
 
       let d = cookie.domain;
