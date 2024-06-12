@@ -38,39 +38,38 @@ import { inheritMutations } from './stateful-service';
 
 export function ServiceHelper(parentServiceName: string) {
   return function <T extends { new (...args: any[]): {} }>(constr: T) {
-    constr['_isHelperFor'] = parentServiceName;
-    const klass = class extends constr {
-      constructor(...args: any[]) {
-        super(...args);
-        this['_isHelper'] = true;
-        this['_constructorArgs'] = args;
-        this['_resourceId'] = constr.name + JSON.stringify(args);
+    return new Proxy(constr, {
+      construct(target, args) {
+        constr['_isHelperFor'] = parentServiceName;
+        const instance = new target(...args);
+        instance['_isHelper'] = true;
+        instance['_constructorArgs'] = args;
+        instance['_resourceId'] = constr.name + JSON.stringify(args);
 
-        return new Proxy(this, {
+        // TODO これは必要なのか?
+        // Object.defineProperty(klass, 'name', { value: constr.name });
+        // inheritMutations(klass);
+
+        return new Proxy(instance, {
           get: (target, key: string) => {
-            console.log(`${parentServiceName} ${key}`);
-            // if (
-            //   typeof target[key] === 'function' &&
-            //   key !== 'isDestroyed' //&&
-            //   //ちょい  target['isDestroyed']()
-            // ) {
-            //   return () => {
-            //     throw new Error(
-            //       `Trying to call the method "${key}" on destroyed object "${this['_resourceId']}"`,
-            //     );
-            //   };
-            // }
+            // console.log(`${parentServiceName} ${key}`);
+            if (
+              typeof target[key] === 'function' &&
+              key !== 'isDestroyed' &&
+              target['isDestroyed'] && // isDestroyed が定義されていないクラスは省略
+              target['isDestroyed']()
+            ) {
+              return () => {
+                throw new Error(
+                  `Trying to call the method "${key}" on destroyed object "${this['_resourceId']}"`,
+                );
+              };
+            }
 
             return target[key];
           },
         });
-      }
-    };
-
-    Object.defineProperty(klass, 'name', { value: constr.name });
-
-    inheritMutations(klass);
-
-    return klass;
+      },
+    });
   };
 }
