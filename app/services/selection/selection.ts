@@ -197,7 +197,7 @@ export class SelectionService extends StatefulService<ISelectionState> {
 /**
  * Helper for working with multiple sceneItems
  */
-@ServiceHelper()
+@ServiceHelper('SelectionService')
 export class Selection {
   @Inject() private scenesService: ScenesService;
 

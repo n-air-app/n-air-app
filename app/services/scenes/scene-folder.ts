@@ -12,7 +12,7 @@ import { ISceneItemFolder } from '.';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { TDisplayType } from 'services/settings-v2';
 
-@ServiceHelper()
+@ServiceHelper('ScenesService')
 export class SceneItemFolder extends SceneItemNode {
   name: string;
   sceneNodeType: TSceneNodeType = 'folder';

@@ -31,7 +31,7 @@ export interface ISceneHierarchy extends ISceneItemNode {
   children: ISceneHierarchy[];
 }
 
-@ServiceHelper()
+@ServiceHelper('ScenesService')
 export class Scene {
   id: string;
   name: string;

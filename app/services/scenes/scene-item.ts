@@ -29,7 +29,7 @@ export { EScaleType, EBlendingMode, EBlendingMethod } from '../../../obs-api';
  * all of the information about that source, and
  * how it fits in to the given scene
  */
-@ServiceHelper()
+@ServiceHelper('ScenesService')
 export class SceneItem extends SceneItemNode {
   sourceId: string;
   name: string;
