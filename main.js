@@ -424,6 +424,7 @@ function initialize(crashHandler) {
     let crashHandlerLogPath = '';
     if (process.env.NODE_ENV !== 'production' || !!process.env.SLOBS_PREVIEW) {
       crashHandlerLogPath = app.getPath('userData');
+      process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = '1';
     }
 
     crashHandler.startCrashHandler(
