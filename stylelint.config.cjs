@@ -1,3 +1,4 @@
+/** @type {import('stylelint').Config} */
 module.exports = {
   plugins: ['stylelint-less'],
   extends: [
@@ -14,14 +15,15 @@ module.exports = {
     'font-family-no-missing-generic-family-keyword': [
       true,
       {
-        ignoreFontFamilies: 'n-air',
+        ignoreFontFamilies: ['n-air', 'Roboto'],
       },
     ],
     'function-no-unknown': [
       true,
       { ignoreFunctions: ['lighten', 'darken', 'fade', 'fadein', 'fadeout'] },
     ],
-    'color-function-notation': 'legacy',
+    'color-function-notation': null,
+    'block-no-empty': null,
   },
   overrides: [
     {
@@ -30,6 +32,7 @@ module.exports = {
     },
     {
       files: ['**/*.less'],
+      ignoreFiles: ['app/styles/custom-icons.less'], // 自動生成のため除外
       customSyntax: 'postcss-less',
     },
   ],

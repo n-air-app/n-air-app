@@ -1,7 +1,7 @@
 import { QueueRunner } from 'util/QueueRunner';
 import { createSetupFunction } from 'util/test-setup';
 import type { ICommentSynthesizerState, Speech } from './nicolive-comment-synthesizer';
-import { WrappedChat } from './WrappedChat';
+import { isWrappedChat, WrappedChat, WrappedMessage } from './WrappedChat';
 
 type NicoliveCommentSynthesizerService =
   import('./nicolive-comment-synthesizer').NicoliveCommentSynthesizerService;
@@ -10,16 +10,13 @@ const setup = createSetupFunction({
   injectee: {
     NicoliveProgramStateService: {
       updated: {
-        subscribe() { },
+        subscribe() {},
       },
-      state: {
-      },
-      updateSpeechSynthesizerSettings() { },
+      state: {},
+      updateSpeechSynthesizerSettings() {},
     },
-    NVoiceClientService: {
-    },
-    NVoiceCharacterService: {
-    },
+    NVoiceClientService: {},
+    NVoiceCharacterService: {},
   },
 });
 
@@ -57,6 +54,28 @@ const mockedState: ICommentSynthesizerState = {
   },
 };
 
+test('makeSpeechText', async () => {
+  setup();
+  const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
+  const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+  expect(
+    instance.makeSpeechText({ type: 'normal', value: { content: 'test' }, seqId: 1 }, 'webSpeech'),
+  ).toBe('test');
+
+  const gift: WrappedMessage = {
+    type: 'gift',
+    value: {
+      advertiserName: 'advertiserName',
+      point: 100,
+      itemName: 'itemName',
+    },
+    seqId: 1,
+  } as const;
+  expect(instance.makeSpeechText(gift, 'webSpeech')).toBe(
+    `${gift.value.advertiserName}さんが「${gift.value.itemName}（${gift.value.point}pt）」を贈りました`,
+  );
+});
+
 test('makeSpeech', async () => {
   setup();
   const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
@@ -67,7 +86,9 @@ test('makeSpeech', async () => {
   // 辞書変換しない
   jest
     .spyOn(instance, 'makeSpeechText')
-    .mockImplementation((chat: WrappedChat) => chat.value.content);
+    .mockImplementation(
+      (chat: WrappedMessage) => (isWrappedChat(chat) && chat.value.content) || '',
+    );
 
   const makeChat = (s: string): WrappedChat => ({
     type: 'normal',
@@ -97,13 +118,14 @@ test('makeSpeech', async () => {
   });
 });
 
-
 test.each([
   ['normal', false, false, 0, 0, 1],
   ['cancelBeforeSpeaking', true, false, 1, 0, 1],
   ['NUM_COMMENTS_TO_SKIP', false, true, 0, 1, 1],
-])('queueToSpeech %s cancelBeforeSpeaking:%s filled:%s cancel:%d add:%d',
-  async (name: string,
+])(
+  'queueToSpeech %s cancelBeforeSpeaking:%s filled:%s cancel:%d add:%d',
+  async (
+    name: string,
     cancelBeforeSpeaking: boolean,
     filled: boolean,
     numCancel: number,
@@ -112,20 +134,22 @@ test.each([
   ) => {
     setup();
     const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
-    const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+    const instance =
+      NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
     jest.spyOn(instance, 'state', 'get').mockReturnValue(mockedState);
 
-    (instance.getSynthesizer('nVoice').speakText as jest.Mock)
-      .mockImplementation((speech: Speech, onstart: () => void, onend: () => void) => {
+    (instance.getSynthesizer('nVoice').speakText as jest.Mock).mockImplementation(
+      (speech: Speech, onstart: () => void, onend: () => void) => {
         return async () => async () => {
           onstart();
           onend();
           return {
-            cancel: async () => { },
+            cancel: async () => {},
             running: Promise.resolve(),
           };
-        }
-      });
+        };
+      },
+    );
 
     const queue = instance.queue as jest.Mocked<QueueRunner>;
 
@@ -138,7 +162,9 @@ test.each([
       volume: testVolume,
     };
 
-    Object.defineProperty(queue, 'length', { get: () => filled ? instance.NUM_COMMENTS_TO_SKIP : 0 });
+    Object.defineProperty(queue, 'length', {
+      get: () => (filled ? instance.NUM_COMMENTS_TO_SKIP : 0),
+    });
     expect(queue.cancel).toBeCalledTimes(0);
     expect(queue.add).toBeCalledTimes(0);
     instance.queueToSpeech(speech, onstart, onend, cancelBeforeSpeaking);
@@ -148,4 +174,5 @@ test.each([
     if (numAdd) {
       expect(queue.add).toBeCalledWith(expect.anything(), speech.text);
     }
-  });
+  },
+);

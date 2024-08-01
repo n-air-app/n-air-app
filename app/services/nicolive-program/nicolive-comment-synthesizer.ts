@@ -11,7 +11,7 @@ import { ISpeechSynthesizer } from './speech/ISpeechSynthesizer';
 import { NVoiceSynthesizer } from './speech/NVoiceSynthesizer';
 import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
 import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
-import { WrappedChat } from './WrappedChat';
+import { WrappedMessage } from './WrappedChat';
 
 export type Speech = {
   text: string;
@@ -19,11 +19,11 @@ export type Speech = {
   rate: number; // 速度
   webSpeech?: {
     pitch?: number; // 声の高さ
-  },
+  };
   volume?: number;
   nVoice?: {
     maxTime: number;
-  }
+  };
 };
 
 export interface ICommentSynthesizerState {
@@ -55,7 +55,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       normal: 'nVoice',
       operator: 'nVoice',
       system: 'webSpeech',
-    }
+    },
   };
 
   // この数すでにキューに溜まっている場合は破棄してから追加する
@@ -82,7 +82,9 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   init(): void {
     this.setState({
       ...NicoliveCommentSynthesizerService.initialState,
-      ...(this.stateService.state.speechSynthesizerSettings ? this.stateService.state.speechSynthesizerSettings : {}),
+      ...(this.stateService.state.speechSynthesizerSettings
+        ? this.stateService.state.speechSynthesizerSettings
+        : {}),
     });
 
     this.stateService.updated.subscribe({
@@ -90,35 +92,37 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         const newState =
           {
             ...NicoliveCommentSynthesizerService.initialState,
-            ...persistentState.speechSynthesizerSettings
-          } ||
-          NicoliveCommentSynthesizerService.initialState;
+            ...persistentState.speechSynthesizerSettings,
+          } || NicoliveCommentSynthesizerService.initialState;
         this.SET_STATE(newState);
       },
     });
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
 
     this.phonemeServer = new PhonemeServer({
-      onPortAssigned: (port) => {
+      onPortAssigned: port => {
         this.nVoiceCharacterService.updateSocketIoPort(port);
-      }
+      },
     });
   }
 
   private dictionary = new ParaphraseDictionary();
 
-  makeSpeechText(chat: WrappedChat, engine: SynthesizerId): string {
-    if (!chat.value || !chat.value.content) {
+  makeSpeechText(chat: WrappedMessage, engine: SynthesizerId): string {
+    if (!chat.value) {
       return '';
     }
     const text = getDisplayText(AddComponent(chat));
+    if (!text) {
+      return '';
+    }
 
     const converted = this.dictionary.process(text, engine);
 
     return converted;
   }
 
-  private selectSpeechSynthesizer(chat: WrappedChat): SynthesizerSelector {
+  private selectSpeechSynthesizer(chat: WrappedMessage): SynthesizerSelector {
     switch (chat.type) {
       case 'normal':
         return this.state.selector.normal;
@@ -129,7 +133,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     }
   }
 
-  makeSpeech(chat: WrappedChat, synthId?: SynthesizerSelector): Speech | null {
+  makeSpeech(chat: WrappedMessage, synthId?: SynthesizerSelector): Speech | null {
     const synthesizer = synthId || this.selectSpeechSynthesizer(chat);
     if (synthesizer === 'ignore') {
       return null;
@@ -154,18 +158,26 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   }
 
   makeSimpleTextSpeech(text: string, synthId?: SynthesizerId): Speech | null {
-    return this.makeSpeech({
-      type: 'normal',
-      value: {
-        content: text,
+    return this.makeSpeech(
+      {
+        type: 'normal',
+        value: {
+          content: text,
+        },
+        seqId: 1,
       },
-      seqId: 1,
-    }, synthId);
+      synthId,
+    );
   }
 
   startSpeakingSimple(speech: Speech) {
     // empty anonymous functions must be created in this service
-    this.queueToSpeech(speech, () => { }, () => { }, true);
+    this.queueToSpeech(
+      speech,
+      () => {},
+      () => {},
+      true,
+    );
   }
 
   startTestSpeech(text: string, synthId: SynthesizerId) {
@@ -205,7 +217,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         () => {
           onend();
         },
-        (phoneme) => {
+        phoneme => {
           this.phonemeServer?.emitPhoneme(phoneme);
         },
       ),
@@ -296,5 +308,4 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   private SET_STATE(nextState: ICommentSynthesizerState): void {
     this.state = nextState;
   }
-
 }
