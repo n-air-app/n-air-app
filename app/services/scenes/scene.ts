@@ -24,6 +24,7 @@ import * as fs from 'fs';
 import uuid from 'uuid/v4';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { VideoSettingsService, TDisplayType } from 'services/settings-v2';
+import { filter } from 'rxjs/operators';
 
 export type TSceneNode = SceneItem | SceneItemFolder;
 
@@ -146,7 +147,7 @@ export class Scene {
     return this.addSource(source.sourceId, options);
   }
 
-  addSource(sourceId: string, options: ISceneNodeAddOptions = {}): SceneItem {
+  addSource(sourceId: string, options: ISceneNodeAddOptions = {}): SceneItem | null {
     const source = this.sourcesService.getSource(sourceId);
     if (!source) throw new Error(`Source ${sourceId} not found`);
 
@@ -180,6 +181,17 @@ export class Scene {
     }
 
     this.scenesService.itemAdded.next(sceneItem.getModel());
+    if (source.type === 'monitor_capture') {
+      const subscription = this.sourcesService.sourceUpdated
+        .pipe(filter(patch => patch.sourceId === sourceId))
+        .subscribe(patch => {
+          // 初期サイズが入った後にfitToScreenする
+          if (patch.width && patch.height) {
+            sceneItem.fitToScreen();
+            subscription.unsubscribe();
+          }
+        });
+    }
     return sceneItem;
   }
 
@@ -411,7 +423,7 @@ export class Scene {
 
     // 同一scene上では1つだけ
     if (source.type === 'nair-rtvc-source') {
-      for (const s of this.scenesService.activeScene.items) {
+      for (const s of this.items) {
         if (this.sourcesService.getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
       }
     }

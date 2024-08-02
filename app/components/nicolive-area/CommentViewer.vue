@@ -32,7 +32,7 @@
           :getFormattedLiveTime="getFormattedLiveTime"
           :commentMenuOpened="commentMenuTarget === item"
           :speaking="speakingSeqId === item.seqId"
-          :nameplateHint="item.value.no === nameplateHintNo"
+          :nameplateHint="nameplateHintNo && item.value.no === nameplateHintNo"
           @pinned="pin(item)"
           @commentMenu="showCommentMenu(item)"
           @commentUser="showUserInfo(item)"
@@ -238,7 +238,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: fit-content;
+  width: 100%;
   padding: 8px;
   pointer-events: none;
   transform: translate(-50%, -50%);

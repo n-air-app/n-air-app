@@ -3,7 +3,7 @@ import URI from 'urijs';
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { Inject } from 'services/core/injector';
 import { mutation } from 'services/core/stateful-service';
-import electron from 'electron';
+import electron, { ipcRenderer } from 'electron';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
 import {
   getPlatformService,
@@ -20,6 +20,8 @@ import uuid from 'uuid/v4';
 import { OnboardingService } from './onboarding';
 import { UuidService } from './uuid';
 import { addClipboardMenu } from 'util/addClipboardMenu';
+import * as remote from '@electron/remote';
+import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 
 // Eventually we will support authing multiple platforms at once
 interface IUserServiceState {
@@ -64,12 +66,17 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     this.incrementalRolloutService.fetchAvailableFeatures();
   }
 
-  mounted() {
-    // This is used for faking authentication in tests
-    electron.ipcRenderer.on('testing-fakeAuth', async (e: Electron.Event, auth: any) => {
-      this.LOGIN(auth);
-      await this.sceneCollectionsService.setupNewUser();
-    });
+  /**
+   * This is used for faking authentication in tests.  We have
+   * to do this because Twitch adds a captcha when we try to
+   * actually log in from integration tests.
+   */
+  async testingFakeAuth(auth: IPlatformAuth, isOnboardingTest: boolean) {
+    this.LOGIN(auth);
+    this.userLogin.next(auth);
+    this.onboardingService.next();
+    await this.sceneCollectionsService.setupNewUser();
+    if (!isOnboardingTest) this.onboardingService.finish();
   }
 
   // Makes sure the user's login is still good
@@ -176,6 +183,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }
 
   private async login(service: IPlatformService, rawAuth: IPlatformAuth) {
+    await ipcRenderer.invoke(`recollectUserSessionCookie`);
     const isPremium = await service.isPremium(rawAuth.platform.token);
     const auth = { ...rawAuth, platform: { ...rawAuth.platform, isPremium } };
     this.LOGIN(auth);
@@ -198,7 +206,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     this.userLogout.next();
 
     this.LOGOUT();
-    electron.remote.session.defaultSession.clearStorageData({ storages: ['cookies'] });
+    remote.session.defaultSession.clearStorageData({ storages: ['cookies'] });
     this.appService.finishLoading();
     this.setSentryContext();
   }
@@ -218,14 +226,20 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }) {
     const service = getPlatformService(platform);
     console.log('startAuth service = ' + JSON.stringify(service));
+    if (isFakeMode()) {
+      this.login(service, FakeUserAuth).then(() => {
+        onAuthFinish();
+        onAuthClose();
+      });
+      return;
+    }
 
-    const authWindow = new electron.remote.BrowserWindow({
+    const authWindow = new remote.BrowserWindow({
       ...service.authWindowOptions,
       alwaysOnTop: false,
       show: false,
       webPreferences: {
         nodeIntegration: false,
-        nativeWindowOpen: true,
         sandbox: true,
       },
     });
