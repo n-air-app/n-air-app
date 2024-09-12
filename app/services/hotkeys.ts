@@ -486,7 +486,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
 /**
  * Represents a single bindable hotkey
  */
-@ServiceHelper()
+@ServiceHelper('HotkeysService')
 export class Hotkey implements IHotkey {
   actionName: string;
   sceneId?: string;

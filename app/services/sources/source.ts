@@ -15,7 +15,7 @@ import * as obs from '../../../obs-api';
 import { cloneDeep, isEqual } from 'lodash';
 import { assertIsDefined } from 'util/properties-type-guards';
 
-@ServiceHelper()
+@ServiceHelper('SourcesService')
 export class Source implements ISourceApi {
   sourceId: string;
   name: string;

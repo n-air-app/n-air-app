@@ -338,7 +338,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 }
 
-@ServiceHelper()
+@ServiceHelper('AudioService')
 export class AudioSource implements IAudioSourceApi {
   name: string;
   sourceId: string;

@@ -115,6 +115,7 @@ module.exports = {
     'no-undef': OFF,
     'vue/no-use-v-if-with-v-for': OFF,
     'vue/require-v-for-key': OFF,
+    'no-constructor-return': OFF,
   },
   // https://teratail.com/questions/295406
   overrides: [
