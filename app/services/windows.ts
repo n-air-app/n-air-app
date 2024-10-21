@@ -33,7 +33,6 @@ import electron from 'electron';
 import Vue from 'vue';
 import Util from 'services/utils';
 import { Subject } from 'rxjs';
-import ExecuteInCurrentWindow from '../util/execute-in-current-window';
 import BrowserSourceInteraction from 'components/windows/BrowserSourceInteraction';
 import UserInfo from 'components/windows/UserInfo.vue';
 import * as remote from '@electron/remote';
@@ -180,6 +179,9 @@ export class WindowsService extends StatefulService<IWindowsState> {
       category: 'showWindow',
       message: options.componentName,
     });
+    if (Util.isDevMode()) {
+      console.log('showWindow', options);
+    }
 
     // Don't center the window if it's the same component
     // This prevents "snapping" behavior when navigating settings
@@ -238,6 +240,9 @@ export class WindowsService extends StatefulService<IWindowsState> {
         windowId,
       },
     });
+    if (Util.isDevMode()) {
+      console.log('createOneOffWindow', options);
+    }
 
     if (this.windows[windowId]) {
       this.windows[windowId].restore();
