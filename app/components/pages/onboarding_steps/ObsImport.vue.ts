@@ -1,13 +1,13 @@
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
-import { Inject } from '../../../services/core/injector';
-import { OnboardingService } from '../../../services/onboarding';
-import { Multiselect } from 'vue-multiselect';
-import { ObsImporterService } from '../../../services/obs-importer';
 import { defer } from 'lodash';
-import { SceneCollectionsService } from 'services/scene-collections';
 import { $t } from 'services/i18n';
+import { SceneCollectionsService } from 'services/scene-collections';
+import Vue from 'vue';
+import { Multiselect } from 'vue-multiselect';
+import { Component } from 'vue-property-decorator';
 import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
+import { Inject } from '../../../services/core/injector';
+import { ObsimporterService } from '../../../services/obs-importer';
+import { OnboardingService } from '../../../services/onboarding';
 
 @Component({
   components: {
@@ -15,12 +15,12 @@ import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
     NAirObsLogo,
   },
 })
-export default class ObsImport extends Vue {
+export default class Obsimport extends Vue {
   @Inject()
   onboardingService: OnboardingService;
 
   @Inject()
-  obsImporterService: ObsImporterService;
+  obsimporterService: ObsimporterService;
 
   @Inject()
   sceneCollectionsService: SceneCollectionsService;
@@ -28,10 +28,10 @@ export default class ObsImport extends Vue {
   status: 'initial' | 'importing' | 'done' = 'initial';
 
   // @ts-expect-error: ts2729: use before initialization
-  sceneCollections = this.obsImporterService.getSceneCollections();
+  sceneCollections = this.obsimporterService.getSceneCollections();
 
   // @ts-expect-error: ts2729: use before initialization
-  profiles = this.obsImporterService.getProfiles();
+  profiles = this.obsimporterService.getProfiles();
 
   selectedProfile = this.profiles[0] || '';
 
@@ -64,11 +64,11 @@ export default class ObsImport extends Vue {
     return $t('onboarding.initialStateDescription');
   }
 
-  startImport() {
+  startimport() {
     this.status = 'importing';
     defer(async () => {
       try {
-        await this.obsImporterService.load(this.selectedProfile);
+        await this.obsimporterService.load(this.selectedProfile);
         this.status = 'done';
       } catch (e) {
         // I suppose let's pretend we succeeded for now.

@@ -1,9 +1,9 @@
+import { Inject } from './core/injector';
 import { StatefulService, mutation } from './core/stateful-service';
 import { NavigationService } from './navigation';
 import { UserService } from './user';
-import { Inject } from './core/injector';
 
-type TOnboardingStep = 'Connect' | 'ObsImport';
+type TOnboardingStep = 'Connect' | 'Obsimport';
 
 interface IOnboardingOptions {
   isLogin: boolean; // When logging into a new account after onboarding
@@ -31,10 +31,10 @@ interface IOnboardingStep {
 const ONBOARDING_STEPS: Dictionary<IOnboardingStep> = {
   Connect: {
     isEligible: () => true,
-    next: 'ObsImport',
+    next: 'Obsimport',
   },
 
-  ObsImport: {
+  Obsimport: {
     isEligible: service => {
       if (service.options.isLogin) return false;
       return true;

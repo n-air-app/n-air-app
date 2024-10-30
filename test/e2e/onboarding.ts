@@ -29,8 +29,8 @@ test('Startup first time / login', async t => {
   await api.getResource<UserService>('UserService').testingFakeAuth(platform, isOnboardingTest);
 
   // This will only show up if OBS is installed
-  if (await client.$('[data-test="ObsImport"]').isExisting()) {
-    await click('[data-test="ObsImport"] [data-test="Skip"]');
+  if (await client.$('[data-test="Obsimport"]').isExisting()) {
+    await click('[data-test="Obsimport"] [data-test="Skip"]');
   }
 
   t.true(await client.$('[data-test="Studio"]').isExisting());
@@ -46,8 +46,8 @@ test('Startup first time / skip', async t => {
   await click('[data-test="Connect"] [data-test="Skip"]');
 
   // This will only show up if OBS is installed
-  if (await client.$('[data-test="ObsImport"]').isExisting()) {
-    await click('[data-test="ObsImport"] [data-test="Skip"]');
+  if (await client.$('[data-test="Obsimport"]').isExisting()) {
+    await click('[data-test="Obsimport"] [data-test="Skip"]');
   }
 
   t.true(await client.$('[data-test="Studio"]').isExisting());
