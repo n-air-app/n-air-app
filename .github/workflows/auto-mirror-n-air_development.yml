@@ -1,0 +1,33 @@
+name: Sync n-air_development to Mirror Repo
+
+on:
+  push:
+    branches:
+      - n-air_development
+
+  workflow_dispatch:
+
+jobs:
+  sync:
+    if: github.repository == 'n-air-app/n-air-app'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          ref: n-air_development
+
+      - name: Check if MIRROR_REPO_URL is defined
+        env:
+          MIRROR_REPO_URL: ${{ secrets.MIRROR_REPO_URL }}
+        run: |
+          if [ -z "$MIRROR_REPO_URL" ]; then
+            echo "MIRROR_REPO_URL is not defined. Skipping job."
+            exit 0
+          fi
+
+      - name: Push to mirror repository
+        run: |
+          git remote add mirror https://x-access-token:${{ secrets.GITHUB_TOKEN }}@${{ secrets.MIRROR_REPO_URL }}
+          git push mirror
