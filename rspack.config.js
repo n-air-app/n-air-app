@@ -1,7 +1,7 @@
 const { VueLoaderPlugin } = require('vue-loader');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const DefinePlugin = require('webpack').DefinePlugin;
+const DefinePlugin = require('@rspack/core').DefinePlugin;
 const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
 
 const path = require('node:path');
@@ -20,7 +20,7 @@ function getSentryMiniDumpURLFromDSN(dsn) {
   return `https://${match[2]}/api/${match[3]}/minidump/?sentry_key=${match[1]}`;
 }
 
-/** @type function ({production: boolean}, {mode?:string}): import('webpack').Configuration */
+/** @type function ({production: boolean}, {mode?:string}): import('@rspack/core').Configuration */
 module.exports = function (env, argv) {
   const SENTRY_ORG = 'n-air-app2';
   const SENTRY_PROJECT = (() => {
@@ -62,14 +62,16 @@ module.exports = function (env, argv) {
   plugins.push(new VueLoaderPlugin());
   plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'] }));
 
-  /** @type import('webpack').Configuration */
+  /** @type import('@rspack/core').Configuration */
   const common = {
+    /* // Rspackにはまだファイルキャッシュがないためコメントアウト
     cache: {
       type: 'filesystem',
       buildDependencies: {
         config: [__filename],
       },
     }, // if problem, clean node_modules/.cache
+      */
   };
 
   return [
@@ -100,6 +102,10 @@ module.exports = function (env, argv) {
       entry: {
         renderer: './app/app.ts',
         updater: './updater/ui.js',
+      },
+
+      experiments: {
+        // css: true,
       },
 
       devServer: {
@@ -140,18 +146,23 @@ module.exports = function (env, argv) {
 
       // We want to dynamically require native addons
       externals: {
-        'font-manager': 'require("font-manager")',
+        'font-manager': 'font-manager',
 
         // Not actually a native addons, but for one reason or another
         // we don't want them compiled in our webpack bundle.
-        'aws-sdk': 'require("aws-sdk")',
-        asar: 'require("asar")',
-        'node-fontinfo': 'require("node-fontinfo")',
-        rimraf: 'require("rimraf")',
+        'aws-sdk': 'aws-sdk',
+        asar: 'asar',
+        'node-fontinfo': 'node-fontinfo',
+        rimraf: 'rimraf',
 
-        'utf-8-validate': 'require("utf-8-validate")',
-        bufferutil: 'require("bufferutil")',
+        'utf-8-validate': 'utf-8-validate',
+        bufferutil: 'bufferutil',
+
+        // WIP obs-studio-node まわりが Rspack でうまくいかない
+        // sources.ts で obs.ESourceOutputFlags が undefined (Audio of undefined)
+        './obs_studio_client.node': 'obs-studio-node/obs_studio_client.node',
       },
+      externalsType: 'commonjs',
 
       module: {
         rules: [
@@ -164,27 +175,48 @@ module.exports = function (env, argv) {
                 video: 'src',
                 source: 'src',
               },
+              // experimentalInlineMatchResource: true,
             },
           },
           {
             test: /\.ts$/,
-            loader: 'ts-loader',
+            loader: 'builtin:swc-loader',
             exclude: /node_modules|vue\/src/,
+            options: {
+              jsc: {
+                parser: {
+                  syntax: 'typescript',
+                  decorators: true,
+                },
+              },
+            },
+            type: 'javascript/auto',
           },
           {
             test: /\.tsx$/,
+            loader: 'builtin:swc-loader',
             exclude: /node_modules|vue\/src/,
-            use: ['babel-loader', { loader: 'ts-loader' }],
+            options: {
+              jsc: {
+                parser: {
+                  syntax: 'typescript',
+                  decorators: true,
+                  tsx: true,
+                },
+              },
+            },
+            type: 'javascript/auto',
           },
           {
             test: /\.js$/,
-            loader: 'babel-loader',
+            loader: 'builtin:swc-loader',
             exclude: [/node_modules/, path.join(__dirname, 'bin')],
+            type: 'javascript/auto',
           },
           {
             test: /\.css$/,
             use: [
-              'style-loader',
+              'vue-style-loader',
               {
                 loader: 'css-loader',
                 options: {
@@ -200,11 +232,12 @@ module.exports = function (env, argv) {
                 },
               },
             ],
+            type: 'javascript/auto',
           },
           {
             test: /\.less$/,
             use: [
-              'style-loader',
+              'vue-style-loader',
               {
                 loader: 'css-loader',
                 options: {
@@ -221,24 +254,23 @@ module.exports = function (env, argv) {
               },
               'less-loader',
             ],
+            type: 'javascript/auto',
           },
           {
             test: /\.(png|jpe?g|gif|mp4|mp3|ico|wav|webm)(\?.*)?$/,
-            loader: 'file-loader',
-            options: {
-              name: '[name]-[hash].[ext]',
-              outputPath: 'media/',
-              publicPath: 'bundles/media/',
+            type: 'asset/resource',
+            generator: {
+              filename: 'media/[name][ext]',
+              publicPath: 'bundles/',
             },
           },
           // Handles custom fonts. Currently used for icons.
           {
             test: /\.woff$/,
-            loader: 'file-loader',
-            options: {
-              name: '[name].[ext]',
-              outputPath: 'fonts/',
-              publicPath: 'bundles/fonts/',
+            type: 'asset/resource',
+            generator: {
+              filename: 'fonts/[name][ext]',
+              publicPath: 'bundles/',
             },
           },
           {
@@ -260,7 +292,7 @@ module.exports = function (env, argv) {
       plugins,
 
       stats: {
-        warningsFilter: ["Can't resolve 'osx-temperature-sensor'"],
+        // warningsFilter: ["Can't resolve 'osx-temperature-sensor'"],
       },
     },
   ];
