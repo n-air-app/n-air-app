@@ -1,8 +1,8 @@
+import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
-import { ProgramInfo } from './ResponseTypes';
 import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
 import { calcServerClockOffsetSec, type NicoliveClient } from './NicoliveClient';
-import { jest_fn } from 'util/jest_fn';
+import { ProgramInfo } from './ResponseTypes';
 
 type NicoliveProgramService = import('./nicolive-program').NicoliveProgramService;
 
@@ -95,6 +95,11 @@ const programs: Dictionary<Partial<ProgramInfo['data']>> = {
     rooms,
   },
 };
+
+// fetchProgramPassword でパスワードが設定されていない番組のエラー値
+const PROGRAM_PASSWORD_NOT_SET = {
+  meta: { status: 404, errorCode: 'NOT_PASSWORD_PROGRAM' },
+} as const;
 
 const setup = createSetupFunction({
   state: {
@@ -265,7 +270,10 @@ test('fetchProgram:testのときはshowPlaceholderをtrueにする', async () =>
     .fn()
     .mockResolvedValue({ ok: true, value: [schedules.test] });
   instance.client.fetchProgram = jest.fn().mockResolvedValue({ ok: true, value: programs.test });
-
+  instance.client.fetchProgramPassword = jest.fn().mockResolvedValue({
+    ok: false,
+    value: PROGRAM_PASSWORD_NOT_SET,
+  });
   (instance as any).setState = jest.fn();
 
   await expect(instance.fetchProgram()).resolves.toBeUndefined();
@@ -315,6 +323,10 @@ test('fetchProgram:成功', async () => {
     .fn()
     .mockResolvedValue({ ok: true, value: [schedules.onAir] });
   instance.client.fetchProgram = jest.fn().mockResolvedValue({ ok: true, value: programs.onAir });
+  instance.client.fetchProgramPassword = jest.fn().mockResolvedValue({
+    ok: true,
+    value: { password: 'password' },
+  });
 
   // TODO: StatefulServiceのモックをVue非依存にする
   (instance as any).setState = jest.fn();
@@ -334,6 +346,7 @@ test('fetchProgram:成功', async () => {
           "description": "番組詳細情報",
           "endTime": 150,
           "isMemberOnly": true,
+          "password": "password",
           "programID": "lv1",
           "serverClockOffsetSec": 0,
           "startTime": 100,
@@ -394,6 +407,10 @@ test('fetchProgramでコミュ情報がエラーでも番組があったら先�
   instance.client.fetchProgram = jest.fn().mockResolvedValue({
     ok: true,
     value: programs.onAir,
+  });
+  instance.client.fetchProgramPassword = jest.fn().mockResolvedValue({
+    ok: false,
+    value: PROGRAM_PASSWORD_NOT_SET,
   });
 
   (instance as any).setState = jest.fn();

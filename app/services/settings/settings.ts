@@ -1,37 +1,35 @@
 import * as Sentry from '@sentry/vue';
-import cloneDeep from 'lodash/cloneDeep';
-import { StatefulService, mutation } from 'services/core/stateful-service';
 import {
-  obsValuesToInputValues,
-  inputValuesToObsValues,
-  TObsValue,
-  TObsFormData,
-  IObsListInput,
   IObsInput,
+  IObsListInput,
+  TObsFormData,
+  TObsValue,
+  inputValuesToObsValues,
+  obsValuesToInputValues,
 } from 'components/obs/inputs/ObsInput';
-import * as obs from '../../../obs-api';
-import { SourcesService } from 'services/sources';
-import { Inject } from '../core/injector';
-import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
-import { WindowsService } from 'services/windows';
-import { UserService } from 'services/user';
-import Utils from '../utils';
-import { AppService } from 'services/app';
-import { VideoEncodingOptimizationService, IOutputSettings } from '../video-encoding-optimizations';
-import { ISettingsSubCategory, ISettingsServiceApi } from './settings-api';
-import { $t } from 'services/i18n';
 import fs from 'fs';
+import cloneDeep from 'lodash/cloneDeep';
+import { TcpServerService } from 'services/api/tcp-server';
+import { AppService } from 'services/app';
+import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
+import { StatefulService, mutation } from 'services/core/stateful-service';
+import { $t } from 'services/i18n';
+import { SourcesService } from 'services/sources';
+import { UserService } from 'services/user';
+import { WindowsService } from 'services/windows';
+import * as obs from '../../../obs-api';
+import { Inject } from '../core/injector';
+import { VideoSettingsService } from '../settings-v2';
+import Utils from '../utils';
+import { getBestSettingsForNiconico } from './niconico-optimization';
 import {
   ISettingsAccessor,
   OptimizeSettings,
   OptimizedSettings,
-  SettingsKeyAccessor,
   Optimizer,
-  OptimizationKey,
+  SettingsKeyAccessor,
 } from './optimizer';
-import { getBestSettingsForNiconico } from './niconico-optimization';
-import { TcpServerService } from 'services/api/tcp-server';
-import { VideoSettingsService } from '../settings-v2';
+import { ISettingsServiceApi, ISettingsSubCategory } from './settings-api';
 
 export interface ISettingsState {
   General: {
@@ -122,9 +120,6 @@ export class SettingsService
   @Inject() private tcpServerService: TcpServerService;
 
   @Inject() private userService: UserService;
-
-  @Inject()
-  private videoEncodingOptimizationService: VideoEncodingOptimizationService;
 
   @Inject() videoSettingsService: VideoSettingsService;
 
@@ -260,39 +255,6 @@ export class SettingsService
           });
         }
       }
-    }
-
-    // We hide the encoder preset and settings if the optimized ones are in used
-    if (
-      categoryName === 'Output' &&
-      this.videoEncodingOptimizationService.getIsUsingEncodingOptimizations()
-    ) {
-      const outputSettings: IOutputSettings =
-        this.videoEncodingOptimizationService.getCurrentOutputSettings();
-
-      const indexSubCategory = settings.indexOf(
-        settings.find((category: any) => {
-          return category.nameSubCategory === 'Streaming';
-        }),
-      );
-
-      const parameters = settings[indexSubCategory].parameters;
-
-      // Setting preset visibility
-      const indexPreset = parameters.indexOf(
-        parameters.find((parameter: any) => {
-          return parameter.name === outputSettings.presetField;
-        }),
-      );
-      settings[indexSubCategory].parameters[indexPreset].visible = false;
-
-      // Setting encoder settings value
-      const indexX264Settings = parameters.indexOf(
-        parameters.find((parameter: any) => {
-          return parameter.name === outputSettings.encoderSettingsField;
-        }),
-      );
-      settings[indexSubCategory].parameters[indexX264Settings].visible = false;
     }
 
     if (categoryName === 'Output') {

@@ -206,6 +206,7 @@
             trackBy="value"
             :allow-empty="false"
             :placeholder="$t('settings.listPlaceholder')"
+            :searchable="false"
           >
           </multiselect>
         </div>
@@ -341,8 +342,7 @@
 
   & /deep/ .multiselect__input {
     height: 64px;
-    padding: 0 16px;
-    color: var(--color-text-light);
+    padding: 0 16px !important;
     text-shadow: 0 0 4px rgb(@black 0.25);
     background: transparent;
     border: none;
@@ -354,6 +354,13 @@
     &:focus {
       background: var(--color-input-bg);
     }
+  }
+
+  & /deep/ .multiselect__single {
+    height: 64px;
+    padding: 0 16px;
+    line-height: 64px;
+    color: var(--color-text-light);
   }
 
   & /deep/ .multiselect__content {

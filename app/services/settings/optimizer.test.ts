@@ -1,14 +1,13 @@
 import {
-  OptimizeSettings,
-  filterKeyDescriptions,
   AllKeyDescriptions,
-  OptimizationKey,
   CategoryName,
-  EncoderType,
-  SettingsKeyAccessor,
-  ISettingsAccessor,
+  EncoderFamily,
+  filterKeyDescriptions,
   iterateKeyDescriptions,
+  OptimizationKey,
   Optimizer,
+  OptimizeSettings,
+  SettingsKeyAccessor,
 } from './optimizer';
 type ISettingsSubCategory = import('./settings-api').ISettingsSubCategory;
 jest.mock('./settings-api');
@@ -123,7 +122,7 @@ test('iterateKeyDescriptions', () => {
     quality: '1280x720',
     fpsType: 'Common FPS Values',
     fpsCommon: '30',
-    encoder: EncoderType.x264,
+    encoder: EncoderFamily.x264,
     simpleUseAdvanced: true,
     encoderPreset: 'ultrafast',
   };
@@ -147,7 +146,7 @@ test('iterateKeyDescriptions', () => {
 test('SettingsKeyAccessor#optimizeInfo', () => {
   const current: OptimizeSettings = {
     outputMode: 'Advanced',
-    encoder: EncoderType.x264,
+    encoder: EncoderFamily.x264,
     videoBitrate: 5808,
     quality: '1280x720',
     fpsType: 'Common FPS Values',
@@ -161,7 +160,7 @@ test('SettingsKeyAccessor#optimizeInfo', () => {
     quality: '1280x720',
     fpsType: 'Common FPS Values',
     fpsCommon: '30',
-    encoder: EncoderType.x264,
+    encoder: EncoderFamily.x264,
     simpleUseAdvanced: true,
     encoderPreset: 'ultrafast',
   };

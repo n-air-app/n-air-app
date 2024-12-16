@@ -3,26 +3,27 @@ import { ipcRenderer } from 'electron';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { handleErrors } from 'util/requests';
 import {
+  AddFilterRecord,
+  AddFilterResult,
+  AddModerator,
   BroadcastStreamData,
   CommonErrorResponse,
   Extension,
   FilterRecord,
   Filters,
+  Moderator,
   NicoadStatistics,
   OnairChannelData,
   OnairChannelProgramData,
   OnairUserProgramData,
   ProgramInfo,
+  ProgramPassword,
   ProgramSchedules,
   Segment,
   Statistics,
-  UserFollowStatus,
-  UserFollow,
-  AddFilterRecord,
-  AddFilterResult,
-  AddModerator,
-  Moderator,
   Supporters,
+  UserFollow,
+  UserFollowStatus,
 } from './ResponseTypes';
 
 import * as remote from '@electron/remote';
@@ -749,6 +750,13 @@ export class NicoliveClient {
     return this.requestAPI<Supporters['data']>(
       'GET',
       `${NicoliveClient.live2ApiBaseURL}/api/v1/broadcaster/supporters?limit=${limit}&offset=${offset}`,
+    );
+  }
+
+  async fetchProgramPassword(programID: string): Promise<WrappedResult<ProgramPassword['data']>> {
+    return this.requestAPI<ProgramPassword['data']>(
+      'GET',
+      `${NicoliveClient.live2BaseURL}/unama/api/v4/programs/${programID}/password`,
     );
   }
 }
