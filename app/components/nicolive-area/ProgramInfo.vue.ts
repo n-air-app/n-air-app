@@ -1,15 +1,15 @@
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
-import { Inject } from 'services/core/injector';
-import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import { clipboard } from 'electron';
-import { StreamingService } from 'services/streaming';
-import { Subscription } from 'rxjs';
-import Popper from 'vue-popperjs';
-import { DateTime } from 'luxon';
-import { HostsService } from 'services/hosts';
 import * as remote from '@electron/remote';
+import { clipboard } from 'electron';
+import { DateTime } from 'luxon';
+import { Subscription } from 'rxjs';
+import { Inject } from 'services/core/injector';
+import { HostsService } from 'services/hosts';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
+import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
+import Vue from 'vue';
+import Popper from 'vue-popperjs';
+import { Component } from 'vue-property-decorator';
 
 @Component({
   components: {
@@ -145,19 +145,17 @@ export default class ProgramInfo extends Vue {
     return this.nicoliveProgramService.state.isFetching;
   }
 
-  hasProgramUrlCopied: boolean = false;
-  clearTimer: number = 0;
   copyProgramURL() {
     if (this.isFetching) throw new Error('fetchProgram is running');
     clipboard.writeText(
       this.hostsService.getWatchPageURL(this.nicoliveProgramService.state.programID),
     );
-    this.hasProgramUrlCopied = true;
-    window.clearTimeout(this.clearTimer);
-
-    this.clearTimer = window.setTimeout(() => {
-      this.hasProgramUrlCopied = false;
-      this.clearTimer = null;
-    }, 1000);
+  }
+  get existsProgramPassword(): boolean {
+    return !!this.nicoliveProgramService.state.password;
+  }
+  copyProgramPassword() {
+    if (this.isFetching) throw new Error('fetchProgram is running');
+    clipboard.writeText(this.nicoliveProgramService.state.password);
   }
 }

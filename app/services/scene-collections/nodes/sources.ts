@@ -1,19 +1,21 @@
-import { Node } from './node';
-import { HotkeysNode } from './hotkeys';
-import {
-  SourcesService,
-  TSourceType,
-  TPropertiesManager,
-  isNoAudioPropertiesManagerType,
-} from 'services/sources';
-import { FontLibraryService } from 'services/font-library';
-import { AudioService } from 'services/audio';
-import { Inject } from '../../core/injector';
-import * as obs from '../../../../obs-api';
+import * as Sentry from '@sentry/vue';
 import * as fi from 'node-fontinfo';
+import { AudioService } from 'services/audio';
+import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
-import { unapplyPathConvertForPreset, applyPathConvertForPreset } from './sources-util';
+import {
+  SourcesService,
+  TPropertiesManager,
+  TSourceType,
+  isNoAudioPropertiesManagerType,
+} from 'services/sources';
+import * as obs from '../../../../obs-api';
+import { Inject } from '../../core/injector';
+import { HotkeysNode } from './hotkeys';
+import { Node } from './node';
+import { applyPathConvertForPreset, unapplyPathConvertForPreset } from './sources-util';
+import Utils from 'services/utils';
 
 interface ISchema {
   items: ISourceInfo[];
@@ -270,16 +272,34 @@ export class SourcesNode extends Node<ISchema, {}> {
       const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager);
 
       if (useAudio && source.audioMixers) {
-        this.audioService
-          .getSource(sourceInfo.id)
-          .setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);
-        this.audioService.getSource(sourceInfo.id).setSettings({
-          forceMono: sourceInfo.forceMono,
-          syncOffset: sourceInfo.syncOffset ? AudioService.timeSpecToMs(sourceInfo.syncOffset) : 0,
-          audioMixers: sourceInfo.audioMixers,
-          monitoringType: sourceInfo.monitoringType,
-        });
-        this.audioService.getSource(sourceInfo.id).setHidden(!!sourceInfo.mixerHidden);
+        const source = this.audioService.getSource(sourceInfo.id);
+        if (!source) {
+          // maybe the source was removed after the last save
+          if (Utils.isDevMode()) {
+            console.warn(`Audio source ${sourceInfo.id} not found in AudioService. ignore.`);
+          }
+          Sentry.captureEvent({
+            message: `Audio source not found in AudioService`,
+            level: 'warning',
+            tags: {
+              sourceId: sourceInfo.id,
+            },
+            extra: {
+              audioSources: Object.keys(this.audioService.state.audioSources),
+            },
+          });
+        } else {
+          source.setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);
+          source.setSettings({
+            forceMono: sourceInfo.forceMono,
+            syncOffset: sourceInfo.syncOffset
+              ? AudioService.timeSpecToMs(sourceInfo.syncOffset)
+              : 0,
+            audioMixers: sourceInfo.audioMixers,
+            monitoringType: sourceInfo.monitoringType,
+          });
+          source.setHidden(!!sourceInfo.mixerHidden);
+        }
       }
 
       if (sourceInfo.hotkeys) {

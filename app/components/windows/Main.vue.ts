@@ -1,5 +1,5 @@
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
-import electron from 'electron';
 import { AppService } from 'services/app';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
@@ -18,7 +18,6 @@ import Studio from '../pages/Studio.vue';
 import SideNav from '../SideNav.vue';
 import StudioFooter from '../StudioFooter.vue';
 import TitleBar from '../TitleBar.vue';
-import * as remote from '@electron/remote';
 
 @Component({
   components: {
