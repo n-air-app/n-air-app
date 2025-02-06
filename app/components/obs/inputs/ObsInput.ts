@@ -54,6 +54,7 @@ export interface IObsInput<TValueType> {
   type?: TObsType;
   category?: string;
   subCategory?: string;
+  i18nKey?: string;
 }
 
 export declare type TObsFormData = (IObsInput<TObsValue> | IObsListInput<TObsValue>)[];
@@ -194,6 +195,7 @@ export function obsValuesToInputValues(
     prop.description = $t(`settings.${category}['${subCategory}']['${prop.name}'].name`, {
       fallback: prop.description,
     });
+    prop.i18nKey = `settings.${category}['${subCategory}']['${prop.name}'].name`;
     prop.value = obsValue;
     prop.masked = !!obsProp.masked;
     prop.enabled = !!obsProp.enabled;
@@ -253,6 +255,13 @@ export function obsValuesToInputValues(
       if (obsProp.subType === 'OBS_NUMBER_SLIDER') {
         prop.type = 'OBS_PROPERTY_SLIDER';
       }
+    } else if (obsProp.type === 'OBS_PROPERTY_BITMASK') {
+      prop = {
+        ...prop,
+        value: Number(prop.value),
+        showDescription: true,
+        size: 6,
+      } as IObsBitmaskInput;
     } else if (obsProp.type === 'OBS_PROPERTY_PATH') {
       if (valueObject && valueObject.type === 'OBS_PATH_FILE') {
         prop = {
