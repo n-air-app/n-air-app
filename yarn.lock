@@ -4900,9 +4900,9 @@ color-name@~1.1.4:
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
-"color-picker@https://github.com/n-air-app/native-deps/releases/download/assets/color-picker-1.3.10-win64.tar.gz":
-  version "1.3.10"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/color-picker-1.3.10-win64.tar.gz#6bb76f42ee9387823b6b85347b9eac2c312abe34"
+"color-picker@https://github.com/n-air-app/native-deps/releases/download/assets/color-picker-1.3.11-win64.tar.gz":
+  version "1.0.7"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/color-picker-1.3.11-win64.tar.gz#8b6a9391b8a5ff596989842b94b8e66a125229ec"
 
 color-support@^1.1.2:
   version "1.1.3"
@@ -5179,11 +5179,11 @@ cosmiconfig@^7.0.0, cosmiconfig@^7.1.0:
     path-type "^4.0.0"
     yaml "^1.10.0"
 
-"crash-handler@https://github.com/n-air-app/native-deps/releases/download/assets/crash-handler-1.2.21-win64.tar.gz":
-  version "1.2.21"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/crash-handler-1.2.21-win64.tar.gz#2bc03d85691cf503a234bf144a3a38d7a4ba307f"
+"crash-handler@https://github.com/n-air-app/native-deps/releases/download/assets/crash-handler-1.2.22-win64.tar.gz":
+  version "0.0.1"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/crash-handler-1.2.22-win64.tar.gz#8f2659a5dae1dc0be78a5139af13235c38b0b00f"
   dependencies:
-    node-addon-api "^4.1.0"
+    node-addon-api "^7.1.1"
 
 crc-32@^1.2.0:
   version "1.2.2"
@@ -6952,11 +6952,11 @@ follow-redirects@^1.0.0:
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.6.tgz#7f815c0cda4249c74ff09e95ef97c23b5fd0399b"
   integrity sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==
 
-"font-manager@https://github.com/n-air-app/native-deps/releases/download/assets/font-manager-1.2.9-win64.tar.gz":
+"font-manager@https://github.com/n-air-app/native-deps/releases/download/assets/font-manager-1.2.10-win64.tar.gz":
   version "1.0.8"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/font-manager-1.2.9-win64.tar.gz#acec1d2e384f2d47c61de9b3878e7aac125b40d9"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/font-manager-1.2.10-win64.tar.gz#843da3b9b9128e795d59c681fb16999810b6e3a3"
   dependencies:
-    node-addon-api "^7.0.0"
+    node-addon-api "^7.1.1"
 
 for-each@^0.3.3:
   version "0.3.3"
@@ -7107,9 +7107,9 @@ g-status@^2.0.2:
     matcher "^1.0.0"
     simple-git "^1.85.0"
 
-"game_overlay@https://github.com/n-air-app/native-deps/releases/download/assets/game-overlay-0.0.62-win64.tar.gz":
-  version "0.0.62"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/game-overlay-0.0.62-win64.tar.gz#de3d2fafc397f58e3b54979ca3af2faf1cdac117"
+"game_overlay@https://github.com/n-air-app/native-deps/releases/download/assets/game-overlay-0.0.63-win64.tar.gz":
+  version "0.0.63"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/game-overlay-0.0.63-win64.tar.gz#b4919dabd312182d634ce64814c755f387eca1e1"
   dependencies:
     node-addon-api "^4.1.0"
 
@@ -9929,10 +9929,10 @@ node-addon-api@^4.1.0:
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-4.3.0.tgz#52a1a0b475193e0928e98e0426a0d1254782b77f"
   integrity sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==
 
-node-addon-api@^7.0.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-7.1.0.tgz#71f609369379c08e251c558527a107107b5e0fdb"
-  integrity sha512-mNcltoe1R8o7STTegSOHdnJNN7s5EUvhoS7ShnTHDyOSd+8H+UdWODq6qSv67PjC8Zc5JRT8+oLAMCr0SIXw7g==
+node-addon-api@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-7.1.1.tgz#1aba6693b0f255258a049d621329329322aad558"
+  integrity sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==
 
 node-fetch@2.6.7:
   version "2.6.7"
@@ -9955,11 +9955,11 @@ node-fetch@~2.6.12:
   dependencies:
     whatwg-url "^5.0.0"
 
-"node-fontinfo@https://github.com/n-air-app/native-deps/releases/download/assets/node-fontinfo-1.1.11-win64.tar.gz":
-  version "0.0.12"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/node-fontinfo-1.1.11-win64.tar.gz#19103013eec8c99abc4e96e53785614edaadb751"
+"node-fontinfo@https://github.com/n-air-app/native-deps/releases/download/assets/node-fontinfo-1.1.12-win64.tar.gz":
+  version "1.1.12"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/node-fontinfo-1.1.12-win64.tar.gz#12108b9f319f691bfafa4b4ef907ddf003999244"
   dependencies:
-    node-addon-api "^7.0.0"
+    node-addon-api "^7.1.1"
 
 node-forge@^1:
   version "1.3.1"
@@ -9986,11 +9986,11 @@ node-ipc@^10.1.0:
     js-queue "2.0.2"
     strong-type "^1.0.1"
 
-"node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/assets/node-libuiohook-1.1.16-win64.tar.gz":
+"node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/assets/node-libuiohook-1.1.17-win64.tar.gz":
   version "0.0.9"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/node-libuiohook-1.1.16-win64.tar.gz#c0ab27db153d3348948f2af4de400d065a456d79"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/node-libuiohook-1.1.17-win64.tar.gz#02bc470f34062293cbccb2e1c4db852c028619d4"
   dependencies:
-    node-addon-api "^7.0.0"
+    node-addon-api "^7.1.1"
 
 node-releases@^2.0.14:
   version "2.0.14"
@@ -10239,9 +10239,9 @@ object.values@^1.1.0, object.values@^1.1.7:
     define-properties "^1.2.1"
     es-object-atoms "^1.0.0"
 
-"obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/assets/osn-0.24.38-release-win64_rtvc1.tar.gz":
+"obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/assets/osn-0.25.11-release-win64_rtvc1.tar.gz":
   version "0.3.99"
-  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/osn-0.24.38-release-win64_rtvc1.tar.gz#c8bb17de7ff5e4821ac152833c120fd97c8734e0"
+  resolved "https://github.com/n-air-app/native-deps/releases/download/assets/osn-0.25.11-release-win64_rtvc1.tar.gz#c8bb17de7ff5e4821ac152833c120fd97c8734e0"
 
 obuf@^1.0.0, obuf@^1.1.2, obuf@~1.1.2:
   version "1.1.2"
