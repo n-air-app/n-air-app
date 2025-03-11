@@ -151,6 +151,7 @@ export class AppService extends StatefulService<IAppState> {
       // await this.gameOverlayService.destroy(); 未実装
       await this.fileManagerService.flushAll();
       obs.NodeObs.RemoveSourceCallback();
+      obs.NodeObs.RemoveVolmeterCallback();
       obs.NodeObs.OBS_service_removeCallback();
       obs.IPC.disconnect();
       this.crashReporterService.endShutdown();

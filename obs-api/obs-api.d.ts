@@ -172,6 +172,19 @@ export const NodeObs: {
   ): void;
   RemoveSourceCallback(): void;
 
+  //modified https://github.com/stream-labs/desktop/commit/cfe4ffc93dbf9bc260c509fc11f494136475e9ed
+  RegisterVolmeterCallback(
+    callback: (
+      objs: {
+        sourceName: string;
+        magnitude: number[];
+        peak: number[];
+        inputPeak: number[];
+      }[],
+    ) => void,
+  ): void;
+  RemoveVolmeterCallback(): void;
+
   // https://github.com/stream-labs/obs-studio-node/blob/0.23.59/obs-studio-client/source/nodeobs_service.hpp
   OBS_service_resetAudioContext(): void;
   OBS_service_resetVideoContext(): void;

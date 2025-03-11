@@ -42,6 +42,13 @@ interface IAudioSourceData {
   stream?: Observable<IVolmeter>;
 }
 
+interface IObsVolmeterCallbackInfo {
+  sourceName: string;
+  magnitude: number[];
+  peak: number[];
+  inputPeak: number[];
+}
+
 @InitAfter('SourcesService')
 export class AudioService extends StatefulService<IAudioSourcesState> implements IAudioServiceApi {
   static initialState: IAudioSourcesState = {
@@ -52,11 +59,25 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   sourceData: Dictionary<IAudioSourceData> = {};
 
+  volumers: { [sourceId: string]: Subject<IVolmeter> } = {};
+
   @Inject() private sourcesService: SourcesService;
   @Inject() private scenesService: ScenesService;
   @Inject() private windowsService: WindowsService;
 
   protected init() {
+    obs.NodeObs.RegisterVolmeterCallback((objs: IObsVolmeterCallbackInfo[]) => {
+      objs.forEach(info => {
+        const volumer = this.volumers[info.sourceName];
+        if (!volumer) return;
+        volumer.next({
+          magnitude: info.magnitude,
+          peak: info.peak,
+          inputPeak: info.inputPeak,
+        });
+      });
+    });
+
     this.sourcesService.sourceAdded.subscribe(sourceModel => {
       const source = this.sourcesService.getSource(sourceModel.sourceId);
       const useAudio =
@@ -283,45 +304,13 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   private initVolmeterStream(sourceId: string) {
     const volmeterStream = new Subject<IVolmeter>();
-
-    let gotEvent = false;
-    let lastVolmeterValue: IVolmeter;
-    let volmeterCheckTimeoutId: number;
-    this.sourceData[sourceId].callbackInfo = this.sourceData[sourceId].volmeter.addCallback(
-      (magnitude: number[], peak: number[], inputPeak: number[]) => {
-        const volmeter: IVolmeter = { magnitude, peak, inputPeak };
-
-        volmeterStream.next(volmeter);
-        lastVolmeterValue = volmeter;
-        gotEvent = true;
-      },
-    );
-
-    /* This is useful for media sources since the volmeter will abruptly stop
-     * sending events in the case of hiding the source. It might be better
-     * to eventually just hide the mixer item as well though */
-    function volmeterCheck() {
-      if (!gotEvent) {
-        volmeterStream.next({
-          ...lastVolmeterValue,
-          magnitude: [-Infinity],
-          peak: [-Infinity],
-          inputPeak: [-Infinity],
-        });
-      }
-
-      gotEvent = false;
-      volmeterCheckTimeoutId = window.setTimeout(volmeterCheck, 100);
-    }
-
-    volmeterCheck();
-
+    this.volumers[sourceId] = volmeterStream;
     this.sourceData[sourceId].stream = volmeterStream;
   }
 
   private removeAudioSource(sourceId: string) {
     if (this.sourceData[sourceId]) {
-      this.sourceData[sourceId].volmeter.removeCallback(this.sourceData[sourceId].callbackInfo);
+      this.volumers[sourceId] = undefined;
       delete this.sourceData[sourceId];
       this.REMOVE_AUDIO_SOURCE(sourceId);
     }
