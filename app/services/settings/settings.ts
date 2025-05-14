@@ -13,6 +13,7 @@ import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
 import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
 import { StatefulService, mutation } from 'services/core/stateful-service';
+import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
@@ -30,7 +31,7 @@ import {
   Optimizer,
   SettingsKeyAccessor,
 } from './optimizer';
-import { ISettingsServiceApi, ISettingsSubCategory } from './settings-api';
+import { ISettingsServiceApi, ISettingsSubCategory, SettingsCategory } from './settings-api';
 
 export interface ISettingsState {
   General: {
@@ -123,6 +124,7 @@ export class SettingsService
   @Inject() private userService: UserService;
 
   @Inject() videoSettingsService: VideoSettingsService;
+  @Inject() private dismissablesService: DismissablesService;
 
   init() {
     this.loadSettingsIntoStore();
@@ -151,7 +153,7 @@ export class SettingsService
     }
   }
 
-  showSettings(categoryName?: string) {
+  showSettings(categoryName?: SettingsCategory) {
     this.windowsService.showWindow({
       componentName: 'Settings',
       title: $t('common.settings'),
@@ -167,25 +169,24 @@ export class SettingsService
     return Utils.isDevMode() || this.appService.state.argv.includes('--adv-settings');
   }
 
-  getCategories(): string[] {
-    let categories: string[] = obs.NodeObs.OBS_settings_getListCategories();
-
-    // 0.23.74で追加された分の非表示
-    categories = categories.filter(a => a !== 'StreamSecond');
+  getCategories(): SettingsCategory[] {
+    const categories: SettingsCategory[] = (
+      obs.NodeObs.OBS_settings_getListCategories() as SettingsCategory[]
+    ).filter(a => a !== 'StreamSecond'); // obs-studio-node 0.23.74で追加された分の非表示
 
     if (this.userService.isLoggedIn()) {
-      categories = categories.concat(['Comment', 'SpeechEngine']);
+      categories.push('Comment', 'SpeechEngine');
     }
 
     if (Utils.isDevMode()) {
-      categories = categories.concat('Developer');
+      categories.push('Developer');
     }
-    // if (this.advancedSettingEnabled()) categories = categories.concat(['Experimental']);
+    // if (this.advancedSettingEnabled()) categories.push('Experimental');
 
     return categories;
   }
 
-  getSettingsFormData(categoryName: string): ISettingsSubCategory[] {
+  getSettingsFormData(categoryName: SettingsCategory): ISettingsSubCategory[] {
     let settings = obs.NodeObs.OBS_settings_getSettings(categoryName)
       .data as ISettingsSubCategory[];
     if (!settings) settings = [];
@@ -214,7 +215,7 @@ export class SettingsService
       );
     }
 
-    if (categoryName === 'Developer') return this.tcpServerService.getApiSettingsFormData();
+    if (categoryName === 'Developer') return this.getDeveloperSettingsFormData();
 
     if (categoryName === 'Audio') return this.getAudioSettingsFormData(settings[0]);
 
@@ -664,7 +665,7 @@ export class SettingsService
     return settingsFormData;
   }
 
-  setSettingValue(category: string, name: string, value: TObsValue) {
+  setSettingValue(category: SettingsCategory, name: string, value: TObsValue) {
     const newSettings = this.patchSetting(this.getSettingsFormData(category), name, { value });
     this.setSettings(category, newSettings);
   }
@@ -751,8 +752,9 @@ export class SettingsService
     ];
   }
 
-  setSettings(categoryName: string, settingsData: ISettingsSubCategory[]) {
+  setSettings(categoryName: SettingsCategory, settingsData: ISettingsSubCategory[]) {
     if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()]);
+    if (categoryName === 'Developer') return this.setDeveloperSettings(settingsData);
 
     const dataToSave: {
       nameSubCategory: string;
@@ -810,6 +812,43 @@ export class SettingsService
         }
       }
     });
+  }
+
+  private getDeveloperSettingsFormData(): ISettingsSubCategory[] {
+    return [
+      // ...this.tcpServerService.getApiSettingsFormData(), // 機能していないためコメントアウト
+      {
+        nameSubCategory: 'Dismissables',
+        codeSubCategory: 'Dismissables',
+        parameters: Object.values(EDismissable).map(
+          key =>
+            <IObsInput<boolean>>{
+              value: this.dismissablesService.shouldShow(key),
+              name: key,
+              description: key,
+              type: 'OBS_PROPERTY_BOOL',
+              visible: true,
+              enabled: true,
+            },
+        ),
+      },
+    ];
+  }
+
+  private setDeveloperSettings(settingsData: ISettingsSubCategory[]) {
+    for (const setting of settingsData) {
+      if (setting.nameSubCategory === 'Dismissables') {
+        for (const item of setting.parameters) {
+          const name = item.name as EDismissable;
+          if (item.value) {
+            this.dismissablesService.reset(name);
+          } else {
+            this.dismissablesService.dismiss(name);
+          }
+        }
+      }
+    }
+    return;
   }
 
   @mutation()

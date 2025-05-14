@@ -45,6 +45,21 @@ const path = require('path');
 const rimraf = require('rimraf');
 const remote = require('@electron/remote/main');
 
+function rimrafWithRetry(rmPath) {
+  const MAX_RETRIES = 3;
+  for (let t = MAX_RETRIES; t > 0; t--) {
+    try {
+      rimraf.sync(rmPath);
+    } catch (e) {
+      console.error(`failed to delete '${rmPath}: `, e);
+      if (!t) {
+        // Sentry未初期化のため送信できない
+        dialog.showErrorBox('ファイルの削除に失敗しました', `Failed to delete '${rmPath}'.\n${e}`);
+      }
+    }
+  }
+}
+
 // We use a special cache directory for running tests
 if (process.env.NAIR_CACHE_DIR) {
   app.setPath('appData', process.env.NAIR_CACHE_DIR);
@@ -56,7 +71,29 @@ if (process.env.NAIR_CACHE_DIR) {
 if (process.argv.includes('--clearCacheDir')) {
   const rmPath = app.getPath('userData');
   console.log('clear cache directory!: ', rmPath);
-  rimraf.sync(rmPath);
+  rimrafWithRetry(rmPath);
+}
+
+function getCookieFiles() {
+  const basePath = path.join(app.getPath('userData'), 'Network');
+  return [path.join(basePath, 'Cookies'), path.join(basePath, 'Cookies-journal')];
+}
+
+async function clearCookies() {
+  // 読み込めている場合はファイルを消してもメモリから書き戻してしまうため、メモリ上のクッキーを先に削除する
+  await electron.session.defaultSession.clearStorageData({ storages: ['cookies'] });
+  electron.session.defaultSession.flushStorageData();
+
+  // 読み込めていない場合は上記でも消えないので、実ファイルを削除する
+  const files = getCookieFiles();
+  console.log('clear cookies: ', files);
+  for (const file of files) {
+    try {
+      rimrafWithRetry(file);
+    } catch (e) {
+      console.error('failed to delete cookie file', file, e);
+    }
+  }
 }
 
 // 必要なDLLが足りないため、Visual C++ 再頒布可能パッケージを案内するダイアログを表示する
@@ -122,6 +159,54 @@ async function recollectUserSessionCookie() {
   }
 }
 
+class WindowCleanupWaiter {
+  /** @type {Map<number, { resolve: () => void, promise: Promise<void> }>}
+   */
+  _waitCleanupWindows = new Map();
+
+  /**
+   *
+   * @param {number} windowId
+   * @param {boolean} enable
+   */
+  async set(windowId, enable) {
+    if (!enable) {
+      if (this._waitCleanupWindows.has(windowId)) {
+        const { resolve } = this._waitCleanupWindows.get(windowId);
+        resolve();
+        this._waitCleanupWindows.delete(windowId);
+      }
+    } else {
+      if (!this._waitCleanupWindows.has(windowId)) {
+        let resolve;
+        const promise = new Promise(resolve_ => {
+          resolve = resolve_;
+        });
+        this._waitCleanupWindows.set(windowId, { resolve, promise });
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {number} windowId
+   * @returns
+   */
+  async wait(windowId) {
+    if (this._waitCleanupWindows.has(windowId)) {
+      // ウィンドウのクリーンアップを待つが、タイムアウトでも打ち切る
+      const CLEANUP_TIMEOUT = 3000;
+      await Promise.race([
+        this._waitCleanupWindows.get(windowId).promise,
+        new Promise(resolve => {
+          setTimeout(resolve, CLEANUP_TIMEOUT);
+        }),
+      ]);
+      return;
+    }
+  }
+}
+
 // This ensures that only one copy of our app can run at once.
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -172,7 +257,7 @@ function initialize(crashHandler) {
 
   // workaround for  https://github.com/electron/electron/issues/19468, https://github.com/electron/electron/issues/19978
   // (Electron 6 to 8 does not launch in Win10 dark mode with DevTool extensions installed)
-  rimraf.sync(path.join(app.getPath('userData'), 'DevTools Extensions'));
+  rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
 
   const util = require('util');
   const logFile = path.join(app.getPath('userData'), 'app.log');
@@ -429,7 +514,22 @@ function initialize(crashHandler) {
 
   // eslint-disable-next-line no-inner-declarations
   async function startApp() {
-    await recollectUserSessionCookie();
+    if (process.argv.includes('--clearCookies')) {
+      SentryElectron.captureEvent({
+        message: 'clearCookies',
+        level: 'info',
+        extra: {
+          args: process.argv,
+        },
+        fingerprint: ['clearCookies'],
+      });
+
+      // クッキーを消す
+      // async 関数は startApp() からなら呼べるのでここで実行する
+      await clearCookies();
+    } else {
+      await recollectUserSessionCookie();
+    }
     const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
     let crashHandlerLogPath = '';
     if (process.env.NODE_ENV !== 'production' || !!process.env.SLOBS_PREVIEW) {
@@ -504,7 +604,6 @@ function initialize(crashHandler) {
     mainWindow.on('close', e => {
       if (!shutdownStarted) {
         shutdownStarted = true;
-        childWindow.destroy();
         mainWindow.send('shutdown');
 
         // We give the main window 10 seconds to acknowledge a request
@@ -722,8 +821,33 @@ function initialize(crashHandler) {
     }
   });
 
+  const windowCleanupWaiter = new WindowCleanupWaiter();
+  ipcMain.handle('require-wait-window-cleanup', async (_event, windowId, enable) => {
+    switch (windowId) {
+      case 'main':
+        windowId = mainWindow.id;
+        break;
+      case 'child':
+        windowId = childWindow.id;
+        break;
+    }
+    await windowCleanupWaiter.set(windowId, enable);
+  });
+  ipcMain.handle('wait-window-cleanup', async (_event, windowId) => {
+    switch (windowId) {
+      case 'main':
+        windowId = mainWindow.id;
+        break;
+      case 'child':
+        windowId = childWindow.id;
+        break;
+    }
+    await windowCleanupWaiter.wait(windowId);
+  });
+
   ipcMain.on('window-closeChildWindow', event => {
     // never close the child window, hide it instead
+    if (childWindow.isDestroyed()) return;
     childWindow.hide();
   });
 
@@ -833,7 +957,9 @@ function initialize(crashHandler) {
 
   ipcMain.on('restartApp', () => {
     // prevent unexpected cache clear
-    const args = process.argv.slice(1).filter(x => x !== '--clearCacheDir');
+    const args = process.argv
+      .slice(1)
+      .filter(x => !['--clearCacheDir', '--clearCookies'].includes(x));
 
     app.relaunch({ args });
     // Closing the main window starts the shut down sequence
