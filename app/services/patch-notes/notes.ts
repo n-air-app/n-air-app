@@ -1,11 +1,19 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20250219-unstable.1',
-  title: '1.1.20250219-unstable.1',
+  version: '1.1.20250514-unstable.1',
+  title: '1.1.20250514-unstable.1',
   notes: [
-    "追加: ボイスチェンジャーに「東北ずん子」「東北きりたん」など7種類のプリセットキャラクターを追加 (#896) by asaday",
-    "開発: 依存更新 node-fetch to 3.3.2(to avoid punycode warning), prompts to 7.3.2 (#899) by koizuka",
-    "開発: 修正: bin: node-fetchを削除 (#900) by koizuka",
+    "追加: わんコメ連携 (#903) by asaday",
+    "追加: クッキー削除機能(ログイン状態が保存されないケースのトラブルシューティング用) (#910) by koizuka",
+    "追加: 新規ユーザー向けにヘルプボタンへの誘導のヘルプチップをつける (#891) by koizuka",
+    "変更: AMDのときのニコ生配信最適化の設定を調整(詳細をオフに) (#898) by asaday",
+    "変更: ニコニコのログイン時に、ウィンドウサイズを拡大しないように (#892) by asaday",
+    "修正: 0ptのギフト通知が undefinedpt と表示されていた (#909) by koizuka",
+    "修正: ニコ生パネル開閉ボタンの矢印の向きを反転 (#915) by asaday",
+    "修正: ボイスチェンジャーのソースプロパティウィンドウを開いたままアプリを終了したときに、音声プレビュー状態を元に戻す (#897) by koizuka",
+    "修正: 左下のログインアイコンをクリックしたときに開くリンクが旧マイページだったのでガレージに修正 (#914) by koizuka",
+    "修正: 言語変更などで再起動するときにエラーが出ていた (#917) by koizuka",
+    "改善: ニコ生番組がテスト中または放送中なのに配信していないときは配信開始ボタンにヒントを表示する (#867) by koizuka",
   ]
 };
