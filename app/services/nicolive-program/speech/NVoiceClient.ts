@@ -141,8 +141,9 @@ class CommandLineClient {
         this.log(`${label} terminated: ${code}`);
         this.terminateResolve(code || -1);
       });
-      // node 15未満は spawn event がないので起動成功したことにする
-      resolve();
+      this.subprocess.on('spawn', () => {
+        resolve();
+      });
     });
   }
 
