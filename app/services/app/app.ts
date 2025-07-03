@@ -20,6 +20,7 @@ import { ScenesService } from 'services/scenes';
 import { VideoSettingsService } from 'services/settings-v2';
 import { ShortcutsService } from 'services/shortcuts';
 import { SourcesService } from 'services/sources';
+import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
 import { track } from 'services/usage-statistics';
 import { UserService } from 'services/user';
@@ -72,6 +73,7 @@ export class AppService extends StatefulService<IAppState> {
   @Inject() private informationsService: InformationsService;
   @Inject() private crashReporterService: CrashReporterService;
   @Inject() private customizationService: CustomizationService;
+  @Inject() private transcriptionService: TranscriptionService;
   private loadingPromises: Dictionary<Promise<any>> = {};
 
   readonly pid = require('process').pid;
@@ -122,6 +124,8 @@ export class AppService extends StatefulService<IAppState> {
 
     this.informationsService;
 
+    this.transcriptionService;
+
     this.crashReporterService.endStartup();
 
     this.protocolLinksService.start(this.state.argv);
@@ -142,6 +146,8 @@ export class AppService extends StatefulService<IAppState> {
       // this.keyListenerService.shutdown(); 未実装
       // this.platformAppsService.unloadAllApps(); 未実装
       // await this.usageStatisticsService.flushEvents(); 未実装
+
+      this.transcriptionService.shutdown();
 
       if (this.windowsService.isChildWindowShown()) {
         // 安全に子ウィンドウを閉じ、クリーンアップを待つ
