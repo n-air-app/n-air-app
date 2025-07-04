@@ -1,7 +1,11 @@
 <template>
   <div>
-    <ObsBoolInput v-model="enableTranscriptionModel" />
-    <ObsListInput v-model="transcriptionAudioSourceModel" />
+    <ObsBoolInput v-model="enabledModel" />
+    <ObsListInput v-model="audioSourceIdModel" />
+    <ObsBoolInput v-model="textFileEnabledModel" />
+    <ObsPathInput v-model="textFilePathModel" />
+    <ObsNumberInput v-model="textFileMaxLineModel" />
+    <ObsNumberInput v-model="textFileLineTimeToLiveModel" />
   </div>
 </template>
 
