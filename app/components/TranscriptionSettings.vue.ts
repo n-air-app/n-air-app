@@ -1,5 +1,12 @@
-import { ObsBoolInput, ObsListInput, ObsNumberInput, ObsPathInput } from 'components/obs/inputs';
 import {
+  ObsBoolInput,
+  ObsButtonInput,
+  ObsListInput,
+  ObsNumberInput,
+  ObsPathInput,
+} from 'components/obs/inputs';
+import {
+  IObsButtonInputValue,
   IObsInput,
   IObsListInput,
   IObsNumberInputValue,
@@ -7,13 +14,18 @@ import {
 } from 'components/obs/inputs/ObsInput';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
-import { TranscriptionService } from 'services/transcription/transcription';
+import {
+  TranscriptionService,
+  VoskModelStatus,
+  voskModelStatusToString,
+} from 'services/transcription/transcription';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
 @Component({
   components: {
     ObsBoolInput,
+    ObsButtonInput,
     ObsListInput,
     ObsPathInput,
     ObsNumberInput,
@@ -21,6 +33,19 @@ import { Component } from 'vue-property-decorator';
 })
 export default class TranscriptionSettings extends Vue {
   @Inject() transcriptionService: TranscriptionService;
+  modelsStatus: Dictionary<VoskModelStatus> = {};
+
+  created() {
+    this.transcriptionService.modelsStatus$.subscribe(status => {
+      this.modelsStatus = status;
+    });
+    this.modelsStatus = this.transcriptionService.modelsStatus;
+  }
+  get modelStatus(): VoskModelStatus | { state: 'not_available' } {
+    return (
+      this.modelsStatus[this.transcriptionService.state.voskModelName] || { state: 'not_available' }
+    );
+  }
 
   get enabledModel(): IObsInput<boolean> {
     return {
@@ -32,6 +57,40 @@ export default class TranscriptionSettings extends Vue {
   }
   set enabledModel(model: IObsInput<boolean>) {
     this.transcriptionService.setEnabled(model.value);
+  }
+
+  get voskModelModel(): IObsListInput<string> {
+    console.log('** voskModel:', this.transcriptionService.getVoskModels()); // DEBUG
+    return {
+      name: 'voskModel',
+      description: $t('settings.transcription.voskModel'),
+      value: this.transcriptionService.state.voskModelName ?? '',
+      options: this.transcriptionService.getVoskModels().map(model => {
+        const status = this.modelsStatus[model.name];
+        return {
+          value: model.name,
+          description: `${model.description}: ${status ? voskModelStatusToString(status) : ''}`,
+        };
+      }),
+    };
+  }
+
+  set voskModelModel(model: IObsListInput<string>) {
+    this.transcriptionService.setModelName(model.value);
+  }
+
+  get downloadButtonModel(): IObsButtonInputValue {
+    return {
+      name: 'downloadVoskModel',
+      description: $t('settings.transcription.downloadVoskModel'),
+      enabled: this.modelStatus.state === 'not_downloaded',
+      type: 'OBS_PROPERTY_BUTTON',
+      onClick: () => {
+        this.transcriptionService.startDownloadVoskModel(
+          this.transcriptionService.state.voskModelName,
+        );
+      },
+    };
   }
 
   get audioSourceIdModel(): IObsListInput<string> {

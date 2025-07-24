@@ -1,5 +1,9 @@
 import * as remote from '@electron/remote';
-import { promises as fs } from 'fs';
+import { createReadStream, createWriteStream, existsSync, promises as fs } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import {
   BehaviorSubject,
   distinctUntilChanged,
@@ -13,6 +17,8 @@ import {
   tap,
   timer,
 } from 'rxjs';
+import { $t } from 'services/i18n';
+import unzip from 'unzip-stream';
 import { mutation, PersistentStatefulService } from '../core';
 import {
   CreateSttClient,
@@ -21,8 +27,13 @@ import {
   ITranscriber,
 } from './SttClient';
 
+const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'];
+const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
+
+// TODO: 永続化ステートは別の永続化サービスに逃がす
 interface ITranscriptionServiceState {
   enabled?: boolean;
+  voskModelName: string;
   audioDeviceId?: string | null;
   textFileEnabled?: boolean;
   textFilePath?: string;
@@ -30,14 +41,130 @@ interface ITranscriptionServiceState {
   textFileLineTimeToLive: number; // in milliseconds
 }
 
+async function downloadAndUnzip(
+  url: string,
+  zipPath: string,
+  extractPath: string,
+  onProgress: (status: { downloaded: number; total: number }) => void,
+) {
+  // 1. Download the zip file
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download: ${response.statusText}`);
+  }
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
+
+  const contentLength = response.headers.get('Content-Length');
+  const totalSize = contentLength ? parseInt(contentLength, 10) : 0;
+
+  const fileStream = createWriteStream(zipPath);
+  const reader = response.body.getReader();
+  let progressTimer: NodeJS.Timeout | null = null;
+  const progress: { downloaded: number; total: number } = { downloaded: 0, total: totalSize };
+
+  const downloadStream = new Readable({
+    async read() {
+      const { done, value } = await reader.read();
+      if (done) {
+        this.push(null);
+        return;
+      }
+      progress.downloaded += value.length;
+      if (progressTimer === null) {
+        progressTimer = setInterval(() => {
+          onProgress(progress);
+        }, 1000);
+      }
+      this.push(value);
+    },
+  });
+
+  await pipeline(downloadStream, fileStream);
+  console.log('Download completed:', zipPath);
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
+  onProgress(progress);
+
+  // 2. Unzip the downloaded file
+  await fs.mkdir(extractPath, { recursive: true });
+  console.log('Extracting to:', extractPath);
+
+  const zipStream = createReadStream(zipPath);
+  await pipeline(zipStream, unzip.Extract({ path: extractPath }));
+
+  console.log('Extraction completed.');
+}
+
+export type VoskModelStatus = {
+  state: 'not_downloaded' | 'downloading' | 'downloaded' | 'download_error';
+  progress?: number; // percentage of download completion
+};
+
+export function voskModelStatusToString(status: VoskModelStatus): string {
+  switch (status.state) {
+    case 'downloading':
+      return `${status.progress ?? 0}%`;
+    default:
+      return status.state;
+  }
+}
+
+class VoskModelsManager {
+  private models: { name: string; description: string; status: VoskModelStatus }[] =
+    VOSK_MODEL_NAMES.map(name => ({
+      name,
+      description: $t(`settings.transcription.voskModel.${name}`),
+      status: { state: 'not_downloaded' },
+    }));
+
+  constructor(private modelBasePath: string) {
+    this.models = this.models.map(model => {
+      const modelPath = this.getModelPath(model.name);
+      if (existsSync(modelPath)) {
+        model.status = { state: 'downloaded' };
+      }
+      return model;
+    });
+  }
+
+  getModelPath(modelName: string): string {
+    return path.join(this.modelBasePath, modelName);
+  }
+
+  getVoskModels(): {
+    name: string;
+    description: string;
+    status: VoskModelStatus;
+  }[] {
+    return this.models;
+  }
+
+  setVoskModelStatus(modelName: string, status: VoskModelStatus) {
+    const model = this.models.find(m => m.name === modelName);
+    if (model) {
+      model.status = status;
+    }
+  }
+  getVoskModelStatus(modelName: string): VoskModelStatus {
+    const model = this.models.find(m => m.name === modelName);
+    return model ? model.status : { state: 'not_downloaded' };
+  }
+}
+
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   static defaultState: ITranscriptionServiceState = {
+    voskModelName: VOSK_MODEL_NAMES[0],
     textFileMaxLine: 2,
     textFileLineTimeToLive: 5 * 1000, // 5 seconds
   };
 
   private sttClitPath: string;
-  private modelPath: string;
+  private modelBasePath: string;
+  private modelsManager: VoskModelsManager;
   private client: ITranscriber;
   private state$ = new BehaviorSubject<ITranscriptionServiceState>(
     TranscriptionService.defaultState,
@@ -49,17 +176,46 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     texts: [],
     partial: '',
   });
+  private modelsStatusSubject$ = new BehaviorSubject<Dictionary<VoskModelStatus>>({});
+
+  getModelPath(modelName: string): string {
+    return path.join(this.modelBasePath, modelName);
+  }
+
+  getVoskModels(): {
+    name: string;
+    description: string;
+    status: VoskModelStatus;
+  }[] {
+    if (!this.modelsManager) {
+      return [];
+    }
+    return this.modelsManager.getVoskModels();
+  }
 
   text$ = this.textSubject$.asObservable();
   partial$ = this.partialSubject$.asObservable();
   lines$ = this.linesSubject$.asObservable();
+  modelsStatus$ = this.modelsStatusSubject$.asObservable();
+  get modelsStatus() {
+    return this.modelsStatusSubject$.value;
+  }
 
   init() {
     super.init();
 
-    // 仮 TODO fix
-    this.sttClitPath = '../stt_cli/out/stt_cli.exe';
-    this.modelPath = '../stt_cli/model/vosk-model-small-ja-0.22';
+    // TODO stt_cliの置き場を確定する
+    const basePath = ['..', '../..'].find(p => existsSync(path.join(p, 'stt_cli')));
+    if (!basePath) {
+      throw new Error('STT client path not found. Please check your installation.');
+    }
+    this.sttClitPath = path.join(basePath, 'stt_cli/out/stt_cli.exe');
+
+    this.modelBasePath = path.join(remote.app.getPath('userData'), 'vosk-model');
+    this.modelsManager = new VoskModelsManager(this.modelBasePath);
+    for (const model of VOSK_MODEL_NAMES) {
+      this.setModelStatus(model, this.modelsManager.getVoskModelStatus(model));
+    }
 
     this.state$.next(this.state);
 
@@ -69,10 +225,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.setTextFilePath(`${tempDir}/transcription.txt`);
     }
 
-    // enable 状状を監視して、状態が変わったら activate する
+    // enable 状態を監視して、状態が変わったら activate する
     this.state$
       .pipe(
-        map(state => state.enabled ?? false),
+        map(
+          state =>
+            (state.enabled &&
+              this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded') ??
+            false,
+        ),
         distinctUntilChanged(),
       )
       .subscribe(enabled => {
@@ -151,6 +312,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }),
       )
       .subscribe(this.linesSubject$);
+
+    /*
+    if (this.state.enabled && !existsSync(this.modelPath)) {
+      this.startDownloadVoskModel().catch(err => {
+        console.error('Failed to download Vosk model:', err);
+      });
+    }
+      */
   }
 
   shutdown() {
@@ -159,15 +328,29 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   private subscription: Subscription;
 
+  isReady(): boolean {
+    return (
+      this.state.enabled &&
+      this.modelsManager.getVoskModelStatus(this.state.voskModelName).state === 'downloaded'
+    );
+  }
+
   activate() {
     if (this.client) {
       return;
     }
-    console.log('Activating TranscriptionService...'); // DEBUG
+    console.log('Activating TranscriptionService...', this.state.voskModelName); // DEBUG
+    if (this.modelsManager.getVoskModelStatus(this.state.voskModelName).state !== 'downloaded') {
+      throw new Error(
+        `Vosk model '${this.state.voskModelName}' is not downloaded. Please download it first.`,
+      );
+    }
+    console.log('STT client path:', this.sttClitPath); // DEBUG
+    console.log('Model path:', this.getModelPath(this.state.voskModelName)); // DEBUG
     try {
       this.client = CreateSttClient({
         sttCliPath: this.sttClitPath,
-        modelPath: this.modelPath,
+        modelPath: this.getModelPath(this.state.voskModelName),
       });
       console.log('STT client created successfully'); // DEBUG
     } catch (err) {
@@ -269,6 +452,74 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       textFileLineTimeToLive = 0;
     }
     this.setState({ textFileLineTimeToLive });
+  }
+
+  async startDownloadVoskModel(modelName: string) {
+    const tmpDir = tmpdir();
+    const tmpZipPath = path.join(tmpDir, `${modelName}.zip`);
+
+    try {
+      this.setModelStatus(modelName, { state: 'downloading' });
+
+      const onProgress = ({ downloaded, total }: { downloaded: number; total: number }) => {
+        if (total > 0) {
+          const percentage = ((downloaded / total) * 100).toFixed(2);
+          this.setModelStatus(modelName, {
+            state: 'downloading',
+            progress: parseFloat(percentage),
+          });
+          console.log(`Downloading ${modelName}... ${percentage}% of ${total} bytes`);
+        } else {
+          console.log(`Downloading ${modelName}... ${downloaded} bytes`);
+        }
+      };
+
+      await downloadAndUnzip(
+        getVoskModelURL(modelName),
+        tmpZipPath,
+        this.modelBasePath,
+        onProgress,
+      );
+
+      this.setModelStatus(modelName, { state: 'downloaded' });
+    } catch (err) {
+      console.error('Error during Vosk model download/extraction:', err);
+      this.setModelStatus(modelName, { state: 'download_error' });
+      throw err;
+    } finally {
+      // Delete the temporary zip file
+      if (existsSync(tmpZipPath)) {
+        try {
+          await fs.unlink(tmpZipPath);
+          console.log('Temporary zip file deleted:', tmpZipPath);
+        } catch (err) {
+          console.error('Failed to delete temporary zip file:', err);
+        }
+      }
+    }
+  }
+
+  private setModelStatus(modelName: string, status: VoskModelStatus) {
+    this.modelsManager.setVoskModelStatus(modelName, status);
+    this.modelsStatusSubject$.next({
+      ...this.modelsStatusSubject$.getValue(),
+      [modelName]: status,
+    });
+  }
+
+  setModelName(modelName: string) {
+    if (this.state.voskModelName === modelName) {
+      return; // No change needed
+    }
+    if (!this.modelsManager.getVoskModels().some(model => model.name === modelName)) {
+      throw new Error(`Vosk model ${modelName} not found.`);
+    }
+    this.setState({ voskModelName: modelName });
+    this.setModelStatus(modelName, this.modelsManager.getVoskModelStatus(modelName));
+    this.deactivate(); // Restart transcription with the new model
+    if (this.isReady()) {
+      this.activate();
+    }
   }
 
   private setState(newState: Partial<ITranscriptionServiceState>) {

@@ -82,8 +82,11 @@ export class SttClient implements ITranscriber {
 
   constructor(options: { sttCliPath: string; modelPath: string }) {
     // validate options
-    if (!options.sttCliPath || !options.modelPath) {
-      throw new Error('sttCliPath and modelPath are required');
+    if (!options.sttCliPath) {
+      throw new Error('sttCliPath is required');
+    }
+    if (!options.modelPath) {
+      throw new Error('modelPath is required');
     }
     if (!existsSync(options.sttCliPath)) {
       throw new Error(`sttCliPath does not exist: ${options.sttCliPath}`);

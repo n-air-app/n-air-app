@@ -1,11 +1,15 @@
 <template>
   <div>
     <ObsBoolInput v-model="enabledModel" />
-    <ObsListInput v-model="audioSourceIdModel" />
-    <ObsBoolInput v-model="textFileEnabledModel" />
-    <ObsPathInput v-model="textFilePathModel" />
-    <ObsNumberInput v-model="textFileMaxLineModel" />
-    <ObsNumberInput v-model="textFileLineTimeToLiveModel" />
+    <div v-if="enabledModel.value">
+      <ObsListInput v-model="audioSourceIdModel" />
+      <ObsListInput v-model="voskModelModel" />
+      <ObsButtonInput :value="downloadButtonModel" />
+      <ObsBoolInput v-model="textFileEnabledModel" />
+      <ObsPathInput v-model="textFilePathModel" />
+      <ObsNumberInput v-model="textFileMaxLineModel" />
+      <ObsNumberInput v-model="textFileLineTimeToLiveModel" />
+    </div>
   </div>
 </template>
 
