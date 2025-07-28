@@ -17,20 +17,6 @@
           v-tooltip.bottom="addSourceTooltip"
           data-test="Add"
         />
-        <i
-          class="icon-delete icon-btn"
-          :class="{ disabled: activeItemIds.length === 0 }"
-          @click="removeItems"
-          v-tooltip.bottom="removeSourcesTooltip"
-          data-test="Remove"
-        />
-        <i
-          :class="{ disabled: !canShowProperties() }"
-          class="icon-settings icon-btn"
-          @click="sourceProperties"
-          v-tooltip.bottom="openSourcePropertiesTooltip"
-          data-test="Edit"
-        />
       </div>
     </div>
 
@@ -74,6 +60,18 @@
           :class="visibilityClassesForSource(node.data.id)"
           @click.stop="toggleVisibility(node.data.id)"
           @dblclick.stop="() => {}"
+        />
+        <i
+          class="source-selector-action icon-delete"
+          @click="removeItems"
+          v-tooltip.bottom="removeSourcesTooltip"
+          :data-test="`Remove` + node.title"
+        />
+        <i
+          class="source-selector-action icon-settings"
+          @click="sourceProperties"
+          v-tooltip.bottom="openSourcePropertiesTooltip"
+          data-test="Edit"
         />
       </template>
     </sl-vue-tree>
@@ -183,14 +181,15 @@
     color: var(--color-text-light);
     opacity: 1;
   }
-}
 
-i.disabled {
-  cursor: inherit;
-  opacity: @opacity-disabled;
+  &.keep-on {
+    color: var(--color-text-light);
+    opacity: 1;
 
-  :hover {
-    opacity: inherit;
+    .sl-vue-tree-node-item:hover & {
+      color: var(--color-text-light);
+      opacity: 1;
+    }
   }
 }
 
