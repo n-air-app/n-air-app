@@ -545,6 +545,14 @@ function initialize(crashHandler) {
         process.IPC_UUID,
       );
       crashHandler.registerProcess(pid, false);
+
+      ipcMain.on('register-in-crash-handler', (event, arg) => {
+        crashHandler.registerProcess(arg.pid, arg.critical);
+      });
+
+      ipcMain.on('unregister-in-crash-handler', (event, arg) => {
+        crashHandler.unregisterProcess(arg.pid);
+      });
     }
 
     const mainWindowState = windowStateKeeper({
@@ -668,14 +676,6 @@ function initialize(crashHandler) {
         e.preventDefault();
       }
     });
-
-    if (!process.env.DEV_SERVER && (isDevMode || process.env.NAIR_PRODUCTION_DEBUG)) {
-      console.log('installing vue devtools extension...');
-      const { default: installExtension, VUEJS_DEVTOOLS } = require('electron-devtools-installer');
-      installExtension(VUEJS_DEVTOOLS)
-        .then(name => console.log(name))
-        .catch(err => console.log(err));
-    }
 
     // if (process.env.NAIR_PRODUCTION_DEBUG || process.env.DEV_SERVER) openDevTools();
 
@@ -1046,4 +1046,24 @@ function initialize(crashHandler) {
       fs.appendFileSync(I18N_NOT_FOUND_KEYS_FILE, keys.flatMap(line => [line, '\n']).join(''));
     }
   });
+
+  ipcMain.handle(
+    'fetch',
+    /**
+     * @param {import('electron').IpcMainInvokeEvent} _e
+     * @param {string} url
+     * @param {RequestInit} options
+     * @returns {Promise<import('./app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
+     * */
+    async (_e, url, options) => {
+      const response = await fetch(url, options);
+      const text = await response.text();
+      return {
+        ok: response.ok,
+        headers: response.headers.entries(),
+        status: response.status,
+        text,
+      };
+    },
+  );
 }

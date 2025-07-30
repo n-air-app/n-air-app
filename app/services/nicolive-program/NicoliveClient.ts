@@ -1,16 +1,17 @@
 import * as Sentry from '@sentry/vue';
 import { ipcRenderer } from 'electron';
 import { addClipboardMenu } from 'util/addClipboardMenu';
+import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 import { handleErrors } from 'util/requests';
 import {
   AddFilterRecord,
   AddFilterResult,
   AddModerator,
-  BroadcastStreamData,
   CommonErrorResponse,
   Extension,
   FilterRecord,
   Filters,
+  IngestInfoData,
   Moderator,
   NicoadStatistics,
   OnairChannelData,
@@ -125,6 +126,7 @@ function isValidUserFollowStatusResponse(response: any): response is UserFollowS
 
 export class NicoliveClient {
   static live2BaseURL = 'https://live2.nicovideo.jp' as const;
+  static liveBaseURL = 'https://live.nicovideo.jp' as const;
   static live2ApiBaseURL = 'https://api.live2.nicovideo.jp' as const;
   static publicBaseURL = 'https://public.api.nicovideo.jp' as const;
   static nicoadBaseURL = 'https://api.nicoad.nicovideo.jp' as const;
@@ -194,8 +196,20 @@ export class NicoliveClient {
     };
   }
 
-  static async wrapResult<ResultType>(res: Response): Promise<WrappedResult<ResultType>> {
-    const body = await res.text();
+  static async wrapResult<ResultType>(
+    res: Response | MainProcessFetchResponse,
+  ): Promise<WrappedResult<ResultType>> {
+    const dateHeader = new Headers(res.headers).get('Date');
+    const serverDateMs = parseServerDateMs(dateHeader);
+    if (res.status === 204 /* No Content */) {
+      // No Content ならvalueをnullとして返す
+      return {
+        ok: true,
+        value: null,
+        serverDateMs,
+      };
+    }
+    const body = typeof res.text === 'function' ? await res.text() : res.text;
     let obj: any = null;
     try {
       obj = JSON.parse(body);
@@ -215,7 +229,7 @@ export class NicoliveClient {
       return {
         ok: true,
         value: obj.data as ResultType,
-        serverDateMs: parseServerDateMs(res.headers.get('Date')),
+        serverDateMs,
       };
     }
 
@@ -256,6 +270,9 @@ export class NicoliveClient {
     url: string,
     options: RequestInit = {},
   ): Promise<WrappedResult<T>> {
+    // Origin リクエストヘッダーを付けるには main process で fetch を使う必要がある
+    const viaMainProcess = options.headers && 'Origin' in options.headers;
+
     const headers: HeadersInit = {};
     // renderer process だと cookieが取れないので、main process で取ってきて付ける
     if (process.type === 'renderer') {
@@ -266,7 +283,7 @@ export class NicoliveClient {
       headers: { ...headers, ...options.headers },
     });
     try {
-      const resp = await fetch(url, requestInit);
+      const resp = await (viaMainProcess ? fetchViaMainProcess : fetch)(url, requestInit);
       return NicoliveClient.wrapResult<T>(resp);
     } catch (err) {
       return NicoliveClient.wrapFetchError(err as Error);
@@ -447,16 +464,14 @@ export class NicoliveClient {
    * 指定番組IDのストリーム情報を取得する
    * @param programId 番組ID(例： lv12345)
    */
-  async fetchBroadcastStream(programId: string): Promise<BroadcastStreamData> {
-    const url = `${NicoliveClient.live2BaseURL}/unama/api/v2/programs/${programId}/broadcast_stream`;
-    const headers = new Headers();
-    const userSession = await this.fetchSession();
-    headers.append('X-niconico-session', userSession);
-    const request = new Request(url, { headers });
-    return fetch(request)
-      .then(handleErrors)
-      .then(response => response.json())
-      .then(json => json.data);
+  async fetchIngestInfo(programId: string): Promise<WrappedResult<IngestInfoData>> {
+    return this.requestAPI<IngestInfoData>(
+      'PUT',
+      `${NicoliveClient.live2BaseURL}/unama/api/v4/ingest_info?nicoliveProgramId=${programId}`,
+      {
+        headers: NicoliveClient.v4ApiHeaders(programId),
+      },
+    );
   }
 
   async fetchMaxQuality(programId: string): Promise<Quality> {
@@ -750,6 +765,42 @@ export class NicoliveClient {
     return this.requestAPI<Supporters['data']>(
       'GET',
       `${NicoliveClient.live2ApiBaseURL}/api/v1/broadcaster/supporters?limit=${limit}&offset=${offset}`,
+    );
+  }
+
+  static v4ApiHeaders(programId: string): HeadersInit {
+    return {
+      // v4 APIは Origin headerが必要
+      Origin: `${NicoliveClient.liveBaseURL}/watch/${programId}`,
+    };
+  }
+
+  async deleteComment(programId: string, messageId: string): Promise<WrappedResult<void>> {
+    const params = new URLSearchParams();
+    params.append('messageId', messageId);
+
+    return this.requestAPI<void>(
+      'DELETE',
+      `${
+        NicoliveClient.live2BaseURL
+      }/unama/api/v4/programs/${programId}/comments?${params.toString()}`,
+      {
+        headers: NicoliveClient.v4ApiHeaders(programId),
+      },
+    );
+  }
+
+  async undoDeleteComment(programId: string, messageId: string): Promise<WrappedResult<void>> {
+    const requestInit = NicoliveClient.jsonBody('');
+    requestInit.headers = {
+      ...requestInit.headers,
+      ...NicoliveClient.v4ApiHeaders(programId),
+    };
+
+    return this.requestAPI<void>(
+      'POST',
+      `${NicoliveClient.live2BaseURL}/unama/api/v4/programs/${programId}/comments/${messageId}/undo`,
+      requestInit,
     );
   }
 
