@@ -80,6 +80,18 @@ export default class ExtraSettings extends Vue {
     this.customizationService.setOptimizeWithHardwareEncoder(model.value);
   }
 
+  get enableRtmpsModel(): IObsInput<boolean> {
+    return {
+      name: 'enable_rtmps',
+      description: 'rtmps配信を有効にする', // TODO 翻訳
+      value: this.customizationService.state.enableRtmps,
+      enabled: this.streamingService.isStreaming === false,
+    };
+  }
+  set enableRtmpsModel(model: IObsInput<boolean>) {
+    this.customizationService.setEnableRtmps(model.value);
+  }
+
   get pollingPerformanceStatisticsModel(): IObsInput<boolean> {
     return {
       name: 'polling_performance_statistics',

@@ -11,6 +11,7 @@ export interface ICustomizationServiceState {
   optimizeForNiconico: boolean;
   showOptimizationDialogForNiconico: boolean;
   optimizeWithHardwareEncoder: boolean;
+  enableRtmps: boolean;
   pollingPerformanceStatistics: boolean;
   compactMode: boolean;
   compactModeTab: TCompactModeTab;

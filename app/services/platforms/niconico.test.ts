@@ -13,6 +13,11 @@ const setup = createSetupFunction({
       },
     },
     WindowsService: {},
+    CustomizationService: {
+      state: {
+        enableRtmps: false,
+      },
+    },
   },
 });
 
@@ -21,6 +26,7 @@ jest.mock('services/core/injector');
 jest.mock('services/streaming', () => ({}));
 jest.mock('services/user', () => ({}));
 jest.mock('services/settings', () => ({}));
+jest.mock('services/customization', () => ({}));
 jest.mock('services/windows', () => ({}));
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
@@ -47,19 +53,19 @@ function setupInstance() {
 
   instance.client.fetchIngestInfo = jest_fn<
     typeof instance.client.fetchIngestInfo
-  >().mockImplementation((programId: string) =>
+  >().mockImplementation((_programId: string) =>
     Promise.resolve({
       ok: true,
       value: {
         rtmp: {
-          tcUrl: 'url1',
-          streamName: 'key1',
-          appName: 'app1',
+          tcUrl: 'rtmp url',
+          streamName: 'rtmp key',
+          appName: 'app name',
         },
         rtmps: {
-          tcUrl: 'url2', // この値は使わない
-          streamName: 'key2',
-          appName: 'app2',
+          tcUrl: 'rtmps url',
+          streamName: 'rtmps key',
+          appName: 'app name',
         },
       },
     }),
@@ -82,52 +88,61 @@ test('get instance', () => {
   expect(NiconicoService.instance).toBeInstanceOf(NiconicoService);
 });
 
-test('setupStreamSettingsでストリーム情報がとれた場合', async () => {
-  const updatePlatformChannelId = jest.fn();
-  const getSettingsFormData = jest.fn();
-  const setSettings = jest.fn();
-  const showWindow = jest.fn();
+describe('setupStreamSettingsでストリーム情報がとれた場合', () => {
+  for (const enableRtmps of [false, true]) {
+    test(`enableRtmps: ${enableRtmps}`, async () => {
+      const updatePlatformChannelId = jest.fn().mockName('updatePlatformChannelId');
+      const getSettingsFormData = jest.fn().mockName('getSettingsFormData');
+      const setSettings = jest.fn().mockName('setSettings');
+      const showWindow = jest.fn().mockName('showWindow');
 
-  getSettingsFormData.mockReturnValue([
-    {
-      nameSubCategory: 'Untitled',
-      parameters: [
-        { name: 'service', value: '' },
-        { name: 'server', value: '' },
-        { name: 'key', value: '' },
-      ],
-    },
-  ]);
+      getSettingsFormData.mockReturnValue([
+        {
+          nameSubCategory: 'Untitled',
+          parameters: [
+            { name: 'service', value: '' },
+            { name: 'server', value: '' },
+            { name: 'key', value: '' },
+          ],
+        },
+      ]);
 
-  const injectee = {
-    UserService: {
-      updatePlatformChannelId,
-    },
-    SettingsService: {
-      getSettingsFormData,
-      setSettings,
-    },
-    WindowsService: {
-      showWindow,
-    },
-  };
+      const injectee = {
+        UserService: {
+          updatePlatformChannelId,
+        },
+        SettingsService: {
+          getSettingsFormData,
+          setSettings,
+        },
+        WindowsService: {
+          showWindow,
+        },
+        CustomizationService: {
+          state: {
+            enableRtmps,
+          },
+        },
+      };
 
-  setup({ injectee });
-  const instance = setupInstance();
+      setup({ injectee });
+      const instance = setupInstance();
 
-  const result = await instance.setupStreamSettings('lv12345');
-  expect(result).toEqual({
-    url: 'url1',
-    key: 'key1',
-    quality: {
-      bitrate: 6000,
-      height: 720,
-      fps: 30,
-    },
-  });
+      const result = await instance.setupStreamSettings('lv12345');
+      expect(result).toEqual({
+        url: enableRtmps ? 'rtmps url' : 'rtmp url',
+        key: enableRtmps ? 'rtmps key' : 'rtmp key',
+        quality: {
+          bitrate: 6000,
+          height: 720,
+          fps: 30,
+        },
+      });
 
-  expect(setSettings).toHaveBeenCalledTimes(1);
-  expect(setSettings.mock.calls[0]).toMatchSnapshot();
+      expect(setSettings).toHaveBeenCalledTimes(1);
+      expect(setSettings.mock.calls[0]).toMatchSnapshot();
+    });
+  }
 });
 
 test('setupStreamSettingsで番組取得にリトライで成功する場合', async () => {
@@ -156,8 +171,8 @@ test('setupStreamSettingsで番組取得にリトライで成功する場合', a
 
   const result = await instance.setupStreamSettings('');
   expect(result).toEqual({
-    url: 'url1',
-    key: 'key1',
+    url: 'rtmp url',
+    key: 'rtmp key',
     quality: {
       bitrate: 6000,
       height: 720,
