@@ -1,0 +1,68 @@
+name: Add Issue or PR to Project v2
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+    branches: ['n-air_development']
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Project ID
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        id: get_project
+        run: |
+          ORG_NAME="n-air-app"
+          PROJECT_NUMBER=3
+
+          PROJECT_ID=$(curl -s -H "Authorization: Bearer $GH_PAT" \
+            -X POST https://api.github.com/graphql \
+            -H "Content-Type: application/json" \
+            -d "{\"query\":\"query { organization(login: \\\"$ORG_NAME\\\") { projectV2(number: $PROJECT_NUMBER) { id } } }\"}" \
+            | jq -r '.data.organization.projectV2.id')
+
+          if [ "$PROJECT_ID" = "null" ] || [ -z "$PROJECT_ID" ]; then
+            echo "Project ID could not be found"
+            exit 1
+          fi
+
+          echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+
+      - name: Add Issue or PR to Project
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          ORG_NAME="n-air-app"
+          PROJECT_NUMBER=3
+
+          if [[ "${{ github.event_name }}" == "issues" ]]; then
+            CONTENT_ID="${{ github.event.issue.node_id }}"
+          else
+            CONTENT_ID="${{ github.event.pull_request.node_id }}"
+          fi
+
+          echo "Adding content ID: $CONTENT_ID to project ID: ${{ steps.get_project.outputs.project_id }}"
+
+          MUTATION='mutation($projectId: ID!, $contentId: ID!) {
+            addProjectV2ItemById(input: {
+              projectId: $projectId,
+              contentId: $contentId
+            }) {
+              item {
+                id
+              }
+            }
+          }'
+
+          curl -s -X POST https://api.github.com/graphql \
+            -H "Authorization: Bearer $GH_PAT" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg pid "${{ steps.get_project.outputs.project_id }}" \
+              --arg cid "$CONTENT_ID" \
+              '{ query: "'"${MUTATION//[$'\n']}"'", variables: { projectId: $pid, contentId: $cid } }')"
