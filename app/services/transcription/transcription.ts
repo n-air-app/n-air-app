@@ -1,9 +1,7 @@
 import * as remote from '@electron/remote';
-import { createReadStream, createWriteStream, existsSync, promises as fs } from 'node:fs';
+import { existsSync, promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 import {
   BehaviorSubject,
   distinctUntilChanged,
@@ -17,9 +15,9 @@ import {
   tap,
   timer,
 } from 'rxjs';
-import { $t } from 'services/i18n';
-import unzip from 'unzip-stream';
 import { mutation, PersistentStatefulService } from '../core';
+import { downloadAndUnzip } from './downloadAndUnzip';
+import { filterNoiseText } from './filterNoiseText';
 import {
   CreateVoskCliClient,
   getVoskCliPath,
@@ -27,8 +25,9 @@ import {
   isTextTranscriptionMessage,
   ITranscriber,
 } from './VoskClient';
+import { VoskModelsManager } from './VoskModelsManager';
 
-const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'];
+export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'];
 const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
 
 // TODO: 永続化ステートは別の永続化サービスに逃がす
@@ -42,64 +41,6 @@ interface ITranscriptionServiceState {
   textFileLineTimeToLive: number; // in milliseconds
 }
 
-async function downloadAndUnzip(
-  url: string,
-  zipPath: string,
-  extractPath: string,
-  onProgress: (status: { downloaded: number; total: number }) => void,
-) {
-  // 1. Download the zip file
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to download: ${response.statusText}`);
-  }
-  if (!response.body) {
-    throw new Error('Response body is null');
-  }
-
-  const contentLength = response.headers.get('Content-Length');
-  const totalSize = contentLength ? parseInt(contentLength, 10) : 0;
-
-  const fileStream = createWriteStream(zipPath);
-  const reader = response.body.getReader();
-  let progressTimer: NodeJS.Timeout | null = null;
-  const progress: { downloaded: number; total: number } = { downloaded: 0, total: totalSize };
-
-  const downloadStream = new Readable({
-    async read() {
-      const { done, value } = await reader.read();
-      if (done) {
-        this.push(null);
-        return;
-      }
-      progress.downloaded += value.length;
-      if (progressTimer === null) {
-        progressTimer = setInterval(() => {
-          onProgress(progress);
-        }, 1000);
-      }
-      this.push(value);
-    },
-  });
-
-  await pipeline(downloadStream, fileStream);
-  console.log('Download completed:', zipPath);
-  if (progressTimer) {
-    clearInterval(progressTimer);
-    progressTimer = null;
-  }
-  onProgress(progress);
-
-  // 2. Unzip the downloaded file
-  await fs.mkdir(extractPath, { recursive: true });
-  console.log('Extracting to:', extractPath);
-
-  const zipStream = createReadStream(zipPath);
-  await pipeline(zipStream, unzip.Extract({ path: extractPath }));
-
-  console.log('Extraction completed.');
-}
-
 export type VoskModelStatus = {
   state: 'not_downloaded' | 'downloading' | 'downloaded' | 'download_error';
   progress?: number; // percentage of download completion
@@ -111,48 +52,6 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
       return `${status.progress ?? 0}%`;
     default:
       return status.state;
-  }
-}
-
-class VoskModelsManager {
-  private models: { name: string; description: string; status: VoskModelStatus }[] =
-    VOSK_MODEL_NAMES.map(name => ({
-      name,
-      description: $t(`settings.transcription.voskModel.${name}`),
-      status: { state: 'not_downloaded' },
-    }));
-
-  constructor(private modelBasePath: string) {
-    this.models = this.models.map(model => {
-      const modelPath = this.getModelPath(model.name);
-      if (existsSync(modelPath)) {
-        model.status = { state: 'downloaded' };
-      }
-      return model;
-    });
-  }
-
-  getModelPath(modelName: string): string {
-    return path.join(this.modelBasePath, modelName);
-  }
-
-  getVoskModels(): {
-    name: string;
-    description: string;
-    status: VoskModelStatus;
-  }[] {
-    return this.models;
-  }
-
-  setVoskModelStatus(modelName: string, status: VoskModelStatus) {
-    const model = this.models.find(m => m.name === modelName);
-    if (model) {
-      model.status = status;
-    }
-  }
-  getVoskModelStatus(modelName: string): VoskModelStatus {
-    const model = this.models.find(m => m.name === modelName);
-    return model ? model.status : { state: 'not_downloaded' };
   }
 }
 
@@ -360,9 +259,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       next: message => {
         console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
-          this.textSubject$.next(message.text);
+          this.textSubject$.next(filterNoiseText(message.text));
         } else if (isPartialTranscriptionMessage(message)) {
-          this.partialSubject$.next(message.partial);
+          this.partialSubject$.next(filterNoiseText(message.partial));
         }
       },
       error: err => {
