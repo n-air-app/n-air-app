@@ -1,9 +1,18 @@
-// stt_cli のクライアント
+// vosk-cli のクライアント
 
 import { ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 import { Observable, Subject } from 'rxjs';
 import { CommandLineClient } from 'services/nicolive-program/speech/NVoiceClient';
+
+export function getVoskCliPath(): string {
+  // import/require構文を使うとビルド時に展開してしまうが、
+  // バイナリファイルを実行時に参照するために実行時のrequireでロードする必要がある
+  const nVoicePath = window['require']('vosk-cli')
+    .getExePath()
+    .replace('app.asar', 'app.asar.unpacked'); // ビルドしたpackageでは展開パスは置換する必要がある
+  return nVoicePath;
+}
 
 export type AudioDeviceInfo = {
   index: number;
@@ -13,7 +22,7 @@ export type AudioDeviceInfo = {
 
 export type AudioDeviceList = {
   devices: AudioDeviceInfo[];
-  version: string; // stt_cli version
+  version: string; // vosk-cli version
 };
 
 export type TranscriptionMessage =
@@ -71,39 +80,39 @@ export function isPartialTranscriptionMessage(
   return 'partial' in obj && typeof obj.partial === 'string';
 }
 
-// Transcriber implementation using stt_cli
-export class SttClient implements ITranscriber {
-  private _sttCliPath: string;
+// Transcriber implementation using vosk-cli
+export class VoskClient implements ITranscriber {
+  private _voskCliPath: string;
   private _modelPath: string;
   private _audioDeviceIndex: number | null = null;
   private _audioDeviceList: AudioDeviceList;
-  private _sttProcess: ChildProcess | null = null;
+  private _voskCliProcess: ChildProcess | null = null;
   private transcribe$: Subject<TranscriptionMessage> | null = null;
 
-  constructor(options: { sttCliPath: string; modelPath: string }) {
+  constructor(options: { voskCliPath: string; modelPath: string }) {
     // validate options
-    if (!options.sttCliPath) {
-      throw new Error('sttCliPath is required');
+    if (!options.voskCliPath) {
+      throw new Error('voskCliPath is required');
     }
     if (!options.modelPath) {
       throw new Error('modelPath is required');
     }
-    if (!existsSync(options.sttCliPath)) {
-      throw new Error(`sttCliPath does not exist: ${options.sttCliPath}`);
+    if (!existsSync(options.voskCliPath)) {
+      throw new Error(`voskCliPath does not exist: ${options.voskCliPath}`);
     }
     // Check if modelPath exists and is a directory
     const modelStat = statSync(options.modelPath);
     if (!modelStat.isDirectory()) {
       throw new Error(`modelPath must be a directory: ${options.modelPath}`);
     }
-    this._sttCliPath = options.sttCliPath;
+    this._voskCliPath = options.voskCliPath;
     this._modelPath = options.modelPath;
     this.transcribe$ = new Subject<TranscriptionMessage>();
-    this._audioDeviceList = SttClient.listAudioDevices(this._sttCliPath);
+    this._audioDeviceList = VoskClient.listAudioDevices(this._voskCliPath);
   }
 
-  static listAudioDevices(sttCliPath: string): AudioDeviceList {
-    const result = spawnSync(sttCliPath, ['-l']);
+  static listAudioDevices(voskCliPath: string): AudioDeviceList {
+    const result = spawnSync(voskCliPath, ['-l']);
     if (result.error) {
       throw new Error(`Failed to list audio devices: ${result.error.message}`);
     }
@@ -119,29 +128,30 @@ export class SttClient implements ITranscriber {
     return this._audioDeviceList;
   }
 
-  activateSttProcess(): void {
-    if (this._sttProcess && !this._sttProcess.killed) {
+  activateVoskCliProcess(): void {
+    if (this._voskCliProcess && !this._voskCliProcess.killed) {
       return; // Process is already running
     }
     const args = ['-m', this._modelPath];
     if (this._audioDeviceIndex !== null) {
       args.push('-d', this._audioDeviceIndex.toString());
     }
-    this._sttProcess = spawn(this._sttCliPath, args, {
+    console.log(`Starting Vosk CLI process with args: ${this._voskCliPath} ${args.join(' ')}`); // DEBUG
+    this._voskCliProcess = spawn(this._voskCliPath, args, {
       stdio: 'pipe',
     });
-    this._sttProcess.on('error', err => {
-      console.error(`STT process error: ${err.message}`);
+    this._voskCliProcess.on('error', err => {
+      console.error(`vosk-cli process error: ${err.message}`);
       this.transcribe$?.next({ info: `Error: ${err.message}` });
     });
-    this._sttProcess.on('exit', code => {
-      console.log(`STT process exited with code: ${code}`);
+    this._voskCliProcess.on('exit', code => {
+      console.log(`vosk-cli process exited with code: ${code}`);
       this.transcribe$?.next({ info: `Process exited with code: ${code}` });
-      this.shutdownSttProcess();
+      this.shutdownVoskCliProcess();
     });
     let stdoutBuffer = '';
     let stderrBuffer = '';
-    this._sttProcess.stdout.on('data', data => {
+    this._voskCliProcess.stdout.on('data', data => {
       stdoutBuffer += data.toString();
       const lines = stdoutBuffer.split('\n');
       stdoutBuffer = lines.pop() || ''; // Keep the last incomplete line
@@ -161,24 +171,24 @@ export class SttClient implements ITranscriber {
         }
       }
     });
-    this._sttProcess.stderr.on('data', data => {
+    this._voskCliProcess.stderr.on('data', data => {
       stderrBuffer += data.toString();
       const lines = stderrBuffer.split('\n');
       stderrBuffer = lines.pop() || ''; // Keep the last incomplete line
       for (const line of lines) {
         if (line.trim()) {
-          console.error(`STT process error: ${line}`);
+          console.error(`Vosk CLI process error: ${line}`);
           this.transcribe$?.next({ info: `Error: ${line}` });
         }
       }
     });
   }
 
-  shutdownSttProcess(): void {
-    if (this._sttProcess) {
-      console.log('Shutting down STT process...'); // DEBUG
-      this._sttProcess.kill();
-      this._sttProcess = null;
+  shutdownVoskCliProcess(): void {
+    if (this._voskCliProcess) {
+      console.log('Shutting down Vosk CLI process...'); // DEBUG
+      this._voskCliProcess.kill();
+      this._voskCliProcess = null;
     }
   }
 
@@ -190,19 +200,19 @@ export class SttClient implements ITranscriber {
       return; // No change needed
     }
     this._audioDeviceIndex = index;
-    this.shutdownSttProcess(); // Restart the process with the new device
-    this.activateSttProcess();
+    this.shutdownVoskCliProcess(); // Restart the process with the new device
+    this.activateVoskCliProcess();
   }
   get audioDeviceIndex(): number | null {
     return this._audioDeviceIndex;
   }
 
   startTranscription(): Observable<TranscriptionMessage> {
-    if (!this._sttProcess || this._sttProcess.killed) {
-      this.activateSttProcess();
+    if (!this._voskCliProcess || this._voskCliProcess.killed) {
+      this.activateVoskCliProcess();
 
       const client = new CommandLineClient(
-        this._sttProcess,
+        this._voskCliProcess,
         (...args: unknown[]) => {
           console.log(...args);
         },
@@ -228,15 +238,18 @@ export class SttClient implements ITranscriber {
   }
 
   async stopTranscription() {
-    this.shutdownSttProcess();
+    this.shutdownVoskCliProcess();
   }
 }
 
-export function CreateSttClient(options: { sttCliPath: string; modelPath: string }): ITranscriber {
-  const { sttCliPath, modelPath } = options;
+export function CreateVoskCliClient(options: {
+  voskCliPath: string;
+  modelPath: string;
+}): ITranscriber {
+  const { voskCliPath, modelPath } = options;
 
-  return new SttClient({
-    sttCliPath,
+  return new VoskClient({
+    voskCliPath,
     modelPath,
   });
 }

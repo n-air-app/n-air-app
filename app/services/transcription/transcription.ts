@@ -21,11 +21,12 @@ import { $t } from 'services/i18n';
 import unzip from 'unzip-stream';
 import { mutation, PersistentStatefulService } from '../core';
 import {
-  CreateSttClient,
+  CreateVoskCliClient,
+  getVoskCliPath,
   isPartialTranscriptionMessage,
   isTextTranscriptionMessage,
   ITranscriber,
-} from './SttClient';
+} from './VoskClient';
 
 const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'];
 const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
@@ -162,7 +163,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     textFileLineTimeToLive: 5 * 1000, // 5 seconds
   };
 
-  private sttClitPath: string;
+  private voskCliPath: string;
   private modelBasePath: string;
   private modelsManager: VoskModelsManager;
   private client: ITranscriber;
@@ -204,12 +205,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   init() {
     super.init();
 
-    // TODO stt_cliの置き場を確定する
-    const basePath = ['..', '../..'].find(p => existsSync(path.join(p, 'stt_cli')));
-    if (!basePath) {
-      throw new Error('STT client path not found. Please check your installation.');
-    }
-    this.sttClitPath = path.join(basePath, 'stt_cli/out/stt_cli.exe');
+    this.voskCliPath = getVoskCliPath();
 
     this.modelBasePath = path.join(remote.app.getPath('userData'), 'vosk-model');
     this.modelsManager = new VoskModelsManager(this.modelBasePath);
@@ -345,16 +341,16 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         `Vosk model '${this.state.voskModelName}' is not downloaded. Please download it first.`,
       );
     }
-    console.log('STT client path:', this.sttClitPath); // DEBUG
+    console.log('Vosk CLI client path:', this.voskCliPath); // DEBUG
     console.log('Model path:', this.getModelPath(this.state.voskModelName)); // DEBUG
     try {
-      this.client = CreateSttClient({
-        sttCliPath: this.sttClitPath,
+      this.client = CreateVoskCliClient({
+        voskCliPath: this.voskCliPath,
         modelPath: this.getModelPath(this.state.voskModelName),
       });
-      console.log('STT client created successfully'); // DEBUG
+      console.log('Vosk CLI client created successfully'); // DEBUG
     } catch (err) {
-      console.error('Failed to create STT client:', err);
+      console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
       return;
     }
