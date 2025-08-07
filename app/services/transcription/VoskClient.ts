@@ -112,15 +112,19 @@ export class VoskClient implements ITranscriber {
   }
 
   static listAudioDevices(voskCliPath: string): AudioDeviceList {
+    console.log(`Listing audio devices using Vosk CLI at: ${voskCliPath}`); // DEBUG
     const result = spawnSync(voskCliPath, ['-l']);
     if (result.error) {
-      throw new Error(`Failed to list audio devices: ${result.error.message}`);
+      console.error(`Failed to list audio devices: ${result.error.message}`);
+      return { devices: [], version: '' };
     }
     const output = result.stdout.toString();
     const parsed = JSON.parse(output);
     if (!isAudioDeviceList(parsed)) {
-      throw new Error(`Invalid audio device list format: ${output}`);
+      console.error(`Invalid audio device list format: ${output}`);
+      return { devices: [], version: '' };
     }
+    console.log(`Audio devices found: ${JSON.stringify(parsed.devices)}`); // DEBUG
     return parsed;
   }
 
