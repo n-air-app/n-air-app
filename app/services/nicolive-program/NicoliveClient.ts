@@ -358,6 +358,15 @@ export class NicoliveClient {
     );
   }
 
+  /** 通常コメントを送信 */
+  async sendComment(programID: string, text: string): Promise<WrappedResult<void>> {
+    // TODO fix: あとで通常コメント投稿ができるようになったら差し替えるが、一旦放送者コメントで代用する
+    return this.sendOperatorComment(programID, {
+      text,
+      isPermCommand: false,
+    });
+  }
+
   /** 統計情報（視聴者とコメント数）を取得 */
   async fetchStatistics(programID: string): Promise<WrappedResult<Statistics['data']>> {
     return this.requestAPI<Statistics['data']>(

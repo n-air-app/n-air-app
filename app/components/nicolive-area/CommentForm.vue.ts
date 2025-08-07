@@ -27,8 +27,7 @@ export default class CommentForm extends Vue {
         if (!this.isSendable) return; // TODO queueing?
         try {
           this.isCommentSending = true;
-          // TODO 読み上げが発生しない文字起こし用のメッセージタイプを作る
-          await this.nicoliveProgramService.sendOperatorComment(text, false);
+          await this.nicoliveProgramService.sendTranscribedComment(text);
         } catch (caught) {
           if (caught instanceof NicoliveFailure) {
             await openErrorDialogFromFailure(caught);

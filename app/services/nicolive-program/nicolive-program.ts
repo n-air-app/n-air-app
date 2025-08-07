@@ -502,6 +502,17 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     }
   }
 
+  async sendTranscribedComment(text: string): Promise<void> {
+    if (isFakeMode()) {
+      // TODO
+      return;
+    }
+    const result = await this.client.sendComment(this.state.programID, text);
+    if (!isOk(result)) {
+      throw NicoliveFailure.fromClientError('sendNormalComment', result);
+    }
+  }
+
   static TIMER_PADDING_SECONDS = 3 as const;
   static REFRESH_TARGET_TIME_TABLE: { [state: string]: 'startTime' | 'endTime' } = {
     reserved: 'startTime',
