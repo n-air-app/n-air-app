@@ -653,7 +653,6 @@
   "SubStream": {
     "name": "サブ配信"
   },
-
   "listPlaceholder": "選択してください",
   "resolutionPlaceholder": "選択するか、値を入力してください",
   "addFiles": "ファイルを追加する",
@@ -750,5 +749,16 @@
       "reconnected": "再接続",
       "deactive": "停止中"
     }
+  },
+  "transcription": {
+    "name": "文字起こし",
+    "enable": "文字起こしを有効にする",
+    "voskModel": "モデル",
+    "downloadVoskModel": "モデルをダウンロードする",
+    "audioSource": "音声ソース",
+    "enableTextFile": "テキストファイル出力を有効にする",
+    "textFilePath": "テキストファイルパス",
+    "textFileMaxLine": "テキストファイルの最大行数",
+    "textFileLineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)"
   }
 }
