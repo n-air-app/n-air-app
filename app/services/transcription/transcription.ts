@@ -30,7 +30,6 @@ import { VoskModelsManager } from './VoskModelsManager';
 export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'];
 const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
 
-// TODO: 永続化ステートは別の永続化サービスに逃がす
 interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
@@ -207,14 +206,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }),
       )
       .subscribe(this.linesSubject$);
-
-    /*
-    if (this.state.enabled && !existsSync(this.modelPath)) {
-      this.startDownloadVoskModel().catch(err => {
-        console.error('Failed to download Vosk model:', err);
-      });
-    }
-      */
   }
 
   shutdown() {
