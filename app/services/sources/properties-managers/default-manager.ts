@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import fs from 'fs';
 import * as fi from 'node-fontinfo';
@@ -6,7 +7,9 @@ import path from 'path';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { FontLibraryService } from 'services/font-library';
+import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
+import { downloadFile } from 'util/requests';
 import { PropertiesManager } from './properties-manager';
 
 export interface IDefaultManagerSettings {
@@ -38,6 +41,8 @@ export class DefaultManager extends PropertiesManager {
     if (this.obsSource.id === 'slideshow') {
       this.blacklist = ['slide_mode'];
     }
+
+    this.setupAutomaticGameCapture();
   }
 
   setPropertiesFormData(properties: TObsFormData) {
@@ -103,5 +108,41 @@ export class DefaultManager extends PropertiesManager {
       (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
 
     this.obsSource.update(newSettings);
+  }
+  private async setupAutomaticGameCapture() {
+    if (!['game_capture', 'screen_capture'].includes(this.obsSource.id)) return;
+
+    try {
+      // URL
+      const listUrl = 'https://slobs-cdn.streamlabs.com/configs/game_capture_list.json';
+
+      // 未存在・更新7日以上はダウンロード
+      const listPath = path.join(remote.app.getPath('userData'), 'game_capture_list.json');
+      if (
+        !fs.existsSync(listPath) ||
+        Date.now() - fs.statSync(listPath).mtime.getTime() >= 7 * (1000 * 60 * 60 * 24)
+      ) {
+        await downloadFile(listUrl, listPath);
+      }
+
+      // 絶対パス指定
+      const imagePath = path.join(
+        process.cwd(),
+        require('../../../../media/images/nair_capture_back.jpg'),
+      );
+
+      // これらは遅延設定しても作用する
+      this.obsSource.update({
+        auto_capture_rules_path: listPath,
+        auto_placeholder_image: imagePath,
+        auto_placeholder_message: $t('common.gameCapture.searching'),
+        window_placeholder_image: imagePath,
+        window_placeholder_waiting_message: $t('common.gameCapture.searching'),
+        window_placeholder_missing_message: $t('common.gameCapture.missing'),
+        capture_overlays: this.obsSource.settings.capture_overlays ?? true,
+      });
+    } catch (error) {
+      console.log('Error setting up automatic game capture:', error);
+    }
   }
 }

@@ -80,5 +80,9 @@
   "fieldMustBeLess": "%{value} 以上を指定してください",
   "dateFieldFormat": "日付は %{format} の書式に従ってください",
   "fieldAlphaNumeric": "半角英数以外は使用しないでください",
-  "Interact": "インタラクション(WEB操作)"
+  "Interact": "インタラクション(WEB操作)",
+  "gameCapture": {
+    "searching": "ゲームを探しています",
+    "missing": "指定されたウィンドウはゲームではありません"
+  }
 }
