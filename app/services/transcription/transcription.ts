@@ -151,6 +151,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       });
 
+    this.initTextFileWriter();
+  }
+
+  initTextFileWriter() {
     // 確定テキストが追加されるたびに、一定時間後に先頭行を削除するタイマーを開始する
     this.textSubject$
       .pipe(

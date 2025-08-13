@@ -12,6 +12,7 @@ import {
   IObsNumberInputValue,
   IObsPathInputValue,
 } from 'components/obs/inputs/ObsInput';
+import { merge, Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
@@ -35,12 +36,29 @@ export default class TranscriptionSettings extends Vue {
   @Inject() transcriptionService: TranscriptionService;
   modelsStatus: Dictionary<VoskModelStatus> = {};
 
+  modelStatusSubscription: Subscription;
+  textSubscription: Subscription;
+  previewText: string = '';
+
   created() {
-    this.transcriptionService.modelsStatus$.subscribe(status => {
+    this.modelStatusSubscription = this.transcriptionService.modelsStatus$.subscribe(status => {
       this.modelsStatus = status;
     });
     this.modelsStatus = this.transcriptionService.modelsStatus;
+
+    this.textSubscription = merge(
+      this.transcriptionService.text$,
+      this.transcriptionService.partial$,
+    ).subscribe(text => {
+      this.previewText = text;
+    });
   }
+
+  beforeDestroy() {
+    this.textSubscription.unsubscribe();
+    this.modelStatusSubscription.unsubscribe();
+  }
+
   get modelStatus(): VoskModelStatus | { state: 'not_available' } {
     return (
       this.modelsStatus[this.transcriptionService.state.voskModelName] || { state: 'not_available' }
