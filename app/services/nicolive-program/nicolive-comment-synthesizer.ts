@@ -1,6 +1,7 @@
 import { InitAfter, Inject } from 'services/core';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NVoiceCharacterService } from 'services/nvoice-character';
+import { UserService } from 'services/user';
 import { QueueRunner } from 'util/QueueRunner';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
@@ -52,6 +53,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   @Inject('NicoliveProgramStateService') stateService: NicoliveProgramStateService;
   @Inject() nVoiceClientService: NVoiceClientService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
+  @Inject() private userService: UserService;
 
   static initialState: ICommentSynthesizerState = {
     enabled: true,
@@ -141,6 +143,10 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   private selectSpeechSynthesizer(chat: WrappedMessage): SynthesizerSelector {
     switch (chat.type) {
       case 'normal':
+        // 放送者からの通常コメントは読み上げない
+        if (chat.value.id === this.userService.platform.id) {
+          return 'ignore';
+        }
         return this.state.selector.normal;
       case 'operator':
         return this.state.selector.operator;
