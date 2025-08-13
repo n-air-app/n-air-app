@@ -6,7 +6,7 @@
           v-for="category in categoryNames"
           :key="category"
           :to="category"
-          :ico="icons[category]"
+          :ico="icons.get(category)"
           :data-test="category"
         >
           {{ $t(`settings.${category}.name`, { fallback: category }) }}
@@ -28,6 +28,7 @@
         <comment-settings v-if="categoryName === 'Comment'" />
         <speech-engine-settings v-if="categoryName === 'SpeechEngine'" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
+        <transcription-settings v-if="categoryName === 'Transcription'" />
         <GenericFormGroups
           v-if="
             !['Hotkeys', 'API', 'Notifications', 'Appearance', 'Experimental'].includes(

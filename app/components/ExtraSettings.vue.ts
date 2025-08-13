@@ -14,13 +14,11 @@ import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import ClipBoardCopy from '../../media/images/clipboard-copy.svg';
-import TranscriptionSettings from './TranscriptionSettings.vue';
 
 @Component({
   components: {
     ObsBoolInput,
     ClipBoardCopy,
-    TranscriptionSettings,
   },
 })
 export default class ExtraSettings extends Vue {

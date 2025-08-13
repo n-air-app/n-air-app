@@ -1,8 +1,5 @@
 <template>
   <div>
-    <div class="section">
-      <transcription-settings />
-    </div>
     <div class="section" v-if="isNiconicoLoggedIn()">
       <div class="input-label">
         <label>{{ $t('settings.optimizationForNiconicoLiveService') }}</label>
