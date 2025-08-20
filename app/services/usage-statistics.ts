@@ -52,6 +52,10 @@ export type SubStreamLog = {
   sync: boolean;
 };
 
+export type TranscriptionLog = {
+  voskModelName: string;
+};
+
 export type TUsageEvent =
   | {
       event: 'boot';
@@ -111,6 +115,7 @@ export type TUsageEvent =
       };
       rtvc: RtvcEventLog;
       substream?: SubStreamLog;
+      transcription?: TranscriptionLog;
     }
   | {
       event: 'app_start' | 'app_close';

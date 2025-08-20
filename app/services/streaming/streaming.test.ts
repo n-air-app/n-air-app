@@ -132,6 +132,9 @@ const createInjectee = ({
     syncStart: noop,
     syncStop: noop,
   },
+  TranscriptionService: {
+    state: noop,
+  },
 });
 
 const setup = createSetupFunction({
