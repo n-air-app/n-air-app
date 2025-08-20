@@ -4,11 +4,11 @@
     <div v-if="enabledModel.value">
       <ObsListInput v-model="audioSourceIdModel" />
       <ObsListInput v-model="voskModelModel" />
+      <ObsButtonInput :value="downloadButtonModel" />
       <div>
         <h3>プレビュー</h3>
         <p>{{ previewText || '--' }}</p>
       </div>
-      <ObsButtonInput :value="downloadButtonModel" />
       <ObsBoolInput v-model="textFileEnabledModel" />
       <div v-if="textFileEnabledModel.value">
         <ObsPathInput v-model="textFilePathModel" />

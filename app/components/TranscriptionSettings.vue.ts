@@ -113,6 +113,15 @@ export default class TranscriptionSettings extends Vue {
 
   get audioSourceIdModel(): IObsListInput<string> {
     const sources = this.transcriptionService.getAudioDeviceList();
+    if (sources.length === 0) {
+      return {
+        description: $t('settings.transcription.audioSource'),
+        name: 'transcriptionAudioSource',
+        value: this.transcriptionService.state.audioDeviceId ?? '',
+        options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: null }],
+        enabled: false,
+      };
+    }
     return {
       description: $t('settings.transcription.audioSource'),
       name: 'transcriptionAudioSource',

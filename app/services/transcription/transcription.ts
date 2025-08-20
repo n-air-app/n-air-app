@@ -125,6 +125,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         map(
           state =>
             (state.enabled &&
+              state.audioDeviceId &&
               this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded') ??
             false,
         ),
@@ -308,12 +309,12 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (audioDeviceId) {
       const device = audioDevices.devices.find(d => d.id === audioDeviceId);
       if (!device) {
-        throw new Error(`Audio device with id ${audioDeviceId} not found.`);
+        console.warn(`Audio device with id ${audioDeviceId} not found.`);
+        audioDeviceId = null;
       }
     }
     if (!audioDeviceId) {
       audioDeviceId = audioDevices.devices.length > 0 ? audioDevices.devices[0].id : null;
-    } else {
     }
     if (this.state.audioDeviceId === audioDeviceId) {
       return;

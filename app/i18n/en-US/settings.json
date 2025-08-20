@@ -762,6 +762,7 @@
     "enableTextFile": "Enable text file output",
     "textFilePath": "Text file path",
     "textFileMaxLine": "Max lines in text file",
-    "textFileLineTimeToLive": "Time to live for text lines (ms)"
+    "textFileLineTimeToLive": "Time to live for text lines (ms)",
+    "noAudioSourceFound": "No audio source found"
   }
 }

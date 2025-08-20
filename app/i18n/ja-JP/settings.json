@@ -762,6 +762,7 @@
     "enableTextFile": "テキストファイル出力を有効にする",
     "textFilePath": "テキストファイルパス",
     "textFileMaxLine": "テキストファイルの最大行数",
-    "textFileLineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)"
+    "textFileLineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)",
+    "noAudioSourceFound": "音声ソースが見つかりません"
   }
 }
