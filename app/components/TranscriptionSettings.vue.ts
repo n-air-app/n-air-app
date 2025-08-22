@@ -39,6 +39,8 @@ export default class TranscriptionSettings extends Vue {
   modelStatusSubscription: Subscription;
   textSubscription: Subscription;
   previewText: string = '';
+  isActiveSubscription: Subscription;
+  isActive: boolean = false;
 
   created() {
     this.modelStatusSubscription = this.transcriptionService.modelsStatus$.subscribe(status => {
@@ -52,9 +54,14 @@ export default class TranscriptionSettings extends Vue {
     ).subscribe(text => {
       this.previewText = text;
     });
+
+    this.isActiveSubscription = this.transcriptionService.isActive$.subscribe(isActive => {
+      this.isActive = isActive;
+    });
   }
 
   beforeDestroy() {
+    this.isActiveSubscription.unsubscribe();
     this.textSubscription.unsubscribe();
     this.modelStatusSubscription.unsubscribe();
   }

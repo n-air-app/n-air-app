@@ -76,6 +76,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     partial: '',
   });
   private modelsStatusSubject$ = new BehaviorSubject<Dictionary<VoskModelStatus>>({});
+  private isActiveSubject$ = new BehaviorSubject<boolean>(false);
 
   getModelPath(modelName: string): string {
     return path.join(this.modelBasePath, modelName);
@@ -98,6 +99,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   modelsStatus$ = this.modelsStatusSubject$.asObservable();
   get modelsStatus() {
     return this.modelsStatusSubject$.value;
+  }
+  isActive$ = this.isActiveSubject$.asObservable();
+  get isActive(): boolean {
+    return this.isActiveSubject$.value;
   }
 
   init() {
@@ -251,6 +256,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     const audioDevices = this.client.audioDevices();
     this.setAudioDeviceId(audioDevices.devices.length > 0 ? audioDevices.devices[0].id : null);
+    this.isActiveSubject$.next(true);
     this.subscription = this.client.startTranscription().subscribe({
       next: message => {
         console.log('Transcribe message:', message);
@@ -265,6 +271,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       },
       complete: () => {
         console.log('Transcription completed');
+        this.isActiveSubject$.next(false);
       },
     });
   }
@@ -279,6 +286,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.subscription.unsubscribe();
       this.subscription = null;
     }
+    this.isActiveSubject$.next(false);
   }
 
   setEnabled(enabled: boolean) {

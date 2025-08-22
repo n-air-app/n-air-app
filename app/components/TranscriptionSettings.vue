@@ -5,9 +5,12 @@
       <ObsListInput v-model="audioSourceIdModel" />
       <ObsListInput v-model="voskModelModel" />
       <ObsButtonInput :value="downloadButtonModel" />
-      <div>
+      <div v-if="isActive">
         <h3>プレビュー</h3>
         <p>{{ previewText || '--' }}</p>
+      </div>
+      <div v-else>
+        <p>音声認識が無効です</p>
       </div>
       <ObsBoolInput v-model="textFileEnabledModel" />
       <div v-if="textFileEnabledModel.value">
