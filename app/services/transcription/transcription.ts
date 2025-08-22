@@ -368,6 +368,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   async startDownloadVoskModel(modelName: string) {
+    console.log('startDownloadVoskModel', modelName);
+
     const tmpDir = tmpdir();
     const tmpZipPath = path.join(tmpDir, `${modelName}.zip`);
 
@@ -421,6 +423,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
    * @returns True if the model was deleted, false otherwise.
    */
   async deleteVoskModel(modelName: string): Promise<boolean> {
+    console.log('deleteVoskModel', modelName);
+
     const currentStatus = this.modelsManager.getVoskModelStatus(modelName);
     switch (currentStatus.state) {
       case 'downloading':
@@ -458,7 +462,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (this.state.voskModelName === modelName) {
       return; // No change needed
     }
-    this.deactivate(); // Restart transcription with the new model
+    this.deactivate();
     if (modelName === null) {
       modelName = this.modelsManager.getVoskModels()[0]?.name || null; // Default to the first model if none is set
     } else if (!this.modelsManager.getVoskModels().some(model => model.name === modelName)) {

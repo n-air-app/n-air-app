@@ -172,7 +172,7 @@ export class VoskClient implements ITranscriber {
     if (this._audioDeviceIndex !== null) {
       args.push('-d', this._audioDeviceIndex.toString());
     }
-    console.log(`Starting Vosk CLI process with args: ${this._voskCliPath} ${args.join(' ')}`); // DEBUG
+    console.log(`Starting Vosk CLI process with args: "${this._voskCliPath}" ${args.join(' ')}`); // DEBUG
     this._voskCliProcess = spawn(this._voskCliPath, args, {
       stdio: 'pipe',
     });
