@@ -758,6 +758,7 @@
     "enable": "Enable transcription",
     "voskModel": "Model",
     "downloadVoskModel": "Download model",
+    "deleteVoskModel": "Delete downloaded model",
     "audioSource": "Audio Source",
     "enableTextFile": "Enable text file output",
     "textFilePath": "Text file path",

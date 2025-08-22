@@ -5,6 +5,7 @@
       <ObsListInput v-model="audioSourceIdModel" />
       <ObsListInput v-model="voskModelModel" />
       <ObsButtonInput :value="downloadButtonModel" />
+      <ObsButtonInput :value="deleteButtonModel" />
       <div v-if="isActive">
         <h3>プレビュー</h3>
         <p>{{ previewText || '--' }}</p>

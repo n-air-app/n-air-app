@@ -758,6 +758,7 @@
     "enable": "文字起こしを有効にする",
     "voskModel": "モデル",
     "downloadVoskModel": "モデルをダウンロードする",
+    "deleteVoskModel": "ダウンロードしたモデルを削除する",
     "audioSource": "音声ソース",
     "enableTextFile": "テキストファイル出力を有効にする",
     "textFilePath": "テキストファイルパス",

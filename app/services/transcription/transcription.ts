@@ -398,6 +398,37 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
   }
 
+  /**
+   * Deletes a Vosk model.
+   * @param modelName The name of the model to delete.
+   * @returns True if the model was deleted, false otherwise.
+   */
+  async deleteVoskModel(modelName: string): Promise<boolean> {
+    const currentStatus = this.modelsManager.getVoskModelStatus(modelName);
+    switch (currentStatus.state) {
+      case 'downloading':
+        throw new Error(`Vosk model ${modelName} is currently downloading.`);
+      case 'not_downloaded':
+      case 'download_error':
+        return false;
+    }
+
+    this.modelsManager.setVoskModelStatus(modelName, { state: 'not_downloaded' });
+    if (this.state.voskModelName === modelName) {
+      this.setModelName(null);
+    }
+
+    // modelPath のディレクトリを削除
+    const modelPath = this.getModelPath(modelName);
+    try {
+      fs.rmdir(modelPath, { recursive: true });
+      console.log('Deleted model directory:', modelPath);
+    } catch (err) {
+      console.error('Failed to delete model directory:', err);
+    }
+    return true;
+  }
+
   private setModelStatus(modelName: string, status: VoskModelStatus) {
     this.modelsManager.setVoskModelStatus(modelName, status);
     this.modelsStatusSubject$.next({
@@ -406,18 +437,25 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     });
   }
 
-  setModelName(modelName: string) {
+  setModelName(modelName: string | null) {
     if (this.state.voskModelName === modelName) {
       return; // No change needed
     }
-    if (!this.modelsManager.getVoskModels().some(model => model.name === modelName)) {
+    this.deactivate(); // Restart transcription with the new model
+    if (modelName === null) {
+      modelName = this.modelsManager.getVoskModels()[0]?.name || null; // Default to the first model if none is set
+    } else if (!this.modelsManager.getVoskModels().some(model => model.name === modelName)) {
       throw new Error(`Vosk model ${modelName} not found.`);
     }
-    this.setState({ voskModelName: modelName });
-    this.setModelStatus(modelName, this.modelsManager.getVoskModelStatus(modelName));
-    this.deactivate(); // Restart transcription with the new model
-    if (this.isReady()) {
-      this.activate();
+
+    if (modelName !== null) {
+      this.setState({ voskModelName: modelName });
+      this.setModelStatus(modelName, this.modelsManager.getVoskModelStatus(modelName));
+      if (this.isReady()) {
+        this.activate();
+      }
+    } else {
+      this.setState({ voskModelName: undefined });
     }
   }
 

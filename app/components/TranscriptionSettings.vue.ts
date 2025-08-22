@@ -117,6 +117,18 @@ export default class TranscriptionSettings extends Vue {
       },
     };
   }
+  get deleteButtonModel(): IObsButtonInputValue {
+    return {
+      name: 'deleteVoskModel',
+      description: $t('settings.transcription.deleteVoskModel'),
+      enabled:
+        this.transcriptionService.state.voskModelName && this.modelStatus.state === 'downloaded',
+      type: 'OBS_PROPERTY_BUTTON',
+      onClick: () => {
+        this.transcriptionService.deleteVoskModel(this.transcriptionService.state.voskModelName);
+      },
+    };
+  }
 
   get audioSourceIdModel(): IObsListInput<string> {
     const sources = this.transcriptionService.getAudioDeviceList();
