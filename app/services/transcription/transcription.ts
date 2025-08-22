@@ -22,7 +22,9 @@ import { filterNoiseText } from './filterNoiseText';
 import {
   CreateVoskCliClient,
   getVoskCliPath,
+  isErrorTranscriptionMessage,
   isPartialTranscriptionMessage,
+  isProcessExitedMessage,
   isTextTranscriptionMessage,
   ITranscriber,
 } from './VoskClient';
@@ -265,6 +267,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           this.textSubject$.next(filterNoiseText(message.text));
         } else if (isPartialTranscriptionMessage(message)) {
           this.partialSubject$.next(filterNoiseText(message.partial));
+        } else if (isErrorTranscriptionMessage(message)) {
+          console.error('Transcription error:', message.error);
+        } else if (isProcessExitedMessage(message)) {
+          console.log('Vosk CLI process exited with code:', message.processExited);
+          this.deactivate();
+        } else {
+          console.warn('Unknown transcription message:', message);
         }
       },
       error: err => {
