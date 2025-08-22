@@ -23,6 +23,8 @@ import {
   CreateVoskCliClient,
   getVoskCliPath,
   isErrorTranscriptionMessage,
+  isFormatTranscriptionMessage,
+  isInfoTranscriptionMessage,
   isPartialTranscriptionMessage,
   isProcessExitedMessage,
   isTextTranscriptionMessage,
@@ -270,8 +272,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         } else if (isErrorTranscriptionMessage(message)) {
           console.error('Transcription error:', message.error);
         } else if (isProcessExitedMessage(message)) {
-          console.log('Vosk CLI process exited with code:', message.processExited);
+          console.log('Vosk CLI process exited:', message.processExited);
           this.deactivate();
+        } else if (isInfoTranscriptionMessage(message) || isFormatTranscriptionMessage(message)) {
+          // can safely be ignored
         } else {
           console.warn('Unknown transcription message:', message);
         }

@@ -67,19 +67,14 @@ function isAudioDeviceList(obj: any): obj is AudioDeviceList {
   );
 }
 
-function isVoskCliMessage(obj: any): obj is TranscriptionMessage {
-  return (
-    obj &&
-    (typeof obj.info === 'string' ||
-      typeof obj.partial === 'string' ||
-      typeof obj.text === 'string' ||
-      typeof obj.error === 'string' ||
-      (obj.format && typeof obj.format === 'object' && Object.keys(obj.format).length > 0))
-  );
+export function isInfoTranscriptionMessage(obj: TranscriptionMessage): obj is { info: string } {
+  return 'info' in obj && typeof obj.info === 'string';
 }
 
-function isTranscriptionMessage(obj: any): obj is TranscriptionMessage {
-  return obj && (isVoskCliMessage(obj) || typeof obj.processExited === 'string');
+export function isFormatTranscriptionMessage(
+  obj: TranscriptionMessage,
+): obj is { format: Record<string, unknown> } {
+  return 'format' in obj && typeof obj.format === 'object' && Object.keys(obj.format).length > 0;
 }
 
 export function isTextTranscriptionMessage(obj: TranscriptionMessage): obj is { text: string } {
@@ -100,6 +95,21 @@ export function isProcessExitedMessage(
   obj: TranscriptionMessage,
 ): obj is { processExited: string } {
   return 'processExited' in obj && typeof obj.processExited === 'string';
+}
+
+function isVoskCliMessage(obj: any): obj is TranscriptionMessage {
+  return (
+    obj &&
+    (isInfoTranscriptionMessage(obj) ||
+      isPartialTranscriptionMessage(obj) ||
+      isTextTranscriptionMessage(obj) ||
+      isErrorTranscriptionMessage(obj) ||
+      isFormatTranscriptionMessage(obj))
+  );
+}
+
+function isTranscriptionMessage(obj: any): obj is TranscriptionMessage {
+  return obj && (isVoskCliMessage(obj) || isProcessExitedMessage(obj));
 }
 
 // Transcriber implementation using vosk-cli
@@ -171,9 +181,9 @@ export class VoskClient implements ITranscriber {
       this.transcribe$?.next({ processExited: `Launch error: ${err.message}` });
       this.transcribe$?.next({ info: `Error: ${err.message}` });
     });
-    this._voskCliProcess.on('exit', code => {
-      console.log(`vosk-cli process exited with code: ${code}`);
-      this.transcribe$?.next({ processExited: `${code}` });
+    this._voskCliProcess.on('exit', (code, signal) => {
+      console.log(`vosk-cli process exited with code: ${code}, signal: ${signal}`);
+      this.transcribe$?.next({ processExited: `code:${code}, signal:${signal}` });
       this.shutdownVoskCliProcess();
     });
     let stdoutBuffer = '';
