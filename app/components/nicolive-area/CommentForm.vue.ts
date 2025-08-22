@@ -1,6 +1,7 @@
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
+import { CommentModifier } from 'services/nicolive-program/NicoliveClient';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
@@ -25,18 +26,10 @@ export default class CommentForm extends Vue {
       next: async (text: string) => {
         if (text.length === 0) return;
         if (!this.isSendable) return; // TODO queueing?
-        try {
-          this.isCommentSending = true;
-          await this.nicoliveProgramService.sendTranscribedComment(text);
-        } catch (caught) {
-          if (caught instanceof NicoliveFailure) {
-            await openErrorDialogFromFailure(caught);
-          } else {
-            throw caught;
-          }
-        } finally {
-          this.isCommentSending = false;
-        }
+        await this.sendTranscribedComment(text);
+      },
+      error: (error: Error) => {
+        console.error('Transcription error:', error);
       },
     });
   }
@@ -72,6 +65,34 @@ export default class CommentForm extends Vue {
       this.$nextTick(() => {
         (this.$refs.input as HTMLElement)?.focus();
       });
+    }
+  }
+
+  async sendTranscribedComment(text: string) {
+    try {
+      this.isCommentSending = true;
+      // TODO fix: サーバー側で投稿APIが使える様になるまでは放送者コメントで代用する
+      const useOperatorComment = true;
+      if (useOperatorComment) {
+        const isPermanent = false;
+        await this.nicoliveProgramService.sendOperatorComment(text, isPermanent);
+      } else {
+        const now = new Date();
+        const vpos = this.nicoliveProgramService.getVposFromDate(now);
+        // TODO コメント装飾をどうするか
+        const modifier: CommentModifier = {
+          position: 'shita',
+        };
+        await this.nicoliveProgramService.sendNormalComment(text, vpos, modifier);
+      }
+    } catch (caught) {
+      if (caught instanceof NicoliveFailure) {
+        await openErrorDialogFromFailure(caught);
+      } else {
+        throw caught;
+      }
+    } finally {
+      this.isCommentSending = false;
     }
   }
 

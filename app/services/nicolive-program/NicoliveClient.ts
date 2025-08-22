@@ -124,6 +124,17 @@ function isValidUserFollowStatusResponse(response: any): response is UserFollowS
   return true;
 }
 
+export type CommentModifier = {
+  // color:
+  // white, red, pink, orange, yellow, green, cyan, blue, purple, black
+  // white2, red2, pink2, orange2, yellow2, green2, cyan2, blue2, purple2, black2
+  // #AA08FD, #A80 のようなカラーコード形式
+  color?: string;
+  size?: 'big' | 'medium' | 'small'; // default: 'medium'
+  position?: 'ue' | 'naka' | 'shita'; // default: 'naka'
+  font?: 'defont' | 'mincho' | 'gothic'; // default: 'defont'
+};
+
 export class NicoliveClient {
   static live2BaseURL = 'https://live2.nicovideo.jp' as const;
   static liveBaseURL = 'https://live.nicovideo.jp' as const;
@@ -359,12 +370,17 @@ export class NicoliveClient {
   }
 
   /** 通常コメントを送信 */
-  async sendComment(programID: string, text: string): Promise<WrappedResult<void>> {
-    // TODO fix: あとで通常コメント投稿ができるようになったら差し替えるが、一旦放送者コメントで代用する
-    return this.sendOperatorComment(programID, {
-      text,
-      isPermCommand: false,
-    });
+  async sendNormalComment(
+    programID: string,
+    text: string,
+    vpos: number,
+    modifier?: CommentModifier,
+  ): Promise<WrappedResult<void>> {
+    return this.requestAPI<void>(
+      'PUT',
+      `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/comments`,
+      NicoliveClient.jsonBody({ text, vpos, modifier }),
+    );
   }
 
   /** 統計情報（視聴者とコメント数）を取得 */
