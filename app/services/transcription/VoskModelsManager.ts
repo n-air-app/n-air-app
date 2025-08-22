@@ -1,15 +1,18 @@
 import { existsSync } from 'fs';
 import path from 'path';
-import { $t } from 'services/i18n';
 import { VOSK_MODEL_NAMES, VoskModelStatus } from './transcription';
+import { $t } from 'services/i18n';
 
 export class VoskModelsManager {
-  private models: { name: string; description: string; status: VoskModelStatus }[] =
-    VOSK_MODEL_NAMES.map(name => ({
-      name,
-      description: $t(`settings.transcription.voskModel.${name}`),
-      status: { state: 'not_downloaded' },
-    }));
+  private models: {
+    name: string;
+    description: string;
+    status: VoskModelStatus;
+  }[] = VOSK_MODEL_NAMES.map(name => ({
+    name,
+    description: $t(`settings.transcription.voskModels['${name}']`),
+    status: { state: 'not_downloaded' },
+  }));
 
   constructor(private modelBasePath: string) {
     this.models = this.models.map(model => {

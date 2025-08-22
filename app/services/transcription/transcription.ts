@@ -15,6 +15,7 @@ import {
   tap,
   timer,
 } from 'rxjs';
+import { $t } from 'services/i18n';
 import { mutation, PersistentStatefulService } from '../core';
 import { downloadAndUnzip } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
@@ -50,7 +51,7 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
     case 'downloading':
       return `${status.progress ?? 0}%`;
     default:
-      return status.state;
+      return $t(`settings.transcription.modelStatus.${status.state}`);
   }
 }
 

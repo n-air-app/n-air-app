@@ -757,6 +757,16 @@
     "name": "文字起こし",
     "enable": "文字起こしを有効にする",
     "voskModel": "モデル",
+    "voskModels": {
+      "vosk-model-ja-0.22": "Vosk 日本語(完全) 0.22",
+      "vosk-model-small-ja-0.22": "Vosk 日本語(小) 0.22"
+    },
+    "modelStatus": {
+      "not_downloaded": "未ダウンロード",
+      "downloading": "ダウンロード中",
+      "downloaded": "ダウンロード済み",
+      "download_error": "ダウンロードエラー"
+    },
     "downloadVoskModel": "モデルをダウンロードする",
     "deleteVoskModel": "ダウンロードしたモデルを削除する",
     "audioSource": "音声ソース",

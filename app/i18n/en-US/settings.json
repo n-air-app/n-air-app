@@ -757,6 +757,16 @@
     "name": "Transcription",
     "enable": "Enable transcription",
     "voskModel": "Model",
+    "voskModels": {
+      "vosk-model-ja-0.22": "Vosk Japanese full 0.22",
+      "vosk-model-small-ja-0.22": "Vosk Japanese small 0.22"
+    },
+    "modelStatus": {
+      "not_downloaded": "Not downloaded",
+      "downloading": "Downloading...",
+      "downloaded": "Downloaded",
+      "download_error": "Download error"
+    },
     "downloadVoskModel": "Download model",
     "deleteVoskModel": "Delete downloaded model",
     "audioSource": "Audio Source",
