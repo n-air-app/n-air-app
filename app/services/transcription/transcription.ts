@@ -382,6 +382,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       );
 
       this.setModelStatus(modelName, { state: 'downloaded' });
+      if (this.isReady()) {
+        this.activate();
+      }
     } catch (err) {
       console.error('Error during Vosk model download/extraction:', err);
       this.setModelStatus(modelName, { state: 'download_error' });
@@ -414,9 +417,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         return false;
     }
 
-    this.modelsManager.setVoskModelStatus(modelName, { state: 'not_downloaded' });
+    this.setModelStatus(modelName, { state: 'not_downloaded' });
     if (this.state.voskModelName === modelName) {
-      this.setModelName(null);
+      this.deactivate();
     }
 
     // modelPath のディレクトリを削除
