@@ -6,7 +6,7 @@ import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
-import { TranscriptionService } from 'services/transcription/transcription';
+import { TimestampedText, TranscriptionService } from 'services/transcription/transcription';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
@@ -23,10 +23,13 @@ export default class CommentForm extends Vue {
   transcriptionSubscription: Subscription;
   mounted() {
     this.transcriptionSubscription = this.transcriptionService.text$.subscribe({
-      next: async (text: string) => {
-        if (text.length === 0) return;
+      next: async (timestampedText: TimestampedText) => {
+        if (timestampedText.text.length === 0) return;
         if (!this.isSendable) return; // TODO queueing?
-        await this.sendTranscribedComment(text);
+        await this.sendTranscribedComment(
+          timestampedText.text,
+          new Date(timestampedText.timestamp),
+        );
       },
       error: (error: Error) => {
         console.error('Transcription error:', error);
@@ -68,7 +71,7 @@ export default class CommentForm extends Vue {
     }
   }
 
-  async sendTranscribedComment(text: string) {
+  async sendTranscribedComment(text: string, estimatedStartSpeaking: Date) {
     try {
       this.isCommentSending = true;
       // TODO fix: サーバー側で投稿APIが使える様になるまでは放送者コメントで代用する
@@ -77,8 +80,7 @@ export default class CommentForm extends Vue {
         const isPermanent = false;
         await this.nicoliveProgramService.sendOperatorComment(text, isPermanent);
       } else {
-        const now = new Date();
-        const vpos = this.nicoliveProgramService.getVposFromDate(now);
+        const vpos = this.nicoliveProgramService.getVposFromDate(estimatedStartSpeaking);
         // TODO コメント装飾をどうするか
         const modifier: CommentModifier = {
           position: 'shita',

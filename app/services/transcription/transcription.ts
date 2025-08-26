@@ -6,6 +6,7 @@ import {
   BehaviorSubject,
   distinctUntilChanged,
   EMPTY,
+  filter,
   map,
   merge,
   mergeMap,
@@ -50,6 +51,11 @@ export type VoskModelStatus = {
   progress?: number; // percentage of download completion
 };
 
+export type TimestampedText = {
+  text: string;
+  timestamp: number;
+};
+
 export function voskModelStatusToString(status: VoskModelStatus): string {
   switch (status.state) {
     case 'downloading':
@@ -73,7 +79,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private state$ = new BehaviorSubject<ITranscriptionServiceState>(
     TranscriptionService.defaultState,
   );
-  private textSubject$ = new Subject<string>();
+  private rawTextSubject$ = new Subject<string>();
+  private textSubject$ = new Subject<TimestampedText>();
   private partialSubject$ = new Subject<string>();
   private removeLineSubject$ = new Subject<void>();
   private linesSubject$ = new BehaviorSubject<{ texts: string[]; partial: string }>({
@@ -122,6 +129,39 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
 
     this.state$.next(this.state);
+
+    // partial または text が飛んできた時刻を記憶し、text が飛んできたタイミングで { text, timestamp } を textSubject$ に流す
+    // partial が連続している場合は、最初の partial の時刻を記憶する
+    // text が連続している場合は、それぞれ個別の text として扱う
+    merge(
+      this.rawTextSubject$.pipe(map(text => ({ type: 'text' as const, payload: text }))),
+      this.partialSubject$.pipe(map(partial => ({ type: 'partial' as const, payload: partial }))),
+    )
+      .pipe(
+        scan(
+          (
+            acc: { partialTimestamp: number | null; text: TimestampedText | null },
+            action,
+          ): { partialTimestamp: number | null; text: TimestampedText | null } => {
+            const now = Date.now();
+            if (action.type === 'text') {
+              const timestamp = acc.partialTimestamp ?? now;
+              return { ...acc, partialTimestamp: null, text: { text: action.payload, timestamp } };
+            } else {
+              // partial
+              if (acc.partialTimestamp) {
+                return { ...acc, text: null };
+              } else {
+                return { ...acc, partialTimestamp: now, text: null };
+              }
+            }
+          },
+          { partialTimestamp: null, text: null },
+        ),
+        filter(acc => acc.text !== null),
+        map(acc => acc.text),
+      )
+      .subscribe(this.textSubject$);
 
     if (!this.state.textFilePath) {
       // default path for text file
@@ -179,7 +219,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // linesSubject$ を更新するストリーム
     merge(
       this.partialSubject$.pipe(map(partial => ({ type: 'partial' as const, payload: partial }))),
-      this.textSubject$.pipe(map(text => ({ type: 'text' as const, payload: text }))),
+      this.textSubject$.pipe(map(text => ({ type: 'text' as const, payload: text.text }))),
       this.removeLineSubject$.pipe(map(() => ({ type: 'remove_line' as const }))),
     )
       .pipe(
@@ -266,7 +306,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       next: message => {
         console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
-          this.textSubject$.next(filterNoiseText(message.text));
+          this.rawTextSubject$.next(filterNoiseText(message.text));
         } else if (isPartialTranscriptionMessage(message)) {
           this.partialSubject$.next(filterNoiseText(message.partial));
         } else if (isErrorTranscriptionMessage(message)) {

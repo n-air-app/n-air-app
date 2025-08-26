@@ -16,6 +16,7 @@ import { merge, Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
+  TimestampedText,
   TranscriptionService,
   VoskModelStatus,
   voskModelStatusToString,
@@ -51,8 +52,12 @@ export default class TranscriptionSettings extends Vue {
     this.textSubscription = merge(
       this.transcriptionService.text$,
       this.transcriptionService.partial$,
-    ).subscribe(text => {
-      this.previewText = text;
+    ).subscribe((text: TimestampedText | string) => {
+      if (typeof text === 'string') {
+        this.previewText = text;
+      } else {
+        this.previewText = text.text;
+      }
     });
 
     this.isActiveSubscription = this.transcriptionService.isActive$.subscribe(isActive => {
