@@ -2,7 +2,7 @@ import {
   ObsBoolInput,
   ObsButtonInput,
   ObsListInput,
-  ObsNumberInput,
+  ObsIntInput,
   ObsPathInput,
 } from 'components/obs/inputs';
 import {
@@ -21,6 +21,7 @@ import {
   VoskModelStatus,
   voskModelStatusToString,
 } from 'services/transcription/transcription';
+import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
@@ -28,13 +29,19 @@ import { Component } from 'vue-property-decorator';
   components: {
     ObsBoolInput,
     ObsButtonInput,
+    ObsIntInput,
     ObsListInput,
     ObsPathInput,
-    ObsNumberInput,
   },
 })
 export default class TranscriptionSettings extends Vue {
   @Inject() transcriptionService: TranscriptionService;
+  @Inject() userService: UserService;
+
+  isNiconicoLoggedIn(): boolean {
+    return this.userService.isNiconicoLoggedIn();
+  }
+
   modelsStatus: Dictionary<VoskModelStatus> = {};
 
   modelStatusSubscription: Subscription;

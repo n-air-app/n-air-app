@@ -16,10 +16,12 @@
       <ObsBoolInput v-model="textFileEnabledModel" />
       <div v-if="textFileEnabledModel.value">
         <ObsPathInput v-model="textFilePathModel" />
-        <ObsNumberInput v-model="textFileMaxLineModel" />
-        <ObsNumberInput v-model="textFileLineTimeToLiveModel" />
+        <ObsIntInput v-model="textFileMaxLineModel" />
+        <ObsIntInput v-model="textFileLineTimeToLiveModel" />
       </div>
-      <ObsNumberInput v-model="commentDelayModel" />
+      <div v-if="isNiconicoLoggedIn">
+        <ObsIntInput v-model="commentDelayModel" />
+      </div>
     </div>
   </div>
 </template>
