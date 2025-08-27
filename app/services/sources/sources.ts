@@ -460,7 +460,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     availableWhitelistedType.push('scene');
 
     // 'near' is not an obs input type so we have to set it manually
-    availableWhitelistedType.push(...(NVoiceCharacterTypes as unknown as TSourceType[]));
+    availableWhitelistedType.push(...NVoiceCharacterTypes);
 
     const NDIExists = obsAvailableTypes.includes('ndi_source');
     if (NDIExists) {
@@ -470,6 +470,8 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       // NDI インストール案内を出す
       availableWhitelistedType.push('custom_cast_ndi_guide');
     }
+
+    availableWhitelistedType.push('text_transcription'); // 文字起こしテキスト
 
     const availableWhitelistedSourceType = availableWhitelistedType.map(value => ({
       value,

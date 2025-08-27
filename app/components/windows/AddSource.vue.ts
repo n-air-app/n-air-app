@@ -9,6 +9,8 @@ import { ISourceAddOptions, ISourceApi, ISourcesServiceApi, TSourceType } from '
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+import { defaultTextFilePath } from '../../services/transcription/transcription';
+import { VideoService } from '../../services/video';
 
 @Component({
   components: { ModalLayout, Selector, Display },
@@ -18,6 +20,7 @@ export default class AddSource extends Vue {
   @Inject() scenesService: ScenesService;
   @Inject() windowsService: WindowsService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
+  @Inject() videoService: VideoService;
 
   name = '';
   error = '';
@@ -97,43 +100,113 @@ export default class AddSource extends Vue {
   addNew() {
     if (!this.name) {
       this.error = $t('sources.sourceNameIsRequired');
+      return;
+    }
+
+    let s: {
+      source: ISourceApi;
+      options: ISourceAddOptions;
+      forceSkipProperties?: boolean;
+    };
+
+    if (this.sourceAddOptions.propertiesManager === 'nvoice-character') {
+      const type: NVoiceCharacterType =
+        this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+      s = this.nVoiceCharacterService.createNVoiceCharacterSource(type, this.name);
+    } else if (this.sourceType === 'text_transcription') {
+      s = this.createTextTranscriptionSourceAndOption(this.name);
     } else {
-      let s: {
-        source: ISourceApi;
-        options: ISourceAddOptions;
+      s = {
+        source: this.sourcesService.createSource(
+          this.name,
+          this.sourceType,
+          {}, // IPCがundefinedをnullに変換するのでデフォルト値は使わない
+          {
+            propertiesManager: this.sourceAddOptions.propertiesManager,
+            propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
+          },
+        ),
+        options: {},
       };
+    }
 
-      if (this.sourceAddOptions.propertiesManager === 'nvoice-character') {
-        const type: NVoiceCharacterType =
-          this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
-        s = this.nVoiceCharacterService.createNVoiceCharacterSource(type, this.name);
-      } else {
-        s = {
-          source: this.sourcesService.createSource(
-            this.name,
-            this.sourceType,
-            {}, // IPCがundefinedをnullに変換するのでデフォルト値は使わない
-            {
-              propertiesManager: this.sourceAddOptions.propertiesManager,
-              propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
-            },
-          ),
-          options: {},
-        };
-      }
+    this.adding = true;
+    this.scenesService.activeScene.addSource(s.source.sourceId, s.options);
 
-      this.adding = true;
-      this.scenesService.activeScene.addSource(s.source.sourceId, s.options);
-
-      if (s.source.hasProps()) {
-        this.sourcesService.showSourceProperties(s.source.sourceId);
-      } else {
-        this.close();
-      }
+    if (s.source.hasProps() && !s.forceSkipProperties) {
+      this.sourcesService.showSourceProperties(s.source.sourceId);
+    } else {
+      this.close();
     }
   }
 
   get selectedSource() {
     return this.sourcesService.getSource(this.selectedSourceId);
+  }
+
+  // ここに置くかnear同様に他に置くか
+  createTextTranscriptionSourceAndOption(name: string): {
+    source: ISourceApi;
+    options: ISourceAddOptions;
+    forceSkipProperties?: boolean;
+  } {
+    const width = 1200;
+    const height = 150;
+
+    // これらの値は画面で弄った後、OBSが保存するjson(....\AppData\Roaming\n-air-app-unstable\SceneCollections)を参照で
+    return {
+      source: this.sourcesService.createSource(
+        name,
+        'text_gdiplus',
+        {
+          text: '',
+          read_from_file: true,
+          file: defaultTextFilePath(),
+          outline: true,
+          vertical: false,
+          gradient: false,
+          chatlog: true,
+          extents: true,
+          font: {
+            face: 'Arial',
+            style: '',
+            size: 48,
+            flags: 0,
+          },
+          align: 'left',
+          valign: 'top',
+          color: 16777215,
+          opacity: 100,
+          gradient_color: 16777215,
+          gradient_opacity: 100,
+          gradient_dir: 90,
+          bk_color: 0,
+          bk_opacity: 0,
+          outline_size: 2,
+          outline_color: 329004,
+          outline_opacity: 100,
+          chatlog_lines: 3,
+          extents_wrap: true,
+          extents_cx: width,
+          extents_cy: height,
+          transform: 0,
+          antialiasing: true,
+        },
+        {
+          propertiesManager: this.sourceAddOptions.propertiesManager,
+          propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
+        },
+      ),
+      options: {
+        initialTransform: {
+          position: {
+            // bottom-center
+            x: (this.videoService.baseWidth - width) / 2,
+            y: this.videoService.baseHeight - height - 50,
+          },
+        },
+      },
+      forceSkipProperties: true,
+    };
   }
 }

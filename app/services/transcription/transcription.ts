@@ -59,6 +59,11 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
   }
 }
 
+export function defaultTextFilePath() {
+  const tempDir = remote.app.getPath('temp');
+  return `${tempDir}/transcription.txt`;
+}
+
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
@@ -125,8 +130,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     if (!this.state.textFilePath) {
       // default path for text file
-      const tempDir = remote.app.getPath('temp');
-      this.setTextFilePath(`${tempDir}/transcription.txt`);
+      this.setTextFilePath(defaultTextFilePath());
     }
 
     // enable 状態を監視して、状態が変わったら activate する

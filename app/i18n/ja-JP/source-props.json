@@ -212,6 +212,10 @@
       "name": "垂直方向"
     }
   },
+  "text_transcription": {
+    "name": "文字起こし",
+    "description": "シーンに文字起こしテキストを追加します。"
+  },
   "text (FreeType2)": {
     "name": "テキスト(FreeType 2)"
   },
