@@ -40,6 +40,7 @@ interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
   audioDeviceId?: string | null;
+  commentDelay: number; // in milliseconds
   textFileEnabled?: boolean;
   textFilePath?: string;
   textFileMaxLine: number;
@@ -68,6 +69,7 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    commentDelay: 0,
     textFileMaxLine: 2,
     textFileLineTimeToLive: 5 * 1000, // 5 seconds
   };
@@ -518,6 +520,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     } else {
       this.setState({ voskModelName: undefined });
     }
+  }
+
+  setCommentDelay(delay: number) {
+    this.setState({ commentDelay: delay });
   }
 
   private setState(newState: Partial<ITranscriptionServiceState>) {

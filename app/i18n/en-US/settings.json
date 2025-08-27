@@ -774,6 +774,7 @@
     "textFilePath": "Text file path",
     "textFileMaxLine": "Max lines in text file",
     "textFileLineTimeToLive": "Time to live for text lines (ms)",
-    "noAudioSourceFound": "No audio source found"
+    "noAudioSourceFound": "No audio source found",
+    "commentDelay": "Comment delay (ms)"
   }
 }

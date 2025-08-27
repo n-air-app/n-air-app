@@ -7,8 +7,9 @@ import {
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 import { TimestampedText, TranscriptionService } from 'services/transcription/transcription';
+import { ScheduledExecutionQueue } from 'util/ScheduledExecutionQueue';
 import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { Component, Watch } from 'vue-property-decorator';
 
 @Component({})
 export default class CommentForm extends Vue {
@@ -20,16 +21,35 @@ export default class CommentForm extends Vue {
   isCommentSending: boolean = false;
   operatorCommentValue: string = '';
 
+  commentQueue: ScheduledExecutionQueue<TimestampedText> | null = null;
+
+  queueComment(timestampedText: TimestampedText) {
+    this.commentQueue.add(
+      timestampedText,
+      new Date(Date.now() + this.transcriptionService.state.commentDelay),
+    );
+  }
+
   transcriptionSubscription: Subscription;
   mounted() {
+    this.commentQueue = new ScheduledExecutionQueue<TimestampedText>(
+      async (item: TimestampedText) => {
+        if (!this.isSendable) {
+          return false;
+        }
+        try {
+          await this.sendTranscribedComment(item.text, new Date(item.timestamp));
+        } catch (e) {
+          console.error('Error sending transcribed comment:', e); // TODO DEBUG
+        }
+        return true;
+      },
+    );
+
     this.transcriptionSubscription = this.transcriptionService.text$.subscribe({
       next: async (timestampedText: TimestampedText) => {
         if (timestampedText.text.length === 0) return;
-        if (!this.isSendable) return; // TODO queueing?
-        await this.sendTranscribedComment(
-          timestampedText.text,
-          new Date(timestampedText.timestamp),
-        );
+        this.queueComment(timestampedText);
       },
       error: (error: Error) => {
         console.error('Transcription error:', error);
@@ -39,10 +59,18 @@ export default class CommentForm extends Vue {
 
   beforeDestroy() {
     this.transcriptionSubscription?.unsubscribe();
+    this.commentQueue?.destroy();
   }
 
   get isSendable(): boolean {
     return !this.isCommentSending && !this.programEnded;
+  }
+
+  @Watch('isSendable')
+  onIsSendableChanged(isSendable: boolean) {
+    if (isSendable) {
+      this.commentQueue?.resume();
+    }
   }
 
   async sendOperatorComment(event: KeyboardEvent | MouseEvent) {

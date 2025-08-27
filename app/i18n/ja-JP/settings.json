@@ -774,6 +774,7 @@
     "textFilePath": "テキストファイルパス",
     "textFileMaxLine": "テキストファイルの最大行数",
     "textFileLineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)",
-    "noAudioSourceFound": "音声ソースが見つかりません"
+    "noAudioSourceFound": "音声ソースが見つかりません",
+    "commentDelay": "コメント遅延 (ミリ秒)"
   }
 }

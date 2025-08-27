@@ -162,6 +162,21 @@ export default class TranscriptionSettings extends Vue {
     this.transcriptionService.setAudioDeviceId(model.value);
   }
 
+  get commentDelayModel(): IObsNumberInputValue {
+    return {
+      name: 'transcriptionCommentDelay',
+      description: $t('settings.transcription.commentDelay'),
+      value: this.transcriptionService.state.commentDelay,
+      enabled: true,
+      minVal: 0,
+      maxVal: 10000, // 10 seconds
+      stepVal: 100, // 100 milliseconds
+    };
+  }
+  set commentDelayModel(model: IObsInput<number>) {
+    this.transcriptionService.setCommentDelay(model.value);
+  }
+
   get textFileEnabledModel(): IObsInput<boolean> {
     return {
       name: 'enableTranscriptionTextFile',

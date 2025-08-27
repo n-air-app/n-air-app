@@ -19,6 +19,7 @@
         <ObsNumberInput v-model="textFileMaxLineModel" />
         <ObsNumberInput v-model="textFileLineTimeToLiveModel" />
       </div>
+      <ObsNumberInput v-model="commentDelayModel" />
     </div>
   </div>
 </template>
