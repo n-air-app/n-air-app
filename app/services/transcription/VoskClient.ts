@@ -47,8 +47,7 @@ export type TranscriptionMessage =
     };
 
 export interface ITranscriber {
-  audioDevices(): AudioDeviceList;
-  audioDeviceIndex: number | null; // null if not set
+  audioDeviceIndex: number;
   startTranscription(): Observable<TranscriptionMessage>;
   stopTranscription(): void;
 }
@@ -116,8 +115,7 @@ function isTranscriptionMessage(obj: any): obj is TranscriptionMessage {
 export class VoskClient implements ITranscriber {
   private _voskCliPath: string;
   private _modelPath: string;
-  private _audioDeviceIndex: number | null = null;
-  private _audioDeviceList: AudioDeviceList;
+  private _audioDeviceIndex: number = 0;
   private _voskCliProcess: ChildProcess | null = null;
   private transcribe$: Subject<TranscriptionMessage> | null = null;
 
@@ -140,7 +138,6 @@ export class VoskClient implements ITranscriber {
     this._voskCliPath = options.voskCliPath;
     this._modelPath = options.modelPath;
     this.transcribe$ = new Subject<TranscriptionMessage>();
-    this._audioDeviceList = VoskClient.listAudioDevices(this._voskCliPath);
   }
 
   static listAudioDevices(voskCliPath: string): AudioDeviceList {
@@ -158,10 +155,6 @@ export class VoskClient implements ITranscriber {
     }
     console.log(`Audio devices found: ${JSON.stringify(parsed.devices)}`); // DEBUG
     return parsed;
-  }
-
-  audioDevices(): AudioDeviceList {
-    return this._audioDeviceList;
   }
 
   activateVoskCliProcess(): void {
@@ -230,9 +223,6 @@ export class VoskClient implements ITranscriber {
   }
 
   set audioDeviceIndex(index: number) {
-    if (index < 0 || index >= this._audioDeviceList.devices.length) {
-      throw new Error('Invalid audio device index');
-    }
     if (this._audioDeviceIndex === index) {
       return; // No change needed
     }
@@ -240,7 +230,7 @@ export class VoskClient implements ITranscriber {
     this.shutdownVoskCliProcess(); // Restart the process with the new device
     this.activateVoskCliProcess();
   }
-  get audioDeviceIndex(): number | null {
+  get audioDeviceIndex(): number {
     return this._audioDeviceIndex;
   }
 

@@ -30,6 +30,7 @@ import {
   isProcessExitedMessage,
   isTextTranscriptionMessage,
   ITranscriber,
+  VoskClient,
 } from './VoskClient';
 import { VoskModelsManager } from './VoskModelsManager';
 
@@ -205,6 +206,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       });
 
     this.initTextFileWriter();
+
+    this.updateAudioDevices();
   }
 
   initTextFileWriter() {
@@ -301,8 +304,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.client = null;
       return;
     }
-    const audioDevices = this.client.audioDevices();
-    this.setAudioDeviceId(audioDevices.devices.length > 0 ? audioDevices.devices[0].id : null);
+
     this.isActiveSubject$.next(true);
     this.subscription = this.client.startTranscription().subscribe({
       next: message => {
@@ -351,42 +353,62 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     if (enabled) {
       console.log('Enabling TranscriptionService...'); // DEBUG
+      this.updateAudioDevices();
     } else {
       console.log('Disabling TranscriptionService...'); // DEBUG
     }
     this.setState({ enabled });
   }
 
-  getAudioDeviceList(): { id: string; name: string }[] {
-    if (!this.client) {
-      return [];
+  private audioDevices: { id: string; name: string }[] = [];
+
+  updateAudioDevices() {
+    try {
+      const audioDevices = VoskClient.listAudioDevices(this.voskCliPath);
+      console.log('Available audio devices:', audioDevices); // DEBUG
+      this.audioDevices = audioDevices.devices.map(device => ({
+        id: device.id,
+        name: device.name,
+      }));
+    } catch (err) {
+      console.error('Failed to create Vosk CLI client:', err);
+      this.client = null;
+      return;
     }
-    return this.client.audioDevices().devices.map(device => ({
-      id: device.id,
-      name: device.name,
-    }));
+    // audioDevices の中に this.state.audioDeviceId がなければ、最初のデバイスを選択する
+    if (!this.audioDevices.find(device => device.id === this.state.audioDeviceId)) {
+      this.setAudioDeviceId(this.audioDevices.length > 0 ? this.audioDevices[0].id : null);
+    }
+  }
+
+  getAudioDeviceIndex<T>(id: string, notFoundValue: T): number | T {
+    const index = this.audioDevices.findIndex(device => device.id === id);
+    if (index === -1) {
+      return notFoundValue;
+    }
+    return index;
+  }
+
+  getAudioDeviceList(): { id: string; name: string }[] {
+    return this.audioDevices;
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
-    const audioDevices = this.client.audioDevices();
-
     if (audioDeviceId) {
-      const device = audioDevices.devices.find(d => d.id === audioDeviceId);
-      if (!device) {
+      const index = this.getAudioDeviceIndex(audioDeviceId, null);
+      if (index === null) {
         console.warn(`Audio device with id ${audioDeviceId} not found.`);
         audioDeviceId = null;
       }
     }
     if (!audioDeviceId) {
-      audioDeviceId = audioDevices.devices.length > 0 ? audioDevices.devices[0].id : null;
+      audioDeviceId = this.audioDevices.length > 0 ? this.audioDevices[0].id : null;
     }
     if (this.state.audioDeviceId === audioDeviceId) {
       return;
     }
     this.setState({ audioDeviceId });
-    this.client.audioDeviceIndex = audioDeviceId
-      ? this.client.audioDevices().devices.findIndex(d => d.id === audioDeviceId)
-      : null;
+    this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
   }
 
   setTextFileEnabled(textFileEnabled: boolean) {
