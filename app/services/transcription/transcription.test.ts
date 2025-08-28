@@ -2,6 +2,7 @@ import * as FakeTimers from '@sinonjs/fake-timers';
 import { Subject } from 'rxjs';
 import { createSetupFunction } from 'util/test-setup';
 import type { TranscriptionService as TranscriptionServiceType } from './transcription';
+import type { TranscriptionMessage } from './VoskClient';
 
 // Mock dependencies
 jest.mock('@electron/remote', () => ({
@@ -76,7 +77,7 @@ function prepare(): {
     stopTranscription: jest.Mock;
     audioDeviceIndex: number;
   };
-  transcriptionMessages$: Subject<any>;
+  transcriptionMessages$: Subject<TranscriptionMessage>;
   stopTranscription: jest.Mock;
 } {
   setup();
@@ -99,7 +100,7 @@ function prepare(): {
     },
   }));
 
-  const transcriptionMessages$ = new Subject<any>();
+  const transcriptionMessages$ = new Subject<TranscriptionMessage>();
   const stopTranscription = jest.fn();
   const client = {
     startTranscription: jest.fn().mockReturnValue(transcriptionMessages$),
@@ -111,7 +112,8 @@ function prepare(): {
 
   const TranscriptionService = require('./transcription')
     .TranscriptionService as typeof TranscriptionServiceType;
-  (TranscriptionService as any).initialState = TranscriptionService.defaultState; // override initial state
+  // @ts-expect-error: initialState is readonly, but we need to override it for testing
+  TranscriptionService.initialState = TranscriptionService.defaultState; // override initial state
   const instance = TranscriptionService.instance as TranscriptionServiceType;
   instance.updateAudioDevices();
 
@@ -222,30 +224,37 @@ describe('TranscriptionService', () => {
     });
 
     it('should handle text file line limit and time to live', async () => {
-      const { instance } = prepare();
+      const { instance, transcriptionMessages$, getVoskModelStatus } = prepare();
+      getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
+      instance.setAudioDeviceId('test-device');
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+
       instance.setTextFileMaxLine(2);
       instance.setTextFileLineTimeToLive(1000);
 
       const linesSpy = jest.fn();
       instance.lines$.subscribe(linesSpy);
 
-      // Access private subjects for testing
-      const textSubject$ = (instance as any).textSubject$;
-
-      textSubject$.next({ text: 'line 1', timestamp: Date.now() });
+      transcriptionMessages$.next({ text: 'line 1' });
       await clock.tickAsync(0);
       expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 1'], partial: '' });
 
-      textSubject$.next({ text: 'line 2', timestamp: Date.now() });
+      transcriptionMessages$.next({ text: 'line 2' });
       await clock.tickAsync(0);
       expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 1', 'line 2'], partial: '' });
 
-      textSubject$.next({ text: 'line 3', timestamp: Date.now() });
+      transcriptionMessages$.next({ text: 'line 3' });
       await clock.tickAsync(0);
       expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 2', 'line 3'], partial: '' });
 
+      // The first timer started by 'line 1' should fire after 1000ms, removing the first line ('line 2' at this point).
       await clock.tickAsync(1000);
       expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 3'], partial: '' });
+
+      // The second timer started by 'line 2' should fire, removing the remaining line.
+      await clock.tickAsync(1000);
+      expect(linesSpy).toHaveBeenLastCalledWith({ texts: [], partial: '' });
     });
   });
 
