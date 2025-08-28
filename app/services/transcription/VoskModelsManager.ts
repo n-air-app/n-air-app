@@ -1,7 +1,13 @@
-import { existsSync } from 'fs';
-import path from 'path';
-import { VOSK_MODEL_NAMES, VoskModelStatus } from './transcription';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { $t } from 'services/i18n';
+
+export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'] as const;
+
+export type VoskModelStatus = {
+  state: 'not_downloaded' | 'downloading' | 'downloaded' | 'download_error';
+  progress?: number; // percentage of download completion
+};
 
 export class VoskModelsManager {
   private models: {
@@ -25,7 +31,7 @@ export class VoskModelsManager {
   }
 
   getModelPath(modelName: string): string {
-    return path.join(this.modelBasePath, modelName);
+    return join(this.modelBasePath, modelName);
   }
 
   getVoskModels(): {

@@ -1,15 +1,15 @@
 import * as remote from '@electron/remote';
 import { existsSync, promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
-import path from 'node:path';
+import { join } from 'node:path';
 import {
   BehaviorSubject,
+  concatMap,
   distinctUntilChanged,
   EMPTY,
   filter,
   map,
   merge,
-  mergeMap,
   scan,
   Subject,
   Subscription,
@@ -32,9 +32,9 @@ import {
   ITranscriber,
   VoskClient,
 } from './VoskClient';
-import { VoskModelsManager } from './VoskModelsManager';
+import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
+export { VoskModelStatus };
 
-export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'];
 const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
 
 interface ITranscriptionServiceState {
@@ -47,11 +47,6 @@ interface ITranscriptionServiceState {
   textFileMaxLine: number;
   textFileLineTimeToLive: number; // in milliseconds
 }
-
-export type VoskModelStatus = {
-  state: 'not_downloaded' | 'downloading' | 'downloaded' | 'download_error';
-  progress?: number; // percentage of download completion
-};
 
 export type TimestampedText = {
   text: string;
@@ -94,7 +89,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private isActiveSubject$ = new BehaviorSubject<boolean>(false);
 
   getModelPath(modelName: string): string {
-    return path.join(this.modelBasePath, modelName);
+    return join(this.modelBasePath, modelName);
   }
 
   getVoskModels(): {
@@ -125,7 +120,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     this.voskCliPath = getVoskCliPath();
 
-    this.modelBasePath = path.join(remote.app.getPath('userData'), 'vosk-model');
+    this.modelBasePath = join(remote.app.getPath('userData'), 'vosk-model');
     this.modelsManager = new VoskModelsManager(this.modelBasePath);
     for (const model of VOSK_MODEL_NAMES) {
       this.setModelStatus(model, this.modelsManager.getVoskModelStatus(model));
@@ -214,7 +209,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // 確定テキストが追加されるたびに、一定時間後に先頭行を削除するタイマーを開始する
     this.textSubject$
       .pipe(
-        mergeMap(() => {
+        concatMap(() => {
           const ttl = this.state.textFileLineTimeToLive;
           return ttl > 0 ? timer(ttl) : EMPTY;
         }),
@@ -432,7 +427,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     console.log('startDownloadVoskModel', modelName);
 
     const tmpDir = tmpdir();
-    const tmpZipPath = path.join(tmpDir, `${modelName}.zip`);
+    const tmpZipPath = join(tmpDir, `${modelName}.zip`);
 
     try {
       this.setModelStatus(modelName, { state: 'downloading' });
