@@ -298,6 +298,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         voskCliPath: this.voskCliPath,
         modelPath: this.getModelPath(this.state.voskModelName),
       });
+      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
       console.log('Vosk CLI client created successfully'); // DEBUG
     } catch (err) {
       console.error('Failed to create Vosk CLI client:', err);
@@ -382,6 +383,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   getAudioDeviceIndex<T>(id: string, notFoundValue: T): number | T {
+    if (!id) {
+      return notFoundValue;
+    }
     const index = this.audioDevices.findIndex(device => device.id === id);
     if (index === -1) {
       return notFoundValue;
