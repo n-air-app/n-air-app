@@ -70,6 +70,7 @@ export default class TranscriptionSettings extends Vue {
     this.isActiveSubscription = this.transcriptionService.isActive$.subscribe(isActive => {
       this.isActive = isActive;
     });
+    this.isActive = this.transcriptionService.isActive();
     this.transcriptionService.updateAudioDevices();
   }
 

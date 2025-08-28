@@ -116,7 +116,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     return this.modelsStatusSubject$.value;
   }
   isActive$ = this.isActiveSubject$.asObservable();
-  get isActive(): boolean {
+  isActive(): boolean {
     return this.isActiveSubject$.value;
   }
 
