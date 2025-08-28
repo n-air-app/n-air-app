@@ -159,6 +159,7 @@ export class VoskClient implements ITranscriber {
 
   activateVoskCliProcess(): void {
     if (this._voskCliProcess && !this._voskCliProcess.killed) {
+      console.warn(`activateVoskCliProcess: Vosk CLI process is already running.`);
       return; // Process is already running
     }
     const args = ['-m', this._modelPath];
@@ -218,11 +219,13 @@ export class VoskClient implements ITranscriber {
     if (this._voskCliProcess) {
       console.log('Shutting down Vosk CLI process...'); // DEBUG
       this._voskCliProcess.kill();
+      this._voskCliProcess.removeAllListeners();
       this._voskCliProcess = null;
     }
   }
 
   set audioDeviceIndex(index: number) {
+    console.log(`Setting audio device index to: ${index}`); // DEBUG
     if (this._audioDeviceIndex === index) {
       return; // No change needed
     }

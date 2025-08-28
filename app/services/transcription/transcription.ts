@@ -193,7 +193,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       });
 
-    // audioDeviceId 状態を監視して、状態が変わったら setAudioDeviceId する
+    // audioDeviceId 状態を監視して、状態が変わったら audioDeviceIndex を更新する
     this.state$
       .pipe(
         map(state => state.audioDeviceId ?? null),
@@ -201,7 +201,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       )
       .subscribe(audioDeviceId => {
         if (this.client) {
-          this.setAudioDeviceId(audioDeviceId);
+          this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
         }
       });
 
@@ -376,9 +376,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.client = null;
       return;
     }
-    // audioDevices の中に this.state.audioDeviceId がなければ、最初のデバイスを選択する
-    if (!this.audioDevices.find(device => device.id === this.state.audioDeviceId)) {
-      this.setAudioDeviceId(this.audioDevices.length > 0 ? this.audioDevices[0].id : null);
+    if (this.client) {
+      // デバイスリストを更新したので、audioDeviceIndex も更新する(見つかるようになったかもしれない)
+      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
     }
   }
 
@@ -398,24 +398,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
-    if (audioDeviceId) {
-      const index = this.getAudioDeviceIndex(audioDeviceId, null);
-      if (index === null) {
-        console.warn(`Audio device with id ${audioDeviceId} not found.`);
-        audioDeviceId = null;
-      }
+    const index = this.getAudioDeviceIndex(audioDeviceId, 0);
+    const actualDeviceId = this.audioDevices.length > 0 ? this.audioDevices[index].id : null;
+    if (audioDeviceId !== actualDeviceId) {
+      console.warn(
+        `Audio device with id ${audioDeviceId} not found. Using ${actualDeviceId} instead.`,
+      );
     }
-    if (!audioDeviceId) {
-      audioDeviceId = this.audioDevices.length > 0 ? this.audioDevices[0].id : null;
-    }
-    if (this.state.audioDeviceId !== audioDeviceId) {
-      this.setState({ audioDeviceId });
-    }
-    if (this.client) {
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
-    } else {
-      console.warn('Client is not initialized. Cannot set audio device.');
-    }
+    this.setState({ audioDeviceId: actualDeviceId });
   }
 
   setTextFileEnabled(textFileEnabled: boolean) {
@@ -530,6 +520,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   setModelName(modelName: string | null) {
+    console.log('setModelName', modelName); // DEBUG
     if (this.state.voskModelName === modelName) {
       return; // No change needed
     }
