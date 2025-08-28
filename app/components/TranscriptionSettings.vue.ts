@@ -54,7 +54,7 @@ export default class TranscriptionSettings extends Vue {
     this.modelStatusSubscription = this.transcriptionService.modelsStatus$.subscribe(status => {
       this.modelsStatus = status;
     });
-    this.modelsStatus = this.transcriptionService.modelsStatus;
+    this.modelsStatus = this.transcriptionService.modelsStatus();
 
     this.textSubscription = merge(
       this.transcriptionService.text$,

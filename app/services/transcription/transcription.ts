@@ -112,7 +112,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   partial$ = this.partialSubject$.asObservable();
   lines$ = this.linesSubject$.asObservable();
   modelsStatus$ = this.modelsStatusSubject$.asObservable();
-  get modelsStatus() {
+  modelsStatus() {
     return this.modelsStatusSubject$.value;
   }
   isActive$ = this.isActiveSubject$.asObservable();
