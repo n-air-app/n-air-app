@@ -404,11 +404,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (!audioDeviceId) {
       audioDeviceId = this.audioDevices.length > 0 ? this.audioDevices[0].id : null;
     }
-    if (this.state.audioDeviceId === audioDeviceId) {
-      return;
+    if (this.state.audioDeviceId !== audioDeviceId) {
+      this.setState({ audioDeviceId });
     }
-    this.setState({ audioDeviceId });
-    this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
+    if (this.client) {
+      this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
+    } else {
+      console.warn('Client is not initialized. Cannot set audio device.');
+    }
   }
 
   setTextFileEnabled(textFileEnabled: boolean) {
