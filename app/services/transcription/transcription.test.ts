@@ -1,53 +1,68 @@
 import * as FakeTimers from '@sinonjs/fake-timers';
 import { Subject } from 'rxjs';
+import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
+import type { downloadAndUnzip as downloadAndUnzipType } from './downloadAndUnzip';
+import type { filterNoiseText as filterNoiseTextType } from './filterNoiseText';
 import type { TranscriptionService as TranscriptionServiceType } from './transcription';
-import type { TranscriptionMessage } from './VoskClient';
+import type {
+  CreateVoskCliClient as CreateVoskCliClientType,
+  TranscriptionMessage,
+  VoskClient as VoskClientType,
+} from './VoskClient';
 
 // Mock dependencies
 jest.mock('@electron/remote', () => ({
   app: {
-    getPath: jest.fn().mockReturnValue('/fake/path'),
+    getPath: jest_fn<() => string>().mockName('getPath').mockReturnValue('/fake/path'),
   },
 }));
 jest.mock('node:fs', () => ({
   promises: {
-    writeFile: jest.fn().mockResolvedValue(undefined),
-    unlink: jest.fn().mockResolvedValue(undefined),
-    rmdir: jest.fn().mockResolvedValue(undefined),
+    writeFile: jest_fn<() => Promise<void>>().mockName('writeFile').mockResolvedValue(undefined),
+    unlink: jest_fn<() => Promise<void>>().mockName('unlink').mockResolvedValue(undefined),
+    rmdir: jest_fn<() => Promise<void>>().mockName('rmdir').mockResolvedValue(undefined),
   },
-  existsSync: jest.fn(),
+  existsSync: jest_fn<() => boolean>().mockName('existsSync'),
 }));
 jest.mock('node:os', () => ({
-  tmpdir: jest.fn().mockReturnValue('/fake/tmp'),
+  tmpdir: jest_fn<() => string>().mockName('tmpdir').mockReturnValue('/fake/tmp'),
 }));
 jest.mock('node:path', () => ({
   join: (...args: string[]) => args.join('/'),
 }));
 jest.mock('services/i18n', () => ({
-  $t: jest.fn(key => key),
+  $t: jest_fn<(key: string) => string>()
+    .mockName('$t')
+    .mockImplementation(key => key),
 }));
 jest.mock('./downloadAndUnzip', () => ({
-  downloadAndUnzip: jest.fn(),
+  downloadAndUnzip: jest_fn<typeof downloadAndUnzipType>().mockName('downloadAndUnzip'),
 }));
 jest.mock('./filterNoiseText', () => ({
-  filterNoiseText: jest.fn(text => text),
+  filterNoiseText: jest_fn<typeof filterNoiseTextType>()
+    .mockName('filterNoiseText')
+    .mockImplementation(text => text),
 }));
-jest.mock('./VoskClient', () => ({
-  CreateVoskCliClient: jest.fn(),
-  getVoskCliPath: jest.fn().mockReturnValue('/fake/vosk-cli'),
-  VoskClient: {
-    listAudioDevices: jest.fn().mockReturnValue({
-      devices: [{ id: 'test-device', name: 'Test Device' }],
-    }),
-  },
-  isTextTranscriptionMessage: jest.fn(msg => msg.text),
-  isPartialTranscriptionMessage: jest.fn(msg => msg.partial),
-  isErrorTranscriptionMessage: jest.fn(msg => msg.error),
-  isProcessExitedMessage: jest.fn(msg => msg.processExited),
-  isInfoTranscriptionMessage: jest.fn(() => false),
-  isFormatTranscriptionMessage: jest.fn(() => false),
-}));
+jest.mock('./VoskClient', () => {
+  const actual = jest.requireActual('./VoskClient');
+  return {
+    ...actual,
+    CreateVoskCliClient: jest_fn<typeof CreateVoskCliClientType>().mockName('CreateVoskCliClient'),
+    getVoskCliPath: jest_fn<() => string>()
+      .mockName('getVoskCliPath')
+      .mockReturnValue('/fake/vosk-cli'),
+    VoskClient: {
+      ...actual.VoskClient,
+      listAudioDevices: jest_fn<typeof VoskClientType.listAudioDevices>()
+        .mockName('listAudioDevices')
+        .mockReturnValue({
+          version: '1',
+          devices: [{ id: 'test-device', name: 'Test Device', index: 0 }],
+        }),
+    },
+  };
+});
 
 const setup = createSetupFunction({
   state: {},
@@ -58,6 +73,8 @@ beforeEach(() => {
   jest.doMock('services/core/stateful-service');
   jest.doMock('services/core/injector');
   jest.doMock('services/core/persistent-stateful-service', () => ({
+    // PersistentStatefulService を StatefulService でモックする
+    // 注意: 初期ステートは defaultState に書かれているが、initialState が読まれるので調整が必要
     PersistentStatefulService: require('services/core/stateful-service').StatefulService,
   }));
 });
@@ -72,27 +89,27 @@ function prepare(): {
   instance: TranscriptionServiceType;
   getVoskModelStatus: jest.Mock;
   setVoskModelStatus: jest.Mock;
-  client: {
-    startTranscription: jest.Mock;
-    stopTranscription: jest.Mock;
-    audioDeviceIndex: number;
-  };
+  client: VoskClientType;
   transcriptionMessages$: Subject<TranscriptionMessage>;
   stopTranscription: jest.Mock;
 } {
   setup();
 
-  const getVoskModelStatus = jest.fn().mockReturnValue({ state: 'not_downloaded' });
-  const getVoskModels = jest.fn().mockReturnValue([
-    {
-      name: 'vosk-model-small-ja-0.22',
-      description: 'small',
-      status: { state: 'not_downloaded' },
-    },
-  ]);
-  const setVoskModelStatus = jest.fn();
+  const getVoskModelStatus = jest_fn()
+    .mockName('getVoskModelStatus')
+    .mockReturnValue({ state: 'not_downloaded' });
+  const getVoskModels = jest_fn()
+    .mockName('getVoskModels')
+    .mockReturnValue([
+      {
+        name: 'vosk-model-small-ja-0.22',
+        description: 'small',
+        status: { state: 'not_downloaded' },
+      },
+    ]);
+  const setVoskModelStatus = jest_fn().mockName('setVoskModelStatus');
   jest.doMock('./VoskModelsManager', () => ({
-    VOSK_MODEL_NAMES: ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'],
+    ...(jest.requireActual('./VoskModelsManager') as {}),
     VoskModelsManager: class {
       getVoskModelStatus = getVoskModelStatus;
       getVoskModels = getVoskModels;
@@ -101,19 +118,25 @@ function prepare(): {
   }));
 
   const transcriptionMessages$ = new Subject<TranscriptionMessage>();
-  const stopTranscription = jest.fn();
+  const stopTranscription =
+    jest_fn<VoskClientType['stopTranscription']>().mockName('stopTranscription');
   const client = {
-    startTranscription: jest.fn().mockReturnValue(transcriptionMessages$),
+    startTranscription: jest_fn<VoskClientType['startTranscription']>()
+      .mockName('startTranscription')
+      .mockReturnValue(transcriptionMessages$),
     stopTranscription,
     audioDeviceIndex: -1,
-  };
+  } as unknown as VoskClientType;
   const { CreateVoskCliClient: mockedCreateVoskCliClient } = require('./VoskClient');
   mockedCreateVoskCliClient.mockReturnValue(client);
 
   const TranscriptionService = require('./transcription')
     .TranscriptionService as typeof TranscriptionServiceType;
+
+  // 親クラスを PersistentStatefulService から StatefulService に差し替えている関係で初期ステートをつなぎ替える必要がある
   // @ts-expect-error: initialState is readonly, but we need to override it for testing
-  TranscriptionService.initialState = TranscriptionService.defaultState; // override initial state
+  TranscriptionService.initialState = TranscriptionService.defaultState;
+
   const instance = TranscriptionService.instance as TranscriptionServiceType;
   instance.updateAudioDevices();
 
@@ -198,9 +221,9 @@ describe('TranscriptionService', () => {
       instance.setEnabled(true);
       await clock.tickAsync(0);
 
-      const textSpy = jest.fn();
-      const partialSpy = jest.fn();
-      const linesSpy = jest.fn();
+      const textSpy = jest_fn().mockName('textSpy');
+      const partialSpy = jest_fn().mockName('partialSpy');
+      const linesSpy = jest_fn().mockName('linesSpy');
       instance.text$.subscribe(textSpy);
       instance.partial$.subscribe(partialSpy);
       instance.lines$.subscribe(linesSpy);
@@ -233,7 +256,7 @@ describe('TranscriptionService', () => {
       instance.setTextFileMaxLine(2);
       instance.setTextFileLineTimeToLive(1000);
 
-      const linesSpy = jest.fn();
+      const linesSpy = jest_fn().mockName('linesSpy');
       instance.lines$.subscribe(linesSpy);
 
       transcriptionMessages$.next({ text: 'line 1' });
