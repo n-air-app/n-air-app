@@ -11,6 +11,8 @@ import type {
   VoskClient as VoskClientType,
 } from './VoskClient';
 
+const VOSK_MODEL_NAME = 'vosk-model-small-ja-0.22';
+
 // Mock dependencies
 jest.mock('@electron/remote', () => ({
   app: {
@@ -102,7 +104,7 @@ function prepare(): {
     .mockName('getVoskModels')
     .mockReturnValue([
       {
-        name: 'vosk-model-small-ja-0.22',
+        name: VOSK_MODEL_NAME,
         description: 'small',
         status: { state: 'not_downloaded' },
       },
@@ -279,10 +281,50 @@ describe('TranscriptionService', () => {
       await clock.tickAsync(1000);
       expect(linesSpy).toHaveBeenLastCalledWith({ texts: [], partial: '' });
     });
+
+    it('should write to text file when enabled', async () => {
+      const { instance, transcriptionMessages$, getVoskModelStatus } = prepare();
+      const { promises } = require('node:fs');
+      getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
+      instance.setAudioDeviceId('test-device');
+      instance.setTextFileEnabled(true);
+      instance.setTextFilePath('/fake/transcription.txt');
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+
+      transcriptionMessages$.next({ text: 'hello world' });
+      await clock.tickAsync(0);
+
+      expect(promises.writeFile).toHaveBeenCalledWith(
+        '/fake/transcription.txt',
+        'hello world',
+        'utf-8',
+      );
+    });
+
+    it('should disable text file writing on error', async () => {
+      const { instance, transcriptionMessages$, getVoskModelStatus } = prepare();
+      const { promises } = require('node:fs');
+      promises.writeFile.mockRejectedValue(new Error('Disk full'));
+
+      getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
+      instance.setAudioDeviceId('test-device');
+      instance.setTextFileEnabled(true);
+      instance.setTextFilePath('/fake/transcription.txt');
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+
+      const setTextFileEnabledSpy = jest.spyOn(instance, 'setTextFileEnabled');
+
+      transcriptionMessages$.next({ text: 'hello world' });
+      await clock.tickAsync(0);
+
+      expect(promises.writeFile).toHaveBeenCalled();
+      expect(setTextFileEnabledSpy).toHaveBeenCalledWith(false);
+    });
   });
 
   describe('model management', () => {
-    const modelName = 'vosk-model-small-ja-0.22';
     let clock: FakeTimers.InstalledClock;
 
     beforeEach(() => {
@@ -298,12 +340,12 @@ describe('TranscriptionService', () => {
       const { downloadAndUnzip } = require('./downloadAndUnzip');
       downloadAndUnzip.mockResolvedValue(undefined);
 
-      await instance.startDownloadVoskModel(modelName);
+      await instance.startDownloadVoskModel(VOSK_MODEL_NAME);
 
-      expect(setVoskModelStatus).toHaveBeenCalledWith(modelName, {
+      expect(setVoskModelStatus).toHaveBeenCalledWith(VOSK_MODEL_NAME, {
         state: 'downloading',
       });
-      expect(setVoskModelStatus).toHaveBeenLastCalledWith(modelName, {
+      expect(setVoskModelStatus).toHaveBeenLastCalledWith(VOSK_MODEL_NAME, {
         state: 'downloaded',
       });
       expect(downloadAndUnzip).toHaveBeenCalled();
@@ -318,9 +360,9 @@ describe('TranscriptionService', () => {
       instance.setEnabled(true);
       await clock.tickAsync(0);
 
-      await instance.deleteVoskModel(modelName);
+      await instance.deleteVoskModel(VOSK_MODEL_NAME);
 
-      expect(setVoskModelStatus).toHaveBeenLastCalledWith(modelName, {
+      expect(setVoskModelStatus).toHaveBeenLastCalledWith(VOSK_MODEL_NAME, {
         state: 'not_downloaded',
       });
       // Deactivate should be called because the active model was deleted
