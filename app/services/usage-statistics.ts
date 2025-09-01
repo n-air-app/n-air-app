@@ -53,7 +53,9 @@ export type SubStreamLog = {
 };
 
 export type TranscriptionLog = {
+  enabled: boolean;
   voskModelName: string;
+  commentDelay: number;
 };
 
 export type TUsageEvent =

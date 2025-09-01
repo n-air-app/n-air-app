@@ -821,7 +821,9 @@ export class StreamingService
     }
     if (this.transcriptionService.state.enabled) {
       event.transcription = {
+        enabled: true,
         voskModelName: this.transcriptionService.state.voskModelName,
+        commentDelay: this.transcriptionService.state.commentDelay,
       };
     }
 
