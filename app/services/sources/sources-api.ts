@@ -58,8 +58,8 @@ export interface ISourcesServiceApi {
     options?: ISourceAddOptions,
   ): ISourceApi;
   removeSource(id: string): void;
-  getAvailableSourcesTypes(): TSourceType[];
-  getAvailableSourcesTypesList(): IObsListOption<TSourceType>[];
+  getAvailableSourcesTypes(): TSelectableSourceType[];
+  getAvailableSourcesTypesList(): IObsListOption<TSelectableSourceType>[];
   getSources(): ISourceApi[];
   getSource(sourceId: string): ISourceApi;
   getSourcesByName(name: string): ISourceApi[];
@@ -112,9 +112,13 @@ export type TSourceType =
   | 'wasapi_process_output_capture'
   | 'custom_cast_ndi_source'
   | 'custom_cast_ndi_guide'
-  | 'nair-rtvc-source'
-  | 'near' // 仮想/登録後は browser_source
-  | 'text_transcription'; // 仮想/登録後は text_gdiplus
+  | 'nair-rtvc-source';
+
+// 仮想ソースを含むSourceType 選択時には別だが登録時にいずれかの通常SourceTypeに変換される
+export type TSelectableSourceType =
+  | TSourceType
+  | 'near' // 登録後は browser_source
+  | 'text_transcription'; // 登録後は text_gdiplus
 
 // Register new properties manager here
 export type TPropertiesManager = 'default' | 'nvoice-character' | 'custom-cast-ndi';

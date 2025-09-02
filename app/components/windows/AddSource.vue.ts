@@ -5,7 +5,13 @@ import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NVoiceCharacterService, NVoiceCharacterType } from 'services/nvoice-character';
 import { ScenesService } from 'services/scenes';
-import { ISourceAddOptions, ISourceApi, ISourcesServiceApi, TSourceType } from 'services/sources';
+import {
+  ISourceAddOptions,
+  ISourceApi,
+  ISourcesServiceApi,
+  TSelectableSourceType,
+  TSourceType,
+} from 'services/sources';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
@@ -26,7 +32,7 @@ export default class AddSource extends Vue {
   error = '';
   // @ts-expect-error: ts2729: use before initialization
 
-  sourceType = this.windowsService.getChildWindowQueryParams().sourceType as TSourceType;
+  sourceType = this.windowsService.getChildWindowQueryParams().sourceType as TSelectableSourceType;
   // @ts-expect-error: ts2729: use before initialization
   sourceAddOptions = this.windowsService.getChildWindowQueryParams()
     .sourceAddOptions as ISourceAddOptions;
@@ -41,7 +47,7 @@ export default class AddSource extends Vue {
   // @ts-expect-error: ts2729: use before initialization
   sources = this.sourcesService.getSources().filter(source => {
     const comparison = {
-      type: this.sourceType,
+      type: this.sourceType as TSourceType,
       propertiesManager: this.sourceAddOptions.propertiesManager,
     };
     return (
@@ -109,7 +115,10 @@ export default class AddSource extends Vue {
       forceSkipProperties?: boolean;
     };
 
-    if (this.sourceAddOptions.propertiesManager === 'nvoice-character') {
+    if (
+      this.sourceType === 'near' ||
+      this.sourceAddOptions.propertiesManager === 'nvoice-character'
+    ) {
       const type: NVoiceCharacterType =
         this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
       s = this.nVoiceCharacterService.createNVoiceCharacterSource(type, this.name);

@@ -4,7 +4,7 @@ import { omit } from 'lodash';
 import { Inject } from 'services/core/injector';
 import { NVoiceCharacterType, NVoiceCharacterTypes } from 'services/nvoice-character';
 import { ScenesService } from 'services/scenes';
-import { SourcesService, TPropertiesManager, TSourceType } from 'services/sources';
+import { SourcesService, TPropertiesManager, TSelectableSourceType } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
@@ -33,7 +33,7 @@ import WasapiOutputIcon from '../../../media/images/wasapi-output-icon.svg';
 import WindowCaptureIcon from '../../../media/images/window-capture-icon.svg';
 import AddSourceInfo from './AddSourceInfo.vue';
 
-type TInspectableSource = TSourceType | NVoiceCharacterType;
+type TInspectableSource = TSelectableSourceType;
 
 interface ISelectSourceOptions {
   propertiesManager?: TPropertiesManager;
@@ -95,7 +95,7 @@ export default class SourcesShowcase extends Vue {
       const propertiesManager = options.propertiesManager || 'default';
       const propertiesManagerSettings: Dictionary<any> = { ...omit(options, 'propertiesManager') };
 
-      this.sourcesService.showAddSource(sourceType as TSourceType, {
+      this.sourcesService.showAddSource(sourceType as TSelectableSourceType, {
         propertiesManagerSettings,
         propertiesManager,
       });
