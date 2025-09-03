@@ -9,7 +9,6 @@ import { CustomizationService } from 'services/customization';
 import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
-import { downloadFile } from 'util/requests';
 import { PropertiesManager } from './properties-manager';
 
 export interface IDefaultManagerSettings {
@@ -112,37 +111,35 @@ export class DefaultManager extends PropertiesManager {
   private async setupAutomaticGameCapture() {
     if (!['game_capture', 'screen_capture'].includes(this.obsSource.id)) return;
 
-    try {
-      // URL
-      const listUrl = 'https://slobs-cdn.streamlabs.com/configs/game_capture_list.json';
+    const appPath = remote.app.isPackaged
+      ? path.dirname(remote.app.getPath('exe'))
+      : remote.app.getAppPath();
 
-      // 未存在・更新7日以上はダウンロード
-      const listPath = path.join(remote.app.getPath('userData'), 'game_capture_list.json');
-      if (
-        !fs.existsSync(listPath) ||
-        Date.now() - fs.statSync(listPath).mtime.getTime() >= 7 * (1000 * 60 * 60 * 24)
-      ) {
-        await downloadFile(listUrl, listPath);
-      }
+    const listPath = path.join(appPath, 'assets/gamecapture/game_capture_list.json');
 
-      // 絶対パス指定
-      const imagePath = path.join(
-        process.cwd(),
-        require('../../../../media/images/nair_capture_back.jpg'),
-      );
+    console.log('Setting up automatic game capture with list:', listPath);
 
-      // これらは遅延設定しても作用する
-      this.obsSource.update({
-        auto_capture_rules_path: listPath,
-        auto_placeholder_image: imagePath,
-        auto_placeholder_message: $t('common.gameCapture.searching'),
-        window_placeholder_image: imagePath,
-        window_placeholder_waiting_message: $t('common.gameCapture.searching'),
-        window_placeholder_missing_message: $t('common.gameCapture.missing'),
-        capture_overlays: this.obsSource.settings.capture_overlays ?? true,
-      });
-    } catch (error) {
-      console.log('Error setting up automatic game capture:', error);
+    if (!fs.existsSync(listPath)) {
+      console.log('Game capture list not found:', listPath);
+      return;
     }
+    // 絶対パス指定
+    const imagePath = path.join(
+      process.cwd(),
+      require('../../../../media/images/nair_capture_back.jpg'),
+    );
+
+    // これらは遅延設定しても作用する
+    this.obsSource.update({
+      auto_capture_rules_path: listPath,
+      auto_placeholder_image: imagePath,
+      auto_placeholder_message: $t('common.gameCapture.searching'),
+      window_placeholder_image: imagePath,
+      window_placeholder_waiting_message: $t('common.gameCapture.searching'),
+      window_placeholder_missing_message: $t('common.gameCapture.missing'),
+      capture_overlays: this.obsSource.settings.capture_overlays ?? true,
+    });
+
+    console.log('Automatic game capture setup complete.');
   }
 }

@@ -19,7 +19,7 @@ const config = {
     'main.js',
     'obs-api',
   ],
-  extraFiles: ['scene-presets', 'nvoice', 'LICENSE', 'AGREEMENT.sjis'],
+  extraFiles: ['scene-presets', 'nvoice', 'LICENSE', 'AGREEMENT.sjis', 'assets'],
   detectUpdateChannel: false,
   afterPack: async context => {
     const localesDir = path.join(context.appOutDir, 'locales');
