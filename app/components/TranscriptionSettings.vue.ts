@@ -1,12 +1,5 @@
+import { ObsBoolInput, ObsIntInput, ObsListInput, ObsPathInput } from 'components/obs/inputs';
 import {
-  ObsBoolInput,
-  ObsButtonInput,
-  ObsListInput,
-  ObsIntInput,
-  ObsPathInput,
-} from 'components/obs/inputs';
-import {
-  IObsButtonInputValue,
   IObsInput,
   IObsListInput,
   IObsNumberInputValue,
@@ -28,7 +21,6 @@ import { Component } from 'vue-property-decorator';
 @Component({
   components: {
     ObsBoolInput,
-    ObsButtonInput,
     ObsIntInput,
     ObsListInput,
     ObsPathInput,
@@ -80,6 +72,20 @@ export default class TranscriptionSettings extends Vue {
     this.modelStatusSubscription.unsubscribe();
   }
 
+  preview = $t('settings.transcription.preview');
+  get disabledReason(): string {
+    if (!this.transcriptionService.state.enabled) {
+      return $t('settings.transcription.disabledReason.disabled');
+    }
+    if (!this.transcriptionService.state.audioDeviceId) {
+      return $t('settings.transcription.disabledReason.noAudioSource');
+    }
+    if (!this.transcriptionService.isVoskModelReady()) {
+      return $t('settings.transcription.disabledReason.noVoskModel');
+    }
+    return '';
+  }
+
   get modelStatus(): VoskModelStatus | { state: 'not_available' } {
     return (
       this.modelsStatus[this.transcriptionService.state.voskModelName] || { state: 'not_available' }
@@ -118,30 +124,24 @@ export default class TranscriptionSettings extends Vue {
     this.transcriptionService.setModelName(model.value);
   }
 
-  get downloadButtonModel(): IObsButtonInputValue {
-    return {
-      name: 'downloadVoskModel',
-      description: $t('settings.transcription.downloadVoskModel'),
-      enabled: this.modelStatus.state === 'not_downloaded',
-      type: 'OBS_PROPERTY_BUTTON',
-      onClick: () => {
-        this.transcriptionService.startDownloadVoskModel(
-          this.transcriptionService.state.voskModelName,
-        );
-      },
-    };
+  downloadButtonText = $t('settings.transcription.downloadVoskModel');
+
+  get isDownloadButtonEnabled(): boolean {
+    return this.modelStatus.state === 'not_downloaded';
   }
-  get deleteButtonModel(): IObsButtonInputValue {
-    return {
-      name: 'deleteVoskModel',
-      description: $t('settings.transcription.deleteVoskModel'),
-      enabled:
-        this.transcriptionService.state.voskModelName && this.modelStatus.state === 'downloaded',
-      type: 'OBS_PROPERTY_BUTTON',
-      onClick: () => {
-        this.transcriptionService.deleteVoskModel(this.transcriptionService.state.voskModelName);
-      },
-    };
+
+  downloadVoskModel(): void {
+    this.transcriptionService.startDownloadVoskModel(this.transcriptionService.state.voskModelName);
+  }
+
+  deleteButtonText = $t('settings.transcription.deleteVoskModel');
+
+  get isDeleteButtonEnabled(): boolean {
+    return this.transcriptionService.state.voskModelName && this.modelStatus.state === 'downloaded';
+  }
+
+  deleteVoskModel(): void {
+    this.transcriptionService.deleteVoskModel(this.transcriptionService.state.voskModelName);
   }
 
   get audioSourceIdModel(): IObsListInput<string> {
@@ -171,25 +171,42 @@ export default class TranscriptionSettings extends Vue {
     this.transcriptionService.setAudioDeviceId(model.value);
   }
 
-  get commentDelayModel(): IObsNumberInputValue {
+  commentSectionTitle = $t('settings.transcription.comment.sectionTitle');
+  get commentPostDelayModel(): IObsNumberInputValue {
     return {
-      name: 'transcriptionCommentDelay',
-      description: $t('settings.transcription.commentDelay'),
-      value: this.transcriptionService.state.commentDelay,
+      name: 'transcriptionCommentPostDelay',
+      description: $t('settings.transcription.comment.postDelay'),
+      value: this.transcriptionService.state.commentPostDelay,
       enabled: true,
       minVal: 0,
       maxVal: 10000, // 10 seconds
       stepVal: 100, // 100 milliseconds
     };
   }
-  set commentDelayModel(model: IObsInput<number>) {
-    this.transcriptionService.setCommentDelay(model.value);
+  set commentPostDelayModel(model: IObsInput<number>) {
+    this.transcriptionService.setCommentPostDelay(model.value);
   }
 
+  get commentVposOffsetModel(): IObsNumberInputValue {
+    return {
+      name: 'transcriptionCommentVposOffset',
+      description: $t('settings.transcription.comment.vposOffset'),
+      value: this.transcriptionService.state.commentVposOffset,
+      enabled: true,
+      minVal: 0,
+      maxVal: 10000, // 10 seconds
+      stepVal: 100, // 100 milliseconds
+    };
+  }
+  set commentVposOffsetModel(model: IObsInput<number>) {
+    this.transcriptionService.setCommentVposOffset(model.value);
+  }
+
+  textFileSectionTitle = $t('settings.transcription.textFile.sectionTitle');
   get textFileEnabledModel(): IObsInput<boolean> {
     return {
       name: 'enableTranscriptionTextFile',
-      description: $t('settings.transcription.enableTextFile'),
+      description: $t('settings.transcription.textFile.enable'),
       value: this.transcriptionService.state.textFileEnabled ?? false,
       enabled: true,
     };
@@ -200,7 +217,7 @@ export default class TranscriptionSettings extends Vue {
   get textFilePathModel(): IObsPathInputValue {
     return {
       name: 'transcriptionTextFilePath',
-      description: $t('settings.transcription.textFilePath'),
+      description: $t('settings.transcription.textFile.path'),
       value: this.transcriptionService.state.textFilePath ?? '',
       enabled: true,
       filters: [{ name: 'Text Files', extensions: ['txt'] }],
@@ -213,7 +230,7 @@ export default class TranscriptionSettings extends Vue {
   get textFileMaxLineModel(): IObsNumberInputValue {
     return {
       name: 'transcriptionTextFileMaxLine',
-      description: $t('settings.transcription.textFileMaxLine'),
+      description: $t('settings.transcription.textFile.maxLine'),
       value: this.transcriptionService.state.textFileMaxLine,
       enabled: true,
       minVal: 1,
@@ -228,7 +245,7 @@ export default class TranscriptionSettings extends Vue {
   get textFileLineTimeToLiveModel(): IObsNumberInputValue {
     return {
       name: 'transcriptionTextFileLineTimeToLive',
-      description: $t('settings.transcription.textFileLineTimeToLive'),
+      description: $t('settings.transcription.textFile.lineTimeToLive'),
       value: this.transcriptionService.state.textFileLineTimeToLive,
       enabled: true,
       minVal: 0,

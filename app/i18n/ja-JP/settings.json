@@ -654,7 +654,7 @@
     "name": "サブ配信"
   },
   "Transcription": {
-    "name": "文字起こし(仮)"
+    "name": "ライブ字幕(仮)"
   },
   "listPlaceholder": "選択してください",
   "resolutionPlaceholder": "選択するか、値を入力してください",
@@ -754,12 +754,12 @@
     }
   },
   "transcription": {
-    "name": "文字起こし",
-    "enable": "文字起こしを有効にする",
-    "voskModel": "モデル",
+    "name": "ライブ字幕(仮)",
+    "enable": "ライブ字幕(仮)を有効にする",
+    "voskModel": "音声認識モデル",
     "voskModels": {
-      "vosk-model-ja-0.22": "Vosk 日本語(完全) 0.22",
-      "vosk-model-small-ja-0.22": "Vosk 日本語(小) 0.22"
+      "vosk-model-ja-0.22": "VOSK 日本語(完全) 0.22",
+      "vosk-model-small-ja-0.22": "VOSK 日本語(小) 0.22"
     },
     "modelStatus": {
       "not_downloaded": "未ダウンロード",
@@ -770,11 +770,24 @@
     "downloadVoskModel": "モデルをダウンロードする",
     "deleteVoskModel": "ダウンロードしたモデルを削除する",
     "audioSource": "音声ソース",
-    "enableTextFile": "テキストファイル出力を有効にする",
-    "textFilePath": "テキストファイルパス",
-    "textFileMaxLine": "テキストファイルの最大行数",
-    "textFileLineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)",
     "noAudioSourceFound": "音声ソースが見つかりません",
-    "commentDelay": "コメント遅延 (ミリ秒)"
+    "preview": "プレビュー",
+    "textFile": {
+      "sectionTitle": "テキストファイル出力設定",
+      "enable": "テキストファイル出力を有効にする",
+      "path": "テキストファイルパス",
+      "maxLine": "テキストファイルの最大行数",
+      "lineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)"
+    },
+    "comment": {
+      "sectionTitle": "ニコニコ生放送コメント設定",
+      "postDelay": "コメント投稿遅延 (ミリ秒)",
+      "vposOffset": "コメントVpos調整(ミリ秒)"
+    },
+    "disabledReason": {
+      "disabled": "ライブ字幕機能が無効です。",
+      "noAudioSource": "音声ソースを選択してください。",
+      "noVoskModel": "ダウンロードしたモデルを選択してください。"
+    }
   }
 }

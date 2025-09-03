@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import { existsSync, promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -35,13 +36,15 @@ import {
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
 export { VoskModelStatus };
 
+// TODO ダウンロード先がが準備できたら変更する
 const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
 
 interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
   audioDeviceId?: string | null;
-  commentDelay: number; // in milliseconds
+  commentPostDelay: number; // in milliseconds
+  commentVposOffset: number; // in milliseconds
   textFileEnabled?: boolean;
   textFilePath?: string;
   textFileMaxLine: number;
@@ -65,7 +68,8 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
-    commentDelay: 0,
+    commentPostDelay: 0,
+    commentVposOffset: 0,
     textFileMaxLine: 2,
     textFileLineTimeToLive: 5 * 1000, // 5 seconds
   };
@@ -115,6 +119,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     return this.isActiveSubject$.value;
   }
 
+  isVoskModelReady(): boolean {
+    const state = this.state$.value;
+    return (
+      state.voskModelName &&
+      this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded'
+    );
+  }
+
   init() {
     super.init();
 
@@ -143,7 +155,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           ): { partialTimestamp: number | null; text: TimestampedText | null } => {
             const now = Date.now();
             if (action.type === 'text') {
-              const timestamp = acc.partialTimestamp ?? now;
+              const timestamp = (acc.partialTimestamp ?? now) + this.state.commentVposOffset;
               return { ...acc, partialTimestamp: null, text: { text: action.payload, timestamp } };
             } else {
               // partial
@@ -296,6 +308,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
       console.log('Vosk CLI client created successfully'); // DEBUG
     } catch (err) {
+      Sentry.withScope(scope => {
+        scope.setTags({
+          service: 'transcription',
+          voskModelName: this.state.voskModelName,
+        });
+        scope.setExtra('voskCliPath', this.voskCliPath);
+        scope.setExtra('modelPath', this.getModelPath(this.state.voskModelName));
+        Sentry.captureException(err);
+      });
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
       return;
@@ -321,6 +342,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       },
       error: err => {
+        Sentry.withScope(scope => {
+          scope.setTags({
+            service: 'transcription',
+            voskModelName: this.state.voskModelName,
+          });
+          Sentry.captureException(err);
+        });
         console.error('Transcription error:', err);
       },
       complete: () => {
@@ -347,6 +375,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (this.state.enabled === enabled) {
       return;
     }
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `TranscriptionService ${enabled ? 'enabled' : 'disabled'}`,
+    });
     if (enabled) {
       console.log('Enabling TranscriptionService...'); // DEBUG
       this.updateAudioDevices();
@@ -537,8 +569,12 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
   }
 
-  setCommentDelay(delay: number) {
-    this.setState({ commentDelay: delay });
+  setCommentPostDelay(commentPostDelay: number) {
+    this.setState({ commentPostDelay });
+  }
+
+  setCommentVposOffset(commentVposOffset: number) {
+    this.setState({ commentVposOffset });
   }
 
   private setState(newState: Partial<ITranscriptionServiceState>) {

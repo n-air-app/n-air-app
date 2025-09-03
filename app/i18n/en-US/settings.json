@@ -756,10 +756,10 @@
   "transcription": {
     "name": "Transcription",
     "enable": "Enable transcription",
-    "voskModel": "Model",
+    "voskModel": "Voice recognition model",
     "voskModels": {
-      "vosk-model-ja-0.22": "Vosk Japanese full 0.22",
-      "vosk-model-small-ja-0.22": "Vosk Japanese small 0.22"
+      "vosk-model-ja-0.22": "VOSK Japanese full 0.22",
+      "vosk-model-small-ja-0.22": "VOSK Japanese small 0.22"
     },
     "modelStatus": {
       "not_downloaded": "Not downloaded",
@@ -770,11 +770,24 @@
     "downloadVoskModel": "Download model",
     "deleteVoskModel": "Delete downloaded model",
     "audioSource": "Audio Source",
-    "enableTextFile": "Enable text file output",
-    "textFilePath": "Text file path",
-    "textFileMaxLine": "Max lines in text file",
-    "textFileLineTimeToLive": "Time to live for text lines (ms)",
     "noAudioSourceFound": "No audio source found",
-    "commentDelay": "Comment delay (ms)"
+    "preview": "Preview",
+    "textFile": {
+      "sectionTitle": "Text File Output Settings",
+      "enable": "Enable text file output",
+      "path": "Text file path",
+      "maxLine": "Max lines in text file",
+      "lineTimeToLive": "Time to live for text lines (ms)"
+    },
+    "comment": {
+      "sectionTitle": "Niconico Live Comment Settings",
+      "postDelay": "Comment Post delay (ms)",
+      "vposOffset": "Comment Vpos Offset (ms)"
+    },
+    "disabledReason": {
+      "disabled": "Transcription is disabled.",
+      "noAudioSource": "Please select an audio source.",
+      "noVoskModel": "Please select a downloaded model."
+    }
   }
 }

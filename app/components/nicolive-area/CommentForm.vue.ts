@@ -26,7 +26,7 @@ export default class CommentForm extends Vue {
   queueComment(timestampedText: TimestampedText) {
     this.commentQueue.add(
       timestampedText,
-      new Date(Date.now() + this.transcriptionService.state.commentDelay),
+      new Date(Date.now() + this.transcriptionService.state.commentPostDelay),
     );
   }
 

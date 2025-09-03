@@ -823,7 +823,8 @@ export class StreamingService
       event.transcription = {
         enabled: true,
         voskModelName: this.transcriptionService.state.voskModelName,
-        commentDelay: this.transcriptionService.state.commentDelay,
+        commentPostDelay: this.transcriptionService.state.commentPostDelay,
+        commentVposOffset: this.transcriptionService.state.commentVposOffset,
       };
     }
 

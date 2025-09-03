@@ -1,26 +1,58 @@
 <template>
-  <div>
+  <div class="setting-section">
     <ObsBoolInput v-model="enabledModel" />
     <div v-if="enabledModel.value">
-      <ObsListInput v-model="audioSourceIdModel" />
-      <ObsListInput v-model="voskModelModel" />
-      <ObsButtonInput :value="downloadButtonModel" />
-      <ObsButtonInput :value="deleteButtonModel" />
-      <div v-if="isActive">
-        <h3>プレビュー</h3>
+      <div class="section">
+        <ObsListInput v-model="audioSourceIdModel" />
+      </div>
+      <div class="section">
+        <ObsListInput v-model="voskModelModel" />
+        <div class="action-buttons">
+          <button
+            class="control-button basic-button"
+            data-size="md"
+            data-radius="sm"
+            data-color="secondary"
+            data-variant="light"
+            @click="downloadVoskModel()"
+            :disabled="!isDownloadButtonEnabled"
+          >
+            {{ downloadButtonText }}
+          </button>
+          <button
+            class="control-button basic-button"
+            data-size="md"
+            data-radius="sm"
+            data-color="secondary"
+            data-variant="light"
+            @click="deleteVoskModel()"
+            :disabled="!isDeleteButtonEnabled"
+          >
+            {{ deleteButtonText }}
+          </button>
+        </div>
+      </div>
+      <div class="section" v-if="isActive">
+        <h4 class="section-title">{{ preview }}</h4>
         <p>{{ previewText || '--' }}</p>
       </div>
-      <div v-else>
-        <p>音声認識が無効です</p>
+      <div class="notification-root" v-else>
+        <i class="notification-icon icon-notification" />
+        <p class="notification-message">{{ disabledReason }}</p>
       </div>
-      <ObsBoolInput v-model="textFileEnabledModel" />
-      <div v-if="textFileEnabledModel.value">
-        <ObsPathInput v-model="textFilePathModel" />
-        <ObsIntInput v-model="textFileMaxLineModel" />
-        <ObsIntInput v-model="textFileLineTimeToLiveModel" />
+      <div class="section">
+        <h4 class="section-title">{{ textFileSectionTitle }}</h4>
+        <ObsBoolInput v-model="textFileEnabledModel" />
+        <div v-if="textFileEnabledModel.value">
+          <ObsPathInput v-model="textFilePathModel" />
+          <ObsIntInput v-model="textFileMaxLineModel" />
+          <ObsIntInput v-model="textFileLineTimeToLiveModel" />
+        </div>
       </div>
-      <div v-if="isNiconicoLoggedIn">
-        <ObsIntInput v-model="commentDelayModel" />
+      <div class="section" v-if="isNiconicoLoggedIn">
+        <h4 class="section-title">{{ commentSectionTitle }}</h4>
+        <ObsIntInput v-model="commentPostDelayModel" />
+        <ObsIntInput v-model="commentVposOffsetModel" />
       </div>
     </div>
   </div>
@@ -28,6 +60,26 @@
 
 <script lang="ts" src="./TranscriptionSettings.vue.ts"></script>
 
-<style lang="less">
+<style lang="less" scoped>
 @import url('../styles/index');
+
+p.error {
+  color: var(--color-error);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.control-button {
+  margin: 0;
+}
+
+.notification-root {
+  .notification-styling;
+
+  margin-bottom: var(--spacing-lg);
+}
 </style>
