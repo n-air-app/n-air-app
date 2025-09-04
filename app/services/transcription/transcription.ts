@@ -236,26 +236,27 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     )
       .pipe(
         scan((acc, action) => {
-          if (action.type === 'partial') {
-            if (action.payload === '') {
-              return { ...acc, partial: '' }; // Clear partial if empty
+          switch (action.type) {
+            case 'partial':
+              if (action.payload === '') {
+                return { ...acc, partial: '' }; // Clear partial if empty
+              }
+              return { ...acc, partial: `${action.payload}...` };
+            case 'text': {
+              const newTexts = [...acc.texts, action.payload];
+              if (newTexts.length > this.state.textFileMaxLine) {
+                newTexts.shift();
+              }
+              return { texts: newTexts, partial: '' };
             }
-            return { ...acc, partial: `${action.payload}...` };
-          } else if (action.type === 'text') {
-            // action.type === 'text'
-            const newTexts = [...acc.texts, action.payload];
-            if (newTexts.length > this.state.textFileMaxLine) {
+            case 'remove_line': {
+              const newTexts = [...acc.texts];
+              if (!newTexts.length) {
+                return acc; // No lines to remove
+              }
               newTexts.shift();
+              return { ...acc, texts: newTexts };
             }
-            return { texts: newTexts, partial: '' };
-          } else {
-            // remove_line
-            const newTexts = [...acc.texts];
-            if (!newTexts.length) {
-              return acc; // No lines to remove
-            }
-            newTexts.shift();
-            return { ...acc, texts: newTexts };
           }
         }, this.linesSubject$.getValue()),
         tap(lines => {
@@ -273,6 +274,28 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }),
       )
       .subscribe(this.linesSubject$);
+
+    // ストリームが閉じたとき（非アクティブになったとき）にテキストファイルを空にする
+    this.isActive$
+      .pipe(
+        filter(isActive => !isActive), // 非アクティブになったときのみ
+      )
+      .subscribe(async () => {
+        if (this.state.textFilePath) {
+          try {
+            const stats = await fs.stat(this.state.textFilePath);
+            if (stats.size > 0) {
+              await fs.writeFile(this.state.textFilePath, '', 'utf-8');
+            }
+          } catch (err) {
+            if (err instanceof Error && 'code' in err && err.code !== 'ENOENT') {
+              console.error('Failed to clear transcription file:', err);
+            }
+          }
+        }
+        // linesSubject$ もクリアする
+        this.linesSubject$.next({ texts: [], partial: '' });
+      });
   }
 
   shutdown() {

@@ -48,16 +48,16 @@ export default class TranscriptionSettings extends Vue {
     });
     this.modelsStatus = this.transcriptionService.modelsStatus();
 
-    this.textSubscription = merge(
-      this.transcriptionService.text$,
-      this.transcriptionService.partial$,
-    ).subscribe((text: TimestampedText | string) => {
-      if (typeof text === 'string') {
-        this.previewText = text;
-      } else {
-        this.previewText = text.text;
-      }
-    });
+    this.textSubscription = this.transcriptionService.lines$.subscribe(
+      (lines: { texts: string[]; partial: string }) => {
+        if (lines.partial.length > 0) {
+          this.previewText = lines.partial;
+        } else {
+          // texts の最終行を表示
+          this.previewText = lines.texts.length > 0 ? lines.texts[lines.texts.length - 1] : '';
+        }
+      },
+    );
 
     this.isActiveSubscription = this.transcriptionService.isActive$.subscribe(isActive => {
       this.isActive = isActive;
@@ -248,7 +248,7 @@ export default class TranscriptionSettings extends Vue {
       description: $t('settings.transcription.textFile.lineTimeToLive'),
       value: this.transcriptionService.state.textFileLineTimeToLive,
       enabled: true,
-      minVal: 0,
+      minVal: 500,
       maxVal: 60000, // 1 minute
       stepVal: 500, // 500 milliseconds
     };
