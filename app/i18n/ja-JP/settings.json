@@ -654,7 +654,7 @@
     "name": "サブ配信"
   },
   "Transcription": {
-    "name": "ライブ字幕(仮)"
+    "name": "自動文字起こし"
   },
   "listPlaceholder": "選択してください",
   "resolutionPlaceholder": "選択するか、値を入力してください",
@@ -754,8 +754,8 @@
     }
   },
   "transcription": {
-    "name": "ライブ字幕(仮)",
-    "enable": "ライブ字幕(仮)を有効にする",
+    "name": "自動文字起こし",
+    "enable": "自動文字起こしを有効にする",
     "voskModel": "音声認識モデル",
     "voskModels": {
       "vosk-model-ja-0.22": "VOSK 日本語(完全) 0.22",
@@ -785,7 +785,7 @@
       "vposOffset": "コメントVpos調整(ミリ秒)"
     },
     "disabledReason": {
-      "disabled": "ライブ字幕機能が無効です。",
+      "disabled": "自動文字起こし機能が無効です。",
       "noAudioSource": "音声ソースを選択してください。",
       "noVoskModel": "ダウンロードしたモデルを選択してください。"
     }

@@ -654,7 +654,7 @@
     "name": "Sub Stream"
   },
   "Transcription": {
-    "name": "Transcription"
+    "name": "Automatic Transcription"
   },
   "listPlaceholder": "Select Option",
   "resolutionPlaceholder": "Select Option or Type New Value",
@@ -754,8 +754,8 @@
     }
   },
   "transcription": {
-    "name": "Transcription",
-    "enable": "Enable transcription",
+    "name": "Automatic Transcription",
+    "enable": "Enable automatic transcription",
     "voskModel": "Voice recognition model",
     "voskModels": {
       "vosk-model-ja-0.22": "VOSK Japanese full 0.22",
@@ -785,7 +785,7 @@
       "vposOffset": "Comment Vpos Offset (ms)"
     },
     "disabledReason": {
-      "disabled": "Transcription is disabled.",
+      "disabled": "Automatic transcription is disabled.",
       "noAudioSource": "Please select an audio source.",
       "noVoskModel": "Please select a downloaded model."
     }
