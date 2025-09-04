@@ -212,6 +212,10 @@
       "name": "Vertical"
     }
   },
+  "text_transcription": {
+    "name": "TTS Text",
+    "description": "Add speech to text to your scene."
+  },
   "text (FreeType2)": {
     "name": "Text (FreeType 2)"
   },

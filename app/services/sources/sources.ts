@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/vue';
-import { IObsListOption, TObsValue } from 'components/obs/inputs/ObsInput';
+import { TObsValue } from 'components/obs/inputs/ObsInput';
 import * as fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
@@ -27,6 +27,7 @@ import {
   ISourcesState,
   Source,
   TPropertiesManager,
+  TSelectableSourceType,
   TSourceType,
 } from './index';
 import { CustomCastNdiManager } from './properties-managers/custom-cast-ndi-manager';
@@ -349,9 +350,9 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     return resolvedSettings;
   }
 
-  getAvailableSourcesTypesList(): IObsListOption<TSourceType>[] {
+  getAvailableSourcesTypesList() {
     const obsAvailableTypes = obs.InputFactory.types();
-    const whitelistedTypes: TSourceType[] = [
+    const whitelistedTypes: TSelectableSourceType[] = [
       'image_source',
       'color_source',
       'browser_source',
@@ -460,7 +461,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     availableWhitelistedType.push('scene');
 
     // 'near' is not an obs input type so we have to set it manually
-    availableWhitelistedType.push(...(NVoiceCharacterTypes as unknown as TSourceType[]));
+    availableWhitelistedType.push(...NVoiceCharacterTypes);
 
     const NDIExists = obsAvailableTypes.includes('ndi_source');
     if (NDIExists) {
@@ -471,6 +472,8 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       availableWhitelistedType.push('custom_cast_ndi_guide');
     }
 
+    availableWhitelistedType.push('text_transcription'); // 文字起こしテキスト
+
     const availableWhitelistedSourceType = availableWhitelistedType.map(value => ({
       value,
       description: $t(`source-props.${value}.name`),
@@ -479,7 +482,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     return availableWhitelistedSourceType;
   }
 
-  getAvailableSourcesTypes(): TSourceType[] {
+  getAvailableSourcesTypes() {
     return this.getAvailableSourcesTypesList().map(listItem => listItem.value);
   }
 
@@ -622,7 +625,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     });
   }
 
-  showAddSource(sourceType: TSourceType, sourceAddOptions?: ISourceAddOptions) {
+  showAddSource(sourceType: TSelectableSourceType, sourceAddOptions?: ISourceAddOptions) {
     this.windowsService.showWindow({
       componentName: 'AddSource',
       title: $t('sources.addSourceTitle'),
