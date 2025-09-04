@@ -213,8 +213,8 @@
     }
   },
   "text_transcription": {
-    "name": "文字起こし",
-    "description": "シーンに文字起こしテキストを追加します。"
+    "name": "自動文字起こし",
+    "description": "シーンに自動文字起こしテキストを追加します。"
   },
   "text (FreeType2)": {
     "name": "テキスト(FreeType 2)"

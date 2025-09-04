@@ -472,7 +472,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       availableWhitelistedType.push('custom_cast_ndi_guide');
     }
 
-    availableWhitelistedType.push('text_transcription'); // 文字起こしテキスト
+    availableWhitelistedType.push('text_transcription'); // 自動文字起こしテキスト
 
     const availableWhitelistedSourceType = availableWhitelistedType.map(value => ({
       value,
