@@ -13360,7 +13360,7 @@ verror@^1.10.0:
 
 "vosk-cli@github:n-air-app/vosk-cli#1.0.0":
   version "1.0.0"
-  resolved "https://codeload.github.com/n-air-app/vosk-cli/tar.gz/013cf215fd98a1443b1b727996228a2214ad8575"
+  resolved "https://codeload.github.com/n-air-app/vosk-cli/tar.gz/ac3ab6b7de192480a014b493a8cdd8b2556aff72"
 
 vue-class-component@^6.2.0:
   version "6.3.2"
