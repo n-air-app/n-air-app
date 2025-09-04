@@ -7,6 +7,7 @@ import {
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 import { TimestampedText, TranscriptionService } from 'services/transcription/transcription';
+import { UserService } from 'services/user';
 import { ScheduledExecutionQueue } from 'util/ScheduledExecutionQueue';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
@@ -17,6 +18,8 @@ export default class CommentForm extends Vue {
   nicoliveProgramService: NicoliveProgramService;
   @Inject()
   private transcriptionService: TranscriptionService;
+  @Inject()
+  private userService: UserService;
 
   isCommentSending: boolean = false;
   operatorCommentValue: string = '';
@@ -100,21 +103,23 @@ export default class CommentForm extends Vue {
   }
 
   async sendTranscribedComment(text: string, estimatedStartSpeaking: Date) {
+    // 放送中以外はコメントできない
+    if (this.nicoliveProgramService.state.status !== 'onAir') return;
+    if (text.length === 0) return;
+
     try {
       this.isCommentSending = true;
-      // TODO fix: サーバー側で投稿APIが使える様になるまでは放送者コメントで代用する
-      const useOperatorComment = true;
-      if (useOperatorComment) {
-        const isPermanent = false;
-        await this.nicoliveProgramService.sendOperatorComment(text, isPermanent);
-      } else {
-        const vpos = this.nicoliveProgramService.getVposFromDate(estimatedStartSpeaking);
-        // TODO コメント装飾をどうするか
-        const modifier: CommentModifier = {
-          position: 'shita',
-        };
-        await this.nicoliveProgramService.sendNormalComment(text, vpos, modifier);
-      }
+      const vpos = this.nicoliveProgramService.getVposFromDate(estimatedStartSpeaking);
+      // TODO コメント装飾をどうするか
+      const modifier: CommentModifier = this.userService.isPremium
+        ? {
+            position: 'shita', // shitaはプレミアム専用
+            font: 'gothic',
+          }
+        : {
+            font: 'gothic',
+          };
+      await this.nicoliveProgramService.sendNormalComment(text, vpos, modifier);
     } catch (caught) {
       if (caught instanceof NicoliveFailure) {
         await openErrorDialogFromFailure(caught);

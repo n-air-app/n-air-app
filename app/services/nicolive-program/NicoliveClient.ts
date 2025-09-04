@@ -377,9 +377,9 @@ export class NicoliveClient {
     modifier?: CommentModifier,
   ): Promise<WrappedResult<void>> {
     return this.requestAPI<void>(
-      'PUT',
+      'POST',
       `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/comments`,
-      NicoliveClient.jsonBody({ text, vpos, modifier }),
+      NicoliveClient.jsonBody({ text, vpos, modifier }, NicoliveClient.FrontendIdHeader),
     );
   }
 

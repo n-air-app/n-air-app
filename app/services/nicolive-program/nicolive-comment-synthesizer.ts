@@ -144,7 +144,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     switch (chat.type) {
       case 'normal':
         // 放送者からの通常コメントは読み上げない
-        if (chat.value.id === this.userService.platform.id) {
+        if (chat.value.user_id === this.userService.platform.id) {
           return 'ignore';
         }
         return this.state.selector.normal;
