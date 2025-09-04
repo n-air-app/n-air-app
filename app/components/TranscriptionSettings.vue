@@ -51,6 +51,8 @@
       </div>
       <div class="section" v-if="isNiconicoLoggedIn">
         <h4 class="section-title">{{ commentSectionTitle }}</h4>
+        <p>{{ commentSectionNotice1 }}</p>
+        <p>{{ commentSectionNotice2 }}</p>
         <ObsIntInput v-model="commentPostDelayModel" />
         <ObsIntInput v-model="commentVposOffsetModel" />
       </div>

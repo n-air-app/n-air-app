@@ -172,6 +172,8 @@ export default class TranscriptionSettings extends Vue {
   }
 
   commentSectionTitle = $t('settings.transcription.comment.sectionTitle');
+  commentSectionNotice1 = $t('settings.transcription.comment.notice1');
+  commentSectionNotice2 = $t('settings.transcription.comment.notice2');
   get commentPostDelayModel(): IObsNumberInputValue {
     return {
       name: 'transcriptionCommentPostDelay',

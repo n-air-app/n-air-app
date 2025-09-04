@@ -781,6 +781,8 @@
     },
     "comment": {
       "sectionTitle": "Niconico Live Comment Settings",
+      "notice1": "※Automatic transcription comments are not displayed in real-time on the streaming page when logged in as the broadcaster",
+      "notice2": "※Not posted during test streaming",
       "postDelay": "Comment Post delay (ms)",
       "vposOffset": "Comment Vpos Offset (ms)"
     },
