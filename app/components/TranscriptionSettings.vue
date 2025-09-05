@@ -1,5 +1,8 @@
 <template>
   <div class="setting-section">
+    <div class="input-wrapper">
+      <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
+    </div>
     <ObsBoolInput v-model="enabledModel" />
     <div v-if="enabledModel.value">
       <div class="section">
@@ -28,7 +31,7 @@
             @click="deleteVoskModel()"
             :disabled="!isDeleteButtonEnabled"
           >
-            {{ deleteButtonText }}
+            <i class="icon-delete"></i>{{ deleteButtonText }}
           </button>
         </div>
       </div>
@@ -51,7 +54,10 @@
       </div>
       <div class="section" v-if="isNiconicoLoggedIn">
         <h4 class="section-title">{{ commentSectionTitle }}</h4>
-        <p>{{ commentSectionNotice1 }}</p>
+        <p>
+          {{ commentSectionNotice1 }}
+          <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
+        </p>
         <p>{{ commentSectionNotice2 }}</p>
         <ObsIntInput v-model="commentPostDelayModel" />
         <ObsIntInput v-model="commentVposOffsetModel" />

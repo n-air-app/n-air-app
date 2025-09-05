@@ -755,6 +755,7 @@
   },
   "transcription": {
     "name": "Automatic Transcription",
+    "help": "Help",
     "enable": "Enable automatic transcription",
     "voskModel": "Voice recognition model",
     "voskModels": {

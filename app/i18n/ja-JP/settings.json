@@ -755,6 +755,7 @@
   },
   "transcription": {
     "name": "自動文字起こし",
+    "help": "ヘルプ",
     "enable": "自動文字起こしを有効にする",
     "voskModel": "音声認識モデル",
     "voskModels": {

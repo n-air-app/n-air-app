@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import { ObsBoolInput, ObsIntInput, ObsListInput, ObsPathInput } from 'components/obs/inputs';
 import {
   IObsInput,
@@ -5,11 +6,10 @@ import {
   IObsNumberInputValue,
   IObsPathInputValue,
 } from 'components/obs/inputs/ObsInput';
-import { merge, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
-  TimestampedText,
   TranscriptionService,
   VoskModelStatus,
   voskModelStatusToString,
@@ -41,6 +41,12 @@ export default class TranscriptionSettings extends Vue {
   previewText: string = '';
   isActiveSubscription: Subscription;
   isActive: boolean = false;
+
+  help = $t('settings.transcription.help');
+  openHelp() {
+    const url = 'https://qa.nicovideo.jp/faq/show/24942?site_domain=default';
+    remote.shell.openExternal(url);
+  }
 
   created() {
     this.modelStatusSubscription = this.transcriptionService.modelsStatus$.subscribe(status => {
