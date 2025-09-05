@@ -227,7 +227,7 @@ export default class TranscriptionSettings extends Vue {
       name: 'transcriptionTextFilePath',
       description: $t('settings.transcription.textFile.path'),
       value: this.transcriptionService.state.textFilePath ?? '',
-      enabled: true,
+      enabled: false,
       filters: [{ name: 'Text Files', extensions: ['txt'] }],
     };
   }

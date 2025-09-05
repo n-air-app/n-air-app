@@ -15,7 +15,7 @@ import {
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { defaultTextFilePath } from '../../services/transcription/transcription';
+import { TranscriptionService } from '../../services/transcription/transcription';
 import { VideoService } from '../../services/video';
 
 @Component({
@@ -27,6 +27,7 @@ export default class AddSource extends Vue {
   @Inject() windowsService: WindowsService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
   @Inject() videoService: VideoService;
+  @Inject() transcriptionService: TranscriptionService;
 
   name = '';
   error = '';
@@ -170,7 +171,7 @@ export default class AddSource extends Vue {
         {
           text: '',
           read_from_file: true,
-          file: defaultTextFilePath(),
+          file: this.transcriptionService.getTextFilePath(),
           outline: true,
           vertical: false,
           gradient: false,

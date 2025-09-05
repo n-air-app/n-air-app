@@ -67,7 +67,7 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
 
 export function defaultTextFilePath() {
   const tempDir = remote.app.getPath('temp');
-  return `${tempDir}/transcription.txt`;
+  return join(tempDir, 'transcription.txt');
 }
 
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
@@ -178,10 +178,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       )
       .subscribe(this.textSubject$);
 
-    if (!this.state.textFilePath) {
-      // default path for text file
-      this.setTextFilePath(defaultTextFilePath());
-    }
+    // テキストファイルのパスを固定する
+    this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
     this.state$
@@ -264,13 +262,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           }
         }, this.linesSubject$.getValue()),
         tap(lines => {
-          if (this.state.textFileEnabled && this.state.textFilePath) {
+          if (this.state.textFileEnabled && this.getTextFilePath()) {
             const allLines = [...lines.texts];
             if (lines.partial) {
               allLines.push(lines.partial);
             }
             const content = allLines.slice(-this.state.textFileMaxLine).join('\n');
-            fs.writeFile(this.state.textFilePath, content, 'utf-8').catch(err => {
+            fs.writeFile(this.getTextFilePath(), content, 'utf-8').catch(err => {
               console.error('Failed to write transcription file:', err);
               this.setTextFileEnabled(false);
             });
@@ -285,11 +283,11 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         filter(isActive => !isActive), // 非アクティブになったときのみ
       )
       .subscribe(async () => {
-        if (this.state.textFilePath) {
+        if (this.getTextFilePath()) {
           try {
-            const stats = await fs.stat(this.state.textFilePath);
+            const stats = await fs.stat(this.getTextFilePath());
             if (stats.size > 0) {
-              await fs.writeFile(this.state.textFilePath, '', 'utf-8');
+              await fs.writeFile(this.getTextFilePath(), '', 'utf-8');
             }
           } catch (err) {
             if (err instanceof Error && 'code' in err && err.code !== 'ENOENT') {
@@ -468,6 +466,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       return;
     }
     this.setState({ textFileEnabled });
+  }
+  getTextFilePath(): string {
+    return this.state.textFilePath;
   }
   setTextFilePath(textFilePath: string) {
     this.setState({ textFilePath });
