@@ -160,7 +160,7 @@ export default class AddSource extends Vue {
     options: ISourceAddOptions;
     forceSkipProperties?: boolean;
   } {
-    const width = 1200;
+    const width = 300;
     const height = 150;
 
     // これらの値は画面で弄った後、OBSが保存するjson(....\AppData\Roaming\n-air-app-unstable\SceneCollections)を参照で
@@ -184,7 +184,7 @@ export default class AddSource extends Vue {
             flags: 0,
           },
           align: 'left',
-          valign: 'top',
+          valign: 'bottom',
           color: 16777215,
           opacity: 100,
           gradient_color: 16777215,
