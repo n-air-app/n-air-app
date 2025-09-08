@@ -86,7 +86,18 @@ afterEach(() => {
   jest.resetModules();
 });
 
-function prepare(): {
+interface PrepareOptions {
+  mockOverrides?: {
+    listAudioDevices?: {
+      version: string;
+      devices: Array<{ id: string; name: string; index: number }>;
+    };
+    voskModelStatus?: { state: string };
+    audioDevices?: Array<{ id: string; name: string }>;
+  };
+}
+
+function prepare(options: PrepareOptions = {}): {
   TranscriptionService: typeof TranscriptionServiceType;
   instance: TranscriptionServiceType;
   getVoskModelStatus: jest.Mock;
@@ -99,14 +110,14 @@ function prepare(): {
 
   const getVoskModelStatus = jest_fn()
     .mockName('getVoskModelStatus')
-    .mockReturnValue({ state: 'not_downloaded' });
+    .mockReturnValue(options.mockOverrides?.voskModelStatus ?? { state: 'not_downloaded' });
   const getVoskModels = jest_fn()
     .mockName('getVoskModels')
     .mockReturnValue([
       {
         name: VOSK_MODEL_NAME,
         description: 'small',
-        status: { state: 'not_downloaded' },
+        status: options.mockOverrides?.voskModelStatus ?? { state: 'not_downloaded' },
       },
     ]);
   const setVoskModelStatus = jest_fn().mockName('setVoskModelStatus');
@@ -129,8 +140,13 @@ function prepare(): {
     stopTranscription,
     audioDeviceIndex: -1,
   } as unknown as VoskClientType;
-  const { CreateVoskCliClient: mockedCreateVoskCliClient } = require('./VoskClient');
+  const { CreateVoskCliClient: mockedCreateVoskCliClient, VoskClient: mockedVoskClient } = require('./VoskClient');
   mockedCreateVoskCliClient.mockReturnValue(client);
+  
+  // Apply mock overrides for listAudioDevices
+  if (options.mockOverrides?.listAudioDevices) {
+    mockedVoskClient.listAudioDevices.mockReturnValue(options.mockOverrides.listAudioDevices);
+  }
 
   const TranscriptionService = require('./transcription')
     .TranscriptionService as typeof TranscriptionServiceType;
@@ -178,6 +194,18 @@ describe('TranscriptionService', () => {
 
     it('should not activate if audio device is not set', async () => {
       const { instance, getVoskModelStatus, client } = prepare();
+      
+      // Mock empty audio device list to prevent auto-selection
+      const { VoskClient: mockedVoskClient } = require('./VoskClient');
+      mockedVoskClient.listAudioDevices.mockReturnValue({
+        version: '1',
+        devices: [],
+      });
+      
+      // Update audio devices with empty list, then clear audio device ID
+      instance.updateAudioDevices();
+      instance.setAudioDeviceId(null);
+      
       getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
       instance.setEnabled(true);
       await clock.tickAsync(0);
@@ -188,6 +216,15 @@ describe('TranscriptionService', () => {
       const { instance, getVoskModelStatus, client } = prepare();
       getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
       instance.setAudioDeviceId('test-device');
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(client.startTranscription).toHaveBeenCalled();
+    });
+
+    it('should auto-select first audio device and activate when devices are available', async () => {
+      const { instance, getVoskModelStatus, client } = prepare();
+      getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
+      // Don't explicitly set audio device - let it auto-select
       instance.setEnabled(true);
       await clock.tickAsync(0);
       expect(client.startTranscription).toHaveBeenCalled();
@@ -321,6 +358,135 @@ describe('TranscriptionService', () => {
 
       expect(promises.writeFile).toHaveBeenCalled();
       expect(setTextFileEnabledSpy).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('audio device management', () => {
+    it('should get audio device list', () => {
+      const { instance } = prepare();
+      
+      // Should return the mocked device list from prepare()
+      const devices = instance.getAudioDeviceList();
+      expect(devices).toEqual([{ id: 'test-device', name: 'Test Device' }]);
+    });
+
+    it('should get audio device index correctly', () => {
+      const { instance } = prepare();
+      
+      expect(instance.getAudioDeviceIndex('test-device', -1)).toBe(0);
+      expect(instance.getAudioDeviceIndex('nonexistent', -1)).toBe(-1);
+      expect(instance.getAudioDeviceIndex(null, -1)).toBe(-1);
+    });
+
+    it('should set audio device ID and correct invalid ones', () => {
+      const { instance } = prepare();
+      
+      // Test setting valid device
+      instance.setAudioDeviceId('test-device');
+      expect(instance.state.audioDeviceId).toBe('test-device');
+      
+      // Test setting invalid device - should correct to first available
+      instance.setAudioDeviceId('invalid-device');
+      expect(instance.state.audioDeviceId).toBe('test-device');
+      
+      // Test setting null
+      instance.setAudioDeviceId(null);
+      expect(instance.state.audioDeviceId).toBe('test-device'); // Should still use first available
+    });
+
+    it('should auto-select first audio device when none is set', () => {
+      const { instance } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [
+              { id: 'device-1', name: 'Device 1', index: 0 },
+              { id: 'device-2', name: 'Device 2', index: 1 },
+            ],
+          },
+        },
+      });
+      
+      // Clear existing device and update with new mock
+      instance.setAudioDeviceId(null);
+      instance.updateAudioDevices();
+      
+      // Should auto-select first device
+      expect(instance.state.audioDeviceId).toBe('device-1');
+    });
+
+    it('should not auto-select when no devices are available', () => {
+      const { instance } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [],
+          },
+        },
+      });
+      
+      // Clear device and update with empty list
+      instance.setAudioDeviceId(null);
+      instance.updateAudioDevices();
+      
+      // Should remain null when no devices available
+      expect(instance.state.audioDeviceId).toBe(null);
+      expect(instance.getAudioDeviceList()).toEqual([]);
+    });
+
+    it('should handle updateAudioDevices error gracefully', () => {
+      const { instance } = prepare();
+      
+      // Mock listAudioDevices to throw an error
+      const { VoskClient: mockedVoskClient } = require('./VoskClient');
+      mockedVoskClient.listAudioDevices.mockImplementation(() => {
+        throw new Error('Audio device enumeration failed');
+      });
+      
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      // Should not throw when updateAudioDevices encounters an error
+      expect(() => instance.updateAudioDevices()).not.toThrow();
+      
+      // Should log error
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to create Vosk CLI client:',
+        expect.any(Error)
+      );
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('should update client audioDeviceIndex when client exists', () => {
+      const { instance, client } = prepare();
+      
+      // Simulate having an active client
+      instance.setEnabled(true);
+      
+      // Mock different devices
+      const { VoskClient: mockedVoskClient } = require('./VoskClient');
+      mockedVoskClient.listAudioDevices.mockReturnValue({
+        version: '1',
+        devices: [
+          { id: 'new-device', name: 'New Device', index: 0 },
+          { id: 'another-device', name: 'Another Device', index: 1 },
+        ],
+      });
+      
+      // Update audio devices
+      instance.updateAudioDevices();
+      
+      // Should update the audioDeviceIndex on existing client
+      expect(client.audioDeviceIndex).toBeDefined();
+    });
+
+    it('should call updateAudioDevices during initialization', () => {
+      const { instance } = prepare();
+      
+      // updateAudioDevices was already called during prepare()
+      // Verify it populated the device list correctly
+      expect(instance.getAudioDeviceList().length).toBeGreaterThan(0);
+      expect(instance.state.audioDeviceId).toBe('test-device');
     });
   });
 

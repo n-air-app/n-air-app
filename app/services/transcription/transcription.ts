@@ -133,6 +133,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     );
   }
 
+  // DEBUG 読み込まないで上書きして初期状態を作る
+  /*
+  static get initialState() {
+    return TranscriptionService.defaultState;
+  }
+  // */
+
   init() {
     super.init();
 
@@ -432,6 +439,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (this.client) {
       // デバイスリストを更新したので、audioDeviceIndex も更新する(見つかるようになったかもしれない)
       this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
+    }
+    // audioDeviceId が未設定なら存在する値で更新する
+    if (!this.state.audioDeviceId && this.audioDevices.length > 0) {
+      this.setAudioDeviceId(this.audioDevices[0]?.id || null);
     }
   }
 
