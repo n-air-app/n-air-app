@@ -512,7 +512,8 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     if (!this.state.vposBaseTime) {
       throw new Error('vposBaseTime is not set');
     }
-    const vpos = Math.floor((time.getTime() - this.state.vposBaseTime * 1000) * 100);
+    // convert ms to 1/100s
+    const vpos = Math.floor((time.getTime() - this.state.vposBaseTime * 1000) / 10);
     return vpos;
   }
 

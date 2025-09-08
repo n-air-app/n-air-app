@@ -201,7 +201,7 @@ export default class TranscriptionSettings extends Vue {
       description: $t('settings.transcription.comment.vposOffset'),
       value: this.transcriptionService.state.commentVposOffset,
       enabled: true,
-      minVal: 0,
+      minVal: -10000, // -10 seconds
       maxVal: 10000, // 10 seconds
       stepVal: 100, // 100 milliseconds
     };
