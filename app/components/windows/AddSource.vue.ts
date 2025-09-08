@@ -160,8 +160,8 @@ export default class AddSource extends Vue {
     options: ISourceAddOptions;
     forceSkipProperties?: boolean;
   } {
-    const width = 300;
-    const height = 150;
+    const width = 1200;
+    const height = 300;
 
     // これらの値は画面で弄った後、OBSが保存するjson(....\AppData\Roaming\n-air-app-unstable\SceneCollections)を参照で
     return {
