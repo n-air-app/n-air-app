@@ -36,8 +36,9 @@ import {
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
 export { VoskModelStatus };
 
-// TODO ダウンロード先がが準備できたら変更する
-const getVoskModelURL = (name: string): string => `https://alphacephei.com/vosk/models/${name}.zip`;
+// original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
+const getVoskModelURL = (name: string): string =>
+  `https://n-air-app.nicovideo.jp/download/assets/vosk-models/${name}.zip`;
 
 interface ITranscriptionServiceState {
   enabled?: boolean;
@@ -505,12 +506,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       };
 
-      await downloadAndUnzip(
-        getVoskModelURL(modelName),
-        tmpZipPath,
-        this.modelBasePath,
-        onProgress,
-      );
+      const downloadUrl = getVoskModelURL(modelName);
+      console.log('Downloading Vosk model from:', downloadUrl); // DEBUG
+
+      await downloadAndUnzip(downloadUrl, tmpZipPath, this.modelBasePath, onProgress);
 
       this.setModelStatus(modelName, { state: 'downloaded' });
       if (this.isReady()) {
