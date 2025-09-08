@@ -790,7 +790,8 @@
     "disabledReason": {
       "disabled": "Automatic transcription is disabled.",
       "noAudioSource": "Please select an audio source.",
-      "noVoskModel": "Please select a downloaded model."
+      "noVoskModel": "Please select a downloaded model.",
+      "noAudioDevice": "Cannot be used because no audio source devices were found."
     }
   }
 }

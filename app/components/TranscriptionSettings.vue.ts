@@ -83,6 +83,9 @@ export default class TranscriptionSettings extends Vue {
     if (!this.transcriptionService.state.enabled) {
       return $t('settings.transcription.disabledReason.disabled');
     }
+    if (this.transcriptionService.getAudioDeviceList().length === 0) {
+      return $t('settings.transcription.disabledReason.noAudioDevice');
+    }
     if (!this.transcriptionService.state.audioDeviceId) {
       return $t('settings.transcription.disabledReason.noAudioSource');
     }

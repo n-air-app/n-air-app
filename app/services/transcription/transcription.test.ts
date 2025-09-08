@@ -212,6 +212,22 @@ describe('TranscriptionService', () => {
       expect(client.startTranscription).not.toHaveBeenCalled();
     });
 
+    it('should not activate if no audio devices are available', async () => {
+      const { instance, getVoskModelStatus, client } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [],
+          },
+        },
+      });
+      
+      getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(client.startTranscription).not.toHaveBeenCalled();
+    });
+
     it('should activate if enabled, model is downloaded, and audio device is set', async () => {
       const { instance, getVoskModelStatus, client } = prepare();
       getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
@@ -368,6 +384,20 @@ describe('TranscriptionService', () => {
       // Should return the mocked device list from prepare()
       const devices = instance.getAudioDeviceList();
       expect(devices).toEqual([{ id: 'test-device', name: 'Test Device' }]);
+    });
+
+    it('should return empty list when no audio devices are available', () => {
+      const { instance } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [],
+          },
+        },
+      });
+      
+      const devices = instance.getAudioDeviceList();
+      expect(devices).toEqual([]);
     });
 
     it('should get audio device index correctly', () => {

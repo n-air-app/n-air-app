@@ -195,6 +195,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         map(
           state =>
             (state.enabled &&
+              this.audioDevices.length > 0 &&
               state.audioDeviceId &&
               this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded') ??
             false,
@@ -317,6 +318,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   isReady(): boolean {
     return (
       this.state.enabled &&
+      this.audioDevices.length > 0 &&
       this.modelsManager.getVoskModelStatus(this.state.voskModelName).state === 'downloaded'
     );
   }
