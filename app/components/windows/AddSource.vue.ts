@@ -160,8 +160,9 @@ export default class AddSource extends Vue {
     options: ISourceAddOptions;
     forceSkipProperties?: boolean;
   } {
-    const width = 1200;
-    const height = 300;
+    const width = 1600;
+    const height = 260;
+    const scale = this.videoService.baseWidth / 1920;
 
     // これらの値は画面で弄った後、OBSが保存するjson(....\AppData\Roaming\n-air-app-unstable\SceneCollections)を参照で
     return {
@@ -180,20 +181,20 @@ export default class AddSource extends Vue {
           font: {
             face: 'Arial',
             style: '',
-            size: 48,
+            size: 64,
             flags: 0,
           },
-          align: 'left',
+          align: 'center',
           valign: 'bottom',
-          color: 16777215,
+          color: 0xffffff,
           opacity: 100,
-          gradient_color: 16777215,
+          gradient_color: 0xffffff,
           gradient_opacity: 100,
           gradient_dir: 90,
           bk_color: 0,
           bk_opacity: 0,
           outline_size: 2,
-          outline_color: 329004,
+          outline_color: 0x5052c,
           outline_opacity: 100,
           chatlog_lines: 3,
           extents_wrap: true,
@@ -211,9 +212,10 @@ export default class AddSource extends Vue {
         initialTransform: {
           position: {
             // bottom-center
-            x: (this.videoService.baseWidth - width) / 2,
-            y: this.videoService.baseHeight - height - 50,
+            x: (this.videoService.baseWidth - width * scale) / 2,
+            y: this.videoService.baseHeight - (height + 40) * scale,
           },
+          scale: { x: scale, y: scale },
         },
       },
       forceSkipProperties: true,
