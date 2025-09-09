@@ -76,6 +76,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     voskModelName: VOSK_MODEL_NAMES[0],
     commentPostDelay: 0,
     commentVposOffset: 0,
+    textFileEnabled: true,
     textFileMaxLine: 2,
     textFileLineTimeToLive: 5 * 1000, // 5 seconds
   };
@@ -508,6 +509,11 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
       const onProgress = ({ downloaded, total }: { downloaded: number; total: number }) => {
         if (total > 0) {
+          if (total === downloaded) {
+            console.log('Installing model...'); // DEBUG
+            this.setModelStatus(modelName, { state: 'installing' });
+            return;
+          }
           const percentage = ((downloaded / total) * 100).toFixed(2);
           this.setModelStatus(modelName, {
             state: 'downloading',

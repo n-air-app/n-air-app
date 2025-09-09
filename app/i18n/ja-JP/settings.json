@@ -765,6 +765,7 @@
     "modelStatus": {
       "not_downloaded": "未ダウンロード",
       "downloading": "ダウンロード中",
+      "installing": "インストール中",
       "downloaded": "ダウンロード済み",
       "download_error": "ダウンロードエラー"
     },

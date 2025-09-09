@@ -765,6 +765,7 @@
     "modelStatus": {
       "not_downloaded": "Not downloaded",
       "downloading": "Downloading...",
+      "installing": "Installing...",
       "downloaded": "Downloaded",
       "download_error": "Download error"
     },

@@ -43,15 +43,6 @@
         <i class="notification-icon icon-notification" />
         <p class="notification-message">{{ disabledReason }}</p>
       </div>
-      <div class="section">
-        <h4 class="section-title">{{ textFileSectionTitle }}</h4>
-        <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
-        <div v-if="textFileEnabledModel.value">
-          <ObsPathInput v-model="textFilePathModel" />
-          <ObsIntInput v-model="textFileMaxLineModel" />
-          <ObsIntInput v-model="textFileLineTimeToLiveModel" />
-        </div>
-      </div>
       <div class="section" v-if="isNiconicoLoggedIn">
         <h4 class="section-title">{{ commentSectionTitle }}</h4>
         <p>
@@ -61,6 +52,15 @@
         <p>{{ commentSectionNotice2 }}</p>
         <ObsIntInput v-model="commentPostDelayModel" />
         <ObsIntInput v-model="commentVposOffsetModel" />
+      </div>
+      <div class="section">
+        <h4 class="section-title">{{ textFileSectionTitle }}</h4>
+        <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
+        <div v-if="textFileEnabledModel.value">
+          <ObsPathInput v-model="textFilePathModel" />
+          <ObsIntInput v-model="textFileMaxLineModel" />
+          <ObsIntInput v-model="textFileLineTimeToLiveModel" />
+        </div>
       </div>
     </div>
   </div>
