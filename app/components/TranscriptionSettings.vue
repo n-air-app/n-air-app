@@ -42,7 +42,7 @@
           </button>
         </div>
       </div>
-      <div class="section" v-if="isActive">
+      <div class="section" v-if="activeStatus === 'active'">
         <h4 class="section-title">{{ preview }}</h4>
         <p>{{ previewText || '--' }}</p>
       </div>

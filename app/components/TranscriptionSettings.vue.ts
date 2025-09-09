@@ -10,6 +10,7 @@ import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
+  ActiveStatus,
   TranscriptionService,
   VoskModelStatus,
   voskModelStatusToString,
@@ -39,8 +40,8 @@ export default class TranscriptionSettings extends Vue {
   modelStatusSubscription: Subscription;
   textSubscription: Subscription;
   previewText: string = '';
-  isActiveSubscription: Subscription;
-  isActive: boolean = false;
+  activeStatusSubscription: Subscription;
+  activeStatus: ActiveStatus = 'disabled';
 
   help = $t('settings.transcription.help');
   openHelp() {
@@ -65,35 +66,22 @@ export default class TranscriptionSettings extends Vue {
       },
     );
 
-    this.isActiveSubscription = this.transcriptionService.isActive$.subscribe(isActive => {
-      this.isActive = isActive;
+    this.activeStatusSubscription = this.transcriptionService.activeStatus$.subscribe(isActive => {
+      this.activeStatus = isActive;
     });
-    this.isActive = this.transcriptionService.isActive();
+    this.activeStatus = this.transcriptionService.activeStatus();
     this.transcriptionService.updateAudioDevices();
   }
 
   beforeDestroy() {
-    this.isActiveSubscription.unsubscribe();
+    this.activeStatusSubscription.unsubscribe();
     this.textSubscription.unsubscribe();
     this.modelStatusSubscription.unsubscribe();
   }
 
   preview = $t('settings.transcription.preview');
   get disabledReason(): string {
-    if (!this.transcriptionService.state.enabled) {
-      return $t('settings.transcription.disabledReason.disabled');
-    }
-    if (this.transcriptionService.getAudioDeviceList().length === 0) {
-      return $t('settings.transcription.disabledReason.noAudioDevice');
-    }
-    if (!this.transcriptionService.isVoskModelReady()) {
-      if (!this.transcriptionService.hasAnyDownloadedModel()) {
-        return $t('settings.transcription.disabledReason.noModelDownloaded');
-      } else {
-        return $t('settings.transcription.disabledReason.noVoskModel');
-      }
-    }
-    return '';
+    return $t(`settings.transcription.disabledReason.${this.activeStatus}`);
   }
 
   get modelStatus(): VoskModelStatus | { state: 'not_available' } {

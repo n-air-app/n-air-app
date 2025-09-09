@@ -4,7 +4,7 @@ import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
 import type { downloadAndUnzip as downloadAndUnzipType } from './downloadAndUnzip';
 import type { filterNoiseText as filterNoiseTextType } from './filterNoiseText';
-import type { TranscriptionService as TranscriptionServiceType } from './transcription';
+import type { ActiveStatus, TranscriptionService as TranscriptionServiceType } from './transcription';
 import type {
   CreateVoskCliClient as CreateVoskCliClientType,
   TranscriptionMessage,
@@ -124,11 +124,26 @@ function setupTranscription(options: {
   audioDeviceId?: string;
   emptyDevices?: boolean;
 } = {}) {
-  const prepareOptions = options.emptyDevices ? { mockOverrides: { listAudioDevices: emptyDeviceList } } : undefined;
+  const downloadedStatus = { state: 'downloaded' as const };
+  const notDownloadedStatus = { state: 'not_downloaded' as const };
+  
+  const prepareOptions = options.emptyDevices ? 
+    { mockOverrides: { 
+        listAudioDevices: emptyDeviceList,
+        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus
+      } 
+    } : 
+    { mockOverrides: { 
+        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus
+      } 
+    };
+    
   const { instance, ...rest } = prepare(prepareOptions);
   
   if (options.modelDownloaded) {
-    rest.getVoskModelStatus.mockReturnValue({ state: 'downloaded' });
+    rest.getVoskModelStatus.mockReturnValue(downloadedStatus);
+    // Also update the modelsStatusSubject$ to reflect the downloaded state
+    instance['setModelStatus'](VOSK_MODEL_NAME, downloadedStatus);
   }
   if (options.audioDeviceId) {
     instance.setAudioDeviceId(options.audioDeviceId);
@@ -197,6 +212,8 @@ function prepare(options: PrepareOptions = {}): {
 
   const instance = TranscriptionService.instance as TranscriptionServiceType;
   instance.updateAudioDevices();
+  // Trigger activeness check after initialization
+  instance['updateActiveness$'].next();
 
   return {
     TranscriptionService,
@@ -256,6 +273,130 @@ describe('TranscriptionService', () => {
       instance.setEnabled(false);
       await clock.tickAsync(0);
       expect(stopTranscription).toHaveBeenCalled();
+    }));
+  });
+
+  describe('activeStatus', () => {
+    it('should return "disabled" when service is not enabled', withClock(async (clock) => {
+      const { instance } = setupTranscription({ modelDownloaded: true, audioDeviceId: 'test-device' });
+      expect(instance.activeStatus()).toBe('disabled');
+    }));
+
+    it('should return "noAudioDevice" when no audio devices available', withClock(async (clock) => {
+      const { instance } = setupTranscription({ modelDownloaded: true, emptyDevices: true });
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noAudioDevice');
+    }));
+
+    it('should return "noModelDownloaded" when no models are downloaded', withClock(async (clock) => {
+      const { instance } = setupTranscription({ audioDeviceId: 'test-device' });
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noModelDownloaded');
+    }));
+
+    it('should return "noVoskModel" when voskModelName is null/undefined but has downloaded models', withClock(async (clock) => {
+      const { instance } = setupTranscription({ audioDeviceId: 'test-device' });
+      
+      // First set up a scenario where we have some downloaded models
+      const mockModelsManager = instance['modelsManager'];
+      jest.spyOn(mockModelsManager, 'getVoskModels').mockReturnValue([
+        { name: 'other-model', description: 'Other', status: { state: 'downloaded' } }
+      ]);
+      
+      // But set the selected model to null (which will be undefined)
+      jest.spyOn(mockModelsManager, 'getVoskModels').mockReturnValue([]);
+      instance.setModelName(null);
+      
+      // Now mock hasAnyDownloadedModel to return true
+      jest.spyOn(instance, 'hasAnyDownloadedModel').mockReturnValue(true);
+      
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noVoskModel');
+    }));
+
+    it('should return "noVoskModel" when selected model is not downloaded but others are', withClock(async (clock) => {
+      const { instance } = setupTranscription({ audioDeviceId: 'test-device' });
+      
+      // Mock that we have some downloaded models, so hasAnyDownloadedModel returns true
+      jest.spyOn(instance, 'hasAnyDownloadedModel').mockReturnValue(true);
+      
+      // But the specific selected model is not downloaded
+      const mockModelsManager = instance['modelsManager'];
+      jest.spyOn(mockModelsManager, 'getVoskModelStatus').mockReturnValue({ state: 'not_downloaded' });
+      
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noVoskModel');
+    }));
+
+    it('should return "active" when all conditions are met', withClock(async (clock) => {
+      const { instance } = setupTranscription({ modelDownloaded: true, audioDeviceId: 'test-device' });
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('active');
+    }));
+
+    it('should emit activeStatus changes through observable', withClock(async (clock) => {
+      const { instance } = setupTranscription({ modelDownloaded: true, audioDeviceId: 'test-device' });
+      const statusSpy = jest_fn().mockName('activeStatusSpy');
+      instance.activeStatus$.subscribe(statusSpy);
+
+      // Initial status should be 'disabled'
+      expect(statusSpy).toHaveBeenLastCalledWith('disabled');
+
+      // Enable should change to 'active'
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(statusSpy).toHaveBeenLastCalledWith('active');
+
+      // Disable should change back to 'disabled'
+      instance.setEnabled(false);
+      await clock.tickAsync(0);
+      expect(statusSpy).toHaveBeenLastCalledWith('disabled');
+    }));
+
+    it('should transition through different states correctly', withClock(async (clock) => {
+      const { instance } = setupTranscription({ emptyDevices: true });
+      const statusSpy = jest_fn().mockName('activeStatusSpy');
+      instance.activeStatus$.subscribe(statusSpy);
+
+      // Start disabled
+      expect(instance.activeStatus()).toBe('disabled');
+
+      // Enable with no devices -> noAudioDevice
+      instance.setEnabled(true);
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noAudioDevice');
+
+      // Add devices but no model -> noModelDownloaded
+      const { VoskClient: mockedVoskClient } = require('./VoskClient');
+      mockedVoskClient.listAudioDevices.mockReturnValue(testDeviceList);
+      instance.updateAudioDevices();
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noModelDownloaded');
+
+      // Add downloaded model -> active
+      const mockModelsManager = instance['modelsManager'];
+      jest.spyOn(mockModelsManager, 'getVoskModels').mockReturnValue([
+        { name: VOSK_MODEL_NAME, description: 'Test', status: { state: 'downloaded' } }
+      ]);
+      jest.spyOn(mockModelsManager, 'getVoskModelStatus').mockReturnValue({ state: 'downloaded' });
+      jest.spyOn(instance, 'hasAnyDownloadedModel').mockReturnValue(true);
+      
+      instance['setModelStatus'](VOSK_MODEL_NAME, { state: 'downloaded' as const });
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('active');
+
+      // Remove model -> noVoskModel
+      jest.spyOn(mockModelsManager, 'getVoskModelStatus').mockReturnValue({ state: 'not_downloaded' });
+      // Still has downloaded models in general, so hasAnyDownloadedModel returns true
+      jest.spyOn(instance, 'hasAnyDownloadedModel').mockReturnValue(true);
+      instance['setModelStatus'](VOSK_MODEL_NAME, { state: 'not_downloaded' as const });
+      await clock.tickAsync(0);
+      expect(instance.activeStatus()).toBe('noVoskModel');
     }));
   });
 

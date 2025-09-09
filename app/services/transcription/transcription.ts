@@ -71,6 +71,13 @@ export function defaultTextFilePath() {
   return join(tempDir, 'transcription.txt');
 }
 
+export type ActiveStatus =
+  | 'active'
+  | 'disabled'
+  | 'noAudioDevice'
+  | 'noModelDownloaded'
+  | 'noVoskModel';
+
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
@@ -97,7 +104,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     partial: '',
   });
   private modelsStatusSubject$ = new BehaviorSubject<Dictionary<VoskModelStatus>>({});
-  private isActiveSubject$ = new BehaviorSubject<boolean>(false);
+  private activeStatusSubject$ = new BehaviorSubject<ActiveStatus>('disabled');
+  private updateActiveness$ = new Subject<void>();
 
   getModelPath(modelName: string): string {
     return join(this.modelBasePath, modelName);
@@ -121,9 +129,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   modelsStatus() {
     return this.modelsStatusSubject$.value;
   }
-  isActive$ = this.isActiveSubject$.asObservable();
-  isActive(): boolean {
-    return this.isActiveSubject$.value;
+  activeStatus$ = this.activeStatusSubject$.asObservable();
+  activeStatus(): ActiveStatus {
+    return this.activeStatusSubject$.value;
   }
 
   isVoskModelReady(): boolean {
@@ -195,10 +203,31 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    merge(this.state$, this.audioDevices$, this.modelsStatus$)
+    this.updateActiveness$
       .pipe(
-        map(() => this.isReady()),
-        distinctUntilChanged(),
+        map((): ActiveStatus => {
+          if (!this.state.enabled) return 'disabled';
+          if (this.audioDevices$.value.length === 0) return 'noAudioDevice';
+          if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
+          if (!this.state.voskModelName) return 'noVoskModel';
+          if (
+            this.modelsManager.getVoskModelStatus(this.state.voskModelName).state !== 'downloaded'
+          ) {
+            return 'noVoskModel';
+          }
+          return 'active';
+        }),
+      )
+      .subscribe(this.activeStatusSubject$);
+
+    this.activeStatusSubject$
+      .pipe(
+        map(status => {
+          const actual = !!this.client;
+          const next = status === 'active';
+          return actual !== next ? next : null;
+        }),
+        filter(next => next !== null),
       )
       .subscribe(enabled => {
         console.log('TranscriptionService enabled state changed:', enabled); // DEBUG
@@ -285,7 +314,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       .subscribe(this.linesSubject$);
 
     // ストリームが閉じたとき（非アクティブになったとき）にテキストファイルを空にする
-    this.isActive$
+    this.activeStatus$
       .pipe(
         filter(isActive => !isActive), // 非アクティブになったときのみ
       )
@@ -312,14 +341,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   private subscription: Subscription;
-
-  isReady(): boolean {
-    return (
-      this.state.enabled &&
-      this.audioDevices$.value.length > 0 &&
-      this.modelsManager.getVoskModelStatus(this.state.voskModelName).state === 'downloaded'
-    );
-  }
 
   activate() {
     if (this.client) {
@@ -355,7 +376,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       return;
     }
 
-    this.isActiveSubject$.next(true);
     this.subscription = this.client.startTranscription().subscribe({
       next: message => {
         console.log('Transcribe message:', message);
@@ -368,6 +388,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         } else if (isProcessExitedMessage(message)) {
           console.log('Vosk CLI process exited:', message.processExited);
           this.deactivate();
+          this.updateActiveness$.next();
         } else if (isInfoTranscriptionMessage(message) || isFormatTranscriptionMessage(message)) {
           // can safely be ignored
         } else {
@@ -386,7 +407,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       },
       complete: () => {
         console.log('Transcription completed');
-        this.isActiveSubject$.next(false);
       },
     });
   }
@@ -401,7 +421,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.subscription.unsubscribe();
       this.subscription = null;
     }
-    this.isActiveSubject$.next(false);
+    this.updateActiveness$.next();
   }
 
   setEnabled(enabled: boolean) {
@@ -433,6 +453,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           name: device.name,
         })),
       );
+      this.updateActiveness$.next();
     } catch (err) {
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
@@ -531,9 +552,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       await downloadAndUnzip(downloadUrl, tmpZipPath, this.modelBasePath, onProgress);
 
       this.setModelStatus(modelName, { state: 'downloaded' });
-      if (this.isReady()) {
-        this.activate();
-      }
     } catch (err) {
       console.error('Error during Vosk model download/extraction:', err);
       this.setModelStatus(modelName, { state: 'download_error' });
@@ -590,6 +608,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       ...this.modelsStatusSubject$.getValue(),
       [modelName]: status,
     });
+    this.updateActiveness$.next();
   }
 
   setModelName(modelName: string | null) {
@@ -607,9 +626,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (modelName !== null) {
       this.setState({ voskModelName: modelName });
       this.setModelStatus(modelName, this.modelsManager.getVoskModelStatus(modelName));
-      if (this.isReady()) {
-        this.activate();
-      }
     } else {
       this.setState({ voskModelName: undefined });
     }
@@ -627,6 +643,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     newState = Object.assign({}, this.state, newState);
     this.SET_SETTINGS(newState);
     this.state$.next(this.state);
+    this.updateActiveness$.next();
   }
 
   @mutation()
