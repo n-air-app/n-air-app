@@ -190,16 +190,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    this.state$
+    merge(this.state$, this.audioDevices$)
       .pipe(
-        map(
-          state =>
-            (state.enabled &&
-              this.audioDevices.length > 0 &&
-              state.audioDeviceId &&
-              this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded') ??
-            false,
-        ),
+        map(() => this.isReady()),
         distinctUntilChanged(),
       )
       .subscribe(enabled => {
@@ -318,7 +311,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   isReady(): boolean {
     return (
       this.state.enabled &&
-      this.audioDevices.length > 0 &&
+      this.audioDevices$.value.length > 0 &&
       this.modelsManager.getVoskModelStatus(this.state.voskModelName).state === 'downloaded'
     );
   }
@@ -423,16 +416,18 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setState({ enabled });
   }
 
-  private audioDevices: { id: string; name: string }[] = [];
+  private audioDevices$ = new BehaviorSubject<{ id: string; name: string }[]>([]);
 
   updateAudioDevices() {
     try {
       const audioDevices = VoskClient.listAudioDevices(this.voskCliPath);
       console.log('Available audio devices:', audioDevices); // DEBUG
-      this.audioDevices = audioDevices.devices.map(device => ({
-        id: device.id,
-        name: device.name,
-      }));
+      this.audioDevices$.next(
+        audioDevices.devices.map(device => ({
+          id: device.id,
+          name: device.name,
+        })),
+      );
     } catch (err) {
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
@@ -443,8 +438,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
     }
     // audioDeviceId が未設定なら存在する値で更新する
-    if (!this.state.audioDeviceId && this.audioDevices.length > 0) {
-      this.setAudioDeviceId(this.audioDevices[0]?.id || null);
+    if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
+      this.setAudioDeviceId(this.audioDevices$.value[0]?.id || null);
     }
   }
 
@@ -452,7 +447,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (!id) {
       return notFoundValue;
     }
-    const index = this.audioDevices.findIndex(device => device.id === id);
+    const index = this.audioDevices$.value.findIndex(device => device.id === id);
     if (index === -1) {
       return notFoundValue;
     }
@@ -460,12 +455,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   getAudioDeviceList(): { id: string; name: string }[] {
-    return this.audioDevices;
+    return this.audioDevices$.value;
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
     const index = this.getAudioDeviceIndex(audioDeviceId, 0);
-    const actualDeviceId = this.audioDevices.length > 0 ? this.audioDevices[index].id : null;
+    const actualDeviceId =
+      this.audioDevices$.value.length > 0 ? this.audioDevices$.value[index].id : null;
     if (audioDeviceId !== actualDeviceId) {
       console.warn(
         `Audio device with id ${audioDeviceId} not found. Using ${actualDeviceId} instead.`,
