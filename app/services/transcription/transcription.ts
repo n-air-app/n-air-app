@@ -194,7 +194,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    merge(this.state$, this.audioDevices$)
+    merge(this.state$, this.audioDevices$, this.modelsStatus$)
       .pipe(
         map(() => this.isReady()),
         distinctUntilChanged(),
