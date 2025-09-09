@@ -90,7 +90,11 @@ export default class TranscriptionSettings extends Vue {
       return $t('settings.transcription.disabledReason.noAudioSource');
     }
     if (!this.transcriptionService.isVoskModelReady()) {
-      return $t('settings.transcription.disabledReason.noVoskModel');
+      if (!this.transcriptionService.hasAnyDownloadedModel()) {
+        return $t('settings.transcription.disabledReason.noModelDownloaded');
+      } else {
+        return $t('settings.transcription.disabledReason.noVoskModel');
+      }
     }
     return '';
   }

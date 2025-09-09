@@ -133,6 +133,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     );
   }
 
+  hasAnyDownloadedModel(): boolean {
+    return this.getVoskModels().some(model => model.status.state === 'downloaded');
+  }
+
   // DEBUG 読み込まないで上書きして初期状態を作る
   /*
   static get initialState() {

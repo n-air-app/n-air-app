@@ -791,6 +791,7 @@
       "disabled": "自動文字起こし機能が無効です。",
       "noAudioSource": "音声ソースを選択してください。",
       "noVoskModel": "ダウンロードしたモデルを選択してください。",
+      "noModelDownloaded": "モデルをダウンロードしてください。",
       "noAudioDevice": "音声ソースデバイスが見つからないため、利用できません。"
     }
   }
