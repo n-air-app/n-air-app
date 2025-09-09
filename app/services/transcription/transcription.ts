@@ -127,7 +127,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   isVoskModelReady(): boolean {
-    const state = this.state$.value;
+    const state = this.state;
     return (
       state.voskModelName &&
       this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded'
