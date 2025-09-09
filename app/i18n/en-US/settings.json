@@ -759,8 +759,8 @@
     "enable": "Enable automatic transcription",
     "voskModel": "Voice recognition model",
     "voskModels": {
-      "vosk-model-ja-0.22": "VOSK Japanese full 0.22",
-      "vosk-model-small-ja-0.22": "VOSK Japanese small 0.22"
+      "vosk-model-ja-0.22": "VOSK Japanese (1GB) 0.22",
+      "vosk-model-small-ja-0.22": "VOSK Japanese small (48MB) 0.22"
     },
     "modelStatus": {
       "not_downloaded": "Not downloaded",

@@ -759,8 +759,8 @@
     "enable": "自動文字起こしを有効にする",
     "voskModel": "音声認識モデル",
     "voskModels": {
-      "vosk-model-ja-0.22": "VOSK 日本語(完全) 0.22",
-      "vosk-model-small-ja-0.22": "VOSK 日本語(小) 0.22"
+      "vosk-model-ja-0.22": "VOSK 日本語(1GB) 0.22",
+      "vosk-model-small-ja-0.22": "VOSK 日本語(軽量, 48MB) 0.22"
     },
     "modelStatus": {
       "not_downloaded": "未ダウンロード",

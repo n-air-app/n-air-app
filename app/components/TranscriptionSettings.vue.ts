@@ -102,16 +102,12 @@ export default class TranscriptionSettings extends Vue {
     );
   }
 
-  get enabledModel(): IObsInput<boolean> {
-    return {
-      name: 'enableTranscription',
-      description: $t('settings.transcription.enable'),
-      value: this.transcriptionService.state.enabled ?? false,
-      enabled: true,
-    };
+  enabledLabel = $t('settings.transcription.enable');
+  get enabled(): boolean {
+    return this.transcriptionService.state.enabled ?? false;
   }
-  set enabledModel(model: IObsInput<boolean>) {
-    this.transcriptionService.setEnabled(model.value);
+  set enabled(model: boolean) {
+    this.transcriptionService.setEnabled(model);
   }
 
   get voskModelModel(): IObsListInput<string> {

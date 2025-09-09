@@ -1,10 +1,17 @@
 <template>
   <div class="setting-section">
-    <div class="input-wrapper">
-      <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
+    <div class="section">
+      <div class="row">
+        <div class="name">
+          {{ $t('settings.substream.use') }}
+          <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
+        </div>
+        <div class="value">
+          <input type="checkbox" v-model="enabled" class="toggle-button" />
+        </div>
+      </div>
     </div>
-    <ObsBoolInput v-model="enabledModel" />
-    <div v-if="enabledModel.value">
+    <div v-if="enabled">
       <div class="section">
         <ObsListInput v-model="audioSourceIdModel" />
       </div>
@@ -70,6 +77,25 @@
 
 <style lang="less" scoped>
 @import url('../styles/index');
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.name {
+  flex-grow: 1;
+  font-size: @font-size4;
+  color: var(--color-text);
+}
+
+.value {
+  display: flex;
+  align-items: center;
+  color: var(--color-text);
+}
 
 p.error {
   color: var(--color-error);
