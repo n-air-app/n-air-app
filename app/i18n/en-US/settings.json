@@ -786,7 +786,38 @@
       "notice1": "※Automatic transcription comments are not displayed in real-time on the streaming page when logged in as the broadcaster",
       "notice2": "※Not posted during test streaming",
       "postDelay": "Comment Post delay (ms)",
-      "vposOffset": "Comment Vpos Offset (ms)"
+      "vposOffset": "Comment Vpos Offset (ms)",
+      "positionLabel": "Comment Position",
+      "position": {
+        "naka": "Center",
+        "ue": "Top",
+        "shita": "Bottom"
+      },
+      "sizeLabel": "Comment Size",
+      "size": {
+        "big": "Large",
+        "medium": "Medium",
+        "small": "Small"
+      },
+      "fontLabel": "Comment Font",
+      "font": {
+        "defont": "Default",
+        "gothic": "Gothic",
+        "mincho": "Mincho"
+      },
+      "colorLabel": "Comment Color",
+      "color": {
+        "white": "White",
+        "red": "Red",
+        "pink": "Pink",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "cyan": "Cyan",
+        "blue": "Blue",
+        "purple": "Purple",
+        "black": "Black"
+      }
     },
     "disabledReason": {
       "disabled": "Automatic transcription is disabled.",

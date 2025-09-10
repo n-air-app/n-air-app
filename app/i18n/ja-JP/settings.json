@@ -786,7 +786,38 @@
       "notice1": "※自動文字起こしコメントは、放送者自身でログインした配信ページにはリアルタイムで表示されません",
       "notice2": "※テスト配信中は投稿されません",
       "postDelay": "コメント投稿遅延 (ミリ秒)",
-      "vposOffset": "コメントVpos調整(ミリ秒)"
+      "vposOffset": "コメントVpos調整(ミリ秒)",
+      "positionLabel": "コメント位置",
+      "position": {
+        "naka": "中",
+        "ue": "上",
+        "shita": "下"
+      },
+      "sizeLabel": "コメントサイズ",
+      "size": {
+        "big": "大",
+        "medium": "中",
+        "small": "小"
+      },
+      "fontLabel": "コメントフォント",
+      "font": {
+        "defont": "デフォルト",
+        "gothic": "ゴシック",
+        "mincho": "明朝"
+      },
+      "colorLabel": "コメント色",
+      "color": {
+        "white": "白",
+        "red": "赤",
+        "pink": "ピンク",
+        "orange": "オレンジ",
+        "yellow": "黄",
+        "green": "緑",
+        "cyan": "シアン",
+        "blue": "青",
+        "purple": "紫",
+        "black": "黒"
+      }
     },
     "disabledReason": {
       "disabled": "自動文字起こし機能が無効です。",

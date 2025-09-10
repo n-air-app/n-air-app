@@ -36,6 +36,16 @@ import {
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
 export { VoskModelStatus };
 
+export const COMMENT_POSITIONS = ['naka', 'ue', 'shita'] as const;
+export const COMMENT_SIZES = ['big', 'medium', 'small'] as const;
+export const COMMENT_FONTS = ['defont', 'gothic', 'mincho'] as const;
+export const COMMENT_COLORS = ['white', 'red', 'pink', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple', 'black'] as const;
+
+export type CommentPosition = typeof COMMENT_POSITIONS[number];
+export type CommentSize = typeof COMMENT_SIZES[number];
+export type CommentFont = typeof COMMENT_FONTS[number];
+export type CommentColor = typeof COMMENT_COLORS[number];
+
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
 const getVoskModelURL = (name: string): string =>
   `https://n-air-app.nicovideo.jp/download/assets/vosk-models/${name}.zip`;
@@ -44,6 +54,10 @@ interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
   audioDeviceId?: string | null;
+  commentPosition: CommentPosition;
+  commentSize: CommentSize;
+  commentFont: CommentFont;
+  commentColor: CommentColor;
   commentPostDelay: number; // in milliseconds
   commentVposOffset: number; // in milliseconds
   textFileEnabled?: boolean;
@@ -81,6 +95,10 @@ export type ActiveStatus =
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    commentPosition: 'shita',
+    commentFont: 'gothic',
+    commentSize: 'small',
+    commentColor: 'white',
     commentPostDelay: 0,
     commentVposOffset: 0,
     textFileEnabled: true,
@@ -637,6 +655,22 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   setCommentVposOffset(commentVposOffset: number) {
     this.setState({ commentVposOffset });
+  }
+
+  setCommentPosition(commentPosition: CommentPosition) {
+    this.setState({ commentPosition });
+  }
+
+  setCommentSize(commentSize: CommentSize) {
+    this.setState({ commentSize });
+  }
+
+  setCommentFont(commentFont: CommentFont) {
+    this.setState({ commentFont });
+  }
+
+  setCommentColor(commentColor: CommentColor) {
+    this.setState({ commentColor });
   }
 
   private setState(newState: Partial<ITranscriptionServiceState>) {

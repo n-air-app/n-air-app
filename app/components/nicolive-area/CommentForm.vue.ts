@@ -110,15 +110,12 @@ export default class CommentForm extends Vue {
     try {
       this.isCommentSending = true;
       const vpos = this.nicoliveProgramService.getVposFromDate(estimatedStartSpeaking);
-      // TODO コメント装飾をどうするか
-      const modifier: CommentModifier = this.userService.isPremium
-        ? {
-            position: 'shita', // shitaはプレミアム専用
-            font: 'gothic',
-          }
-        : {
-            font: 'gothic',
-          };
+      const modifier: CommentModifier = {
+        position: this.transcriptionService.state.commentPosition,
+        font: this.transcriptionService.state.commentFont,
+        color: this.transcriptionService.state.commentColor,
+        size: this.transcriptionService.state.commentSize,
+      };
       await this.nicoliveProgramService.sendNormalComment(text, vpos, modifier);
     } catch (caught) {
       if (caught instanceof NicoliveFailure) {

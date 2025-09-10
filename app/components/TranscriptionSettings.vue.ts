@@ -11,6 +11,14 @@ import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
   ActiveStatus,
+  COMMENT_COLORS,
+  COMMENT_FONTS,
+  COMMENT_POSITIONS,
+  COMMENT_SIZES,
+  CommentColor,
+  CommentFont,
+  CommentPosition,
+  CommentSize,
   TranscriptionService,
   VoskModelStatus,
   voskModelStatusToString,
@@ -196,6 +204,70 @@ export default class TranscriptionSettings extends Vue {
   }
   set commentVposOffsetModel(model: IObsInput<number>) {
     this.transcriptionService.setCommentVposOffset(model.value);
+  }
+
+  get commentPositionModel(): IObsListInput<CommentPosition> {
+    return {
+      name: 'transcriptionCommentPosition',
+      description: $t('settings.transcription.comment.positionLabel'),
+      value: this.transcriptionService.state.commentPosition,
+      enabled: true,
+      options: COMMENT_POSITIONS.map(position => ({
+        description: $t(`settings.transcription.comment.position.${position}`),
+        value: position,
+      })),
+    };
+  }
+  set commentPositionModel(model: IObsListInput<CommentPosition>) {
+    this.transcriptionService.setCommentPosition(model.value);
+  }
+
+  get commentSizeModel(): IObsListInput<CommentSize> {
+    return {
+      name: 'transcriptionCommentSize',
+      description: $t('settings.transcription.comment.sizeLabel'),
+      value: this.transcriptionService.state.commentSize,
+      enabled: true,
+      options: COMMENT_SIZES.map(size => ({
+        description: $t(`settings.transcription.comment.size.${size}`),
+        value: size,
+      })),
+    };
+  }
+  set commentSizeModel(model: IObsListInput<CommentSize>) {
+    this.transcriptionService.setCommentSize(model.value);
+  }
+
+  get commentFontModel(): IObsListInput<CommentFont> {
+    return {
+      name: 'transcriptionCommentFont',
+      description: $t('settings.transcription.comment.fontLabel'),
+      value: this.transcriptionService.state.commentFont,
+      enabled: true,
+      options: COMMENT_FONTS.map(font => ({
+        description: $t(`settings.transcription.comment.font.${font}`),
+        value: font,
+      })),
+    };
+  }
+  set commentFontModel(model: IObsListInput<CommentFont>) {
+    this.transcriptionService.setCommentFont(model.value);
+  }
+
+  get commentColorModel(): IObsListInput<CommentColor> {
+    return {
+      name: 'transcriptionCommentColor',
+      description: $t('settings.transcription.comment.colorLabel'),
+      value: this.transcriptionService.state.commentColor,
+      enabled: true,
+      options: COMMENT_COLORS.map(color => ({
+        description: $t(`settings.transcription.comment.color.${color}`),
+        value: color,
+      })),
+    };
+  }
+  set commentColorModel(model: IObsListInput<CommentColor>) {
+    this.transcriptionService.setCommentColor(model.value);
   }
 
   textFileSectionTitle = $t('settings.transcription.textFile.sectionTitle');
