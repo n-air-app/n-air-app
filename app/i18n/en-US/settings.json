@@ -789,7 +789,7 @@
       "vposOffset": "Comment Vpos Offset (ms)",
       "positionLabel": "Comment Position",
       "position": {
-        "naka": "Center",
+        "naka": "Flowing (Right to Left)",
         "ue": "Top (Premium members only)",
         "shita": "Bottom (Premium members only)"
       },

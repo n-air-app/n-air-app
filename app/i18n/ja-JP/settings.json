@@ -789,7 +789,7 @@
       "vposOffset": "コメントVpos調整(ミリ秒)",
       "positionLabel": "コメント位置",
       "position": {
-        "naka": "中",
+        "naka": "右から左へ流す",
         "ue": "上（プレミアム会員限定）",
         "shita": "下（プレミアム会員限定）"
       },
