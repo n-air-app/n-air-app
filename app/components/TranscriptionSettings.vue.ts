@@ -10,7 +10,6 @@ import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
-  ActiveStatus,
   COMMENT_COLORS,
   COMMENT_FONTS,
   COMMENT_POSITIONS,
@@ -19,6 +18,9 @@ import {
   CommentFont,
   CommentPosition,
   CommentSize,
+} from 'services/transcription/CommentModifier';
+import {
+  ActiveStatus,
   TranscriptionService,
   VoskModelStatus,
   voskModelStatusToString,

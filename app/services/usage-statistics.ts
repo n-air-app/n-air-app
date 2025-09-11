@@ -6,6 +6,12 @@ import { Service } from './core/service';
 import { HostsService } from './hosts';
 import { SynthesizerSelector } from './nicolive-program/state';
 import { EncoderFamily } from './settings/optimizer';
+import {
+  CommentColor,
+  CommentFont,
+  CommentPosition,
+  CommentSize,
+} from './transcription/CommentModifier';
 import { UserService } from './user';
 import { UuidService } from './uuid';
 
@@ -55,8 +61,14 @@ export type SubStreamLog = {
 export type TranscriptionLog = {
   enabled: boolean;
   voskModelName: string;
+  commentColor: CommentColor;
+  commentPosition: CommentPosition;
+  commentSize: CommentSize;
+  commentFont: CommentFont;
   commentPostDelay: number;
   commentVposOffset: number;
+  textFileMaxLine: number;
+  textFileLineTimeToLive: number; // in milliseconds
 };
 
 export type TUsageEvent =

@@ -19,6 +19,7 @@ import {
 } from 'rxjs';
 import { $t } from 'services/i18n';
 import { mutation, PersistentStatefulService } from '../core';
+import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
 import { downloadAndUnzip } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
 import {
@@ -35,16 +36,6 @@ import {
 } from './VoskClient';
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
 export { VoskModelStatus };
-
-export const COMMENT_POSITIONS = ['naka', 'ue', 'shita'] as const;
-export const COMMENT_SIZES = ['big', 'medium', 'small'] as const;
-export const COMMENT_FONTS = ['defont', 'gothic', 'mincho'] as const;
-export const COMMENT_COLORS = ['white', 'red', 'pink', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple', 'black'] as const;
-
-export type CommentPosition = typeof COMMENT_POSITIONS[number];
-export type CommentSize = typeof COMMENT_SIZES[number];
-export type CommentFont = typeof COMMENT_FONTS[number];
-export type CommentColor = typeof COMMENT_COLORS[number];
 
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
 const getVoskModelURL = (name: string): string =>

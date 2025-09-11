@@ -820,11 +820,18 @@ export class StreamingService
       };
     }
     if (this.transcriptionService.state.enabled) {
+      const state = this.transcriptionService.state;
       event.transcription = {
         enabled: true,
-        voskModelName: this.transcriptionService.state.voskModelName,
-        commentPostDelay: this.transcriptionService.state.commentPostDelay,
-        commentVposOffset: this.transcriptionService.state.commentVposOffset,
+        voskModelName: state.voskModelName,
+        commentColor: state.commentColor,
+        commentSize: state.commentSize,
+        commentPosition: state.commentPosition,
+        commentFont: state.commentFont,
+        commentPostDelay: state.commentPostDelay,
+        commentVposOffset: state.commentVposOffset,
+        textFileMaxLine: state.textFileMaxLine,
+        textFileLineTimeToLive: state.textFileLineTimeToLive,
       };
     }
 
