@@ -790,12 +790,12 @@
       "positionLabel": "Comment Position",
       "position": {
         "naka": "Center",
-        "ue": "Top",
-        "shita": "Bottom"
+        "ue": "Top (Premium members only)",
+        "shita": "Bottom (Premium members only)"
       },
       "sizeLabel": "Comment Size",
       "size": {
-        "big": "Large",
+        "big": "Large (Premium members only)",
         "medium": "Medium",
         "small": "Small"
       },

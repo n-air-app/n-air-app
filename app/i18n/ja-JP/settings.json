@@ -790,12 +790,12 @@
       "positionLabel": "コメント位置",
       "position": {
         "naka": "中",
-        "ue": "上",
-        "shita": "下"
+        "ue": "上（プレミアム会員限定）",
+        "shita": "下（プレミアム会員限定）"
       },
       "sizeLabel": "コメントサイズ",
       "size": {
-        "big": "大",
+        "big": "大（プレミアム会員限定）",
         "medium": "中",
         "small": "小"
       },
