@@ -213,7 +213,11 @@ export default class TranscriptionSettings extends Vue {
       value: this.transcriptionService.state.commentPosition,
       enabled: true,
       options: COMMENT_POSITIONS.map(position => ({
-        description: $t(`settings.transcription.comment.position.${position}`),
+        description:
+          $t(`settings.transcription.comment.position.${position}`) +
+          (position === TranscriptionService.defaultState.commentPosition
+            ? $t('settings.transcription.comment.defaultSuffix')
+            : ''),
         value: position,
       })),
     };
@@ -229,7 +233,11 @@ export default class TranscriptionSettings extends Vue {
       value: this.transcriptionService.state.commentSize,
       enabled: true,
       options: COMMENT_SIZES.map(size => ({
-        description: $t(`settings.transcription.comment.size.${size}`),
+        description:
+          $t(`settings.transcription.comment.size.${size}`) +
+          (size === TranscriptionService.defaultState.commentSize
+            ? $t('settings.transcription.comment.defaultSuffix')
+            : ''),
         value: size,
       })),
     };
@@ -261,7 +269,11 @@ export default class TranscriptionSettings extends Vue {
       value: this.transcriptionService.state.commentColor,
       enabled: true,
       options: COMMENT_COLORS.map(color => ({
-        description: $t(`settings.transcription.comment.color.${color}`),
+        description:
+          $t(`settings.transcription.comment.color.${color}`) +
+          (color === TranscriptionService.defaultState.commentColor
+            ? $t('settings.transcription.comment.defaultSuffix')
+            : ''),
         value: color,
       })),
     };

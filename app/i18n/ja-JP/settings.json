@@ -817,7 +817,8 @@
         "blue": "青",
         "purple": "紫",
         "black": "黒"
-      }
+      },
+      "defaultSuffix": "（デフォルト）"
     },
     "disabledReason": {
       "disabled": "自動文字起こし機能が無効です。",

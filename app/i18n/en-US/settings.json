@@ -817,7 +817,8 @@
         "blue": "Blue",
         "purple": "Purple",
         "black": "Black"
-      }
+      },
+      "defaultSuffix": " (Default)"
     },
     "disabledReason": {
       "disabled": "Automatic transcription is disabled.",
