@@ -12,6 +12,16 @@ export const COMMENT_COLORS = [
   'blue',
   'purple',
   'black',
+  'white2',
+  'red2',
+  'pink2',
+  'orange2',
+  'yellow2',
+  'green2',
+  'cyan2',
+  'blue2',
+  'purple2',
+  'black2',
 ] as const;
 
 export type CommentPosition = (typeof COMMENT_POSITIONS)[number];

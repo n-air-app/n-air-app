@@ -816,7 +816,17 @@
         "cyan": "Cyan",
         "blue": "Blue",
         "purple": "Purple",
-        "black": "Black"
+        "black": "Black",
+        "white2": "White2 (Premium members only)",
+        "red2": "Red2 (Premium members only)",
+        "pink2": "Pink2 (Premium members only)",
+        "orange2": "Orange2 (Premium members only)",
+        "yellow2": "Yellow2 (Premium members only)",
+        "green2": "Green2 (Premium members only)",
+        "cyan2": "Cyan2 (Premium members only)",
+        "blue2": "Blue2 (Premium members only)",
+        "purple2": "Purple2 (Premium members only)",
+        "black2": "Black2 (Premium members only)"
       },
       "defaultSuffix": " (Default)"
     },

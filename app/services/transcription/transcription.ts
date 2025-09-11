@@ -88,7 +88,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     voskModelName: VOSK_MODEL_NAMES[0],
     commentPosition: 'shita',
     commentFont: 'gothic',
-    commentSize: 'small',
+    commentSize: 'medium',
     commentColor: 'white',
     commentPostDelay: 0,
     commentVposOffset: 0,
