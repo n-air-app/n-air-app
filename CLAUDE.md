@@ -141,6 +141,22 @@ test('service behavior', () => {
 **Target Branch:** Create PRs against `n-air-development` branch (the main development branch)
 **Commits:** Standard commit message format, include context about changes
 
+**Push Remote Configuration:** Developers may use different remotes (personal forks vs main repo):
+- Configure via `.claude/settings.local.json` env variables:
+  - `NAIR_GIT_PUSH_REMOTE`: remote name (e.g., "koizuka", "origin")
+  - `NAIR_GIT_TARGET_REPO`: target repository (e.g., "koizuka/n-air-app", "n-air-app/n-air-app")
+- Use `git push -u ${NAIR_GIT_PUSH_REMOTE:-origin} branch-name` for pushes
+- Use `gh pr create --repo ${NAIR_GIT_TARGET_REPO:-n-air-app/n-air-app}` for PRs
+
+**PR Title Rules:** PR titles are collected for patch notes shown to users:
+- **User-visible changes:** Use prefixes that will be grouped in patch notes:
+  - `追加:` - New features users can see/use
+  - `変更:` - Changes to existing user-visible functionality  
+  - `修正:` - Bug fixes users would notice
+- **Internal/development changes:** Use `開発:` prefix (not shown to users)
+- Write titles in Japanese using verb form (not noun form): `○○機能を追加`, `○○問題を修正`
+- Examples: `追加: ニコニコ生放送のコメント読み上げ機能を追加`, `修正: 配信開始時のクラッシュ問題を修正`, `開発: ユニットテストを追加`
+
 ## Dependencies Notes
 
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
