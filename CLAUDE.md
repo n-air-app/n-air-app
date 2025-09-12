@@ -131,7 +131,7 @@ test('service behavior', () => {
 
 ## Code Style
 
-**Formatting:** Prettier with 100 char width, single quotes, trailing commas
+**Formatting:** Prettier with single quotes, trailing commas
 **Linting:** ESLint with TypeScript + Vue plugins, Stylelint for CSS/Less
 **Pre-commit:** Husky + lint-staged runs formatting and linting automatically
 
