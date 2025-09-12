@@ -1,0 +1,148 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+N Air is an Electron-based desktop streaming application for niconico live streaming, forked from Streamlabs OBS. It combines Vue.js frontend with native OBS streaming capabilities, specifically tailored for Japanese live streaming needs.
+
+**Tech Stack:** Electron 29.3.1, Vue.js 2.7.14, TypeScript 5.5.4, OBS Studio Node, Webpack 5
+
+## Development Commands
+
+**Setup:**
+```bash
+# Install dependencies (requires GitHub Personal Access Token for @n-air-app packages)
+npm login --scope=@n-air-app --registry=https://npm.pkg.github.com
+yarn install
+yarn install --cwd bin  # Required for yarn start
+```
+
+**Development:**
+```bash
+yarn compile        # Build development assets
+yarn start          # Run application
+yarn dev            # Development mode with hot reload (webpack dev server + electron)
+yarn watch          # Watch mode compilation
+```
+
+**Build & Package:**
+```bash
+yarn compile:production     # Production build
+yarn package               # Package for distribution (stable)
+yarn package:public-unstable  # Package unstable build
+```
+
+**Testing:**
+```bash
+yarn test           # Full test suite (i18n check + TypeScript compile + AVA)
+yarn test:unit      # Unit tests (Jest for app + bin)
+yarn test:unit:app  # Jest tests for app only
+yarn screentest     # Visual regression tests
+```
+
+**Code Quality:**
+```bash
+yarn lint           # ESLint + Stylelint
+yarn format         # Prettier + ESLint fix + Stylelint fix
+```
+
+## Architecture
+
+**Service Layer:** Singleton services with RxJS reactive state management, dependency injection pattern. Services located in `app/services/`
+
+**Vue Components:** 
+- `app/components/nicolive-area/` - Niconico-specific UI
+- `app/components/obs/` - OBS integration components  
+- `app/components/shared/` - Reusable components
+- `app/components/windows/` - Window management
+
+**OBS Integration:** Native OBS Studio Node bindings for video streaming, source management, scene collections, and filters
+
+**Multi-Window Architecture:** Main window + child windows with IPC communication via Electron Remote
+
+**Niconico Features:** Live comment system, program management, user auth, voice synthesis (N Voice, VOICEVOX), custom cast support
+
+## Key Development Patterns
+
+**Import Paths:** Uses TypeScript path mapping with `baseUrl: "./app"` - import from app root without relative paths
+
+**Decorators:** Uses experimental decorators for services and Vue components (`@Component`, `@Prop`, etc.)
+
+**State Management:** RxJS Subjects/BehaviorSubjects in services, not Vuex for most app state
+
+**Window Communication:** Use `@electron/remote` for IPC between main and renderer processes
+
+## Testing Setup
+
+**Unit Tests:** Jest with `@kayahr/jest-electron-runner` for Electron environment
+**E2E Tests:** Custom WebDriver wrapper with Electron ChromeDriver
+**Test Location:** Tests in `test/` directory, compiled to `test-dist/`
+
+## Build System
+
+**Webpack Config:** Multiple entry points (renderer, updater), TypeScript + Vue SFC support
+**Asset Handling:** Fonts, images, media files processed through webpack loaders
+**Development:** Hot reload via webpack-dev-server on port 8080
+
+## Internationalization
+
+**Location:** `app/i18n/` with Japanese/English support
+**Validation:** Pre-commit hook runs i18n integrity checks
+**Framework:** Vue-i18n 7.x
+
+## Unit Testing Guidelines
+
+**Test File Location:** Place test files next to their target modules with `*.test.ts` naming (e.g., `file-manager.test.ts` for `file-manager.ts`)
+
+**Service Testing Architecture:**
+- Services are **singletons** with **RPC-based cross-process synchronization** using dependency injection
+- Use `createSetupFunction()` to mock service dependencies and state
+- Must mock `services/core/stateful-service` and `services/core/injector` before importing services
+- Access service instances via `require('./service-name').ServiceName.instance` after setup
+
+**Fake Timers:** Always use `@sinonjs/fake-timers` for time-related testing, not Jest's built-in timers
+
+**Common Test Patterns:**
+```typescript
+// Service test setup
+import { createSetupFunction } from 'util/test-setup';
+
+const setup = createSetupFunction({
+  state: { ServiceName: { someState: 'value' } },
+  injectee: { DependencyService: mockDependency }
+});
+
+beforeEach(() => {
+  jest.mock('services/core/stateful-service');
+  jest.mock('services/core/injector');
+  jest.resetModules();
+});
+
+test('service behavior', () => {
+  setup();
+  const { ServiceName } = require('./service-name');
+  const instance = ServiceName.instance;
+  // test implementation
+});
+```
+
+**RxJS & State Management:** Services use RxJS Subjects/BehaviorSubjects for reactive state, test these observables appropriately
+
+## Code Style
+
+**Formatting:** Prettier with 100 char width, single quotes, trailing commas
+**Linting:** ESLint with TypeScript + Vue plugins, Stylelint for CSS/Less
+**Pre-commit:** Husky + lint-staged runs formatting and linting automatically
+
+## Git & GitHub Workflow
+
+**Repository:** Always push to and create PRs against `github.com/n-air-app/n-air-app` (NOT the original Streamlabs fork)
+**Target Branch:** Create PRs against `n-air-development` branch (the main development branch)
+**Commits:** Standard commit message format, include context about changes
+
+## Dependencies Notes
+
+**Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
+**Package Manager:** Must use Yarn (npm blocked), lockfile committed
+**Node Version:** Requires Node.js 20.x LTS
