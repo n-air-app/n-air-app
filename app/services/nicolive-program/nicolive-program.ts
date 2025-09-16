@@ -682,4 +682,8 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
       throw NicoliveFailure.fromClientError('undoDeleteComment', result);
     }
   }
+
+  isBroadcaster(userId: string): boolean {
+    return userId === this.userService.platform.id;
+  }
 }

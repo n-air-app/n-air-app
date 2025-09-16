@@ -189,6 +189,7 @@ export default class CommentViewer extends Vue {
     if (!(item.type === 'normal' || item.type === 'operator')) {
       return;
     }
+    const isBroadcaster = this.nicoliveProgramService.isBroadcaster(item.value.user_id);
 
     const menu = new Menu();
     menu.append({
@@ -256,29 +257,31 @@ export default class CommentViewer extends Vue {
             },
           });
         }
-        menu.append({
-          type: 'separator',
-        });
-        menu.append({
-          id: 'Ban comment owner',
-          label: 'ユーザーを配信からブロック',
-          click: () => {
-            this.nicoliveCommentFilterService
-              .addFilter({
-                type: 'user',
-                body: item.value.user_id,
-                messageId: `${item.value.id}`,
-                memo: item.value.content,
-              })
-              .catch(e => {
-                if (e instanceof NicoliveFailure) {
-                  openErrorDialogFromFailure(e);
-                }
-              });
-          },
-        });
+        if (!isBroadcaster /* 自分のコメントはブロックできない */) {
+          menu.append({
+            type: 'separator',
+          });
+          menu.append({
+            id: 'Ban comment owner',
+            label: 'ユーザーを配信からブロック',
+            click: () => {
+              this.nicoliveCommentFilterService
+                .addFilter({
+                  type: 'user',
+                  body: item.value.user_id,
+                  messageId: `${item.value.id}`,
+                  memo: item.value.content,
+                })
+                .catch(e => {
+                  if (e instanceof NicoliveFailure) {
+                    openErrorDialogFromFailure(e);
+                  }
+                });
+            },
+          });
+        }
       }
-      if (item.value.name /* なふだ有効ユーザー */) {
+      if (item.value.name /* なふだ有効ユーザー */ && !isBroadcaster) {
         if (!this.nicoliveModeratorsService.isModerator(item.value.user_id)) {
           if (!item.filtered) {
             menu.append({

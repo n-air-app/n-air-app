@@ -91,7 +91,7 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
     if (!record.userId) {
       return true;
     }
-    return record.userId.toString() === this.nicoliveProgramService.userService.platform.id;
+    return this.nicoliveProgramService.isBroadcaster(record.userId.toString());
   }
 
   async deleteFilters(ids: number[]) {
