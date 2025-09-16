@@ -214,7 +214,7 @@
   },
   "text_transcription": {
     "name": "自動文字起こし",
-    "description": "シーンに自動文字起こしテキストを追加します。"
+    "description": "自動文字起こし用の初期設定をしたテキスト"
   },
   "text (FreeType2)": {
     "name": "テキスト(FreeType 2)"

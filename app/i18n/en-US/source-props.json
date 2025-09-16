@@ -214,7 +214,7 @@
   },
   "text_transcription": {
     "name": "Automatic Transcription Text",
-    "description": "Add automatic transcription text to your scene."
+    "description": "Pre-configured text for automatic transcription"
   },
   "text (FreeType2)": {
     "name": "Text (FreeType 2)"
