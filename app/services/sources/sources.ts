@@ -33,6 +33,7 @@ import {
 import { CustomCastNdiManager } from './properties-managers/custom-cast-ndi-manager';
 import { DefaultManager } from './properties-managers/default-manager';
 import { NVoiceCharacterManager } from './properties-managers/nvoice-character-manager';
+import { TextTranscriptionManager } from './properties-managers/text-transcription-manager';
 
 const AudioFlag = obs.ESourceOutputFlags.Audio;
 const VideoFlag = obs.ESourceOutputFlags.Video;
@@ -43,6 +44,7 @@ export const PROPERTIES_MANAGER_TYPES = {
   default: DefaultManager,
   'nvoice-character': NVoiceCharacterManager,
   'custom-cast-ndi': CustomCastNdiManager,
+  text_transcription: TextTranscriptionManager,
 };
 
 interface IObsSourceCallbackInfo {

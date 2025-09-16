@@ -121,7 +121,11 @@ export type TSelectableSourceType =
   | 'text_transcription'; // 登録後は text_gdiplus
 
 // Register new properties manager here
-export type TPropertiesManager = 'default' | 'nvoice-character' | 'custom-cast-ndi';
+export type TPropertiesManager =
+  | 'default'
+  | 'nvoice-character'
+  | 'custom-cast-ndi'
+  | 'text_transcription';
 
 export function isNoAudioPropertiesManagerType(propertiesManagerType: TPropertiesManager): boolean {
   return ['nvoice-character'].includes(propertiesManagerType);
