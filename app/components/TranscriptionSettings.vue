@@ -68,7 +68,6 @@
         <h4 class="section-title">{{ textFileSectionTitle }}</h4>
         <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
         <div v-if="textFileEnabledModel.value">
-          <ObsPathInput v-model="textFilePathModel" />
           <ObsIntInput v-model="textFileMaxLineModel" />
           <ObsIntInput v-model="textFileLineTimeToLiveModel" />
         </div>

@@ -775,10 +775,10 @@
     "noAudioSourceFound": "No audio source found",
     "preview": "Preview",
     "textFile": {
-      "sectionTitle": "Text File Output Settings",
-      "enable": "Enable text file output",
+      "sectionTitle": "Automatic Transcription Text Source Output Settings",
+      "enable": "Enable Automatic Transcription Text Source output",
       "path": "Text file path",
-      "maxLine": "Max lines in text file",
+      "maxLine": "Max lines in text",
       "lineTimeToLive": "Time to live for text lines (ms)"
     },
     "comment": {

@@ -775,10 +775,10 @@
     "noAudioSourceFound": "音声ソースが見つかりません",
     "preview": "プレビュー",
     "textFile": {
-      "sectionTitle": "テキストファイル出力設定",
-      "enable": "テキストファイル出力を有効にする",
+      "sectionTitle": "自動文字起こしソース出力設定",
+      "enable": "自動文字起こしソース出力を有効にする",
       "path": "テキストファイルパス",
-      "maxLine": "テキストファイルの最大行数",
+      "maxLine": "テキストの最大行数",
       "lineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)"
     },
     "comment": {
