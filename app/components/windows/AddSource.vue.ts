@@ -204,7 +204,7 @@ export default class AddSource extends Vue {
           antialiasing: true,
         },
         {
-          propertiesManager: this.sourceAddOptions.propertiesManager,
+          propertiesManager: 'text_transcription',
           propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
         },
       ),
