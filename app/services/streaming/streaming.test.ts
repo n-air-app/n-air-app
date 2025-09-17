@@ -134,6 +134,8 @@ const createInjectee = ({
   },
   TranscriptionService: {
     state: noop,
+    startStreaming: noop,
+    stopStreaming: noop,
   },
 });
 

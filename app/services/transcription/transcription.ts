@@ -18,10 +18,13 @@ import {
   timer,
 } from 'rxjs';
 import { $t } from 'services/i18n';
+import { TranscriptionLog } from 'services/usage-statistics';
+import { Inject } from 'vue-property-decorator';
 import { mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
 import { downloadAndUnzip } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
+import { TranscriptionSourceUsageService } from './transcription-source-usage';
 import {
   CreateVoskCliClient,
   getVoskCliPath,
@@ -84,6 +87,8 @@ export type ActiveStatus =
   | 'noVoskModel';
 
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
+  @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
+
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
     commentPosition: 'shita',
@@ -262,6 +267,31 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.initTextFileWriter();
 
     this.updateAudioDevices();
+  }
+
+  getActionLog(): TranscriptionLog {
+    const state = this.state;
+    return {
+      enabled: true,
+      voskModelName: state.voskModelName,
+      commentColor: state.commentColor,
+      commentSize: state.commentSize,
+      commentPosition: state.commentPosition,
+      commentFont: state.commentFont,
+      commentPostDelay: state.commentPostDelay,
+      commentVposOffset: state.commentVposOffset,
+      textFileMaxLine: state.textFileMaxLine,
+      textFileLineTimeToLive: state.textFileLineTimeToLive,
+      transcriptionSourceUsed: this.transcriptionSourceUsageService.state.used,
+    };
+  }
+
+  startStreaming() {
+    this.transcriptionSourceUsageService.startStreaming();
+  }
+
+  stopStreaming() {
+    this.transcriptionSourceUsageService.stopStreaming();
   }
 
   initTextFileWriter() {
@@ -530,6 +560,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   async startDownloadVoskModel(modelName: string) {
     console.log('startDownloadVoskModel', modelName);
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `Start downloading Vosk model: ${modelName}`,
+    });
 
     const tmpDir = tmpdir();
     const tmpZipPath = join(tmpDir, `${modelName}.zip`);
@@ -561,9 +595,28 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       await downloadAndUnzip(downloadUrl, tmpZipPath, this.modelBasePath, onProgress);
 
       this.setModelStatus(modelName, { state: 'downloaded' });
+      Sentry.captureEvent({
+        message: 'Vosk model downloaded',
+        level: 'info',
+        tags: {
+          service: 'transcription',
+          model: modelName,
+        },
+      });
     } catch (err) {
       console.error('Error during Vosk model download/extraction:', err);
       this.setModelStatus(modelName, { state: 'download_error' });
+      Sentry.captureEvent({
+        message: 'Vosk model download/extraction error',
+        level: 'error',
+        tags: {
+          service: 'transcription',
+          model: modelName,
+        },
+        extra: {
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
       throw err;
     } finally {
       // Delete the temporary zip file
@@ -585,6 +638,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
    */
   async deleteVoskModel(modelName: string): Promise<boolean> {
     console.log('deleteVoskModel', modelName);
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `Delete Vosk model: ${modelName}`,
+    });
 
     const currentStatus = this.modelsManager.getVoskModelStatus(modelName);
     switch (currentStatus.state) {
@@ -622,6 +679,11 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   setModelName(modelName: string | null) {
     console.log('setModelName', modelName); // DEBUG
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `Set Vosk model: ${modelName}`,
+    });
+
     if (this.state.voskModelName === modelName) {
       return; // No change needed
     }

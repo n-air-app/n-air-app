@@ -69,6 +69,7 @@ export type TranscriptionLog = {
   commentVposOffset: number;
   textFileMaxLine: number;
   textFileLineTimeToLive: number; // in milliseconds
+  transcriptionSourceUsed: boolean;
 };
 
 export type TUsageEvent =

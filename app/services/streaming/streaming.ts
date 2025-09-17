@@ -719,6 +719,7 @@ export class StreamingService
     this.actionLog('stream_start', streamingTrackId);
     this.customcastUsageService.startStreaming();
     this.rtvcStateService.startStreaming();
+    this.transcriptionService.startStreaming();
   }
 
   private logStreamEnd() {
@@ -727,6 +728,7 @@ export class StreamingService
     this.actionLog('stream_end', streamingTrackId);
     this.customcastUsageService.stopStreaming();
     this.rtvcStateService.stopStreaming();
+    this.transcriptionService.stopStreaming();
 
     HttpRelation.sendLog(
       this.nicoliveProgramService.state.programID,
@@ -820,19 +822,7 @@ export class StreamingService
       };
     }
     if (this.transcriptionService.state.enabled) {
-      const state = this.transcriptionService.state;
-      event.transcription = {
-        enabled: true,
-        voskModelName: state.voskModelName,
-        commentColor: state.commentColor,
-        commentSize: state.commentSize,
-        commentPosition: state.commentPosition,
-        commentFont: state.commentFont,
-        commentPostDelay: state.commentPostDelay,
-        commentVposOffset: state.commentVposOffset,
-        textFileMaxLine: state.textFileMaxLine,
-        textFileLineTimeToLive: state.textFileLineTimeToLive,
-      };
+      event.transcription = this.transcriptionService.getActionLog();
     }
 
     this.usageStatisticsService.recordEvent(event);
