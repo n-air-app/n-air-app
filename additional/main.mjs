@@ -1,10 +1,9 @@
 // additional.jsonに記載された追加ファイルをダウンロード・展開・コピーするスクリプト
 // 主にobs-studio-nodeのネイティブライブラリを配置するために使用
 //
-// cacheを消すには .chache ディレクトリを削除するか、
+// cacheを消すには .cache ディレクトリを削除するか、
 // スクリプトを clean オプション付きで実行します。
 // 例: node additional/main.mjs clean
-
 
 import { createHash } from 'crypto';
 import fs from 'fs';
@@ -20,22 +19,11 @@ const __dirname = path.dirname(__filename);
 const destPath = path.resolve(__dirname, '../');
 const cacheDir = path.resolve(__dirname, '.cache/');
 
-// URLからハッシュベースのキャッシュファイル名を生成
-function getCacheFileName(url) {
-  const hash = createHash('md5').update(url).digest('hex');
-  const extension = path.extname(new URL(url).pathname) || '';
-  return `${hash}${extension}`;
-}
-
-// URLからハッシュベースのキャッシュディレクトリ名を生成（ZIP展開用）
-function getCacheDirName(url) {
-  const hash = createHash('md5').update(url).digest('hex');
-  return hash;
-}
-
 // 指定したURLからファイルをダウンロードする
 async function download(url) {
-  const cacheFileName = getCacheFileName(url);
+  const hash = createHash('md5').update(url).digest('hex');
+  const extension = path.extname(new URL(url).pathname) || '';
+  const cacheFileName = `${hash}${extension}`;
   const cachePath = path.join(cacheDir, cacheFileName);
   
   // キャッシュファイルが存在する場合はそのパスを返す
@@ -66,7 +54,7 @@ async function download(url) {
 
 // アーカイブを展開
 async function extract(sourcePath, destinationPath, url) {
-  const cacheDirName = getCacheDirName(url);
+  const cacheDirName = createHash('md5').update(url).digest('hex');
   const extractCachePath = path.join(cacheDir, 'extracted', cacheDirName);
   
   // 展開キャッシュが存在する場合はそれを使用
