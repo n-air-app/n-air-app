@@ -23,3 +23,4 @@ yarn-error.log
 nair-rtvc.tar.gz
 chromedriver.log
 *.tar.gz
+additional/.cache
