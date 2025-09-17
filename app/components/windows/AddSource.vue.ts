@@ -12,22 +12,20 @@ import {
   TSelectableSourceType,
   TSourceType,
 } from 'services/sources';
+import { TranscriptionSourceService } from 'services/transcription/transcription-source';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { TranscriptionService } from '../../services/transcription/transcription';
-import { VideoService } from '../../services/video';
 
 @Component({
   components: { ModalLayout, Selector, Display },
 })
 export default class AddSource extends Vue {
-  @Inject() sourcesService: ISourcesServiceApi;
-  @Inject() scenesService: ScenesService;
-  @Inject() windowsService: WindowsService;
-  @Inject() nVoiceCharacterService: NVoiceCharacterService;
-  @Inject() videoService: VideoService;
-  @Inject() transcriptionService: TranscriptionService;
+  @Inject() private sourcesService: ISourcesServiceApi;
+  @Inject() private scenesService: ScenesService;
+  @Inject() private windowsService: WindowsService;
+  @Inject() private nVoiceCharacterService: NVoiceCharacterService;
+  @Inject() private transcriptionSourceService: TranscriptionSourceService;
 
   name = '';
   error = '';
@@ -124,7 +122,10 @@ export default class AddSource extends Vue {
         this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
       s = this.nVoiceCharacterService.createNVoiceCharacterSource(type, this.name);
     } else if (this.sourceType === 'text_transcription') {
-      s = this.createTextTranscriptionSourceAndOption(this.name);
+      s = this.transcriptionSourceService.createTextTranscriptionSourceAndOption(
+        this.name,
+        this.sourceAddOptions,
+      );
     } else {
       s = {
         source: this.sourcesService.createSource(
@@ -152,73 +153,5 @@ export default class AddSource extends Vue {
 
   get selectedSource() {
     return this.sourcesService.getSource(this.selectedSourceId);
-  }
-
-  // ここに置くかnear同様に他に置くか
-  createTextTranscriptionSourceAndOption(name: string): {
-    source: ISourceApi;
-    options: ISourceAddOptions;
-    forceSkipProperties?: boolean;
-  } {
-    const width = 1600;
-    const height = 260;
-    const scale = this.videoService.baseWidth / 1920;
-
-    // これらの値は画面で弄った後、OBSが保存するjson(....\AppData\Roaming\n-air-app-unstable\SceneCollections)を参照で
-    return {
-      source: this.sourcesService.createSource(
-        name,
-        'text_gdiplus',
-        {
-          text: '',
-          read_from_file: true,
-          file: this.transcriptionService.getTextFilePath(),
-          outline: true,
-          vertical: false,
-          gradient: false,
-          chatlog: true,
-          extents: true,
-          font: {
-            face: 'Arial',
-            style: '',
-            size: 64,
-            flags: 0,
-          },
-          align: 'center',
-          valign: 'bottom',
-          color: 0xffffff,
-          opacity: 100,
-          gradient_color: 0xffffff,
-          gradient_opacity: 100,
-          gradient_dir: 90,
-          bk_color: 0,
-          bk_opacity: 0,
-          outline_size: 2,
-          outline_color: 0x5052c,
-          outline_opacity: 100,
-          chatlog_lines: 3,
-          extents_wrap: true,
-          extents_cx: width,
-          extents_cy: height,
-          transform: 0,
-          antialiasing: true,
-        },
-        {
-          propertiesManager: 'text_transcription',
-          propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
-        },
-      ),
-      options: {
-        initialTransform: {
-          position: {
-            // bottom-center
-            x: (this.videoService.baseWidth - width * scale) / 2,
-            y: this.videoService.baseHeight - (height + 40) * scale,
-          },
-          scale: { x: scale, y: scale },
-        },
-      },
-      forceSkipProperties: true,
-    };
   }
 }

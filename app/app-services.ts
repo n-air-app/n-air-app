@@ -61,12 +61,13 @@ export { MonitorCaptureCroppingService } from 'services/sources/monitor-capture-
 export { StreamingService } from 'services/streaming';
 export { SubStreamService } from 'services/substream/SubStreamService';
 export { TranscriptionService } from 'services/transcription/transcription';
+export { TranscriptionSourceService } from 'services/transcription/transcription-source';
+export { TranscriptionSourceUsageService } from 'services/transcription/transcription-source-usage';
 export { TransitionsService } from 'services/transitions';
 export { TroubleshooterService } from 'services/troubleshooter';
 export { UuidService } from 'services/uuid';
 export { VideoService } from 'services/video';
 export { WindowSizeService } from 'services/window-size';
 export { WindowsService } from 'services/windows';
-export { TranscriptionSourceUsageService } from './services/transcription/transcription-source-usage';
 export { UsageStatisticsService } from './services/usage-statistics';
 export { UserService } from './services/user';
