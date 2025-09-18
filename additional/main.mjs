@@ -5,23 +5,23 @@
 // スクリプトを clean オプション付きで実行します。
 // 例: node additional/main.mjs clean
 
-import { createHash } from 'crypto';
-import fs from 'fs';
-import path from 'path';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
 import unzip from 'unzip-stream'; // この時点で各種modulesはインストールされている前提
-import { fileURLToPath } from 'url';
 
 import additionalFiles from './additional.json' with { type: 'json' };
 
 // 出力ディレクトリのパス
-const __filename = fileURLToPath(import.meta.url);
+const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const destPath = path.resolve(__dirname, '../');
 const cacheDir = path.resolve(__dirname, '.cache/');
 
 // 指定したURLからファイルをダウンロードする
 async function download(url) {
-  const hash = createHash('md5').update(url).digest('hex');
+  const hash = crypto.createHash('md5').update(url).digest('hex');
   const extension = path.extname(new URL(url).pathname) || '';
   const cacheFileName = `${hash}${extension}`;
   const cachePath = path.join(cacheDir, cacheFileName);
@@ -54,7 +54,7 @@ async function download(url) {
 
 // アーカイブを展開
 async function extract(sourcePath, destinationPath, url) {
-  const cacheDirName = createHash('md5').update(url).digest('hex');
+  const cacheDirName = crypto.createHash('md5').update(url).digest('hex');
   const extractCachePath = path.join(cacheDir, 'extracted', cacheDirName);
   
   // 展開キャッシュが存在する場合はそれを使用
