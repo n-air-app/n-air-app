@@ -57,9 +57,9 @@
           <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
         </p>
         <p>{{ commentSectionNotice2 }}</p>
-        <ObsListInput v-model="commentColorModel" />
-        <ObsListInput v-model="commentPositionModel" />
         <ObsListInput v-model="commentSizeModel" />
+        <ObsListInput v-model="commentPositionModel" />
+        <ObsListInput v-model="commentColorModel" />
         <ObsListInput v-model="commentFontModel" />
         <ObsIntInput v-model="commentPostDelayModel" />
         <ObsIntInput v-model="commentVposOffsetModel" />
