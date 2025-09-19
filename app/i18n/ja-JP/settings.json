@@ -789,44 +789,44 @@
       "vposOffset": "コメントVpos調整(ミリ秒)",
       "positionLabel": "コメント位置",
       "position": {
-        "naka": "右から左へ流す",
-        "ue": "上（プレミアム会員限定）",
-        "shita": "下（プレミアム会員限定）"
+        "naka": "naka (右から左へ流す)",
+        "ue": "ue（プレミアム会員限定）",
+        "shita": "shita（プレミアム会員限定）"
       },
       "sizeLabel": "コメントサイズ",
       "size": {
-        "big": "大（プレミアム会員限定）",
-        "medium": "中",
-        "small": "小"
+        "big": "big（プレミアム会員限定）",
+        "medium": "medium",
+        "small": "small"
       },
       "fontLabel": "コメントフォント",
       "font": {
         "defont": "デフォルト",
-        "gothic": "ゴシック",
-        "mincho": "明朝"
+        "gothic": "gothic ゴシック体",
+        "mincho": "mincho 明朝体"
       },
       "colorLabel": "コメント色",
       "color": {
-        "white": "白",
-        "red": "赤",
-        "pink": "ピンク",
-        "orange": "オレンジ",
-        "yellow": "黄",
-        "green": "緑",
-        "cyan": "シアン",
-        "blue": "青",
-        "purple": "紫",
-        "black": "黒",
-        "white2": "白2（プレミアム会員限定）",
-        "red2": "赤2（プレミアム会員限定）",
-        "pink2": "ピンク2（プレミアム会員限定）",
-        "orange2": "オレンジ2（プレミアム会員限定）",
-        "yellow2": "黄2（プレミアム会員限定）",
-        "green2": "緑2（プレミアム会員限定）",
-        "cyan2": "シアン2（プレミアム会員限定）",
-        "blue2": "青2（プレミアム会員限定）",
-        "purple2": "紫2（プレミアム会員限定）",
-        "black2": "黒2（プレミアム会員限定）"
+        "white": "white",
+        "red": "red",
+        "pink": "pink",
+        "orange": "orange",
+        "yellow": "yellow",
+        "green": "green",
+        "cyan": "cyan",
+        "blue": "blue",
+        "purple": "purple",
+        "black": "black",
+        "white2": "white2（プレミアム会員限定）",
+        "red2": "red2（プレミアム会員限定）",
+        "pink2": "pink2（プレミアム会員限定）",
+        "orange2": "orange2（プレミアム会員限定）",
+        "yellow2": "yellow2（プレミアム会員限定）",
+        "green2": "green2（プレミアム会員限定）",
+        "cyan2": "cyan2（プレミアム会員限定）",
+        "blue2": "blue2（プレミアム会員限定）",
+        "purple2": "purple2（プレミアム会員限定）",
+        "black2": "black2（プレミアム会員限定）"
       },
       "defaultSuffix": "（デフォルト）"
     },

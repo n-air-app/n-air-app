@@ -42,13 +42,13 @@
           </button>
         </div>
       </div>
-      <div class="section" v-if="activeStatus === 'active'">
+      <div class="section">
         <h4 class="section-title">{{ preview }}</h4>
-        <p>{{ previewText || '--' }}</p>
-      </div>
-      <div class="notification-root" v-else>
-        <i class="notification-icon icon-notification" />
-        <p class="notification-message">{{ disabledReason }}</p>
+        <p v-if="activeStatus === 'active'">{{ previewText || '--' }}</p>
+        <div class="notification-root" v-else>
+          <i class="notification-icon icon-notification" />
+          <p class="notification-message">{{ disabledReason }}</p>
+        </div>
       </div>
       <div class="section" v-if="isNiconicoLoggedIn">
         <h4 class="section-title">{{ commentSectionTitle }}</h4>
