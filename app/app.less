@@ -35,6 +35,32 @@ a {
   &:focus {
     color: var(--color-object-accent-primary);
   }
+
+  &.link--underline {
+    text-decoration: underline;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+  }
+
+  &.link--default {
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      text-decoration: underline;
+    }
+  }
+
+  &.link--none {
+    color: inherit;
+
+    &:hover {
+      color: var(--color-object-accent-primary);
+    }
+  }
 }
 
 // Layout

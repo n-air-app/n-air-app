@@ -755,7 +755,11 @@
   },
   "transcription": {
     "name": "自動文字起こし",
-    "help": "ヘルプ",
+    "help": {
+      "beforeLink": "機能の詳細は",
+      "linkText": "ニコニコヘルプ",
+      "afterLink": "をご覧ください"
+    },
     "enable": "自動文字起こしを有効にする",
     "voskModel": "音声認識モデル",
     "voskModels": {

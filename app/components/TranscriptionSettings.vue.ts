@@ -112,7 +112,7 @@ export default class TranscriptionSettings extends Vue {
     console.log('** voskModel:', this.transcriptionService.getVoskModels()); // DEBUG
     return {
       name: 'voskModel',
-      description: $t('settings.transcription.voskModel'),
+      description: '',
       value: this.transcriptionService.state.voskModelName ?? '',
       options: this.transcriptionService.getVoskModels().map(model => {
         const status = this.modelsStatus[model.name];
@@ -152,7 +152,7 @@ export default class TranscriptionSettings extends Vue {
     const sources = this.transcriptionService.getAudioDeviceList();
     if (sources.length === 0) {
       return {
-        description: $t('settings.transcription.audioSource'),
+        description: '',
         name: 'transcriptionAudioSource',
         value: this.transcriptionService.state.audioDeviceId ?? '',
         options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: null }],
@@ -160,7 +160,7 @@ export default class TranscriptionSettings extends Vue {
       };
     }
     return {
-      description: $t('settings.transcription.audioSource'),
+      description: '',
       name: 'transcriptionAudioSource',
       value: this.transcriptionService.state.audioDeviceId ?? '',
       options: [

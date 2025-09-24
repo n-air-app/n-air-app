@@ -755,7 +755,11 @@
   },
   "transcription": {
     "name": "Automatic Transcription",
-    "help": "Help",
+    "help": {
+      "beforeLink": "Please refer to ",
+      "linkText": "niconico help",
+      "afterLink": "for detailed information about the features."
+    },
     "enable": "Enable automatic transcription",
     "voskModel": "Voice recognition model",
     "voskModels": {

@@ -1,76 +1,96 @@
 <template>
   <div class="setting-section">
     <div class="section">
-      <div class="row">
-        <div class="name">
-          {{ $t('settings.substream.use') }}
-          <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
+      <div class="input-label section-heading">
+        <label>自動文字起こし</label>
+      </div>
+      <div class="input-container">
+        <div class="input-wrapper">
+          <div class="row">
+            <div class="name">{{ $t('settings.transcription.enable') }}</div>
+            <div class="value">
+              <input type="checkbox" v-model="enabled" class="toggle-button" />
+            </div>
+          </div>
         </div>
-        <div class="value">
-          <input type="checkbox" v-model="enabled" class="toggle-button" />
-        </div>
+      </div>
+      <p class="section-notice-text">
+        {{ $t('settings.transcription.help.beforeLink') }}
+        <a class="link--underline" @click="openHelp">{{
+          $t('settings.transcription.help.linkText')
+        }}</a>
+        {{ $t('settings.transcription.help.afterLink') }}
+      </p>
+    </div>
+    <div class="section">
+      <div class="input-label section-heading">
+        <label>{{ $t('settings.transcription.audioSource') }}</label>
+      </div>
+      <ObsListInput v-model="audioSourceIdModel" />
+    </div>
+    <div class="section">
+      <div class="input-label section-heading">
+        <label>{{ $t('settings.transcription.voskModel') }}</label>
+      </div>
+      <div class="select-button-wrapper">
+        <ObsListInput v-model="voskModelModel" />
+        <button
+          class="action-icon"
+          data-size="md"
+          data-variant="light"
+          data-radius="sm"
+          data-color="secondary"
+          v-tooltip="$t(downloadButtonText)"
+          @click="downloadVoskModel()"
+          v-if="isDownloadButtonEnabled"
+        >
+          <i class="icon-download-fill"></i>
+        </button>
+        <button
+          class="action-icon"
+          data-size="md"
+          data-variant="light"
+          data-radius="sm"
+          data-color="secondary"
+          v-tooltip="$t(deleteButtonText)"
+          @click="deleteVoskModel()"
+          v-if="isDeleteButtonEnabled"
+        >
+          <i class="icon-trash-fill"></i>
+        </button>
       </div>
     </div>
-    <div v-if="enabled">
-      <div class="section">
-        <ObsListInput v-model="audioSourceIdModel" />
+    <div class="section">
+      <div class="input-label section-heading">
+        <label>{{ preview }}</label>
       </div>
-      <div class="section">
-        <ObsListInput v-model="voskModelModel" />
-        <div class="action-buttons">
-          <button
-            class="control-button basic-button"
-            data-size="md"
-            data-radius="sm"
-            data-color="secondary"
-            data-variant="light"
-            @click="downloadVoskModel()"
-            :disabled="!isDownloadButtonEnabled"
-          >
-            {{ downloadButtonText }}
-          </button>
-          <button
-            class="control-button basic-button"
-            data-size="md"
-            data-radius="sm"
-            data-color="secondary"
-            data-variant="light"
-            @click="deleteVoskModel()"
-            :disabled="!isDeleteButtonEnabled"
-          >
-            <i class="icon-delete"></i>{{ deleteButtonText }}
-          </button>
-        </div>
+      <p v-if="activeStatus === 'active'">{{ previewText || '--' }}</p>
+      <p class="disabled-reason" v-else>{{ disabledReason }}</p>
+    </div>
+    <div class="section" v-if="isNiconicoLoggedIn">
+      <div class="input-label section-heading">
+        <label>
+          {{ commentSectionTitle
+          }}<i
+            class="icon-help-border icon-tooltip"
+            v-tooltip.bottom="$t(commentSectionNotice1)"
+          ></i
+        ></label>
       </div>
-      <div class="section">
-        <h4 class="section-title">{{ preview }}</h4>
-        <p v-if="activeStatus === 'active'">{{ previewText || '--' }}</p>
-        <div class="notification-root" v-else>
-          <i class="notification-icon icon-notification" />
-          <p class="notification-message">{{ disabledReason }}</p>
-        </div>
-      </div>
-      <div class="section" v-if="isNiconicoLoggedIn">
-        <h4 class="section-title">{{ commentSectionTitle }}</h4>
-        <p>
-          {{ commentSectionNotice1 }}
-          <a @click="openHelp">{{ help }}<i class="icon-open-blank"></i></a>
-        </p>
-        <p>{{ commentSectionNotice2 }}</p>
-        <ObsListInput v-model="commentSizeModel" />
-        <ObsListInput v-model="commentPositionModel" />
-        <ObsListInput v-model="commentColorModel" />
-        <ObsListInput v-model="commentFontModel" />
-        <ObsIntInput v-model="commentPostDelayModel" />
-        <ObsIntInput v-model="commentVposOffsetModel" />
-      </div>
-      <div class="section">
-        <h4 class="section-title">{{ textFileSectionTitle }}</h4>
-        <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
-        <div v-if="textFileEnabledModel.value">
-          <ObsIntInput v-model="textFileMaxLineModel" />
-          <ObsIntInput v-model="textFileLineTimeToLiveModel" />
-        </div>
+      <p class="section-notice-text">{{ commentSectionNotice2 }}</p>
+      <ObsListInput v-model="commentSizeModel" />
+      <ObsListInput v-model="commentPositionModel" />
+      <ObsListInput v-model="commentColorModel" />
+      <ObsListInput v-model="commentFontModel" />
+      <ObsIntInput v-model="commentPostDelayModel" />
+      <ObsIntInput v-model="commentVposOffsetModel" />
+    </div>
+    <div class="section">
+      <h4 class="section-title">{{ textFileSectionTitle }}</h4>
+      <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
+      <div v-if="textFileEnabledModel.value">
+        <ObsIntInput v-model="textFileMaxLineModel" />
+        <ObsIntInput v-model="textFileLineTimeToLiveModel" />
       </div>
     </div>
   </div>
@@ -91,13 +111,13 @@
 .name {
   flex-grow: 1;
   font-size: @font-size4;
-  color: var(--color-text);
+  color: var(--color-object-emphasis-medium);
 }
 
 .value {
   display: flex;
   align-items: center;
-  color: var(--color-text);
+  color: var(--color-object-emphasis-high);
 }
 
 p.error {
@@ -112,6 +132,10 @@ p.error {
 
 .control-button {
   margin: 0;
+}
+
+.disabled-reason {
+  color: var(--color-object-emphasis-low);
 }
 
 .notification-root {

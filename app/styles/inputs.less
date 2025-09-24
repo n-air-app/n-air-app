@@ -92,6 +92,10 @@ textarea {
     align-items: center;
     line-height: 1.5;
     color: var(--color-text-light);
+
+    &:empty {
+      display: none;
+    }
   }
 }
 
@@ -491,5 +495,30 @@ textarea {
     content: '';
     border: var(--color-bg-quaternary) 5px solid;
     transform: translateX(-12px) rotate(-45deg);
+  }
+}
+
+.select-button-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+
+  .select,
+  .multiselect {
+    flex-grow: 1;
+
+    * {
+      margin-bottom: 0;
+    }
+
+    & + .multiselect {
+      flex-grow: 1.4;
+    }
+  }
+
+  .action-icon {
+    flex-shrink: 0;
   }
 }
