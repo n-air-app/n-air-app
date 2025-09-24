@@ -38,7 +38,7 @@ import {
   VoskClient,
 } from './VoskClient';
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
-export { VoskModelStatus };
+export { VoskModelStatus, VOSK_MODEL_NAMES };
 
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
 const getVoskModelURL = (name: string): string =>

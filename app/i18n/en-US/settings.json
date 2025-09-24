@@ -834,6 +834,10 @@
       },
       "defaultSuffix": " (Default)"
     },
+    "downloadModelConfirm": {
+      "message": "Download voice recognition model?",
+      "detail": "A voice recognition model is required for automatic transcription. The small model (48MB) will be downloaded."
+    },
     "disabledReason": {
       "disabled": "Automatic transcription is disabled.",
       "noVoskModel": "Please select a downloaded model.",
