@@ -2,9 +2,11 @@ import * as remote from '@electron/remote';
 import ModalLayout from 'components/ModalLayout.vue';
 import { omit } from 'lodash';
 import { Inject } from 'services/core/injector';
+import { $t } from 'services/i18n';
 import { NVoiceCharacterType, NVoiceCharacterTypes } from 'services/nvoice-character';
 import { ScenesService } from 'services/scenes';
 import { SourcesService, TPropertiesManager, TSelectableSourceType } from 'services/sources';
+import { TranscriptionService } from 'services/transcription/transcription';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
@@ -71,11 +73,27 @@ export default class SourcesShowcase extends Vue {
   @Inject() userService: UserService;
   @Inject() scenesService: ScenesService;
   @Inject() windowsService: WindowsService;
+  @Inject() transcriptionService: TranscriptionService;
 
   selectSource(sourceType: TInspectableSource, options: ISelectSourceOptions = {}) {
     if (!this.readyToAdd) {
       return;
     }
+
+    // 自動文字起こしソースを追加する際に自動文字起こしが有効になっていない場合は迷わないように案内を表示する
+    if (
+      this.inspectedSource === 'text_transcription' &&
+      this.transcriptionService.activeStatus() !== 'active'
+    ) {
+      remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+        type: 'info',
+        buttons: [$t('common.ok')],
+        defaultId: 0,
+        message: $t('settings.transcription.addSource.notActive'),
+        noLink: true,
+      });
+    }
+
     if (sourceType === 'custom_cast_ndi_source') {
       const propertiesManagerSettings: Dictionary<any> = {
         ...omit(options, 'propertiesManager'),
