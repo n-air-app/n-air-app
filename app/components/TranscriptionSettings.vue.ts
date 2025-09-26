@@ -134,7 +134,6 @@ export default class TranscriptionSettings extends Vue {
   }
 
   get voskModelModel(): IObsListInput<string> {
-    console.log('** voskModel:', this.transcriptionService.getVoskModels()); // DEBUG
     return {
       name: 'voskModel',
       description: '',

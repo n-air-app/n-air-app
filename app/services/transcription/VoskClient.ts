@@ -141,7 +141,6 @@ export class VoskClient implements ITranscriber {
   }
 
   static listAudioDevices(voskCliPath: string): AudioDeviceList {
-    console.log(`Listing audio devices using Vosk CLI at: ${voskCliPath}`); // DEBUG
     const result = spawnSync(voskCliPath, ['-l']);
     if (result.error) {
       console.error(`Failed to list audio devices: ${result.error.message}`);
@@ -153,7 +152,6 @@ export class VoskClient implements ITranscriber {
       console.error(`Invalid audio device list format: ${output}`);
       return { devices: [], version: '' };
     }
-    console.log(`Audio devices found: ${JSON.stringify(parsed.devices)}`); // DEBUG
     return parsed;
   }
 
@@ -166,7 +164,6 @@ export class VoskClient implements ITranscriber {
     if (this._audioDeviceIndex !== null) {
       args.push('-d', this._audioDeviceIndex.toString());
     }
-    console.log(`Starting Vosk CLI process with args: "${this._voskCliPath}" ${args.join(' ')}`); // DEBUG
     this._voskCliProcess = spawn(this._voskCliPath, args, {
       stdio: 'pipe',
     });
@@ -217,7 +214,6 @@ export class VoskClient implements ITranscriber {
 
   shutdownVoskCliProcess(): void {
     if (this._voskCliProcess) {
-      console.log('Shutting down Vosk CLI process...'); // DEBUG
       this._voskCliProcess.kill();
       this._voskCliProcess.removeAllListeners();
       this._voskCliProcess = null;
@@ -225,7 +221,6 @@ export class VoskClient implements ITranscriber {
   }
 
   set audioDeviceIndex(index: number) {
-    console.log(`Setting audio device index to: ${index}`); // DEBUG
     if (this._audioDeviceIndex === index) {
       return; // No change needed
     }

@@ -160,13 +160,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     return this.getVoskModels().some(model => model.status.state === 'downloaded');
   }
 
-  // DEBUG 読み込まないで上書きして初期状態を作る
-  /*
-  static get initialState() {
-    return TranscriptionService.defaultState;
-  }
-  // */
-
   init() {
     super.init();
 
@@ -244,7 +237,12 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         filter(next => next !== null),
       )
       .subscribe(enabled => {
-        console.log('TranscriptionService enabled state changed:', enabled); // DEBUG
+        Sentry.addBreadcrumb({
+          category: 'transcription',
+          message: `TranscriptionService ${
+            enabled ? 'activating' : 'deactivating'
+          } due to activeStatus change`,
+        });
         if (enabled) {
           this.activate();
         } else {
@@ -385,21 +383,17 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (this.client) {
       return;
     }
-    console.log('Activating TranscriptionService...', this.state.voskModelName); // DEBUG
     if (this.modelsManager.getVoskModelStatus(this.state.voskModelName).state !== 'downloaded') {
       throw new Error(
         `Vosk model '${this.state.voskModelName}' is not downloaded. Please download it first.`,
       );
     }
-    console.log('Vosk CLI client path:', this.voskCliPath); // DEBUG
-    console.log('Model path:', this.getModelPath(this.state.voskModelName)); // DEBUG
     try {
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
         modelPath: this.getModelPath(this.state.voskModelName),
       });
       this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
-      console.log('Vosk CLI client created successfully'); // DEBUG
     } catch (err) {
       Sentry.withScope(scope => {
         scope.setTags({
@@ -451,7 +445,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   deactivate() {
-    console.log('Deactivating TranscriptionService...'); // DEBUG
     if (this.client) {
       this.client.stopTranscription();
       this.client = null;
@@ -472,10 +465,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       message: `TranscriptionService ${enabled ? 'enabled' : 'disabled'}`,
     });
     if (enabled) {
-      console.log('Enabling TranscriptionService...'); // DEBUG
       this.updateAudioDevices();
-    } else {
-      console.log('Disabling TranscriptionService...'); // DEBUG
     }
     this.setState({ enabled });
   }
@@ -485,7 +475,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   updateAudioDevices() {
     try {
       const audioDevices = VoskClient.listAudioDevices(this.voskCliPath);
-      console.log('Available audio devices:', audioDevices); // DEBUG
       this.audioDevices$.next(
         audioDevices.devices.map(device => ({
           id: device.id,
@@ -574,7 +563,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       const onProgress = ({ downloaded, total }: { downloaded: number; total: number }) => {
         if (total > 0) {
           if (total === downloaded) {
-            console.log('Installing model...'); // DEBUG
             this.setModelStatus(modelName, { state: 'installing' });
             return;
           }
@@ -590,7 +578,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       };
 
       const downloadUrl = getVoskModelURL(modelName);
-      console.log('Downloading Vosk model from:', downloadUrl); // DEBUG
 
       await downloadAndUnzip(downloadUrl, tmpZipPath, this.modelBasePath, onProgress);
 
@@ -678,7 +665,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   setModelName(modelName: string | null) {
-    console.log('setModelName', modelName); // DEBUG
     Sentry.addBreadcrumb({
       category: 'transcription',
       message: `Set Vosk model: ${modelName}`,
