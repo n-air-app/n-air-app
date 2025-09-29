@@ -525,10 +525,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
    * @returns
    */
   async sendNormalComment(text: string, vpos: number, modifier: CommentModifier): Promise<void> {
-    if (isFakeMode()) {
-      // TODO
-      return;
-    }
     const result = await this.client.sendNormalComment(this.state.programID, text, vpos, modifier);
     if (!isOk(result)) {
       throw NicoliveFailure.fromClientError('sendNormalComment', result);
