@@ -22,7 +22,7 @@ import { TranscriptionLog } from 'services/usage-statistics';
 import { Inject } from 'vue-property-decorator';
 import { mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
-import { downloadAndUnzip } from './downloadAndUnzip';
+import { downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
 import { TranscriptionSourceUsageService } from './transcription-source-usage';
 import {
@@ -38,7 +38,7 @@ import {
   VoskClient,
 } from './VoskClient';
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
-export { VoskModelStatus, VOSK_MODEL_NAMES };
+export { VOSK_MODEL_NAMES, VoskModelStatus };
 
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
 const getVoskModelURL = (name: string): string =>
@@ -69,6 +69,10 @@ export function voskModelStatusToString(status: VoskModelStatus): string {
   switch (status.state) {
     case 'downloading':
       return `${status.progress ?? 0}%`;
+    case 'download_error':
+      return `${$t('settings.transcription.modelStatus.download_error')}: ${
+        status.error_message ?? ''
+      }`;
     default:
       return $t(`settings.transcription.modelStatus.${status.state}`);
   }
@@ -591,20 +595,47 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         },
       });
     } catch (err) {
-      console.error('Error during Vosk model download/extraction:', err);
-      this.setModelStatus(modelName, { state: 'download_error' });
+      let error_message: string;
+      let error_type: string;
+      if (err instanceof DownloadError) {
+        if (err.detail.reason === 'fetch') {
+          error_message = $t('settings.transcription.download_error.network');
+          error_type = 'network';
+        } else {
+          error_message = $t(
+            `settings.transcription.download_error.http.${err.detail.response.status}`,
+            {
+              fallback: $t(`settings.transcription.download_error.http.x00`, {
+                status: err.detail.response.status,
+              }),
+            },
+          );
+          error_type = `http.${err.detail.response.status}`;
+        }
+      } else if (err instanceof ExtractError) {
+        error_message = $t('settings.transcription.download_error.extraction');
+        error_type = 'extraction';
+      } else {
+        error_message = err instanceof Error ? err.message : String(err);
+        error_type = 'error';
+      }
+      console.warn('Error during Vosk model download/extraction:', error_message);
+      this.setModelStatus(modelName, {
+        state: 'download_error',
+        error_message,
+      });
       Sentry.captureEvent({
         message: 'Vosk model download/extraction error',
         level: 'error',
         tags: {
           service: 'transcription',
           model: modelName,
+          error_type,
         },
         extra: {
           error: err instanceof Error ? err.message : String(err),
         },
       });
-      throw err;
     } finally {
       // Delete the temporary zip file
       if (existsSync(tmpZipPath)) {

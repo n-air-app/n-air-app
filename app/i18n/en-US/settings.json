@@ -834,6 +834,21 @@
       },
       "defaultSuffix": " (Default)"
     },
+    "download_error": {
+      "network": "Network error occurred",
+      "extraction": "Error occurred during file extraction",
+      "http": {
+        "400": "Bad request",
+        "401": "Authentication required",
+        "403": "Access denied",
+        "404": "File not found",
+        "500": "Internal server error",
+        "502": "Bad gateway",
+        "503": "Service unavailable",
+        "504": "Gateway timeout",
+        "x00": "HTTP error: %{status}"
+      }
+    },
     "downloadModelConfirm": {
       "message": "Download voice recognition model?",
       "detail": "A voice recognition model is required for automatic transcription. The small model (48MB) will be downloaded."

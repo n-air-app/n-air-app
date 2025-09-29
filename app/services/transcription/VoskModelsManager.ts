@@ -7,6 +7,7 @@ export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22
 export type VoskModelStatus = {
   state: 'not_downloaded' | 'downloading' | 'installing' | 'downloaded' | 'download_error';
   progress?: number; // percentage of download completion
+  error_message?: string;
 };
 
 export class VoskModelsManager {
