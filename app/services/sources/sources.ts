@@ -33,6 +33,7 @@ import {
 import { CustomCastNdiManager } from './properties-managers/custom-cast-ndi-manager';
 import { DefaultManager } from './properties-managers/default-manager';
 import { NVoiceCharacterManager } from './properties-managers/nvoice-character-manager';
+import { ReplayManager } from './properties-managers/replay-manager';
 import { TextTranscriptionManager } from './properties-managers/text-transcription-manager';
 
 const AudioFlag = obs.ESourceOutputFlags.Audio;
@@ -45,6 +46,7 @@ export const PROPERTIES_MANAGER_TYPES = {
   'nvoice-character': NVoiceCharacterManager,
   'custom-cast-ndi': CustomCastNdiManager,
   text_transcription: TextTranscriptionManager,
+  replay: ReplayManager,
 };
 
 interface IObsSourceCallbackInfo {
@@ -475,6 +477,8 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     }
 
     availableWhitelistedType.push('text_transcription'); // 自動文字起こしテキスト
+
+    availableWhitelistedType.push('ffmpeg_source_replay'); // リプレイバッファ
 
     const availableWhitelistedSourceType = availableWhitelistedType.map(value => ({
       value,

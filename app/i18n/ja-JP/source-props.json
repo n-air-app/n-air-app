@@ -511,5 +511,9 @@
   "custom_cast_ndi_guide": {
     "name": "カスタムキャスト",
     "description": "カスタムキャストの配信(NDI®)をシーンに追加します。"
+  },
+  "ffmpeg_source_replay": {
+    "name": "リプレイバッファ",
+    "description": "シーンにリプレイバッファを追加します。"
   }
 }
