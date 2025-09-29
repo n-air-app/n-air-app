@@ -155,7 +155,9 @@ export default class TranscriptionSettings extends Vue {
   downloadButtonText = $t('settings.transcription.downloadVoskModel');
 
   get isDownloadButtonEnabled(): boolean {
-    return this.modelStatus.state === 'not_downloaded';
+    return (
+      this.modelStatus.state === 'not_downloaded' || this.modelStatus.state === 'download_error'
+    );
   }
 
   downloadVoskModel(): void {
