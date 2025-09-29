@@ -24,6 +24,7 @@ import ModalLayout from '../ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
 import SpeechEngineSettings from '../SpeechEngineSettings.vue';
+import TranscriptionSettings from '../TranscriptionSettings.vue';
 import { CategoryIcons } from './CategoryIcons';
 
 @Component({
@@ -41,6 +42,7 @@ import { CategoryIcons } from './CategoryIcons';
     CommentSettings,
     SpeechEngineSettings,
     SubStreamSettings,
+    TranscriptionSettings,
   },
 })
 export default class Settings extends Vue {

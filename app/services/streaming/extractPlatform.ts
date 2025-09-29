@@ -5,6 +5,9 @@ function isOnlyNumberOrDot(str: string): boolean {
 // streaming URLから domain の一部を抽出する
 // eg. "rtmp://kliveorigin.dmc.nico/named_input" -> "dmc"
 export function extractPlatform(streamingURL: string): string {
+  if (!streamingURL) {
+    return '';
+  }
   try {
     // URL は rtmp: だとhostnameを抽出してくれないためhttpに置換する
     const u = new URL(streamingURL.replace(/rtmps?:\/\//, 'http://'));

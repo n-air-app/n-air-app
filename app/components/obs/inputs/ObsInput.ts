@@ -61,6 +61,7 @@ export declare type TObsFormData = (IObsInput<TObsValue> | IObsListInput<TObsVal
 
 export interface IObsButtonInputValue extends IObsInput<boolean> {
   url?: string;
+  onClick?: () => void;
 }
 
 export interface IObsListInput<TValue> extends IObsInput<TValue> {

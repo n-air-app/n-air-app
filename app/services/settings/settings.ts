@@ -174,6 +174,8 @@ export class SettingsService
       obs.NodeObs.OBS_settings_getListCategories() as SettingsCategory[]
     ).filter(a => a !== 'StreamSecond'); // obs-studio-node 0.23.74で追加された分の非表示
 
+    categories.push('Transcription');
+
     if (this.userService.isLoggedIn()) {
       categories.push('Comment', 'SpeechEngine');
     }

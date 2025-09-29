@@ -212,6 +212,10 @@
       "name": "垂直方向"
     }
   },
+  "text_transcription": {
+    "name": "自動文字起こし",
+    "description": "自動文字起こしされたテキストを表示します"
+  },
   "text (FreeType2)": {
     "name": "テキスト(FreeType 2)"
   },

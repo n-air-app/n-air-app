@@ -43,7 +43,7 @@ declare module 'raven-js/*';
 declare module 'v-tooltip';
 declare module 'traverse';
 declare module 'vue-multiselect';
-declare module 'unzip-stream';
+// declare module 'unzip-stream';
 declare module 'node-fontinfo';
 declare module 'uuid/*';
 declare module 'rimraf';

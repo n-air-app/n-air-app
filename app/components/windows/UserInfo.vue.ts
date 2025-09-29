@@ -69,6 +69,7 @@ export default class UserInfo extends Vue {
   isBlockedUser = false;
   isFollowing = false;
   isModerator = false;
+  isBroadcaster = false;
 
   moderatorTooltip = 'モデレーター';
   supporterTooltip = 'サポーター';
@@ -119,6 +120,8 @@ export default class UserInfo extends Vue {
       },
     });
 
+    this.isBroadcaster = this.nicoliveProgramService.isBroadcaster(this.userId);
+
     const isBlocked = (filters: { type: string; body: string }[]) =>
       filters.some(filter => filter.type === 'user' && filter.body === this.userId);
 
@@ -150,11 +153,11 @@ export default class UserInfo extends Vue {
   userIconURL = NicoliveClient.getUserIconURL(this.userId, `${Date.now()}`);
   defaultUserIconURL = NicoliveClient.defaultUserIconURL;
 
-  get userName() {
+  get userName(): string {
     return this.windowsService.getChildWindowQueryParams().userName;
   }
 
-  get userId() {
+  get userId(): string {
     return this.windowsService.getChildWindowQueryParams().userId;
   }
 
