@@ -23,7 +23,8 @@ export type SettingsCategory =
   | 'Appearance'
   | 'Experimental'
   | 'StreamSecond'
-  | 'SubStream';
+  | 'SubStream'
+  | 'Transcription';
 
 export interface ISettingsServiceApi {
   getCategories(): SettingsCategory[];

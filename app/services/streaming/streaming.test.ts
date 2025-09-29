@@ -132,6 +132,11 @@ const createInjectee = ({
     syncStart: noop,
     syncStop: noop,
   },
+  TranscriptionService: {
+    state: noop,
+    startStreaming: noop,
+    stopStreaming: noop,
+  },
 });
 
 const setup = createSetupFunction({

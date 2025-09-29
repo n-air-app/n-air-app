@@ -129,6 +129,32 @@
           "message": "Failed to post a comment.\n%{additionalMessage}"
         }
       },
+      "sendNormalComment": {
+        "network_error": {
+          "title": "A network error has occurred",
+          "message": "Failed to post a comment due to a network error.\nPlease check your network connection."
+        },
+        "400": {
+          "title": "Failed to post a comment",
+          "message": "Failed to post a comment. Please check the content of your post.\n%{additionalMessage}"
+        },
+        "401": {
+          "title": "You are not logged in",
+          "message": "Failed to post a comment because you are not logged in.\nPlease log in to niconico from the login button in the lower left of the N Air main screen."
+        },
+        "403": {
+          "title": "You do not have permission to post a comment",
+          "message": "Failed to post a comment because the logged-in account does not have permission to post comments.\nPlease make sure you are logged in with the correct account."
+        },
+        "404": {
+          "title": "Program not found",
+          "message": "Failed to post a comment because the program was not found.\nTo create a new program, please update the program information and then press the \"Create Program\" button."
+        },
+        "500": {
+          "title": "Failed to post a comment",
+          "message": "Failed to post a comment.\n%{additionalMessage}"
+        }
+      },
       "fetchFilters": {
         "network_error": {
           "title": "A network error has occurred",

@@ -54,7 +54,7 @@
                   >
                 </li>
               </ul>
-              <ul class="popup-menu-list">
+              <ul class="popup-menu-list" v-if="!isBroadcaster">
                 <li class="popup-menu-item">
                   <a
                     @click="
@@ -76,7 +76,7 @@
                   >
                 </li>
               </ul>
-              <ul class="popup-menu-list">
+              <ul class="popup-menu-list" v-if="!isBroadcaster">
                 <li class="popup-menu-item">
                   <a
                     @click="
@@ -98,7 +98,7 @@
                   >
                 </li>
               </ul>
-              <ul class="popup-menu-list">
+              <ul class="popup-menu-list" v-if="!isBroadcaster">
                 <li class="popup-menu-item">
                   <a
                     @click="

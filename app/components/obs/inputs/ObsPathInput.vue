@@ -10,9 +10,14 @@
           ref="input"
           :value="value.value"
           class="path__input"
+          :disabled="!value.enabled"
           @change="handleChange"
         />
-        <button @click="showFileDialog" class="path__browse-button button button--secondary">
+        <button
+          @click="showFileDialog"
+          class="path__browse-button button button--secondary"
+          :disabled="!value.enabled"
+        >
           {{ $t('common.browse') }}
         </button>
       </div>

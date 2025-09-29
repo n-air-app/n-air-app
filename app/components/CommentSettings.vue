@@ -143,7 +143,7 @@
               :disabled="!isTestable(system.id)"
               @click="testSpeechPlay(system.id, 'system')"
             >
-              <i class="icon-speaker"></i>
+              <i class="icon-sound-fill"></i>
             </button>
           </div>
           <!--normal -->
@@ -170,7 +170,7 @@
               :disabled="!isTestable(normal.id)"
               @click="testSpeechPlay(normal.id, 'normal')"
             >
-              <i class="icon-speaker"></i>
+              <i class="icon-sound-fill"></i>
             </button>
           </div>
 
@@ -198,7 +198,7 @@
               :disabled="!isTestable(operator.id)"
               @click="testSpeechPlay(operator.id, 'operator')"
             >
-              <i class="icon-speaker"></i>
+              <i class="icon-sound-fill"></i>
             </button>
           </div>
           <!-- end -->
