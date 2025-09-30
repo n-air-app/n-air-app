@@ -125,6 +125,9 @@
           番組開始前の確認を行うことができます。<br />&#91; 番組開始 &#93;
           をクリックすると視聴者に公開されます。
         </p>
+        <p class="created-notice-small">
+          ※配信準備中は自動文字起こしによるコメントは投稿されません。
+        </p>
       </div>
     </div>
     <comment-form class="comment-form" />

@@ -2,7 +2,11 @@
   <div :data-test="testingAnchor" class="input-container">
     <div class="input-label"></div>
     <div class="input-wrapper">
-      <button class="button button--secondary button-property-button" @click="handleClick">
+      <button
+        class="button button--secondary button-property-button"
+        @click="handleClick"
+        :disabled="!value.enabled"
+      >
         {{ value.description }}
       </button>
     </div>

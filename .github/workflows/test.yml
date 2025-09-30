@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'scripts/preinstall.js', 'scripts/install-native-deps.js', 'scripts/repositories.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: npm login
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> $env:USERPROFILE\.npmrc
@@ -122,7 +122,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'scripts/preinstall.js', 'scripts/install-native-deps.js', 'scripts/repositories.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Run unit tests(app)
         run: yarn test:unit:app
@@ -147,7 +147,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'scripts/preinstall.js', 'scripts/install-native-deps.js', 'scripts/repositories.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
         id: cache-node-modules-bin
@@ -188,7 +188,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'scripts/preinstall.js', 'scripts/install-native-deps.js', 'scripts/repositories.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Compile
         if: ${{ needs.changes.outputs.app == 'true' }}

@@ -4,7 +4,7 @@
       type="text"
       ref="input"
       :readonly="isCommentSending"
-      :disabled="isCommentSending || programEnded"
+      :disabled="!isSendable"
       :placeholder="
         programEnded ? '番組が終了したため、放送者コメントを投稿できません' : 'コメント入力'
       "

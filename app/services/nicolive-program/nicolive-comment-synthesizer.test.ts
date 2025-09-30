@@ -17,12 +17,18 @@ const setup = createSetupFunction({
     },
     NVoiceClientService: {},
     NVoiceCharacterService: {},
+    UserService: {
+      platform: {
+        id: '<platform_id>',
+      },
+    },
   },
 });
 
 jest.mock('services/nicolive-program/state', () => ({ NicoliveProgramStateService: {} }));
 jest.mock('services/nicolive-program/n-voice-client', () => ({ NVoiceClientService: {} }));
 jest.mock('services/nvoice-character', () => ({ NVoiceCharacterService: {} }));
+jest.mock('services/user', () => ({ UserService: {} }));
 
 beforeEach(() => {
   jest.doMock('services/core/stateful-service');

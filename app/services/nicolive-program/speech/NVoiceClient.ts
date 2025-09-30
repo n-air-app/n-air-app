@@ -1,8 +1,8 @@
 import * as Sentry from '@sentry/vue';
-import { ChildProcess, spawn } from 'child_process';
-import { existsSync, readdirSync, readFileSync, unlinkSync } from 'fs';
-import { basename, join } from 'path';
-import { createInterface } from 'readline';
+import { ChildProcess, spawn } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
+import { basename, join } from 'node:path';
+import { createInterface } from 'node:readline';
 
 export function getNVoicePath(): string {
   // import/require構文を使うとビルド時に展開してしまうが、
@@ -52,7 +52,7 @@ class CallbackReceiver {
   }
 }
 
-class CommandLineClient {
+export class CommandLineClient {
   private receiver: CallbackReceiver = new CallbackReceiver();
   private stdout: NodeJS.ReadableStream;
   private stderr: NodeJS.ReadableStream;
@@ -141,8 +141,9 @@ class CommandLineClient {
         this.log(`${label} terminated: ${code}`);
         this.terminateResolve(code || -1);
       });
-      // node 15未満は spawn event がないので起動成功したことにする
-      resolve();
+      this.subprocess.on('spawn', () => {
+        resolve();
+      });
     });
   }
 

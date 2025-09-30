@@ -23,3 +23,6 @@ yarn-error.log
 nair-rtvc.tar.gz
 chromedriver.log
 *.tar.gz
+.claude/settings.local.json
+
+additional/.cache
