@@ -19,8 +19,7 @@ import {
 } from 'rxjs';
 import { $t } from 'services/i18n';
 import { TranscriptionLog } from 'services/usage-statistics';
-import { Inject } from 'vue-property-decorator';
-import { mutation, PersistentStatefulService } from '../core';
+import { Inject, mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
 import { downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
@@ -284,19 +283,16 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       commentVposOffset: state.commentVposOffset,
       textFileMaxLine: state.textFileMaxLine,
       textFileLineTimeToLive: state.textFileLineTimeToLive,
-      // transcriptionSourceUsageService と StreamingService が循環参照になっている問題を解決するまではダミー
-      transcriptionSourceUsed: false, // this.transcriptionSourceUsageService.state.used,
+      transcriptionSourceUsed: this.transcriptionSourceUsageService?.state.used || false,
     };
   }
 
   startStreaming() {
-    // transcriptionSourceUsageService と StreamingService が循環参照になっている問題を解決するまでコメントアウト
-    // this.transcriptionSourceUsageService.startStreaming();
+    this.transcriptionSourceUsageService?.startStreaming();
   }
 
   stopStreaming() {
-    // transcriptionSourceUsageService と StreamingService が循環参照になっている問題を解決するまでコメントアウト
-    // this.transcriptionSourceUsageService.stopStreaming();
+    this.transcriptionSourceUsageService?.stopStreaming();
   }
 
   initTextFileWriter() {
