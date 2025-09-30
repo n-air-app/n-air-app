@@ -1,12 +1,12 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20250806-unstable.1',
-  title: '1.1.20250806-unstable.1',
+  version: '1.1.20250930-unstable.1',
+  title: '1.1.20250930-unstable.1',
   notes: [
-    "追加: ソース・シーンのアイテムにツールチップを追加 (#955) by asaday",
-    "修正: コメント削除の取り消しをしたときにスナックバーを消す (#952) by koizuka",
-    "修正: サブ配信のボタン幅を一部修正 (#953) by asaday",
-    "修正: ニコ生の番組作成ウィンドウの2つ目が作れてしまうと真っ白いウィンドウになっていた (#962) by koizuka",
+    "追加: 自動文字起こし機能 (#975) by koizuka",
+    "修正: カスタムキャストNDIソースを初回追加したときにプロパティーウィンドウに何も出ない現象を修正 (#970) by koizuka",
+    "修正: スタジオコントロール開閉アイコンの向きを開閉状態に合わせて変化させる (#965) by asaday",
+    "改善: お知らせダイアログのデザインを修正 (#968) by yusukess",
   ]
 };
