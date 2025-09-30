@@ -284,16 +284,19 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       commentVposOffset: state.commentVposOffset,
       textFileMaxLine: state.textFileMaxLine,
       textFileLineTimeToLive: state.textFileLineTimeToLive,
-      transcriptionSourceUsed: this.transcriptionSourceUsageService.state.used,
+      // transcriptionSourceUsageService と StreamingService が循環参照になっている問題を解決するまではダミー
+      transcriptionSourceUsed: false, // this.transcriptionSourceUsageService.state.used,
     };
   }
 
   startStreaming() {
-    this.transcriptionSourceUsageService.startStreaming();
+    // transcriptionSourceUsageService と StreamingService が循環参照になっている問題を解決するまでコメントアウト
+    // this.transcriptionSourceUsageService.startStreaming();
   }
 
   stopStreaming() {
-    this.transcriptionSourceUsageService.stopStreaming();
+    // transcriptionSourceUsageService と StreamingService が循環参照になっている問題を解決するまでコメントアウト
+    // this.transcriptionSourceUsageService.stopStreaming();
   }
 
   initTextFileWriter() {
