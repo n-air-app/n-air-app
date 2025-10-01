@@ -409,6 +409,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         `Vosk model '${this.state.voskModelName}' is not downloaded. Please download it first.`,
       );
     }
+    console.log('Activating TranscriptionService with model:', this.state.voskModelName);
     try {
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
@@ -487,8 +488,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.subscription.unsubscribe();
       this.subscription = null;
     }
-    // this.voskError$.next(null);
-    this.updateActiveness$.next();
   }
 
   setEnabled(enabled: boolean) {
