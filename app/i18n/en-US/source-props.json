@@ -212,6 +212,10 @@
       "name": "Vertical"
     }
   },
+  "text_transcription": {
+    "name": "Automatic Transcription Text",
+    "description": "Pre-configured text for automatic transcription"
+  },
   "text (FreeType2)": {
     "name": "Text (FreeType 2)"
   },

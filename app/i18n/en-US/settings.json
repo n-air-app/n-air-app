@@ -653,7 +653,9 @@
   "SubStream": {
     "name": "Sub Stream"
   },
-
+  "Transcription": {
+    "name": "Automatic Transcription"
+  },
   "listPlaceholder": "Select Option",
   "resolutionPlaceholder": "Select Option or Type New Value",
   "addFiles": "Add files",
@@ -749,6 +751,116 @@
       "reconnect": "Reconnecting...",
       "reconnected": "Reconnected",
       "deactive": "Inactive"
+    }
+  },
+  "transcription": {
+    "name": "Automatic Transcription",
+    "help": {
+      "beforeLink": "Please refer to ",
+      "linkText": "niconico help",
+      "afterLink": "for detailed information about the features."
+    },
+    "enable": "Enable automatic transcription",
+    "voskModel": "Voice recognition model",
+    "voskModels": {
+      "vosk-model-ja-0.22": "VOSK Japanese (1GB) 0.22",
+      "vosk-model-small-ja-0.22": "VOSK Japanese small (48MB) 0.22"
+    },
+    "modelStatus": {
+      "not_downloaded": "Not downloaded",
+      "downloading": "Downloading...",
+      "installing": "Installing...",
+      "downloaded": "Downloaded",
+      "download_error": "Download error"
+    },
+    "downloadVoskModel": "Download model",
+    "deleteVoskModel": "Delete downloaded model",
+    "audioSource": "Audio Source",
+    "noAudioSourceFound": "No audio source found",
+    "preview": "Preview",
+    "textFile": {
+      "sectionTitle": "Automatic Transcription Text Source Output Settings",
+      "enable": "Enable Automatic Transcription Text Source output",
+      "path": "Text file path",
+      "maxLine": "Max lines in text",
+      "lineTimeToLive": "Time to live for text lines (ms)"
+    },
+    "comment": {
+      "sectionTitle": "Niconico Live Comment Settings",
+      "notice1": "Automatic transcription results will be posted as comments during Niconico live streaming.",
+      "notice2": "※Comments from automatic transcription are not displayed in real-time on the streaming page when logged in as the broadcaster",
+      "postDelay": "Comment Post delay (ms)",
+      "vposOffset": "Comment Vpos Offset (ms)",
+      "positionLabel": "Comment Position",
+      "position": {
+        "naka": "Flowing (Right to Left)",
+        "ue": "Top (Premium members only)",
+        "shita": "Bottom (Premium members only)"
+      },
+      "sizeLabel": "Comment Size",
+      "size": {
+        "big": "Large (Premium members only)",
+        "medium": "Medium",
+        "small": "Small"
+      },
+      "fontLabel": "Comment Font",
+      "font": {
+        "defont": "Default",
+        "gothic": "Gothic",
+        "mincho": "Mincho"
+      },
+      "colorLabel": "Comment Color",
+      "color": {
+        "white": "White",
+        "red": "Red",
+        "pink": "Pink",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "cyan": "Cyan",
+        "blue": "Blue",
+        "purple": "Purple",
+        "black": "Black",
+        "white2": "White2 (Premium members only)",
+        "red2": "Red2 (Premium members only)",
+        "pink2": "Pink2 (Premium members only)",
+        "orange2": "Orange2 (Premium members only)",
+        "yellow2": "Yellow2 (Premium members only)",
+        "green2": "Green2 (Premium members only)",
+        "cyan2": "Cyan2 (Premium members only)",
+        "blue2": "Blue2 (Premium members only)",
+        "purple2": "Purple2 (Premium members only)",
+        "black2": "Black2 (Premium members only)"
+      },
+      "defaultSuffix": " (Default)"
+    },
+    "download_error": {
+      "network": "Network error occurred",
+      "extraction": "Error occurred during file extraction",
+      "http": {
+        "400": "Bad request",
+        "401": "Authentication required",
+        "403": "Access denied",
+        "404": "File not found",
+        "500": "Internal server error",
+        "502": "Bad gateway",
+        "503": "Service unavailable",
+        "504": "Gateway timeout",
+        "x00": "HTTP error: %{status}"
+      }
+    },
+    "downloadModelConfirm": {
+      "message": "Download voice recognition model?",
+      "detail": "A voice recognition model is required for automatic transcription. The small model (48MB) will be downloaded."
+    },
+    "disabledReason": {
+      "disabled": "Automatic transcription is disabled.",
+      "noVoskModel": "Please select a downloaded model.",
+      "noModelDownloaded": "Please download a model.",
+      "noAudioDevice": "Cannot be used because no audio source devices were found."
+    },
+    "addSource": {
+      "notActive": "To display automatically transcribed text, please add the source and enable automatic transcription in the settings."
     }
   }
 }

@@ -653,7 +653,9 @@
   "SubStream": {
     "name": "サブ配信"
   },
-
+  "Transcription": {
+    "name": "自動文字起こし"
+  },
   "listPlaceholder": "選択してください",
   "resolutionPlaceholder": "選択するか、値を入力してください",
   "addFiles": "ファイルを追加する",
@@ -749,6 +751,116 @@
       "reconnect": "再接続...",
       "reconnected": "再接続",
       "deactive": "停止中"
+    }
+  },
+  "transcription": {
+    "name": "自動文字起こし",
+    "help": {
+      "beforeLink": "機能の詳細は",
+      "linkText": "ニコニコヘルプ",
+      "afterLink": "をご覧ください"
+    },
+    "enable": "自動文字起こしを有効にする",
+    "voskModel": "音声認識モデル",
+    "voskModels": {
+      "vosk-model-ja-0.22": "VOSK 日本語(1GB) 0.22",
+      "vosk-model-small-ja-0.22": "VOSK 日本語(軽量, 48MB) 0.22"
+    },
+    "modelStatus": {
+      "not_downloaded": "未ダウンロード",
+      "downloading": "ダウンロード中",
+      "installing": "インストール中...",
+      "downloaded": "ダウンロード済み",
+      "download_error": "ダウンロードエラー"
+    },
+    "downloadVoskModel": "モデルをダウンロードする",
+    "deleteVoskModel": "ダウンロードしたモデルを削除する",
+    "audioSource": "音声ソース",
+    "noAudioSourceFound": "音声ソースが見つかりません",
+    "preview": "プレビュー",
+    "textFile": {
+      "sectionTitle": "自動文字起こしソース出力設定",
+      "enable": "自動文字起こしソース出力を有効にする",
+      "path": "テキストファイルパス",
+      "maxLine": "テキストの最大行数",
+      "lineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)"
+    },
+    "comment": {
+      "sectionTitle": "ニコニコ生放送コメント設定",
+      "notice1": "ニコニコ生放送の番組放送中に自動的に文字起こし結果をコメントとして投稿します。",
+      "notice2": "※自動文字起こしによるコメントは、放送者自身でログインした配信ページにはリアルタイムで表示されません",
+      "postDelay": "コメント投稿遅延 (ミリ秒)",
+      "vposOffset": "コメントVpos調整(ミリ秒)",
+      "positionLabel": "位置",
+      "position": {
+        "naka": "naka (右から左へ流す)",
+        "ue": "ue（プレミアム会員限定）",
+        "shita": "shita（プレミアム会員限定）"
+      },
+      "sizeLabel": "サイズ",
+      "size": {
+        "big": "big（プレミアム会員限定）",
+        "medium": "medium",
+        "small": "small"
+      },
+      "fontLabel": "フォント",
+      "font": {
+        "defont": "デフォルト",
+        "gothic": "gothic ゴシック体",
+        "mincho": "mincho 明朝体"
+      },
+      "colorLabel": "カラー",
+      "color": {
+        "white": "white",
+        "red": "red",
+        "pink": "pink",
+        "orange": "orange",
+        "yellow": "yellow",
+        "green": "green",
+        "cyan": "cyan",
+        "blue": "blue",
+        "purple": "purple",
+        "black": "black",
+        "white2": "white2（プレミアム会員限定）",
+        "red2": "red2（プレミアム会員限定）",
+        "pink2": "pink2（プレミアム会員限定）",
+        "orange2": "orange2（プレミアム会員限定）",
+        "yellow2": "yellow2（プレミアム会員限定）",
+        "green2": "green2（プレミアム会員限定）",
+        "cyan2": "cyan2（プレミアム会員限定）",
+        "blue2": "blue2（プレミアム会員限定）",
+        "purple2": "purple2（プレミアム会員限定）",
+        "black2": "black2（プレミアム会員限定）"
+      },
+      "defaultSuffix": "（デフォルト）"
+    },
+    "download_error": {
+      "network": "ネットワークエラー",
+      "extraction": "展開エラー",
+      "http": {
+        "400": "不正なリクエスト",
+        "401": "認証エラー",
+        "403": "アクセス拒否",
+        "404": "見つかりません",
+        "500": "サーバーエラー",
+        "502": "ゲートウェイエラー",
+        "503": "サービス停止中",
+        "504": "タイムアウト",
+        "x00": "HTTPエラー: %{status}"
+      }
+    },
+    "downloadModelConfirm": {
+      "message": "音声認識モデルをダウンロードしますか？",
+      "detail": "自動文字起こしを利用するには音声認識モデルが必要です。小サイズモデル（48MB）をダウンロードします。"
+    },
+    "disabledReason": {
+      "disabled": "自動文字起こし機能が無効です。",
+      "noVoskModel": "ダウンロードしたモデルを選択してください。",
+      "noModelDownloaded": "モデルをダウンロードしてください。",
+      "noAudioDevice": "音声ソースデバイスが見つからないため、利用できません。"
+    },
+    "addSource": {
+      "notActive": "自動文字起こしされたテキストを表示するにはソース追加後、設定にて自動文字起こしを有効にしてください。"
     }
   }
 }

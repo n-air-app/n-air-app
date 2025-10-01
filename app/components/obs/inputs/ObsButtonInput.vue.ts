@@ -16,6 +16,9 @@ class ObsButtonInput extends ObsInput<IObsButtonInputValue> {
       remote.shell.openExternal(this.value.url);
       return;
     }
+    if (this.value.onClick) {
+      this.value.onClick();
+    }
     this.emitInput({ ...this.value, value: true });
   }
 }

@@ -40,7 +40,7 @@
               :disabled="!enabled"
               @click="testSpeechPlay('nVoice')"
             >
-              <i class="icon-speaker"></i>
+              <i class="icon-sound-fill"></i>
             </button>
           </div>
           <button
@@ -95,7 +95,7 @@
               :disabled="!enabled"
               @click="testSpeechPlay('webSpeech')"
             >
-              <i class="icon-speaker"></i>
+              <i class="icon-sound-fill"></i>
             </button>
           </div>
           <button

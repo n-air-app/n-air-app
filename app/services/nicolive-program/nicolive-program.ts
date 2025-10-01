@@ -8,6 +8,7 @@ import { isFakeMode } from 'util/fakeMode';
 import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
 import {
   calcServerClockOffsetSec,
+  CommentModifier,
   CreateResult,
   EditResult,
   FailedResult,
@@ -30,7 +31,7 @@ type ProgramState = {
   description: string;
   endTime: number;
   startTime: number;
-  vposBaseTime: number;
+  vposBaseTime: number; // unix time
   isMemberOnly: boolean;
   viewUri: string; // Ndgr View URL
   viewers: number;
@@ -502,6 +503,34 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     }
   }
 
+  /**
+   *
+   * @param time Date
+   * @returns ProgramState の vposBaseTimeを基準として、1/100秒単位の整数
+   */
+  getVposFromDate(time: Date): number {
+    if (!this.state.vposBaseTime) {
+      throw new Error('vposBaseTime is not set');
+    }
+    // convert ms to 1/100s
+    const vpos = Math.floor((time.getTime() - this.state.vposBaseTime * 1000) / 10);
+    return vpos;
+  }
+
+  /**
+   * 通常コメントを送信する
+   * @param text コメント本文
+   * @param vpos vposBaseTimeを基準として、1/100秒単位の整数
+   * @param modifier コメント装飾
+   * @returns
+   */
+  async sendNormalComment(text: string, vpos: number, modifier: CommentModifier): Promise<void> {
+    const result = await this.client.sendNormalComment(this.state.programID, text, vpos, modifier);
+    if (!isOk(result)) {
+      throw NicoliveFailure.fromClientError('sendNormalComment', result);
+    }
+  }
+
   static TIMER_PADDING_SECONDS = 3 as const;
   static REFRESH_TARGET_TIME_TABLE: { [state: string]: 'startTime' | 'endTime' } = {
     reserved: 'startTime',
@@ -648,5 +677,9 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     if (!isOk(result)) {
       throw NicoliveFailure.fromClientError('undoDeleteComment', result);
     }
+  }
+
+  isBroadcaster(userId: string): boolean {
+    return userId === this.userService.platform.id;
   }
 }

@@ -141,6 +141,14 @@
         <SpeechEngineIcon slot="media" />
       </add-source-info>
 
+      <add-source-info
+        v-if="inspectedSource === 'text_transcription'"
+        sourceType="text_transcription"
+        key="22"
+      >
+        <TextGdiplusIcon slot="media" />
+      </add-source-info>
+
       <div class="source-info" v-if="inspectedSource === null">
         <div class="source-info__text">
           <h3>{{ $t('sources.sourcesWelcomeMessage') }}</h3>
