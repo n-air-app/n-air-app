@@ -1,3 +1,4 @@
+import { merge } from 'rxjs';
 import { mutation, StatefulService } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { ScenesService } from 'services/scenes';
@@ -16,19 +17,25 @@ export class TranscriptionSourceUsageService extends StatefulService<ITranscript
   };
 
   init() {
-    this.reset();
+    super.init();
 
-    this.scenesService.sceneSwitched.subscribe(() => {
-      if (this.containsTranscriptionInActiveScene()) {
-        this.markTranscriptionUsed();
-      }
-    });
+    this.updateTranscriptionUsage();
 
-    this.scenesService.itemAdded.subscribe(item => {
-      if (this.isTranscriptionSourceId(item.sourceId)) {
-        this.markTranscriptionUsed();
-      }
+    merge(
+      this.scenesService.sceneSwitched,
+      this.scenesService.itemAdded,
+      this.scenesService.itemRemoved,
+    ).subscribe(() => {
+      this.updateTranscriptionUsage();
     });
+  }
+
+  updateTranscriptionUsage() {
+    if (this.containsTranscriptionInActiveScene()) {
+      this.markTranscriptionUsed();
+    } else {
+      this.reset();
+    }
   }
 
   markTranscriptionUsed() {
@@ -67,7 +74,7 @@ export class TranscriptionSourceUsageService extends StatefulService<ITranscript
   }
 
   setState(state: Partial<ITranscriptionSourceUsageState>) {
-    this.setState({ ...this.state, ...state });
+    this.SET_STATE({ ...this.state, ...state });
   }
 
   @mutation()
