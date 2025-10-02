@@ -861,7 +861,8 @@
       "noAudioDevice": "Cannot be used because no audio source devices were found.",
       "voskLaunchError": "Cannot start engine.",
       "voskError": "Engine error occurred.",
-      "modelLoadError": "Cannot load model."
+      "modelLoadError": "Cannot load model.",
+      "muted": "Audio source is muted."
     },
     "addSource": {
       "notActive": "To display automatically transcribed text, please add the source and enable automatic transcription in the settings."

@@ -4,10 +4,7 @@ import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
 import type { downloadAndUnzip as downloadAndUnzipType } from './downloadAndUnzip';
 import type { filterNoiseText as filterNoiseTextType } from './filterNoiseText';
-import type {
-  ActiveStatus,
-  TranscriptionService as TranscriptionServiceType,
-} from './transcription';
+import type { TranscriptionService as TranscriptionServiceType } from './transcription';
 import type {
   CreateVoskCliClient as CreateVoskCliClientType,
   TranscriptionMessage,
@@ -72,7 +69,12 @@ jest.mock('./VoskClient', () => {
 
 const setup = createSetupFunction({
   state: {},
-  injectee: {},
+  injectee: {
+    AudioService: {
+      getSourceByDeviceId: jest_fn().mockName('getSourceByDeviceId').mockReturnValue(undefined),
+      audioSourceUpdated: new Subject(),
+    },
+  },
 });
 
 beforeEach(() => {
