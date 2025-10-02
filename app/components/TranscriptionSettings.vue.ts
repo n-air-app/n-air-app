@@ -167,7 +167,10 @@ export default class TranscriptionSettings extends Vue {
   deleteButtonText = $t('settings.transcription.deleteVoskModel');
 
   get isDeleteButtonEnabled(): boolean {
-    return this.transcriptionService.state.voskModelName && this.modelStatus.state === 'downloaded';
+    return (
+      this.transcriptionService.state.voskModelName &&
+      (this.modelStatus.state === 'downloaded' || this.modelStatus.state === 'load_error')
+    );
   }
 
   deleteVoskModel(): void {

@@ -85,9 +85,14 @@ export function defaultTextFilePath() {
 export type ActiveStatus =
   | 'active'
   | 'disabled'
+  | 'voskLaunchError'
+  | 'voskError'
   | 'noAudioDevice'
   | 'noModelDownloaded'
-  | 'noVoskModel';
+  | 'noVoskModel'
+  | 'modelLoadError';
+
+export type VoskError = 'launchError' | 'error';
 
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
@@ -122,6 +127,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   });
   private modelsStatusSubject$ = new BehaviorSubject<Dictionary<VoskModelStatus>>({});
   private activeStatusSubject$ = new BehaviorSubject<ActiveStatus>('disabled');
+  private voskError$ = new BehaviorSubject<VoskError | null>(null);
   private updateActiveness$ = new Subject<void>();
 
   getModelPath(modelName: string): string {
@@ -213,19 +219,31 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    this.updateActiveness$
+    merge(this.updateActiveness$, this.voskError$)
       .pipe(
         map((): ActiveStatus => {
           if (!this.state.enabled) return 'disabled';
+
+          const voskError = this.voskError$.value;
+          if (voskError === 'launchError') return 'voskLaunchError';
+          if (voskError === 'error') return 'voskError';
+
           if (this.audioDevices$.value.length === 0) return 'noAudioDevice';
-          if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
+
+          // 選択中のモデルの状態を先にチェック
           if (!this.state.voskModelName) return 'noVoskModel';
-          if (
-            this.modelsManager.getVoskModelStatus(this.state.voskModelName).state !== 'downloaded'
-          ) {
+
+          const modelStatus = this.modelsManager.getVoskModelStatus(this.state.voskModelName);
+          if (modelStatus.state === 'load_error') return 'modelLoadError';
+          if (modelStatus.state !== 'downloaded') {
+            // 選択中のモデルがダウンロードされていない場合のみ、他のモデルの存在をチェック
+            if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
             return 'noVoskModel';
           }
           return 'active';
+        }),
+        tap(status => {
+          console.log('TranscriptionService activeStatus:', status);
         }),
       )
       .subscribe(this.activeStatusSubject$);
@@ -391,6 +409,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         `Vosk model '${this.state.voskModelName}' is not downloaded. Please download it first.`,
       );
     }
+    console.log('Activating TranscriptionService with model:', this.state.voskModelName);
     try {
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
@@ -409,6 +428,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       });
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
+      this.voskError$.next('launchError');
       return;
     }
 
@@ -421,10 +441,22 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           this.partialSubject$.next(filterNoiseText(message.partial));
         } else if (isErrorTranscriptionMessage(message)) {
           console.error('Transcription error:', message.error);
+          if (message.error.startsWith('Failed to load model:')) {
+            this.deactivate();
+            this.setModelStatus(this.state.voskModelName, {
+              state: 'load_error',
+              error_message: message.error,
+            });
+          }
         } else if (isProcessExitedMessage(message)) {
           console.log('Vosk CLI process exited:', message.processExited);
-          this.deactivate();
-          this.updateActiveness$.next();
+          if (message.processExited.toLowerCase().includes('launch error')) {
+            this.deactivate();
+            this.voskError$.next('launchError');
+          } else {
+            this.deactivate();
+            this.voskError$.next('error');
+          }
         } else if (isInfoTranscriptionMessage(message) || isFormatTranscriptionMessage(message)) {
           // can safely be ignored
         } else {
@@ -456,7 +488,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.subscription.unsubscribe();
       this.subscription = null;
     }
-    this.updateActiveness$.next();
   }
 
   setEnabled(enabled: boolean) {
@@ -468,6 +499,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       message: `TranscriptionService ${enabled ? 'enabled' : 'disabled'}`,
     });
     if (enabled) {
+      this.voskError$.next(null);
       this.updateAudioDevices();
     }
     this.setState({ enabled });
