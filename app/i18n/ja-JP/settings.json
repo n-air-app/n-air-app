@@ -771,7 +771,8 @@
       "downloading": "ダウンロード中",
       "installing": "インストール中...",
       "downloaded": "ダウンロード済み",
-      "download_error": "ダウンロードエラー"
+      "download_error": "ダウンロードエラー",
+      "load_error": "読み込みエラー"
     },
     "downloadVoskModel": "モデルをダウンロードする",
     "deleteVoskModel": "ダウンロードしたモデルを削除する",
@@ -857,7 +858,10 @@
       "disabled": "自動文字起こし機能が無効です。",
       "noVoskModel": "ダウンロードしたモデルを選択してください。",
       "noModelDownloaded": "モデルをダウンロードしてください。",
-      "noAudioDevice": "音声ソースデバイスが見つからないため、利用できません。"
+      "noAudioDevice": "音声ソースデバイスが見つからないため、利用できません。",
+      "voskLaunchError": "エンジンが起動できません。",
+      "voskError": "エンジンエラーが発生しました。",
+      "modelLoadError": "モデルが読み込めません。"
     },
     "addSource": {
       "notActive": "自動文字起こしされたテキストを表示するにはソース追加後、設定にて自動文字起こしを有効にしてください。"
