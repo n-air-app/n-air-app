@@ -15,6 +15,7 @@ import type {
 } from './VoskClient';
 
 const VOSK_MODEL_NAME = 'vosk-model-small-ja-0.22';
+const VOSK_MODEL_NAME_2 = 'vosk-model-ja-0.22';
 
 // Mock dependencies
 jest.mock('@electron/remote', () => ({
@@ -683,6 +684,69 @@ describe('TranscriptionService', () => {
         });
         expect(stopTranscription).toHaveBeenCalled();
         expect(require('node:fs').promises.rmdir).toHaveBeenCalled();
+      }),
+    );
+  });
+
+  describe('model switching', () => {
+    it(
+      'should deactivate and reactivate with new model when switching models',
+      withClock(async clock => {
+        const { instance, getVoskModelStatus, stopTranscription } = prepare();
+        const { CreateVoskCliClient: mockedCreateVoskCliClient } = require('./VoskClient');
+
+        // Mock two downloaded models
+        const downloadedStatus = { state: 'downloaded' as const };
+        const mockModelsManager = instance['modelsManager'];
+        jest.spyOn(mockModelsManager, 'getVoskModels').mockReturnValue([
+          { name: VOSK_MODEL_NAME, description: 'Small', status: downloadedStatus },
+          { name: VOSK_MODEL_NAME_2, description: 'Large', status: downloadedStatus },
+        ]);
+
+        // Set both models as downloaded
+        getVoskModelStatus.mockImplementation((modelName: string) => {
+          if (modelName === VOSK_MODEL_NAME || modelName === VOSK_MODEL_NAME_2) {
+            return downloadedStatus;
+          }
+          return { state: 'not_downloaded' };
+        });
+
+        instance['setModelStatus'](VOSK_MODEL_NAME, downloadedStatus);
+        instance['setModelStatus'](VOSK_MODEL_NAME_2, downloadedStatus);
+
+        // Set audio device and enable with first model
+        instance.setAudioDeviceId('test-device');
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        // Verify first model was used
+        expect(mockedCreateVoskCliClient).toHaveBeenCalledTimes(1);
+        expect(mockedCreateVoskCliClient).toHaveBeenCalledWith({
+          voskCliPath: '/fake/vosk-cli',
+          modelPath: `/fake/path/vosk-model/${VOSK_MODEL_NAME}`,
+        });
+
+        // Clear mock to track new calls
+        mockedCreateVoskCliClient.mockClear();
+        stopTranscription.mockClear();
+
+        // Switch to second model
+        instance.setModelName(VOSK_MODEL_NAME_2);
+        await clock.tickAsync(0);
+
+        // Verify old client was stopped
+        expect(stopTranscription).toHaveBeenCalledTimes(1);
+
+        // Verify new client was created with second model
+        expect(mockedCreateVoskCliClient).toHaveBeenCalledTimes(1);
+        expect(mockedCreateVoskCliClient).toHaveBeenCalledWith({
+          voskCliPath: '/fake/vosk-cli',
+          modelPath: `/fake/path/vosk-model/${VOSK_MODEL_NAME_2}`,
+        });
+
+        // Verify new client's startTranscription was called
+        const newClient = mockedCreateVoskCliClient.mock.results[0].value;
+        expect(newClient.startTranscription).toHaveBeenCalled();
       }),
     );
   });
