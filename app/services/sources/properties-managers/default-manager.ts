@@ -123,11 +123,8 @@ export class DefaultManager extends PropertiesManager {
       console.log('Game capture list not found:', listPath);
       return;
     }
-    // 絶対パス指定
-    const imagePath = path.join(
-      process.cwd(),
-      require('../../../../media/images/nair_capture_back.jpg'),
-    );
+
+    const imagePath = path.join(appPath, 'assets/gamecapture/nair_capture_back.jpg');
 
     // これらは遅延設定しても作用する
     this.obsSource.update({
