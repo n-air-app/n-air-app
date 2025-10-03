@@ -154,7 +154,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
     // Find AudioSource with matching device_id
     const audioSources = this.getSources();
+    console.log('Looking for device ID:', deviceId); // DEBUG
     for (const audioSource of audioSources) {
+      if (audioSource.name === 'マイク') {
+        console.log('- ', JSON.stringify(audioSource, null, 2)); // DEBUG
+        console.log('- settings: ', audioSource.source.getObsInput()?.settings); // DEBUG)
+      }
       try {
         const obsInput = audioSource.source.getObsInput();
         if (obsInput?.settings?.device_id === deviceId) {
