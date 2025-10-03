@@ -513,7 +513,7 @@
     "description": "Add CUSTOM CAST NDI® output stream to your scene."
   },
   "ffmpeg_source_replay": {
-    "name": "Replay Buffer",
-    "description": "Add a replay buffer to your scene."
+    "name": "Replay playback",
+    "description": "Add a replay playback source to your scene."
   }
 }
