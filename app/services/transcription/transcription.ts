@@ -312,7 +312,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
             return false;
           }
 
-          const audioSource = this.audioService.getSourceByDeviceId(audioDeviceId);
+          const isDefault = this.isDefaultAudioDevice(audioDeviceId);
+          const audioSource = this.audioService.getSourceByDeviceId(audioDeviceId, isDefault);
           return audioSource ? audioSource.muted : false;
         }),
         distinctUntilChanged(),
@@ -578,6 +579,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   getAudioDeviceList(): { id: string; name: string }[] {
     return this.audioDevices$.value;
+  }
+
+  private isDefaultAudioDevice(audioDeviceId: string): boolean {
+    return this.audioDevices$.value[0]?.id === audioDeviceId;
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {

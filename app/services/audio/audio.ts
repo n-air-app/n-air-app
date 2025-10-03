@@ -145,9 +145,10 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   /**
    * Get AudioSource by WASAPI device ID
    * @param deviceId WASAPI device ID (from getDevices()[].id)
+   * @param isDefault If true, also matches when device_id is 'default' (user selected system default)
    * @returns AudioSource if found, undefined otherwise
    */
-  getSourceByDeviceId(deviceId: string): AudioSource | undefined {
+  getSourceByDeviceId(deviceId: string, isDefault = false): AudioSource | undefined {
     if (!deviceId) {
       return undefined;
     }
@@ -162,7 +163,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       }
       try {
         const obsInput = audioSource.source.getObsInput();
-        if (obsInput?.settings?.device_id === deviceId) {
+        const obsDeviceId = obsInput?.settings?.device_id;
+        if (obsDeviceId === deviceId) {
+          return audioSource;
+        }
+        // If isDefault is true, also match when device_id is 'default'
+        if (isDefault && obsDeviceId === 'default') {
           return audioSource;
         }
       } catch (err) {
