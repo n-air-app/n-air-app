@@ -149,6 +149,14 @@
         <TextGdiplusIcon slot="media" />
       </add-source-info>
 
+      <add-source-info
+        v-if="inspectedSource === 'ffmpeg_source_replay'"
+        sourceType="ffmpeg_source_replay"
+        key="23"
+      >
+        <FfmpegSourceIcon slot="media" />
+      </add-source-info>
+
       <div class="source-info" v-if="inspectedSource === null">
         <div class="source-info__text">
           <h3>{{ $t('sources.sourcesWelcomeMessage') }}</h3>
