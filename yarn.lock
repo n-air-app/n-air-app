@@ -13358,9 +13358,9 @@ verror@^1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-"vosk-cli@github:n-air-app/vosk-cli#1.0.1":
-  version "1.0.1"
-  resolved "https://codeload.github.com/n-air-app/vosk-cli/tar.gz/c408ffba4b37b749c734fe8549ff9384743de342"
+"vosk-cli@github:n-air-app/vosk-cli#1.0.2":
+  version "1.0.2"
+  resolved "https://codeload.github.com/n-air-app/vosk-cli/tar.gz/d77363a7a92a8ee2a432c40e0831b6cd2c47f7b4"
 
 vue-class-component@^6.2.0:
   version "6.3.2"
