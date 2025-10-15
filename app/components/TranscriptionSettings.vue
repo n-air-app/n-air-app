@@ -78,12 +78,24 @@
         ></label>
       </div>
       <p class="section-notice-text">{{ commentSectionNotice2 }}</p>
-      <ObsListInput v-model="commentSizeModel" />
-      <ObsListInput v-model="commentPositionModel" />
-      <ObsListInput v-model="commentColorModel" />
-      <ObsListInput v-model="commentFontModel" />
-      <ObsIntInput v-model="commentPostDelayModel" />
-      <ObsIntInput v-model="commentVposOffsetModel" />
+      <div class="input-container">
+        <div class="input-wrapper">
+          <div class="row">
+            <div class="name">{{ $t('settings.transcription.comment.enable') }}</div>
+            <div class="value">
+              <input type="checkbox" v-model="commentEnabled" class="toggle-button" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="commentEnabled">
+        <ObsListInput v-model="commentSizeModel" />
+        <ObsListInput v-model="commentPositionModel" />
+        <ObsListInput v-model="commentColorModel" />
+        <ObsListInput v-model="commentFontModel" />
+        <ObsIntInput v-model="commentPostDelayModel" />
+        <ObsIntInput v-model="commentVposOffsetModel" />
+      </div>
     </div>
     <div class="section">
       <h4 class="section-title">{{ textFileSectionTitle }}</h4>

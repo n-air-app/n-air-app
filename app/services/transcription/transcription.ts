@@ -48,6 +48,7 @@ interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
   audioDeviceId?: string | null;
+  commentEnabled: boolean;
   commentPosition: CommentPosition;
   commentSize: CommentSize;
   commentFont: CommentFont;
@@ -102,6 +103,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    commentEnabled: true,
     commentPosition: 'shita',
     commentFont: 'gothic',
     commentSize: 'medium',
@@ -786,6 +788,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     } else {
       this.setState({ voskModelName: undefined });
     }
+  }
+
+  setCommentEnabled(commentEnabled: boolean) {
+    this.setState({ commentEnabled });
   }
 
   setCommentPostDelay(commentPostDelay: number) {

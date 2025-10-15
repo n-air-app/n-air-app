@@ -66,7 +66,9 @@ export default class CommentForm extends Vue {
   }
 
   get isSendable(): boolean {
-    return !this.isCommentSending && !this.programEnded;
+    return (
+      !this.isCommentSending && !this.programEnded && this.transcriptionService.state.commentEnabled
+    );
   }
 
   @Watch('isSendable')
