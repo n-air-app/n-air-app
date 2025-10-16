@@ -161,4 +161,4 @@ test('service behavior', () => {
 
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
 **Package Manager:** Must use Yarn (npm blocked), lockfile committed
-**Node Version:** Requires Node.js 20.x LTS
+**Node Version:** Requires Node.js 22.x LTS
