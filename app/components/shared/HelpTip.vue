@@ -1,5 +1,5 @@
 <template>
-  <div class="help-tip" v-if="shouldShow && !isCompactMode" :data-mode="mode">
+  <div class="help-tip" v-if="shouldShow && (mode === 'compact-mode-toggle' || !isCompactMode)" :data-mode="mode">
     <div class="help-tip__arrow"></div>
     <div class="help-tip__inner">
       <div class="help-tip__title">
@@ -43,6 +43,12 @@
     left: 44px;
   }
 
+  &[data-mode='compact-mode-toggle'] {
+    top: 0;
+    left: 48px;
+    max-width: 280px;
+  }
+
   &[data-mode='streaming'] {
     right: -12px;
     bottom: 62px;
@@ -66,6 +72,10 @@
 
   .help-tip[data-mode='login'] & {
     bottom: 8px;
+  }
+
+  .help-tip[data-mode='compact-mode-toggle'] & {
+    top: 20px;
   }
 
   .help-tip[data-mode='streaming'] & {
