@@ -1,7 +1,5 @@
 import { Subscription } from 'rxjs';
 import { AudioSource } from 'services/audio';
-import { Inject } from 'services/core/injector';
-import { CustomizationService } from 'services/customization';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 
@@ -24,61 +22,85 @@ const ADVANCED_BG = '#050e18';
 
 @Component({})
 export default class MixerVolmeter extends Vue {
-  @Prop() audioSource: AudioSource;
+  @Prop() audioSource!: AudioSource;
 
-  @Inject() customizationService: CustomizationService;
+  private volmeterSubscription?: Subscription;
 
-  volmeterSubscription: Subscription;
-
-  $refs: {
+  $refs!: {
     canvas: HTMLCanvasElement;
     spacer: HTMLDivElement;
   };
 
-  ctx: CanvasRenderingContext2D;
+  private ctx!: CanvasRenderingContext2D;
 
-  peakHoldCounters: number[];
-  peakHolds: number[];
-  canvasWidth: number;
-  canvasWidthInterval: number;
-  channelCount: number;
-  canvasHeight: number;
+  private peakHoldCounters: number[] = [];
+  private peakHolds: number[] = [];
+  private canvasWidth = 0;
+  private channelCount = 0;
+  private canvasHeight = 0;
 
-  mounted() {
-    this.subscribeVolmeter();
-    this.peakHoldCounters = [];
-    this.peakHolds = [];
+  private previousPeaks: number[] = [];
+  private previousPeakHolds: number[] = [];
+  private hasDrawn = false;
+
+  private resizeObserver?: ResizeObserver;
+
+  mounted(): void {
+    this.ctx = this.$refs.canvas.getContext('2d')!;
     this.setChannelCount(1);
-    this.ctx = this.$refs.canvas.getContext('2d');
-    this.canvasWidthInterval = window.setInterval(() => this.setCanvasWidth(), 500);
+    this.updateCanvasWidth();
+    this.subscribeVolmeter();
+
+    // ResizeObserverでサイズ変更を監視
+    this.resizeObserver = new ResizeObserver(() => this.updateCanvasWidth());
+
+    const parentElement = this.$refs.canvas.parentElement;
+    if (parentElement) this.resizeObserver.observe(parentElement);
   }
 
-  destroyed() {
-    clearInterval(this.canvasWidthInterval);
+  destroyed(): void {
+    // ResizeObserverの監視を停止
+    if (this.resizeObserver) this.resizeObserver.disconnect();
     this.unsubscribeVolmeter();
   }
 
-  setChannelCount(channels: number) {
-    if (channels !== this.channelCount) {
-      this.channelCount = channels;
-      this.canvasHeight = channels * (CHANNEL_HEIGHT + PADDING_HEIGHT) - PADDING_HEIGHT;
-      this.$refs.canvas.height = this.canvasHeight;
-      this.$refs.canvas.style.height = `${this.canvasHeight}px`;
-      this.$refs.spacer.style.height = `${this.canvasHeight}px`;
-    }
+  private setChannelCount(channels: number): void {
+    if (channels === this.channelCount) return;
+
+    this.channelCount = channels;
+    this.canvasHeight = channels * (CHANNEL_HEIGHT + PADDING_HEIGHT) - PADDING_HEIGHT;
+    this.$refs.canvas.height = this.canvasHeight;
+    this.$refs.canvas.style.height = `${this.canvasHeight}px`;
+    this.$refs.spacer.style.height = `${this.canvasHeight}px`;
+
+    this.peakHoldCounters = new Array(channels).fill(0);
+    this.peakHolds = new Array(channels).fill(-65535);
+    this.previousPeaks = new Array(channels).fill(-65535);
+    this.previousPeakHolds = new Array(channels).fill(-65535);
   }
 
-  setCanvasWidth() {
-    const width = Math.floor(this.$refs.canvas.parentElement.offsetWidth);
+  private updateCanvasWidth(): void {
+    const parentElement = this.$refs.canvas.parentElement;
+    if (!parentElement) return;
 
-    if (width !== this.canvasWidth) {
-      this.canvasWidth = width;
-      this.$refs.canvas.width = width;
-      this.$refs.canvas.style.width = `${width}px`;
-    }
+    const width = Math.floor(parentElement.offsetWidth);
+    if (width === this.canvasWidth) return;
+
+    this.canvasWidth = width;
+    this.$refs.canvas.width = width;
+    this.$refs.canvas.style.width = `${width}px`;
+    this.hasDrawn = false;
+
+    // キャッシュを更新
+    this.recalculatePixelCache();
   }
 
-  drawVolmeter(peaks: number[]) {
+  private recalculatePixelCache(): void {
+    this.warningPx = this.convertDbToPixels(WARNING_LEVEL);
+    this.dangerPx = this.convertDbToPixels(DANGER_LEVEL);
+  }
+
+  private drawVolmeter(peaks: number[]): void {
     this.ctx.fillStyle = ADVANCED_BG;
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
@@ -87,70 +109,124 @@ export default class MixerVolmeter extends Vue {
     });
   }
 
-  drawVolmeterChannel(peak: number, channel: number) {
-    this.updatePeakHold(peak, channel);
+  // キャッシュ用プロパティ
+  private warningPx = 0;
+  private dangerPx = 0;
 
+  private drawVolmeterChannel(peak: number, channel: number): void {
     const heightOffset = channel * (CHANNEL_HEIGHT + PADDING_HEIGHT);
-    const warningPx = this.dbToPx(WARNING_LEVEL);
-    const dangerPx = this.dbToPx(DANGER_LEVEL);
+    const peakPx = this.convertDbToPixels(peak);
 
+    // 背景描画
+    this.drawChannelBackground(heightOffset);
+
+    // ピークレベル描画
+    this.drawPeakLevel(peak, peakPx, heightOffset);
+
+    // ピークホールド描画
+    this.drawPeakHold(channel, heightOffset);
+  }
+
+  private drawChannelBackground(heightOffset: number): void {
     this.ctx.fillStyle = GREEN_BG;
-    this.ctx.fillRect(0, heightOffset, warningPx, CHANNEL_HEIGHT);
+    this.ctx.fillRect(0, heightOffset, this.warningPx, CHANNEL_HEIGHT);
     this.ctx.fillStyle = YELLOW_BG;
-    this.ctx.fillRect(warningPx, heightOffset, dangerPx - warningPx, CHANNEL_HEIGHT);
+    this.ctx.fillRect(this.warningPx, heightOffset, this.dangerPx - this.warningPx, CHANNEL_HEIGHT);
     this.ctx.fillStyle = RED_BG;
-    this.ctx.fillRect(dangerPx, heightOffset, this.canvasWidth - dangerPx, CHANNEL_HEIGHT);
+    this.ctx.fillRect(
+      this.dangerPx,
+      heightOffset,
+      this.canvasWidth - this.dangerPx,
+      CHANNEL_HEIGHT,
+    );
+  }
 
-    const peakPx = this.dbToPx(peak);
+  private drawPeakLevel(peak: number, peakPx: number, heightOffset: number): void {
+    // Green level
+    const greenLevel = Math.min(peakPx, this.warningPx);
+    if (greenLevel <= 0) return;
 
-    const greenLevel = Math.min(peakPx, warningPx);
     this.ctx.fillStyle = GREEN;
     this.ctx.fillRect(0, heightOffset, greenLevel, CHANNEL_HEIGHT);
 
-    if (peak > WARNING_LEVEL) {
-      const yellowLevel = Math.min(peakPx, dangerPx);
-      this.ctx.fillStyle = YELLOW;
-      this.ctx.fillRect(warningPx, heightOffset, yellowLevel - warningPx, CHANNEL_HEIGHT);
-    }
+    // Yellow level
+    if (peak <= WARNING_LEVEL) return;
 
-    if (peak > DANGER_LEVEL) {
-      this.ctx.fillStyle = RED;
-      this.ctx.fillRect(dangerPx, heightOffset, peakPx - dangerPx, CHANNEL_HEIGHT);
-    }
+    const yellowLevel = Math.min(peakPx, this.dangerPx);
+    this.ctx.fillStyle = YELLOW;
+    this.ctx.fillRect(this.warningPx, heightOffset, yellowLevel - this.warningPx, CHANNEL_HEIGHT);
 
-    this.ctx.fillStyle = GREEN;
-    if (this.peakHolds[channel] > WARNING_LEVEL) this.ctx.fillStyle = YELLOW;
-    if (this.peakHolds[channel] > DANGER_LEVEL) this.ctx.fillStyle = RED;
+    // Red level
+    if (peak <= DANGER_LEVEL) return;
+
+    this.ctx.fillStyle = RED;
+    this.ctx.fillRect(this.dangerPx, heightOffset, peakPx - this.dangerPx, CHANNEL_HEIGHT);
+  }
+
+  private drawPeakHold(channel: number, heightOffset: number): void {
+    const peakHold = this.peakHolds[channel];
+
+    let color = GREEN;
+    if (peakHold > DANGER_LEVEL) color = RED;
+    else if (peakHold > WARNING_LEVEL) color = YELLOW;
+
+    this.ctx.fillStyle = color;
     this.ctx.fillRect(
-      this.dbToPx(this.peakHolds[channel]) - PEAK_WIDTH / 2,
+      this.convertDbToPixels(peakHold) - PEAK_WIDTH / 2,
       heightOffset,
       PEAK_WIDTH,
       CHANNEL_HEIGHT,
     );
   }
 
-  dbToPx(db: number) {
+  private convertDbToPixels(db: number): number {
     return Math.round((db + 60) * (this.canvasWidth / 60));
   }
 
-  updatePeakHold(peak: number, channel: number) {
-    if (!this.peakHoldCounters[channel] || peak > this.peakHolds[channel]) {
+  private updatePeakHold(peak: number, channel: number): void {
+    if (this.peakHoldCounters[channel] === 0 || peak > this.peakHolds[channel]) {
       this.peakHolds[channel] = peak;
       this.peakHoldCounters[channel] = PEAK_HOLD_CYCLES;
       return;
     }
 
-    this.peakHoldCounters[channel] -= 1;
+    this.peakHoldCounters[channel] = Math.max(0, this.peakHoldCounters[channel] - 1);
   }
 
-  subscribeVolmeter() {
+  private checkPeaks(peaks: number[]): boolean {
+    if (peaks.length !== this.channelCount) {
+      this.hasDrawn = false;
+      return false;
+    }
+
+    let changed = false;
+    peaks.forEach((peak, channel) => {
+      this.updatePeakHold(peak, channel);
+
+      // 変化がなければ再描画しない
+      if (
+        peak !== this.previousPeaks[channel] ||
+        this.peakHolds[channel] !== this.previousPeakHolds[channel]
+      )
+        changed = true;
+
+      this.previousPeaks[channel] = peak;
+      this.previousPeakHolds[channel] = this.peakHolds[channel];
+    });
+
+    return !changed && this.hasDrawn;
+  }
+
+  private subscribeVolmeter(): void {
     this.volmeterSubscription = this.audioSource.subscribeVolmeter(volmeter => {
+      if (this.checkPeaks(volmeter.peak)) return;
       this.setChannelCount(volmeter.peak.length);
       this.drawVolmeter(volmeter.peak);
+      this.hasDrawn = true;
     });
   }
 
-  unsubscribeVolmeter() {
-    this.volmeterSubscription && this.volmeterSubscription.unsubscribe();
+  private unsubscribeVolmeter(): void {
+    if (this.volmeterSubscription) this.volmeterSubscription.unsubscribe();
   }
 }
