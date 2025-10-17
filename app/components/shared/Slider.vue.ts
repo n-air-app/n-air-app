@@ -1,5 +1,3 @@
-import ResizeSensor from 'css-element-queries/src/ResizeSensor';
-import { debounce } from 'lodash-decorators';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 import VueSlider from 'vue-slider-component';
@@ -21,16 +19,17 @@ export default class SliderInput extends Vue {
 
   $refs: { slider: any };
 
-  mounted() {
-    // Hack to prevent transitions from messing up slider width
-    setTimeout(() => {
-      this.onResizeHandler();
-    }, 500);
+  private resizeObserver?: ResizeObserver;
 
-    // eslint-disable-next-line no-new
-    new ResizeSensor(this.$el, () => {
-      this.onResizeHandler();
-    });
+  mounted() {
+    // ResizeObserverでサイズ変更を監視
+    this.resizeObserver = new ResizeObserver(() => this.onResizeHandler());
+    if (this.$el) this.resizeObserver.observe(this.$el);
+  }
+
+  destroyed() {
+    // ResizeObserverの監視を停止
+    if (this.resizeObserver) this.resizeObserver.disconnect();
   }
 
   updateValue(value: number) {
@@ -53,7 +52,6 @@ export default class SliderInput extends Vue {
     return formattedValue;
   }
 
-  @debounce(500)
   private onResizeHandler() {
     if (this.$refs.slider) this.$refs.slider.refresh();
   }
