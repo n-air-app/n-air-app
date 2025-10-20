@@ -1,6 +1,7 @@
 import uuid from 'uuid';
 import { ChatMessageType } from './ChatMessage/classifier';
 import { getDisplayText } from './ChatMessage/displaytext';
+import { sendLogGif } from './nicolive-logger';
 import { HttpRelationState } from './state';
 import { isWrappedChat, WrappedMessageWithComponent } from './WrappedChat';
 
@@ -106,22 +107,11 @@ export class HttpRelation {
   }
 
   static async sendLog(programID: string, uuid: string, httpRelation: HttpRelationState) {
-    try {
-      if (!programID || !httpRelation) return;
-      const url = 'https://dcdn.cdn.nicovideo.jp/shared_httpd/log.gif';
-      const params = new URLSearchParams();
-      params.append('frontend_id', '134');
-      params.append('id', 'http_relation');
-      params.append('content_id', programID);
-      params.append('uuid', uuid);
-      params.append('method', httpRelation.method);
-      params.append('url', httpRelation.url);
-
-      await fetch(`${url}?${params}`, {
-        method: 'GET',
-        mode: 'cors',
-        credentials: 'include',
-      });
-    } catch (e) {}
+    if (!programID || !httpRelation) return;
+    await sendLogGif('http_relation', programID, {
+      uuid,
+      method: httpRelation.method,
+      url: httpRelation.url,
+    });
   }
 }
