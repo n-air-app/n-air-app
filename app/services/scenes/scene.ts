@@ -181,7 +181,7 @@ export class Scene {
     }
 
     this.scenesService.itemAdded.next(sceneItem.getModel());
-    if (source.type === 'monitor_capture') {
+    if (source.type === 'monitor_capture' || source.type === 'game_capture') {
       this.fixupSceneItemWhenReady(sourceId, () => {
         const sceneItem = this.getItem(sceneItemId);
         sceneItem?.fitToScreen();
@@ -193,6 +193,13 @@ export class Scene {
   // SceneItem の width, heightは遅れてセットされるので、設定されたあとに実行する処理を登録する
   // Streamlabs 側はOBSのプロセスを分けて解決しているようだが、こちらは値の設定されるタイミングがずれているためのtweakが必要
   fixupSceneItemWhenReady(sourceId: string, callback: () => void) {
+    if (!sourceId || !callback) return;
+    const source = this.sourcesService.getSourceById(sourceId);
+    // 既にwidth, heightが設定されている場合は即実行
+    if (source?.width && source?.height) {
+      callback();
+      return;
+    }
     const subscription = this.sourcesService.sourceUpdated
       .pipe(filter(patch => patch.sourceId === sourceId))
       .subscribe(patch => {
