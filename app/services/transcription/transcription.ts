@@ -328,6 +328,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     return {
       enabled: true,
       voskModelName: state.voskModelName,
+      commentEnabled: state.commentEnabled,
       commentColor: state.commentColor,
       commentSize: state.commentSize,
       commentPosition: state.commentPosition,

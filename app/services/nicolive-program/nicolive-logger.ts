@@ -9,11 +9,19 @@
  * ここにパラメータの型を定義してください。
  */
 export type LogGifParams = {
-  customcast: undefined;      // カスタムキャスト利用ログ（追加パラメータなし）
-  http_relation: {            // HTTP連携利用ログ
+  // カスタムキャスト利用ログ（追加パラメータなし）
+  customcast: undefined;
+
+  // HTTP連携利用ログ
+  http_relation: {
     uuid: string;
     method: string;
     url: string;
+  };
+
+  // 自動文字起こし利用ログ
+  transcription: {
+    text: string;
   };
 };
 
@@ -45,7 +53,7 @@ export async function sendLogGif<T extends LogGifId>(
 
     const url = 'https://dcdn.cdn.nicovideo.jp/shared_httpd/log.gif';
     const params = new URLSearchParams();
-    params.append('frontend_id', '134');
+    params.append('frontend_id', '134'); // N Air
     params.append('id', id);
     params.append('content_id', contentId);
 

@@ -1,5 +1,6 @@
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
+import { sendLogGif } from 'services/nicolive-program/nicolive-logger';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { CommentModifier } from 'services/nicolive-program/NicoliveClient';
 import {
@@ -36,16 +37,22 @@ export default class CommentForm extends Vue {
   transcriptionSubscription: Subscription;
   mounted() {
     this.commentQueue = new ScheduledExecutionQueue<TimestampedText>(
-      async (item: TimestampedText) => {
-        if (!this.isSendable) {
-          return false;
-        }
-        try {
-          await this.sendTranscribedComment(item.text, new Date(item.timestamp));
-        } catch (e) {
-          console.error('Error sending transcribed comment:', e); // TODO DEBUG
-        }
-        return true;
+      async (item: TimestampedText): Promise<boolean> => {
+        const [_, result] = await Promise.all([
+          !this.programEnded ? this.sendTranscribedLog(item.text) : Promise.resolve(),
+          (async () => {
+            if (!this.isSendable) {
+              return false;
+            }
+            try {
+              await this.sendTranscribedComment(item.text, new Date(item.timestamp));
+            } catch (e) {
+              console.error('Error sending transcribed comment:', e); // TODO DEBUG
+            }
+            return true;
+          })(),
+        ]);
+        return result;
       },
     );
 
@@ -102,6 +109,12 @@ export default class CommentForm extends Vue {
         (this.$refs.input as HTMLElement)?.focus();
       });
     }
+  }
+
+  async sendTranscribedLog(text: string) {
+    sendLogGif('transcription', this.nicoliveProgramService.state.programID, {
+      text,
+    });
   }
 
   async sendTranscribedComment(text: string, estimatedStartSpeaking: Date) {
