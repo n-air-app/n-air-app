@@ -129,8 +129,6 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   private handleVolmeterCallback(objs: obs.IObsVolmeterCallbackInfo[]) {
     // 約50msec毎にやってくる
-    //console.debug('[AudioService] Volmeter callback', new Date().toISOString()); // DEBUG
-
     objs.forEach(info => {
       if (!info.peak.length) return; // 不要なコールバックを無視
       const source = this.getSource(info.sourceName);
