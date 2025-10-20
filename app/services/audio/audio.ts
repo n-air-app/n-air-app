@@ -58,6 +58,10 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   @Inject() private windowsService: WindowsService;
 
   protected init() {
+    obs.NodeObs.RegisterVolmeterCallback((objs: obs.IObsVolmeterCallbackInfo[]) =>
+      this.handleVolmeterCallback(objs),
+    );
+
     (() => {
       // Debug logging: log audio devices 1 second after audio source changes
       const audioSourceAdded = this.sourcesService.sourceAdded.pipe(
@@ -120,6 +124,29 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       if (source.audio) {
         this.removeAudioSource(source.sourceId);
       }
+    });
+  }
+
+  private handleVolmeterCallback(objs: obs.IObsVolmeterCallbackInfo[]) {
+    // 約50msec毎にやってくる
+    //console.debug('[AudioService] Volmeter callback', new Date().toISOString()); // DEBUG
+
+    objs.forEach(info => {
+      if (!info.peak.length) return; // 不要なコールバックを無視
+      const source = this.getSource(info.sourceName);
+      if (!source) return;
+      const stream = this.sourceData[info.sourceName]?.stream as Subject<IVolmeter>;
+      if (!stream) return;
+
+      const volmeter: IVolmeter = info;
+      if (source.muted) {
+        // ミュート時は全ての音声レベルを最小値に設定
+        const muteValue = -65535;
+        volmeter.inputPeak.fill(muteValue);
+        volmeter.peak.fill(muteValue);
+        volmeter.magnitude.fill(muteValue);
+      }
+      stream.next(volmeter);
     });
   }
 
@@ -336,51 +363,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     obsFader.attach(source.getObsInput());
     this.sourceData[source.sourceId].fader = obsFader;
 
-    this.initVolmeterStream(source.sourceId);
+    this.sourceData[source.sourceId].stream = new Subject<IVolmeter>();
     this.ADD_AUDIO_SOURCE(this.generateAudioSourceData(source.sourceId));
-  }
-
-  private initVolmeterStream(sourceId: string) {
-    const volmeterStream = new Subject<IVolmeter>();
-
-    let gotEvent = false;
-    let lastVolmeterValue: IVolmeter;
-    let volmeterCheckTimeoutId: number;
-    this.sourceData[sourceId].callbackInfo = this.sourceData[sourceId].volmeter.addCallback(
-      (magnitude: number[], peak: number[], inputPeak: number[]) => {
-        const volmeter: IVolmeter = { magnitude, peak, inputPeak };
-
-        volmeterStream.next(volmeter);
-        lastVolmeterValue = volmeter;
-        gotEvent = true;
-      },
-    );
-
-    /* This is useful for media sources since the volmeter will abruptly stop
-     * sending events in the case of hiding the source. It might be better
-     * to eventually just hide the mixer item as well though */
-    function volmeterCheck() {
-      if (!gotEvent) {
-        volmeterStream.next({
-          ...lastVolmeterValue,
-          magnitude: [-Infinity],
-          peak: [-Infinity],
-          inputPeak: [-Infinity],
-        });
-      }
-
-      gotEvent = false;
-      volmeterCheckTimeoutId = window.setTimeout(volmeterCheck, 100);
-    }
-
-    volmeterCheck();
-
-    this.sourceData[sourceId].stream = volmeterStream;
   }
 
   private removeAudioSource(sourceId: string) {
     if (this.sourceData[sourceId]) {
-      this.sourceData[sourceId].volmeter.removeCallback(this.sourceData[sourceId].callbackInfo);
       delete this.sourceData[sourceId];
       this.REMOVE_AUDIO_SOURCE(sourceId);
     }
