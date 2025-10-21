@@ -78,7 +78,7 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
       Vue,
       beforeSend(event) {
         // 一度出始めると大量に送信しつづける IPC error のSentry送信を削減する(quota対策)
-        if (event.exception && event.exception.values) {
+        if (event.exception?.values) {
           const value = event.exception.values[0].value;
           if (value?.match(/Failed to make IPC call/)) {
             console.log(`skip send to Sentry(IPC): ${value}`, event);

@@ -8,7 +8,7 @@ export default {
       const match = name.match(/.*\(([0-9]+)\)$/);
 
       if (match) {
-        const num = parseInt(match[1], 10);
+        const num = +match[1];
 
         return this.suggestName(
           name.replace(/(.*\()([0-9]+)(\))$/, '$1' + (num + 1) + '$3'),

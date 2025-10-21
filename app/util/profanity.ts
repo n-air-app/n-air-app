@@ -137,13 +137,11 @@ export class ProfanityFilterService extends Service {
   }
 
   testString(str = '', options = {}) {
-    const mergedOptions: IProfanityFilterOptions = Object.assign(
-      {
-        useDefaultRegex: true,
-        extraRegex: null,
-      },
-      options,
-    );
+    const mergedOptions: IProfanityFilterOptions = {
+      useDefaultRegex: true,
+      extraRegex: null,
+      ...options,
+    };
 
     if (mergedOptions.useDefaultRegex) {
       if (this.DEFAULT_REGEX.test(str)) {

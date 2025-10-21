@@ -119,7 +119,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
 
     this.userService.userLoginState.subscribe({
       next: user => {
-        this.setState({ isLoggedIn: Boolean(user) });
+        this.setState({ isLoggedIn: !!user });
         if (!user) {
           this.setState(NicoliveProgramService.programInitialState);
         }
@@ -205,7 +205,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
   }
 
   get hasProgram(): boolean {
-    return Boolean(this.state.programID);
+    return !!this.state.programID;
   }
 
   get isProgramExtendable(): boolean {

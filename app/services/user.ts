@@ -62,7 +62,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   init() {
     super.init();
     this.setSentryContext();
-    setTimeout(() => this.validateLogin(), 0); // validateLogin is async
+    queueMicrotask(() => this.validateLogin()); // validateLogin is async
     this.incrementalRolloutService.fetchAvailableFeatures();
   }
 
@@ -107,7 +107,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }
 
   isLoggedIn() {
-    return !!(this.state.auth && this.state.auth.apiToken);
+    return !!this.state.auth?.apiToken;
   }
 
   /**

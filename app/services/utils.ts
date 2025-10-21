@@ -10,14 +10,14 @@ export const enum EBit {
 
 export default class Utils {
   static applyProxy(target: Object, source: Object) {
-    Object.keys(source).forEach(propName => {
+    for (const propName of Object.keys(source)) {
       Object.defineProperty(target, propName, {
         configurable: true,
         get() {
           return (source as Dictionary<any>)[propName];
         },
       });
-    });
+    }
   }
 
   static getCurrentUrlParams(): Dictionary<string> {

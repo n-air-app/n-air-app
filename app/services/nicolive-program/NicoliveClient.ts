@@ -84,9 +84,9 @@ export function parseMaxQuality(maxQuality: string, fallback: Quality): Quality 
     const match = maxQuality.match(/(\d+)([Mk])bps(\d+)p((\d+)fps)?/);
 
     return {
-      bitrate: parseInt(match[1], 10) * (match[2] === 'M' ? 1000 : 1),
-      height: parseInt(match[3], 10),
-      fps: parseInt(match[5], 10) || 30,
+      bitrate: +match[1] * (match[2] === 'M' ? 1000 : 1),
+      height: +match[3],
+      fps: +match[5] || 30,
     };
   } catch (e) {
     console.warn('Failed to parse max quality', maxQuality, e);
@@ -439,7 +439,7 @@ export class NicoliveClient {
   // 関心が別だが他の場所におく程の理由もないのでここにおく
   /** ユーザーアイコンを取得 */
   static getUserIconURL(userId: string, hash: string): string {
-    const dir = Math.floor(Number(userId) / 10000);
+    const dir = Math.floor(+userId / 10000);
     const url = `${NicoliveClient.userIconBaseURL}${dir}/${userId}.jpg?${hash}`;
     return url;
   }
@@ -775,7 +775,7 @@ export class NicoliveClient {
     return this.requestAPI<AddModerator>(
       'POST',
       `${NicoliveClient.live2BaseURL}/unama/api/v2/broadcasters/moderators`,
-      NicoliveClient.jsonBody({ userId: parseInt(userId, 10) }, NicoliveClient.FrontendIdHeader),
+      NicoliveClient.jsonBody({ userId: +userId }, NicoliveClient.FrontendIdHeader),
     );
   }
   async removeModerator(userId: string): Promise<WrappedResult<void>> {

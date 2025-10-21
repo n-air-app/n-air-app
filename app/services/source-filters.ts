@@ -92,7 +92,7 @@ export class SourceFiltersService extends Service {
         console.warn(`filter ${type} is not found in available types`);
         return;
       }
-      const description = listItem.description;
+      const { description } = listItem;
       const flags = obs.Global.getOutputFlagsFromId(type);
       types.push({
         audio: !!(obs.ESourceOutputFlags.Audio & flags),
@@ -136,7 +136,7 @@ export class SourceFiltersService extends Service {
     settings?: Dictionary<TObsValue>,
   ) {
     const source = this.sourcesService.getSource(sourceId);
-    const obsFilter = obs.FilterFactory.create(filterType, filterName, settings || {});
+    const obsFilter = obs.FilterFactory.create(filterType, filterName, settings ?? {});
 
     const obsSource = source.getObsInput();
     obsSource.addFilter(obsFilter);
@@ -253,7 +253,7 @@ export class SourceFiltersService extends Service {
     const sourceDisplayName = this.sourcesService.getSource(sourceId).name;
     this.windowsService.showWindow({
       componentName: 'SourceFilters',
-      title: $t('sources.layerFilters') + ' (' + sourceDisplayName + ')',
+      title: `${$t('sources.layerFilters')} (${sourceDisplayName})`,
       queryParams: { sourceId, selectedFilterName },
       size: {
         width: 800,

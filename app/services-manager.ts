@@ -73,13 +73,13 @@ export class ServicesManager extends Service {
 
   getStatefulServicesAndMutators(): Dictionary<typeof StatefulService> {
     const statefulServices: Dictionary<any> = {};
-    Object.keys(this.services).forEach(serviceName => {
+    for (const serviceName of Object.keys(this.services)) {
       const ServiceClass = this.services[serviceName];
       const isStatefulService = ServiceClass['initialState'];
       const isMutator = ServiceClass.prototype.mutations;
-      if (!isStatefulService && !isMutator) return;
+      if (!isStatefulService && !isMutator) continue;
       statefulServices[serviceName] = this.services[serviceName];
-    });
+    }
     return statefulServices;
   }
 

@@ -31,8 +31,8 @@ export default class ValidatedForm extends Vue {
    */
   async validate() {
     const inputs = this.getInputs();
-    for (let i = 0; i < inputs.length; i++) {
-      await inputs[i].$validator.validateAll(this.validationScopeId);
+    for (const input of inputs) {
+      await input.$validator.validateAll(this.validationScopeId);
     }
     this.validated.next(this.$validator.errors.items);
   }

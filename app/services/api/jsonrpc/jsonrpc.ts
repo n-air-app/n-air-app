@@ -13,12 +13,10 @@ export class JsonrpcService extends Service implements IJsonrpcServiceApi {
     requestOrRequestId: string | IJsonRpcRequest,
     options: { code: E_JSON_RPC_ERROR; message?: string },
   ): IJsonRpcResponse<any> {
-    /* eslint-disable */
     const id =
-      arguments[0] && typeof arguments[0] === 'object'
-        ? (arguments[0] as IJsonRpcRequest).id
-        : arguments[0];
-    /* eslint-enable */
+      requestOrRequestId && typeof requestOrRequestId === 'object'
+        ? (requestOrRequestId as IJsonRpcRequest).id
+        : (requestOrRequestId as string);
     return {
       id,
       jsonrpc: '2.0',
@@ -57,12 +55,10 @@ export class JsonrpcService extends Service implements IJsonrpcServiceApi {
     requestOrRequestId: string | IJsonRpcRequest,
     result: TResult = null,
   ): IJsonRpcResponse<TResult> {
-    /* eslint-disable */
     const id =
-      arguments[0] && typeof arguments[0] === 'object'
-        ? (arguments[0] as IJsonRpcRequest).id
-        : arguments[0];
-    /* eslint-enable */
+      requestOrRequestId && typeof requestOrRequestId === 'object'
+        ? (requestOrRequestId as IJsonRpcRequest).id
+        : (requestOrRequestId as string);
     return { id, result, jsonrpc: '2.0' } as IJsonRpcResponse<TResult>;
   }
 

@@ -106,7 +106,7 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
       return $t('settings.substream.error.url_key');
 
     const bitRange = (value: any, min: number, max: number): number =>
-      Math.max(min, Math.min(Math.floor(Number(value)), max));
+      Math.max(min, Math.min(Math.floor(+value), max));
 
     const param: StartParam = {
       videoId: this.state.videoCodec, //'obs_x264',

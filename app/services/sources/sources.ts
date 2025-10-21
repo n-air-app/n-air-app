@@ -105,11 +105,11 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     isTemporary?: boolean;
     propertiesManagerType?: TPropertiesManager;
   }) {
-    const id = addOptions.id;
+    const { id, name, type } = addOptions;
     const sourceModel: ISource = {
       sourceId: id,
-      name: addOptions.name,
-      type: addOptions.type,
+      name,
+      type,
       propertiesManagerType: addOptions.propertiesManagerType || 'default',
 
       // Whether the source has audio and/or video
@@ -176,13 +176,14 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     }
     const id = obsInput.name;
     const type: TSourceType = obsInput.id as TSourceType;
+    const { width, height } = obsInput;
     const managerType = options.propertiesManager || 'default';
     this.ADD_SOURCE({
       id,
       name,
       type,
-      width: obsInput.width,
-      height: obsInput.height,
+      width,
+      height,
       channel: options.channel,
       isTemporary: options.isTemporary,
       propertiesManagerType: managerType,
@@ -192,7 +193,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     this.UPDATE_SOURCE({ id, muted });
     this.updateSourceFlags(source.state, obsInput.outputFlags, true);
 
-    if (!PROPERTIES_MANAGER_TYPES.hasOwnProperty(managerType)) {
+    if (!(managerType in PROPERTIES_MANAGER_TYPES)) {
       console.error(
         `Unknown properties manager type ${managerType} of source id:${id} ('${source.name}'). fallback to default.`,
       );
@@ -257,7 +258,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     let ext = path.split('.').splice(-1)[0];
     if (!ext) return null;
     ext = ext.toLowerCase();
-    const filename = path.split('\\').splice(-1)[0];
+    const [filename] = path.split('\\').splice(-1);
 
     const types = getKeys(SUPPORTED_EXT);
     for (const type of types) {
@@ -302,11 +303,11 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   getObsSourceSettings(type: TSourceType, settings: Dictionary<any>): Dictionary<any> {
     const resolvedSettings = cloneDeep(settings);
 
-    Object.keys(resolvedSettings).forEach(propName => {
+    for (const propName of Object.keys(resolvedSettings)) {
       // device_id is unique for each PC
       // so we allow to provide a device name instead device id
       // resolve the device id by the device name here
-      if (!['device_id', 'video_device_id', 'audio_device_id'].includes(propName)) return;
+      if (!['device_id', 'video_device_id', 'audio_device_id'].includes(propName)) continue;
 
       /* N Airには hardwareService がないため無効
       const device =
@@ -317,7 +318,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       if (!device) return;
       resolvedSettings[propName] = device.id;
       */
-    });
+    }
 
     if (type === 'dshow_input') {
       if (resolvedSettings.video_device_id === undefined) {

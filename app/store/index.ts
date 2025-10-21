@@ -93,9 +93,9 @@ export function createStore(): Promise<Store<any>> {
   const statefulServiceModules: Dictionary<any> = {};
   const servicesManager: ServicesManager = ServicesManager.instance;
   const statefulServices = servicesManager.getStatefulServicesAndMutators();
-  Object.keys(statefulServices).forEach(serviceName => {
+  for (const serviceName of Object.keys(statefulServices)) {
     statefulServiceModules[serviceName] = getModule(statefulServices[serviceName]);
-  });
+  }
 
   store = new Vuex.Store({
     plugins,

@@ -10,18 +10,18 @@ import Popper from 'vue-popperjs';
 import { Component, Watch } from 'vue-property-decorator';
 import Banner from '../shared/banner.vue';
 
-function isHash(item: FilterRecord): boolean {
+const isHash = (item: FilterRecord): boolean => {
   if (item.type !== 'user') return false;
   return item.isHashed || false;
-}
+};
 
-function getBody(item: FilterRecord): string {
+const getBody = (item: FilterRecord): string => {
   if (item.type === 'user') {
     return `ID: ${isHash(item) ? '******** (匿名)' : item.body}`;
   } else {
     return item.body;
   }
-}
+};
 
 type FilterByUser = 'all' | 'broadcaster' | 'moderator';
 

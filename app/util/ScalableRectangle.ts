@@ -170,13 +170,13 @@ export class ScalableRectangle implements IScalableRectangle {
   private mapFields(fields: Dictionary<string>) {
     const currentValues: any = {};
 
-    Object.keys(fields).forEach(key => {
+    for (const key of Object.keys(fields)) {
       currentValues[key] = get(this, fields[key]);
-    });
+    }
 
-    Object.keys(fields).forEach(key => {
+    for (const key of Object.keys(fields)) {
       set(this, key, currentValues[key]);
-    });
+    }
   }
 
   /**

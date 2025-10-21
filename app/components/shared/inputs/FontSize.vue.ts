@@ -20,7 +20,7 @@ export default class FontSize extends BaseInput<string, IInputMetadata> {
   sliderOptions = metadata.slider({ min: 8, max: 144 });
 
   get sliderValue() {
-    return parseInt(this.value, 10);
+    return +this.value;
   }
 
   updateValue(value: number) {

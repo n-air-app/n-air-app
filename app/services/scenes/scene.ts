@@ -311,7 +311,7 @@ export class Scene {
     const sceneNodesIds = this.getNodesIds();
     const nodesToMoveIds: string[] =
       sourceNode.sceneNodeType === 'folder'
-        ? [sourceNode.id].concat((sourceNode as SceneItemFolder).getNestedNodesIds())
+        ? [sourceNode.id, ...(sourceNode as SceneItemFolder).getNestedNodesIds()]
         : [sourceNode.id];
     const firstNodeIndex = this.getNode(nodesToMoveIds[0]).getNodeIndex();
 
@@ -475,7 +475,7 @@ export class Scene {
         return this.scenesService.getScene(sceneItem.sourceId).getNestedItems();
       })
       .forEach(sceneItems => {
-        result = result.concat(sceneItems);
+        result = [...result, ...sceneItems];
       });
     if (options.excludeScenes) result = result.filter(sceneItem => sceneItem.type !== 'scene');
     return uniqBy(result, 'sceneItemId');

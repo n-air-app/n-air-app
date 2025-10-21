@@ -321,7 +321,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     if (!index || typeof index !== 'string') return def;
     const s = index.split('/');
     if (s.length !== 2) return def;
-    const num = Number(s[1]);
+    const num = +s[1];
     if (s[0] === 'manual') return { isManual: true, num };
     if (s[0] === 'preset') return { isManual: false, num };
 

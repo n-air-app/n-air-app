@@ -642,7 +642,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           const percentage = ((downloaded / total) * 100).toFixed(2);
           this.setModelStatus(modelName, {
             state: 'downloading',
-            progress: parseFloat(percentage),
+            progress: +percentage,
           });
           console.log(`Downloading ${modelName}... ${percentage}% of ${total} bytes`);
         } else {
@@ -685,7 +685,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         error_message = $t('settings.transcription.download_error.extraction');
         error_type = 'extraction';
       } else {
-        error_message = err instanceof Error ? err.message : String(err);
+        error_message = err instanceof Error ? err.message : `${err}`;
         error_type = 'error';
       }
       console.warn('Error during Vosk model download/extraction:', error_message);
@@ -702,7 +702,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           error_type,
         },
         extra: {
-          error: err instanceof Error ? err.message : String(err),
+          error: err instanceof Error ? err.message : `${err}`,
         },
       });
     } finally {

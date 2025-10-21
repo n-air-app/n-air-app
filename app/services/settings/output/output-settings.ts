@@ -348,8 +348,8 @@ export class OutputSettingsService extends Service {
 
     if (settingsPatch.inputResolution) {
       const [width, height] = settingsPatch.inputResolution.split('x');
-      this.videoSettingsService.setVideoSetting('baseWidth', Number(width));
-      this.videoSettingsService.setVideoSetting('baseHeight', Number(height));
+      this.videoSettingsService.setVideoSetting('baseWidth', +width);
+      this.videoSettingsService.setVideoSetting('baseHeight', +height);
     }
 
     if (settingsPatch.streaming) {

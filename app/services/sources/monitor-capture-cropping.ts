@@ -42,7 +42,7 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
   } as IMonitorCaptureCroppingServiceState;
 
   get isCropping(): boolean {
-    return Boolean(this.state.sourceId);
+    return !!this.state.sourceId;
   }
 
   init() {

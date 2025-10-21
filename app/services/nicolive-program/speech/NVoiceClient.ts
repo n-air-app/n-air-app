@@ -233,8 +233,8 @@ function loadLabelFile(filename: string): Label[] {
   for (const line of lines) {
     const [start, end, phoneme] = line.split('\t');
     result.push({
-      start: parseFloat(start),
-      end: parseFloat(end),
+      start: +start,
+      end: +end,
       phoneme,
     });
   }

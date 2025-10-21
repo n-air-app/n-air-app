@@ -336,12 +336,12 @@ export class WindowsService extends StatefulService<IWindowsState> {
    */
   closeAllOneOffs(): Promise<any> {
     const closingPromises: Promise<void>[] = [];
-    Object.keys(this.windows).forEach(windowId => {
+    for (const windowId of Object.keys(this.windows)) {
       if (windowId === 'main') return;
       if (windowId === 'child') return;
       this.closeOneOffWindow(windowId);
       closingPromises.push(this.closeOneOffWindow(windowId));
-    });
+    }
     return Promise.all(closingPromises);
   }
 

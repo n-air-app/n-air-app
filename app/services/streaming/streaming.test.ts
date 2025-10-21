@@ -5,7 +5,7 @@ import { RequestError } from 'util/RequestError';
 import { createSetupFunction } from 'util/test-setup';
 import { NicoliveProgramStateService } from '../nicolive-program/state';
 
-function noop(..._args: any[]) {}
+const noop = (..._args: any[]) => {};
 
 jest.mock('services/core/stateful-service');
 jest.mock('services/core/injector');

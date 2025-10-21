@@ -102,7 +102,7 @@ export class SceneItemFolder extends SceneItemNode {
   }
 
   getNestedNodes(traversedNodesIds: string[] = []): TSceneNode[] {
-    traversedNodesIds = [].concat(traversedNodesIds);
+    traversedNodesIds = [...traversedNodesIds];
     const nodes: TSceneNode[] = [];
     this.getNodes().forEach(node => {
       if (traversedNodesIds.includes(node.id)) {

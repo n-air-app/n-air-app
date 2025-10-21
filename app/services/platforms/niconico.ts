@@ -6,6 +6,7 @@ import { SettingsService } from 'services/settings';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+import { promisify } from 'util';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import { authorizedHeaders, handleErrors } from 'util/requests';
 import { sleep } from 'util/sleep';
@@ -17,18 +18,16 @@ export type INiconicoProgramSelection = {
   selectedId: string;
 };
 
-function parseXml(xml: String): Promise<object> {
-  return new Promise((resolve, reject) => {
-    parseString(xml, (err, result) => {
-      if (err) {
-        // sentryに送る
-        console.error(err, xml);
-        reject(err);
-      } else {
-        resolve(result);
-      }
-    });
-  });
+const parseXmlAsync = promisify(parseString);
+
+async function parseXml(xml: String): Promise<object> {
+  try {
+    return (await parseXmlAsync(xml)) as object;
+  } catch (err) {
+    // sentryに送る
+    console.error(err, xml);
+    throw err;
+  }
 }
 
 type Program = {

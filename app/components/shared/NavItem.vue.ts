@@ -51,10 +51,10 @@ export default class NavItem extends Vue {
   }
 
   get rootNavMenu() {
-    function getRoot(element: Vue): any {
+    const getRoot = (element: Vue): any => {
       if (element instanceof NavMenu && !(element.$parent instanceof NavItem)) return element;
       return getRoot(element.$parent);
-    }
+    };
 
     return getRoot(this) as INavMenu;
   }

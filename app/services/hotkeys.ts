@@ -317,7 +317,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
       const hotkey = hotkeys.find(blankHotkey => {
         return this.getHotkey(blankHotkey).isSameHotkey(savedHotkey);
       });
-      if (hotkey) hotkey.bindings = [].concat(savedHotkey.bindings);
+      if (hotkey) hotkey.bindings = [...savedHotkey.bindings];
     });
 
     this.registeredHotkeys = hotkeys.map(hotkeyModel => this.getHotkey(hotkeyModel));
@@ -343,7 +343,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
     const scenesHotkeys: Dictionary<Hotkey[]> = {};
     this.scenesService.scenes.forEach(scene => {
       const sceneItemsHotkeys = this.getSceneItemsHotkeys(scene.id);
-      const sceneHotkeys = sceneItemsHotkeys.concat(this.getSceneHotkeys(scene.id));
+      const sceneHotkeys = [...sceneItemsHotkeys, ...this.getSceneHotkeys(scene.id)];
       if (sceneHotkeys.length) scenesHotkeys[scene.id] = sceneHotkeys;
     });
 
@@ -382,10 +382,12 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
   applyHotkeySet(hotkeySet: IHotkeysSet) {
     const hotkeys: IHotkey[] = [];
     hotkeys.push(...hotkeySet.general);
-    Object.keys(hotkeySet.scenes).forEach(sceneId => hotkeys.push(...hotkeySet.scenes[sceneId]));
-    Object.keys(hotkeySet.sources).forEach(sourceId =>
-      hotkeys.push(...hotkeySet.sources[sourceId]),
-    );
+    for (const sceneId of Object.keys(hotkeySet.scenes)) {
+      hotkeys.push(...hotkeySet.scenes[sceneId]);
+    }
+    for (const sourceId of Object.keys(hotkeySet.sources)) {
+      hotkeys.push(...hotkeySet.sources[sourceId]);
+    }
     this.setHotkeys(hotkeys);
     this.bindHotkeys();
   }

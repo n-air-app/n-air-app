@@ -222,7 +222,7 @@ export class Selection {
 
   add(itemsList: TNodesList): Selection {
     const ids = this.resolveItemsList(itemsList);
-    this.select(this.state.selectedIds.concat(ids));
+    this.select([...this.state.selectedIds, ...ids]);
     return this;
   }
 

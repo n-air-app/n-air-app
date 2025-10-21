@@ -556,7 +556,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       this.queueToSpeech(valuesForSpeech.slice(-maxQueueToSpeak));
 
       const maxRetain = 100; // 最新からこの件数を一覧に保持する
-      const concatMessages = this.state.messages.concat(values);
+      const concatMessages = [...this.state.messages, ...values];
       const popoutMessages = concatMessages.slice(0, -maxRetain);
       const messages = concatMessages.slice(-maxRetain);
       const firstCommentArrived = this.state.messages.length === 0 && messages.length > 0;

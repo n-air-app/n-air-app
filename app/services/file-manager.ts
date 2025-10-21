@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/vue';
-import fs from 'fs';
+import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
 import { Service } from 'services/core/service';
 
@@ -189,27 +189,15 @@ export class FileManagerService extends Service {
    * @param filePath a path to the file
    * @param data The data to write
    */
-  private writeFile(filePath: string, data: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const tmpPath = `${filePath}.tmp`;
+  private async writeFile(filePath: string, data: string): Promise<void> {
+    const tmpPath = `${filePath}.tmp`;
 
-      fs.writeFile(tmpPath, data, err => {
-        if (err) {
-          console.error(err);
-          reject(err);
-          return;
-        }
-
-        fs.rename(tmpPath, filePath, err => {
-          if (err) {
-            console.error(err);
-            reject(err);
-            return;
-          }
-
-          resolve();
-        });
-      });
-    });
+    try {
+      await fsPromises.writeFile(tmpPath, data);
+      await fsPromises.rename(tmpPath, filePath);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 }

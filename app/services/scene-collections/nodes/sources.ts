@@ -10,12 +10,12 @@ import {
   TSourceType,
   isNoAudioPropertiesManagerType,
 } from 'services/sources';
+import Utils from 'services/utils';
 import * as obs from '../../../../obs-api';
 import { Inject } from '../../core/injector';
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { applyPathConvertForPreset, unapplyPathConvertForPreset } from './sources-util';
-import Utils from 'services/utils';
 
 interface ISchema {
   items: ISourceInfo[];

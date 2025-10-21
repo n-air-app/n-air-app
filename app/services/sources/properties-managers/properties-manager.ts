@@ -109,7 +109,7 @@ export abstract class PropertiesManager implements IPropertyManager {
       }
     });
 
-    propsArray = propsArray.concat(obsProperties);
+    propsArray = [...propsArray, ...obsProperties];
     propsArray = compact(propsArray).filter(prop => !this.blacklist.includes(prop.name));
 
     return propsArray;

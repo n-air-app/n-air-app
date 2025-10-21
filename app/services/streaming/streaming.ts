@@ -756,7 +756,7 @@ export class StreamingService
         fps: settings.fps,
       },
       audio: {
-        bitrate: Number(settings.audio.bitrate),
+        bitrate: +settings.audio.bitrate,
         sample_rate: settings.audio.sampleRate,
       },
       advanced:

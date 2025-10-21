@@ -200,8 +200,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const globalSources = this.sourcesService
       .getSources()
       .filter(source => source.channel !== undefined);
-    return globalSources
-      .concat(sceneSources)
+    return [...globalSources, ...sceneSources]
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
       .filter(item => item);
   }
@@ -217,7 +216,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const obsFader = this.sourceData[source.sourceId].fader;
 
     return {
-      db: obsFader.db || 0,
+      db: obsFader.db ?? 0,
       deflection: obsFader.deflection,
       mul: obsFader.mul,
     };
@@ -324,7 +323,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     // We never set db directly
 
     const fader = this.fetchFaderDetails(sourceId);
-    Object.assign({}, fader, patch);
+    const updatedFader = { ...fader, ...patch };
 
     this.UPDATE_AUDIO_SOURCE(sourceId, { fader });
     this.audioSourceUpdated.next(this.state.audioSources[sourceId]);
@@ -364,7 +363,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     /* This is useful for media sources since the volmeter will abruptly stop
      * sending events in the case of hiding the source. It might be better
      * to eventually just hide the mixer item as well though */
-    function volmeterCheck() {
+    const volmeterCheck = () => {
       if (!gotEvent) {
         volmeterStream.next({
           ...lastVolmeterValue,
@@ -376,7 +375,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
       gotEvent = false;
       volmeterCheckTimeoutId = window.setTimeout(volmeterCheck, 100);
-    }
+    };
 
     volmeterCheck();
 

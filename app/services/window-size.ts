@@ -90,7 +90,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
 
     this.userService.userLoginState.subscribe({
       next: user => {
-        this.setState({ isLoggedIn: Boolean(user) });
+        this.setState({ isLoggedIn: !!user });
       },
     });
 
