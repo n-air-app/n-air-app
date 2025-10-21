@@ -19,11 +19,11 @@ class ObsIntInput extends ObsInput<IObsNumberInputValue> {
       formattedValue = '0';
     }
 
-    if (this.value.minVal !== void 0 && Number(value) < this.value.minVal) {
+    if (this.value.minVal !== undefined && Number(value) < this.value.minVal) {
       formattedValue = String(this.value.minVal);
     }
 
-    if (this.value.maxVal !== void 0 && Number(value) > this.value.maxVal) {
+    if (this.value.maxVal !== undefined && Number(value) > this.value.maxVal) {
       formattedValue = String(this.value.maxVal);
     }
 

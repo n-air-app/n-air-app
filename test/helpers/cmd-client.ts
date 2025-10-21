@@ -29,7 +29,7 @@ console.log = () => {};
     .request(resource, method, ...args)
     .then(response => {
       let responseStr = '';
-      if (response === void 0) {
+      if (response === undefined) {
         responseStr = 'true';
       } else {
         responseStr = JSON.stringify(response);

@@ -172,7 +172,7 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
       await obj.content.load({
         sceneItem,
         assetsPath: context.assetsPath,
-        existing: existingWebcam !== void 0,
+        existing: existingWebcam !== undefined,
       });
 
       return;

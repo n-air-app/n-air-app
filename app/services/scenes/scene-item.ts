@@ -166,7 +166,7 @@ export class SceneItem extends SceneItemNode {
         obsSceneItem.crop = cropModel;
       }
 
-      if (changedTransform.rotation !== void 0) {
+      if (changedTransform.rotation !== undefined) {
         // Adjusts any positve or negative rotation value into a normalized
         // value between 0 and 360.
         const effectiveRotation = ((newSettings.transform.rotation % 360) + 360) % 360;
@@ -176,29 +176,29 @@ export class SceneItem extends SceneItemNode {
       }
     }
 
-    if (changed.locked !== void 0) {
+    if (changed.locked !== undefined) {
       if (changed.locked && this.selectionService.isSelected(this.sceneItemId)) {
         this.selectionService.deselect(this.sceneItemId);
       }
     }
 
-    if (changed.visible !== void 0) {
+    if (changed.visible !== undefined) {
       this.getObsSceneItem().visible = newSettings.visible;
     }
 
-    if (changed.scaleFilter !== void 0) {
+    if (changed.scaleFilter !== undefined) {
       this.getObsSceneItem().scaleFilter = newSettings.scaleFilter;
     }
 
-    if (changed.blendingMode !== void 0) {
+    if (changed.blendingMode !== undefined) {
       this.getObsSceneItem().blendingMode = newSettings.blendingMode;
     }
 
-    if (changed.blendingMethod !== void 0) {
+    if (changed.blendingMethod !== undefined) {
       this.getObsSceneItem().blendingMethod = newSettings.blendingMethod;
     }
 
-    if (changed.output !== void 0 || patch.hasOwnProperty('output')) {
+    if (changed.output !== undefined || patch.hasOwnProperty('output')) {
       this.getObsSceneItem().video = newSettings.output as obs.IVideo;
     }
 

@@ -86,12 +86,12 @@ test('Scenes events', async t => {
   const scenesService = client.getResource<ScenesService>('ScenesService');
   let event: Dictionary<any>;
 
-  scenesService.sceneSwitched.subscribe(() => void 0);
-  scenesService.sceneAdded.subscribe(() => void 0);
-  scenesService.sceneRemoved.subscribe(() => void 0);
-  scenesService.itemAdded.subscribe(() => void 0);
-  scenesService.itemRemoved.subscribe(() => void 0);
-  scenesService.itemUpdated.subscribe(() => void 0);
+  scenesService.sceneSwitched.subscribe(() => undefined);
+  scenesService.sceneAdded.subscribe(() => undefined);
+  scenesService.sceneRemoved.subscribe(() => undefined);
+  scenesService.itemAdded.subscribe(() => undefined);
+  scenesService.itemRemoved.subscribe(() => undefined);
+  scenesService.itemUpdated.subscribe(() => undefined);
 
   const scene2 = scenesService.createScene('Scene2');
   event = await client.fetchNextEvent();

@@ -90,7 +90,7 @@ export class ExternalApiService extends RpcApi {
     // take serialized constructor arguments from `resourceId` string and construct a new instance
     const helperName = resourceId.split('[')[0];
     const constructorArgsStr = resourceId.substr(helperName.length);
-    const constructorArgs = constructorArgsStr ? JSON.parse(constructorArgsStr) : void 0;
+    const constructorArgs = constructorArgsStr ? JSON.parse(constructorArgsStr) : undefined;
     const Helper = this.resources[helperName];
     if (Helper) {
       return this.applyFallbackProxy(new (Helper as any)(...constructorArgs));

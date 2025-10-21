@@ -135,7 +135,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   getSource(sourceId: string): AudioSource {
-    return this.state.audioSources[sourceId] ? new AudioSource(sourceId) : void 0;
+    return this.state.audioSources[sourceId] ? new AudioSource(sourceId) : undefined;
   }
 
   getSources(): AudioSource[] {
@@ -199,7 +199,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
     const globalSources = this.sourcesService
       .getSources()
-      .filter(source => source.channel !== void 0);
+      .filter(source => source.channel !== undefined);
     return globalSources
       .concat(sceneSources)
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
@@ -290,7 +290,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const newPatch = omit(patch, 'fader');
 
     getKeys(newPatch).forEach(name => {
-      if (newPatch[name] === void 0) return;
+      if (newPatch[name] === undefined) return;
 
       if (name === 'syncOffset') {
         const value = newPatch[name];
