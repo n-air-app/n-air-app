@@ -41,6 +41,9 @@ export default class CommentForm extends Vue {
         const [_, result] = await Promise.all([
           !this.programEnded ? this.sendTranscribedLog(item.text) : Promise.resolve(),
           (async () => {
+            if (!this.transcriptionService.state.commentEnabled) {
+              return true; // コメント送信が無効なら、キューに入れないですぐに成功扱いにする
+            }
             if (!this.isSendable) {
               return false;
             }
@@ -73,9 +76,7 @@ export default class CommentForm extends Vue {
   }
 
   get isSendable(): boolean {
-    return (
-      !this.isCommentSending && !this.programEnded && this.transcriptionService.state.commentEnabled
-    );
+    return !this.isCommentSending && !this.programEnded;
   }
 
   @Watch('isSendable')

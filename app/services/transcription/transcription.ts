@@ -44,7 +44,7 @@ export { VOSK_MODEL_NAMES, VoskModelStatus };
 const getVoskModelURL = (name: string): string =>
   `https://n-air-app.nicovideo.jp/download/assets/vosk-models/${name}.zip`;
 
-interface ITranscriptionServiceState {
+export interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
   audioDeviceId?: string | null;
