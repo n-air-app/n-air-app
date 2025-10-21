@@ -234,7 +234,7 @@ export class SourcesNode extends Node<ISchema, {}> {
             name: filter.name,
             type: filter.type,
             settings: filter.settings,
-            enabled: filter.enabled === void 0 ? true : filter.enabled,
+            enabled: filter.enabled === undefined ? true : filter.enabled,
           };
         }),
         syncOffset: { sec: 0, nsec: 0 },
@@ -261,10 +261,10 @@ export class SourcesNode extends Node<ISchema, {}> {
 
       const newSource = this.sourcesService.getSource(sourceInfo.id);
       if (newSource.async && newSource.video) {
-        if (sourceInfo.deinterlaceMode !== void 0) {
+        if (sourceInfo.deinterlaceMode !== undefined) {
           newSource.setDeinterlaceMode(sourceInfo.deinterlaceMode);
         }
-        if (sourceInfo.deinterlaceFieldOrder !== void 0) {
+        if (sourceInfo.deinterlaceFieldOrder !== undefined) {
           newSource.setDeinterlaceFieldOrder(sourceInfo.deinterlaceFieldOrder);
         }
       }

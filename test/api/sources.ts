@@ -45,9 +45,9 @@ test('Source events', async t => {
   const sourcesService = client.getResource<ISourcesServiceApi>('SourcesService');
   let event: Dictionary<any>;
 
-  sourcesService.sourceAdded.subscribe(() => void 0);
-  sourcesService.sourceRemoved.subscribe(() => void 0);
-  sourcesService.sourceUpdated.subscribe(() => void 0);
+  sourcesService.sourceAdded.subscribe(() => undefined);
+  sourcesService.sourceRemoved.subscribe(() => undefined);
+  sourcesService.sourceUpdated.subscribe(() => undefined);
 
   const source1 = sourcesService.createSource('audio1', 'wasapi_output_capture');
   event = await client.fetchNextEvent();

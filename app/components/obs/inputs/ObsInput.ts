@@ -231,12 +231,12 @@ export function obsValuesToInputValues(
       }
 
       for (const listOption of listOptions) {
-        if (listOption.description === void 0) {
+        if (listOption.description === undefined) {
           listOption.description = listOption['name'];
         }
       }
 
-      const needToSetDefaultValue = listOptions.length && prop.value === void 0;
+      const needToSetDefaultValue = listOptions.length && prop.value === undefined;
       if (needToSetDefaultValue) prop.value = listOptions[0].value;
 
       (<any>prop).options = listOptions;

@@ -232,7 +232,7 @@ export class OutputSettingsService extends Service {
       preset = [
         this.settingsService.findValidListValue(output, 'Streaming', 'QualityPreset'),
         this.settingsService.findValidListValue(output, 'Streaming', 'AMDPreset'),
-      ].find(item => item !== void 0);
+      ].find(item => item !== undefined);
     } else {
       preset = [
         this.settingsService.findValidListValue(output, 'Streaming', 'preset'),
@@ -240,7 +240,7 @@ export class OutputSettingsService extends Service {
         this.settingsService.findValidListValue(output, 'Streaming', 'NVENCPreset'),
         this.settingsService.findValidListValue(output, 'Streaming', 'QSVPreset'),
         this.settingsService.findValidListValue(output, 'Streaming', 'target_usage'),
-      ].find(item => item !== void 0);
+      ].find(item => item !== undefined);
     }
 
     const bitrate: number =
@@ -406,7 +406,7 @@ export class OutputSettingsService extends Service {
       );
     }
 
-    if (settingsPatch.encoderOptions !== void 0 && encoder === 'x264') {
+    if (settingsPatch.encoderOptions !== undefined && encoder === 'x264') {
       this.settingsService.setSettingValue(
         'Output',
         encoderFieldsMap[encoder].encoderOptions,
@@ -414,11 +414,11 @@ export class OutputSettingsService extends Service {
       );
     }
 
-    if (settingsPatch.rescaleOutput !== void 0) {
+    if (settingsPatch.rescaleOutput !== undefined) {
       this.settingsService.setSettingValue('Output', 'Rescale', settingsPatch.rescaleOutput);
     }
 
-    if (settingsPatch.bitrate !== void 0) {
+    if (settingsPatch.bitrate !== undefined) {
       if (currentSettings.mode === 'Advanced') {
         this.settingsService.setSettingValue('Output', 'bitrate', settingsPatch.bitrate);
       } else {
