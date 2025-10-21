@@ -23,6 +23,11 @@ export type LogGifParams = {
   transcription: {
     text: string;
   };
+
+  // 自動文字起こし設定変更ログ
+  transcription_setting: {
+    commentEnabled: boolean;
+  };
 };
 
 /**

@@ -19,6 +19,8 @@ import {
 } from 'rxjs';
 import { AudioService } from 'services/audio';
 import { $t } from 'services/i18n';
+import { sendLogGif } from 'services/nicolive-program/nicolive-logger';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { TranscriptionLog } from 'services/usage-statistics';
 import { Inject, mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
@@ -100,6 +102,7 @@ export type VoskError = 'launchError' | 'error';
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
   @Inject() audioService: AudioService;
+  @Inject() nicoliveProgramService: NicoliveProgramService;
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
@@ -793,6 +796,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   setCommentEnabled(commentEnabled: boolean) {
     this.setState({ commentEnabled });
+    const programID = this.nicoliveProgramService.state.programID;
+    if (programID) {
+      sendLogGif('transcription_setting', programID, { commentEnabled });
+    }
   }
 
   setCommentPostDelay(commentPostDelay: number) {
