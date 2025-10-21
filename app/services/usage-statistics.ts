@@ -61,6 +61,7 @@ export type SubStreamLog = {
 export type TranscriptionLog = {
   enabled: boolean;
   voskModelName: string;
+  commentEnabled: boolean;
   commentColor: CommentColor;
   commentPosition: CommentPosition;
   commentSize: CommentSize;
