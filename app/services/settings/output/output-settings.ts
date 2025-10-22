@@ -139,9 +139,9 @@ export const encoderFieldsMap = {
   [EEncoderFamily.amd]: { preset: 'QualityPreset' },
 };
 
-function simpleEncoderToAdvancedEncoder(encoder: EEncoderFamily) {
+const simpleEncoderToAdvancedEncoder = (encoder: EEncoderFamily) => {
   return simpleEncoderToAnvancedEncoderMap[encoder];
-}
+};
 
 export function obsEncoderToEncoderFamily(
   obsEncoder: EObsAdvancedEncoder | EObsSimpleEncoder,

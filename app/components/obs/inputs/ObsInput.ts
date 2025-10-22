@@ -122,7 +122,7 @@ export interface IElectronOpenDialogFilter {
   extensions: string[];
 }
 
-function parsePathFilters(filterStr: string): IElectronOpenDialogFilter[] {
+const parsePathFilters = (filterStr: string): IElectronOpenDialogFilter[] => {
   const filters = _.compact(filterStr.split(';;'));
 
   // Browser source uses *.*
@@ -150,7 +150,7 @@ function parsePathFilters(filterStr: string): IElectronOpenDialogFilter[] {
       extensions: types,
     };
   });
-}
+};
 
 /**
  * each option represent one known nodeObs issue
@@ -202,7 +202,7 @@ export function obsValuesToInputValues(
     prop.enabled = !!obsProp.enabled;
     prop.visible = !!obsProp.visible;
 
-    if (options.disabledFields && options.disabledFields.includes(prop.name)) {
+    if (options.disabledFields?.includes(prop.name)) {
       prop.visible = false;
     }
 
@@ -210,7 +210,7 @@ export function obsValuesToInputValues(
       const listOptions: any[] = [];
 
       if (options.transformListOptions) {
-        for (const listOption of obsProp.values || []) {
+        for (const listOption of obsProp.values ?? []) {
           const key = Object.keys(listOption)[0];
           /*
             リストから選択する項目にも翻訳がかかるようになっている。
@@ -264,7 +264,7 @@ export function obsValuesToInputValues(
         size: 6,
       } as IObsBitmaskInput;
     } else if (obsProp.type === 'OBS_PROPERTY_PATH') {
-      if (valueObject && valueObject.type === 'OBS_PATH_FILE') {
+      if (valueObject?.type === 'OBS_PATH_FILE') {
         prop = {
           ...prop,
           type: 'OBS_PROPERTY_FILE',
@@ -410,6 +410,7 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
 
     if (isNumberProperty(obsProp)) {
       Object.assign(formItem as IObsNumberInputValue, {
+        // ミューテーションなのでそのまま
         minVal: obsProp.details.min,
         maxVal: obsProp.details.max,
         stepVal: obsProp.details.step,
@@ -422,6 +423,7 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
 
     if (isEditableListProperty(obsProp)) {
       Object.assign(formItem as IObsEditableListInputValue, {
+        // ミューテーションなのでそのまま
         filters: parsePathFilters(obsProp.details.filter),
         defaultPath: obsProp.details.defaultPath,
       });
@@ -429,6 +431,7 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
 
     if (isPathProperty(obsProp)) {
       Object.assign(formItem as IObsPathInputValue, {
+        // ミューテーションなのでそのまま
         filters: parsePathFilters(obsProp.details.filter),
         defaultPath: obsProp.details.defaultPath,
       });
@@ -436,6 +439,7 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
 
     if (isTextProperty(obsProp)) {
       Object.assign(formItem as IObsTextInputValue, {
+        // ミューテーションなのでそのまま
         multiline: obsProp.details.type === obs.ETextType.Multiline,
         info: obsProp.details.type === obs.ETextType.TextInfo,
       });
@@ -456,14 +460,14 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   const formInputs: IObsInput<TObsValue>[] = [];
   let properties = null;
 
-  form.forEach(item => {
+  for (const item of form) {
     if (item.type === 'OBS_PROPERTY_BUTTON') {
       // Value will be true if button was pressed
       if (item.value) buttons.push(item as IObsInput<boolean>);
     } else {
       formInputs.push(item);
     }
-  });
+  }
 
   /* Don't fetch properties unless we use it. */
   if (buttons.length !== 0) properties = obsSource.properties;
@@ -474,14 +478,14 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   }
 
   const settings: Dictionary<any> = {};
-  formInputs.forEach(property => {
+  for (const property of formInputs) {
     settings[property.name] = property.value;
 
     if (property.type === 'OBS_PROPERTY_FONT') {
       settings['custom_font'] = (property.value as IObsFont).path;
       delete settings[property.name]['path'];
     }
-  });
+  }
 
   /* Don't update unless we need to. */
   if (formInputs.length === 0) return;
@@ -491,16 +495,16 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   // validate list-inputs and update properties again if some of list inputs are invalid
   const updatedFormData = getPropertiesFormData(obsSource);
   let needUpdatePropsAgain = false;
-  updatedFormData.forEach(prop => {
-    if (prop.type !== 'OBS_PROPERTY_LIST') return;
+  for (const prop of updatedFormData) {
+    if (prop.type !== 'OBS_PROPERTY_LIST') continue;
     const listProp = prop as IObsListInput<TObsValue>;
-    if (!listProp.options.length) return;
+    if (!listProp.options.length) continue;
     const optionExists = !!listProp.options.find(option => option.value === listProp.value);
-    if (optionExists) return;
+    if (optionExists) continue;
 
     needUpdatePropsAgain = true;
     listProp.value = listProp.options[0].value;
-  });
+  }
   if (needUpdatePropsAgain) setPropertiesFormData(obsSource, updatedFormData);
 }
 

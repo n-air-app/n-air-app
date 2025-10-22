@@ -40,7 +40,7 @@ class ObsResolutionInput extends ObsInput<IObsListInput<TObsValue>> {
   }
 
   getCustomResolution(search: string) {
-    const match = search.match(/\d+/g) || [];
+    const match = search.match(/\d+/g) ?? [];
     const width = match[0] || 400;
     const height = match[1] || 400;
     const value = `${width}x${height}`;

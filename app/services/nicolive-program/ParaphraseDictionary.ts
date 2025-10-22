@@ -21,9 +21,8 @@ export function isText(r: replace_item): r is replace_text {
   return (r as unknown as replace_text).text !== undefined;
 }
 
-function escapeStringRegexp(string: string): string {
-  return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
-}
+const escapeStringRegexp = (string: string): string =>
+  string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
 
 export function filterEngineId(item: { onlyFor?: EngineId }, engineId: EngineId): boolean {
   return !item.onlyFor || item.onlyFor === engineId;

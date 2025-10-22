@@ -7,9 +7,7 @@ import { NdgrClient, toNumber } from './NdgrClient';
 
 const NUM_BACKWARD_COMMENTS = 100;
 
-function toHex2(n: number) {
-  return n.toString(16).padStart(2, '0');
-}
+const toHex2 = (n: number): string => n.toString(16).padStart(2, '0');
 
 const namedColorTable: { [key in dwango.nicolive.chat.data.Chat.Modifier.ColorName]: string } = {
   [dwango.nicolive.chat.data.Chat.Modifier.ColorName.white]: '', // whiteはエンコードされない
@@ -94,11 +92,11 @@ export function convertModifierToMail(modifier: dwango.nicolive.chat.data.Chat.I
 
 type CommonComponent = { date: number; date_usec: number };
 
-function convertChatToMessageResponse(
+const convertChatToMessageResponse = (
   common: CommonComponent,
   chat: dwango.nicolive.chat.data.IChat,
   id: string,
-): MessageResponse {
+): MessageResponse => {
   const { user_id, anonymity } = (() => {
     if (chat.hashedUserId) {
       return { anonymity: 1, user_id: chat.hashedUserId };
@@ -125,12 +123,12 @@ function convertChatToMessageResponse(
       ...(chat.modifier ? { mail: convertModifierToMail(chat.modifier) } : {}),
     },
   };
-}
+};
 
-function convertSimpleNotificationToMessageResponse(
+const convertSimpleNotificationToMessageResponse = (
   common: CommonComponent,
   notification: dwango.nicolive.chat.data.ISimpleNotification,
-): MessageResponse | undefined {
+): MessageResponse | undefined => {
   const key = getKeys(notification)[0];
   let type = key as NotificationType;
   if (!NotificationTypeTable.includes(key)) {
@@ -143,12 +141,12 @@ function convertSimpleNotificationToMessageResponse(
       message: notification[key],
     },
   };
-}
+};
 
-function convertSimpleNotificationV2ToMessageResponse(
+const convertSimpleNotificationV2ToMessageResponse = (
   common: CommonComponent,
   notification: dwango.nicolive.chat.data.atoms.ISimpleNotificationV2,
-): MessageResponse | undefined {
+): MessageResponse | undefined => {
   const types = {
     [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.UNKNOWN]: 'unknown',
     [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.ICHIBA]: 'ichiba',
@@ -176,12 +174,12 @@ function convertSimpleNotificationV2ToMessageResponse(
       showInTelop: notification.showInTelop,
     },
   };
-}
+};
 
-function convertGiftToMessageResponse(
+const convertGiftToMessageResponse = (
   common: CommonComponent,
   gift: dwango.nicolive.chat.data.IGift,
-): MessageResponse {
+): MessageResponse => {
   return {
     gift: {
       ...common,
@@ -194,12 +192,12 @@ function convertGiftToMessageResponse(
       ...(gift.contributionRank ? { contributionRank: gift.contributionRank } : {}),
     },
   };
-}
+};
 
-function convertNicoadToMessageResponse(
+const convertNicoadToMessageResponse = (
   common: CommonComponent,
   nicoad: dwango.nicolive.chat.data.INicoad,
-): MessageResponse {
+): MessageResponse => {
   if (nicoad.v0) {
     const v0 = nicoad.v0;
     const latest = v0.latest;
@@ -235,24 +233,24 @@ function convertNicoadToMessageResponse(
       },
     };
   }
-}
+};
 
-function convertGameUpdateToMessageResponse(
+const convertGameUpdateToMessageResponse = (
   common: CommonComponent,
   _gameUpdate: dwango.nicolive.chat.data.IGameUpdate,
-): MessageResponse {
+): MessageResponse => {
   return {
     gameUpdate: {
       ...common,
       // empty
     },
   };
-}
+};
 
-function convertMarqueeToMessageResponse(
+const convertMarqueeToMessageResponse = (
   common: CommonComponent,
   marquee: dwango.nicolive.chat.data.IMarquee,
-): MessageResponse {
+): MessageResponse => {
   if (marquee.display) {
     const display = marquee.display;
     if (display.operatorComment) {
@@ -271,12 +269,12 @@ function convertMarqueeToMessageResponse(
     }
   }
   return undefined;
-}
+};
 
-function convertProgramStatusToMessageResponse(
+const convertProgramStatusToMessageResponse = (
   common: CommonComponent,
   programStatus: dwango.nicolive.chat.data.IProgramStatus,
-): MessageResponse | undefined {
+): MessageResponse | undefined => {
   switch (programStatus.state) {
     case dwango.nicolive.chat.data.ProgramStatus.State.Ended:
       // "/disconnect"
@@ -288,11 +286,11 @@ function convertProgramStatusToMessageResponse(
       };
   }
   return undefined;
-}
+};
 
-function convertSignalToMessageResponse(
+const convertSignalToMessageResponse = (
   signal: dwango.nicolive.chat.service.edge.ChunkedMessage.Signal,
-): MessageResponse {
+): MessageResponse => {
   switch (signal) {
     case dwango.nicolive.chat.service.edge.ChunkedMessage.Signal.Flushed:
       return {
@@ -300,7 +298,7 @@ function convertSignalToMessageResponse(
       };
   }
   return undefined;
-}
+};
 
 export function convertChunkedResponseToMessageResponse(
   msg: dwango.nicolive.chat.service.edge.IChunkedMessage,

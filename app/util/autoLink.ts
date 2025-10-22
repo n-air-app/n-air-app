@@ -71,14 +71,14 @@ const autoLinkPatterns = [
   },
 ];
 
-function replaceWithFirstMatch(value: string): string {
+const replaceWithFirstMatch = (value: string): string => {
   for (const pattern of autoLinkPatterns) {
     if (pattern.matcher.test(value)) {
       return value.replace(pattern.matcher, pattern.replace);
     }
   }
   throw new Error(`No pattern has matched with ${value}`);
-}
+};
 
 /** 自動リンク対象の全パターンにマッチする正規表現オブジェクト */
 const autoLinkMatcherPattern = new RegExp(

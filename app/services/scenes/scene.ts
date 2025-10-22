@@ -82,7 +82,7 @@ export class Scene {
 
   getItem(sceneItemId: string): SceneItem {
     const node = this.getNode(sceneItemId);
-    return node && node.sceneNodeType === 'item' ? (node as SceneItem) : null;
+    return node?.sceneNodeType === 'item' ? (node as SceneItem) : null;
   }
 
   getFolder(sceneFolderId: string): SceneItemFolder {
@@ -153,7 +153,7 @@ export class Scene {
 
     if (!this.canAddSource(sourceId)) return null;
 
-    const sceneItemId = options.id || uuid();
+    const sceneItemId = options.id ?? uuid();
 
     const obsSceneItem: obs.ISceneItem = this.getObsScene().add(source.getObsInput());
 
@@ -219,7 +219,9 @@ export class Scene {
       const folder = this.createFolder(fname);
       if (folderId) folder.setParent(folderId);
       const files = fs.readdirSync(path).reverse();
-      files.forEach(filePath => this.addFile(`${path}\\${filePath}`, folder.id));
+      for (const filePath of files) {
+        this.addFile(`${path}\\${filePath}`, folder.id);
+      }
       return folder;
     }
 
@@ -231,14 +233,14 @@ export class Scene {
   }
 
   createFolder(name: string, options: ISceneNodeAddOptions = {}) {
-    const id = options.id || uuid();
+    const id = options.id ?? uuid();
 
     this.ADD_FOLDER_TO_SCENE({
       id,
       name,
       sceneNodeType: 'folder',
       sceneId: this.id,
-      resourceId: 'SceneItemFolder' + JSON.stringify([this.id, id]),
+      resourceId: `SceneItemFolder${JSON.stringify([this.id, id])}`,
       parentId: '',
     });
     return this.getFolder(id);
@@ -273,16 +275,18 @@ export class Scene {
   }
 
   setLockOnAllItems(locked: boolean) {
-    this.getItems().forEach(item => item.setSettings({ locked }));
+    for (const item of this.getItems()) {
+      item.setSettings({ locked });
+    }
   }
 
   placeAfter(sourceNodeId: string, destNodeId?: string) {
     const sourceNode = this.getNode(sourceNodeId);
     const destNode = this.getNode(destNodeId);
 
-    if (destNode && destNode.id === sourceNode.id) return;
+    if (destNode?.id === sourceNode.id) return;
 
-    const destNodeIsParentForSourceNode = destNode && destNode.id === sourceNode.parentId;
+    const destNodeIsParentForSourceNode = destNode?.id === sourceNode.parentId;
 
     let destFolderId = '';
 
@@ -311,7 +315,7 @@ export class Scene {
     const sceneNodesIds = this.getNodesIds();
     const nodesToMoveIds: string[] =
       sourceNode.sceneNodeType === 'folder'
-        ? [sourceNode.id].concat((sourceNode as SceneItemFolder).getNestedNodesIds())
+        ? [sourceNode.id, ...(sourceNode as SceneItemFolder).getNestedNodesIds()]
         : [sourceNode.id];
     const firstNodeIndex = this.getNode(nodesToMoveIds[0]).getNodeIndex();
 
@@ -405,7 +409,7 @@ export class Scene {
 
     // create folder and items
     let itemIndex = 0;
-    nodes.forEach(nodeModel => {
+    for (const nodeModel of nodes) {
       const display = 'horizontal';
       const obsSceneItem = obsSceneItems[itemIndex];
 
@@ -423,13 +427,13 @@ export class Scene {
         this.getItem(itemModel.id).loadItemAttributes(itemModel);
         itemIndex++;
       }
-    });
+    }
 
     // add items to folders
-    nodes.reverse().forEach(nodeModel => {
-      if (nodeModel.sceneNodeType !== 'folder') return;
+    for (const nodeModel of nodes.reverse()) {
+      if (nodeModel.sceneNodeType !== 'folder') continue;
       this.getSelection(nodeModel.childrenIds).moveTo(this.id, nodeModel.id);
-    });
+    }
   }
 
   canAddSource(sourceId: string): boolean {
@@ -469,14 +473,14 @@ export class Scene {
    */
   getNestedItems(options = { excludeScenes: false }): SceneItem[] {
     let result = this.getItems();
-    result
+    const nestedSceneItems = result
       .filter(sceneItem => sceneItem.type === 'scene')
       .map(sceneItem => {
         return this.scenesService.getScene(sceneItem.sourceId).getNestedItems();
-      })
-      .forEach(sceneItems => {
-        result = result.concat(sceneItems);
       });
+    for (const sceneItems of nestedSceneItems) {
+      result = [...result, ...sceneItems];
+    }
     if (options.excludeScenes) result = result.filter(sceneItem => sceneItem.type !== 'scene');
     return uniqBy(result, 'sceneItemId');
   }
@@ -503,12 +507,12 @@ export class Scene {
       .map(sceneSource => this.scenesService.getScene(sceneSource.sourceId));
     const resultScenes: Scene[] = [];
 
-    scenes.forEach(scene => {
+    for (const scene of scenes) {
       resultScenes.push(...scene.getNestedScenes());
       if (!resultScenes.find(foundScene => foundScene.id === scene.id)) {
         resultScenes.push(scene);
       }
-    });
+    }
 
     return resultScenes;
   }
@@ -551,7 +555,7 @@ export class Scene {
       parentId: '',
       sceneNodeType: 'item',
       sceneId: this.state.id,
-      resourceId: 'SceneItem' + JSON.stringify([this.state.id, sceneItemId, sourceId]),
+      resourceId: `SceneItem${JSON.stringify([this.state.id, sceneItemId, sourceId])}`,
 
       transform: {
         // Position in video space

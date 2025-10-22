@@ -169,7 +169,9 @@ test('SettingsKeyAccessor#optimizeInfo', () => {
     simpleUseAdvanced: true,
     encoderPreset: 'ultrafast',
   };
-  const delta: OptimizeSettings = Object.assign({}, ...Optimizer.getDifference(current, best));
+  const delta: OptimizeSettings = {
+    ...Object.assign({}, ...Optimizer.getDifference(current, best)),
+  };
   expect(delta).toEqual(expectedDiff);
 
   const accessor = {

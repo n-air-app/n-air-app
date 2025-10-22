@@ -92,15 +92,15 @@ export default class NotificationsArea extends Vue {
     this.notificationQueue = this.notificationQueue.filter(notify => {
       return ids.includes(notify.id);
     });
-    this.notifications.forEach(notify => {
+    for (const notify of this.notifications) {
       if (ids.includes(notify.id)) notify.outdated = true;
-    });
+    }
   }
 
   private showNotification(notify: INotification) {
     if (!this.settings.enabled) return;
 
-    if (notify.playSound && this.settings.playSound) {
+    if (notify.playSound && this.settings?.playSound) {
       this.notifyAudio.play();
     }
 
@@ -140,7 +140,7 @@ export default class NotificationsArea extends Vue {
   }
 
   private hideOutdated() {
-    this.notifications.forEach(uiNotify => {
+    for (const uiNotify of this.notifications) {
       const notify = this.notificationsService.getNotification(uiNotify.id);
       const now = Date.now();
       if (
@@ -149,6 +149,6 @@ export default class NotificationsArea extends Vue {
       ) {
         uiNotify.outdated = true;
       }
-    });
+    }
   }
 }

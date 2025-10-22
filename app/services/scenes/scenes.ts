@@ -162,7 +162,7 @@ export class ScenesService extends StatefulService<IScenesState> {
     Vue.set<IScene>(this.state.scenes, id, {
       id,
       name,
-      resourceId: 'Scene' + JSON.stringify([id]),
+      resourceId: `Scene${JSON.stringify([id])}`,
       nodes: [],
     });
     this.state.displayOrder.push(id);
@@ -196,14 +196,10 @@ export class ScenesService extends StatefulService<IScenesState> {
       const oldScene = this.getScene(options.duplicateSourcesFromScene);
       const newScene = this.getScene(id);
 
-      oldScene
-        .getItems()
-        .slice()
-        .reverse()
-        .forEach(item => {
-          const newItem = newScene.addSource(item.sourceId);
-          if (newItem) newItem.setSettings(item.getSettings());
-        });
+      for (const item of oldScene.getItems().slice().reverse()) {
+        const newItem = newScene.addSource(item.sourceId);
+        if (newItem) newItem.setSettings(item.getSettings());
+      }
     }
 
     this.sceneAdded.next(this.state.scenes[id]);
@@ -225,13 +221,15 @@ export class ScenesService extends StatefulService<IScenesState> {
     if (!force) this.rtvcStateService.didRemoveScene(id);
 
     // remove all sources from scene
-    scene.getItems().forEach(sceneItem => scene.removeItem(sceneItem.sceneItemId));
+    for (const sceneItem of scene.getItems()) {
+      scene.removeItem(sceneItem.sceneItemId);
+    }
 
     // remove scene from other scenes if it has been added as a source
-    this.getSceneItems().forEach(sceneItem => {
-      if (sceneItem.sourceId !== scene.id) return;
+    for (const sceneItem of this.getSceneItems()) {
+      if (sceneItem.sourceId !== scene.id) continue;
       sceneItem.getScene().removeItem(sceneItem.sceneItemId);
-    });
+    }
 
     this.REMOVE_SCENE(id);
 
@@ -248,19 +246,23 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   removeAllScenes() {
-    this.scenes.forEach(scene => scene.remove(true));
+    for (const scene of this.scenes) {
+      scene.remove(true);
+    }
   }
 
   setLockOnAllScenes(locked: boolean) {
-    this.scenes.forEach(scene => scene.setLockOnAllItems(locked));
+    for (const scene of this.scenes) {
+      scene.setLockOnAllItems(locked);
+    }
   }
 
   getSourceScenes(sourceId: string): Scene[] {
     const resultScenes: Scene[] = [];
-    this.scenes.forEach(scene => {
+    for (const scene of this.scenes) {
       const items = scene.getItems().filter(sceneItem => sceneItem.sourceId === sourceId);
       if (items.length > 0) resultScenes.push(scene);
-    });
+    }
     return resultScenes;
   }
 
@@ -270,7 +272,7 @@ export class ScenesService extends StatefulService<IScenesState> {
 
     const activeScene = this.activeScene;
 
-    this.transitionsService.transition(activeScene && activeScene.id, scene.id);
+    this.transitionsService.transition(activeScene?.id, scene.id);
 
     this.MAKE_SCENE_ACTIVE(id);
     this.sceneSwitched.next(scene.getModel());
@@ -309,7 +311,9 @@ export class ScenesService extends StatefulService<IScenesState> {
 
   getSceneItems(): SceneItem[] {
     const sceneItems: SceneItem[] = [];
-    this.scenes.forEach(scene => sceneItems.push(...scene.getItems()));
+    for (const scene of this.scenes) {
+      sceneItems.push(...scene.getItems());
+    }
     return sceneItems;
   }
 

@@ -101,8 +101,12 @@ export class TcpServerService
   }
 
   stopListening() {
-    this.servers.forEach(server => server.close());
-    Object.keys(this.clients).forEach(clientId => this.disconnectClient(Number(clientId)));
+    for (const server of this.servers) {
+      server.close();
+    }
+    for (const clientId of Object.keys(this.clients)) {
+      this.disconnectClient(Number(clientId));
+    }
   }
 
   enableWebsoketsRemoteConnections() {
@@ -126,8 +130,7 @@ export class TcpServerService
   }
 
   setSettings(settings: Partial<ITcpServersSettings>) {
-    const needToGenerateToken =
-      settings.websockets && settings.websockets.allowRemote && !this.state.token;
+    const needToGenerateToken = settings.websockets?.allowRemote && !this.state.token;
     if (needToGenerateToken) this.generateToken();
     this.SET_SETTINGS(settings);
   }
@@ -202,17 +205,17 @@ export class TcpServerService
   getIPAddresses(): IIPAddressDescription[] {
     const ifaces = os.networkInterfaces();
     const addresses: IIPAddressDescription[] = [];
-    Object.keys(ifaces).forEach(ifaceName => {
+    for (const ifaceName of Object.keys(ifaces)) {
       const iface = ifaces[ifaceName];
-      iface.forEach(interfaceInfo => {
+      for (const interfaceInfo of iface) {
         addresses.push({
           interface: ifaceName,
           address: interfaceInfo.address,
           family: interfaceInfo.family,
           internal: interfaceInfo.internal,
         });
-      });
-    });
+      }
+    }
     return addresses;
   }
 
@@ -220,7 +223,9 @@ export class TcpServerService
     const buf = new Uint8Array(20);
     crypto.randomFillSync(buf);
     let token = '';
-    buf.forEach(val => (token += val.toString(16)));
+    for (const val of buf) {
+      token += val.toString(16);
+    }
     this.setSettings({ token });
     return token;
   }
@@ -344,8 +349,8 @@ export class TcpServerService
     }
 
     const requests = data.split('\n');
-    requests.forEach(requestString => {
-      if (!requestString) return;
+    for (const requestString of requests) {
+      if (!requestString) continue;
       try {
         const request: IJsonRpcRequest = JSON.parse(requestString);
 
@@ -366,7 +371,7 @@ export class TcpServerService
         const response = this.externalApiService.executeServiceRequest(request);
 
         // if response is subscription then add this subscription to client
-        if (response.result && response.result._type === 'SUBSCRIPTION') {
+        if (response.result?._type === 'SUBSCRIPTION') {
           const subscriptionId = response.result.resourceId;
           if (!client.subscriptions.includes(subscriptionId)) {
             client.subscriptions.push(subscriptionId);
@@ -386,12 +391,12 @@ export class TcpServerService
           }),
         );
       }
-    });
+    }
   }
 
   private onServiceEventHandler(event: IJsonRpcResponse<IJsonRpcEvent>) {
     // send event to subscribed clients
-    Object.keys(this.clients).forEach(clientId => {
+    for (const clientId of Object.keys(this.clients)) {
       const client = this.clients[clientId];
       const eventName = event.result.resourceId.split('.')[1];
 
@@ -409,7 +414,7 @@ export class TcpServerService
       const needToSendEvent =
         client.listenAllSubscriptions || client.subscriptions.includes(event.result.resourceId);
       if (needToSendEvent) this.sendResponse(client, event, force);
-    });
+    }
   }
 
   private validateRequest(request: IJsonRpcRequest): string {
@@ -423,7 +428,7 @@ export class TcpServerService
   private hadleTcpServerDirectives(client: IClient, request: IJsonRpcRequest) {
     // handle auth
     if (request.method === 'auth' && request.params.resource === 'TcpServerService') {
-      if (this.state.token && request.params.args[0] === this.state.token) {
+      if (this.state.token && request.params.args?.[0] === this.state.token) {
         this.authorizeClient(client);
         this.sendResponse(client, {
           jsonrpc: '2.0',

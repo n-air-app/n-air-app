@@ -55,7 +55,7 @@
           class="icon-delete icon-btn"
           v-tooltip.bottom="removeSceneTooltip"
           @click="removeScene(p.item.value)"
-          :data-test="'Remove' + p.item.name"
+          :data-test="`Remove${p.item.name}`"
         />
       </template>
     </selector>

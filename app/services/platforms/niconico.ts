@@ -17,7 +17,7 @@ export type INiconicoProgramSelection = {
   selectedId: string;
 };
 
-function parseXml(xml: String): Promise<object> {
+const parseXml = (xml: String): Promise<object> => {
   return new Promise((resolve, reject) => {
     parseString(xml, (err, result) => {
       if (err) {
@@ -29,7 +29,7 @@ function parseXml(xml: String): Promise<object> {
       }
     });
   });
-}
+};
 
 type Program = {
   id: string;
@@ -75,7 +75,7 @@ export class NiconicoService extends Service implements IPlatformService {
     }
     const response_1 = await handleErrors(response); // !response.ok を例外にする
     const json = await response_1.json();
-    if (json.data && json.data.userId) {
+    if (json.data?.userId) {
       return json.data.userId;
     }
     return '';
@@ -195,9 +195,9 @@ export class NiconicoService extends Service implements IPlatformService {
     const key = stream.value.rtmp.streamName;
 
     const settings = this.settingsService.getSettingsFormData('Stream');
-    settings.forEach(subCategory => {
-      if (subCategory.nameSubCategory !== 'Untitled') return;
-      subCategory.parameters.forEach(parameter => {
+    for (const subCategory of settings) {
+      if (subCategory.nameSubCategory !== 'Untitled') continue;
+      for (const parameter of subCategory.parameters) {
         switch (parameter.name) {
           case 'service':
             parameter.value = 'niconico ニコニコ生放送';
@@ -209,8 +209,8 @@ export class NiconicoService extends Service implements IPlatformService {
             parameter.value = key;
             break;
         }
-      });
-    });
+      }
+    }
     this.settingsService.setSettings('Stream', settings);
 
     // 有効な番組が選択されているので stream keyを返す

@@ -54,10 +54,10 @@ import {
   isWrappedChat,
 } from './WrappedChat';
 
-function makeEmulatedChat(
+const makeEmulatedChat = (
   content: string,
   date: number = Math.floor(Date.now() / 1000),
-): Pick<WrappedChat, 'type' | 'value'> {
+): Pick<WrappedChat, 'type' | 'value'> => {
   return {
     type: 'n-air-emulated' as const,
     value: {
@@ -65,7 +65,7 @@ function makeEmulatedChat(
       date,
     },
   };
-}
+};
 
 // yarn dev 用: ダミーでコメントを5秒ごとに出し続ける
 class DummyMessageServerClient implements IMessageServerClient {
@@ -93,21 +93,21 @@ interface INicoliveCommentViewerState {
   speakingSeqId: number | null;
 }
 
-function calcModeratorName(record: { userId?: number; userName?: string }) {
+const calcModeratorName = (record: { userId?: number; userName?: string }) => {
   if (record.userName) {
     return `${record.userName} さん`;
   } else {
     return 'モデレーター';
   }
-}
+};
 
-function calcSSNGTypeName(record: FilterRecord) {
+const calcSSNGTypeName = (record: FilterRecord) => {
   return {
     word: 'コメント',
     user: 'ユーザー',
     command: 'コマンド',
   }[record.type];
-}
+};
 const SUPPORTERS_REFRESH_INTERVAL = 180000; // サポーター情報の更新間隔(3分)
 
 export class NicoliveCommentViewerService extends StatefulService<INicoliveCommentViewerState> {
@@ -538,10 +538,10 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
 
       // send to http relation
       const httpRelation = this.nicoliveProgramStateService.state.httpRelation;
-      if (httpRelation && httpRelation.method) {
-        valuesForSpeech.forEach(a => {
+      if (httpRelation?.method) {
+        for (const a of valuesForSpeech) {
           HttpRelation.sendChat(a, httpRelation);
-        });
+        }
       }
 
       if (this.nicoliveProgramStateService.state.nameplateHint === undefined) {
@@ -556,7 +556,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       this.queueToSpeech(valuesForSpeech.slice(-maxQueueToSpeak));
 
       const maxRetain = 100; // 最新からこの件数を一覧に保持する
-      const concatMessages = this.state.messages.concat(values);
+      const concatMessages = [...this.state.messages, ...values];
       const popoutMessages = concatMessages.slice(0, -maxRetain);
       const messages = concatMessages.slice(-maxRetain);
       const firstCommentArrived = this.state.messages.length === 0 && messages.length > 0;

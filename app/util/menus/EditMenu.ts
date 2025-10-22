@@ -44,9 +44,9 @@ export class EditMenu extends Menu {
   constructor(private options: IEditMenuOptions) {
     super();
 
-    if (this.options.selectedSourceId) {
+    if (this.options?.selectedSourceId) {
       this.source = this.sourcesService.getSource(this.options.selectedSourceId);
-    } else if (this.options.showSceneItemMenu && this.selectionService.isSceneItem()) {
+    } else if (this.options?.showSceneItemMenu && this.selectionService.isSceneItem()) {
       this.source = this.selectionService.getItems()[0].getSource();
     }
 

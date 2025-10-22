@@ -162,7 +162,9 @@ export class NotificationsService
 
   @mutation()
   private MARK_ALL_AS_READ() {
-    this.state.notifications.forEach(notify => (notify.unread = false));
+    for (const notify of this.state.notifications) {
+      notify.unread = false;
+    }
   }
 
   @mutation()

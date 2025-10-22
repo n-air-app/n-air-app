@@ -116,12 +116,12 @@ export class WebcamNode extends Node<ISchema, IContext> {
 
     // Group resolutions by aspect ratio
     const grouped = new Map<number, IResolution[]>();
-    resolutionOptions.forEach(res => {
+    for (const res of resolutionOptions) {
       const ratio = res.width / res.height;
-      const values = grouped.get(ratio) || [];
+      const values = grouped.get(ratio) ?? [];
       values.push(res);
       grouped.set(ratio, values);
-    });
+    }
 
     let possibleRatios = Array.from(grouped.keys());
 
@@ -136,10 +136,10 @@ export class WebcamNode extends Node<ISchema, IContext> {
 
     // Turn our list of possible ratios into a list of possible resolutions
     let possibleResolutions: IResolution[] = [];
-    possibleRatios.forEach(ratio => {
+    for (const ratio of possibleRatios) {
       const resolutions = grouped.get(ratio);
-      possibleResolutions = possibleResolutions.concat(resolutions);
-    });
+      possibleResolutions = [...possibleResolutions, ...resolutions];
+    }
 
     // Find the smallest width larger than our target
     const sorted = sortBy(possibleResolutions, 'width');

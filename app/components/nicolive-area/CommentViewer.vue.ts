@@ -107,7 +107,7 @@ export default class CommentViewer extends Vue {
   pin(item: WrappedMessageWithComponent | null): void {
     if (!item || item.type === 'normal') {
       this.nicoliveCommentViewerService.pinComment(null);
-      if (item && item.type === 'normal') {
+      if (item?.type === 'normal') {
         this.$nextTick(() => {
           this.nicoliveCommentViewerService.pinComment(
             item && {

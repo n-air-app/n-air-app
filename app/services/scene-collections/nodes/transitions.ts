@@ -61,24 +61,24 @@ export class TransitionsNode extends Node<ISchema, {}> {
   async load() {
     // Double check we are starting from a blank state
     this.transitionsService.deleteAllTransitions();
-    this.data.transitions.forEach(transition => {
+    for (const transition of this.data.transitions) {
       this.transitionsService.createTransition(transition.type, transition.name, {
         id: transition.id,
         duration: transition.duration,
         settings: transition.settings,
         propertiesManagerSettings: transition.propertiesManagerSettings,
       });
-    });
+    }
 
     // Double check we are starting from a blank state
     this.transitionsService.deleteAllConnections();
-    this.data.connections.forEach(connection => {
+    for (const connection of this.data.connections) {
       this.transitionsService.addConnection(
         connection.fromSceneId,
         connection.toSceneId,
         connection.transitionId,
       );
-    });
+    }
 
     if (this.data.defaultTransitionId) {
       this.transitionsService.setDefaultTransition(this.data.defaultTransitionId);

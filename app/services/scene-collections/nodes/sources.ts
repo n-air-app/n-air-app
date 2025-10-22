@@ -10,12 +10,12 @@ import {
   TSourceType,
   isNoAudioPropertiesManagerType,
 } from 'services/sources';
+import Utils from 'services/utils';
 import * as obs from '../../../../obs-api';
 import { Inject } from '../../core/injector';
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { applyPathConvertForPreset, unapplyPathConvertForPreset } from './sources-util';
-import Utils from 'services/utils';
 
 interface ISchema {
   items: ISourceInfo[];
@@ -256,7 +256,7 @@ export class SourcesNode extends Node<ISchema, {}> {
       this.sourcesService.addSource(source, this.data.items[index].name, {
         channel: sourceInfo.channel,
         propertiesManager: sourceInfo.propertiesManager,
-        propertiesManagerSettings: sourceInfo.propertiesManagerSettings || {},
+        propertiesManagerSettings: sourceInfo.propertiesManagerSettings ?? {},
       });
 
       const newSource = this.sourcesService.getSource(sourceInfo.id);
@@ -315,21 +315,21 @@ export class SourcesNode extends Node<ISchema, {}> {
   migrate(version: number) {
     // migrate audio sources names
     if (version < 3) {
-      this.data.items.forEach(source => {
+      for (const source of this.data.items) {
         const desktopDeviceMatch = /^DesktopAudioDevice(\d)$/.exec(source.name);
         if (desktopDeviceMatch) {
           const index = parseInt(desktopDeviceMatch[1], 10);
-          source.name = $t('sources.desktopAudio') + (index > 1 ? ' ' + index : '');
-          return;
+          source.name = `${$t('sources.desktopAudio')}${index > 1 ? ` ${index}` : ''}`;
+          continue;
         }
 
         const auxDeviceMatch = /^AuxAudioDevice(\d)$/.exec(source.name);
         if (auxDeviceMatch) {
           const index = parseInt(auxDeviceMatch[1], 10);
-          source.name = $t('sources.micAux') + (index > 1 ? ' ' + index : '');
-          return;
+          source.name = `${$t('sources.micAux')}${index > 1 ? ` ${index}` : ''}`;
+          continue;
         }
-      });
+      }
     }
   }
 }

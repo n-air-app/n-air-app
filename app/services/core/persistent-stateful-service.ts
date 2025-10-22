@@ -20,7 +20,7 @@ export abstract class PersistentStatefulService<
   static defaultState = {};
 
   static get initialState() {
-    const persisted = JSON.parse(localStorage.getItem(this.localStorageKey)) || {};
+    const persisted = JSON.parse(localStorage.getItem(this.localStorageKey)) ?? {};
 
     return merge({}, this.defaultState, persisted);
   }
@@ -49,11 +49,11 @@ export abstract class PersistentStatefulService<
 
   runMigrations(persistedState: any, migrations: IMigration[]) {
     const migratedState = cloneDeep(persistedState);
-    migrations.forEach(migration => {
-      if (persistedState[migration.oldKey] == null) return;
+    for (const migration of migrations) {
+      if (persistedState[migration.oldKey] == null) continue;
       migratedState[migration.newKey] = migration.transform(persistedState[migration.oldKey]);
       delete migratedState[migration.oldKey];
-    });
+    }
 
     return migratedState;
   }

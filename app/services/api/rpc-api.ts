@@ -119,7 +119,7 @@ export abstract class RpcApi extends Service {
     // args may contain ServiceHelper objects
     // deserialize them
     traverse(args).forEach((item: any) => {
-      if (item && item._type === 'HELPER') {
+      if (item?._type === 'HELPER') {
         return this.getResource(item.resourceId);
       }
     });
@@ -216,7 +216,7 @@ export abstract class RpcApi extends Service {
     // payload may contain arrays or objects that may have ServiceHelper objects inside
     // so we have to try to find these ServiceHelpers and serialize them too
     traverse(responsePayload).forEach((item: any) => {
-      if (item && item._isHelper === true) {
+      if (item?._isHelper === true) {
         const helper = this.getResource(item._resourceId);
         return {
           _type: 'HELPER',
@@ -258,9 +258,9 @@ export abstract class RpcApi extends Service {
       proto = Object.getPrototypeOf(proto);
     } while (proto.constructor.name !== 'Object');
 
-    keys.forEach(key => {
+    for (const key of keys) {
       resourceScheme[key] = typeof resource[key];
-    });
+    }
 
     return resourceScheme;
   }

@@ -568,7 +568,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
-      this.setAudioDeviceId(this.audioDevices$.value[0]?.id || null);
+      this.setAudioDeviceId(this.audioDevices$.value[0]?.id ?? null);
     }
   }
 
@@ -781,7 +781,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     this.deactivate();
     if (modelName === null) {
-      modelName = this.modelsManager.getVoskModels()[0]?.name || null; // Default to the first model if none is set
+      modelName = this.modelsManager.getVoskModels()[0]?.name ?? null; // Default to the first model if none is set
     } else if (!this.modelsManager.getVoskModels().some(model => model.name === modelName)) {
       throw new Error(`Vosk model ${modelName} not found.`);
     }
@@ -827,7 +827,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   private setState(newState: Partial<ITranscriptionServiceState>) {
-    newState = Object.assign({}, this.state, newState);
+    newState = { ...this.state, ...newState };
     this.SET_SETTINGS(newState);
     this.state$.next(this.state);
     this.updateActiveness$.next();
@@ -835,6 +835,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   @mutation()
   private SET_SETTINGS(settingsPatch: Partial<ITranscriptionServiceState>) {
-    this.state = Object.assign({}, this.state, settingsPatch);
+    this.state = { ...this.state, ...settingsPatch };
   }
 }

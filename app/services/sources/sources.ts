@@ -124,7 +124,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       height: addOptions.height,
 
       muted: false,
-      resourceId: 'Source' + JSON.stringify([id]),
+      resourceId: `Source${JSON.stringify([id])}`,
       channel: addOptions.channel,
       deinterlaceMode: obs.EDeinterlaceMode.Disable,
       deinterlaceFieldOrder: obs.EDeinterlaceFieldOrder.Top,
@@ -149,9 +149,15 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   @mutation()
   private UPDATE_SOURCE(sourcePatch: TPatch<ISource>) {
     if (this.state.sources[sourcePatch.id]) {
-      Object.assign(this.state.sources[sourcePatch.id], sourcePatch);
+      this.state.sources[sourcePatch.id] = {
+        ...this.state.sources[sourcePatch.id],
+        ...sourcePatch,
+      };
     } else {
-      Object.assign(this.state.temporarySources[sourcePatch.id], sourcePatch);
+      this.state.temporarySources[sourcePatch.id] = {
+        ...this.state.temporarySources[sourcePatch.id],
+        ...sourcePatch,
+      };
     }
   }
 
@@ -192,7 +198,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     this.UPDATE_SOURCE({ id, muted });
     this.updateSourceFlags(source.state, obsInput.outputFlags, true);
 
-    if (!PROPERTIES_MANAGER_TYPES.hasOwnProperty(managerType)) {
+    if (!(managerType in PROPERTIES_MANAGER_TYPES)) {
       console.error(
         `Unknown properties manager type ${managerType} of source id:${id} ('${source.name}'). fallback to default.`,
       );
@@ -200,7 +206,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const managerKlass =
       PROPERTIES_MANAGER_TYPES[managerType] ?? PROPERTIES_MANAGER_TYPES['default'];
     this.propertiesManagers[id] = {
-      manager: new managerKlass(obsInput, options.propertiesManagerSettings || {}),
+      manager: new managerKlass(obsInput, options.propertiesManagerSettings ?? {}),
       type: managerType,
     };
 
@@ -302,11 +308,11 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   getObsSourceSettings(type: TSourceType, settings: Dictionary<any>): Dictionary<any> {
     const resolvedSettings = cloneDeep(settings);
 
-    Object.keys(resolvedSettings).forEach(propName => {
+    for (const propName of Object.keys(resolvedSettings)) {
       // device_id is unique for each PC
       // so we allow to provide a device name instead device id
       // resolve the device id by the device name here
-      if (!['device_id', 'video_device_id', 'audio_device_id'].includes(propName)) return;
+      if (!['device_id', 'video_device_id', 'audio_device_id'].includes(propName)) continue;
 
       /* N Airには hardwareService がないため無効
       const device =
@@ -317,7 +323,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       if (!device) return;
       resolvedSettings[propName] = device.id;
       */
-    });
+    }
 
     if (type === 'dshow_input') {
       if (resolvedSettings.video_device_id === undefined) {
@@ -332,9 +338,9 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
   fixSourceSettings() {
     // fix webcam sources's video_device_id
-    this.getSourcesByType('dshow_input').forEach(webcam => {
+    for (const webcam of this.getSourcesByType('dshow_input')) {
       webcam.getPropertiesFormData();
-    });
+    }
   }
 
   private getObsSourceCreateSettings(type: TSourceType, settings: Dictionary<any>) {
@@ -496,9 +502,9 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const activeItems = this.scenesService.activeScene.getItems();
     const sourcesNames: string[] = [];
 
-    activeItems.forEach(activeItem => {
+    for (const activeItem of activeItems) {
       sourcesNames.push(activeItem.name);
-    });
+    }
 
     const sourcesSize = obs.getSourcesSize(sourcesNames);
 
@@ -521,7 +527,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   private handleSourceCallback(objs: IObsSourceCallbackInfo[]) {
-    objs.forEach(info => {
+    for (const info of objs) {
       const source = this.getSource(info.name);
 
       // This is probably a transition or something else we don't care about
@@ -533,7 +539,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
         this.sourceUpdated.next(source.getModel());
       }
       this.updateSourceFlags(source, info.flags);
-    });
+    }
   }
 
   private updateSourceFlags(source: ISource, flags: number, doNotEmit?: boolean) {

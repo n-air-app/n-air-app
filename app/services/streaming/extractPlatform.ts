@@ -1,6 +1,6 @@
-function isOnlyNumberOrDot(str: string): boolean {
+const isOnlyNumberOrDot = (str: string): boolean => {
   return /^[\d.]+$/.test(str);
-}
+};
 
 // streaming URLから domain の一部を抽出する
 // eg. "rtmp://kliveorigin.dmc.nico/named_input" -> "dmc"

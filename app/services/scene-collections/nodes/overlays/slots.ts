@@ -81,7 +81,7 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
         id: sceneNode.id,
         sceneNodeType: 'folder',
         name: sceneNode.name,
-        childrenIds: sceneNode.childrenIds || [],
+        childrenIds: sceneNode.childrenIds ?? [],
       };
     }
 
@@ -205,14 +205,14 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
     }
 
     if (obj.filters) {
-      obj.filters.forEach(filter => {
+      for (const filter of obj.filters) {
         this.sourceFiltersService.add(
           sceneItem.sourceId,
           filter.type as TSourceFilterType,
           filter.name,
           filter.settings,
         );
-      });
+      }
     }
   }
 

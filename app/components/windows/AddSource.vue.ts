@@ -77,7 +77,7 @@ export default class AddSource extends Vue {
           .getAvailableSourcesTypesList()
           .find(sourceTypeDef => sourceTypeDef.value === this.sourceType);
 
-      this.name = this.sourcesService.suggestName(this.sourceType && sourceType.description);
+      this.name = this.sourcesService.suggestName(this.sourceType && sourceType?.description);
     }
 
     if (this.sourceType === 'scene') this.canAddNew = false;

@@ -59,7 +59,7 @@ export class InternalApiClient {
           // args may contain ServiceHelper objects
           // serialize them
           traverse(args).forEach((item: any) => {
-            if (item && item._isHelper) {
+            if (item?._isHelper) {
               return {
                 _type: 'HELPER',
                 resourceId: item._resourceId,
@@ -85,12 +85,14 @@ export class InternalApiClient {
           const mutations = response.mutations;
 
           // commit all mutations caused by the api-request now
-          mutations.forEach(mutation => commitMutation(mutation));
+          for (const mutation of mutations) {
+            commitMutation(mutation);
+          }
           // we'll still receive already committed mutations from async IPC event
           // mark them as ignored
           this.skippedMutationsCount += mutations.length;
 
-          if (result && result._type === 'SUBSCRIPTION') {
+          if (result?._type === 'SUBSCRIPTION') {
             if (result.emitter === 'PROMISE') {
               return new Promise((resolve, reject) => {
                 const promiseId = result.resourceId;
@@ -112,7 +114,7 @@ export class InternalApiClient {
           // payload can contain helpers-objects
           // we have to wrap them in IpcProxy too
           traverse(result).forEach((item: any) => {
-            if (item && item._type === 'HELPER') {
+            if (item?._type === 'HELPER') {
               const helper = this.getResource(item.resourceId);
               return this.applyIpcProxy(helper);
             }

@@ -18,11 +18,11 @@ function registerMutation(
   const serviceName = target.constructor.name;
   const mutationName = `${serviceName}.${methodName}`;
 
-  target.originalMethods = target.originalMethods || {};
+  target.originalMethods = target.originalMethods ?? {};
   target.originalMethods[methodName] = target[methodName];
-  target.mutationOptions = target.mutationOptions || {};
+  target.mutationOptions = target.mutationOptions ?? {};
   target.mutationOptions[methodName] = options;
-  target.mutations = target.mutations || {};
+  target.mutations = target.mutations ?? {};
   target.mutations[mutationName] = function (
     localState: any,
     payload: { args: any; constructorArgs: any },
@@ -88,8 +88,8 @@ function registerMutation(
 export function inheritMutations(target: any) {
   const baseClassProto = Object.getPrototypeOf(target.prototype).constructor.prototype;
   if (baseClassProto.originalMethods) {
-    Object.keys(baseClassProto.originalMethods).forEach(methodName => {
-      if (Object.getOwnPropertyDescriptor(target.prototype, methodName)) return; // mutation is overridden
+    for (const methodName of Object.keys(baseClassProto.originalMethods)) {
+      if (Object.getOwnPropertyDescriptor(target.prototype, methodName)) continue; // mutation is overridden
       target.prototype[methodName] = baseClassProto.originalMethods[methodName];
       registerMutation(
         target.prototype,
@@ -97,7 +97,7 @@ export function inheritMutations(target: any) {
         Object.getOwnPropertyDescriptor(target.prototype, methodName),
         baseClassProto.mutationOptions[methodName],
       );
-    });
+    }
   }
 }
 

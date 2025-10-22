@@ -24,9 +24,9 @@ export function ServiceHelper() {
       instance._resourceId = originalName + JSON.stringify(args);
 
       // インスタンスからthisにプロパティをコピー
-      Object.getOwnPropertyNames(instance).forEach(key => {
+      for (const key of Object.getOwnPropertyNames(instance)) {
         this[key] = instance[key];
-      });
+      }
 
       return this;
     };
@@ -36,24 +36,24 @@ export function ServiceHelper() {
     f.prototype.constructor = f;
 
     // プロトタイプメソッドをコピー
-    Object.getOwnPropertyNames(original.prototype).forEach(key => {
+    for (const key of Object.getOwnPropertyNames(original.prototype)) {
       if (key !== 'constructor') {
         const descriptor = Object.getOwnPropertyDescriptor(original.prototype, key);
         if (descriptor) {
           Object.defineProperty(f.prototype, key, descriptor);
         }
       }
-    });
+    }
 
     // 静的メソッドとプロパティをコピー
-    Object.getOwnPropertyNames(original).forEach(key => {
+    for (const key of Object.getOwnPropertyNames(original)) {
       if (key !== 'prototype' && key !== 'name') {
         const descriptor = Object.getOwnPropertyDescriptor(original, key);
         if (descriptor) {
           Object.defineProperty(f, key, descriptor);
         }
       }
-    });
+    }
 
     // 名前を設定
     try {

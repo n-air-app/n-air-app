@@ -188,19 +188,17 @@ export class StreamingService
       mustShowOptimizationDialog?: boolean;
     } = {},
   ) {
-    const opts = Object.assign(
-      {
-        mustShowOptimizationDialog: false,
-      },
-      options,
-    );
+    const opts = {
+      mustShowOptimizationDialog: false,
+      ...options,
+    };
 
     if (this.isStreaming) {
       this.toggleStreaming();
       return;
     }
 
-    console.log('Start Streaming button: platform=' + JSON.stringify(this.userService.platform));
+    console.log(`Start Streaming button: platform=${JSON.stringify(this.userService.platform)}`);
     if (this.userService.isNiconicoLoggedIn()) {
       try {
         this.SET_PROGRAM_FETCHING(true);
@@ -538,7 +536,7 @@ export class StreamingService
             scope.setTag('recType', recordingSettings.recType);
             scope.setExtra('path', recordingSettings.path);
             scope.setFingerprint(['Recording']);
-            Sentry.captureMessage('Recording / recType:' + recordingSettings.recType);
+            Sentry.captureMessage(`Recording / recType:${recordingSettings.recType}`);
           });
         }
       }
@@ -747,7 +745,7 @@ export class StreamingService
       event: eventType,
       platform: extractPlatform(settings.streamingURL),
       stream_track_id: streamingTrackId,
-      content_id: this.nicoliveProgramService.state.programID || null,
+      content_id: this.nicoliveProgramService.state.programID ?? null,
       output_mode: settings.outputMode,
       video: {
         base_resolution: settings.baseResolution,

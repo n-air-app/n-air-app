@@ -19,9 +19,9 @@ export default class ExperimentalSettings extends Vue {
 
   saveSettings(formData: TObsFormData) {
     const settings: Dictionary<TObsValue> = {};
-    formData.forEach(formInput => {
+    for (const formInput of formData) {
       settings[formInput.name] = formInput.value;
-    });
+    }
     this.customizationService.setSettings({ experimental: settings });
     this.settingsFormData = this.customizationService.getExperimentalSettingsFormData();
   }

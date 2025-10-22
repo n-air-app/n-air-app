@@ -55,7 +55,7 @@ export class ScheduledExecutionQueue<T> {
     this.isProcessing = true;
     try {
       const now = new Date();
-      while (this.queue.length > 0 && this.queue[0].sendAt <= now) {
+      while (this.queue.length > 0 && this.queue[0]?.sendAt <= now) {
         const item = this.queue[0];
         const success = await this.processor(item.item);
 

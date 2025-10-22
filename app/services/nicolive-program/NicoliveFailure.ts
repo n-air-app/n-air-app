@@ -37,13 +37,13 @@ export class NicoliveFailure {
   }
 }
 
-async function openErrorDialog({
+const openErrorDialog = async ({
   title,
   message,
 }: {
   title: string;
   message: string;
-}): Promise<void> {
+}): Promise<void> => {
   return new Promise<void>(resolve => {
     remote.dialog
       .showMessageBox(remote.getCurrentWindow(), {
@@ -54,15 +54,15 @@ async function openErrorDialog({
       })
       .then(() => resolve());
   });
-}
+};
 
-function fallbackToX00(reason: string): string {
+const fallbackToX00 = (reason: string): string => {
   const matched = reason.match(/^(\d)\d\d$/);
   if (matched) {
     return `${matched[1]}00`;
   }
   return reason;
-}
+};
 
 export async function openErrorDialogFromFailure(failure: NicoliveFailure): Promise<void> {
   Sentry.withScope(scope => {

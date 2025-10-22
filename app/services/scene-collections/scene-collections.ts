@@ -109,12 +109,12 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       let latestId = this.collections[0].id;
       let latestModified = this.collections[0].modified;
 
-      this.collections.forEach(collection => {
+      for (const collection of this.collections) {
         if (collection.modified > latestModified) {
           latestModified = collection.modified;
           latestId = collection.id;
         }
-      });
+      }
 
       await this.load(latestId);
     } else {
@@ -262,7 +262,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     await this.setActiveCollection(id);
     if (options.needsRename) this.stateService.SET_NEEDS_RENAME(id);
 
-    if (options.setupFunction && options.setupFunction()) {
+    if (options.setupFunction?.()) {
       // Do nothing
     } else {
       this.setupEmptyCollection();
@@ -440,7 +440,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   fetchSceneCollectionsSchema(): Promise<ISceneCollectionSchema[]> {
     const promises: Promise<ISceneCollectionSchema>[] = [];
 
-    this.collections.forEach(collection => {
+    for (const collection of this.collections) {
       const data = this.stateService.readCollectionFile(collection.id);
 
       promises.push(
@@ -476,7 +476,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
           resolve(collectionSchema);
         }),
       );
-    });
+    }
 
     return Promise.all(promises);
   }
@@ -564,18 +564,18 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
     // we should remove inactive scenes first to avoid the switching between scenes
     try {
-      this.scenesService.scenes.forEach(scene => {
-        if (scene.id === this.scenesService.activeSceneId) return;
+      for (const scene of this.scenesService.scenes) {
+        if (scene.id === this.scenesService.activeSceneId) continue;
         scene.remove(true);
-      });
+      }
 
       if (this.scenesService.activeScene) {
         this.scenesService.activeScene.remove(true);
       }
 
-      this.sourcesService.sources.forEach(source => {
+      for (const source of this.sourcesService.sources) {
         if (source.type !== 'scene') source.remove();
-      });
+      }
 
       this.transitionsService.deleteAllTransitions();
       this.transitionsService.deleteAllConnections();

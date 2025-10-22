@@ -200,16 +200,15 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const globalSources = this.sourcesService
       .getSources()
       .filter(source => source.channel !== undefined);
-    return globalSources
-      .concat(sceneSources)
+    return [...globalSources, ...sceneSources]
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
       .filter(item => item);
   }
 
   unhideAllSourcesForCurrentScene() {
-    this.getSourcesForCurrentScene().forEach(source => {
+    for (const source of this.getSourcesForCurrentScene()) {
       source.setHidden(false);
-    });
+    }
   }
 
   fetchFaderDetails(sourceId: string): IFader {
@@ -237,7 +236,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       forceMono: !!(obsSource.flags & obs.ESourceFlags.ForceMono),
       syncOffset: AudioService.timeSpecToMs(obsSource.syncOffset),
       muted: obsSource.muted,
-      resourceId: 'AudioSource' + JSON.stringify([sourceId]),
+      resourceId: `AudioSource${JSON.stringify([sourceId])}`,
       mixerHidden: false,
       isControlledViaObs:
         obsSource.settings?.reroute_audio == null ? true : obsSource.settings?.reroute_audio,
@@ -249,23 +248,23 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const obsAudioInput = obs.InputFactory.create('wasapi_input_capture', uuid());
     const obsAudioOutput = obs.InputFactory.create('wasapi_output_capture', uuid());
 
-    (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach(item => {
+    for (const item of (obsAudioInput.properties.get('device_id') as obs.IListProperty).details
+      .items) {
       devices.push({
         id: item.value as string,
         description: item.name,
         type: 'input',
       });
-    });
+    }
 
-    (obsAudioOutput.properties.get('device_id') as obs.IListProperty).details.items.forEach(
-      item => {
-        devices.push({
-          id: item.value as string,
-          description: item.name,
-          type: 'output',
-        });
-      },
-    );
+    for (const item of (obsAudioOutput.properties.get('device_id') as obs.IListProperty).details
+      .items) {
+      devices.push({
+        id: item.value as string,
+        description: item.name,
+        type: 'output',
+      });
+    }
 
     obsAudioInput.release();
     obsAudioOutput.release();
@@ -289,8 +288,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     // Fader is ignored by this method.  Use setFader instead
     const newPatch = omit(patch, 'fader');
 
-    getKeys(newPatch).forEach(name => {
-      if (newPatch[name] === undefined) return;
+    for (const name of getKeys(newPatch)) {
+      if (newPatch[name] === undefined) continue;
 
       if (name === 'syncOffset') {
         const value = newPatch[name];
@@ -310,7 +309,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
         // @ts-expect-error ts7053 obs.IInputのpropertyに宣言が無いキーを扱うため
         obsInput[name] = value;
       }
-    });
+    }
 
     this.UPDATE_AUDIO_SOURCE(sourceId, newPatch);
     this.audioSourceUpdated.next(this.state.audioSources[sourceId]);
@@ -323,8 +322,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     if (patch.mul) obsFader.mul = patch.mul;
     // We never set db directly
 
-    const fader = this.fetchFaderDetails(sourceId);
-    Object.assign({}, fader, patch);
+    const fader = { ...this.fetchFaderDetails(sourceId), ...patch };
 
     this.UPDATE_AUDIO_SOURCE(sourceId, { fader });
     this.audioSourceUpdated.next(this.state.audioSources[sourceId]);
@@ -398,7 +396,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   @mutation()
   private UPDATE_AUDIO_SOURCE(sourceId: string, patch: Partial<IAudioSource>) {
-    Object.assign(this.state.audioSources[sourceId], patch);
+    this.state.audioSources[sourceId] = { ...this.state.audioSources[sourceId], ...patch };
   }
 
   @mutation()

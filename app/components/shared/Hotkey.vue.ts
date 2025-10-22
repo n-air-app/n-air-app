@@ -111,9 +111,9 @@ export default class HotkeyComponent extends Vue {
   setBindings() {
     const bindings: IBinding[] = [];
 
-    this.bindings.forEach(binding => {
+    for (const binding of this.bindings) {
       if (binding.binding.key) bindings.push(binding.binding);
-    });
+    }
 
     this.hotkey.bindings = bindings;
   }

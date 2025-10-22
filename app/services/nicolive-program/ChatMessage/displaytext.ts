@@ -3,14 +3,14 @@ import { WrappedChat, WrappedMessage, WrappedMessageWithComponent } from '../Wra
 import { ChatComponentType } from './ChatComponentType';
 import { isNicoadMessageV0, isNicoadMessageV1 } from './util';
 
-function getCommonComment(chat: WrappedChat): string {
+const getCommonComment = (chat: WrappedChat): string => {
   if (chat.type === 'normal') {
     return getContentWithFilter(chat);
   }
   return chat.value.content ?? '';
-}
+};
 
-function getNicoadComment(chat: WrappedMessage): string {
+const getNicoadComment = (chat: WrappedMessage): string => {
   if (chat.type === 'nicoad') {
     const nicoad = chat.value;
     if (isNicoadMessageV0(nicoad)) {
@@ -25,9 +25,9 @@ function getNicoadComment(chat: WrappedMessage): string {
     }
   }
   return '';
-}
+};
 
-function getGiftComment(chat: WrappedMessage): string {
+const getGiftComment = (chat: WrappedMessage): string => {
   if (chat.type !== 'gift') {
     return '';
   }
@@ -37,18 +37,18 @@ function getGiftComment(chat: WrappedMessage): string {
   return `${contributionMessage}${advertiserName}さんが「${itemName}（${
     point ?? 0
   }pt）」を贈りました`;
-}
+};
 
-function getEmotionComment(chat: WrappedMessage): string {
+const getEmotionComment = (chat: WrappedMessage): string => {
   if (chat.type !== 'emotion') {
     return '';
   }
   return chat.value.content ?? '';
-}
+};
 
-function getSystemMessage(chat: WrappedChat): string {
+const getSystemMessage = (chat: WrappedChat): string => {
   return chat.value.content ?? '';
-}
+};
 
 const displayTextMap: { [type in ChatComponentType]: (chat: WrappedMessage) => string } = {
   common: getCommonComment as (chat: WrappedMessage) => string,

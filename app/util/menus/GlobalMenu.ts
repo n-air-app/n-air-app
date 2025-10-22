@@ -28,14 +28,14 @@ export function setupGlobalContextMenuForEditableElement() {
       label: $t('common.cut'),
       accelerator: 'Ctrl+X',
       role: 'cut',
-      enabled: hasText && params.editFlags.canCut,
+      enabled: hasText && params.editFlags?.canCut,
       visible: params.isEditable,
     });
     menu.append({
       label: $t('common.copy'),
       accelerator: 'Ctrl+C',
       role: 'copy',
-      enabled: hasText && params.editFlags.canCopy,
+      enabled: hasText && params.editFlags?.canCopy,
       visible: params.isEditable,
     });
     menu.append({

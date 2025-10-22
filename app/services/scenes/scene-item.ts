@@ -198,7 +198,7 @@ export class SceneItem extends SceneItemNode {
       this.getObsSceneItem().blendingMethod = newSettings.blendingMethod;
     }
 
-    if (changed.output !== undefined || patch.hasOwnProperty('output')) {
+    if (changed.output !== undefined || 'output' in patch) {
       this.getObsSceneItem().video = newSettings.output as obs.IVideo;
     }
 

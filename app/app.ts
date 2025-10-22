@@ -38,7 +38,7 @@ const windowId = Utils.getWindowId();
 
 const logFunctions = ['log', 'info', 'warn', 'error'] as const;
 
-function wrapLogFn(fn: (typeof logFunctions)[number]) {
+const wrapLogFn = (fn: (typeof logFunctions)[number]) => {
   const old: Function = console[fn];
   console[fn] = (...args: any[]) => {
     old.apply(console, args);
@@ -47,9 +47,9 @@ function wrapLogFn(fn: (typeof logFunctions)[number]) {
 
     sendLogMsg(level, ...args);
   };
-}
+};
 
-function sendLogMsg(level: string, ...args: any[]) {
+const sendLogMsg = (level: string, ...args: any[]) => {
   const serialized = args
     .map(arg => {
       if (typeof arg === 'string') return arg;
@@ -59,9 +59,11 @@ function sendLogMsg(level: string, ...args: any[]) {
     .join(' ');
 
   ipcRenderer.send('logmsg', { level, sender: windowId, message: serialized });
-}
+};
 
-logFunctions.forEach(wrapLogFn);
+for (const fn of logFunctions) {
+  wrapLogFn(fn);
+}
 
 window.addEventListener('error', e => {
   sendLogMsg('error', e.error);
@@ -78,7 +80,7 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
       Vue,
       beforeSend(event) {
         // 一度出始めると大量に送信しつづける IPC error のSentry送信を削減する(quota対策)
-        if (event.exception && event.exception.values) {
+        if (event.exception?.values) {
           const value = event.exception.values[0].value;
           if (value?.match(/Failed to make IPC call/)) {
             console.log(`skip send to Sentry(IPC): ${value}`, event);
@@ -218,7 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // load notFoundKeys from file
     if (!isProduction) {
       const keys: string[] = await ipcRenderer.invoke('loadI18nNotFoundKeys');
-      keys.forEach(key => notFoundKeys.add(key));
+      for (const key of keys) {
+        notFoundKeys.add(key);
+      }
     }
 
     const i18n = new VueI18n({

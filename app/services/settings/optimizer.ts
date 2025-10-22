@@ -445,7 +445,7 @@ export interface OptimizedSettings {
  * i18n用pathを組み立てる。
  * 空白を含む階層はドット記法で接続出来ないので置き換える
  */
-function i18nPath(top: string, ...args: string[]): string {
+const i18nPath = (top: string, ...args: string[]): string => {
   return (
     top +
     [...args]
@@ -460,7 +460,7 @@ function i18nPath(top: string, ...args: string[]): string {
       })
       .join('')
   );
-}
+};
 
 class OptKeyProperty {
   key: OptimizationKey;
@@ -538,9 +538,9 @@ export function* iterateKeyDescriptions(
   desc: KeyDescription[],
 ): IterableIterator<KeyDescription> {
   for (const item of desc) {
-    if (values.hasOwnProperty(item.key)) {
+    if (item.key in values) {
       if (item.dependents) {
-        const newItem = Object.assign({}, item);
+        const newItem = { ...item };
         newItem.dependents = [];
         yield newItem;
         for (const dependent of item.dependents) {
@@ -570,9 +570,9 @@ function* iterateAllKeyDescriptions(
 
 /** items の中のいずれかの要素を values が保持しているかを再帰的に確認する
  */
-function isDependOnItems(values: OptimizeSettings, items: KeyDescription[]): boolean {
+const isDependOnItems = (values: OptimizeSettings, items: KeyDescription[]): boolean => {
   for (const item of items) {
-    if (values.hasOwnProperty(item.key)) {
+    if (item.key in values) {
       return true;
     }
     if (item.dependents) {
@@ -584,7 +584,7 @@ function isDependOnItems(values: OptimizeSettings, items: KeyDescription[]): boo
     }
   }
   return false;
-}
+};
 
 /**
  * source を keysNeededに存在するキーに必要なだけの内容に削減したものを返す。
@@ -600,14 +600,14 @@ export function filterKeyDescriptions(
 
   for (const item of source) {
     const key = item.key;
-    if (item.dependents && item.dependents.length > 0) {
-      const newItem = Object.assign({}, item);
+    if (item.dependents?.length > 0) {
+      const newItem = { ...item };
       delete newItem.dependents;
       const newDependents = [];
       for (const dependent of item.dependents) {
         const params = filterKeyDescriptions(keysNeeded, dependent.params);
         if (params.length > 0) {
-          const dep = Object.assign({}, dependent);
+          const dep = { ...dependent };
           dep.params = params;
           newDependents.push(dep);
         }
@@ -630,7 +630,7 @@ export function filterKeyDescriptions(
 
 /** params の中に、 OptimizationKey 型の全ての値を key として保持しているかどうかを確認する。
  */
-function validateKeyDescriptions(params: KeyDescription[]) {
+const validateKeyDescriptions = (params: KeyDescription[]) => {
   // ここは全ての枝を列挙する
   const actual = new Set<string>(Array.from(iterateAllKeyDescriptions(params)).map(d => d.key));
   const missing = [];
@@ -642,7 +642,7 @@ function validateKeyDescriptions(params: KeyDescription[]) {
   if (missing.length > 0) {
     console.error(`niconico-optimization: missing keys in keyDescriptions: ${missing}`);
   }
-}
+};
 validateKeyDescriptions(AllKeyDescriptions);
 
 export interface ISettingsAccessor {
@@ -797,7 +797,7 @@ export class SettingsKeyAccessor {
       (item: KeyDescription): OptimizeSettings => {
         /* DEBUG
         const setting = this.findSetting(item);
-        if (setting && 'options' in setting && Array.isArray(setting.options)) {
+        if (setting && 'options' in setting && Array.isArray(setting?.options)) {
             console.log(
                 `${item.key}: availableOptions: `,
                 JSON.stringify(setting.options.map((v: any) => v.value), null, 2)
@@ -848,12 +848,12 @@ export class SettingsKeyAccessor {
             this.setValues(values, dependent.params);
           }
         }
-        if (values.hasOwnProperty(key)) {
+        if (key in values) {
           currentValue = values[key];
         }
         this.setValue(item, currentValue);
       } else {
-        if (values.hasOwnProperty(key)) {
+        if (key in values) {
           this.setValue(item, values[key]);
         }
       }
@@ -873,11 +873,22 @@ export class SettingsKeyAccessor {
   ): boolean {
     const descriptions = filterKeyDescriptions(new Set([key]), keyDescriptions);
     const setting = this.getSetting(key, descriptions);
-    if (setting && setting.hasOwnProperty('options') && Array.isArray(setting.options)) {
+    if (setting && 'options' in setting && Array.isArray(setting?.options)) {
       const options: { value: any }[] = setting.options;
       return options.find(v => v.value === value) !== undefined;
     }
     return false;
+  }
+
+  /**
+   * @deprecated Use hasSpecificValue instead
+   */
+  isAvailableValue(
+    key: OptimizationKey,
+    value: any,
+    keyDescriptions: KeyDescription[] = AllKeyDescriptions,
+  ): boolean {
+    return this.hasSpecificValue(key, value, keyDescriptions);
   }
 }
 
@@ -891,7 +902,7 @@ export class Optimizer {
   }
 
   getCurrentSettings(): OptimizeSettings {
-    return Object.assign({}, ...this.accessor.getValues(this.keyDescriptions));
+    return { ...Object.assign({}, ...this.accessor.getValues(this.keyDescriptions)) };
   }
 
   /**
@@ -929,13 +940,13 @@ export class Optimizer {
     optimized: OptimizeSettings,
   ): [SettingsCategory, OptimizeItem[]][] {
     const map = new Map<SettingsCategory, OptimizeItem[]>();
-    const merged = Object.assign({}, current, optimized);
+    const merged = { ...current, ...optimized };
     for (const keyDescription of iterateKeyDescriptions(merged, this.keyDescriptions)) {
       const opt = new OptKeyProperty(keyDescription);
       const key = opt.key;
       const category = opt.category;
       let item;
-      if (optimized.hasOwnProperty(key)) {
+      if (key in optimized) {
         item = {
           key,
           name: opt.label,

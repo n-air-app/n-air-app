@@ -20,9 +20,7 @@ export interface ICompactModeServiceState {
   navigating: boolean;
 }
 
-function shouldBeCompact(state: ICompactModeServiceState): boolean {
-  return state.streaming;
-}
+const shouldBeCompact = (state: ICompactModeServiceState): boolean => state.streaming;
 
 export class CompactModeService extends StatefulService<ICompactModeServiceState> {
   @Inject() customizationService: CustomizationService;
@@ -154,6 +152,6 @@ export class CompactModeService extends StatefulService<ICompactModeServiceState
 
   @mutation()
   private SET_STATE(statePatch: Partial<ICompactModeServiceState>) {
-    Object.assign(this.state, statePatch);
+    this.state = { ...this.state, ...statePatch };
   }
 }

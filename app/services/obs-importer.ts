@@ -159,7 +159,7 @@ export class ObsImporterService extends Service {
 
   importFilters(filtersJSON: IOBSConfigFilter[], source: Source) {
     if (Array.isArray(filtersJSON)) {
-      filtersJSON.forEach(filterJSON => {
+      for (const filterJSON of filtersJSON) {
         const isFilterAvailable = this.filtersService.getTypes().find(availableFilter => {
           return availableFilter.type === filterJSON.id;
         });
@@ -175,11 +175,11 @@ export class ObsImporterService extends Service {
 
           if (properties) {
             if (Array.isArray(properties)) {
-              properties.forEach(property => {
+              for (const property of properties) {
                 if (filterJSON.settings[property.name]) {
                   property.value = filterJSON.settings[property.name];
                 }
-              });
+              }
             }
           }
 
@@ -187,7 +187,7 @@ export class ObsImporterService extends Service {
         } else {
           // TODO Report to the user that N Air does not support the filter
         }
-      });
+      }
     }
   }
 
@@ -195,7 +195,7 @@ export class ObsImporterService extends Service {
     const sourcesJSON = configJSON.sources;
 
     if (Array.isArray(sourcesJSON)) {
-      sourcesJSON.forEach(sourceJSON => {
+      for (const sourceJSON of sourcesJSON) {
         const isSourceAvailable = this.sourcesService
           .getAvailableSourcesTypes()
           .includes(sourceJSON.id);
@@ -241,7 +241,7 @@ export class ObsImporterService extends Service {
         } else {
           // TODO Report to the user that N Air does not support the source
         }
-      });
+      }
     }
   }
 
@@ -255,25 +255,25 @@ export class ObsImporterService extends Service {
 
     if (Array.isArray(sourcesJSON)) {
       // Create all the scenes
-      sourcesJSON.forEach(sourceJSON => {
+      for (const sourceJSON of sourcesJSON) {
         if (sourceJSON.id === 'scene') {
           const scene = this.scenesService.createScene(sourceJSON.name, {
             makeActive: sourceJSON.name === currentScene,
           });
           nameToIdMap[scene.name] = scene.id;
         }
-      });
+      }
 
       // Add all the sceneItems to every scene
-      sourcesJSON.forEach(sourceJSON => {
+      for (const sourceJSON of sourcesJSON) {
         if (sourceJSON.id === 'scene') {
           const scene = this.scenesService.getScene(nameToIdMap[sourceJSON.name]);
-          if (!scene) return;
+          if (!scene) continue;
 
           const sceneItems = sourceJSON.settings.items;
           if (Array.isArray(sceneItems)) {
             // Looking for the source to add to the scene
-            sceneItems.forEach(item => {
+            for (const item of sceneItems) {
               const sourceToAdd = this.sourcesService.getSources().find(source => {
                 return source.name === item.name;
               });
@@ -407,10 +407,10 @@ export class ObsImporterService extends Service {
                   scaleFilter,
                 });
               }
-            });
+            }
           }
         }
-      });
+      }
     }
   }
 
@@ -420,13 +420,13 @@ export class ObsImporterService extends Service {
     const listScene = this.scenesService.scenes;
 
     if (Array.isArray(sceneOrderJSON)) {
-      sceneOrderJSON.forEach(obsScene => {
+      for (const obsScene of sceneOrderJSON) {
         sceneNames.push(
           listScene.find(scene => {
             return scene.name === obsScene.name;
           }).id,
         );
-      });
+      }
     }
     this.scenesService.setSceneOrder(sceneNames);
   }
@@ -459,7 +459,7 @@ export class ObsImporterService extends Service {
   importTransitions(configJSON: IOBSConfigJSON) {
     // Only import a single transition from OBS for now.
     // Eventually we should import all transitions
-    if (configJSON.transitions && configJSON.transitions.length > 0) {
+    if (configJSON.transitions?.length > 0) {
       this.transitionsService.deleteAllTransitions();
       this.transitionsService.createTransition(
         configJSON.transitions[0].id as ETransitionType,
@@ -473,7 +473,7 @@ export class ObsImporterService extends Service {
     const profileDirectory = path.join(this.profilesDirectory, profile);
     const files = fs.readdirSync(profileDirectory);
 
-    files.forEach(file => {
+    for (const file of files) {
       if (file === 'basic.ini' || file === 'streamEncoder.json' || file === 'recordEncoder.json') {
         const obsFilePath = path.join(profileDirectory, file);
 
@@ -483,7 +483,7 @@ export class ObsImporterService extends Service {
         const readData = fs.readFileSync(obsFilePath);
         fs.writeFileSync(currentFilePath, readData);
       }
-    });
+    }
   }
 
   getSceneCollections(): ISceneCollection[] {

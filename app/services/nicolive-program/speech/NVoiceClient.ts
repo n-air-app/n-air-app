@@ -81,7 +81,9 @@ export class CommandLineClient {
       this.terminateResolve = resolve;
       this.terminateReject = reject;
     }).finally(() => {
-      this.terminateCallbacks.forEach(callback => callback());
+      for (const callback of this.terminateCallbacks) {
+        callback();
+      }
     });
   }
 
@@ -150,7 +152,7 @@ export class CommandLineClient {
   async send(line: string): Promise<void> {
     await new Promise(resolve => {
       this.log(`<- ${line}`);
-      this.subprocess.stdin.write(line + '\n', resolve);
+      this.subprocess.stdin.write(`${line}\n`, resolve);
     });
   }
 
@@ -168,14 +170,14 @@ export class CommandLineClient {
 
 // API document https://github.com/n-air-app/n-voice-package/tree/main/n-voice/doc
 
-async function StartNVoice(
+const StartNVoice = async (
   enginePath: string,
   dictionaryPath: string,
   userDictionary: string,
   modelPath: string,
   extraVoicesPath: string,
   cwd: string,
-): Promise<CommandLineClient> {
+): Promise<CommandLineClient> => {
   const log = (...args: unknown[]) => {
     console.log(...args);
   };
@@ -190,12 +192,12 @@ async function StartNVoice(
   );
   await client.run(basename(enginePath));
   return client;
-}
+};
 
 const iconv = require('iconv-lite');
-function toShiftJisBase64(text: string): string {
+const toShiftJisBase64 = (text: string): string => {
   return Buffer.from(iconv.encode(text, 'Shift_JIS')).toString('base64');
-}
+};
 
 type Command =
   | 'quit'
@@ -226,7 +228,7 @@ export type Label = {
   phoneme: string;
 };
 
-function loadLabelFile(filename: string): Label[] {
+const loadLabelFile = (filename: string): Label[] => {
   const labels = readFileSync(filename, 'utf8');
   const lines = labels.split(/\r?\n/).filter(line => line.length > 0);
   const result: Label[] = [];
@@ -239,7 +241,7 @@ function loadLabelFile(filename: string): Label[] {
     });
   }
   return result;
-}
+};
 
 class NVoiceEngineError extends Error {
   constructor(public code: string) {
@@ -280,7 +282,7 @@ export class NVoiceClient {
 
       const models = readdirSync(baseDir).filter(s => /.*\.pt$/.test(s));
       if (models.length !== 1) {
-        throw new Error('model file found: ' + models.join(', '));
+        throw new Error(`model file found: ${models.join(', ')}`);
       }
       const cwd = baseDir;
       const extraVoicesPath = 'n-voice_extra-voices';
@@ -439,7 +441,7 @@ export class NVoiceClient {
     if (wave) {
       unlinkSync(filename);
     }
-    const labelFilename = filename + '.txt';
+    const labelFilename = `${filename}.txt`;
     let labels: Label[] = [];
     if (existsSync(labelFilename)) {
       labels = loadLabelFile(labelFilename);

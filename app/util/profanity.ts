@@ -114,17 +114,17 @@ export class ProfanityFilterService extends Service {
 
   init() {
     const badWordsStringsArray: string[] = [];
-    this.badWords.forEach(badWord => {
+    for (const badWord of this.badWords) {
       badWordsStringsArray.push(badWord.source);
-    });
+    }
     let badWordsStrings = badWordsStringsArray.join('|');
 
-    getKeys(this.leetReplace).forEach(letter => {
+    for (const letter of getKeys(this.leetReplace)) {
       badWordsStrings = badWordsStrings.replace(
         new RegExp(/([^\\])/.source + letter, 'gi'),
-        '$1' + this.leetReplace[letter],
+        `$1${this.leetReplace[letter]}`,
       );
-    });
+    }
 
     this.DEFAULT_REGEX = new RegExp(badWordsStrings, 'gi');
   }
@@ -133,17 +133,15 @@ export class ProfanityFilterService extends Service {
     const mapList = list.map(item => {
       return item.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     });
-    return new RegExp('(' + mapList.join('|') + ')', 'gi');
+    return new RegExp(`(${mapList.join('|')})`, 'gi');
   }
 
   testString(str = '', options = {}) {
-    const mergedOptions: IProfanityFilterOptions = Object.assign(
-      {
-        useDefaultRegex: true,
-        extraRegex: null,
-      },
-      options,
-    );
+    const mergedOptions: IProfanityFilterOptions = {
+      useDefaultRegex: true,
+      extraRegex: null,
+      ...options,
+    };
 
     if (mergedOptions.useDefaultRegex) {
       if (this.DEFAULT_REGEX.test(str)) {
@@ -161,16 +159,14 @@ export class ProfanityFilterService extends Service {
   }
 
   purifyString(str = '', options = {}) {
-    const mergedOptions: IProfanityFilterOptions = Object.assign(
-      {
-        replacementsList: this.DEFAULT_REPLACEMENTS,
-        extraRegex: null,
-        useDefaultRegex: true,
-        replace: false,
-        obscureSymbol: '*',
-      },
-      options,
-    );
+    const mergedOptions: IProfanityFilterOptions = {
+      replacementsList: this.DEFAULT_REPLACEMENTS,
+      extraRegex: null,
+      useDefaultRegex: true,
+      replace: false,
+      obscureSymbol: '*',
+      ...options,
+    };
 
     const matches: any[] = [];
     let purified = str;
@@ -185,9 +181,9 @@ export class ProfanityFilterService extends Service {
         }
 
         let obscured = '';
-        val.split('').forEach(letter => {
+        for (const letter of val.split('')) {
           obscured += mergedOptions.obscureSymbol;
-        });
+        }
         return obscured;
       });
     }
@@ -202,9 +198,9 @@ export class ProfanityFilterService extends Service {
         }
 
         let obscured = '';
-        val.split('').forEach(letter => {
+        for (const letter of val.split('')) {
           obscured += mergedOptions.obscureSymbol;
-        });
+        }
         return obscured;
       });
     }
@@ -213,24 +209,23 @@ export class ProfanityFilterService extends Service {
   }
 
   processString(str = '', options = {}): [string, boolean] {
-    const mergedOptions = Object.assign(
-      {
-        replacementsList: this.DEFAULT_REPLACEMENTS,
-        extraRegex: null,
-        useDefaultRegex: true,
-        replace: false,
-        isName: false,
-        obscureSymbol: '*',
-      },
-      options,
-    );
+    const mergedOptions = {
+      replacementsList: this.DEFAULT_REPLACEMENTS,
+      extraRegex: null as RegExp | null,
+      useDefaultRegex: true,
+      replace: false,
+      isName: false,
+      obscureSymbol: '*',
+      ...options,
+    };
 
     // split the string into the words
     const words = str.split(' ');
     let wordsNew = words;
     const badWordsPos: any[] = [];
 
-    words.forEach((word, i) => {
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
       // clean the word from all special characters
       let wordCleaned = word.replace(/[&\/\\#\-,=+()$~%.'":*?<>{}_]/g, '');
       wordCleaned = wordCleaned.toLowerCase();
@@ -252,7 +247,7 @@ export class ProfanityFilterService extends Service {
           badWordsPos.push(i);
         }
       }
-    });
+    }
 
     const hasBadwords = badWordsPos.length > 0;
     if (hasBadwords) {
@@ -260,7 +255,7 @@ export class ProfanityFilterService extends Service {
         wordsNew = ['Anonymous'];
       } else {
         // process bad words
-        badWordsPos.forEach(position => {
+        for (const position of badWordsPos) {
           const badWordPos = position;
           const badWord = words[badWordPos];
           let badWordNew = badWord;
@@ -275,7 +270,7 @@ export class ProfanityFilterService extends Service {
           }
 
           wordsNew[badWordPos] = badWordNew;
-        });
+        }
       }
     }
 

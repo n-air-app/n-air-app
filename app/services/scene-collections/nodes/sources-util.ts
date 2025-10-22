@@ -2,14 +2,14 @@ import * as remote from '@electron/remote';
 import { basename, dirname, isAbsolute, relative, resolve } from 'path';
 import { ISourceInfo } from './sources';
 
-function getPresetBasePath() {
+const getPresetBasePath = () => {
   const execFile = basename(process.execPath).toLowerCase();
   const isPackaged = execFile !== 'electron.exe';
 
   const APP_PATH = remote.app.getAppPath();
   const EXE_DIR_PATH = dirname(remote.app.getPath('exe'));
   return isPackaged ? EXE_DIR_PATH : APP_PATH;
-}
+};
 
 /**
  * export for testing

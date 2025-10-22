@@ -121,11 +121,11 @@ export class SceneItemsNode extends Node<ISchema, {}> {
 
     const promises: Promise<void>[] = [];
 
-    this.data.items.forEach(item => {
-      if (item.sceneNodeType === 'folder') return;
+    for (const item of this.data.items) {
+      if (item.sceneNodeType === 'folder') continue;
       const hotkeys = item.hotkeys;
       if (hotkeys) promises.push(hotkeys.load({ sceneItemId: item.id }));
-    });
+    }
 
     return new Promise(resolve => {
       Promise.all(promises).then(() => resolve());

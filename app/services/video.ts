@@ -181,9 +181,9 @@ export class Display {
       ...size,
     };
 
-    this.outputRegionCallbacks.forEach(cb => {
+    for (const cb of this.outputRegionCallbacks) {
       cb(this.outputRegion);
-    });
+    }
   }
 
   drawingUI = true;

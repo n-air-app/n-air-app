@@ -40,7 +40,7 @@ export default class SourceFilters extends Vue {
   // @ts-expect-error: ts2729: use before initialization
   filters = this.sourceFiltersService.getFilters(this.sourceId);
   selectedFilterName =
-    this.windowOptions.selectedFilterName || (this.filters[0] && this.filters[0].name) || null;
+    this.windowOptions.selectedFilterName ?? (this.filters[0] && this.filters[0].name) ?? null;
   // @ts-expect-error: ts2729: use before initialization
   properties = this.sourceFiltersService.getPropertiesFormData(
     this.sourceId,
@@ -92,7 +92,7 @@ export default class SourceFilters extends Vue {
   removeFilter() {
     this.sourceFiltersService.remove(this.sourceId, this.selectedFilterName);
     this.filters = this.sourceFiltersService.getFilters(this.sourceId);
-    this.selectedFilterName = (this.filters[0] && this.filters[0].name) || null;
+    this.selectedFilterName = (this.filters[0] && this.filters[0].name) ?? null;
   }
 
   toggleVisibility(filterName: string) {

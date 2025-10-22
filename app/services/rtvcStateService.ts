@@ -253,7 +253,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     }
 
     const pitchShiftModeProp = props.find(a => a.name === 'pitch_shift_mode');
-    this.isSongMode = pitchShiftModeProp && pitchShiftModeProp.value === PitchShiftModeValue.song;
+    this.isSongMode = pitchShiftModeProp?.value === PitchShiftModeValue.song;
 
     source.setPropertiesFormData(props);
   }
@@ -294,10 +294,10 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     const numFix = (v: any, def: number) => (typeof v === 'number' || !isNaN(v) ? v : def);
 
     // set and repair by default values
-    r.presets.forEach(a => {
+    for (const a of r.presets) {
       a.pitchShift = numFix(a.pitchShift, 0);
       a.pitchShiftSong = numFix(a.pitchShiftSong, 0);
-    });
+    }
 
     r.manuals.forEach((a, n) => {
       if (!a.name) a.name = 'none';

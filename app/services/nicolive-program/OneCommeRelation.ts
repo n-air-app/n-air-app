@@ -55,10 +55,10 @@ export class OneCommeRelation {
 
       // 既存のサービス設定を取得
       const item = await fetchJSON<OneCommeServiceData>(url);
-      const exist = item && item.id === OneCommeServiceFixID;
+      const exist = item?.id === OneCommeServiceFixID;
 
       // 番組が異なる場合の処理
-      if (exist && item.url !== data.url) {
+      if (exist && item?.url !== data.url) {
         // 再接続してもらうために一旦接続を切る
         if (item.enabled) {
           await fetchJSON(url, makeRequest('PUT', { enabled: false }));

@@ -157,7 +157,7 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
   }
 }
 
-function getDisplayFromSource(source: ISourceApi, label: string): Electron.Display | null {
+const getDisplayFromSource = (source: ISourceApi, label: string): Electron.Display | null => {
   const monitorId = source.getSettings().monitor_id;
   const propMonitors = (
     source.getPropertiesFormData().find(prop => prop.name === 'monitor_id') as {
@@ -211,9 +211,9 @@ function getDisplayFromSource(source: ISourceApi, label: string): Electron.Displ
   }
 
   return displays[targetDisplayId];
-}
+};
 
-function displaysForSentry(displays: Electron.Display[]): any {
+const displaysForSentry = (displays: Electron.Display[]): any => {
   // Sentry の extra 内でネストされた内側のオブジェクトは [Object] に省略されて見えなくなるので、文字列化する
   return displays.map(display => ({
     ...display,
@@ -222,4 +222,4 @@ function displaysForSentry(displays: Electron.Display[]): any {
     workArea: JSON.stringify(display.workArea),
     workAreaSize: JSON.stringify(display.workAreaSize),
   }));
-}
+};

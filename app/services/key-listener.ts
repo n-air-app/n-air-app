@@ -41,11 +41,11 @@ export class KeyListenerService extends Service {
   }
 
   unregisterAll(namespace = 'global') {
-    Object.keys(this.bindings).forEach(keystr => {
+    for (const keystr of Object.keys(this.bindings)) {
       if (this.bindings[keystr][namespace]) {
         this.unregister(this.bindings[keystr][namespace], namespace);
       }
-    });
+    }
   }
 
   register(binding: IKeyBinding, namespace = 'global') {
@@ -59,9 +59,9 @@ export class KeyListenerService extends Service {
       const success = this.libuiohook.registerCallback({
         ...binding,
         callback: () => {
-          Object.keys(this.bindings[keystr]).forEach(namespace => {
+          for (const namespace of Object.keys(this.bindings[keystr])) {
             this.bindings[keystr][namespace].callback();
-          });
+          }
         },
       });
 

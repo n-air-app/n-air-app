@@ -15,13 +15,13 @@ import {
 import { UserService } from './user';
 import { UuidService } from './uuid';
 
-function randomCharacters(len: number): string {
+const randomCharacters = (len: number): string => {
   const buf = randomBytes(len);
   const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   return Array.from(buf)
     .map(b => characters[Math.floor((b / 256) * characters.length)])
     .join('');
-}
+};
 
 export type RtvcParamPresetKeys = 'preset0' | 'preset1' | 'preset2';
 export type RtvcParamPreset = {

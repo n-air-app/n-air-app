@@ -44,10 +44,10 @@ export default class CroppingOverlay extends Vue {
     const croppingArea = this.croppingArea;
 
     return {
-      top: croppingArea.top + 'px',
-      left: croppingArea.left + 'px',
-      width: croppingArea.width + 'px',
-      height: croppingArea.height + 'px',
+      top: `${croppingArea.top}px`,
+      left: `${croppingArea.left}px`,
+      width: `${croppingArea.width}px`,
+      height: `${croppingArea.height}px`,
     };
   }
 

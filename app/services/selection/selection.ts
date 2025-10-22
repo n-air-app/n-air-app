@@ -158,16 +158,13 @@ export class SelectionService extends StatefulService<ISelectionState> {
     const activeObsIds = this.getItems().map(sceneItem => sceneItem.obsSceneItemId);
 
     // tell OBS which sceneItems are selected
-    scene
-      .getObsScene()
-      .getItems()
-      .forEach(obsSceneItem => {
-        if (activeObsIds.includes(obsSceneItem.id)) {
-          obsSceneItem.selected = true;
-        } else {
-          obsSceneItem.selected = false;
-        }
-      });
+    for (const obsSceneItem of scene.getObsScene().getItems()) {
+      if (activeObsIds.includes(obsSceneItem.id)) {
+        obsSceneItem.selected = true;
+      } else {
+        obsSceneItem.selected = false;
+      }
+    }
 
     this.updated.next(this.state);
   }
@@ -192,7 +189,7 @@ export class SelectionService extends StatefulService<ISelectionState> {
 
   @mutation()
   private SET_STATE(state: Partial<ISelectionState>) {
-    Object.assign(this.state, state);
+    this.state = { ...this.state, ...state };
   }
 }
 
@@ -222,7 +219,7 @@ export class Selection {
 
   add(itemsList: TNodesList): Selection {
     const ids = this.resolveItemsList(itemsList);
-    this.select(this.state.selectedIds.concat(ids));
+    this.select([...this.state.selectedIds, ...ids]);
     return this;
   }
 
@@ -234,13 +231,13 @@ export class Selection {
     // omit ids that are not presented on the scene
     // and select the all nested items of selected folders
     const selectedIds: string[] = [];
-    ids.forEach(id => {
+    for (const id of ids) {
       const node = scene.getNode(id);
-      if (!node) return;
+      if (!node) continue;
       selectedIds.push(id);
-      if (node.sceneNodeType !== 'folder') return;
+      if (node.sceneNodeType !== 'folder') continue;
       selectedIds.push(...(node as SceneItemFolder).getNestedNodesIds());
-    });
+    }
 
     this.setState({ selectedIds });
 
@@ -248,7 +245,7 @@ export class Selection {
       this.setState({ lastSelectedId: selectedIds[selectedIds.length - 1] });
     }
 
-    this._resourceId = 'Selection' + JSON.stringify([this.sceneId, this.state.selectedIds]);
+    this._resourceId = `Selection${JSON.stringify([this.sceneId, this.state.selectedIds])}`;
 
     return this;
   }
@@ -369,14 +366,14 @@ export class Selection {
     let maxRight = -Infinity;
     let maxBottom = -Infinity;
 
-    items.forEach(item => {
+    for (const item of items) {
       const rect = item.getRectangle();
       rect.normalize();
       minTop = Math.min(minTop, rect.y);
       minLeft = Math.min(minLeft, rect.x);
       maxRight = Math.max(maxRight, rect.x + rect.width);
       maxBottom = Math.max(maxBottom, rect.y + rect.height);
-    });
+    }
 
     return {
       x: minLeft,
@@ -422,18 +419,18 @@ export class Selection {
     const sourcesMap: Dictionary<Source> = {};
     const notDuplicatedSources: Source[] = [];
     if (duplicateSources) {
-      this.getSources().forEach(source => {
+      for (const source of this.getSources()) {
         const duplicatedSource = source.duplicate();
         if (!duplicatedSource) {
           notDuplicatedSources.push(source);
-          return;
+          continue;
         }
         sourcesMap[source.sourceId] = duplicatedSource;
-      });
+      }
     }
 
     // copy items and folders structure
-    this.getNodes().forEach(sceneNode => {
+    for (const sceneNode of this.getNodes()) {
       if (sceneNode.isFolder()) {
         insertedNode = scene.createFolder(sceneNode.name);
         foldersMap[sceneNode.id] = insertedNode.id;
@@ -453,12 +450,12 @@ export class Selection {
         insertedNode.setParent(newParentId);
       }
 
-      if (prevInsertedNode && prevInsertedNode.parentId === newParentId) {
+      if (prevInsertedNode?.parentId === newParentId) {
         insertedNode.placeAfter(prevInsertedNode.id);
       }
 
       prevInsertedNode = insertedNode;
-    });
+    }
 
     return insertedNodes;
   }
@@ -466,9 +463,9 @@ export class Selection {
   moveTo(sceneId: string, folderId?: string): TSceneNode[] {
     if (this.sceneId === sceneId) {
       if (!folderId) return;
-      this.getRootNodes()
-        .reverse()
-        .forEach(sceneNode => sceneNode.setParent(folderId));
+      for (const sceneNode of this.getRootNodes().reverse()) {
+        sceneNode.setParent(folderId);
+      }
     } else {
       const insertedItems = this.copyTo(sceneId, folderId);
       this.remove();
@@ -501,12 +498,12 @@ export class Selection {
   getRootNodes(): TSceneNode[] {
     const rootNodes: TSceneNode[] = [];
     const foldersIds: string[] = [];
-    this.getNodes().forEach(node => {
+    for (const node of this.getNodes()) {
       if (!foldersIds.includes(node.parentId)) {
         rootNodes.push(node);
       }
       if (node.isFolder()) foldersIds.push(node.id);
-    });
+    }
     return rootNodes;
   }
 
@@ -537,7 +534,7 @@ export class Selection {
 
   canGroupIntoFolder(): boolean {
     const selectedNodes = this.getRootNodes();
-    const nodesFolders = selectedNodes.map(node => node.parentId || null);
+    const nodesFolders = selectedNodes.map(node => node.parentId ?? null);
     const nodesHaveTheSameParent = uniq(nodesFolders).length === 1;
     const canGroupIntoFolder = selectedNodes.length > 1 && nodesHaveTheSameParent;
     return canGroupIntoFolder;
@@ -546,98 +543,141 @@ export class Selection {
   getSources(): Source[] {
     const sourcesIds: string[] = [];
     const sources: Source[] = [];
-    this.getItems().forEach(item => {
+    for (const item of this.getItems()) {
       const source = item.getSource();
-      if (sourcesIds.includes(source.sourceId)) return;
+      if (sourcesIds.includes(source.sourceId)) continue;
       sources.push(source);
-    });
+      sourcesIds.push(source.sourceId);
+    }
     return sources;
   }
 
   // SCENE_ITEM METHODS
 
   setSettings(settings: Partial<ISceneItemSettings>) {
-    this.getItems().forEach(item => item.setSettings(settings));
+    for (const item of this.getItems()) {
+      item.setSettings(settings);
+    }
   }
 
   setScaleFilter(filter: EScaleType) {
-    this.getItems().forEach(item => item.setScaleFilter(filter));
+    for (const item of this.getItems()) {
+      item.setScaleFilter(filter);
+    }
   }
 
   setBlendingMode(mode: EBlendingMode) {
-    this.getItems().forEach(item => item.setBlendingMode(mode));
+    for (const item of this.getItems()) {
+      item.setBlendingMode(mode);
+    }
   }
 
   setBlendingMethod(method: EBlendingMethod) {
-    this.getItems().forEach(item => item.setBlendingMethod(method));
+    for (const item of this.getItems()) {
+      item.setBlendingMethod(method);
+    }
   }
 
   setVisibility(isVisible: boolean) {
-    this.getItems().forEach(item => item.setVisibility(isVisible));
+    for (const item of this.getItems()) {
+      item.setVisibility(isVisible);
+    }
   }
 
   setTransform(transform: IPartialTransform) {
-    this.getItems().forEach(item => item.setTransform(transform));
+    for (const item of this.getItems()) {
+      item.setTransform(transform);
+    }
   }
 
   resetTransform() {
-    this.getItems().forEach(item => item.resetTransform());
+    for (const item of this.getItems()) {
+      item.resetTransform();
+    }
   }
 
   flipY() {
-    this.getItems().forEach(item => item.flipY());
+    for (const item of this.getItems()) {
+      item.flipY();
+    }
   }
 
   flipX() {
-    this.getItems().forEach(item => item.flipX());
+    for (const item of this.getItems()) {
+      item.flipX();
+    }
   }
 
   stretchToScreen() {
-    this.getItems().forEach(item => item.stretchToScreen());
+    for (const item of this.getItems()) {
+      item.stretchToScreen();
+    }
   }
 
   fitToScreen() {
-    this.getItems().forEach(item => item.fitToScreen());
+    for (const item of this.getItems()) {
+      item.fitToScreen();
+    }
   }
 
   centerOnScreen() {
-    this.getItems().forEach(item => item.centerOnScreen());
+    for (const item of this.getItems()) {
+      item.centerOnScreen();
+    }
   }
 
   centerOnHorizontal() {
-    this.getItems().forEach(item => item.centerOnAxis(CenteringAxis.X));
+    for (const item of this.getItems()) {
+      item.centerOnAxis(CenteringAxis.X);
+    }
   }
 
   centerOnVertical() {
-    this.getItems().forEach(item => item.centerOnAxis(CenteringAxis.Y));
+    for (const item of this.getItems()) {
+      item.centerOnAxis(CenteringAxis.Y);
+    }
   }
 
   rotate(deg: number) {
-    this.getItems().forEach(item => item.rotate(deg));
+    for (const item of this.getItems()) {
+      item.rotate(deg);
+    }
   }
 
   setContentCrop() {
-    this.getItems().forEach(item => item.setContentCrop());
+    for (const item of this.getItems()) {
+      item.setContentCrop();
+    }
   }
 
   remove() {
-    this.getNodes().forEach(node => node.remove());
+    for (const node of this.getNodes()) {
+      node.remove();
+    }
   }
 
   nudgeActiveItemsLeft() {
-    this.getItems().forEach(item => item.nudgeLeft());
+    for (const item of this.getItems()) {
+      item.nudgeLeft();
+    }
   }
 
   nudgeActiveItemRight() {
-    this.getItems().forEach(item => item.nudgeRight());
+    for (const item of this.getItems()) {
+      item.nudgeRight();
+    }
   }
 
   nudgeActiveItemsUp() {
-    this.getItems().forEach(item => item.nudgeUp());
+    for (const item of this.getItems()) {
+      item.nudgeUp();
+    }
   }
 
   nudgeActiveItemsDown() {
-    this.getItems().forEach(item => item.nudgeDown());
+    for (const item of this.getItems()) {
+      item.nudgeDown();
+    }
   }
 
   getModel() {
@@ -645,19 +685,21 @@ export class Selection {
   }
 
   placeAfter(sceneNodeId: string) {
-    this.getRootNodes()
-      .reverse()
-      .forEach(node => node.placeAfter(sceneNodeId));
+    for (const node of this.getRootNodes().reverse()) {
+      node.placeAfter(sceneNodeId);
+    }
   }
 
   placeBefore(sceneNodeId: string) {
-    this.getRootNodes().forEach(node => node.placeBefore(sceneNodeId));
+    for (const node of this.getRootNodes()) {
+      node.placeBefore(sceneNodeId);
+    }
   }
 
   setParent(sceneNodeId: string) {
-    this.getRootNodes()
-      .reverse()
-      .forEach(node => node.setParent(sceneNodeId));
+    for (const node of this.getRootNodes().reverse()) {
+      node.setParent(sceneNodeId);
+    }
   }
 
   /**
@@ -685,7 +727,7 @@ export class Selection {
   }
 
   private setState(state: Partial<ISelectionState>) {
-    Object.assign(this.state, state);
+    this.state = { ...this.state, ...state };
   }
 }
 

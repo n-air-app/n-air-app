@@ -86,11 +86,11 @@ export class SourceFiltersService extends Service {
     const typesList = this.getTypesList();
     const types: ISourceFilterType[] = [];
 
-    obs.FilterFactory.types().forEach(type => {
+    for (const type of obs.FilterFactory.types()) {
       const listItem = typesList.find(item => item.value === type);
       if (!listItem) {
         console.warn(`filter ${type} is not found in available types`);
-        return;
+        continue;
       }
       const description = listItem.description;
       const flags = obs.Global.getOutputFlagsFromId(type);
@@ -101,7 +101,7 @@ export class SourceFiltersService extends Service {
         type: listItem.value,
         description,
       });
-    });
+    }
 
     return types;
   }
@@ -136,7 +136,7 @@ export class SourceFiltersService extends Service {
     settings?: Dictionary<TObsValue>,
   ) {
     const source = this.sourcesService.getSource(sourceId);
-    const obsFilter = obs.FilterFactory.create(filterType, filterName, settings || {});
+    const obsFilter = obs.FilterFactory.create(filterType, filterName, settings ?? {});
 
     const obsSource = source.getObsInput();
     obsSource.addFilter(obsFilter);
@@ -150,9 +150,9 @@ export class SourceFiltersService extends Service {
   }
 
   copyFilters(fromSourceId: string, toSourceId: string) {
-    this.getFilters(fromSourceId).forEach(filter => {
+    for (const filter of this.getFilters(fromSourceId)) {
       this.add(toSourceId, filter.type, this.suggestName(toSourceId, filter.name), filter.settings);
-    });
+    }
   }
 
   suggestName(sourceId: string, filterName: string): string {
@@ -182,7 +182,7 @@ export class SourceFiltersService extends Service {
           name: obsFilter.name,
           type: obsFilter.id as TSourceFilterType,
           settings: obsFilter.settings,
-        })) || []
+        })) ?? []
     );
   }
 
@@ -225,16 +225,18 @@ export class SourceFiltersService extends Service {
     const formData = getPropertiesFormData(filter);
 
     // サイドチェーンのトリガーにする音声ソースがIDしかもらえないので、名前に変換する
-    formData?.forEach((input: any) => {
-      if (input.name === 'sidechain_source') {
-        (input as IObsListInput<string>).options.forEach(option => {
-          if (option.value === 'none') return;
+    if (formData) {
+      for (const input of formData) {
+        if ((input as any).name === 'sidechain_source') {
+          for (const option of (input as IObsListInput<string>).options) {
+            if (option.value === 'none') continue;
 
-          const source = this.sourcesService.getSourceById(option.value);
-          if (source) option.description = source.name;
-        });
+            const source = this.sourcesService.getSourceById(option.value);
+            if (source) option.description = source.name;
+          }
+        }
       }
-    });
+    }
 
     return formData;
   }
@@ -253,7 +255,7 @@ export class SourceFiltersService extends Service {
     const sourceDisplayName = this.sourcesService.getSource(sourceId).name;
     this.windowsService.showWindow({
       componentName: 'SourceFilters',
-      title: $t('sources.layerFilters') + ' (' + sourceDisplayName + ')',
+      title: `${$t('sources.layerFilters')} (${sourceDisplayName})`,
       queryParams: { sourceId, selectedFilterName },
       size: {
         width: 800,

@@ -145,11 +145,11 @@ export class ClipboardService
       this.pasteFiltersFromUnloadedClipboard();
       return;
     }
-    this.state.filterIds.forEach(fromSourceId => {
+    for (const fromSourceId of this.state.filterIds) {
       const fromSource = this.sourcesService.getSource(fromSourceId);
       if (!fromSource) return;
       this.sourceFiltersService.copyFilters(fromSource.sourceId, source.sourceId);
-    });
+    }
   }
 
   hasData(): boolean {
@@ -189,7 +189,7 @@ export class ClipboardService
     const scene = this.scenesService.activeScene;
 
     // create sources
-    Object.keys(sources).forEach(sourceId => {
+    for (const sourceId of Object.keys(sources)) {
       const sourceInfo = sources[sourceId];
       const sourceModel = sourceInfo.source;
       let createdSource: Source;
@@ -217,15 +217,15 @@ export class ClipboardService
       }
 
       // add filters
-      sourceInfo.filters.forEach(filter => {
+      for (const filter of sourceInfo.filters) {
         this.sourceFiltersService.add(
           createdSource.sourceId,
           filter.type,
           filter.name,
           filter.settings,
         );
-      });
-    });
+      }
+    }
 
     const insertedNodesIds = this.pasteSceneNodes(
       'current',
@@ -252,20 +252,18 @@ export class ClipboardService
 
     const insertedNodesIds: string[] = [];
     const folderIdMap: Dictionary<string> = {};
-    const nodes = scenesNodes[sceneId].concat([]).reverse();
+    const nodes = [...scenesNodes[sceneId]].reverse();
 
     // create folders
-    nodes
-      .filter(node => node.folder)
-      .forEach(node => {
-        const folderModel = node.folder as ISceneItemFolder;
-        const folder = scene.createFolder(folderModel.name);
-        folderIdMap[folderModel.id] = folder.id;
-        insertedNodesIds.push(folder.id);
-      });
+    for (const node of nodes.filter(node => node.folder)) {
+      const folderModel = node.folder as ISceneItemFolder;
+      const folder = scene.createFolder(folderModel.name);
+      folderIdMap[folderModel.id] = folder.id;
+      insertedNodesIds.push(folder.id);
+    }
 
     // create sceneItems and set parent nodes for folders and items
-    nodes.forEach(node => {
+    for (const node of nodes) {
       // set parent for folders
       if (node.folder) {
         const folderModel = node.folder as ISceneItemFolder;
@@ -285,7 +283,7 @@ export class ClipboardService
       if (itemModel.parentId) sceneItem.setParent(folderIdMap[itemModel.parentId]);
 
       insertedNodesIds.push(sceneItem.id);
-    });
+    }
 
     return insertedNodesIds;
   }
@@ -294,7 +292,9 @@ export class ClipboardService
     const clipboard = this.state.systemClipboard;
     const scene = this.scenesService.activeScene;
     if (clipboard.files.length) {
-      clipboard.files.forEach(filePath => scene.addFile(filePath));
+      for (const filePath of clipboard.files) {
+        scene.addFile(filePath);
+      }
       return;
     }
     const urlRegex =
@@ -313,9 +313,9 @@ export class ClipboardService
 
   private pasteFiltersFromUnloadedClipboard() {
     const source = this.selectionService.getItems()[0];
-    this.state.unloadedCollectionClipboard.filters.forEach(filter => {
+    for (const filter of this.state.unloadedCollectionClipboard.filters) {
       this.sourceFiltersService.add(source.sourceId, filter.type, filter.name, filter.settings);
-    });
+    }
   }
 
   private beforeCollectionSwitchHandler() {
@@ -325,11 +325,11 @@ export class ClipboardService
       const scenes = this.scenesService.activeScene.getNestedScenes();
       const scenesNodes: IScenesNodes = { current: [] };
 
-      scenes.forEach(scene => {
+      for (const scene of scenes) {
         const sceneInfo = this.getSceneInfo(scene, sourcesInfo);
         scenesNodes[scene.id] = sceneInfo.sceneNodes;
         sourcesInfo = sceneInfo.sources;
-      });
+      }
 
       const sceneInfo = this.getSceneInfo(
         this.scenesService.getScene(this.state.itemsSceneId),

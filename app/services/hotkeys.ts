@@ -8,25 +8,15 @@ import { TransitionsService } from 'services/transitions';
 import { Inject, mutation, ServiceHelper, StatefulService } from './core';
 import { NicoliveProgramService } from './nicolive-program/nicolive-program';
 
-function getScenesService(): ScenesService {
-  return ScenesService.instance;
-}
+const getScenesService = (): ScenesService => ScenesService.instance;
 
-function getSourcesService(): SourcesService {
-  return SourcesService.instance;
-}
+const getSourcesService = (): SourcesService => SourcesService.instance;
 
-function getStreamingService(): StreamingService {
-  return StreamingService.instance;
-}
+const getStreamingService = (): StreamingService => StreamingService.instance;
 
-function getNicoliveProgramService(): NicoliveProgramService {
-  return NicoliveProgramService.instance;
-}
+const getNicoliveProgramService = (): NicoliveProgramService => NicoliveProgramService.instance;
 
-function getTransitionsService(): TransitionsService {
-  return TransitionsService.instance;
-}
+const getTransitionsService = (): TransitionsService => TransitionsService.instance;
 
 type THotkeyType = 'GENERAL' | 'SCENE' | 'SCENE_ITEM' | 'SOURCE';
 
@@ -273,52 +263,52 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
   private updateRegisteredHotkeys() {
     const hotkeys: IHotkey[] = [];
 
-    HOTKEY_ACTIONS.GENERAL.forEach(action => {
+    for (const action of HOTKEY_ACTIONS.GENERAL) {
       hotkeys.push({
         actionName: action.name,
         bindings: [],
       });
-    });
+    }
 
-    this.scenesService.scenes.forEach(scene => {
-      scene.getItems().forEach(sceneItem => {
-        HOTKEY_ACTIONS.SCENE_ITEM.forEach(action => {
+    for (const scene of this.scenesService.scenes) {
+      for (const sceneItem of scene.getItems()) {
+        for (const action of HOTKEY_ACTIONS.SCENE_ITEM) {
           hotkeys.push({
             actionName: action.name,
             bindings: [],
             sceneItemId: sceneItem.sceneItemId,
           });
-        });
-      });
+        }
+      }
 
-      HOTKEY_ACTIONS.SCENE.forEach(action => {
+      for (const action of HOTKEY_ACTIONS.SCENE) {
         hotkeys.push({
           actionName: action.name,
           bindings: [],
           sceneId: scene.id,
         });
-      });
-    });
+      }
+    }
 
-    this.sourcesService.getSources().forEach(source => {
-      HOTKEY_ACTIONS.SOURCE.forEach(action => {
+    for (const source of this.sourcesService.getSources()) {
+      for (const action of HOTKEY_ACTIONS.SOURCE) {
         hotkeys.push({
           actionName: action.name,
           bindings: [],
           sourceId: source.sourceId,
         });
-      });
-    });
+      }
+    }
 
     // Set up bindings from saved hotkeys
     // This is a slow O(n^2) process, and may need to
     // be optimized later.
-    this.state.hotkeys.forEach(savedHotkey => {
+    for (const savedHotkey of this.state.hotkeys) {
       const hotkey = hotkeys.find(blankHotkey => {
         return this.getHotkey(blankHotkey).isSameHotkey(savedHotkey);
       });
-      if (hotkey) hotkey.bindings = [].concat(savedHotkey.bindings);
-    });
+      if (hotkey) hotkey.bindings = [...savedHotkey.bindings];
+    }
 
     this.registeredHotkeys = hotkeys.map(hotkeyModel => this.getHotkey(hotkeyModel));
   }
@@ -334,18 +324,18 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
 
   getHotkeysSet(): IHotkeysSet {
     const sourcesHotkeys: Dictionary<Hotkey[]> = {};
-    this.sourcesService.getSources().forEach(source => {
-      if (isNoAudioPropertiesManagerType(source.getPropertiesManagerType())) return;
+    for (const source of this.sourcesService.getSources()) {
+      if (isNoAudioPropertiesManagerType(source.getPropertiesManagerType())) continue;
       const sourceHotkeys = this.getSourceHotkeys(source.sourceId);
       if (sourceHotkeys.length) sourcesHotkeys[source.sourceId] = sourceHotkeys;
-    });
+    }
 
     const scenesHotkeys: Dictionary<Hotkey[]> = {};
-    this.scenesService.scenes.forEach(scene => {
+    for (const scene of this.scenesService.scenes) {
       const sceneItemsHotkeys = this.getSceneItemsHotkeys(scene.id);
-      const sceneHotkeys = sceneItemsHotkeys.concat(this.getSceneHotkeys(scene.id));
+      const sceneHotkeys = [...sceneItemsHotkeys, ...this.getSceneHotkeys(scene.id)];
       if (sceneHotkeys.length) scenesHotkeys[scene.id] = sceneHotkeys;
-    });
+    }
 
     return {
       general: this.serializeHotkeys(this.getGeneralHotkeys()),
@@ -382,10 +372,12 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
   applyHotkeySet(hotkeySet: IHotkeysSet) {
     const hotkeys: IHotkey[] = [];
     hotkeys.push(...hotkeySet.general);
-    Object.keys(hotkeySet.scenes).forEach(sceneId => hotkeys.push(...hotkeySet.scenes[sceneId]));
-    Object.keys(hotkeySet.sources).forEach(sourceId =>
-      hotkeys.push(...hotkeySet.sources[sourceId]),
-    );
+    for (const sceneId of Object.keys(hotkeySet.scenes)) {
+      hotkeys.push(...hotkeySet.scenes[sceneId]);
+    }
+    for (const sourceId of Object.keys(hotkeySet.sources)) {
+      hotkeys.push(...hotkeySet.sources[sourceId]);
+    }
     this.setHotkeys(hotkeys);
     this.bindHotkeys();
   }
@@ -418,9 +410,9 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
 
   private setHotkeys(hotkeys: IHotkey[]) {
     this.CLEAR_HOTKEYS();
-    hotkeys.forEach(hotkey => {
+    for (const hotkey of hotkeys) {
       if (hotkey.bindings.length) this.ADD_HOTKEY(hotkey);
-    });
+    }
     this.invalidate();
   }
 
@@ -433,38 +425,46 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
     const downBindingMap = new Map<string, Hotkey[]>();
     const upBindingMap = new Map<string, Hotkey[]>();
 
-    this.getHotkeys().forEach(hotkey => {
-      hotkey.bindings.forEach(binding => {
-        const downHotkeys = downBindingMap.get(JSON.stringify(binding)) || [];
-        const upHotkeys = upBindingMap.get(JSON.stringify(binding)) || [];
+    for (const hotkey of this.getHotkeys()) {
+      for (const binding of hotkey.bindings) {
+        const downHotkeys = downBindingMap.get(JSON.stringify(binding)) ?? [];
+        const upHotkeys = upBindingMap.get(JSON.stringify(binding)) ?? [];
 
         if (hotkey.action.downHandler) downHotkeys.push(hotkey);
         if (hotkey.action.upHandler) upHotkeys.push(hotkey);
 
         downBindingMap.set(JSON.stringify(binding), downHotkeys);
         upBindingMap.set(JSON.stringify(binding), upHotkeys);
-      });
-    });
+      }
+    }
 
-    downBindingMap.forEach((hotkeys, bindingStr) => {
+    for (const [bindingStr, hotkeys] of downBindingMap) {
       const binding = JSON.parse(bindingStr);
 
       this.keyListenerService.register({
         ...binding,
         eventType: 'registerKeydown',
-        callback: () => hotkeys.forEach(hotkey => hotkey.action.downHandler()),
+        callback: () => {
+          for (const hotkey of hotkeys) {
+            hotkey.action.downHandler();
+          }
+        },
       });
-    });
+    }
 
-    upBindingMap.forEach((hotkeys, bindingStr) => {
+    for (const [bindingStr, hotkeys] of upBindingMap) {
       const binding = JSON.parse(bindingStr);
 
       this.keyListenerService.register({
         ...binding,
         eventType: 'registerKeyup',
-        callback: () => hotkeys.forEach(hotkey => hotkey.action.upHandler()),
+        callback: () => {
+          for (const hotkey of hotkeys) {
+            hotkey.action.upHandler();
+          }
+        },
       });
-    });
+    }
   }
 
   @mutation()
@@ -502,7 +502,7 @@ export class Hotkey implements IHotkey {
   private readonly hotkeyModel: IHotkey;
 
   constructor(hotkeyModel: IHotkey) {
-    Object.assign(this, hotkeyModel);
+    Object.assign(this, hotkeyModel); // thisへのプロパティコピーなのでそのまま
     this.hotkeyModel = hotkeyModel;
 
     if (this.sourceId) {

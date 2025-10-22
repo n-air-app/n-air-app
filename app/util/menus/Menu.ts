@@ -18,9 +18,9 @@ export class Menu {
   }
 
   destroy() {
-    this.menu.items.forEach((item: any) => {
-      if (item.submenu && item.submenu.destroy) item.submenu.destroy();
-    });
+    for (const item of this.menu.items as any[]) {
+      if (item.submenu?.destroy) item.submenu.destroy();
+    }
     (this.menu as any).destroy();
   }
 }

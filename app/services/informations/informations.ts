@@ -8,7 +8,7 @@ import { handleErrors } from 'util/requests';
 import { parseString } from 'xml2js';
 import { InformationsStateService } from './state';
 
-function parseXml(xml: String): Promise<object> {
+const parseXml = (xml: String): Promise<object> => {
   return new Promise((resolve, reject) => {
     parseString(xml, (err, result) => {
       if (err) {
@@ -20,15 +20,15 @@ function parseXml(xml: String): Promise<object> {
       }
     });
   });
-}
+};
 
-function pluckItems(feedResult: any) {
+const pluckItems = (feedResult: any) => {
   return feedResult.rss.channel[0].item.map((i: any) => ({
     title: i.title[0],
     url: i.link[0],
     date: Date.parse(i.pubDate[0]),
   }));
-}
+};
 
 interface IInformationsState {
   /** インフォ一覧を取得中か否か */

@@ -102,14 +102,14 @@ export class SettingsService
   static convertFormDataToState(settingsFormData: TSettingsFormData): ISettingsState {
     const settingsState: Partial<ISettingsState> = {};
     for (const groupName in settingsFormData) {
-      settingsFormData[groupName].forEach(subGroup => {
-        subGroup.parameters.forEach(parameter => {
+      for (const subGroup of settingsFormData[groupName]) {
+        for (const parameter of subGroup.parameters) {
           // @ts-expect-error ts7053
-          settingsState[groupName] = settingsState[groupName] || {};
+          settingsState[groupName] = settingsState[groupName] ?? {};
           // @ts-expect-error ts7053
           settingsState[groupName][parameter.name] = parameter.value;
-        });
-      });
+        }
+      }
     }
 
     return settingsState as ISettingsState;
@@ -133,9 +133,9 @@ export class SettingsService
   loadSettingsIntoStore() {
     // load configuration from nodeObs to state
     const settingsFormData: Dictionary<any> = {};
-    this.getCategories().forEach(categoryName => {
+    for (const categoryName of this.getCategories()) {
       settingsFormData[categoryName] = this.getSettingsFormData(categoryName);
-    });
+    }
     this.SET_SETTINGS(SettingsService.convertFormDataToState(settingsFormData));
 
     // ensure 'custom streaming server'
@@ -256,9 +256,9 @@ export class SettingsService
       // ニコニコログイン中は Stream(配信) タブの項目は無効にする
       if (this.userService.isNiconicoLoggedIn()) {
         for (const untitled of this.findSubCategory(settings, 'Untitled')) {
-          untitled.parameters.forEach(setting => {
+          for (const setting of untitled.parameters) {
             setting.enabled = false;
-          });
+          }
         }
       }
     }
@@ -312,7 +312,7 @@ export class SettingsService
         const recRBTime = parameters.find((parameter: any) => {
           return parameter.name === 'RecRBTime';
         }) as any;
-        if (recRBTime && recRBTime.minVal === 0) {
+        if (recRBTime?.minVal === 0) {
           recRBTime.minVal = 1; // 0秒を除外する
         }
       }
@@ -540,7 +540,9 @@ export class SettingsService
     const current = opt.getCurrentSettings();
 
     // 最適化の必要な値を抽出する
-    const delta: OptimizeSettings = Object.assign({}, ...Optimizer.getDifference(current, best));
+    const delta: OptimizeSettings = {
+      ...Object.assign({}, ...Optimizer.getDifference(current, best)),
+    };
 
     return {
       current,
@@ -592,7 +594,7 @@ export class SettingsService
         scope.setTag('retry', `${retry}`);
         scope.setFingerprint(['optimizeForNiconico', 'partial']);
         scope.setExtra('delta', delta);
-        if (encoder && encoder.options) {
+        if (encoder?.options) {
           scope.setExtra('encoder.options', encoder.options);
         }
         Sentry.captureMessage(`optimizeForNiconico: optimization setting is not set perfectly`);
@@ -663,7 +665,7 @@ export class SettingsService
     for (const subcategory of settingsFormData) {
       for (const field of subcategory.parameters) {
         if (field.name !== name) continue;
-        Object.assign(field, patch);
+        Object.assign(field, patch); // fieldへのミューテーションなのでそのまま
       }
     }
     return settingsFormData;
@@ -708,8 +710,9 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
-          audioDevices
+        options: [
+          { description: $t('settings.disabled'), value: null },
+          ...audioDevices
             .filter(device => device.type === 'output')
             .map(device => {
               if (device.id === 'default') {
@@ -717,7 +720,7 @@ export class SettingsService
               }
               return { description: device.description, value: device.id };
             }),
-        ),
+        ],
       });
     }
 
@@ -734,8 +737,9 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
-          audioDevices
+        options: [
+          { description: $t('settings.disabled'), value: null },
+          ...audioDevices
             .filter(device => device.type === 'input')
             .map(device => {
               if (device.id === 'default') {
@@ -743,7 +747,7 @@ export class SettingsService
               }
               return { description: device.description, value: device.id };
             }),
-        ),
+        ],
       });
     }
 
@@ -857,6 +861,6 @@ export class SettingsService
 
   @mutation()
   SET_SETTINGS(settingsData: ISettingsState) {
-    this.state = Object.assign({}, this.state, settingsData);
+    this.state = { ...this.state, ...settingsData };
   }
 }

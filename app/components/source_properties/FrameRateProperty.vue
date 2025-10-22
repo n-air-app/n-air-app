@@ -37,10 +37,10 @@
 </template>
 
 <script>
-import Tabs from '../Tabs.vue';
-import fr from '../../util/FrameRate';
-import Property from './Property.vue';
 import { SourcesService } from '../../services/sources.ts';
+import fr from '../../util/FrameRate';
+import Tabs from '../Tabs.vue';
+import Property from './Property.vue';
 
 const FrameRateProperty = Property.extend({
   components: {
@@ -114,7 +114,7 @@ const FrameRateProperty = Property.extend({
       if (this.property.value.ranges[0]) {
         const min = this.property.value.ranges[0].min;
 
-        return '' + min.numerator + '/' + min.denominator;
+        return `${min.numerator}/${min.denominator}`;
       }
     },
 
@@ -122,7 +122,7 @@ const FrameRateProperty = Property.extend({
       if (this.property.value.ranges[0]) {
         const max = this.property.value.ranges[0].max;
 
-        return '' + max.numerator + '/' + max.denominator;
+        return `${max.numerator}/${max.denominator}`;
       }
     },
 
@@ -137,7 +137,7 @@ const FrameRateProperty = Property.extend({
       ];
 
       if (this.property.value.ranges[0]) {
-        options = options.concat(fr.simpleFPSValuesForRanges(this.property.value.ranges));
+        options = [...options, ...fr.simpleFPSValuesForRanges(this.property.value.ranges)];
       }
 
       return options;

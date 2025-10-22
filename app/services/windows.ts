@@ -213,7 +213,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     }
 
     // show previous window if `preservePrevWindow` flag is true
-    if (windowOptions.preservePrevWindow && windowOptions.prevWindowOptions) {
+    if (windowOptions.preservePrevWindow && windowOptions?.prevWindowOptions) {
       const options = {
         ...windowOptions.prevWindowOptions,
         isPreserved: true,
@@ -251,7 +251,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     options: Partial<IWindowOptions & { limitMinimumSize?: boolean }>,
     windowId?: string,
   ): string {
-    windowId = windowId || uuid();
+    windowId = windowId ?? uuid();
 
     Sentry.addBreadcrumb({
       category: 'createOneOffWindow',
@@ -336,12 +336,12 @@ export class WindowsService extends StatefulService<IWindowsState> {
    */
   closeAllOneOffs(): Promise<any> {
     const closingPromises: Promise<void>[] = [];
-    Object.keys(this.windows).forEach(windowId => {
-      if (windowId === 'main') return;
-      if (windowId === 'child') return;
+    for (const windowId of Object.keys(this.windows)) {
+      if (windowId === 'main') continue;
+      if (windowId === 'child') continue;
       this.closeOneOffWindow(windowId);
       closingPromises.push(this.closeOneOffWindow(windowId));
-    });
+    }
     return Promise.all(closingPromises);
   }
 
@@ -363,12 +363,12 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   // @ExecuteInCurrentWindow()
   getChildWindowQueryParams(): Dictionary<any> {
-    return this.getChildWindowOptions().queryParams || {};
+    return this.getChildWindowOptions().queryParams ?? {};
   }
 
   // @ExecuteInCurrentWindow()
   getWindowOptions(windowId: string) {
-    return this.state[windowId].queryParams || {};
+    return this.state[windowId].queryParams ?? {};
   }
 
   getWindow(windowId: string) {
@@ -406,7 +406,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   @mutation()
   private SET_CHILD_WINDOW_OPTIONS(options: IWindowOptions) {
-    options.queryParams = options.queryParams || {};
+    options.queryParams = options.queryParams ?? {};
     this.state.child = options;
   }
 

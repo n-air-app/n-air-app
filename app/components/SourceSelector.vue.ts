@@ -64,14 +64,14 @@ export default class SourceSelector extends Vue {
           title: sceneNode.name,
           isSelected: sceneNode.isSelected(),
           isLeaf: sceneNode.isItem(),
-          isExpanded: this.expandedFoldersIds.indexOf(sceneNode.id) !== -1,
+          isExpanded: this.expandedFoldersIds.includes(sceneNode.id),
           data: sceneNode.getModel(),
           children: sceneNode.isFolder() ? getSlVueTreeNodes(sceneNode.getNodes()) : null,
         };
       });
     };
 
-    return getSlVueTreeNodes(this.scene?.getRootNodes() || []);
+    return getSlVueTreeNodes(this.scene?.getRootNodes() ?? []);
   }
 
   determineIcon(isLeaf: boolean, sourceId: string) {
@@ -120,7 +120,7 @@ export default class SourceSelector extends Vue {
 
     const menu = new EditMenu(menuOptions);
     menu.popup();
-    event && event.stopPropagation();
+    event?.stopPropagation();
   }
 
   removeItems() {
@@ -135,9 +135,7 @@ export default class SourceSelector extends Vue {
   canShowProperties(): boolean {
     if (this.activeItemIds.length === 0) return false;
     const sceneNode = this.selectionService.getLastSelected();
-    return sceneNode && sceneNode.sceneNodeType === 'item'
-      ? sceneNode.getSource().hasProps()
-      : false;
+    return sceneNode?.sceneNodeType === 'item' ? sceneNode.getSource().hasProps() : false;
   }
 
   handleSort(

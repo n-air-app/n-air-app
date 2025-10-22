@@ -5,9 +5,9 @@ export function createProps<TProps extends new () => any>(
 ): Dictionary<{ default: any }> {
   const propsObj: Dictionary<any> = {};
   const props = new propsClass();
-  Object.keys(props).forEach((key: string) => {
+  for (const key of Object.keys(props)) {
     propsObj[key] = { default: props[key] };
-  });
+  }
   return propsObj;
 }
 

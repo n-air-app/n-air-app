@@ -10,14 +10,14 @@ export const enum EBit {
 
 export default class Utils {
   static applyProxy(target: Object, source: Object) {
-    Object.keys(source).forEach(propName => {
+    for (const propName of Object.keys(source)) {
       Object.defineProperty(target, propName, {
         configurable: true,
         get() {
           return (source as Dictionary<any>)[propName];
         },
       });
-    });
+    }
   }
 
   static getCurrentUrlParams(): Dictionary<string> {
@@ -116,9 +116,9 @@ export default class Utils {
 
   static getChangedParams<T>(obj: T, patch: T): Partial<T> {
     const result: Partial<T> = {};
-    getKeys(patch).forEach(key => {
+    for (const key of getKeys(patch)) {
       if (!isEqual(obj[key], patch[key])) result[key] = patch[key];
-    });
+    }
     return result;
   }
 
@@ -127,7 +127,7 @@ export default class Utils {
 
     if (obj == null) return patch;
 
-    getKeys(patch).forEach(key => {
+    for (const key of getKeys(patch)) {
       if (!isEqual(obj[key], patch[key])) {
         if (patch[key] && typeof patch[key] === 'object' && !Array.isArray(patch[key])) {
           // @ts-expect-error ts2322 再帰的に子要素もPartialなのだが型解決が難しい
@@ -136,7 +136,7 @@ export default class Utils {
           result[key] = patch[key];
         }
       }
-    });
+    }
     return result;
   }
 
@@ -144,22 +144,19 @@ export default class Utils {
    * @see https://www.typescriptlang.org/docs/handbook/mixins.html
    */
   static applyMixins(derivedCtor: any, baseCtors: any[]) {
-    baseCtors.forEach(baseCtor => {
-      Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+    for (const baseCtor of baseCtors) {
+      for (const name of Object.getOwnPropertyNames(baseCtor.prototype)) {
         const baseDescriptor = Object.getOwnPropertyDescriptor(baseCtor.prototype, name);
         const derivedDescriptor = Object.getOwnPropertyDescriptor(derivedCtor.prototype, name);
         // ignore getters
-        if (
-          (baseDescriptor && baseDescriptor.get) ||
-          (derivedDescriptor && derivedDescriptor.get)
-        ) {
+        if (baseDescriptor?.get || derivedDescriptor?.get) {
           return;
         }
 
         // ignore the property already exist
         if (derivedCtor.prototype[name]) return;
         derivedCtor.prototype[name] = baseCtor.prototype[name];
-      });
-    });
+      }
+    }
   }
 }

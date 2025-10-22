@@ -174,10 +174,10 @@ export class DragHandler {
     const deltaX = rect.x - this.draggedSource.transform.position.x;
     const deltaY = rect.y - this.draggedSource.transform.position.y;
 
-    this.selectionService.getItems().forEach(item => {
+    for (const item of this.selectionService.getItems()) {
       const pos = item.transform.position;
       item.setTransform({ position: { x: pos.x + deltaX, y: pos.y + deltaY } });
-    });
+    }
   }
 
   private mousePositionInCanvasSpace(event: MouseEvent): IVec2 {
@@ -214,15 +214,15 @@ export class DragHandler {
   private getNearestEdgeDistance(sourceEdge: IEdge, targetEdges: IEdge[]) {
     let minDistance = Infinity;
 
-    targetEdges.forEach(targetEdge => {
-      if (!this.edgesOverlap(targetEdge, sourceEdge)) return;
+    for (const targetEdge of targetEdges) {
+      if (!this.edgesOverlap(targetEdge, sourceEdge)) continue;
 
       const distance = targetEdge.depth - sourceEdge.depth;
 
       if (Math.abs(distance) < Math.abs(minDistance)) {
         minDistance = distance;
       }
-    });
+    }
 
     return minDistance;
   }
@@ -273,7 +273,7 @@ export class DragHandler {
 
     // Source edge snapping:
     if (this.sourceSnapping) {
-      this.otherSources.forEach(source => {
+      for (const source of this.otherSources) {
         const edges = this.generateSourceEdges(source.getRectangle());
 
         // The dragged source snaps to the adjacent edge
@@ -283,7 +283,7 @@ export class DragHandler {
         targetEdges.top.push(edges.bottom);
         targetEdges.right.push(edges.left);
         targetEdges.bottom.push(edges.top);
-      });
+      }
     }
 
     return targetEdges;

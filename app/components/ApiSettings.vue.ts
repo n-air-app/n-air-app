@@ -41,12 +41,12 @@ export default class ApiSettings extends Vue {
 
   save(settingsData: ISettingsSubCategory[]) {
     const settings: Dictionary<Dictionary<TObsValue>> = {};
-    settingsData.forEach(subCategory => {
-      subCategory.parameters.forEach(parameter => {
+    for (const subCategory of settingsData) {
+      for (const parameter of subCategory.parameters) {
         if (!settings[subCategory.codeSubCategory]) settings[subCategory.codeSubCategory] = {};
         settings[subCategory.codeSubCategory][parameter.name] = parameter.value;
-      });
-    });
+      }
+    }
     this.tcpServerService.setSettings(settings);
     this.settingsFormData = this.getApiSettingsFormData();
   }

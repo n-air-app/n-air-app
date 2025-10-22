@@ -31,7 +31,9 @@ export class HotkeysNode extends ArrayNode<IHotkey, IContext, Hotkey> {
 
   saveItem(hotkey: Hotkey, context: IContext): Promise<IHotkey> {
     const hotkeyObj = hotkey.getModel();
-    getKeys(context).forEach(key => delete hotkeyObj[key]);
+    for (const key of getKeys(context)) {
+      delete hotkeyObj[key];
+    }
     return Promise.resolve(hotkeyObj);
   }
 

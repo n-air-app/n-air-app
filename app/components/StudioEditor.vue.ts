@@ -99,7 +99,7 @@ export default class StudioEditor extends Vue {
 
     const parent = overSource.getParent();
 
-    if (!parent || (parent && parent.isSelected())) {
+    if (!parent || parent?.isSelected()) {
       this.selectionService.select(overSource.id);
     } else if (parent) {
       this.selectionService.select(parent.id);
@@ -251,13 +251,13 @@ export default class StudioEditor extends Vue {
       this.dragHandler.move(event);
     } else if (event.buttons === 1) {
       // We might need to start dragging
-      const sourcesInPriorityOrder = _.compact(this.activeSources.concat(this.sceneItems));
+      const sourcesInPriorityOrder = _.compact([...this.activeSources, ...this.sceneItems]);
 
       const overSource = sourcesInPriorityOrder.find(source => {
         return this.isOverSource(event, source);
       });
 
-      if (overSource && this.canDrag) {
+      if (overSource?.id && this.canDrag) {
         const overNode =
           !overSource.isSelected() && overSource.hasParent() ? overSource.getParent() : overSource;
 
@@ -492,9 +492,9 @@ export default class StudioEditor extends Vue {
   get resizeRegions(): IResizeRegion[] {
     let regions: IResizeRegion[] = [];
 
-    this.selectionService.getItems().forEach(item => {
-      regions = regions.concat(this.generateResizeRegionsForItem(item));
-    });
+    for (const item of this.selectionService.getItems()) {
+      regions = [...regions, ...this.generateResizeRegionsForItem(item)];
+    }
 
     return regions;
   }

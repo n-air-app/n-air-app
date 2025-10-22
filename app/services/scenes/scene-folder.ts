@@ -40,7 +40,9 @@ export class SceneItemFolder extends SceneItemNode {
   }
 
   ungroup() {
-    this.getItems().forEach(item => item.setParent(this.parentId));
+    for (const item of this.getItems()) {
+      item.setParent(this.parentId);
+    }
     this.remove();
   }
 
@@ -54,7 +56,7 @@ export class SceneItemFolder extends SceneItemNode {
    */
   getNodes(): TSceneNode[] {
     const scene = this.getScene();
-    return this.childrenIds?.map(nodeId => scene.getNode(nodeId)) || [];
+    return this.childrenIds?.map(nodeId => scene.getNode(nodeId)) ?? [];
   }
 
   getItems(): SceneItem[] {
@@ -102,19 +104,19 @@ export class SceneItemFolder extends SceneItemNode {
   }
 
   getNestedNodes(traversedNodesIds: string[] = []): TSceneNode[] {
-    traversedNodesIds = [].concat(traversedNodesIds);
+    traversedNodesIds = [...traversedNodesIds];
     const nodes: TSceneNode[] = [];
-    this.getNodes().forEach(node => {
+    for (const node of this.getNodes()) {
       if (traversedNodesIds.includes(node.id)) {
         // TODO: find the use-case that causes loops in folders structure
         console.error(`Loop in folders structure detected', ${this.name} -> ${node.name}`);
-        return;
+        continue;
       }
       nodes.push(node);
       traversedNodesIds.push(node.id);
-      if (node.sceneNodeType !== 'folder') return;
+      if (node.sceneNodeType !== 'folder') continue;
       nodes.push(...(node as SceneItemFolder).getNestedNodes(traversedNodesIds));
-    });
+    }
     return nodes;
   }
 

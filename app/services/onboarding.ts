@@ -74,7 +74,7 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
 
   @mutation()
   SET_OPTIONS(options: Partial<IOnboardingOptions>) {
-    Object.assign(this.state.options, options);
+    this.state.options = { ...this.state.options, ...options };
   }
 
   @mutation()

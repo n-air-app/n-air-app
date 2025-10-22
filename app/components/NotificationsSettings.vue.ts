@@ -22,18 +22,18 @@ export default class NotificationsSettings extends Vue {
 
   saveNotificationsSettings(formData: TObsFormData) {
     const settings: Dictionary<TObsValue> = {};
-    formData.forEach(formInput => {
+    for (const formInput of formData) {
       settings[formInput.name] = formInput.value;
-    });
+    }
     this.notificationsService.setSettings(settings);
     this.settingsFormData = this.notificationsService.getSettingsFormData();
   }
 
   saveTroubleshooterSettings(formData: TObsFormData) {
     const settings: Dictionary<TObsValue> = {};
-    formData.forEach(formInput => {
+    for (const formInput of formData) {
       settings[formInput.name] = formInput.value;
-    });
+    }
     this.troubleshooterService.setSettings(settings);
     this.troubleshooterFormData = this.troubleshooterService.getSettingsFormData();
   }

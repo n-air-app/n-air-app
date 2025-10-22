@@ -72,10 +72,10 @@ export class ExternalApiService extends RpcApi {
 
   init() {
     // initialize all singletons
-    Object.keys(this.resources).forEach(resourceName => {
+    for (const resourceName of Object.keys(this.resources)) {
       const Resource = this.resources[resourceName];
       if (Resource.isSingleton) this.instances[resourceName] = new Resource();
-    });
+    }
   }
 
   /**
@@ -132,7 +132,7 @@ export class ExternalApiService extends RpcApi {
         return (...args: any[]) => {
           const result = target[key](...args);
           traverse(result).forEach((item: any) => {
-            if (item && item._fallback) return this.applyFallbackProxy(item);
+            if (item?._fallback) return this.applyFallbackProxy(item);
           });
           return result;
         };

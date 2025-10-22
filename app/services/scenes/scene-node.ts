@@ -54,7 +54,7 @@ export abstract class SceneItemNode implements ISceneItemNode {
 
   setParent(parentId: string) {
     // prevent to set a child folder as parent
-    if (this.isFolder() && this.getNestedNodesIds().indexOf(parentId) !== -1) {
+    if (this.isFolder() && this.getNestedNodesIds().includes(parentId)) {
       return;
     }
     this.SET_PARENT(parentId);
@@ -138,7 +138,7 @@ export abstract class SceneItemNode implements ISceneItemNode {
    */
   getPath(): string[] {
     const parent = this.getParent();
-    return parent ? parent.getPath().concat([this.id]) : [this.id];
+    return parent ? [...parent.getPath(), this.id] : [this.id];
   }
 
   isSelected() {

@@ -19,10 +19,10 @@ export default class ValidatedForm extends Vue {
   getInputs(children?: Vue[]): BaseInput<any, IInputMetadata>[] {
     children = children || this.$children;
     const inputs: BaseInput<any, IInputMetadata>[] = [];
-    children.forEach(child => {
+    for (const child of children) {
       if (child instanceof BaseInput) inputs.push(child);
       if (child.$children.length) inputs.push(...this.getInputs(child.$children));
-    });
+    }
     return inputs;
   }
 

@@ -21,16 +21,14 @@ export class InternalApiService extends RpcApi {
   ): IJsonRpcResponse<any> {
     // the errors for the child-window API are anomaly
     // re-raise error for Raven to log these errors
-    errors
-      .filter(e => e instanceof Error)
-      .forEach(e => {
-        const isChildWindowRequest = request.params && request.params.fetchMutations;
-        if (isChildWindowRequest) {
-          setTimeout(() => {
-            throw e;
-          }, 0);
-        }
-      });
+    for (const e of errors.filter(e => e instanceof Error)) {
+      const isChildWindowRequest = request.params?.fetchMutations;
+      if (isChildWindowRequest) {
+        setTimeout(() => {
+          throw e;
+        }, 0);
+      }
+    }
 
     // we are not going to change the response
     return super.onErrorsHandler(request, errors);

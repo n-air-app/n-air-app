@@ -19,7 +19,7 @@ export class BaseInput<TValueType, TMetadataType extends IInputMetadata> extends
    * uuid serves to link input field and validator message
    */
   // @ts-expect-error: ts2729: use before initialization
-  readonly uuid = (this.metadata && this.metadata.uuid) || uuid();
+  readonly uuid = this.metadata?.uuid ?? uuid();
 
   emitInput(eventData: TValueType, event?: any) {
     this.$emit('input', eventData, event);
@@ -36,11 +36,11 @@ export class BaseInput<TValueType, TMetadataType extends IInputMetadata> extends
    */
   get validate() {
     const validations = this.getValidations();
-    getKeys(validations).forEach(key => {
+    for (const key of getKeys(validations)) {
       // VeeValidate recognizes undefined values as valid constraints
       // so just remove it
       if (validations[key] === undefined) delete validations[key];
-    });
+    }
     return validations;
   }
 

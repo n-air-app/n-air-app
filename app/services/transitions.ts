@@ -238,7 +238,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
       return connection.fromSceneId === fromId && connection.toSceneId === toId;
     });
 
-    if (matchedConnection && this.getTransition(matchedConnection.transitionId)) {
+    if (matchedConnection && this.getTransition(matchedConnection?.transitionId)) {
       return this.getTransition(matchedConnection.transitionId);
     }
 
@@ -246,7 +246,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   shutdown() {
-    Object.values(this.obsTransitions).forEach(tran => tran.release());
+    for (const tran of Object.values(this.obsTransitions)) {
+      tran.release();
+    }
     this.releaseStudioModeObjects();
     obs.Global.setOutputSource(0, null);
   }
@@ -273,7 +275,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getPropertiesFormData(id: string): TObsFormData {
-    return this.propertiesManagers[id].getPropertiesFormData() || [];
+    return this.propertiesManagers[id].getPropertiesFormData() ?? [];
   }
 
   setPropertiesFormData(id: string, formData: TObsFormData) {
@@ -282,8 +284,8 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   createTransition(type: ETransitionType, name: string, options: ITransitionCreateOptions = {}) {
     const id = options.id || uuid();
-    const transition = obs.TransitionFactory.create(type, id, options.settings || {});
-    const manager = new DefaultManager(transition, options.propertiesManagerSettings || {});
+    const transition = obs.TransitionFactory.create(type, id, options.settings ?? {});
+    const manager = new DefaultManager(transition, options.propertiesManagerSettings ?? {});
 
     this.obsTransitions[id] = transition;
     this.propertiesManagers[id] = manager;
@@ -330,9 +332,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * switching scene collections.
    */
   deleteAllTransitions() {
-    this.state.transitions.forEach(transition => {
+    for (const transition of this.state.transitions) {
       this.deleteTransition(transition.id);
-    });
+    }
   }
 
   /**
@@ -340,9 +342,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * switching scene collections.
    */
   deleteAllConnections() {
-    this.state.connections.forEach(connection => {
+    for (const connection of this.state.connections) {
       this.deleteConnection(connection.id);
-    });
+    }
   }
 
   setDefaultTransition(id: string) {
@@ -421,10 +423,10 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     const transition = this.state.transitions.find(tran => tran.id === id);
 
     if (transition) {
-      getKeys(patch).forEach(key => {
+      for (const key of getKeys(patch)) {
         // @ts-expect-error ts2332
         transition[key] = patch[key];
-      });
+      }
     }
   }
 
@@ -456,9 +458,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     const connection = this.state.connections.find(conn => conn.id === id);
 
     if (connection) {
-      getKeys(patch).forEach(key => {
+      for (const key of getKeys(patch)) {
         connection[key] = patch[key];
-      });
+      }
     }
   }
 

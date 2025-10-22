@@ -267,9 +267,9 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     const legacySettings = this.contexts[display].legacySettings;
     this.contexts[display].video = legacySettings;
 
-    getKeys(legacySettings).forEach(key => {
+    for (const key of getKeys(legacySettings)) {
       this.SET_VIDEO_SETTING(key, legacySettings[key], 'horizontal');
-    });
+    }
   }
 
   /**
@@ -279,7 +279,7 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
    * Each context must be destroyed when shutting down the app to prevent errors
    */
   shutdown() {
-    displays.forEach(display => {
+    for (const display of displays) {
       if (this.contexts[display]) {
         // save settings as legacy settings
         this.contexts[display].legacySettings = this.state[display];
@@ -289,7 +289,7 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
         this.contexts[display] = null as IVideo;
         this.DESTROY_VIDEO_CONTEXT(display);
       }
-    });
+    }
   }
 
   @mutation()
