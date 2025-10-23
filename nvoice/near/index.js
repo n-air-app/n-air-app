@@ -37,6 +37,7 @@ addEventListener('visibilitychange', () => {
 
 const IMAGE_FILENAMES = {
   default: 'default.png',
+  smile: 'smile.png',
 
   a: 'a.png',
 
@@ -54,15 +55,19 @@ const IMAGE_FILENAMES = {
   m: 'm.png',
   p: 'm.png',
   b: 'm.png',
-  'silE': 'm.png',
+  silE: 'm.png',
 };
 const DEFAULT_COOL_TIME_MS = 1000;
+
+// デフォルト状態に戻る際にdefault.pngとsmile.pngをランダムで選択
+const DEFAULT_IMAGES = [IMAGE_FILENAMES.default, IMAGE_FILENAMES.smile];
 
 let t;
 function timer_set() {
   timer_reset();
   t = setTimeout(() => {
-    image.src = IMAGE_FILENAMES.default;
+    const randomImage = DEFAULT_IMAGES[Math.floor(Math.random() * DEFAULT_IMAGES.length)];
+    image.src = randomImage;
     t = undefined;
   }, DEFAULT_COOL_TIME_MS);
 }
@@ -74,7 +79,7 @@ function timer_reset() {
 }
 
 if (socket) {
-  socket.on('phoneme', (phoneme) => {
+  socket.on('phoneme', phoneme => {
     if (!active) {
       return;
     }
@@ -94,10 +99,11 @@ const BLINK_INTERVAL_MS = 5000;
 setInterval(() => {
   if (active) {
     const blink = () => {
-      const isDefault = image.src.endsWith('default.png');
+      // default.pngまたはsmile.pngの場合はSD_default_*.pngを使用
+      const isDefaultOrSmile = image.src.endsWith('default.png') || image.src.endsWith('smile.png');
       ++blinkIndex;
       if (blinkIndex < blinkSequence.length) {
-        eyes.src = `SD_${isDefault ? 'default' : 'read'}_${blinkSequence[blinkIndex]}.png`;
+        eyes.src = `SD_${isDefaultOrSmile ? 'default' : 'read'}_${blinkSequence[blinkIndex]}.png`;
         eyes.hidden = false;
         setTimeout(blink, BLINK_FRAME_MS);
       } else {
