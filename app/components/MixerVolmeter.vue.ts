@@ -73,10 +73,10 @@ export default class MixerVolmeter extends Vue {
     this.$refs.canvas.style.height = `${this.canvasHeight}px`;
     this.$refs.spacer.style.height = `${this.canvasHeight}px`;
 
-    this.peakHoldCounters = new Array(channels).fill(0);
-    this.peakHolds = new Array(channels).fill(-65535);
-    this.previousPeaks = new Array(channels).fill(-65535);
-    this.previousPeakHolds = new Array(channels).fill(-65535);
+    this.peakHoldCounters = Array(channels).fill(0);
+    this.peakHolds = Array(channels).fill(-65535);
+    this.previousPeaks = Array(channels).fill(-65535);
+    this.previousPeakHolds = Array(channels).fill(-65535);
   }
 
   private updateCanvasWidth(): void {
