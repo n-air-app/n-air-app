@@ -45,12 +45,34 @@ export class RootNode extends Node<ISchema, {}> {
     const wh = this.videoSettingsService.baseResolutions.horizontal;
     this.videoService.setBaseResolution({ width: wh.baseWidth, height: wh.baseHeight });
 
-    await this.data.transitions.load();
-    await this.data.sources.load({});
-    await this.data.scenes.load({});
+    // Load transitions
+    try {
+      await this.data.transitions.load();
+    } catch (e) {
+      console.error('Failed to load transitions:', e);
+    }
 
+    // Load sources
+    try {
+      await this.data.sources.load({});
+    } catch (e) {
+      console.error('Failed to load sources:', e);
+    }
+
+    // Load scenes
+    try {
+      await this.data.scenes.load({});
+    } catch (e) {
+      console.error('Failed to load scenes:', e);
+    }
+
+    // Load hotkeys
     if (this.data.hotkeys) {
-      await this.data.hotkeys.load({});
+      try {
+        await this.data.hotkeys.load({});
+      } catch (e) {
+        console.error('Failed to load hotkeys:', e);
+      }
     }
   }
 

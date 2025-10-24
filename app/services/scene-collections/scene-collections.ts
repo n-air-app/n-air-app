@@ -37,6 +37,13 @@ import { SceneCollectionsStateService, ScenePresetId } from './state';
 
 const uuid = window['require']('uuid/v4');
 
+interface ILoadError {
+  type: 'source' | 'scene' | 'sceneItem' | 'transition' | 'hotkey' | 'filter';
+  id?: string;
+  name: string;
+  error: Error;
+}
+
 export const NODE_TYPES = {
   RootNode,
   SourcesNode,
@@ -231,9 +238,29 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         Sentry.captureException(e);
       });
 
-      console.warn(`Unsuccessful recovery of scene collection ${id} attempted`);
-      alert($t('scenes.failedToLoadSceneCollection'));
-      await this.create();
+      console.error(`Failed to load scene collection ${id}:`, e);
+
+      const collection = this.getCollection(id);
+      const collectionName = collection ? collection.name : id;
+      const errorDetail = e instanceof Error ? e.message : String(e);
+
+      const choice = remote.dialog.showMessageBoxSync({
+        type: 'error',
+        title: $t('scenes.loadErrorTitle'),
+        message: $t('scenes.loadErrorMessage', { collectionName, errorDetail }),
+        buttons: [$t('scenes.quitApp'), $t('scenes.createNewCollection')],
+        defaultId: 0, // Quit is default
+        cancelId: 0,
+      });
+
+      if (choice === 0) {
+        // Quit application
+        remote.app.quit();
+        return;
+      } else {
+        // Create new collection
+        await this.create();
+      }
     }
 
     this.finishLoadingOperation();

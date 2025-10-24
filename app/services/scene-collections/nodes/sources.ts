@@ -253,57 +253,69 @@ export class SourcesNode extends Node<ISchema, {}> {
     sources.forEach((source, index) => {
       const sourceInfo = this.data.items[index];
 
-      this.sourcesService.addSource(source, this.data.items[index].name, {
-        channel: sourceInfo.channel,
-        propertiesManager: sourceInfo.propertiesManager,
-        propertiesManagerSettings: sourceInfo.propertiesManagerSettings || {},
-      });
+      try {
+        this.sourcesService.addSource(source, this.data.items[index].name, {
+          channel: sourceInfo.channel,
+          propertiesManager: sourceInfo.propertiesManager,
+          propertiesManagerSettings: sourceInfo.propertiesManagerSettings || {},
+        });
 
-      const newSource = this.sourcesService.getSource(sourceInfo.id);
-      if (newSource.async && newSource.video) {
-        if (sourceInfo.deinterlaceMode !== undefined) {
-          newSource.setDeinterlaceMode(sourceInfo.deinterlaceMode);
-        }
-        if (sourceInfo.deinterlaceFieldOrder !== undefined) {
-          newSource.setDeinterlaceFieldOrder(sourceInfo.deinterlaceFieldOrder);
-        }
-      }
-
-      const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager);
-
-      if (useAudio && source.audioMixers) {
-        const source = this.audioService.getSource(sourceInfo.id);
-        if (!source) {
-          // maybe the source was removed after the last save
-          if (Utils.isDevMode()) {
-            console.warn(`Audio source ${sourceInfo.id} not found in AudioService. ignore.`);
+        const newSource = this.sourcesService.getSource(sourceInfo.id);
+        if (newSource.async && newSource.video) {
+          if (sourceInfo.deinterlaceMode !== undefined) {
+            newSource.setDeinterlaceMode(sourceInfo.deinterlaceMode);
           }
-          Sentry.captureEvent({
-            message: `Audio source not found in AudioService`,
-            level: 'warning',
-            tags: {
-              sourceId: sourceInfo.id,
-            },
-            extra: {
-              audioSources: Object.keys(this.audioService.state.audioSources),
-            },
-          });
-        } else {
-          source.setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);
-          source.setSettings({
-            forceMono: sourceInfo.forceMono,
-            syncOffset: sourceInfo.syncOffset
-              ? AudioService.timeSpecToMs(sourceInfo.syncOffset)
-              : 0,
-            audioMixers: sourceInfo.audioMixers,
-            monitoringType: sourceInfo.monitoringType,
-          });
-          source.setHidden(!!sourceInfo.mixerHidden);
+          if (sourceInfo.deinterlaceFieldOrder !== undefined) {
+            newSource.setDeinterlaceFieldOrder(sourceInfo.deinterlaceFieldOrder);
+          }
         }
-      }
 
-      if (sourceInfo.hotkeys) {
-        promises.push(this.data.items[index].hotkeys.load({ sourceId: sourceInfo.id }));
+        const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager);
+
+        if (useAudio && source.audioMixers) {
+          const source = this.audioService.getSource(sourceInfo.id);
+          if (!source) {
+            // maybe the source was removed after the last save
+            if (Utils.isDevMode()) {
+              console.warn(`Audio source ${sourceInfo.id} not found in AudioService. ignore.`);
+            }
+            Sentry.captureEvent({
+              message: `Audio source not found in AudioService`,
+              level: 'warning',
+              tags: {
+                sourceId: sourceInfo.id,
+              },
+              extra: {
+                audioSources: Object.keys(this.audioService.state.audioSources),
+              },
+            });
+          } else {
+            source.setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);
+            source.setSettings({
+              forceMono: sourceInfo.forceMono,
+              syncOffset: sourceInfo.syncOffset
+                ? AudioService.timeSpecToMs(sourceInfo.syncOffset)
+                : 0,
+              audioMixers: sourceInfo.audioMixers,
+              monitoringType: sourceInfo.monitoringType,
+            });
+            source.setHidden(!!sourceInfo.mixerHidden);
+          }
+        }
+
+        if (sourceInfo.hotkeys) {
+          promises.push(this.data.items[index].hotkeys.load({ sourceId: sourceInfo.id }));
+        }
+      } catch (e) {
+        console.error(`Failed to load source ${sourceInfo.name} (${sourceInfo.id}):`, e);
+        Sentry.withScope(scope => {
+          scope.setLevel('warning');
+          scope.setTag('service', 'SourcesNode');
+          scope.setTag('method', 'load');
+          scope.setTag('sourceId', sourceInfo.id);
+          scope.setTag('sourceName', sourceInfo.name);
+          Sentry.captureException(e);
+        });
       }
     });
 
