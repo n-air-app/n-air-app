@@ -87,4 +87,12 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
       });
     });
   }
+
+  protected getItemInfo(item: ISceneSchema): { type: any; id?: string; name: string } {
+    return {
+      type: 'scene',
+      id: item.id,
+      name: item.name,
+    };
+  }
 }

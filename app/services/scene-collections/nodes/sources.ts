@@ -219,6 +219,7 @@ export class SourcesNode extends Node<ISchema, {}> {
   }
 
   load(context: {}): Promise<void> {
+    this.clearLoadErrors();
     this.sanitizeSources();
 
     // This shit is complicated, IPC sucks
@@ -308,6 +309,12 @@ export class SourcesNode extends Node<ISchema, {}> {
         }
       } catch (e) {
         console.error(`Failed to load source ${sourceInfo.name} (${sourceInfo.id}):`, e);
+        this.addLoadError({
+          type: 'source',
+          id: sourceInfo.id,
+          name: sourceInfo.name,
+          error: e instanceof Error ? e : new Error(String(e)),
+        });
         Sentry.withScope(scope => {
           scope.setLevel('warning');
           scope.setTag('service', 'SourcesNode');

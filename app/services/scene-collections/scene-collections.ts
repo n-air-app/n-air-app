@@ -25,6 +25,7 @@ import {
 } from '.';
 import namingHelpers from '../../util/NamingHelpers';
 import { HotkeysNode } from './nodes/hotkeys';
+import { ILoadError } from './nodes/node';
 import { RootNode } from './nodes/root';
 import { SceneFiltersNode } from './nodes/scene-filters';
 import { ISceneItemInfo, SceneItemsNode } from './nodes/scene-items';
@@ -36,13 +37,6 @@ import { parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
 
 const uuid = window['require']('uuid/v4');
-
-interface ILoadError {
-  type: 'source' | 'scene' | 'sceneItem' | 'transition' | 'hotkey' | 'filter';
-  id?: string;
-  name: string;
-  error: Error;
-}
 
 export const NODE_TYPES = {
   RootNode,
@@ -226,9 +220,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.startLoadingOperation();
     await this.deloadCurrentApplicationState();
 
+    let loadErrors: ILoadError[] = [];
+
     try {
       await this.setActiveCollection(id);
-      await this.readCollectionDataAndLoadIntoApplicationState(id);
+      loadErrors = await this.readCollectionDataAndLoadIntoApplicationState(id);
     } catch (e) {
       Sentry.withScope(scope => {
         scope.setLevel('error');
@@ -264,6 +260,19 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     }
 
     this.finishLoadingOperation();
+
+    // Show partial load errors if any
+    if (loadErrors.length > 0) {
+      const itemList = loadErrors.map(err => `- ${err.name} (${err.type})`).join('\n');
+      console.error('Partial load errors:', loadErrors);
+
+      remote.dialog.showMessageBoxSync({
+        type: 'warning',
+        title: $t('scenes.partialLoadWarningTitle'),
+        message: $t('scenes.partialLoadWarningMessage', { itemList }),
+        buttons: ['OK'],
+      });
+    }
   }
 
   /**
@@ -522,18 +531,20 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * Loads the scenes/sources/etc associated with a scene collection
    * from disk into the current application state.
    * @param id The id of the collection to load
+   * @returns Array of load errors that occurred during loading
    */
-  private async readCollectionDataAndLoadIntoApplicationState(id: string): Promise<void> {
+  private async readCollectionDataAndLoadIntoApplicationState(id: string): Promise<ILoadError[]> {
     const exists = await this.stateService.collectionFileExists(id);
-    if (!exists) return;
+    if (!exists) return [];
 
     let data: string;
+    let loadErrors: ILoadError[] = [];
 
     try {
       data = this.stateService.readCollectionFile(id);
       if (data == null) throw new Error('Got blank data from collection file');
 
-      await this.loadDataIntoApplicationState(data);
+      loadErrors = await this.loadDataIntoApplicationState(data);
     } catch (e) {
       // Check for a backup and load it
       const exists = await this.stateService.collectionFileExists(id, true);
@@ -542,7 +553,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       if (!exists) throw e;
 
       data = this.stateService.readCollectionFile(id, true);
-      await this.loadDataIntoApplicationState(data);
+      loadErrors = await this.loadDataIntoApplicationState(data);
     }
 
     if (this.scenesService.scenes.length === 0) {
@@ -552,16 +563,20 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     // Everything was successful, write a backup
     this.stateService.writeDataToCollectionFile(id, data, true);
     this.collectionLoaded = true;
+
+    return loadErrors;
   }
 
   /**
    * Parses and loads the given JSON string into application state
    * @param data Scene collection JSON data
+   * @returns Array of load errors that occurred during loading
    */
-  private async loadDataIntoApplicationState(data: string) {
+  private async loadDataIntoApplicationState(data: string): Promise<ILoadError[]> {
     const root = parse(data, NODE_TYPES);
     await root.load();
     this.hotkeysService.bindHotkeys();
+    return root.getLoadErrors();
   }
 
   /**
