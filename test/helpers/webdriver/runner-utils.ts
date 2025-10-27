@@ -160,12 +160,21 @@ export async function waitForElectronInstancesExist() {
   const timeout = 10000;
 
   let timeLeft = timeout;
-  return new Promise(async resolve => {
-    let tasks: any[] = [];
-    do {
-      tasks = await getElectronInstances();
+  let tasks: any[] = [];
+
+  do {
+    tasks = await getElectronInstances();
+    if (tasks.length > 0) {
+      await new Promise(r => {
+        setTimeout(r, interval);
+      });
       timeLeft -= interval;
-    } while (tasks.length || timeLeft < 0);
-    resolve(null);
-  });
+    }
+  } while (tasks.length > 0 && timeLeft > 0);
+
+  if (tasks.length > 0) {
+    console.warn(
+      `Warning: ${tasks.length} electron instances still running after ${timeout}ms timeout`,
+    );
+  }
 }
