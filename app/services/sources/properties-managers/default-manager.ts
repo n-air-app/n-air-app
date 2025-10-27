@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import fs from 'fs';
 import * as fi from 'node-fontinfo';
@@ -6,6 +7,7 @@ import path from 'path';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { FontLibraryService } from 'services/font-library';
+import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
 import { PropertiesManager } from './properties-manager';
 
@@ -38,6 +40,8 @@ export class DefaultManager extends PropertiesManager {
     if (this.obsSource.id === 'slideshow') {
       this.blacklist = ['slide_mode'];
     }
+
+    this.setupAutomaticGameCapture();
   }
 
   setPropertiesFormData(properties: TObsFormData) {
@@ -103,5 +107,36 @@ export class DefaultManager extends PropertiesManager {
       (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
 
     this.obsSource.update(newSettings);
+  }
+  private async setupAutomaticGameCapture() {
+    if (!['game_capture', 'screen_capture'].includes(this.obsSource.id)) return;
+
+    const appPath = remote.app.isPackaged
+      ? path.dirname(remote.app.getPath('exe'))
+      : remote.app.getAppPath();
+
+    const listPath = path.join(appPath, 'assets/gamecapture/game_capture_list.json');
+
+    console.log('Setting up automatic game capture with list:', listPath);
+
+    if (!fs.existsSync(listPath)) {
+      console.log('Game capture list not found:', listPath);
+      return;
+    }
+
+    const imagePath = path.join(appPath, 'assets/gamecapture/nair_capture_back.jpg');
+
+    // これらは遅延設定しても作用する
+    this.obsSource.update({
+      auto_capture_rules_path: listPath,
+      auto_placeholder_image: imagePath,
+      auto_placeholder_message: $t('common.gameCapture.searching'),
+      window_placeholder_image: imagePath,
+      window_placeholder_waiting_message: $t('common.gameCapture.searching'),
+      window_placeholder_missing_message: $t('common.gameCapture.missing'),
+      capture_overlays: this.obsSource.settings.capture_overlays ?? true,
+    });
+
+    console.log('Automatic game capture setup complete.');
   }
 }

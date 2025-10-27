@@ -281,7 +281,7 @@ export class ApiClient {
 
     return new Proxy(resourceModel, {
       get: (target, property: string, receiver) => {
-        if (resourceModel[property] !== void 0) return resourceModel[property];
+        if (resourceModel[property] !== undefined) return resourceModel[property];
 
         const resourceScheme = this.getResourceScheme(resourceId);
 
@@ -350,7 +350,7 @@ class ApiEventWatcher {
     this.subscriptions = this.eventNames.map(eventName => {
       const [resourceId, prop] = eventName.split('.');
       const observable = this.apiClient.getResource<Dictionary<Observable<any>>>(resourceId)[prop];
-      return observable.subscribe(() => void 0);
+      return observable.subscribe(() => undefined);
     });
 
     this.apiClient.eventReceived.subscribe(event => this.onEventHandler(event));

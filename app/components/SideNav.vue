@@ -5,6 +5,14 @@
         <a @click="toggleCompactMode" class="link">
           <i v-if="isCompactMode" class="icon-full-mode" :title="$t('common.fullMode')" />
           <i v-if="!isCompactMode" class="icon-compact-mode" :title="$t('common.compactMode')" />
+          <help-tip
+            v-if="isCompactMode"
+            :dismissable-key="CompactModeToggleHelpTipDismissable"
+            mode="compact-mode-toggle"
+          >
+            <div slot="title" v-text="$t('common.compactModeToggleHelpTipTitle')"></div>
+            <div slot="content" v-text="$t('common.compactModeToggleHelpTipContent')"></div>
+          </help-tip>
         </a>
       </div>
       <template v-if="isCompactMode && isUserLoggedIn">

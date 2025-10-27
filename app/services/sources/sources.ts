@@ -33,6 +33,7 @@ import {
 import { CustomCastNdiManager } from './properties-managers/custom-cast-ndi-manager';
 import { DefaultManager } from './properties-managers/default-manager';
 import { NVoiceCharacterManager } from './properties-managers/nvoice-character-manager';
+import { ReplayManager } from './properties-managers/replay-manager';
 import { TextTranscriptionManager } from './properties-managers/text-transcription-manager';
 
 const AudioFlag = obs.ESourceOutputFlags.Audio;
@@ -45,6 +46,7 @@ export const PROPERTIES_MANAGER_TYPES = {
   'nvoice-character': NVoiceCharacterManager,
   'custom-cast-ndi': CustomCastNdiManager,
   text_transcription: TextTranscriptionManager,
+  replay: ReplayManager,
 };
 
 interface IObsSourceCallbackInfo {
@@ -169,7 +171,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   addSource(obsInput: obs.IInput, name: string, options: ISourceAddOptions = {}) {
-    if (options.channel !== void 0) {
+    if (options.channel !== undefined) {
       obs.Global.setOutputSource(options.channel, obsInput);
     }
     const id = obsInput.name;
@@ -219,7 +221,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
      * sure we reset the channel it's set to,
      * otherwise OBS thinks it's still attached
      * and won't release it. */
-    if (source.channel !== void 0) {
+    if (source.channel !== undefined) {
       obs.Global.setOutputSource(source.channel, null);
     }
 
@@ -318,7 +320,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     });
 
     if (type === 'dshow_input') {
-      if (resolvedSettings.video_device_id === void 0) {
+      if (resolvedSettings.video_device_id === undefined) {
         const devices = obs.NodeObs.OBS_settings_getVideoDevices();
         if (devices.length > 0) {
           resolvedSettings.video_device_id = devices[0].id;
@@ -340,14 +342,14 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     // setup default settings
     if (type === 'browser_source') {
-      if (resolvedSettings.shutdown === void 0) resolvedSettings.shutdown = true;
-      if (resolvedSettings.url === void 0) {
+      if (resolvedSettings.shutdown === undefined) resolvedSettings.shutdown = true;
+      if (resolvedSettings.url === undefined) {
         resolvedSettings.url = 'https://n-air-app.nicovideo.jp/browser-source/';
       }
     }
 
     if (type === 'text_gdiplus') {
-      if (resolvedSettings.text === void 0) resolvedSettings.text = name;
+      if (resolvedSettings.text === undefined) resolvedSettings.text = name;
     }
     return resolvedSettings;
   }
@@ -476,6 +478,8 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     availableWhitelistedType.push('text_transcription'); // 自動文字起こしテキスト
 
+    availableWhitelistedType.push('ffmpeg_source_replay'); // リプレイバッファ
+
     const availableWhitelistedSourceType = availableWhitelistedType.map(value => ({
       value,
       description: $t(`source-props.${value}.name`),
@@ -584,7 +588,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   getSource(id: string): Source {
-    return this.state.sources[id] || this.state.temporarySources[id] ? new Source(id) : void 0;
+    return this.state.sources[id] || this.state.temporarySources[id] ? new Source(id) : undefined;
   }
 
   getSources() {

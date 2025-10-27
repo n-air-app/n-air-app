@@ -8,6 +8,7 @@ export enum EDismissable {
   LoginHelpTip = 'login_help_tip',
   EndStreamHelpTip = 'end_stream_help_tip',
   InitialHelpTip = 'initial_help_tip',
+  CompactModeToggleHelpTip = 'compact_mode_toggle_help_tip',
 }
 
 const InitiallyDismissed = new Set<EDismissable>([]);

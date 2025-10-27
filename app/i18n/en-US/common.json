@@ -76,10 +76,16 @@
   "loginHelpTipContent": "Click here to log in to niconico",
   "endStreamHelpTipTitle": "Stream Not Started",
   "endStreamHelpTipContent": "The program is live, but video and audio are not being sent.\nClick [GO LIVE] to begin.",
+  "compactModeToggleHelpTipTitle": "Switch to Full Mode",
+  "compactModeToggleHelpTipContent": "Click this button to exit compact mode",
   "fieldIsRequired": "The field is required",
   "fieldMustBeLarger": "The field value must be %{value} or larger",
   "fieldMustBeLess": "The field value must be %{value} or less",
   "dateFieldFormat": "The date must be in %{format} format",
   "fieldAlphaNumeric": "This field may only contain alphabetic characters or numbers",
-  "Interact": "Interact"
+  "Interact": "Interact",
+  "gameCapture": {
+    "searching": "Looking for a game to capture",
+    "missing": "Specified window is not a game"
+  }
 }

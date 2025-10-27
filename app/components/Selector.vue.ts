@@ -41,7 +41,7 @@ export default class Selector extends Vue {
   }
 
   handleContextMenu(ev: MouseEvent, index?: number) {
-    if (index !== void 0) {
+    if (index !== undefined) {
       const value = this.normalizedItems[index].value;
       this.handleSelect(ev, index);
       this.$emit('contextmenu', value);

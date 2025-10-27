@@ -126,6 +126,8 @@ export default class AddSource extends Vue {
         this.name,
         this.sourceAddOptions,
       );
+    } else if (this.sourceType === 'ffmpeg_source_replay') {
+      s = this.createReplaySourceAndOption(this.name);
     } else {
       s = {
         source: this.sourcesService.createSource(
@@ -153,5 +155,24 @@ export default class AddSource extends Vue {
 
   get selectedSource() {
     return this.sourcesService.getSource(this.selectedSourceId);
+  }
+
+  createReplaySourceAndOption(name: string): {
+    source: ISourceApi;
+    options: ISourceAddOptions;
+    forceSkipProperties?: boolean;
+  } {
+    return {
+      source: this.sourcesService.createSource(
+        this.name,
+        'ffmpeg_source',
+        {},
+        {
+          propertiesManager: 'replay',
+          propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
+        },
+      ),
+      options: {},
+    };
   }
 }

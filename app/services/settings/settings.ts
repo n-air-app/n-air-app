@@ -691,7 +691,7 @@ export class SettingsService
     const audioDevices = this.audioService.getDevices();
     const sourcesInChannels = this.sourcesService
       .getSources()
-      .filter(source => source.channel !== void 0);
+      .filter(source => source.channel !== undefined);
 
     const parameters: TObsFormData = [];
 

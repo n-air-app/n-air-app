@@ -1,6 +1,7 @@
 import { InitAfter, Inject } from './core';
 import { StatefulService, mutation } from './core/stateful-service';
 import { NicoliveProgramService } from './nicolive-program/nicolive-program';
+import { sendLogGif } from './nicolive-program/nicolive-logger';
 import { ScenesService } from './scenes';
 import { SourcesService } from './sources';
 
@@ -59,21 +60,8 @@ export class CustomcastUsageService extends StatefulService<ICustomcastUsageStat
 
   stopStreaming() {
     if (this.state.isCustomcastUsed && this.state.programID !== '') {
-      this.sendLog(this.state.programID);
+      sendLogGif('customcast', this.state.programID);
     }
-  }
-
-  private async sendLog(programID: string) {
-    const url = 'https://dcdn.cdn.nicovideo.jp/shared_httpd/log.gif';
-    const params = new URLSearchParams();
-    params.append('frontend_id', '134');
-    params.append('id', 'customcast');
-    params.append('content_id', programID);
-    return await fetch(`${url}?${params}`, {
-      method: 'GET',
-      mode: 'cors',
-      credentials: 'include',
-    });
   }
 
   private reset() {

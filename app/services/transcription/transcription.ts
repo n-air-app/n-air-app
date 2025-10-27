@@ -17,7 +17,10 @@ import {
   tap,
   timer,
 } from 'rxjs';
+import { AudioService } from 'services/audio';
 import { $t } from 'services/i18n';
+import { sendLogGif } from 'services/nicolive-program/nicolive-logger';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { TranscriptionLog } from 'services/usage-statistics';
 import { Inject, mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
@@ -43,10 +46,11 @@ export { VOSK_MODEL_NAMES, VoskModelStatus };
 const getVoskModelURL = (name: string): string =>
   `https://n-air-app.nicovideo.jp/download/assets/vosk-models/${name}.zip`;
 
-interface ITranscriptionServiceState {
+export interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
   audioDeviceId?: string | null;
+  commentEnabled: boolean;
   commentPosition: CommentPosition;
   commentSize: CommentSize;
   commentFont: CommentFont;
@@ -90,15 +94,19 @@ export type ActiveStatus =
   | 'noAudioDevice'
   | 'noModelDownloaded'
   | 'noVoskModel'
-  | 'modelLoadError';
+  | 'modelLoadError'
+  | 'muted';
 
 export type VoskError = 'launchError' | 'error';
 
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
+  @Inject() audioService: AudioService;
+  @Inject() nicoliveProgramService: NicoliveProgramService;
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    commentEnabled: true,
     commentPosition: 'shita',
     commentFont: 'gothic',
     commentSize: 'medium',
@@ -129,6 +137,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private activeStatusSubject$ = new BehaviorSubject<ActiveStatus>('disabled');
   private voskError$ = new BehaviorSubject<VoskError | null>(null);
   private updateActiveness$ = new Subject<void>();
+  private audioDeviceMuted$ = new BehaviorSubject<boolean>(false);
 
   getModelPath(modelName: string): string {
     return join(this.modelBasePath, modelName);
@@ -219,7 +228,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    merge(this.updateActiveness$, this.voskError$)
+    merge(this.updateActiveness$, this.voskError$, this.audioDeviceMuted$)
       .pipe(
         map((): ActiveStatus => {
           if (!this.state.enabled) return 'disabled';
@@ -240,6 +249,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
             if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
             return 'noVoskModel';
           }
+
+          if (this.audioDeviceMuted$.value) return 'muted';
+
           return 'active';
         }),
         tap(status => {
@@ -285,7 +297,33 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     this.initTextFileWriter();
 
+    this.createAudioDeviceMutedStream();
+
     this.updateAudioDevices();
+  }
+
+  private createAudioDeviceMutedStream() {
+    merge(
+      this.state$.pipe(
+        map(state => state.audioDeviceId ?? null),
+        distinctUntilChanged(),
+      ),
+      this.audioService.audioSourceUpdated,
+    )
+      .pipe(
+        map(() => {
+          const audioDeviceId = this.state.audioDeviceId;
+          if (!audioDeviceId) {
+            return false;
+          }
+
+          const isDefault = this.isDefaultAudioDevice(audioDeviceId);
+          const audioSource = this.audioService.getSourceByDeviceId(audioDeviceId, isDefault);
+          return audioSource ? audioSource.muted : false;
+        }),
+        distinctUntilChanged(),
+      )
+      .subscribe(this.audioDeviceMuted$);
   }
 
   getActionLog(): TranscriptionLog {
@@ -293,6 +331,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     return {
       enabled: true,
       voskModelName: state.voskModelName,
+      commentEnabled: state.commentEnabled,
       commentColor: state.commentColor,
       commentSize: state.commentSize,
       commentPosition: state.commentPosition,
@@ -510,6 +549,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   updateAudioDevices() {
     try {
       const audioDevices = VoskClient.listAudioDevices(this.voskCliPath);
+      console.log('Vosk-cli: Available audio devices:', audioDevices.devices); // DEBUG
       this.audioDevices$.next(
         audioDevices.devices.map(device => ({
           id: device.id,
@@ -545,6 +585,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   getAudioDeviceList(): { id: string; name: string }[] {
     return this.audioDevices$.value;
+  }
+
+  private isDefaultAudioDevice(audioDeviceId: string): boolean {
+    return this.audioDevices$.value[0]?.id === audioDeviceId;
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
@@ -747,6 +791,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.setModelStatus(modelName, this.modelsManager.getVoskModelStatus(modelName));
     } else {
       this.setState({ voskModelName: undefined });
+    }
+  }
+
+  setCommentEnabled(commentEnabled: boolean) {
+    this.setState({ commentEnabled });
+    const programID = this.nicoliveProgramService.state.programID;
+    if (programID) {
+      sendLogGif('transcription_setting', programID, { commentEnabled });
     }
   }
 
