@@ -37,19 +37,17 @@ export abstract class Node<TSchema, TContext> {
   data: TSchema;
 
   toJSON(): SchemaAnnotation & TSchema {
-    return Object.assign(
-      {
-        schemaVersion: this.schemaVersion,
-        nodeType: this.constructor.name,
-      },
-      this.data,
-    );
+    return {
+      schemaVersion: this.schemaVersion,
+      nodeType: this.constructor.name,
+      ...this.data,
+    };
   }
 
   fromJSON(obj: SchemaAnnotation & TSchema) {
     // TODO: Handle schema version migration here
 
-    const clone = Object.assign({}, obj);
+    const clone = { ...obj };
     const version = clone.schemaVersion;
 
     delete clone.schemaVersion;

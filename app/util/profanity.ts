@@ -122,7 +122,7 @@ export class ProfanityFilterService extends Service {
     getKeys(this.leetReplace).forEach(letter => {
       badWordsStrings = badWordsStrings.replace(
         new RegExp(/([^\\])/.source + letter, 'gi'),
-        '$1' + this.leetReplace[letter],
+        `$1${this.leetReplace[letter]}`,
       );
     });
 
@@ -133,7 +133,7 @@ export class ProfanityFilterService extends Service {
     const mapList = list.map(item => {
       return item.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     });
-    return new RegExp('(' + mapList.join('|') + ')', 'gi');
+    return new RegExp(`(${mapList.join('|')})`, 'gi');
   }
 
   testString(str = '', options = {}) {

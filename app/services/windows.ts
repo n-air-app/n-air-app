@@ -251,7 +251,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     options: Partial<IWindowOptions & { limitMinimumSize?: boolean }>,
     windowId?: string,
   ): string {
-    windowId = windowId || uuid();
+    windowId = windowId ?? uuid();
 
     Sentry.addBreadcrumb({
       category: 'createOneOffWindow',
@@ -363,12 +363,12 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   // @ExecuteInCurrentWindow()
   getChildWindowQueryParams(): Dictionary<any> {
-    return this.getChildWindowOptions().queryParams || {};
+    return this.getChildWindowOptions().queryParams ?? {};
   }
 
   // @ExecuteInCurrentWindow()
   getWindowOptions(windowId: string) {
-    return this.state[windowId].queryParams || {};
+    return this.state[windowId].queryParams ?? {};
   }
 
   getWindow(windowId: string) {
@@ -406,7 +406,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   @mutation()
   private SET_CHILD_WINDOW_OPTIONS(options: IWindowOptions) {
-    options.queryParams = options.queryParams || {};
+    options.queryParams = options.queryParams ?? {};
     this.state.child = options;
   }
 

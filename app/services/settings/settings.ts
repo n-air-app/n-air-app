@@ -105,7 +105,7 @@ export class SettingsService
       settingsFormData[groupName].forEach(subGroup => {
         subGroup.parameters.forEach(parameter => {
           // @ts-expect-error ts7053
-          settingsState[groupName] = settingsState[groupName] || {};
+          settingsState[groupName] = settingsState[groupName] ?? {};
           // @ts-expect-error ts7053
           settingsState[groupName][parameter.name] = parameter.value;
         });
@@ -540,7 +540,7 @@ export class SettingsService
     const current = opt.getCurrentSettings();
 
     // 最適化の必要な値を抽出する
-    const delta: OptimizeSettings = Object.assign({}, ...Optimizer.getDifference(current, best));
+    const delta: OptimizeSettings = { ...Object.assign({}, ...Optimizer.getDifference(current, best)) };
 
     return {
       current,
@@ -663,7 +663,7 @@ export class SettingsService
     for (const subcategory of settingsFormData) {
       for (const field of subcategory.parameters) {
         if (field.name !== name) continue;
-        Object.assign(field, patch);
+        Object.assign(field, patch); // fieldへのミューテーションなのでそのまま
       }
     }
     return settingsFormData;
@@ -708,8 +708,9 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
-          audioDevices
+        options: [
+          { description: $t('settings.disabled'), value: null },
+          ...audioDevices
             .filter(device => device.type === 'output')
             .map(device => {
               if (device.id === 'default') {
@@ -717,7 +718,7 @@ export class SettingsService
               }
               return { description: device.description, value: device.id };
             }),
-        ),
+        ],
       });
     }
 
@@ -734,8 +735,9 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
-          audioDevices
+        options: [
+          { description: $t('settings.disabled'), value: null },
+          ...audioDevices
             .filter(device => device.type === 'input')
             .map(device => {
               if (device.id === 'default') {
@@ -743,7 +745,7 @@ export class SettingsService
               }
               return { description: device.description, value: device.id };
             }),
-        ),
+        ],
       });
     }
 
@@ -857,6 +859,6 @@ export class SettingsService
 
   @mutation()
   SET_SETTINGS(settingsData: ISettingsState) {
-    this.state = Object.assign({}, this.state, settingsData);
+    this.state = { ...this.state, ...settingsData };
   }
 }

@@ -195,8 +195,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const globalSources = this.sourcesService
       .getSources()
       .filter(source => source.channel !== undefined);
-    return globalSources
-      .concat(sceneSources)
+    return [...globalSources, ...sceneSources]
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
       .filter(item => item);
   }
@@ -232,7 +231,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       forceMono: !!(obsSource.flags & obs.ESourceFlags.ForceMono),
       syncOffset: AudioService.timeSpecToMs(obsSource.syncOffset),
       muted: obsSource.muted,
-      resourceId: 'AudioSource' + JSON.stringify([sourceId]),
+      resourceId: `AudioSource${JSON.stringify([sourceId])}`,
       mixerHidden: false,
       isControlledViaObs:
         obsSource.settings?.reroute_audio == null ? true : obsSource.settings?.reroute_audio,
@@ -318,8 +317,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     if (patch.mul) obsFader.mul = patch.mul;
     // We never set db directly
 
-    const fader = this.fetchFaderDetails(sourceId);
-    Object.assign({}, fader, patch);
+    const fader = { ...this.fetchFaderDetails(sourceId), ...patch };
 
     this.UPDATE_AUDIO_SOURCE(sourceId, { fader });
     this.audioSourceUpdated.next(this.state.audioSources[sourceId]);
@@ -393,7 +391,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   @mutation()
   private UPDATE_AUDIO_SOURCE(sourceId: string, patch: Partial<IAudioSource>) {
-    Object.assign(this.state.audioSources[sourceId], patch);
+    this.state.audioSources[sourceId] = { ...this.state.audioSources[sourceId], ...patch };
   }
 
   @mutation()

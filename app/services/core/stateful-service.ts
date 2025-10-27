@@ -18,11 +18,11 @@ function registerMutation(
   const serviceName = target.constructor.name;
   const mutationName = `${serviceName}.${methodName}`;
 
-  target.originalMethods = target.originalMethods || {};
+  target.originalMethods = target.originalMethods ?? {};
   target.originalMethods[methodName] = target[methodName];
-  target.mutationOptions = target.mutationOptions || {};
+  target.mutationOptions = target.mutationOptions ?? {};
   target.mutationOptions[methodName] = options;
-  target.mutations = target.mutations || {};
+  target.mutations = target.mutations ?? {};
   target.mutations[mutationName] = function (
     localState: any,
     payload: { args: any; constructorArgs: any },

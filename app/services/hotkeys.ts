@@ -317,7 +317,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
       const hotkey = hotkeys.find(blankHotkey => {
         return this.getHotkey(blankHotkey).isSameHotkey(savedHotkey);
       });
-      if (hotkey) hotkey.bindings = [].concat(savedHotkey.bindings);
+      if (hotkey) hotkey.bindings = [...savedHotkey.bindings];
     });
 
     this.registeredHotkeys = hotkeys.map(hotkeyModel => this.getHotkey(hotkeyModel));
@@ -343,7 +343,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
     const scenesHotkeys: Dictionary<Hotkey[]> = {};
     this.scenesService.scenes.forEach(scene => {
       const sceneItemsHotkeys = this.getSceneItemsHotkeys(scene.id);
-      const sceneHotkeys = sceneItemsHotkeys.concat(this.getSceneHotkeys(scene.id));
+      const sceneHotkeys = [...sceneItemsHotkeys, ...this.getSceneHotkeys(scene.id)];
       if (sceneHotkeys.length) scenesHotkeys[scene.id] = sceneHotkeys;
     });
 
@@ -502,7 +502,7 @@ export class Hotkey implements IHotkey {
   private readonly hotkeyModel: IHotkey;
 
   constructor(hotkeyModel: IHotkey) {
-    Object.assign(this, hotkeyModel);
+    Object.assign(this, hotkeyModel); // thisへのプロパティコピーなのでそのまま
     this.hotkeyModel = hotkeyModel;
 
     if (this.sourceId) {

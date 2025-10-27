@@ -118,7 +118,7 @@ export class WebcamNode extends Node<ISchema, IContext> {
     const grouped = new Map<number, IResolution[]>();
     resolutionOptions.forEach(res => {
       const ratio = res.width / res.height;
-      const values = grouped.get(ratio) || [];
+      const values = grouped.get(ratio) ?? [];
       values.push(res);
       grouped.set(ratio, values);
     });
@@ -138,7 +138,7 @@ export class WebcamNode extends Node<ISchema, IContext> {
     let possibleResolutions: IResolution[] = [];
     possibleRatios.forEach(ratio => {
       const resolutions = grouped.get(ratio);
-      possibleResolutions = possibleResolutions.concat(resolutions);
+      possibleResolutions = [...possibleResolutions, ...resolutions];
     });
 
     // Find the smallest width larger than our target

@@ -153,7 +153,7 @@ export class Scene {
 
     if (!this.canAddSource(sourceId)) return null;
 
-    const sceneItemId = options.id || uuid();
+    const sceneItemId = options.id ?? uuid();
 
     const obsSceneItem: obs.ISceneItem = this.getObsScene().add(source.getObsInput());
 
@@ -231,14 +231,14 @@ export class Scene {
   }
 
   createFolder(name: string, options: ISceneNodeAddOptions = {}) {
-    const id = options.id || uuid();
+    const id = options.id ?? uuid();
 
     this.ADD_FOLDER_TO_SCENE({
       id,
       name,
       sceneNodeType: 'folder',
       sceneId: this.id,
-      resourceId: 'SceneItemFolder' + JSON.stringify([this.id, id]),
+      resourceId: `SceneItemFolder${JSON.stringify([this.id, id])}`,
       parentId: '',
     });
     return this.getFolder(id);
@@ -311,7 +311,7 @@ export class Scene {
     const sceneNodesIds = this.getNodesIds();
     const nodesToMoveIds: string[] =
       sourceNode.sceneNodeType === 'folder'
-        ? [sourceNode.id].concat((sourceNode as SceneItemFolder).getNestedNodesIds())
+        ? [sourceNode.id, ...(sourceNode as SceneItemFolder).getNestedNodesIds()]
         : [sourceNode.id];
     const firstNodeIndex = this.getNode(nodesToMoveIds[0]).getNodeIndex();
 
@@ -475,7 +475,7 @@ export class Scene {
         return this.scenesService.getScene(sceneItem.sourceId).getNestedItems();
       })
       .forEach(sceneItems => {
-        result = result.concat(sceneItems);
+        result = [...result, ...sceneItems];
       });
     if (options.excludeScenes) result = result.filter(sceneItem => sceneItem.type !== 'scene');
     return uniqBy(result, 'sceneItemId');
@@ -551,7 +551,7 @@ export class Scene {
       parentId: '',
       sceneNodeType: 'item',
       sceneId: this.state.id,
-      resourceId: 'SceneItem' + JSON.stringify([this.state.id, sceneItemId, sourceId]),
+      resourceId: `SceneItem${JSON.stringify([this.state.id, sceneItemId, sourceId])}`,
 
       transform: {
         // Position in video space

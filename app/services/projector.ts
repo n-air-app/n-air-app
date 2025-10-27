@@ -17,10 +17,10 @@ export class ProjectorService extends Service {
   createProjector(sourceId?: string) {
     const source = sourceId ? this.sourcesService.getSource(sourceId) : null;
     const sourceName = source ? source.name : null;
-    const title = sourceName ? ': ' + sourceName || $t('scenes.defaultTitle') : '';
+    const title = sourceName ? `: ${sourceName || $t('scenes.defaultTitle')}` : '';
     this.windowsService.createOneOffWindow({
       componentName: 'Projector',
-      title: $t('scenes.projectorPrefix') + title,
+      title: `${$t('scenes.projectorPrefix')}${title}`,
       queryParams: { sourceId },
       size: {
         width: 640,

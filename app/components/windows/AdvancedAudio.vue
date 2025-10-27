@@ -17,7 +17,7 @@
           <td
             v-for="formInput in audioSource.getSettingsForm()"
             :key="`${audioSource.name}${formInput.name}`"
-            :class="'column-' + formInput.name"
+            :class="`column-${formInput.name}`"
           >
             <component
               v-if="propertyComponentForType(formInput.type)"

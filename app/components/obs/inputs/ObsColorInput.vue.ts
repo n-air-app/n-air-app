@@ -52,12 +52,12 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
 
   // This is displayed to the user
   get hexARGB() {
-    return ('#' + this.hexAlpha + this.hexColor).toLowerCase();
+    return `#${this.hexAlpha}${this.hexColor}`.toLowerCase();
   }
 
   get swatchStyle() {
     return {
-      backgroundColor: '#' + this.hexColor,
+      backgroundColor: `#${this.hexColor}`,
       opacity: this.obsColor.a || 1,
     };
   }
@@ -74,7 +74,7 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
 
   private intTo2hexDigit(int: number) {
     let result = int.toString(16);
-    if (result.length === 1) result = '0' + result;
+    if (result.length === 1) result = `0${result}`;
     return result;
   }
 }

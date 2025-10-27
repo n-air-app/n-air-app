@@ -538,9 +538,9 @@ export function* iterateKeyDescriptions(
   desc: KeyDescription[],
 ): IterableIterator<KeyDescription> {
   for (const item of desc) {
-    if (values.hasOwnProperty(item.key)) {
+    if (item.key in values) {
       if (item.dependents) {
-        const newItem = Object.assign({}, item);
+        const newItem = { ...item };
         newItem.dependents = [];
         yield newItem;
         for (const dependent of item.dependents) {
@@ -572,7 +572,7 @@ function* iterateAllKeyDescriptions(
  */
 function isDependOnItems(values: OptimizeSettings, items: KeyDescription[]): boolean {
   for (const item of items) {
-    if (values.hasOwnProperty(item.key)) {
+    if (item.key in values) {
       return true;
     }
     if (item.dependents) {
@@ -601,13 +601,13 @@ export function filterKeyDescriptions(
   for (const item of source) {
     const key = item.key;
     if (item.dependents && item.dependents.length > 0) {
-      const newItem = Object.assign({}, item);
+      const newItem = { ...item };
       delete newItem.dependents;
       const newDependents = [];
       for (const dependent of item.dependents) {
         const params = filterKeyDescriptions(keysNeeded, dependent.params);
         if (params.length > 0) {
-          const dep = Object.assign({}, dependent);
+          const dep = { ...dependent };
           dep.params = params;
           newDependents.push(dep);
         }
@@ -848,12 +848,12 @@ export class SettingsKeyAccessor {
             this.setValues(values, dependent.params);
           }
         }
-        if (values.hasOwnProperty(key)) {
+        if (key in values) {
           currentValue = values[key];
         }
         this.setValue(item, currentValue);
       } else {
-        if (values.hasOwnProperty(key)) {
+        if (key in values) {
           this.setValue(item, values[key]);
         }
       }
@@ -873,7 +873,7 @@ export class SettingsKeyAccessor {
   ): boolean {
     const descriptions = filterKeyDescriptions(new Set([key]), keyDescriptions);
     const setting = this.getSetting(key, descriptions);
-    if (setting && setting.hasOwnProperty('options') && Array.isArray(setting.options)) {
+    if (setting && 'options' in setting && Array.isArray(setting.options)) {
       const options: { value: any }[] = setting.options;
       return options.find(v => v.value === value) !== undefined;
     }
@@ -891,7 +891,7 @@ export class Optimizer {
   }
 
   getCurrentSettings(): OptimizeSettings {
-    return Object.assign({}, ...this.accessor.getValues(this.keyDescriptions));
+    return { ...Object.assign({}, ...this.accessor.getValues(this.keyDescriptions)) };
   }
 
   /**
@@ -929,13 +929,13 @@ export class Optimizer {
     optimized: OptimizeSettings,
   ): [SettingsCategory, OptimizeItem[]][] {
     const map = new Map<SettingsCategory, OptimizeItem[]>();
-    const merged = Object.assign({}, current, optimized);
+    const merged = { ...current, ...optimized };
     for (const keyDescription of iterateKeyDescriptions(merged, this.keyDescriptions)) {
       const opt = new OptKeyProperty(keyDescription);
       const key = opt.key;
       const category = opt.category;
       let item;
-      if (optimized.hasOwnProperty(key)) {
+      if (key in optimized) {
         item = {
           key,
           name: opt.label,

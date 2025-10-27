@@ -86,8 +86,12 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
     const appPath = remote.app.isPackaged
       ? dirname(remote.app.getPath('exe'))
       : remote.app.getAppPath();
-    const url =
-      'file://' + path.join(appPath, 'nvoice', type, `index.html?port=${port || this.state.port}`);
+    const url = `file://${path.join(
+      appPath,
+      'nvoice',
+      type,
+      `index.html?port=${port || this.state.port}`,
+    )}`;
     return url;
   }
 

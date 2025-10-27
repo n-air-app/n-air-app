@@ -162,7 +162,7 @@ export class ScenesService extends StatefulService<IScenesState> {
     Vue.set<IScene>(this.state.scenes, id, {
       id,
       name,
-      resourceId: 'Scene' + JSON.stringify([id]),
+      resourceId: `Scene${JSON.stringify([id])}`,
       nodes: [],
     });
     this.state.displayOrder.push(id);

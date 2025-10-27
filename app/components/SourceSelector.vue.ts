@@ -64,14 +64,14 @@ export default class SourceSelector extends Vue {
           title: sceneNode.name,
           isSelected: sceneNode.isSelected(),
           isLeaf: sceneNode.isItem(),
-          isExpanded: this.expandedFoldersIds.indexOf(sceneNode.id) !== -1,
+          isExpanded: this.expandedFoldersIds.includes(sceneNode.id),
           data: sceneNode.getModel(),
           children: sceneNode.isFolder() ? getSlVueTreeNodes(sceneNode.getNodes()) : null,
         };
       });
     };
 
-    return getSlVueTreeNodes(this.scene?.getRootNodes() || []);
+    return getSlVueTreeNodes(this.scene?.getRootNodes() ?? []);
   }
 
   determineIcon(isLeaf: boolean, sourceId: string) {

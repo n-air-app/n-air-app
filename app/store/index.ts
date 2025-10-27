@@ -117,8 +117,9 @@ export function createStore(): Promise<Store<any>> {
 export function commitMutation(mutation: IMutation) {
   store.commit(
     mutation.type,
-    Object.assign({}, mutation.payload, {
+    {
+      ...mutation.payload,
       __vuexSyncIgnore: true,
-    }),
+    },
   );
 }

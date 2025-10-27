@@ -252,7 +252,7 @@ export class ClipboardService
 
     const insertedNodesIds: string[] = [];
     const folderIdMap: Dictionary<string> = {};
-    const nodes = scenesNodes[sceneId].concat([]).reverse();
+    const nodes = [...scenesNodes[sceneId]].reverse();
 
     // create folders
     nodes

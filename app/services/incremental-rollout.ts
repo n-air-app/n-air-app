@@ -26,13 +26,13 @@ export class IncrementalRolloutService extends StatefulService<IIncrementalRollo
   }
 
   get availableFeatures() {
-    return this.state.availableFeatures || [];
+    return this.state.availableFeatures ?? [];
   }
 
   featureIsEnabled(feature: EAvailableFeatures): boolean {
     if (Utils.isDevMode() || Utils.isPreview()) return true; //always show for dev mode and preview
 
-    return this.availableFeatures.indexOf(feature) > -1;
+    return this.availableFeatures.includes(feature);
   }
 
   async fetchAvailableFeatures() {

@@ -17,7 +17,7 @@ export default class GenericForm extends Vue {
   propertyComponentForType = propertyComponentForType;
 
   onInputHandler(value: IObsInput<TObsValue>, index: number) {
-    const newValue = [].concat(this.value);
+    const newValue = [...this.value];
     newValue.splice(index, 1, value);
     this.$emit('input', newValue, index);
   }

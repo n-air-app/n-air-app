@@ -192,7 +192,7 @@ export class SelectionService extends StatefulService<ISelectionState> {
 
   @mutation()
   private SET_STATE(state: Partial<ISelectionState>) {
-    Object.assign(this.state, state);
+    this.state = { ...this.state, ...state };
   }
 }
 
@@ -222,7 +222,7 @@ export class Selection {
 
   add(itemsList: TNodesList): Selection {
     const ids = this.resolveItemsList(itemsList);
-    this.select(this.state.selectedIds.concat(ids));
+    this.select([...this.state.selectedIds, ...ids]);
     return this;
   }
 
@@ -248,7 +248,7 @@ export class Selection {
       this.setState({ lastSelectedId: selectedIds[selectedIds.length - 1] });
     }
 
-    this._resourceId = 'Selection' + JSON.stringify([this.sceneId, this.state.selectedIds]);
+    this._resourceId = `Selection${JSON.stringify([this.sceneId, this.state.selectedIds])}`;
 
     return this;
   }
@@ -537,7 +537,7 @@ export class Selection {
 
   canGroupIntoFolder(): boolean {
     const selectedNodes = this.getRootNodes();
-    const nodesFolders = selectedNodes.map(node => node.parentId || null);
+    const nodesFolders = selectedNodes.map(node => node.parentId ?? null);
     const nodesHaveTheSameParent = uniq(nodesFolders).length === 1;
     const canGroupIntoFolder = selectedNodes.length > 1 && nodesHaveTheSameParent;
     return canGroupIntoFolder;
@@ -685,7 +685,7 @@ export class Selection {
   }
 
   private setState(state: Partial<ISelectionState>) {
-    Object.assign(this.state, state);
+    this.state = { ...this.state, ...state };
   }
 }
 

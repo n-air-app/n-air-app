@@ -273,7 +273,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getPropertiesFormData(id: string): TObsFormData {
-    return this.propertiesManagers[id].getPropertiesFormData() || [];
+    return this.propertiesManagers[id].getPropertiesFormData() ?? [];
   }
 
   setPropertiesFormData(id: string, formData: TObsFormData) {
@@ -282,8 +282,8 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   createTransition(type: ETransitionType, name: string, options: ITransitionCreateOptions = {}) {
     const id = options.id || uuid();
-    const transition = obs.TransitionFactory.create(type, id, options.settings || {});
-    const manager = new DefaultManager(transition, options.propertiesManagerSettings || {});
+    const transition = obs.TransitionFactory.create(type, id, options.settings ?? {});
+    const manager = new DefaultManager(transition, options.propertiesManagerSettings ?? {});
 
     this.obsTransitions[id] = transition;
     this.propertiesManagers[id] = manager;

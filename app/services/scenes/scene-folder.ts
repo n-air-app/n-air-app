@@ -54,7 +54,7 @@ export class SceneItemFolder extends SceneItemNode {
    */
   getNodes(): TSceneNode[] {
     const scene = this.getScene();
-    return this.childrenIds?.map(nodeId => scene.getNode(nodeId)) || [];
+    return this.childrenIds?.map(nodeId => scene.getNode(nodeId)) ?? [];
   }
 
   getItems(): SceneItem[] {
@@ -102,7 +102,7 @@ export class SceneItemFolder extends SceneItemNode {
   }
 
   getNestedNodes(traversedNodesIds: string[] = []): TSceneNode[] {
-    traversedNodesIds = [].concat(traversedNodesIds);
+    traversedNodesIds = [...traversedNodesIds];
     const nodes: TSceneNode[] = [];
     this.getNodes().forEach(node => {
       if (traversedNodesIds.includes(node.id)) {

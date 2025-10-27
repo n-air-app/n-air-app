@@ -154,6 +154,6 @@ export class CompactModeService extends StatefulService<ICompactModeServiceState
 
   @mutation()
   private SET_STATE(statePatch: Partial<ICompactModeServiceState>) {
-    Object.assign(this.state, statePatch);
+    this.state = { ...this.state, ...statePatch };
   }
 }

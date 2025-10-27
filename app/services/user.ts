@@ -83,7 +83,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   validateLogin(): Promise<void> {
     if (!this.isLoggedIn()) return Promise.resolve();
 
-    console.log('validateLogin: this.platform=' + JSON.stringify(this.platform));
+    console.log(`validateLogin: this.platform=${JSON.stringify(this.platform)}`);
     const service = getPlatformService(this.platform.type);
     if (service && service.isLoggedIn) {
       return service
@@ -96,7 +96,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
         })
         .catch(e => {
           // offline や Internal Server Error などのときなので記録するだけ
-          console.warn('validateLogin: error=' + JSON.stringify(e));
+          console.warn(`validateLogin: error=${JSON.stringify(e)}`);
         });
     }
 
@@ -225,7 +225,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     onAuthFinish: (...args: any[]) => any;
   }) {
     const service = getPlatformService(platform);
-    console.log('startAuth service = ' + JSON.stringify(service));
+    console.log(`startAuth service = ${JSON.stringify(service)}`);
     if (isFakeMode()) {
       this.login(service, FakeUserAuth).then(() => {
         onAuthFinish();
@@ -256,7 +256,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
       });
 
       const parsed = this.parseAuthFromUrl(url);
-      console.log('parsed = ' + JSON.stringify(parsed)); // DEBUG
+      console.log(`parsed = ${JSON.stringify(parsed)}`); // DEBUG
 
       if (parsed) {
         // OAuthの認可が確認できたとき

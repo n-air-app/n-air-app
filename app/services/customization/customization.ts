@@ -184,6 +184,6 @@ export class CustomizationService
 
   @mutation()
   private SET_SETTINGS(settingsPatch: Partial<ICustomizationSettings>) {
-    Object.assign(this.state, settingsPatch);
+    this.state = { ...this.state, ...settingsPatch };
   }
 }

@@ -124,7 +124,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       height: addOptions.height,
 
       muted: false,
-      resourceId: 'Source' + JSON.stringify([id]),
+      resourceId: `Source${JSON.stringify([id])}`,
       channel: addOptions.channel,
       deinterlaceMode: obs.EDeinterlaceMode.Disable,
       deinterlaceFieldOrder: obs.EDeinterlaceFieldOrder.Top,
@@ -149,9 +149,9 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   @mutation()
   private UPDATE_SOURCE(sourcePatch: TPatch<ISource>) {
     if (this.state.sources[sourcePatch.id]) {
-      Object.assign(this.state.sources[sourcePatch.id], sourcePatch);
+      this.state.sources[sourcePatch.id] = { ...this.state.sources[sourcePatch.id], ...sourcePatch };
     } else {
-      Object.assign(this.state.temporarySources[sourcePatch.id], sourcePatch);
+      this.state.temporarySources[sourcePatch.id] = { ...this.state.temporarySources[sourcePatch.id], ...sourcePatch };
     }
   }
 
@@ -192,7 +192,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     this.UPDATE_SOURCE({ id, muted });
     this.updateSourceFlags(source.state, obsInput.outputFlags, true);
 
-    if (!PROPERTIES_MANAGER_TYPES.hasOwnProperty(managerType)) {
+    if (!(managerType in PROPERTIES_MANAGER_TYPES)) {
       console.error(
         `Unknown properties manager type ${managerType} of source id:${id} ('${source.name}'). fallback to default.`,
       );
@@ -200,7 +200,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const managerKlass =
       PROPERTIES_MANAGER_TYPES[managerType] ?? PROPERTIES_MANAGER_TYPES['default'];
     this.propertiesManagers[id] = {
-      manager: new managerKlass(obsInput, options.propertiesManagerSettings || {}),
+      manager: new managerKlass(obsInput, options.propertiesManagerSettings ?? {}),
       type: managerType,
     };
 

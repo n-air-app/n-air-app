@@ -80,7 +80,7 @@ export class ScenesTransitionsService extends StatefulService<ISceneTransitionsS
   }
 
   getPropertiesFormData(): TObsFormData {
-    return getPropertiesFormData(this.getCurrentTransition()) || [];
+    return getPropertiesFormData(this.getCurrentTransition()) ?? [];
   }
 
   setPropertiesFormData(formData: TObsFormData) {

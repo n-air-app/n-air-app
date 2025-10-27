@@ -210,7 +210,7 @@ export function obsValuesToInputValues(
       const listOptions: any[] = [];
 
       if (options.transformListOptions) {
-        for (const listOption of obsProp.values || []) {
+        for (const listOption of obsProp.values ?? []) {
           const key = Object.keys(listOption)[0];
           /*
             リストから選択する項目にも翻訳がかかるようになっている。
@@ -409,7 +409,7 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
     }
 
     if (isNumberProperty(obsProp)) {
-      Object.assign(formItem as IObsNumberInputValue, {
+      Object.assign(formItem as IObsNumberInputValue, { // ミューテーションなのでそのまま
         minVal: obsProp.details.min,
         maxVal: obsProp.details.max,
         stepVal: obsProp.details.step,
@@ -421,21 +421,21 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
     }
 
     if (isEditableListProperty(obsProp)) {
-      Object.assign(formItem as IObsEditableListInputValue, {
+      Object.assign(formItem as IObsEditableListInputValue, { // ミューテーションなのでそのまま
         filters: parsePathFilters(obsProp.details.filter),
         defaultPath: obsProp.details.defaultPath,
       });
     }
 
     if (isPathProperty(obsProp)) {
-      Object.assign(formItem as IObsPathInputValue, {
+      Object.assign(formItem as IObsPathInputValue, { // ミューテーションなのでそのまま
         filters: parsePathFilters(obsProp.details.filter),
         defaultPath: obsProp.details.defaultPath,
       });
     }
 
     if (isTextProperty(obsProp)) {
-      Object.assign(formItem as IObsTextInputValue, {
+      Object.assign(formItem as IObsTextInputValue, { // ミューテーションなのでそのまま
         multiline: obsProp.details.type === obs.ETextType.Multiline,
         info: obsProp.details.type === obs.ETextType.TextInfo,
       });

@@ -101,7 +101,7 @@ export class DefaultManager extends PropertiesManager {
 
     newSettings['custom_font'] = fontPath;
     newSettings['font'] = { ...settings['font'] };
-    newSettings['font'] = newSettings['font'] || {};
+    newSettings['font'] = newSettings['font'] ?? {};
     newSettings['font']['face'] = fontInfo.family_name;
     newSettings['font']['flags'] =
       (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);

@@ -150,7 +150,7 @@ export class CommandLineClient {
   async send(line: string): Promise<void> {
     await new Promise(resolve => {
       this.log(`<- ${line}`);
-      this.subprocess.stdin.write(line + '\n', resolve);
+      this.subprocess.stdin.write(`${line}\n`, resolve);
     });
   }
 
@@ -280,7 +280,7 @@ export class NVoiceClient {
 
       const models = readdirSync(baseDir).filter(s => /.*\.pt$/.test(s));
       if (models.length !== 1) {
-        throw new Error('model file found: ' + models.join(', '));
+        throw new Error(`model file found: ${models.join(', ')}`);
       }
       const cwd = baseDir;
       const extraVoicesPath = 'n-voice_extra-voices';
@@ -439,7 +439,7 @@ export class NVoiceClient {
     if (wave) {
       unlinkSync(filename);
     }
-    const labelFilename = filename + '.txt';
+    const labelFilename = `${filename}.txt`;
     let labels: Label[] = [];
     if (existsSync(labelFilename)) {
       labels = loadLabelFile(labelFilename);

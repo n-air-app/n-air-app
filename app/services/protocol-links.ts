@@ -9,7 +9,7 @@ import Utils from './utils';
 
 function protocolHandler(base: string) {
   return (target: any, methodName: string, descriptor: PropertyDescriptor) => {
-    target.handlers = target.handlers || {};
+    target.handlers = target.handlers ?? {};
     target.handlers[base] = methodName;
     return descriptor;
   };

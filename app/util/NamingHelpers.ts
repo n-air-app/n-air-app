@@ -16,7 +16,7 @@ export default {
         );
       }
 
-      return this.suggestName(name + ' (1)', isTaken);
+      return this.suggestName(`${name} (1)`, isTaken);
     }
 
     return name;

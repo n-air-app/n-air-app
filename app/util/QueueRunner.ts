@@ -32,7 +32,7 @@ export class QueueRunner {
       log?: (obj: { state: string; label: string }) => void;
     } = {},
   ) {
-    this.logCallback = options.log || undefined;
+    this.logCallback = options.log ?? undefined;
   }
 
   log(state: string, label: string) {

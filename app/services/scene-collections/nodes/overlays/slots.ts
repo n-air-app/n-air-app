@@ -81,7 +81,7 @@ export class SlotsNode extends ArrayNode<TSlotSchema, IContext, TSceneNode> {
         id: sceneNode.id,
         sceneNodeType: 'folder',
         name: sceneNode.name,
-        childrenIds: sceneNode.childrenIds || [],
+        childrenIds: sceneNode.childrenIds ?? [],
       };
     }
 

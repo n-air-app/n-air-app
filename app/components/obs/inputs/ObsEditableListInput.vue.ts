@@ -84,7 +84,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
     });
 
     if (filePaths && filePaths.length) {
-      this.setList(this.list.concat(filePaths));
+      this.setList([...this.list, ...filePaths]);
     }
   }
 
@@ -95,7 +95,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
     });
 
     if (filePaths && filePaths.length) {
-      this.setList(this.list.concat(filePaths));
+      this.setList([...this.list, ...filePaths]);
     }
   }
 
@@ -104,7 +104,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
   }
 
   get list(): string[] {
-    const items = this.value.value || [];
+    const items = this.value.value ?? [];
     return _.cloneDeep(items.map(item => item.value));
   }
 }

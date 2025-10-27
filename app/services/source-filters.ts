@@ -136,7 +136,7 @@ export class SourceFiltersService extends Service {
     settings?: Dictionary<TObsValue>,
   ) {
     const source = this.sourcesService.getSource(sourceId);
-    const obsFilter = obs.FilterFactory.create(filterType, filterName, settings || {});
+    const obsFilter = obs.FilterFactory.create(filterType, filterName, settings ?? {});
 
     const obsSource = source.getObsInput();
     obsSource.addFilter(obsFilter);
@@ -182,7 +182,7 @@ export class SourceFiltersService extends Service {
           name: obsFilter.name,
           type: obsFilter.id as TSourceFilterType,
           settings: obsFilter.settings,
-        })) || []
+        })) ?? []
     );
   }
 
@@ -253,7 +253,7 @@ export class SourceFiltersService extends Service {
     const sourceDisplayName = this.sourcesService.getSource(sourceId).name;
     this.windowsService.showWindow({
       componentName: 'SourceFilters',
-      title: $t('sources.layerFilters') + ' (' + sourceDisplayName + ')',
+      title: `${$t('sources.layerFilters')} (${sourceDisplayName})`,
       queryParams: { sourceId, selectedFilterName },
       size: {
         width: 800,

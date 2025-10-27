@@ -251,7 +251,7 @@ export default class StudioEditor extends Vue {
       this.dragHandler.move(event);
     } else if (event.buttons === 1) {
       // We might need to start dragging
-      const sourcesInPriorityOrder = _.compact(this.activeSources.concat(this.sceneItems));
+      const sourcesInPriorityOrder = _.compact([...this.activeSources, ...this.sceneItems]);
 
       const overSource = sourcesInPriorityOrder.find(source => {
         return this.isOverSource(event, source);
@@ -493,7 +493,7 @@ export default class StudioEditor extends Vue {
     let regions: IResizeRegion[] = [];
 
     this.selectionService.getItems().forEach(item => {
-      regions = regions.concat(this.generateResizeRegionsForItem(item));
+      regions = [...regions, ...this.generateResizeRegionsForItem(item)];
     });
 
     return regions;
