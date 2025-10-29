@@ -78,6 +78,7 @@
         ></label>
       </div>
       <p class="section-notice-text">{{ commentSectionNotice2 }}</p>
+      <!---
       <div class="input-container">
         <div class="input-wrapper">
           <div class="row">
@@ -88,6 +89,7 @@
           </div>
         </div>
       </div>
+    -->
       <div v-if="commentEnabled">
         <ObsListInput v-model="commentSizeModel" />
         <ObsListInput v-model="commentPositionModel" />
