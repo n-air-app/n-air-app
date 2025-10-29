@@ -214,7 +214,7 @@ export class ObsImporterService extends Service {
               sourceJSON.settings,
               {
                 propertiesManager,
-                channel: sourceJSON.channel !== 0 ? sourceJSON.channel : void 0,
+                channel: sourceJSON.channel !== 0 ? sourceJSON.channel : undefined,
               },
             );
 

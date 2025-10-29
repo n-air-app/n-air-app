@@ -118,14 +118,16 @@ export type TSourceType =
 export type TSelectableSourceType =
   | TSourceType
   | 'near' // 登録後は browser_source
-  | 'text_transcription'; // 登録後は text_gdiplus
+  | 'text_transcription' // 登録後は text_gdiplus
+  | 'ffmpeg_source_replay'; // 登録後は ffmpeg_source
 
 // Register new properties manager here
 export type TPropertiesManager =
   | 'default'
   | 'nvoice-character'
   | 'custom-cast-ndi'
-  | 'text_transcription';
+  | 'text_transcription'
+  | 'replay';
 
 export function isNoAudioPropertiesManagerType(propertiesManagerType: TPropertiesManager): boolean {
   return ['nvoice-character'].includes(propertiesManagerType);

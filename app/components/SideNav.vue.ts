@@ -94,6 +94,10 @@ export default class SideNav extends Vue {
     return EDismissable.InitialHelpTip;
   }
 
+  get CompactModeToggleHelpTipDismissable() {
+    return EDismissable.CompactModeToggleHelpTip;
+  }
+
   openHelp() {
     remote.shell.openExternal('https://qa.nicovideo.jp/faq/show/11857?site_domain=default');
   }

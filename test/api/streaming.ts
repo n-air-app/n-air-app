@@ -38,7 +38,7 @@ test('Streaming to server via API', async t => {
 
   let streamingStatus = streamingService.getModel().streamingStatus;
 
-  streamingService.streamingStatusChange.subscribe(() => void 0);
+  streamingService.streamingStatusChange.subscribe(() => undefined);
 
   t.is(streamingStatus, EStreamingState.Offline);
 
@@ -74,7 +74,7 @@ test('Recording via API', async (t: TExecutionContext) => {
 
   let recordingStatus = streamingService.getModel().recordingStatus;
 
-  streamingService.recordingStatusChange.subscribe(() => void 0);
+  streamingService.recordingStatusChange.subscribe(() => undefined);
 
   t.is(recordingStatus, ERecordingState.Offline);
 

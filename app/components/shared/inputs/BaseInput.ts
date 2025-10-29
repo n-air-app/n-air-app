@@ -39,7 +39,7 @@ export class BaseInput<TValueType, TMetadataType extends IInputMetadata> extends
     getKeys(validations).forEach(key => {
       // VeeValidate recognizes undefined values as valid constraints
       // so just remove it
-      if (validations[key] === void 0) delete validations[key];
+      if (validations[key] === undefined) delete validations[key];
     });
     return validations;
   }

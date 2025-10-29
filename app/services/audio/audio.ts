@@ -6,7 +6,8 @@ import {
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
 import { omit } from 'lodash';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { merge, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
@@ -57,6 +58,27 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   @Inject() private windowsService: WindowsService;
 
   protected init() {
+    (() => {
+      // Debug logging: log audio devices 1 second after audio source changes
+      const audioSourceAdded = this.sourcesService.sourceAdded.pipe(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        filter(sourceModel => {
+          const source = this.sourcesService.getSource(sourceModel.sourceId);
+          return source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
+        }),
+      );
+      const audioSourceRemoved = this.sourcesService.sourceRemoved.pipe(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        filter(source => source.audio),
+      );
+
+      merge(audioSourceAdded, this.audioSourceUpdated, audioSourceRemoved)
+        .pipe(debounceTime(1000))
+        .subscribe(() => {
+          console.log('[AudioService] Audio devices:', this.getDevices());
+        });
+    })(); // DEBUG
+
     this.sourcesService.sourceAdded.subscribe(sourceModel => {
       const source = this.sourcesService.getSource(sourceModel.sourceId);
       const useAudio =
@@ -83,15 +105,21 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
       if (!audioSource && useAudio) {
         this.createAudioSource(this.sourcesService.getSource(source.sourceId));
+        return;
       }
 
       if (audioSource && !useAudio) {
         this.removeAudioSource(source.sourceId);
+        return;
       }
+
+      this.audioSourceUpdated.next(this.state.audioSources[source.sourceId]);
     });
 
     this.sourcesService.sourceRemoved.subscribe(source => {
-      if (source.audio) this.removeAudioSource(source.sourceId);
+      if (source.audio) {
+        this.removeAudioSource(source.sourceId);
+      }
     });
   }
 
@@ -107,11 +135,42 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   getSource(sourceId: string): AudioSource {
-    return this.state.audioSources[sourceId] ? new AudioSource(sourceId) : void 0;
+    return this.state.audioSources[sourceId] ? new AudioSource(sourceId) : undefined;
   }
 
   getSources(): AudioSource[] {
     return Object.keys(this.state.audioSources).map(sourceId => this.getSource(sourceId));
+  }
+
+  /**
+   * Get AudioSource by WASAPI device ID
+   * @param deviceId WASAPI device ID (from getDevices()[].id)
+   * @param isDefault If true, also matches when device_id is 'default' (user selected system default)
+   * @returns AudioSource if found, undefined otherwise
+   */
+  getSourceByDeviceId(deviceId: string, isDefault = false): AudioSource | undefined {
+    if (!deviceId) {
+      return undefined;
+    }
+
+    // Find AudioSource with matching device_id
+    const audioSources = this.getSources();
+    for (const audioSource of audioSources) {
+      try {
+        const obsInput = audioSource.source.getObsInput();
+        const obsDeviceId = obsInput?.settings?.device_id;
+        if (obsDeviceId === deviceId) {
+          return audioSource;
+        }
+        // If isDefault is true, also match when device_id is 'default'
+        if (isDefault && obsDeviceId === 'default') {
+          return audioSource;
+        }
+      } catch (err) {
+        // Ignore errors when getting obsInput
+      }
+    }
+    return undefined;
   }
 
   getSourcesForCurrentScene(): AudioSource[] {
@@ -135,7 +194,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
     const globalSources = this.sourcesService
       .getSources()
-      .filter(source => source.channel !== void 0);
+      .filter(source => source.channel !== undefined);
     return globalSources
       .concat(sceneSources)
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
@@ -226,7 +285,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const newPatch = omit(patch, 'fader');
 
     getKeys(newPatch).forEach(name => {
-      if (newPatch[name] === void 0) return;
+      if (newPatch[name] === undefined) return;
 
       if (name === 'syncOffset') {
         const value = newPatch[name];
