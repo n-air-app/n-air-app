@@ -67,6 +67,18 @@
       <p v-if="activeStatus === 'active'">{{ previewText || '--' }}</p>
       <p class="disabled-reason" v-else>{{ disabledReason }}</p>
     </div>
+    <div class="section">
+      <div class="input-label section-heading">
+        <label>{{ $t('settings.transcription.addSourceSection.title') }}</label>
+      </div>
+      <a
+        class="button button--secondary"
+        @click="addTranscriptionSourceToActiveScene"
+        :disabled="transcriptionSourceInActiveScene"
+      >
+        {{ $t('settings.transcription.addSourceSection.add') }}
+      </a>
+    </div>
     <div class="section" v-if="isNiconicoLoggedIn">
       <div class="input-label section-heading">
         <label>
@@ -78,7 +90,6 @@
         ></label>
       </div>
       <p class="section-notice-text">{{ commentSectionNotice2 }}</p>
-      <!---
       <div class="input-container">
         <div class="input-wrapper">
           <div class="row">
@@ -89,7 +100,6 @@
           </div>
         </div>
       </div>
-    -->
       <div v-if="commentEnabled">
         <ObsListInput v-model="commentSizeModel" />
         <ObsListInput v-model="commentPositionModel" />

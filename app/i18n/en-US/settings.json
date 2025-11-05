@@ -867,6 +867,10 @@
     },
     "addSource": {
       "notActive": "To display automatically transcribed text, please add the source and enable automatic transcription in the settings."
+    },
+    "addSourceSection": {
+      "title": "Automatic Transcription Source",
+      "add": "Add to Active Scene"
     }
   }
 }

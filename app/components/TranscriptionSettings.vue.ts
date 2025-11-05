@@ -26,6 +26,8 @@ import {
   VoskModelStatus,
   voskModelStatusToString,
 } from 'services/transcription/transcription';
+import { TranscriptionSourceService } from 'services/transcription/transcription-source';
+import { TranscriptionSourceUsageService } from 'services/transcription/transcription-source-usage';
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
@@ -41,6 +43,8 @@ import { Component } from 'vue-property-decorator';
 export default class TranscriptionSettings extends Vue {
   @Inject() transcriptionService: TranscriptionService;
   @Inject() userService: UserService;
+  @Inject() private transcriptionSourceUsageService: TranscriptionSourceUsageService;
+  @Inject() private transcriptionSourceService: TranscriptionSourceService;
 
   isNiconicoLoggedIn(): boolean {
     return this.userService.isNiconicoLoggedIn();
@@ -82,9 +86,12 @@ export default class TranscriptionSettings extends Vue {
     });
     this.activeStatus = this.transcriptionService.activeStatus();
     this.transcriptionService.updateAudioDevices();
+
+    this.subscribeTranscriptionSourceUsage();
   }
 
   beforeDestroy() {
+    this.unsubscribeTranscriptionSourceUsage();
     this.activeStatusSubscription.unsubscribe();
     this.textSubscription.unsubscribe();
     this.modelStatusSubscription.unsubscribe();
@@ -126,6 +133,21 @@ export default class TranscriptionSettings extends Vue {
         }
       }
     }
+  }
+
+  transcriptionSourceInActiveSceneSubscription: Subscription;
+  transcriptionSourceInActiveScene: boolean = false;
+  subscribeTranscriptionSourceUsage() {
+    this.transcriptionSourceUsageService.state$.subscribe(state => {
+      this.transcriptionSourceInActiveScene = state.existsInActiveScene;
+    });
+  }
+  unsubscribeTranscriptionSourceUsage() {
+    this.transcriptionSourceInActiveSceneSubscription.unsubscribe();
+  }
+
+  addTranscriptionSourceToActiveScene(): void {
+    this.transcriptionSourceService.addTextTranscriptionSourceToActiveScene();
   }
 
   // vosk model をひとつでもダウンロードしているならtrue

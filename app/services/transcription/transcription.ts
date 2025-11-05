@@ -106,7 +106,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
-    commentEnabled: true,
+    commentEnabled: false,
     commentPosition: 'shita',
     commentFont: 'gothic',
     commentSize: 'medium',
@@ -340,7 +340,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       commentVposOffset: state.commentVposOffset,
       textFileMaxLine: state.textFileMaxLine,
       textFileLineTimeToLive: state.textFileLineTimeToLive,
-      transcriptionSourceUsed: this.transcriptionSourceUsageService?.state.used || false,
+      transcriptionSourceUsed:
+        this.transcriptionSourceUsageService?.state.existsInActiveScene || false,
     };
   }
 
