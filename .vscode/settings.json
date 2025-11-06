@@ -170,6 +170,8 @@
   },
 
   "typescript.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
 
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {

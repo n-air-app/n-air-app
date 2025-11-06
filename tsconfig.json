@@ -10,7 +10,7 @@
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "outDir": "bundles/ts",
+    "outDir": "dist/tsc-out",
     "sourceMap": true,
     "sourceRoot": "/",
     "allowJs": false,
@@ -18,6 +18,7 @@
     "downlevelIteration": true,
     "baseUrl": "./app",
     "jsx": "preserve",
+    "skipLibCheck": true,
 
     "alwaysStrict": true,
     "noImplicitAny": true,
@@ -28,6 +29,6 @@
     "strictPropertyInitialization": false,
     "useUnknownInCatchVariables": true
   },
-  "exclude": ["node_modules"],
-  "include": ["./app/**/*"]
+  "exclude": ["node_modules", "**/*.vue"],
+  "include": ["./app/**/*.ts", "./app/**/*.tsx", "./app/**/*.d.ts"]
 }
