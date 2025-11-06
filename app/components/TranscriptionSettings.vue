@@ -2,7 +2,7 @@
   <div class="setting-section">
     <div class="section">
       <div class="input-label section-heading">
-        <label>自動文字起こし</label>
+        <label>{{ $t('settings.transcription.name') }}</label>
       </div>
       <div class="input-container">
         <div class="input-wrapper">
