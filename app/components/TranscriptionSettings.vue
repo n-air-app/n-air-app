@@ -15,7 +15,7 @@
         </div>
       </div>
       <p
-        class="section-notice-text"
+        class="warning"
         v-if="enabled && !commentEnabled && !transcriptionSourceInActiveScene"
       >
         {{ $t('settings.transcription.warningNoOutput') }}
@@ -106,7 +106,7 @@
           </div>
         </div>
       </div>
-      <p class="section-notice-text error" v-if="commentEnabled && transcriptionSourceInActiveScene">
+      <p class="warning" v-if="commentEnabled && transcriptionSourceInActiveScene">
         {{ $t('settings.transcription.warningBothActive') }}
       </p>
       <div v-if="commentEnabled">
@@ -155,6 +155,15 @@
 
 p.error {
   color: var(--color-error);
+}
+
+.warning {
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-size: @font-size4;
+  color: var(--color-caution-primary);
+  background-color: color-mix(in srgb, var(--color-caution-primary) 15%, transparent);
+  border-radius: 4px;
 }
 
 .action-buttons {
