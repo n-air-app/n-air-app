@@ -761,6 +761,8 @@
       "afterLink": "for detailed information about the features."
     },
     "enable": "Enable automatic transcription",
+    "warningBothActive": "Enabling both comment posting and transcription source will cause comments to appear duplicated.",
+    "warningNoOutput": "To use transcription results, please enable comment posting or add a transcription source.",
     "voskModel": "Voice recognition model",
     "voskModels": {
       "vosk-model-ja-0.22": "VOSK Japanese (1GB) 0.22",

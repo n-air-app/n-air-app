@@ -14,6 +14,12 @@
           </div>
         </div>
       </div>
+      <p
+        class="section-notice-text"
+        v-if="enabled && !commentEnabled && !transcriptionSourceInActiveScene"
+      >
+        {{ $t('settings.transcription.warningNoOutput') }}
+      </p>
       <p class="section-notice-text">
         {{ $t('settings.transcription.help.beforeLink') }}
         <a class="link--underline" @click="openHelp">{{
@@ -100,6 +106,9 @@
           </div>
         </div>
       </div>
+      <p class="section-notice-text error" v-if="commentEnabled && transcriptionSourceInActiveScene">
+        {{ $t('settings.transcription.warningBothActive') }}
+      </p>
       <div v-if="commentEnabled">
         <ObsListInput v-model="commentSizeModel" />
         <ObsListInput v-model="commentPositionModel" />
