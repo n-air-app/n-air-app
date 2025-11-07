@@ -14,10 +14,7 @@
           </div>
         </div>
       </div>
-      <p
-        class="warning"
-        v-if="enabled && !commentEnabled && !transcriptionSourceInActiveScene"
-      >
+      <p class="warning" v-if="enabled && !commentEnabled && !transcriptionSourceInActiveScene">
         {{ $t('settings.transcription.warningNoOutput') }}
       </p>
       <p class="section-notice-text">
@@ -77,13 +74,13 @@
       <div class="input-label section-heading">
         <label>{{ $t('settings.transcription.addSourceSection.title') }}</label>
       </div>
-      <a
+      <button
         class="button button--secondary"
         @click="addTranscriptionSourceToActiveScene"
         :disabled="transcriptionSourceInActiveScene"
       >
         {{ $t('settings.transcription.addSourceSection.add') }}
-      </a>
+      </button>
     </div>
     <div class="section" v-if="isNiconicoLoggedIn">
       <div class="input-label section-heading">
