@@ -853,6 +853,11 @@ function initialize(crashHandler) {
   ipcMain.on('window-closeChildWindow', event => {
     // never close the child window, hide it instead
     if (childWindow.isDestroyed()) return;
+
+    // ウィンドウの状態をリセット（次回の再利用時のために）
+    childWindow.setMinimumSize(0, 0);
+    childWindow.setResizable(true);
+
     childWindow.hide();
   });
 
