@@ -141,6 +141,7 @@ export default class TranscriptionSettings extends Vue {
     this.transcriptionSourceInActiveSceneSubscription = this.transcriptionSourceUsageService.state$.subscribe(state => {
       this.transcriptionSourceInActiveScene = state.existsInActiveScene;
     });
+    this.transcriptionSourceInActiveScene = this.transcriptionSourceUsageService.state.existsInActiveScene;
   }
   unsubscribeTranscriptionSourceUsage() {
     this.transcriptionSourceInActiveSceneSubscription?.unsubscribe();
