@@ -10,6 +10,7 @@ export default class TextTranscriptionProperties extends Vue {
   @Inject() settingsService: SettingsService;
 
   get isTranscriptionEnabled(): boolean {
+    // 設定画面とこの画面はテレコなのでon/offタイミングでこの画面は出ていないため現状subscriptionまでは不要
     return this.transcriptionService.state.enabled ?? false;
   }
 
