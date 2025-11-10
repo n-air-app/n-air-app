@@ -810,10 +810,13 @@ function initialize(crashHandler) {
           });
         }
 
-        childWindow.setMinimumSize(windowOptions.size.width, windowOptions.size.height);
         childWindow.setResizable(windowOptions.resizable !== false);
-
         childWindow.show();
+
+        // setBounds の適用後に最小サイズを設定（遅延させることで確実に反映）
+        setTimeout(() => {
+          childWindow.setMinimumSize(windowOptions.size.width, windowOptions.size.height);
+        }, 10);
       } catch (err) {
         console.log('Recovering from error:', err);
 
