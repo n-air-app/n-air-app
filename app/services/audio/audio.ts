@@ -6,7 +6,7 @@ import {
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
 import { omit } from 'lodash';
-import { merge, Observable, Subject, Subscription } from 'rxjs';
+import { merge, Subject, Subscription } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
@@ -40,7 +40,7 @@ interface IAudioSourceData {
   fader?: obs.IFader;
   volmeter?: obs.IVolmeter;
   callbackInfo?: obs.ICallbackData;
-  stream?: Observable<IVolmeter>;
+  stream?: Subject<IVolmeter>;
 }
 
 @InitAfter('SourcesService')
@@ -133,7 +133,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       if (!info.peak.length) return; // 不要なコールバックを無視
       const source = this.getSource(info.sourceName);
       if (!source) return;
-      const stream = this.sourceData[info.sourceName]?.stream as Subject<IVolmeter>;
+      const stream = this.sourceData[info.sourceName]?.stream;
       if (!stream) return;
 
       const volmeter: IVolmeter = info;
