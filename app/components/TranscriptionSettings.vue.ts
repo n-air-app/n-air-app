@@ -138,12 +138,12 @@ export default class TranscriptionSettings extends Vue {
   transcriptionSourceInActiveSceneSubscription: Subscription;
   transcriptionSourceInActiveScene: boolean = false;
   subscribeTranscriptionSourceUsage() {
-    this.transcriptionSourceUsageService.state$.subscribe(state => {
+    this.transcriptionSourceInActiveSceneSubscription = this.transcriptionSourceUsageService.state$.subscribe(state => {
       this.transcriptionSourceInActiveScene = state.existsInActiveScene;
     });
   }
   unsubscribeTranscriptionSourceUsage() {
-    this.transcriptionSourceInActiveSceneSubscription.unsubscribe();
+    this.transcriptionSourceInActiveSceneSubscription?.unsubscribe();
   }
 
   addTranscriptionSourceToActiveScene(): void {
