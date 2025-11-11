@@ -266,6 +266,30 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       const itemList = loadErrors.map(err => `- ${err.name} (${err.type})`).join('\n');
       console.error('Partial load errors:', loadErrors);
 
+      // Send partial load errors to Sentry for monitoring
+      const errorsByType = loadErrors.reduce<Record<string, number>>((acc, err) => {
+        acc[err.type] = (acc[err.type] || 0) + 1;
+        return acc;
+      }, {});
+
+      Sentry.withScope(scope => {
+        scope.setLevel('warning');
+        scope.setTag('service', 'SceneCollectionsService');
+        scope.setTag('method', 'load');
+        scope.setTag('collectionId', id);
+        scope.setTag('errorCount', loadErrors.length.toString());
+        scope.setContext('errorsByType', errorsByType);
+        scope.setContext('failedItems', {
+          items: loadErrors.map(err => ({
+            type: err.type,
+            id: err.id,
+            name: err.name,
+            error: err.error instanceof Error ? err.error.message : String(err.error),
+          })),
+        });
+        Sentry.captureMessage('Scene collection loaded with partial errors', 'warning');
+      });
+
       remote.dialog.showMessageBoxSync({
         type: 'warning',
         title: $t('scenes.partialLoadWarningTitle'),
