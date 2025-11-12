@@ -1,15 +1,9 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20251029-unstable.1',
-  title: '1.1.20251029-unstable.1',
+  version: '1.1.20251112-unstable.1',
+  title: '1.1.20251112-unstable.1',
   notes: [
-    "改善: ミキサーのマイクのミュートで自動文字起こしを停止する(自動文字起こしの入力デバイスに一致する場合) (#981) by koizuka",
-    "改善: 琴詠ニアが時々微笑み顔になる (#998) by koizuka",
-    "改善: ミキサーの音量メーターの負荷軽減 (#991) by asaday",
-    "追加: 「リプレイ録画の再生」ソースを追加 (#979) by asaday",
-    "追加: コンパクトモード解除ボタンにヘルプTipを追加 (#990) by koizuka",
-    "修正: PCゲームキャプチャ 自動モードが動作していなかったのを修正 (#969) by asaday",
-    "修正: Webカメラ/映像入力機器ソースの説明文の誤字を修正 (#982) by koizuka",
+    "改善: 内蔵OBSを 29.1 から 30(obs-studio-node 0.25.56) に更新 (#992) by asaday",
   ]
 };
