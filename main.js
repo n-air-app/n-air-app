@@ -264,14 +264,6 @@ function initialize(crashHandler) {
   const logFile = path.join(app.getPath('userData'), 'app.log');
   const maxLogBytes = 131072;
 
-  // 起動速度改善: ログファイル切り詰めは app.on('ready') 後に実行
-  // Truncate the log file if it is too long
-  // if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
-  //   const content = fs.readFileSync(logFile);
-  //   fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
-  //   fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
-  // }
-
   ipcMain.on('logmsg', (e, msg) => {
     logFromRemote(msg.level, msg.sender, msg.message);
   });
@@ -793,7 +785,7 @@ function initialize(crashHandler) {
     createSplashWindow();
 
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
-    setImmediate(() => {
+    setTimeout(() => {
       // DevTools Extensions削除
       rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
 
@@ -803,16 +795,16 @@ function initialize(crashHandler) {
         fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
         fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
       }
-    });
+    }, 0);
 
     // スプラッシュ表示を確実にするため、Updaterを少し遅延起動
-    setImmediate(() => {
+    setTimeout(() => {
       if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
         new Updater(startApp).run();
       } else {
         startApp();
       }
-    });
+    }, 0);
   });
 
   ipcMain.on('openDevTools', () => {
