@@ -112,11 +112,11 @@ export default class TranscriptionSettings extends Vue {
   get enabled(): boolean {
     return this.transcriptionService.state.enabled ?? false;
   }
-  set enabled(model: boolean) {
+  set enabled(enable: boolean) {
     const lastEnabled = this.transcriptionService.state.enabled ?? false;
-    this.transcriptionService.setEnabled(model);
-    if (!lastEnabled && model) {
-      // もし、有効化したときにモデルをひとつもダウンロードしていない場合、ダウンローすすることを確認してモデル(small)をだダウンロード開始する
+    this.transcriptionService.setEnabled(enable);
+    if (!lastEnabled && enable) {
+      // もし、有効化したときにモデルをひとつもダウンロードしていない場合、ダウンロードすることを確認してモデル(small)をだダウンロード開始する
       if (!this.hasAtLeastOneVoskModelDownloaded) {
         if (
           remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
@@ -132,16 +132,44 @@ export default class TranscriptionSettings extends Vue {
           this.transcriptionService.startDownloadVoskModel(VOSK_MODEL_NAMES[0]);
         }
       }
+
+      // 出力先チェック: 文字起こしソースがシーンにある、またはニコニコログイン中かつコメント投稿on
+      const hasOutputDestination =
+        this.transcriptionSourceInActiveScene ||
+        (this.isNiconicoLoggedIn() && this.commentEnabled);
+
+      if (!hasOutputDestination) {
+        // ニコニコログイン中の場合はコメント投稿の選択肢も紹介する
+        const detailKey = this.isNiconicoLoggedIn()
+          ? 'settings.transcription.addOutputDestinationConfirm.detailWithComment'
+          : 'settings.transcription.addOutputDestinationConfirm.detail';
+
+        if (
+          remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+            type: 'question',
+            buttons: [$t('common.yes'), $t('common.later')],
+            defaultId: 0,
+            cancelId: 1,
+            message: $t('settings.transcription.addOutputDestinationConfirm.message'),
+            detail: $t(detailKey),
+            noLink: true,
+          }) === 0
+        ) {
+          this.addTranscriptionSourceToActiveScene();
+        }
+      }
     }
   }
 
   transcriptionSourceInActiveSceneSubscription: Subscription;
   transcriptionSourceInActiveScene: boolean = false;
   subscribeTranscriptionSourceUsage() {
-    this.transcriptionSourceInActiveSceneSubscription = this.transcriptionSourceUsageService.state$.subscribe(state => {
-      this.transcriptionSourceInActiveScene = state.existsInActiveScene;
-    });
-    this.transcriptionSourceInActiveScene = this.transcriptionSourceUsageService.state.existsInActiveScene;
+    this.transcriptionSourceInActiveSceneSubscription =
+      this.transcriptionSourceUsageService.state$.subscribe(state => {
+        this.transcriptionSourceInActiveScene = state.existsInActiveScene;
+      });
+    this.transcriptionSourceInActiveScene =
+      this.transcriptionSourceUsageService.state.existsInActiveScene;
   }
   unsubscribeTranscriptionSourceUsage() {
     this.transcriptionSourceInActiveSceneSubscription?.unsubscribe();
