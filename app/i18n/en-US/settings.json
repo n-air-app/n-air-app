@@ -859,8 +859,8 @@
     },
     "addOutputDestinationConfirm": {
       "message": "Add automatic transcription source to the current scene?",
-      "detail": "Let's set up how to display transcription results. By adding an automatic transcription source to the current scene, you can display transcription results on screen.",
-      "detailWithComment": "Let's set up how to display transcription results. By adding an automatic transcription source to the current scene, you can display transcription results on screen.\n\nAlternatively, you can enable comment posting for Niconico live streaming to display results as comments."
+      "detail": "If you press [Yes], an automatic transcription source will be added to the current scene and transcription results will be displayed on screen (recommended).",
+      "detailWithComment": "If you press [Yes], an automatic transcription source will be added to the current scene and transcription results will be displayed on screen (recommended).\nIf you don't add the source, you can also enable comment posting for Niconico live streaming to display results as comments."
     },
     "disabledReason": {
       "disabled": "Automatic transcription is disabled.",
