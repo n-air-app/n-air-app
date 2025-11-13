@@ -255,20 +255,22 @@ function initialize(crashHandler) {
   // Main Program
   ////////////////////////////////////////////////////////////////////////////////
 
+  // 起動速度改善: 重い同期処理は app.on('ready') 後に実行
   // workaround for  https://github.com/electron/electron/issues/19468, https://github.com/electron/electron/issues/19978
   // (Electron 6 to 8 does not launch in Win10 dark mode with DevTool extensions installed)
-  rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
+  // rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
 
   const util = require('util');
   const logFile = path.join(app.getPath('userData'), 'app.log');
   const maxLogBytes = 131072;
 
+  // 起動速度改善: ログファイル切り詰めは app.on('ready') 後に実行
   // Truncate the log file if it is too long
-  if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
-    const content = fs.readFileSync(logFile);
-    fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
-    fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
-  }
+  // if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
+  //   const content = fs.readFileSync(logFile);
+  //   fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
+  //   fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
+  // }
 
   ipcMain.on('logmsg', (e, msg) => {
     logFromRemote(msg.level, msg.sender, msg.message);
@@ -512,6 +514,9 @@ function initialize(crashHandler) {
     console.log('Sentry disabled, SENTRY_DSN = ', sentryDefs.DSN);
   }
 
+  // Import splash window functions
+  const { createSplashWindow, closeSplashWindow } = require('./splash-window');
+
   // eslint-disable-next-line no-inner-declarations
   async function startApp() {
     if (process.argv.includes('--clearCookies')) {
@@ -577,6 +582,7 @@ function initialize(crashHandler) {
       height: mainWindowState.height,
       show: false,
       frame: false,
+      backgroundColor: '#17242D',
       title: process.env.NAIR_PRODUCT_NAME,
       ...(mainWindowIsVisible
         ? {
@@ -608,6 +614,17 @@ function initialize(crashHandler) {
       },
       isDevMode ? LOAD_DELAY : 0,
     );
+
+    // Close splash when main window content is loaded
+    mainWindow.webContents.once('did-finish-load', () => {
+      if (mainWindowIsVisible) {
+        // Give Vue a moment to render before showing
+        setTimeout(() => {
+          mainWindow.show();
+          closeSplashWindow();
+        }, 100);
+      }
+    });
 
     mainWindow.on('close', e => {
       if (!shutdownStarted) {
@@ -772,11 +789,30 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
-    if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
-      new Updater(startApp).run();
-    } else {
-      startApp();
-    }
+    // Show splash window immediately
+    createSplashWindow();
+
+    // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
+    setImmediate(() => {
+      // DevTools Extensions削除
+      rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
+
+      // ログファイル切り詰め
+      if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
+        const content = fs.readFileSync(logFile);
+        fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
+        fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
+      }
+    });
+
+    // スプラッシュ表示を確実にするため、Updaterを少し遅延起動
+    setImmediate(() => {
+      if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
+        new Updater(startApp).run();
+      } else {
+        startApp();
+      }
+    });
   });
 
   ipcMain.on('openDevTools', () => {
