@@ -129,6 +129,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private textSubject$ = new Subject<TimestampedText>();
   private partialSubject$ = new Subject<string>();
   private removeLineSubject$ = new Subject<void>();
+  private initializeTextSubject$ = new Subject<void>();
   private linesSubject$ = new BehaviorSubject<{ texts: string[]; partial: string }>({
     texts: [],
     partial: '',
@@ -345,6 +346,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     };
   }
 
+  initializeText() {
+    this.initializeTextSubject$.next();
+  }
+
   startStreaming() {
     this.transcriptionSourceUsageService?.startStreaming();
   }
@@ -369,6 +374,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.partialSubject$.pipe(map(partial => ({ type: 'partial' as const, payload: partial }))),
       this.textSubject$.pipe(map(text => ({ type: 'text' as const, payload: text.text }))),
       this.removeLineSubject$.pipe(map(() => ({ type: 'remove_line' as const }))),
+      this.initializeTextSubject$.pipe(map(() => ({ type: 'initialize' as const }))),
     )
       .pipe(
         scan((acc, action) => {
@@ -392,6 +398,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
               }
               newTexts.shift();
               return { ...acc, texts: newTexts };
+            }
+            case 'initialize': {
+              return { texts: [$t('settings.transcription.placeholder')], partial: '' };
             }
           }
         }, this.linesSubject$.getValue()),

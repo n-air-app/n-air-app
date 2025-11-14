@@ -878,6 +878,7 @@
     "addSourceSection": {
       "title": "Automatic Transcription Source",
       "add": "Add to Active Scene"
-    }
+    },
+    "placeholder": "[Transcription results will be displayed here]"
   }
 }

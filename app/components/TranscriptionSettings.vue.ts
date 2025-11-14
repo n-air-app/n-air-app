@@ -158,6 +158,9 @@ export default class TranscriptionSettings extends Vue {
           this.addTranscriptionSourceToActiveScene();
         }
       }
+
+      // Initialize placeholder text
+      this.transcriptionService.initializeText();
     }
   }
 
