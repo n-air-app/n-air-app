@@ -93,6 +93,13 @@ export interface ISaveSettingsData {
   }[];
 }
 
+export interface IObsVolmeterCallbackInfo {
+  sourceName: string;
+  magnitude: number[];
+  peak: number[];
+  inputPeak: number[];
+}
+
 export const NodeObs: {
   // https://github.com/stream-labs/obs-studio-node/blob/0.23.59/obs-studio-client/source/nodeobs_api.hpp
   OBS_API_initAPI(
@@ -246,4 +253,6 @@ export const NodeObs: {
   // OBS_settings_getInputAudioDevices(): { description: string; id: string; }[];
   // OBS_settings_getOutputAudioDevices(): { description: string; id: string; }[];
   OBS_settings_getVideoDevices(): { description: string; id: string }[];
+
+  RegisterVolmeterCallback(callback: (objs: IObsVolmeterCallbackInfo[]) => void): void; // from osn 0.24.45
 };
