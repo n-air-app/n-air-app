@@ -278,7 +278,7 @@ export class SourcesNode extends Node<ISchema, {}> {
         this.addLoadError({
           type: 'source',
           id: sourceInfo.id,
-          name: sourceInfo.name,
+          name: `${sourceInfo.name} [${sourceInfo.type}]`,
           error: e instanceof Error ? e : new Error(String(e)),
         });
         Sentry.withScope(scope => {
@@ -354,7 +354,7 @@ export class SourcesNode extends Node<ISchema, {}> {
           this.addLoadError({
             type: 'source',
             id: sourceInfo.id,
-            name: sourceInfo.name,
+            name: `${sourceInfo.name} [${sourceInfo.type}]`,
             error: e instanceof Error ? e : new Error(String(e)),
           });
           Sentry.withScope(scope => {
@@ -364,6 +364,7 @@ export class SourcesNode extends Node<ISchema, {}> {
             scope.setTag('phase', 'configureSource');
             scope.setTag('sourceId', sourceInfo.id);
             scope.setTag('sourceName', sourceInfo.name);
+            scope.setTag('sourceType', sourceInfo.type);
             Sentry.captureException(e);
           });
         }

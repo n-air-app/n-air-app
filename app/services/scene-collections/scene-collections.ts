@@ -263,7 +263,14 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
     // Show partial load errors if any
     if (loadErrors.length > 0) {
-      const itemList = loadErrors.map(err => `- ${err.name} (${err.type})`).join('\n');
+      const sortedLoadErrors = [...loadErrors].sort((a, b) => {
+        if (a.type === b.type) {
+          return a.name.localeCompare(b.name);
+        }
+        return a.type.localeCompare(b.type);
+      });
+
+      const itemList = sortedLoadErrors.map(err => `- ${err.name} (${err.type})`).join('\n');
       console.error('Partial load errors:', loadErrors);
 
       // Send partial load errors to Sentry for monitoring
