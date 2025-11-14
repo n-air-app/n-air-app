@@ -791,8 +791,10 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
-    // Show splash window immediately
-    createSplashWindow();
+    // Show splash window immediately (skip in test environment)
+    if (process.env.NODE_ENV !== 'test') {
+      createSplashWindow();
+    }
 
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
     setTimeout(() => {
