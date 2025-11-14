@@ -792,14 +792,14 @@ function initialize(crashHandler) {
       // should recover by simply setting the size and forgetting
       // about the bounds.
       try {
+        childWindow.restore();
+
+        // 前回の最小サイズ制約をリセット(再利用時に古い制約が残っていると setBounds が効かない)
+        childWindow.setMinimumSize(0, 0);
+
         const bounds = mainWindow.getBounds();
         const childX = bounds.x + bounds.width / 2 - windowOptions.size.width / 2;
         const childY = bounds.y + bounds.height / 2 - windowOptions.size.height / 2;
-
-        childWindow.show();
-        childWindow.restore();
-        childWindow.setMinimumSize(windowOptions.size.width, windowOptions.size.height);
-        childWindow.setResizable(windowOptions.resizable !== false);
 
         if (windowOptions.center) {
           childWindow.setBounds({
@@ -809,6 +809,14 @@ function initialize(crashHandler) {
             height: windowOptions.size.height,
           });
         }
+
+        childWindow.setResizable(windowOptions.resizable !== false);
+        childWindow.show();
+
+        // setBounds の適用後に最小サイズを設定（遅延させることで確実に反映）
+        setTimeout(() => {
+          childWindow.setMinimumSize(windowOptions.size.width, windowOptions.size.height);
+        }, 10);
       } catch (err) {
         console.log('Recovering from error:', err);
 
@@ -848,6 +856,11 @@ function initialize(crashHandler) {
   ipcMain.on('window-closeChildWindow', event => {
     // never close the child window, hide it instead
     if (childWindow.isDestroyed()) return;
+
+    // ウィンドウの状態をリセット（次回の再利用時のために）
+    childWindow.setMinimumSize(0, 0);
+    childWindow.setResizable(true);
+
     childWindow.hide();
   });
 
