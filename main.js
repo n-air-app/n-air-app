@@ -618,7 +618,15 @@ function initialize(crashHandler) {
       }
     });
 
+    // Ensure splash is closed on error
+    mainWindow.webContents.on('did-fail-load', () => {
+      closeSplashWindow();
+    });
+
     mainWindow.on('close', e => {
+      // Ensure splash window is closed when main window closes
+      closeSplashWindow();
+
       if (!shutdownStarted) {
         shutdownStarted = true;
         mainWindow.send('shutdown');
@@ -653,6 +661,8 @@ function initialize(crashHandler) {
     }
 
     mainWindow.on('closed', () => {
+      // Ensure splash window is closed
+      closeSplashWindow();
       require('node-libuiohook').stopHook();
       session.defaultSession.flushStorageData();
       session.defaultSession.cookies.flushStore(() => app.quit());
