@@ -130,7 +130,7 @@ interface ITestRunnerOptions {
 
 const DEFAULT_OPTIONS: ITestRunnerOptions = {
   skipOnboarding: true,
-  restartAppAfterEachTest: true,
+  restartAppAfterEachTest: false,
   implicitTimeout: 1000, // テスト時間短縮のために 2000 -> 1000 にしてみたが、問題が出たら戻す
 } as const;
 
