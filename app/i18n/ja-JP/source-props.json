@@ -216,7 +216,7 @@
     "name": "自動文字起こし",
     "description": "自動文字起こしされたテキストを表示します",
     "properties": {
-      "disabledMessage": "自動文字起こしが無効です、設定で有効にしてください",
+      "disabledMessage": "自動文字起こしが無効です。設定で有効にしてください",
       "openSettings": "設定を開く"
     }
   },
