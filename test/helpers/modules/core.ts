@@ -139,30 +139,33 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
     try {
       await client.switchToWindow(handles[ind]);
       const url = await client.getUrl();
-      console.log(`focusWindow: Checking window ${ind}: ${url}`);
+
+      // Shorten URL for logging (especially data: URLs which are very long)
+      const displayUrl = url.startsWith('data:') ? `data:${url.substring(5, 50)}...` : url;
+      console.log(`focusWindow: Checking window ${ind}: ${displayUrl}`);
 
       // Skip non-app windows (e.g., splash screen with data: URLs, about:blank)
       if (!url || url.startsWith('data:') || url === 'about:blank') {
-        console.log(`focusWindow: Skipping non-app window: ${url}`);
+        console.log(`focusWindow: Skipping non-app window`);
         continue;
       }
 
       // Only process windows that have windowId parameter (app windows)
       if (!url.includes('windowId=')) {
-        console.log(`focusWindow: Skipping window without windowId: ${url}`);
+        console.log(`focusWindow: Skipping window without windowId`);
         continue;
       }
 
       if (typeof winIdOrRegexp === 'string') {
         const winId = winIdOrRegexp;
         if (url.includes(`windowId=${winId}`)) {
-          console.log(`focusWindow: Successfully focused window: ${winId}`);
+          console.log(`focusWindow: ✓ Successfully focused window: ${winId}`);
           return true;
         }
       } else {
         const regex = winIdOrRegexp as RegExp;
         if (url.match(regex)) {
-          console.log(`focusWindow: Successfully focused window matching: ${regex}`);
+          console.log(`focusWindow: ✓ Successfully focused window matching: ${regex}`);
           return true;
         }
       }
@@ -172,7 +175,7 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
       continue;
     }
   }
-  console.log(`focusWindow: Failed to find target window`);
+  console.log(`focusWindow: ✗ Failed to find target window`);
   return false;
 }
 
@@ -181,7 +184,26 @@ export async function focusChild() {
 }
 
 export async function focusMain() {
-  return focusWindow('main');
+  // Retry until main window is available (splash window may be shown initially)
+  const maxRetries = 50; // 5 seconds max (50 * 100ms)
+  const retryDelay = 100;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const success = await focusWindow('main');
+    if (success) {
+      return true;
+    }
+
+    if (attempt < maxRetries) {
+      console.log(`focusMain: Retry ${attempt}/${maxRetries} - waiting for main window...`);
+      await new Promise(resolve => {
+        setTimeout(resolve, retryDelay);
+      });
+    }
+  }
+
+  console.error(`focusMain: Failed to find main window after ${maxRetries} retries`);
+  return false;
 }
 
 export async function closeWindow(winId: string) {

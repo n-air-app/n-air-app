@@ -3,6 +3,12 @@ const { BrowserWindow } = require('electron');
 let splashWindow = null;
 
 function createSplashWindow() {
+  // Close existing splash window if it exists
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.destroy();
+    splashWindow = null;
+  }
+
   splashWindow = new BrowserWindow({
     width: 400,
     height: 300,

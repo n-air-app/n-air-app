@@ -792,6 +792,7 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
+    console.log('app.on(ready) called - creating splash window');
     // Show splash window immediately
     createSplashWindow();
 

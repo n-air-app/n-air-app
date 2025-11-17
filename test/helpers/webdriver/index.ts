@@ -130,7 +130,7 @@ interface ITestRunnerOptions {
 
 const DEFAULT_OPTIONS: ITestRunnerOptions = {
   skipOnboarding: true,
-  restartAppAfterEachTest: false,
+  restartAppAfterEachTest: true,
   implicitTimeout: 1000, // テスト時間短縮のために 2000 -> 1000 にしてみたが、問題が出たら戻す
 } as const;
 
@@ -289,6 +289,8 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
 
     t.context.app = app;
     if (options.restartAppAfterEachTest || !appIsRunning) {
+      // Note: Splash window is always shown unless NAIR_DISABLE_SPLASH is set
+      // focusMain() has retry logic to wait for main window to be available
       await initializeTasks();
       await startApp(t);
     } else {
