@@ -214,7 +214,11 @@
   },
   "text_transcription": {
     "name": "Automatic Transcription Text",
-    "description": "Pre-configured text for automatic transcription"
+    "description": "Pre-configured text for automatic transcription",
+    "properties": {
+      "disabledMessage": "Automatic transcription is disabled, please enable it in settings",
+      "openSettings": "Open Settings"
+    }
   },
   "text (FreeType2)": {
     "name": "Text (FreeType 2)"
