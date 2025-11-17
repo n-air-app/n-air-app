@@ -599,22 +599,20 @@ function initialize(crashHandler) {
     // it allows to start application with clean cache
     // and handle breakpoints on startup
     const LOAD_DELAY = 2000;
-    setTimeout(
-      () => {
-        if (process.env.NAIR_PRODUCTION_DEBUG) openDevTools();
-        mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
-      },
-      isDevMode ? LOAD_DELAY : 0,
-    );
+
+    if (isDevMode && process.env.NAIR_PRODUCTION_DEBUG) {
+      setTimeout(() => {
+        openDevTools();
+      }, LOAD_DELAY);
+    }
+
+    // Load main window immediately
+    mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
 
     // Close splash when main window content is loaded
     mainWindow.webContents.once('did-finish-load', () => {
-      // Always close splash window when content is loaded
-      closeSplashWindow();
-
-      // Always show the window after loading
-      // Give Vue a moment to render before showing
       setTimeout(() => {
+        closeSplashWindow();
         mainWindow.show();
       }, 100);
     });
