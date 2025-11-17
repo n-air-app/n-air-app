@@ -2,7 +2,6 @@ import * as remote from '@electron/remote';
 import { Component, Prop } from 'vue-property-decorator';
 import { IObsPathInputValue, ObsInput, TObsType } from './ObsInput';
 
-// eslint-disable-next-line
 import OpenDialogOptions = Electron.OpenDialogOptions;
 
 @Component

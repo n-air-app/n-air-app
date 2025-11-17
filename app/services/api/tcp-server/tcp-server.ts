@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-undef
 import WritableStream = NodeJS.WritableStream;
 import { IObsInput } from 'components/obs/inputs/ObsInput';
 import crypto from 'crypto';
