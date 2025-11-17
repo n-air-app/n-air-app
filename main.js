@@ -612,8 +612,7 @@ function initialize(crashHandler) {
       // Always close splash window when content is loaded
       closeSplashWindow();
 
-      // In test environment, always show the window for WebDriver
-      if (mainWindowIsVisible || process.env.NODE_ENV === 'test') {
+      if (mainWindowIsVisible) {
         // Give Vue a moment to render before showing
         setTimeout(() => {
           mainWindow.show();
