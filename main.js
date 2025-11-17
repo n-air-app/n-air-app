@@ -612,12 +612,11 @@ function initialize(crashHandler) {
       // Always close splash window when content is loaded
       closeSplashWindow();
 
-      if (mainWindowIsVisible) {
-        // Give Vue a moment to render before showing
-        setTimeout(() => {
-          mainWindow.show();
-        }, 100);
-      }
+      // Always show the window after loading
+      // Give Vue a moment to render before showing
+      setTimeout(() => {
+        mainWindow.show();
+      }, 100);
     });
 
     // Ensure splash is closed on error
@@ -793,7 +792,7 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
-    // Show splash window immediately (skip in test environment)
+    // Show splash window immediately
     createSplashWindow();
 
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）

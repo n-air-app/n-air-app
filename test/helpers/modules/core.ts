@@ -133,33 +133,46 @@ export async function getFocusedWindowId(): Promise<string> {
 export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boolean> {
   const client = await getClient();
   const handles = await client.getWindowHandles();
+  console.log(`focusWindow: Found ${handles.length} window handles`);
+
   for (let ind = 0; ind < handles.length; ind++) {
     try {
       await client.switchToWindow(handles[ind]);
       const url = await client.getUrl();
+      console.log(`focusWindow: Checking window ${ind}: ${url}`);
 
       // Skip non-app windows (e.g., splash screen with data: URLs, about:blank)
       if (!url || url.startsWith('data:') || url === 'about:blank') {
+        console.log(`focusWindow: Skipping non-app window: ${url}`);
         continue;
       }
 
       // Only process windows that have windowId parameter (app windows)
       if (!url.includes('windowId=')) {
+        console.log(`focusWindow: Skipping window without windowId: ${url}`);
         continue;
       }
 
       if (typeof winIdOrRegexp === 'string') {
         const winId = winIdOrRegexp;
-        if (url.includes(`windowId=${winId}`)) return true;
+        if (url.includes(`windowId=${winId}`)) {
+          console.log(`focusWindow: Successfully focused window: ${winId}`);
+          return true;
+        }
       } else {
         const regex = winIdOrRegexp as RegExp;
-        if (url.match(regex)) return true;
+        if (url.match(regex)) {
+          console.log(`focusWindow: Successfully focused window matching: ${regex}`);
+          return true;
+        }
       }
     } catch (e) {
       // Window may have been closed during iteration, skip it
+      console.log(`focusWindow: Error switching to window ${ind}:`, e.message);
       continue;
     }
   }
+  console.log(`focusWindow: Failed to find target window`);
   return false;
 }
 
