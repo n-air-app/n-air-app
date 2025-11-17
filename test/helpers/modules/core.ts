@@ -184,26 +184,15 @@ export async function focusChild() {
 }
 
 export async function focusMain() {
-  // Retry until main window is available (splash window may be shown initially)
-  const maxRetries = 50; // 5 seconds max (50 * 100ms)
-  const retryDelay = 100;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const success = await focusWindow('main');
-    if (success) {
-      return true;
-    }
-
-    if (attempt < maxRetries) {
-      console.log(`focusMain: Retry ${attempt}/${maxRetries} - waiting for main window...`);
-      await new Promise(resolve => {
-        setTimeout(resolve, retryDelay);
-      });
-    }
+  // Try once, if fails wait briefly and retry (splash window may still be visible)
+  let success = await focusWindow('main');
+  if (!success) {
+    await new Promise(resolve => {
+      setTimeout(resolve, 300);
+    });
+    success = await focusWindow('main');
   }
-
-  console.error(`focusMain: Failed to find main window after ${maxRetries} retries`);
-  return false;
+  return success;
 }
 
 export async function closeWindow(winId: string) {
