@@ -3,7 +3,7 @@ const { BrowserWindow } = require('electron');
 let splashWindow = null;
 
 function createSplashWindow() {
-  // Close existing splash window if it exists
+  // Close existing splash window if it exists (for test app restarts)
   if (splashWindow && !splashWindow.isDestroyed()) {
     splashWindow.destroy();
     splashWindow = null;
@@ -100,8 +100,6 @@ function createSplashWindow() {
 
 function closeSplashWindow() {
   if (splashWindow && !splashWindow.isDestroyed()) {
-    // Force immediate destruction instead of graceful close
-    // This prevents timing issues with WebDriver in tests
     splashWindow.destroy();
     splashWindow = null;
   }
