@@ -134,14 +134,30 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
   const client = await getClient();
   const handles = await client.getWindowHandles();
   for (let ind = 0; ind < handles.length; ind++) {
-    await client.switchToWindow(handles[ind]);
-    const url = await client.getUrl();
-    if (typeof winIdOrRegexp === 'string') {
-      const winId = winIdOrRegexp;
-      if (url.includes(`windowId=${winId}`)) return true;
-    } else {
-      const regex = winIdOrRegexp as RegExp;
-      if (url.match(regex)) return true;
+    try {
+      await client.switchToWindow(handles[ind]);
+      const url = await client.getUrl();
+
+      // Skip non-app windows (e.g., splash screen with data: URLs, about:blank)
+      if (!url || url.startsWith('data:') || url === 'about:blank') {
+        continue;
+      }
+
+      // Only process windows that have windowId parameter (app windows)
+      if (!url.includes('windowId=')) {
+        continue;
+      }
+
+      if (typeof winIdOrRegexp === 'string') {
+        const winId = winIdOrRegexp;
+        if (url.includes(`windowId=${winId}`)) return true;
+      } else {
+        const regex = winIdOrRegexp as RegExp;
+        if (url.match(regex)) return true;
+      }
+    } catch (e) {
+      // Window may have been closed during iteration, skip it
+      continue;
     }
   }
   return false;
