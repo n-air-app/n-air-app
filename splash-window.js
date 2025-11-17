@@ -89,13 +89,19 @@ function createSplashWindow() {
   `;
 
   splashWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(splashHtml));
+
+  // Ensure splash window is properly cleaned up when closed
+  splashWindow.on('closed', () => {
+    splashWindow = null;
+  });
+
   splashWindow.show();
 }
 
 function closeSplashWindow() {
   if (splashWindow && !splashWindow.isDestroyed()) {
     splashWindow.close();
-    splashWindow = null;
+    // splashWindow will be set to null by the 'closed' event handler
   }
 }
 

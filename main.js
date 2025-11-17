@@ -609,11 +609,13 @@ function initialize(crashHandler) {
 
     // Close splash when main window content is loaded
     mainWindow.webContents.once('did-finish-load', () => {
+      // Always close splash window when content is loaded
+      closeSplashWindow();
+
       if (mainWindowIsVisible) {
         // Give Vue a moment to render before showing
         setTimeout(() => {
           mainWindow.show();
-          closeSplashWindow();
         }, 100);
       }
     });
@@ -792,9 +794,7 @@ function initialize(crashHandler) {
 
   app.on('ready', () => {
     // Show splash window immediately (skip in test environment)
-    if (process.env.NODE_ENV !== 'test') {
-      createSplashWindow();
-    }
+    createSplashWindow();
 
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
     setTimeout(() => {
