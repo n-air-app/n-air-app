@@ -27,6 +27,7 @@ import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
+import { sleep } from 'util/sleep';
 import uuid from 'uuid/v4';
 import * as obs from '../../../obs-api';
 import { RunInLoadingMode } from './app-decorators';
@@ -225,9 +226,7 @@ export class AppService extends StatefulService<IAppState> {
 
       // This is kind of ugly, but it gives the browser time to paint before
       // we do long blocking operations with OBS.
-      await new Promise(resolve => {
-        setTimeout(resolve, 200);
-      });
+      await sleep(200);
 
       //TODO await this.sceneCollectionsService.disableAutoSave();
     }

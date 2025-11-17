@@ -4,6 +4,7 @@
 
 import { ClickOptions, WaitForOptions } from 'webdriverio';
 import { WindowsService } from '../../../app/services/windows';
+import { sleep } from '../../../app/util/sleep';
 import { getApiClient } from '../api-client';
 import { getContext } from '../webdriver';
 
@@ -187,9 +188,7 @@ export async function focusMain() {
   // Try once, if fails wait briefly and retry (splash window may still be visible)
   let success = await focusWindow('main');
   if (!success) {
-    await new Promise(resolve => {
-      setTimeout(resolve, 300);
-    });
+    await sleep(300);
     success = await focusWindow('main');
   }
   return success;

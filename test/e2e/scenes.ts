@@ -1,4 +1,5 @@
 import { SceneCollectionsService } from 'services/scene-collections';
+import { sleep } from '../../app/util/sleep';
 import { getApiClient } from '../helpers/api-client';
 import { click, focusMain, waitForDisplayed } from '../helpers/modules/core';
 import { setInputValue } from '../helpers/modules/forms/form';
@@ -36,9 +37,7 @@ test('Adding and removing a scene', async (t: TExecutionContext) => {
   await addScene(sceneName);
 
   await focusMain();
-  await new Promise(x => {
-    setTimeout(x, 0);
-  });
+  await sleep(0);
   t.true(await sceneIsExisting(sceneName));
 
   await selectScene(sceneName);
