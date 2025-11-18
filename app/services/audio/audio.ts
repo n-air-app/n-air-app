@@ -65,14 +65,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     (() => {
       // Debug logging: log audio devices 1 second after audio source changes
       const audioSourceAdded = this.sourcesService.sourceAdded.pipe(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         filter(sourceModel => {
           const source = this.sourcesService.getSource(sourceModel.sourceId);
           return source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
         }),
       );
       const audioSourceRemoved = this.sourcesService.sourceRemoved.pipe(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         filter(source => source.audio),
       );
 
