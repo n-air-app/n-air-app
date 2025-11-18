@@ -225,9 +225,7 @@ export async function setInputValue(selector: string, value: string) {
  * A shortcut for useForm().fillForm()
  */
 export async function fillForm(formData: TFormData): Promise<unknown>;
-// eslint-disable-next-line no-redeclare
 export async function fillForm(formName: string, formData: TFormData): Promise<unknown>;
-// eslint-disable-next-line no-redeclare
 export async function fillForm(...args: unknown[]): Promise<unknown> {
   if (typeof args[0] === 'string') {
     const formName = args[0];
@@ -243,9 +241,7 @@ export async function fillForm(...args: unknown[]): Promise<unknown> {
  * A shortcut for useForm().readFields()
  */
 export async function readFields(): Promise<unknown>;
-// eslint-disable-next-line no-redeclare
 export async function readFields(formName: string): Promise<TFormData>;
-// eslint-disable-next-line no-redeclare
 export async function readFields(...args: unknown[]): Promise<TFormData> {
   if (typeof args[0] === 'string') {
     const formName = args[0];
@@ -265,14 +261,12 @@ export async function assertFormContains(
   indexKey?: string,
   valueKey?: string,
 ): Promise<unknown>;
-// eslint-disable-next-line no-redeclare
 export async function assertFormContains(
   formName: string,
   formData: TFormData,
   indexKey?: string,
   valueKey?: string,
 ): Promise<unknown>;
-// eslint-disable-next-line no-redeclare
 export async function assertFormContains(...args: any[]): Promise<unknown> {
   if (typeof args[0] === 'string') {
     const [formName, formData, indexKey, valueKey] = args;
