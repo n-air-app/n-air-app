@@ -17,6 +17,7 @@ const config = {
     'updater/Updater.js',
     'index.html',
     'main.js',
+    'splash-window.js',
     'obs-api',
   ],
   extraFiles: ['scene-presets', 'nvoice', 'LICENSE', 'AGREEMENT.sjis', 'assets'],
