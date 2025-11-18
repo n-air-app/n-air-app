@@ -60,7 +60,7 @@ module.exports = function (env, argv) {
     }),
   );
   plugins.push(new VueLoaderPlugin());
-  plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'] }));
+  plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'], configType: 'flat' }));
 
   /** @type import('webpack').Configuration */
   const common = {
