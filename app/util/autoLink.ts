@@ -16,7 +16,6 @@ const invalidCharsForDomain = punct + spaces + invalidChars;
 const validCharsForDomain = `[^${invalidCharsForDomain}]`;
 const validDomain = `(?:(?:${validCharsForDomain}+(?:[_-]|${validCharsForDomain})*)?${validCharsForDomain})`;
 const domainPattern = `(?:${validDomain}\\.)+(?:${validDomain})`;
-// eslint-disable-next-line
 const urlPattern = `(https?://${domainPattern}(?::\\d+)?(?:/[^\\s<>'"、。　]*)?)`;
 
 const urlRegExp = new RegExp(urlPattern, 'gu');

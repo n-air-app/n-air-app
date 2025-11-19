@@ -3,6 +3,7 @@ import ModalLayout from 'components/ModalLayout.vue';
 import GenericForm from 'components/obs/inputs/GenericForm.vue';
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import Display from 'components/shared/Display.vue';
+import TextTranscriptionProperties from 'components/source_properties/TextTranscriptionProperties.vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subscription } from 'rxjs';
 import { AppService } from 'services/app';
@@ -21,6 +22,7 @@ const PeriodicUpdateInterval = 5000; // in Milliseconds
     ModalLayout,
     Display,
     GenericForm,
+    TextTranscriptionProperties,
   },
 })
 export default class SourceProperties extends Vue {
