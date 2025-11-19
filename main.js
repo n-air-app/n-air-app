@@ -452,8 +452,12 @@ function initialize(crashHandler) {
 
   // eslint-disable-next-line no-inner-declarations
   function openDevTools() {
-    childWindow.webContents.openDevTools({ mode: 'undocked' });
-    mainWindow.webContents.openDevTools({ mode: 'undocked' });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.openDevTools({ mode: 'undocked' });
+    }
+    if (childWindow && !childWindow.isDestroyed()) {
+      childWindow.webContents.openDevTools({ mode: 'undocked' });
+    }
   }
 
   const SentryElectron = require('@sentry/electron/main');
@@ -507,7 +511,7 @@ function initialize(crashHandler) {
   }
 
   // Import splash window functions
-  const { createSplashWindow, closeSplashWindow } = require('./splash-window');
+  const { createSplashWindow, closeSplashWindow } = require('./splash/splash-window');
 
   // eslint-disable-next-line no-inner-declarations
   async function startApp() {
@@ -590,32 +594,23 @@ function initialize(crashHandler) {
     });
 
     remote.enable(mainWindow.webContents);
-
     mainWindowState.manage(mainWindow);
-
     mainWindow.removeMenu();
+    mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
 
-    // wait until devtools will be opened and load app into window
-    // it allows to start application with clean cache
-    // and handle breakpoints on startup
-    const LOAD_DELAY = 2000;
-    setTimeout(
-      () => {
-        if (process.env.NAIR_PRODUCTION_DEBUG) openDevTools();
-        mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
-      },
-      isDevMode ? LOAD_DELAY : 0,
-    );
+    // Open DevTools in development mode if configured
+    if (process.env.NAIR_PRODUCTION_DEBUG) {
+      // Delay DevTools opening slightly to avoid interfering with startup
+      setTimeout(() => openDevTools(), 100);
+    }
 
     // Close splash when main window content is loaded
     mainWindow.webContents.once('did-finish-load', () => {
-      if (mainWindowIsVisible) {
-        // Give Vue a moment to render before showing
-        setTimeout(() => {
-          mainWindow.show();
-          closeSplashWindow();
-        }, 100);
-      }
+      // Give Vue a moment to render before showing
+      setTimeout(() => {
+        if (mainWindowIsVisible) mainWindow.show();
+        closeSplashWindow();
+      }, 100);
     });
 
     // Ensure splash is closed on error
@@ -666,7 +661,7 @@ function initialize(crashHandler) {
       closeSplashWindow();
       require('node-libuiohook').stopHook();
       session.defaultSession.flushStorageData();
-      session.defaultSession.cookies.flushStore(() => app.quit());
+      app.quit();
     });
 
     // Pre-initialize the child window
