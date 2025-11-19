@@ -20,6 +20,9 @@ type SpeechSynthesizerSettingsState = {
   };
 };
 
+/** なふだコーチングを表示した記録。
+ * undefined なら初回表示判定を行い、設定済みなら同一番組中はそのコメントに表示し、他の番組では表示しない
+ */
 type NameplateHintState = {
   programID: string;
   commentNo: number;
