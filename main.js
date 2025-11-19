@@ -354,6 +354,19 @@ function initialize(crashHandler) {
     flushNextLine();
   }
 
+  // Synchronously flush all pending log lines
+  // eslint-disable-next-line no-inner-declarations
+  function flushLogBufferSync() {
+    if (lineBuffer.length === 0) return;
+    try {
+      const allLines = lineBuffer.join('');
+      fs.appendFileSync(logFile, allLines);
+      lineBuffer.length = 0; // Clear buffer
+    } catch (e) {
+      consoleLog('Error flushing log buffer:', e);
+    }
+  }
+
   let writeInProgress = false;
 
   // eslint-disable-next-line no-inner-declarations
@@ -619,22 +632,28 @@ function initialize(crashHandler) {
     });
 
     mainWindow.on('close', e => {
-      // Ensure splash window is closed when main window closes
-      closeSplashWindow();
+      console.log('[EXIT] mainWindow.on(close) event, allowMainWindowClose=', allowMainWindowClose);
 
       if (!shutdownStarted) {
+        console.log('[EXIT] Starting shutdown sequence');
         shutdownStarted = true;
         mainWindow.send('shutdown');
 
         // We give the main window 10 seconds to acknowledge a request
         // to shut down.  Otherwise, we just close it.
         appShutdownTimeout = setTimeout(() => {
+          console.log('[EXIT] Shutdown timeout');
           allowMainWindowClose = true;
           if (!mainWindow.isDestroyed()) mainWindow.close();
         }, 10 * 1000);
       }
 
-      if (!allowMainWindowClose) e.preventDefault();
+      if (!allowMainWindowClose) {
+        console.log('[EXIT] Preventing close');
+        e.preventDefault();
+      } else {
+        console.log('[EXIT] Allowing close');
+      }
     });
 
     ipcMain.on('acknowledgeShutdown', () => {
@@ -642,9 +661,19 @@ function initialize(crashHandler) {
     });
 
     ipcMain.on('shutdownComplete', () => {
+      console.log('[EXIT] shutdownComplete received');
+      if (appShutdownTimeout) clearTimeout(appShutdownTimeout);
       allowMainWindowClose = true;
-      mainWindow.close();
-      closeSplashWindow();
+      console.log('[EXIT] Set allowMainWindowClose=true, scheduling mainWindow.close()...');
+
+      // Schedule close on next tick to avoid race condition with close event
+      setTimeout(() => {
+        console.log('[EXIT] Calling mainWindow.close()...');
+        if (!mainWindow.isDestroyed()) {
+          mainWindow.close();
+          console.log('[EXIT] mainWindow.close() returned, isDestroyed=', mainWindow.isDestroyed());
+        }
+      }, 0);
     });
 
     // Initialize the keylistener
@@ -657,11 +686,34 @@ function initialize(crashHandler) {
     }
 
     mainWindow.on('closed', () => {
+      console.log('[EXIT] mainWindow closed event');
+
       // Ensure splash window is closed
       closeSplashWindow();
+
       require('node-libuiohook').stopHook();
+      console.log('[EXIT] Stopped libuiohook');
+
       session.defaultSession.flushStorageData();
-      app.quit();
+      console.log('[EXIT] Storage data flushed');
+
+      // Unregister from crash handler before exiting
+      const enableCrashHandler = !process.env.DEV_SERVER || process.env.NAIR_DEBUG_CRASH_HANDLER;
+      if (enableCrashHandler && crashHandler) {
+        try {
+          crashHandler.unregisterProcess(pid);
+          console.log('[EXIT] Unregistered from crash handler');
+        } catch (e) {
+          console.error('[EXIT] Failed to unregister from crash handler:', e);
+        }
+      }
+
+      console.log('[EXIT] Calling app.exit(0)');
+
+      // Flush all pending logs before exiting
+      flushLogBufferSync();
+
+      app.exit(0);
     });
 
     // Pre-initialize the child window
@@ -777,7 +829,7 @@ function initialize(crashHandler) {
     });
 
     // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
       }
