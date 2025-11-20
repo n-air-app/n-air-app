@@ -29,11 +29,19 @@ class Updater {
 
     autoUpdater.autoDownload = false;
 
-    autoUpdater.checkForUpdates().catch(() => {
-      // This usually means there is no internet connection.
-      // In this case, we shouldn't prevent starting the app.
-      this.skipUpdateAndContinue();
-    });
+    autoUpdater
+      .checkForUpdates()
+      .then(result => {
+        // Store cancellationToken from checkForUpdates result
+        if (result && result.cancellationToken) {
+          this.cancellationToken = result.cancellationToken;
+        }
+      })
+      .catch(() => {
+        // This usually means there is no internet connection.
+        // In this case, we shouldn't prevent starting the app.
+        this.skipUpdateAndContinue();
+      });
   }
 
   async skipUpdateAndContinue() {
@@ -80,7 +88,7 @@ class Updater {
       console.log(`oldVersion: ${process.env.NAIR_VERSION}
 newVersion: ${info.version}
 isUnskippable: ${this.updateState.isUnskippable}`);
-      this.cancellationToken = info.cancellationToken;
+      // cancellationToken is now obtained from checkForUpdates() result
       this.pushState();
     });
 
