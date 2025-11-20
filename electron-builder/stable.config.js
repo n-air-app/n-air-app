@@ -62,7 +62,7 @@ const config = {
 };
 
 if (process.env.CERTIFICATE_SUBJECT_NAME) {
-  // @ts-ignore
+  // @ts-expect-error - signtoolOptions は型定義上 readonly だが、動的に設定する必要がある
   config.win.signtoolOptions.certificateSubjectName = process.env.CERTIFICATE_SUBJECT_NAME;
 }
 
