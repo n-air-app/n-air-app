@@ -545,8 +545,13 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       }
 
       if (this.nicoliveProgramStateService.state.nameplateHint === undefined) {
+        // なふだヒントをまだ表示したことがない場合、最初のなふだ付きコメントにヒントをつける
         const firstCommentWithName = values.find(
-          c => isWrappedChat(c) && !!c.value.name && c.value.no,
+          c =>
+            isWrappedChat(c) &&
+            !!c.value.name &&
+            c.value.no &&
+            !(c.value.user_id && this.nicoliveProgramService.isBroadcaster(c.value.user_id)), // 放送者の通常コメントは除外
         );
         if (firstCommentWithName && isWrappedChat(firstCommentWithName)) {
           this.nicoliveProgramService.checkNameplateHint(firstCommentWithName.value.no);
