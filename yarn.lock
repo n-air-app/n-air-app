@@ -1561,12 +1561,12 @@
     rollup-plugin-typescript2 "^0.34.1"
     typescript "^4.9.5"
 
-"@n-air-app/nicolive-comment-protobuf@2025.602.163750":
-  version "2025.602.163750"
-  resolved "https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2025.602.163750/275fa685d0bf4f3c1b30a8d3d2e1357036fbf025#275fa685d0bf4f3c1b30a8d3d2e1357036fbf025"
-  integrity sha512-cuvpxDmO6Fm1pjcchLtlBaqVLGEZo2Eszi6IKbQpTh1+b8kXD5JBMPc7sHtLIdj7JljICAa9RZFR8YRl8/URtg==
+"@n-air-app/nicolive-comment-protobuf@2025.1117.170000":
+  version "2025.1117.170000"
+  resolved "https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2025.1117.170000/73b1c2f30f2df49ea6912dda6775236d059304da#73b1c2f30f2df49ea6912dda6775236d059304da"
+  integrity sha512-DYhbJ8n1LoyCBDbt7ZKGzBl0qBmNZDFkprLmnq7GsYOH2W5SfNe7hQhHs6ys9rTj1HjSHiGWDaahLRSlVVwOgA==
   dependencies:
-    protobufjs "^7.5.3"
+    protobufjs "^7.5.4"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -10178,7 +10178,7 @@ prompts@^2.0.1:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-protobufjs@^7.5.3:
+protobufjs@^7.5.3, protobufjs@^7.5.4:
   version "7.5.4"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-7.5.4.tgz#885d31fe9c4b37f25d1bb600da30b1c5b37d286a"
   integrity sha512-CvexbZtbov6jW2eXAvLukXjXUW1TzFaivC46BpWc/3BpcCysb5Vffu+B3XHMm8lVEuy2Mm4XGex8hBSg1yapPg==
