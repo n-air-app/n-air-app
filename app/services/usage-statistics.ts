@@ -146,8 +146,10 @@ export function track(event: TUsageEvent) {
     return {
       ...descriptor,
       value(...args: any[]): any {
+        // recordEvent は async だが await する必要はない（非同期で記録）
         UsageStatisticsService.instance.recordEvent(event);
-        descriptor.value.apply(this, args);
+        // 元の関数の戻り値を必ず return する（async 関数の場合 Promise が返る）
+        return descriptor.value.apply(this, args);
       },
     };
   };

@@ -136,39 +136,111 @@ export class AppService extends StatefulService<IAppState> {
   private shutdownHandler() {
     // SLOBS の shutdownHandlerでの順序に従います
     // https://github.com/stream-labs/desktop/blob/05edf2206a3c10c13b60ede8ddd5e776509ebd5f/app/services/app/app.ts#L178
+    console.log('[SHUTDOWN] Starting shutdown sequence');
+    const t0 = performance.now();
     this.START_LOADING();
     this.tcpServerService.stopListening();
 
     window.setTimeout(async () => {
-      obs.NodeObs.InitShutdownSequence();
+      let t = performance.now();
+      console.log(`[SHUTDOWN] setTimeout callback started (${(t - t0).toFixed(0)}ms)`);
+
+      // InitShutdownSequence をスキップ (N Air はクラッシュハンドラープロセスを使用していないため)
+      // Streamlabs Desktop では別プロセスとしてクラッシュハンドラーを起動し、named pipe で通信しているが、
+      // N Air にはその実装がないため、InitShutdownSequence は5秒タイムアウトするだけ。
+      // IPC.disconnect() でクリーンアップされるため、明示的な呼び出しは不要。
+      // 参考: https://github.com/streamlabs/obs-studio-node/blob/main/obs-studio-server/source/nodeobs_api.cpp#L1539-L1559
+      // obs.NodeObs.InitShutdownSequence();
+      console.log(`[SHUTDOWN] InitShutdownSequence (skipped - no crash handler process)`);
+      t = performance.now();
+
       this.crashReporterService.beginShutdown();
-      // this.shutdownStarted.next(); 未実装
       this.START_SHUTDOWN();
-      // this.keyListenerService.shutdown(); 未実装
-      // this.platformAppsService.unloadAllApps(); 未実装
-      // await this.usageStatisticsService.flushEvents(); 未実装
+      console.log(
+        `[SHUTDOWN] crashReporter.beginShutdown (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
 
       this.transcriptionService.shutdown();
+      console.log(
+        `[SHUTDOWN] transcriptionService.shutdown (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
 
       if (this.windowsService.isChildWindowShown()) {
-        // 安全に子ウィンドウを閉じ、クリーンアップを待つ
         await this.windowsService.closeChildWindow();
       }
-      await this.windowsService.closeAllOneOffs(); // instead .shutdown(); window.child.close is 'Object has been destroyed' in this time
+      console.log(`[SHUTDOWN] closeChildWindow (${(performance.now() - t).toFixed(0)}ms)`);
+      t = performance.now();
+
+      await this.windowsService.closeAllOneOffs();
+      console.log(`[SHUTDOWN] closeAllOneOffs (${(performance.now() - t).toFixed(0)}ms)`);
+      t = performance.now();
+
       NicoliveClient.closeOpenWindows();
+      console.log(
+        `[SHUTDOWN] NicoliveClient.closeOpenWindows (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       this.ipcServerService.stopListening();
-      // await this.userService.flushUserSession(); 未実装
+      console.log(
+        `[SHUTDOWN] ipcServerService.stopListening (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       this.stopMonitoringStudioMode();
+      console.log(`[SHUTDOWN] stopMonitoringStudioMode (${(performance.now() - t).toFixed(0)}ms)`);
+      t = performance.now();
+
       await this.sceneCollectionsService.deinitialize();
-      this.performanceMonitorService.stop(); // instead this.performanceService.stop();
+      console.log(
+        `[SHUTDOWN] sceneCollectionsService.deinitialize (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
+      this.performanceMonitorService.stop();
+      console.log(
+        `[SHUTDOWN] performanceMonitorService.stop (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       this.transitionsService.shutdown();
+      console.log(
+        `[SHUTDOWN] transitionsService.shutdown (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       this.videoSettingsService.shutdown();
-      // await this.gameOverlayService.destroy(); 未実装
+      console.log(
+        `[SHUTDOWN] videoSettingsService.shutdown (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       await this.fileManagerService.flushAll();
+      console.log(
+        `[SHUTDOWN] fileManagerService.flushAll (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       obs.NodeObs.RemoveSourceCallback();
+      console.log(`[SHUTDOWN] RemoveSourceCallback (${(performance.now() - t).toFixed(0)}ms)`);
+      t = performance.now();
+
       obs.NodeObs.OBS_service_removeCallback();
+      console.log(
+        `[SHUTDOWN] OBS_service_removeCallback (${(performance.now() - t).toFixed(0)}ms)`,
+      );
+      t = performance.now();
+
       obs.IPC.disconnect();
+      console.log(`[SHUTDOWN] IPC.disconnect (${(performance.now() - t).toFixed(0)}ms)`);
+      t = performance.now();
+
       this.crashReporterService.endShutdown();
+      console.log(`[SHUTDOWN] crashReporter.endShutdown (${(performance.now() - t).toFixed(0)}ms)`);
+
+      console.log(`[SHUTDOWN] Total shutdown time: ${(performance.now() - t0).toFixed(0)}ms`);
       electron.ipcRenderer.send('shutdownComplete');
     }, 300);
   }
