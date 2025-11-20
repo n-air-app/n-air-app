@@ -50,9 +50,11 @@ const config = {
     warningsAsErrors: false,
   },
   win: {
-    publisherName: ['DWANGO Co.,Ltd.'],
-    rfc3161TimeStampServer: 'http://timestamp.digicert.com',
-    timeStampServer: 'http://timestamp.digicert.com',
+    signtoolOptions: {
+      publisherName: ['DWANGO Co.,Ltd.'],
+      rfc3161TimeStampServer: 'http://timestamp.digicert.com',
+      timeStampServer: 'http://timestamp.digicert.com',
+    },
   },
   extraMetadata: {
     env: 'production',
@@ -60,8 +62,8 @@ const config = {
 };
 
 if (process.env.CERTIFICATE_SUBJECT_NAME) {
-  // @ts-ignore winがnullableなのと、certificateSubjectNameが型宣言上ではpropertyで書き込めないというエラーになるのを回避
-  config.win.certificateSubjectName = process.env.CERTIFICATE_SUBJECT_NAME;
+  // @ts-ignore
+  config.win.signtoolOptions.certificateSubjectName = process.env.CERTIFICATE_SUBJECT_NAME;
 }
 
 module.exports = config;
