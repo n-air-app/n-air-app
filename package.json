@@ -116,7 +116,6 @@
     "socket.io": "4.7.5",
     "sockjs": "~0.3.19",
     "sockjs-client": "~1.6.1",
-    "systeminformation": "~4.34.23",
     "traverse": "~0.6.7",
     "unzip-stream": "^0.3.4",
     "urijs": "^1.19.11",

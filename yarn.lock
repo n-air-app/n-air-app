@@ -11883,11 +11883,6 @@ svgo@^1.1.1:
     unquote "~1.1.1"
     util.promisify "~1.0.0"
 
-systeminformation@~4.34.23:
-  version "4.34.23"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-4.34.23.tgz#54c54ced5adc49c27cda953b73c0819ed56edd45"
-  integrity sha512-33+lQwlLxXoxy0o9WLOgw8OjbXeS3Jv+pSl+nxKc2AOClBI28HsdRPpH0u9Xa9OVjHLT9vonnOMw1ug7YXI0dA==
-
 table@^6.0.9, table@^6.8.1:
   version "6.9.0"
   resolved "https://registry.yarnpkg.com/table/-/table-6.9.0.tgz#50040afa6264141c7566b3b81d4d82c47a8668f5"
