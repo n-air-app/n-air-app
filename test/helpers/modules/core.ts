@@ -134,7 +134,6 @@ export async function getFocusedWindowId(): Promise<string> {
 export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boolean> {
   const client = await getClient();
   const handles = await client.getWindowHandles();
-  //console.log(`focusWindow: Found ${handles.length} window handles`);
 
   for (let ind = 0; ind < handles.length; ind++) {
     try {
@@ -143,7 +142,6 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
 
       // Shorten URL for logging (especially data: URLs which are very long)
       const displayUrl = url.startsWith('data:') ? `data:${url.substring(5, 50)}...` : url;
-      //console.log(`focusWindow: Checking window ${ind}: ${displayUrl}`);
 
       // Skip non-app windows (e.g., splash screen with data: URLs, about:blank)
       if (!url || url.startsWith('data:') || url === 'about:blank') {
@@ -160,13 +158,11 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
       if (typeof winIdOrRegexp === 'string') {
         const winId = winIdOrRegexp;
         if (url.includes(`windowId=${winId}`)) {
-          //console.log(`focusWindow: ✓ Successfully focused window: ${winId}`);
           return true;
         }
       } else {
         const regex = winIdOrRegexp as RegExp;
         if (url.match(regex)) {
-          //console.log(`focusWindow: ✓ Successfully focused window matching: ${regex}`);
           return true;
         }
       }
