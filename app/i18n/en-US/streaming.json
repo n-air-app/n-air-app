@@ -33,6 +33,7 @@
   "saveReplay": "Save Replay",
   "endStreamInStreamingConfirm": "Are you sure you want to exit while live?",
   "enableThePreviewStream": "Enable the preview stream",
+  "elapsedTimeTooltip": "Time Elapsed Since Stream Started",
   "recordTooltip": "Set path in Settings > Output.",
   "notBroadcasting": "There is no program",
   "notBroadcastingMessage": "There is no program to start streaming on. Make a program on niconico live service.",
