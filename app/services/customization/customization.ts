@@ -26,6 +26,7 @@ export class CustomizationService
     optimizeForNiconico: true,
     showOptimizationDialogForNiconico: true,
     optimizeWithHardwareEncoder: true,
+    enableRtmps: true,
     pollingPerformanceStatistics: true,
 
     compactMode: false,
@@ -100,6 +101,10 @@ export class CustomizationService
 
   setPollingPerformanceStatistics(activate: boolean) {
     this.setSettings({ pollingPerformanceStatistics: activate });
+  }
+
+  setEnableRtmps(enable: boolean) {
+    this.setSettings({ enableRtmps: enable });
   }
 
   toggleCompactMode() {

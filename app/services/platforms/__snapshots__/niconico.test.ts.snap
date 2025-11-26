@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`setupStreamSettingsでストリーム情報がとれた場合 1`] = `
+exports[`setupStreamSettingsでストリーム情報がとれた場合 enableRtmps: false 1`] = `
 [
   "Stream",
   [
@@ -13,11 +13,36 @@ exports[`setupStreamSettingsでストリーム情報がとれた場合 1`] = `
         },
         {
           "name": "server",
-          "value": "url1",
+          "value": "rtmp url",
         },
         {
           "name": "key",
-          "value": "key1",
+          "value": "rtmp key",
+        },
+      ],
+    },
+  ],
+]
+`;
+
+exports[`setupStreamSettingsでストリーム情報がとれた場合 enableRtmps: true 1`] = `
+[
+  "Stream",
+  [
+    {
+      "nameSubCategory": "Untitled",
+      "parameters": [
+        {
+          "name": "service",
+          "value": "niconico ニコニコ生放送",
+        },
+        {
+          "name": "server",
+          "value": "rtmps url",
+        },
+        {
+          "name": "key",
+          "value": "rtmps key",
         },
       ],
     },
@@ -38,11 +63,11 @@ exports[`setupStreamSettingsで番組取得にリトライで成功する場合 
         },
         {
           "name": "server",
-          "value": "url1",
+          "value": "rtmp url",
         },
         {
           "name": "key",
-          "value": "key1",
+          "value": "rtmp key",
         },
       ],
     },

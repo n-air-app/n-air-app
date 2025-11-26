@@ -17,6 +17,7 @@
         @input="setOptimizeWithHardwareEncoder"
         class="optional-item"
       />
+      <ObsBoolInput v-model="enableRtmpsModel" />
     </div>
 
     <div class="section">

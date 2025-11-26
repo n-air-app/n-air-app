@@ -11,6 +11,7 @@ import { authorizedHeaders, handleErrors } from 'util/requests';
 import { sleep } from 'util/sleep';
 import { parseString } from 'xml2js';
 import { IPlatformService, IStreamingSetting } from '.';
+import { CustomizationService } from 'services/customization';
 
 export type INiconicoProgramSelection = {
   info: LiveProgramInfo;
@@ -54,6 +55,7 @@ export class NiconicoService extends Service implements IPlatformService {
   @Inject() userService: UserService;
   @Inject() streamingService: StreamingService;
   @Inject() windowsService: WindowsService;
+  @Inject() customizationService: CustomizationService;
 
   authWindowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 800,
@@ -191,8 +193,11 @@ export class NiconicoService extends Service implements IPlatformService {
       return Promise.reject(stream.value);
     }
 
-    const url = stream.value.rtmp.tcUrl;
-    const key = stream.value.rtmp.streamName;
+    const selected = this.customizationService.state.enableRtmps
+      ? stream.value.rtmps
+      : stream.value.rtmp;
+    const url = selected.tcUrl;
+    const key = selected.streamName;
 
     const settings = this.settingsService.getSettingsFormData('Stream');
     settings.forEach(subCategory => {
