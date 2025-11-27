@@ -763,6 +763,7 @@
     "enable": "Enable automatic transcription",
     "warningBothActive": "Enabling both comment posting and transcription source will cause transcription results to appear duplicated.",
     "warningNoOutput": "To use transcription results, please add a transcription source, or enable comment posting for niconico live streaming.",
+    "warningNoOutput2": "To use transcription results, please add a transcription source.",
     "voskModel": "Voice recognition model",
     "voskModels": {
       "vosk-model-ja-0.22": "VOSK Japanese (1GB) 0.22",
@@ -778,9 +779,11 @@
     },
     "downloadVoskModel": "Download model",
     "deleteVoskModel": "Delete downloaded model",
+    "audioSettings": "Audio Settings",
     "audioSource": "Audio Source",
     "noAudioSourceFound": "No audio source found",
     "preview": "Preview",
+    "displaySettings": "Display Settings",
     "textFile": {
       "sectionTitle": "Automatic Transcription Text Source Output Settings",
       "enable": "Enable Automatic Transcription Text Source output",
@@ -790,8 +793,10 @@
     },
     "comment": {
       "sectionTitle": "Niconico Live Comment Settings",
-      "notice1": "Automatic transcription results will be posted as comments during Niconico live streaming.",
-      "notice2": "※Comments from automatic transcription are not displayed in real-time on the streaming page when logged in as the broadcaster",
+      "notice1": "When turned ON, the AI will transcribe spoken words in real-time, and display them in the viewer's player and comment list.",
+      "notice2": "Automatically display the transcribed text in the player.",
+      "notice3": "Automatic transcription results will be posted as comments during Niconico live streaming.",
+      "notice4": "Comments from automatic transcription are not displayed in real-time on the streaming page when logged in as the broadcaster",
       "enable": "Enable comment posting",
       "postDelay": "Comment Post delay (ms)",
       "vposOffset": "Comment Vpos Offset (ms)",
@@ -876,8 +881,9 @@
       "notActive": "To display automatically transcribed text, please add the source and enable automatic transcription in the settings."
     },
     "addSourceSection": {
-      "title": "Automatic Transcription Source",
-      "add": "Add to Active Scene"
+      "title": "Set Automatic Transcription Source (recommended)",
+      "add": "Add to Active Scene",
+      "added": "Added to Active Scene"
     },
     "placeholder": "[Transcription results will be displayed here]"
   }

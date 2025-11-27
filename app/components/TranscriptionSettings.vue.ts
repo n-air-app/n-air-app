@@ -135,8 +135,7 @@ export default class TranscriptionSettings extends Vue {
 
       // 出力先チェック: 文字起こしソースがシーンにある、またはニコニコログイン中かつコメント投稿on
       const hasOutputDestination =
-        this.transcriptionSourceInActiveScene ||
-        (this.isNiconicoLoggedIn() && this.commentEnabled);
+        this.transcriptionSourceInActiveScene || (this.isNiconicoLoggedIn() && this.commentEnabled);
 
       if (!hasOutputDestination) {
         // ニコニコログイン中の場合はコメント投稿の選択肢も紹介する
@@ -235,7 +234,7 @@ export default class TranscriptionSettings extends Vue {
     const sources = this.transcriptionService.getAudioDeviceList();
     if (sources.length === 0) {
       return {
-        description: '',
+        description: $t('settings.transcription.audioSource'),
         name: 'transcriptionAudioSource',
         value: this.transcriptionService.state.audioDeviceId ?? '',
         options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: null }],
@@ -243,7 +242,7 @@ export default class TranscriptionSettings extends Vue {
       };
     }
     return {
-      description: '',
+      description: $t('settings.transcription.audioSource'),
       name: 'transcriptionAudioSource',
       value: this.transcriptionService.state.audioDeviceId ?? '',
       options: [
@@ -261,6 +260,9 @@ export default class TranscriptionSettings extends Vue {
   commentSectionTitle = $t('settings.transcription.comment.sectionTitle');
   commentSectionNotice1 = $t('settings.transcription.comment.notice1');
   commentSectionNotice2 = $t('settings.transcription.comment.notice2');
+  commentSectionNotice3 = $t('settings.transcription.comment.notice3');
+  commentSectionNotice4 = $t('settings.transcription.comment.notice4');
+
   get commentEnabled(): boolean {
     return this.transcriptionService.state.commentEnabled ?? false;
   }
