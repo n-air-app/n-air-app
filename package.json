@@ -169,7 +169,7 @@
     "cross-env": "~7.0.3",
     "css-loader": "~2.1.1",
     "devtron": "1.4.0",
-    "electron": "29.3.1",
+    "electron": "29.3.3",
     "electron-builder": "26.0.12",
     "electron-chromedriver": "29.3.3",
     "emojione": "^3.1.7",
