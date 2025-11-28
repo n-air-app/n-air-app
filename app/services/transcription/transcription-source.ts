@@ -1,4 +1,6 @@
 import { InitAfter, Inject, Service } from '../core';
+import { $t } from '../i18n';
+import { ScenesService } from '../scenes';
 import { ISourceAddOptions, ISourceApi, SourcesService } from '../sources';
 import { VideoService } from '../video';
 import { TranscriptionService } from './transcription';
@@ -8,6 +10,7 @@ export class TranscriptionSourceService extends Service {
   @Inject() private sourcesService: SourcesService;
   @Inject() private videoService: VideoService;
   @Inject() private transcriptionService: TranscriptionService;
+  @Inject() private scenesService: ScenesService;
 
   createTextTranscriptionSourceAndOption(
     name: string,
@@ -77,5 +80,27 @@ export class TranscriptionSourceService extends Service {
       },
       forceSkipProperties: true,
     };
+  }
+
+  /**
+   * text_transcription ソースをデフォルト設定でアクティブシーンに追加する
+   * @param name ソース名（省略時は自動生成）
+   * @returns 作成されたソース
+   */
+  addTextTranscriptionSourceToActiveScene(name?: string): ISourceApi {
+    // 名前が指定されていなければ自動生成
+    if (!name) {
+      name = this.sourcesService.suggestName($t('source-props.text_transcription.name'));
+    }
+
+    // ソースを作成
+    const { source, options } = this.createTextTranscriptionSourceAndOption(name, {
+      propertiesManagerSettings: {},
+    });
+
+    // アクティブシーンに追加
+    this.scenesService.activeScene.addSource(source.sourceId, options);
+
+    return source;
   }
 }
