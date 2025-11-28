@@ -24,5 +24,8 @@
     "semver": "^7.6.3",
     "shelljs": "^0.8.5",
     "webfont": "^11.2.26"
+  },
+  "resolutions": {
+    "svg2ttf": "6.0.3"
   }
 }
