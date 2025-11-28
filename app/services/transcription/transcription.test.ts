@@ -480,6 +480,64 @@ describe('TranscriptionService', () => {
 
   describe('text processing', () => {
     it(
+      'should initialize text with placeholder when initializeText() is called',
+      withClock(async clock => {
+        const { instance } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // Call initializeText()
+        instance.initializeText();
+        await clock.tickAsync(0);
+
+        // Should set texts to placeholder message
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['settings.transcription.placeholder'],
+          partial: '',
+        });
+      }),
+    );
+
+    it(
+      'should replace placeholder with actual transcription text',
+      withClock(async clock => {
+        const { instance, transcriptionMessages$ } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // Initialize with placeholder
+        instance.initializeText();
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['settings.transcription.placeholder'],
+          partial: '',
+        });
+
+        // Receive actual transcription text
+        transcriptionMessages$.next({ text: 'こんにちは世界' });
+        await clock.tickAsync(0);
+
+        // Placeholder should be replaced with actual text
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['settings.transcription.placeholder', 'こんにちは世界'],
+          partial: '',
+        });
+      }),
+    );
+
+    it(
       'should process partial and final text',
       withClock(async clock => {
         const { instance, transcriptionMessages$ } = setupTranscription({
