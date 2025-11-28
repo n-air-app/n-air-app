@@ -129,7 +129,9 @@ export default class TranscriptionSettings extends Vue {
             noLink: true,
           }) === 0
         ) {
-          this.transcriptionService.startDownloadVoskModel(VOSK_MODEL_NAMES[0]);
+          const modelToDownload = VOSK_MODEL_NAMES[0];
+          this.transcriptionService.setModelName(modelToDownload);
+          this.transcriptionService.startDownloadVoskModel(modelToDownload);
         }
       }
 
