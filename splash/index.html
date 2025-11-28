@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    />
+    <title>N Air</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #17242d;
+        font-family: 'Segoe UI', sans-serif;
+        position: relative;
+      }
+
+      .logo-svg {
+        width: 200px;
+        height: auto;
+        margin-bottom: 60px;
+        color: #9eeaf9;
+      }
+
+      .text {
+        color: #ffffff;
+        font-size: 16px;
+        opacity: 0.7;
+        margin-bottom: 40px;
+      }
+
+      .loading-dots {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .loading-dots .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #9eeaf9;
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+
+      .loading-dots .dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+
+      .loading-dots .dot:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+
+      .loading-dots .dot:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+
+      .loading-dots .dot:nth-child(4) {
+        animation-delay: 0.45s;
+      }
+
+      .loading-dots .dot:nth-child(5) {
+        animation-delay: 0.6s;
+      }
+
+      .version {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-size: 12px;
+        opacity: 0.5;
+      }
+
+      @keyframes pulse {
+        0%,
+        80%,
+        100% {
+          opacity: 0.3;
+          transform: scale(0.8);
+        }
+        40% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg
+      class="logo-svg"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 103.146 22.772"
+      aria-label="N Air"
+    >
+      <path
+        d="M21.477,3.947a10.393,10.393,0,0,0-2.942-2.258A15.525,15.525,0,0,0,15.093.424a15.923,15.923,0,0,0-7.3,0A15.54,15.54,0,0,0,4.359,1.689a10.085,10.085,0,0,0-2.928,2.26A5.58,5.58,0,0,0,0,7.461v12.5A2.51,2.51,0,0,0,.855,21.89a2.874,2.874,0,0,0,2,.751h.008a2.657,2.657,0,0,0,2.653-2.684l0-11.4a2.171,2.171,0,0,1,.679-1.494A5.581,5.581,0,0,1,7.73,6.024,8.682,8.682,0,0,1,9.547,5.43a9.215,9.215,0,0,1,3.8,0,8.773,8.773,0,0,1,1.814.594A5.589,5.589,0,0,1,16.7,7.066a2.156,2.156,0,0,1,.678,1.467V19.957a2.511,2.511,0,0,0,.852,1.933,2.884,2.884,0,0,0,2,.751h.009a2.7,2.7,0,0,0,2.683-2.684l0-12.52A5.488,5.488,0,0,0,21.477,3.947Z"
+        fill="currentColor"
+      ></path>
+      <path
+        d="M71.382,7.557h-.018a2.8,2.8,0,0,0-1.956.755,2.653,2.653,0,0,0-.869,1.93v9.715a2.51,2.51,0,0,0,.855,1.933,2.86,2.86,0,0,0,2,.751H71.4a2.7,2.7,0,0,0,2.687-2.684V10.226a2.682,2.682,0,0,0-.827-1.871A2.762,2.762,0,0,0,71.382,7.557Z"
+        fill="currentColor"
+      ></path>
+      <path
+        d="M60.151,2.362A11.177,11.177,0,0,0,56.872.621,19.028,19.028,0,0,0,52.215.035,24.423,24.423,0,0,0,47.045.6a11.474,11.474,0,0,0-3.3,1.63A9.2,9.2,0,0,0,41.3,4.845a6.652,6.652,0,0,0-.96,3.556V20.017a2.563,2.563,0,0,0,.762,1.861,2.6,2.6,0,0,0,4.442-1.861V15.194H58.339v4.823a2.582,2.582,0,0,0,.763,1.861,2.6,2.6,0,0,0,3.688,0,2.562,2.562,0,0,0,.757-1.857V8.847a7.288,7.288,0,0,0-.96-3.717A9.359,9.359,0,0,0,60.151,2.362Zm-1.812,7.6H45.546V9.807a4.708,4.708,0,0,1,.51-2.353,4.168,4.168,0,0,1,1.238-1.4,4.279,4.279,0,0,1,1.622-.7,29.822,29.822,0,0,1,3.3-.2,21.215,21.215,0,0,1,2.76.2,4.233,4.233,0,0,1,2.863,2.11,4.782,4.782,0,0,1,.5,2.351Z"
+        fill="currentColor"
+      ></path>
+      <path
+        d="M33.84,9.978H28.489a2.608,2.608,0,0,0,0,5.216H33.84a2.608,2.608,0,0,0,0-5.216Z"
+        fill="currentColor"
+      ></path>
+      <path
+        d="M72,0H70.626a2.572,2.572,0,0,0,0,5.144H72A2.572,2.572,0,0,0,72,0Z"
+        fill="currentColor"
+      ></path>
+      <path
+        d="M102.127,18.079l-4.044-3.121A7.449,7.449,0,0,0,103.019,8c0-3.941-3.219-6.955-7.538-6.955H81.931a2.785,2.785,0,0,0-1.957.755,2.657,2.657,0,0,0-.869,1.93V19.957a2.51,2.51,0,0,0,.855,1.934,2.869,2.869,0,0,0,2,.75h.008a2.683,2.683,0,0,0,2.679-2.63V6.285H95.481c1.541,0,2.3.8,2.3,1.716a2.245,2.245,0,0,1-2.3,2.177H91.128a2.628,2.628,0,0,0-2.619,2.62,2.586,2.586,0,0,0,.157.86,2.6,2.6,0,0,0,.911,1.353l9.349,7.215a2.619,2.619,0,0,0,3.2-4.147Z"
+        fill="currentColor"
+      ></path>
+    </svg>
+    <div class="loading-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="version" id="version"></div>
+    <script>
+      // Display version information from environment variable
+      // Note: nodeIntegration is enabled for this window to access process.env
+      const version = process.env.NAIR_VERSION || '';
+      const versionElement = document.getElementById('version');
+      if (version && versionElement) {
+        versionElement.textContent = 'Version ' + version;
+      } else {
+        console.log('Version element or version not found', { version, versionElement });
+      }
+    </script>
+  </body>
+</html>

@@ -15,6 +15,8 @@ const config = {
     'app/i18n',
     'updater/index.html',
     'updater/Updater.js',
+    'splash/index.html',
+    'splash/splash-window.js',
     'index.html',
     'main.js',
     'obs-api',

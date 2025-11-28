@@ -5,6 +5,7 @@
 
 import avaTest, { TestFn } from 'ava';
 import { uniq } from 'lodash';
+import { sleep } from '../../../app/util/sleep';
 import { ITestContext } from './index';
 const fs = require('fs');
 const fetch = require('node-fetch');
@@ -165,9 +166,7 @@ export async function waitForElectronInstancesExist() {
   do {
     tasks = await getElectronInstances();
     if (tasks.length > 0) {
-      await new Promise(r => {
-        setTimeout(r, interval);
-      });
+      await sleep(interval);
       timeLeft -= interval;
     }
   } while (tasks.length > 0 && timeLeft > 0);
