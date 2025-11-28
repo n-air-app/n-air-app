@@ -793,10 +793,10 @@
     },
     "comment": {
       "sectionTitle": "Niconico Live Comment Settings",
-      "notice1": "When turned ON, the AI will transcribe spoken words in real-time, and display them in the viewer's player and comment list.",
+      "notice1": "When turned ON, the AI will transcribe spoken words in real-time and display them in the viewer's player and comment list.",
       "notice2": "Automatically display the transcribed text in the player.",
       "notice3": "Automatic transcription results will be posted as comments during Niconico live streaming.",
-      "notice4": "Comments from automatic transcription are not displayed in real-time on the streaming page when logged in as the broadcaster",
+      "notice4": "Comments from automatic transcription are not displayed in real-time on your own streaming page when you are logged in as the broadcaster.",
       "enable": "Enable comment posting",
       "postDelay": "Comment Post delay (ms)",
       "vposOffset": "Comment Vpos Offset (ms)",
@@ -881,7 +881,7 @@
       "notActive": "To display automatically transcribed text, please add the source and enable automatic transcription in the settings."
     },
     "addSourceSection": {
-      "title": "Set Automatic Transcription Source (recommended)",
+      "title": "Add Automatic Transcription Source (recommended)",
       "add": "Add to Active Scene",
       "added": "Added to Active Scene"
     },
