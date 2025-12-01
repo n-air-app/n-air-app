@@ -116,8 +116,8 @@ export default class TranscriptionSettings extends Vue {
     const lastEnabled = this.transcriptionService.state.enabled ?? false;
     this.transcriptionService.setEnabled(enable);
     if (!lastEnabled && enable) {
-      // もし、有効化したときにモデルをひとつもダウンロードしていない場合、ダウンロードすることを確認してモデル(small)をだダウンロード開始する
-      if (!this.hasAtLeastOneVoskModelDownloaded) {
+      // もし、有効化したときにモデルをひとつもダウンロードしていない場合、ダウンロードすることを確認してモデル(small)をダウンロード開始する
+      if (!this.hasAtLeastOneVoskModelDownloaded && !this.hasModelDownloadInProgress) {
         if (
           remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
             type: 'question',
@@ -186,6 +186,13 @@ export default class TranscriptionSettings extends Vue {
   // vosk model をひとつでもダウンロードしているならtrue
   get hasAtLeastOneVoskModelDownloaded(): boolean {
     return Object.values(this.modelsStatus).some(status => status.state === 'downloaded');
+  }
+
+  // vosk model をダウンロード中またはインストール中ならtrue
+  get hasModelDownloadInProgress(): boolean {
+    return Object.values(this.modelsStatus).some(
+      status => status.state === 'downloading' || status.state === 'installing',
+    );
   }
 
   get voskModelModel(): IObsListInput<string> {
