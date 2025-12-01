@@ -70,7 +70,7 @@ export class HostsService extends Service {
   }
 
   getCreatorsProgramURL(programID: string): string {
-    return `https://commons.nicovideo.jp/cpp/application/?site_id=nicolive&creation_id=${programID}`;
+    return `https://commons.nicovideo.jp/cpp-applications/${programID}/new?site_id=nicolive`;
   }
 
   getModeratorSettingsURL(): string {
