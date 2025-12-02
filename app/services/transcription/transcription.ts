@@ -485,9 +485,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       next: message => {
         console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
-          this.rawTextSubject$.next(filterNoiseText(message.text));
+          const text = filterNoiseText(message.text);
+          if (text) {
+            this.rawTextSubject$.next(text);
+          }
         } else if (isPartialTranscriptionMessage(message)) {
-          this.partialSubject$.next(filterNoiseText(message.partial));
+          const partial = filterNoiseText(message.partial);
+          if (partial) {
+            this.partialSubject$.next(partial);
+          }
         } else if (isErrorTranscriptionMessage(message)) {
           console.error('Transcription error:', message.error);
           if (message.error.startsWith('Failed to load model:')) {
