@@ -761,6 +761,9 @@
       "afterLink": "for detailed information about the features."
     },
     "enable": "Enable automatic transcription",
+    "warningBothActive": "Enabling both comment posting and transcription source will cause transcription results to appear duplicated.",
+    "warningNoOutput": "To use transcription results, please add a transcription source, or enable comment posting for niconico live streaming.",
+    "warningNoOutput2": "To use transcription results, please add a transcription source.",
     "voskModel": "Voice recognition model",
     "voskModels": {
       "vosk-model-ja-0.22": "VOSK Japanese (1GB) 0.22",
@@ -776,9 +779,11 @@
     },
     "downloadVoskModel": "Download model",
     "deleteVoskModel": "Delete downloaded model",
+    "audioSettings": "Audio Settings",
     "audioSource": "Audio Source",
     "noAudioSourceFound": "No audio source found",
     "preview": "Preview",
+    "displaySettings": "Display Settings",
     "textFile": {
       "sectionTitle": "Automatic Transcription Text Source Output Settings",
       "enable": "Enable Automatic Transcription Text Source output",
@@ -788,8 +793,10 @@
     },
     "comment": {
       "sectionTitle": "Niconico Live Comment Settings",
-      "notice1": "Automatic transcription results will be posted as comments during Niconico live streaming.",
-      "notice2": "※Comments from automatic transcription are not displayed in real-time on the streaming page when logged in as the broadcaster",
+      "notice1": "When turned ON, the AI will transcribe spoken words in real-time and display them in the viewer's player and comment list.",
+      "notice2": "Automatically display the transcribed text in the player.",
+      "notice3": "Automatic transcription results will be posted as comments during Niconico live streaming.",
+      "notice4": "Comments from automatic transcription are not displayed in real-time on your own streaming page when you are logged in as the broadcaster.",
       "enable": "Enable comment posting",
       "postDelay": "Comment Post delay (ms)",
       "vposOffset": "Comment Vpos Offset (ms)",
@@ -855,6 +862,11 @@
       "message": "Download voice recognition model?",
       "detail": "A voice recognition model is required for automatic transcription. The small model (48MB) will be downloaded."
     },
+    "addOutputDestinationConfirm": {
+      "message": "Add automatic transcription source to the current scene?",
+      "detail": "If you press [Yes], an automatic transcription source will be added to the current scene and transcription results will be displayed on screen (recommended).",
+      "detailWithComment": "If you press [Yes], an automatic transcription source will be added to the current scene and transcription results will be displayed on screen (recommended).\nIf you don't add the source, you can also enable comment posting for Niconico live streaming to display results as comments."
+    },
     "disabledReason": {
       "disabled": "Automatic transcription is disabled.",
       "noVoskModel": "Please select a downloaded model.",
@@ -867,6 +879,12 @@
     },
     "addSource": {
       "notActive": "To display automatically transcribed text, please add the source and enable automatic transcription in the settings."
-    }
+    },
+    "addSourceSection": {
+      "title": "Add Automatic Transcription Source (recommended)",
+      "add": "Add to Active Scene",
+      "added": "Added to Active Scene"
+    },
+    "placeholder": "[Transcription results will be displayed here]"
   }
 }

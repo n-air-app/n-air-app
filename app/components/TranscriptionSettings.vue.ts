@@ -26,6 +26,8 @@ import {
   VoskModelStatus,
   voskModelStatusToString,
 } from 'services/transcription/transcription';
+import { TranscriptionSourceService } from 'services/transcription/transcription-source';
+import { TranscriptionSourceUsageService } from 'services/transcription/transcription-source-usage';
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
@@ -41,6 +43,8 @@ import { Component } from 'vue-property-decorator';
 export default class TranscriptionSettings extends Vue {
   @Inject() transcriptionService: TranscriptionService;
   @Inject() userService: UserService;
+  @Inject() private transcriptionSourceUsageService: TranscriptionSourceUsageService;
+  @Inject() private transcriptionSourceService: TranscriptionSourceService;
 
   isNiconicoLoggedIn(): boolean {
     return this.userService.isNiconicoLoggedIn();
@@ -82,9 +86,12 @@ export default class TranscriptionSettings extends Vue {
     });
     this.activeStatus = this.transcriptionService.activeStatus();
     this.transcriptionService.updateAudioDevices();
+
+    this.subscribeTranscriptionSourceUsage();
   }
 
   beforeDestroy() {
+    this.unsubscribeTranscriptionSourceUsage();
     this.activeStatusSubscription.unsubscribe();
     this.textSubscription.unsubscribe();
     this.modelStatusSubscription.unsubscribe();
@@ -105,12 +112,12 @@ export default class TranscriptionSettings extends Vue {
   get enabled(): boolean {
     return this.transcriptionService.state.enabled ?? false;
   }
-  set enabled(model: boolean) {
+  set enabled(enable: boolean) {
     const lastEnabled = this.transcriptionService.state.enabled ?? false;
-    this.transcriptionService.setEnabled(model);
-    if (!lastEnabled && model) {
-      // もし、有効化したときにモデルをひとつもダウンロードしていない場合、ダウンローすすることを確認してモデル(small)をだダウンロード開始する
-      if (!this.hasAtLeastOneVoskModelDownloaded) {
+    this.transcriptionService.setEnabled(enable);
+    if (!lastEnabled && enable) {
+      // もし、有効化したときにモデルをひとつもダウンロードしていない場合、ダウンロードすることを確認してモデル(small)をダウンロード開始する
+      if (!this.hasVoskModelDownloadedOrInProgress) {
         if (
           remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
             type: 'question',
@@ -122,15 +129,68 @@ export default class TranscriptionSettings extends Vue {
             noLink: true,
           }) === 0
         ) {
-          this.transcriptionService.startDownloadVoskModel(VOSK_MODEL_NAMES[0]);
+          const modelToDownload = VOSK_MODEL_NAMES[0];
+          this.transcriptionService.setModelName(modelToDownload);
+          this.transcriptionService.startDownloadVoskModel(modelToDownload);
         }
       }
+
+      // 出力先チェック: 文字起こしソースがシーンにある、またはニコニコログイン中かつコメント投稿on
+      const hasOutputDestination =
+        this.transcriptionSourceInActiveScene || (this.isNiconicoLoggedIn() && this.commentEnabled);
+
+      if (!hasOutputDestination) {
+        // ニコニコログイン中の場合はコメント投稿の選択肢も紹介する
+        const detailKey = this.isNiconicoLoggedIn()
+          ? 'settings.transcription.addOutputDestinationConfirm.detailWithComment'
+          : 'settings.transcription.addOutputDestinationConfirm.detail';
+
+        if (
+          remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+            type: 'question',
+            buttons: [$t('common.yes'), $t('common.later')],
+            defaultId: 0,
+            cancelId: 1,
+            message: $t('settings.transcription.addOutputDestinationConfirm.message'),
+            detail: $t(detailKey),
+            noLink: true,
+          }) === 0
+        ) {
+          this.addTranscriptionSourceToActiveScene();
+        }
+      }
+
+      // Initialize placeholder text
+      this.transcriptionService.initializeText();
     }
   }
 
-  // vosk model をひとつでもダウンロードしているならtrue
-  get hasAtLeastOneVoskModelDownloaded(): boolean {
-    return Object.values(this.modelsStatus).some(status => status.state === 'downloaded');
+  transcriptionSourceInActiveSceneSubscription: Subscription;
+  transcriptionSourceInActiveScene: boolean = false;
+  subscribeTranscriptionSourceUsage() {
+    this.transcriptionSourceInActiveSceneSubscription =
+      this.transcriptionSourceUsageService.state$.subscribe(state => {
+        this.transcriptionSourceInActiveScene = state.existsInActiveScene;
+      });
+    this.transcriptionSourceInActiveScene =
+      this.transcriptionSourceUsageService.state.existsInActiveScene;
+  }
+  unsubscribeTranscriptionSourceUsage() {
+    this.transcriptionSourceInActiveSceneSubscription?.unsubscribe();
+  }
+
+  addTranscriptionSourceToActiveScene(): void {
+    this.transcriptionSourceService.addTextTranscriptionSourceToActiveScene();
+  }
+
+  // vosk model がひとつでもダウンロード済み、ダウンロード中、またはインストール中ならtrue
+  get hasVoskModelDownloadedOrInProgress(): boolean {
+    return Object.values(this.modelsStatus).some(
+      status =>
+        status.state === 'downloaded' ||
+        status.state === 'downloading' ||
+        status.state === 'installing',
+    );
   }
 
   get voskModelModel(): IObsListInput<string> {
@@ -181,7 +241,7 @@ export default class TranscriptionSettings extends Vue {
     const sources = this.transcriptionService.getAudioDeviceList();
     if (sources.length === 0) {
       return {
-        description: '',
+        description: $t('settings.transcription.audioSource'),
         name: 'transcriptionAudioSource',
         value: this.transcriptionService.state.audioDeviceId ?? '',
         options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: null }],
@@ -189,7 +249,7 @@ export default class TranscriptionSettings extends Vue {
       };
     }
     return {
-      description: '',
+      description: $t('settings.transcription.audioSource'),
       name: 'transcriptionAudioSource',
       value: this.transcriptionService.state.audioDeviceId ?? '',
       options: [
@@ -207,6 +267,9 @@ export default class TranscriptionSettings extends Vue {
   commentSectionTitle = $t('settings.transcription.comment.sectionTitle');
   commentSectionNotice1 = $t('settings.transcription.comment.notice1');
   commentSectionNotice2 = $t('settings.transcription.comment.notice2');
+  commentSectionNotice3 = $t('settings.transcription.comment.notice3');
+  commentSectionNotice4 = $t('settings.transcription.comment.notice4');
+
   get commentEnabled(): boolean {
     return this.transcriptionService.state.commentEnabled ?? false;
   }
