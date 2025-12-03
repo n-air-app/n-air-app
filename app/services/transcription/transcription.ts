@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   BehaviorSubject,
-  concatMap,
   distinctUntilChanged,
   EMPTY,
   filter,
@@ -358,16 +357,51 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.transcriptionSourceUsageService?.stopStreaming();
   }
 
+  /**
+   * テキスト行削除用のタイマーを開始し、subscriptions配列に追加する
+   */
+  private startRemoveLineTimer() {
+    const ttl = this.state.textFileLineTimeToLive;
+    if (ttl > 0) {
+      const sub = timer(ttl).subscribe(() => {
+        this.removeLineSubject$.next();
+        // 完了したsubscriptionを配列から削除
+        const index = this.timerSubscriptions.indexOf(sub);
+        if (index !== -1) {
+          this.timerSubscriptions.splice(index, 1);
+        }
+      });
+      this.timerSubscriptions.push(sub);
+    }
+  }
+
+  /**
+   * 最も古いタイマーをキャンセルする（行数上限で押し出される場合に使用）
+   */
+  private cancelOldestTimer() {
+    const oldestTimer = this.timerSubscriptions.shift();
+    if (oldestTimer && !oldestTimer.closed) {
+      oldestTimer.unsubscribe();
+    }
+  }
+
+  /**
+   * すべてのタイマーをクリーンアップする
+   */
+  private clearAllTimers() {
+    this.timerSubscriptions.forEach(sub => {
+      if (!sub.closed) {
+        sub.unsubscribe();
+      }
+    });
+    this.timerSubscriptions = [];
+  }
+
   initTextFileWriter() {
     // 確定テキストが追加されるたびに、一定時間後に先頭行を削除するタイマーを開始する
-    this.textSubject$
-      .pipe(
-        concatMap(() => {
-          const ttl = this.state.textFileLineTimeToLive;
-          return ttl > 0 ? timer(ttl) : EMPTY;
-        }),
-      )
-      .subscribe(() => this.removeLineSubject$.next());
+    this.textSubject$.subscribe(() => {
+      this.startRemoveLineTimer();
+    });
 
     // linesSubject$ を更新するストリーム
     merge(
@@ -388,6 +422,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
               const newTexts = [...acc.texts, action.payload];
               if (newTexts.length > this.state.textFileMaxLine) {
                 newTexts.shift();
+                // 行数上限で押し出される行に対応するタイマーをキャンセル
+                this.cancelOldestTimer();
               }
               return { texts: newTexts, partial: '' };
             }
@@ -448,6 +484,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   private subscription: Subscription;
+  private timerSubscriptions: Subscription[] = [];
 
   activate() {
     if (this.client) {
@@ -485,9 +522,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       next: message => {
         console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
-          this.rawTextSubject$.next(filterNoiseText(message.text));
+          const text = filterNoiseText(message.text);
+          if (text) {
+            this.rawTextSubject$.next(text);
+          }
         } else if (isPartialTranscriptionMessage(message)) {
-          this.partialSubject$.next(filterNoiseText(message.partial));
+          const partial = filterNoiseText(message.partial);
+          if (partial) {
+            this.partialSubject$.next(partial);
+          }
         } else if (isErrorTranscriptionMessage(message)) {
           console.error('Transcription error:', message.error);
           if (message.error.startsWith('Failed to load model:')) {
@@ -537,6 +580,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.subscription.unsubscribe();
       this.subscription = null;
     }
+    // タイマーのクリーンアップ
+    this.clearAllTimers();
   }
 
   setEnabled(enabled: boolean) {
