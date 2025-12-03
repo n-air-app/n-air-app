@@ -480,6 +480,64 @@ describe('TranscriptionService', () => {
 
   describe('text processing', () => {
     it(
+      'should initialize text with placeholder when initializeText() is called',
+      withClock(async clock => {
+        const { instance } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // Call initializeText()
+        instance.initializeText();
+        await clock.tickAsync(0);
+
+        // Should set texts to placeholder message
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['settings.transcription.placeholder'],
+          partial: '',
+        });
+      }),
+    );
+
+    it(
+      'should replace placeholder with actual transcription text',
+      withClock(async clock => {
+        const { instance, transcriptionMessages$ } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // Initialize with placeholder
+        instance.initializeText();
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['settings.transcription.placeholder'],
+          partial: '',
+        });
+
+        // Receive actual transcription text
+        transcriptionMessages$.next({ text: 'こんにちは世界' });
+        await clock.tickAsync(0);
+
+        // Placeholder should be replaced with actual text
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['settings.transcription.placeholder', 'こんにちは世界'],
+          partial: '',
+        });
+      }),
+    );
+
+    it(
       'should process partial and final text',
       withClock(async clock => {
         const { instance, transcriptionMessages$ } = setupTranscription({
@@ -524,23 +582,174 @@ describe('TranscriptionService', () => {
         const linesSpy = jest_fn().mockName('linesSpy');
         instance.lines$.subscribe(linesSpy);
 
+        // time=0: line 1追加（タイマー開始: 1000msで削除）
         transcriptionMessages$.next({ text: 'line 1' });
         await clock.tickAsync(0);
         expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 1'], partial: '' });
 
+        // time=0: line 2追加（タイマー開始: 1000msで削除）
         transcriptionMessages$.next({ text: 'line 2' });
         await clock.tickAsync(0);
         expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 1', 'line 2'], partial: '' });
 
+        // time=0: line 3追加（line 1が押し出される、タイマー1キャンセル、タイマー3開始: 1000msで削除）
         transcriptionMessages$.next({ text: 'line 3' });
         await clock.tickAsync(0);
         expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 2', 'line 3'], partial: '' });
 
+        // time=1000: タイマー2とタイマー3が同時に完了（両方とも追加から1000ms後）
+        await clock.tickAsync(1000);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: [], partial: '' });
+      }),
+    );
+
+    it(
+      'should cancel oldest timer when line is pushed out by max line limit',
+      withClock(async clock => {
+        const { instance, transcriptionMessages$ } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        instance.setTextFileMaxLine(2); // 最大2行
+        instance.setTextFileLineTimeToLive(5000); // TTL=5秒
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // time=0: line 1追加 → タイマー1開始（5秒後に削除予定）
+        transcriptionMessages$.next({ text: 'line 1' });
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 1'], partial: '' });
+
+        // time=1000: line 2追加 → タイマー2開始（6秒に削除予定）
+        await clock.tickAsync(1000);
+        transcriptionMessages$.next({ text: 'line 2' });
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 1', 'line 2'], partial: '' });
+
+        // time=2000: line 3追加 → line 1が押し出される、タイマー1キャンセル、タイマー3開始（7秒に削除予定）
+        await clock.tickAsync(1000);
+        transcriptionMessages$.next({ text: 'line 3' });
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 2', 'line 3'], partial: '' });
+
+        // time=5000: タイマー1は既にキャンセルされているので何も起こらない
+        await clock.tickAsync(3000);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 2', 'line 3'], partial: '' });
+
+        // time=6000: タイマー2完了 → line 2削除（正しい）
         await clock.tickAsync(1000);
         expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 3'], partial: '' });
 
+        // time=7000: タイマー3完了 → line 3削除（正しい）
         await clock.tickAsync(1000);
         expect(linesSpy).toHaveBeenLastCalledWith({ texts: [], partial: '' });
+      }),
+    );
+
+    it(
+      'should handle multiple line pushouts correctly',
+      withClock(async clock => {
+        const { instance, transcriptionMessages$ } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        instance.setTextFileMaxLine(2); // 最大2行
+        instance.setTextFileLineTimeToLive(5000); // TTL=5秒
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // time=0: line 1, 2追加
+        transcriptionMessages$.next({ text: 'line 1' });
+        await clock.tickAsync(0);
+        transcriptionMessages$.next({ text: 'line 2' });
+        await clock.tickAsync(0);
+
+        // time=1000: line 3追加 → line 1押し出し、timer1キャンセル
+        await clock.tickAsync(1000);
+        transcriptionMessages$.next({ text: 'line 3' });
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 2', 'line 3'], partial: '' });
+        expect(instance['timerSubscriptions'].length).toBe(2); // timer2, timer3
+
+        // time=2000: line 4追加 → line 2押し出し、timer2キャンセル
+        await clock.tickAsync(1000);
+        transcriptionMessages$.next({ text: 'line 4' });
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 3', 'line 4'], partial: '' });
+        expect(instance['timerSubscriptions'].length).toBe(2); // timer3, timer4
+
+        // time=3000: line 5追加 → line 3押し出し、timer3キャンセル
+        await clock.tickAsync(1000);
+        transcriptionMessages$.next({ text: 'line 5' });
+        await clock.tickAsync(0);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 4', 'line 5'], partial: '' });
+        expect(instance['timerSubscriptions'].length).toBe(2); // timer4, timer5
+
+        // time=7000: timer4完了（line 4追加から5秒後）
+        await clock.tickAsync(4000);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: ['line 5'], partial: '' });
+        expect(instance['timerSubscriptions'].length).toBe(1); // timer5のみ
+
+        // time=8000: timer5完了（line 5追加から5秒後）
+        await clock.tickAsync(1000);
+        expect(linesSpy).toHaveBeenLastCalledWith({ texts: [], partial: '' });
+        expect(instance['timerSubscriptions'].length).toBe(0);
+      }),
+    );
+
+    it(
+      'should cancel all timers when deactivating',
+      withClock(async clock => {
+        const { instance, transcriptionMessages$ } = setupTranscription({
+          modelDownloaded: true,
+          audioDeviceId: 'test-device',
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        instance.setTextFileMaxLine(10);
+        instance.setTextFileLineTimeToLive(5000);
+
+        const linesSpy = jest_fn().mockName('linesSpy');
+        instance.lines$.subscribe(linesSpy);
+
+        // 複数の行を追加してタイマーを開始
+        transcriptionMessages$.next({ text: 'line 1' });
+        await clock.tickAsync(0);
+        transcriptionMessages$.next({ text: 'line 2' });
+        await clock.tickAsync(0);
+        transcriptionMessages$.next({ text: 'line 3' });
+        await clock.tickAsync(0);
+
+        expect(linesSpy).toHaveBeenLastCalledWith({
+          texts: ['line 1', 'line 2', 'line 3'],
+          partial: '',
+        });
+
+        // 実行中のタイマー数を確認
+        expect(instance['timerSubscriptions'].length).toBe(3);
+
+        // removeLineSubject$の発火を監視
+        const removeLineSpy = jest.spyOn(instance['removeLineSubject$'], 'next');
+
+        // サービスを無効化（deactivate）
+        instance.setEnabled(false);
+        await clock.tickAsync(0);
+
+        // タイマーがすべてキャンセルされたことを確認
+        expect(instance['timerSubscriptions'].length).toBe(0);
+
+        // 5秒経過してもremoveLineSubject$が発火しない（タイマーがキャンセルされている証拠）
+        await clock.tickAsync(5000);
+        expect(removeLineSpy).not.toHaveBeenCalled();
       }),
     );
 

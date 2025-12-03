@@ -7,9 +7,9 @@ replace_rules.json @takuhiro-koyama
 /.github/CODEOWNERS @takuhiro-koyama
 
 # designers
-*.vue @yusukess @kechino
-*.html @yusukess @kechino
-*.less @yusukess @kechino
-*.css @yusukess @kechino
-/app/styles/ @yusukess @kechino
-/media/images/ @yusukess @kechino
+*.vue @yusuke-shibakiri @Keiichi-Ichino
+*.html @yusuke-shibakiri @Keiichi-Ichino
+*.less @yusuke-shibakiri @Keiichi-Ichino
+*.css @yusuke-shibakiri @Keiichi-Ichino
+/app/styles/ @yusuke-shibakiri @Keiichi-Ichino
+/media/images/ @yusuke-shibakiri @Keiichi-Ichino

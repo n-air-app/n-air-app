@@ -15,6 +15,7 @@ import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
 import { StatefulService, mutation } from 'services/core/stateful-service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
+import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
@@ -125,6 +126,7 @@ export class SettingsService
 
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private dismissablesService: DismissablesService;
+  @Inject() private nicoliveProgramStateService: NicoliveProgramStateService;
 
   init() {
     this.loadSettingsIntoStore();
@@ -836,20 +838,43 @@ export class SettingsService
             },
         ),
       },
+      {
+        nameSubCategory: 'NicoliveProgramState',
+        codeSubCategory: 'NicoliveProgramState',
+        parameters: [
+          <IObsInput<boolean>>{
+            value: this.nicoliveProgramStateService.state.nameplateHint !== undefined,
+            name: 'ResetNameplateHint',
+            description: 'なふだコーチングをリセットする',
+            type: 'OBS_PROPERTY_BOOL',
+            visible: true,
+            enabled: this.nicoliveProgramStateService.state.nameplateHint !== undefined,
+          },
+        ],
+      },
     ];
   }
 
   private setDeveloperSettings(settingsData: ISettingsSubCategory[]) {
     for (const setting of settingsData) {
-      if (setting.nameSubCategory === 'Dismissables') {
-        for (const item of setting.parameters) {
-          const name = item.name as EDismissable;
-          if (item.value) {
-            this.dismissablesService.reset(name);
-          } else {
-            this.dismissablesService.dismiss(name);
+      switch (setting.nameSubCategory) {
+        case 'Dismissables':
+          for (const item of setting.parameters) {
+            const name = item.name as EDismissable;
+            if (item.value) {
+              this.dismissablesService.reset(name);
+            } else {
+              this.dismissablesService.dismiss(name);
+            }
           }
-        }
+          break;
+        case 'NicoliveProgramState':
+          for (const item of setting.parameters) {
+            if (item.name === 'ResetNameplateHint') {
+              this.nicoliveProgramStateService.updateNameplateHint(undefined);
+            }
+          }
+          break;
       }
     }
     return;

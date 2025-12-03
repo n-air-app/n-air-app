@@ -11,5 +11,5 @@ export const CategoryIcons = new Map<SettingsCategory, string>([
   ['Comment', 'icon-comment-setting'],
   ['SpeechEngine', 'icon-speech-engine'],
   ['SubStream', 'icon-output'],
-  ['Transcription', 'icon-speaker' /* TODO */],
+  ['Transcription', 'icon-text' /* TODO */],
 ] satisfies [SettingsCategory, string][]);

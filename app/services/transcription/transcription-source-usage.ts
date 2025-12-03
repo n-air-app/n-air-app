@@ -1,20 +1,22 @@
-import { merge } from 'rxjs';
+import { BehaviorSubject, merge } from 'rxjs';
 import { mutation, StatefulService } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { ScenesService } from 'services/scenes';
 import { SourcesService } from 'services/sources';
 
 interface ITranscriptionSourceUsageState {
-  used: boolean;
+  existsInActiveScene: boolean;
 }
 
 export class TranscriptionSourceUsageService extends StatefulService<ITranscriptionSourceUsageState> {
-  @Inject() sourcesService: SourcesService;
-  @Inject() scenesService: ScenesService;
+  @Inject() private sourcesService: SourcesService;
+  @Inject() private scenesService: ScenesService;
 
   static initialState: ITranscriptionSourceUsageState = {
-    used: false,
+    existsInActiveScene: false,
   };
+
+  state$ = new BehaviorSubject<ITranscriptionSourceUsageState>(this.state);
 
   init() {
     super.init();
@@ -39,13 +41,13 @@ export class TranscriptionSourceUsageService extends StatefulService<ITranscript
   }
 
   markTranscriptionUsed() {
-    if (!this.state.used) {
-      this.setState({ used: true });
+    if (!this.state.existsInActiveScene) {
+      this.setState({ existsInActiveScene: true });
     }
   }
 
   reset() {
-    this.setState({ used: false });
+    this.setState({ existsInActiveScene: false });
   }
 
   isTranscriptionSourceId(sourceId: string): boolean {
@@ -75,6 +77,7 @@ export class TranscriptionSourceUsageService extends StatefulService<ITranscript
 
   setState(state: Partial<ITranscriptionSourceUsageState>) {
     this.SET_STATE({ ...this.state, ...state });
+    this.state$.next(this.state);
   }
 
   @mutation()

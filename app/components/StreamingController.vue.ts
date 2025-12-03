@@ -96,6 +96,7 @@ export default class StudioFooterComponent extends Vue {
     this.timeoutHandle = window.setTimeout(() => this.updateStreamingElapsedTime(), 200);
   }
 
+  elapsedTimeTooltip = $t('streaming.elapsedTimeTooltip');
   recordTooltip = $t('streaming.recordTooltip');
   startReplayBufferTooltip = $t('streaming.startReplayBuffer');
   stopReplayBufferTooltip = $t('streaming.stopReplayBuffer');
