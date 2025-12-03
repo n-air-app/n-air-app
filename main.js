@@ -255,20 +255,14 @@ function initialize(crashHandler) {
   // Main Program
   ////////////////////////////////////////////////////////////////////////////////
 
+  // 起動速度改善: 重い同期処理は app.on('ready') 後に実行
   // workaround for  https://github.com/electron/electron/issues/19468, https://github.com/electron/electron/issues/19978
   // (Electron 6 to 8 does not launch in Win10 dark mode with DevTool extensions installed)
-  rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
+  // rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
 
   const util = require('util');
   const logFile = path.join(app.getPath('userData'), 'app.log');
   const maxLogBytes = 131072;
-
-  // Truncate the log file if it is too long
-  if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
-    const content = fs.readFileSync(logFile);
-    fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
-    fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
-  }
 
   ipcMain.on('logmsg', (e, msg) => {
     logFromRemote(msg.level, msg.sender, msg.message);
@@ -358,6 +352,19 @@ function initialize(crashHandler) {
 
     lineBuffer.push(`${line}\n`);
     flushNextLine();
+  }
+
+  // Synchronously flush all pending log lines
+  // eslint-disable-next-line no-inner-declarations
+  function flushLogBufferSync() {
+    if (lineBuffer.length === 0) return;
+    try {
+      const allLines = lineBuffer.join('');
+      fs.appendFileSync(logFile, allLines);
+      lineBuffer.length = 0; // Clear buffer
+    } catch (e) {
+      consoleLog('Error flushing log buffer:', e);
+    }
   }
 
   let writeInProgress = false;
@@ -458,8 +465,12 @@ function initialize(crashHandler) {
 
   // eslint-disable-next-line no-inner-declarations
   function openDevTools() {
-    childWindow.webContents.openDevTools({ mode: 'undocked' });
-    mainWindow.webContents.openDevTools({ mode: 'undocked' });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.openDevTools({ mode: 'undocked' });
+    }
+    if (childWindow && !childWindow.isDestroyed()) {
+      childWindow.webContents.openDevTools({ mode: 'undocked' });
+    }
   }
 
   const SentryElectron = require('@sentry/electron/main');
@@ -511,6 +522,9 @@ function initialize(crashHandler) {
   } else {
     console.log('Sentry disabled, SENTRY_DSN = ', sentryDefs.DSN);
   }
+
+  // Import splash window functions
+  const { createSplashWindow, closeSplashWindow } = require('./splash/splash-window');
 
   // eslint-disable-next-line no-inner-declarations
   async function startApp() {
@@ -577,6 +591,7 @@ function initialize(crashHandler) {
       height: mainWindowState.height,
       show: false,
       frame: false,
+      backgroundColor: '#17242D',
       title: process.env.NAIR_PRODUCT_NAME,
       ...(mainWindowIsVisible
         ? {
@@ -592,37 +607,53 @@ function initialize(crashHandler) {
     });
 
     remote.enable(mainWindow.webContents);
-
     mainWindowState.manage(mainWindow);
-
     mainWindow.removeMenu();
+    mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
 
-    // wait until devtools will be opened and load app into window
-    // it allows to start application with clean cache
-    // and handle breakpoints on startup
-    const LOAD_DELAY = 2000;
-    setTimeout(
-      () => {
-        if (process.env.NAIR_PRODUCTION_DEBUG) openDevTools();
-        mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
-      },
-      isDevMode ? LOAD_DELAY : 0,
-    );
+    // Open DevTools in development mode if configured
+    if (process.env.NAIR_PRODUCTION_DEBUG) {
+      // Delay DevTools opening slightly to avoid interfering with startup
+      setTimeout(() => openDevTools(), 100);
+    }
+
+    // Close splash when main window content is loaded
+    mainWindow.webContents.once('did-finish-load', () => {
+      // Give Vue a moment to render before showing
+      setTimeout(() => {
+        if (mainWindowIsVisible) mainWindow.show();
+        closeSplashWindow();
+      }, 100);
+    });
+
+    // Ensure splash is closed on error
+    mainWindow.webContents.on('did-fail-load', () => {
+      closeSplashWindow();
+    });
 
     mainWindow.on('close', e => {
+      console.log('[EXIT] mainWindow.on(close) event, allowMainWindowClose=', allowMainWindowClose);
+
       if (!shutdownStarted) {
+        console.log('[EXIT] Starting shutdown sequence');
         shutdownStarted = true;
         mainWindow.send('shutdown');
 
         // We give the main window 10 seconds to acknowledge a request
         // to shut down.  Otherwise, we just close it.
         appShutdownTimeout = setTimeout(() => {
+          console.log('[EXIT] Shutdown timeout');
           allowMainWindowClose = true;
           if (!mainWindow.isDestroyed()) mainWindow.close();
         }, 10 * 1000);
       }
 
-      if (!allowMainWindowClose) e.preventDefault();
+      if (!allowMainWindowClose) {
+        console.log('[EXIT] Preventing close');
+        e.preventDefault();
+      } else {
+        console.log('[EXIT] Allowing close');
+      }
     });
 
     ipcMain.on('acknowledgeShutdown', () => {
@@ -630,8 +661,19 @@ function initialize(crashHandler) {
     });
 
     ipcMain.on('shutdownComplete', () => {
+      console.log('[EXIT] shutdownComplete received');
+      if (appShutdownTimeout) clearTimeout(appShutdownTimeout);
       allowMainWindowClose = true;
-      mainWindow.close();
+      console.log('[EXIT] Set allowMainWindowClose=true, scheduling mainWindow.close()...');
+
+      // Schedule close on next tick to avoid race condition with close event
+      setTimeout(() => {
+        console.log('[EXIT] Calling mainWindow.close()...');
+        if (!mainWindow.isDestroyed()) {
+          mainWindow.close();
+          console.log('[EXIT] mainWindow.close() returned, isDestroyed=', mainWindow.isDestroyed());
+        }
+      }, 0);
     });
 
     // Initialize the keylistener
@@ -644,9 +686,34 @@ function initialize(crashHandler) {
     }
 
     mainWindow.on('closed', () => {
+      console.log('[EXIT] mainWindow closed event');
+
+      // Ensure splash window is closed
+      closeSplashWindow();
+
       require('node-libuiohook').stopHook();
+      console.log('[EXIT] Stopped libuiohook');
+
       session.defaultSession.flushStorageData();
-      session.defaultSession.cookies.flushStore(() => app.quit());
+      console.log('[EXIT] Storage data flushed');
+
+      // Unregister from crash handler before exiting
+      const enableCrashHandler = !process.env.DEV_SERVER || process.env.NAIR_DEBUG_CRASH_HANDLER;
+      if (enableCrashHandler && crashHandler) {
+        try {
+          crashHandler.unregisterProcess(pid);
+          console.log('[EXIT] Unregistered from crash handler');
+        } catch (e) {
+          console.error('[EXIT] Failed to unregister from crash handler:', e);
+        }
+      }
+
+      console.log('[EXIT] Calling app.exit(0)');
+
+      // Flush all pending logs before exiting
+      flushLogBufferSync();
+
+      app.exit(0);
     });
 
     // Pre-initialize the child window
@@ -762,7 +829,7 @@ function initialize(crashHandler) {
     });
 
     // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
       }
@@ -772,11 +839,30 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
-    if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
-      new Updater(startApp).run();
-    } else {
-      startApp();
-    }
+    // Show splash window immediately (skip in test environment)
+    createSplashWindow();
+
+    // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
+    setTimeout(() => {
+      // DevTools Extensions削除
+      rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
+
+      // ログファイル切り詰め
+      if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {
+        const content = fs.readFileSync(logFile);
+        fs.writeFileSync(logFile, '[LOG TRUNCATED]\n');
+        fs.writeFileSync(logFile, content.slice(content.length - maxLogBytes), { flag: 'a' });
+      }
+    }, 0);
+
+    // スプラッシュ表示を確実にするため、Updaterを少し遅延起動
+    setTimeout(() => {
+      if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
+        new Updater(startApp).run();
+      } else {
+        startApp();
+      }
+    }, 0);
   });
 
   ipcMain.on('openDevTools', () => {
@@ -977,6 +1063,7 @@ function initialize(crashHandler) {
     app.relaunch({ args });
     // Closing the main window starts the shut down sequence
     mainWindow.close();
+    closeSplashWindow();
   });
 
   /* The following 2 methods need to live in the main process

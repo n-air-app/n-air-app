@@ -230,7 +230,7 @@ async function runScript({
     }
 
     info('Installing yarn packages...');
-    executeCmd('yarn install');
+    executeCmd('yarn install --frozen-lockfile');
 
     info('Compiling assets...');
     executeCmd('yarn compile:production');

@@ -1,7 +1,7 @@
 <template>
   <div class="nav-container">
     <div class="nav-item elapsed-time">
-      <time>{{ streamingElapsedTime }}</time>
+      <time v-tooltip.left="elapsedTimeTooltip">{{ streamingElapsedTime }}</time>
     </div>
     <div class="nav-item">
       <button

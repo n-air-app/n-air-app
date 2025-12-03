@@ -27,6 +27,7 @@ import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
+import { sleep } from 'util/sleep';
 import uuid from 'uuid/v4';
 import * as obs from '../../../obs-api';
 import { RunInLoadingMode } from './app-decorators';
@@ -135,40 +136,47 @@ export class AppService extends StatefulService<IAppState> {
   private shutdownHandler() {
     // SLOBS の shutdownHandlerでの順序に従います
     // https://github.com/stream-labs/desktop/blob/05edf2206a3c10c13b60ede8ddd5e776509ebd5f/app/services/app/app.ts#L178
+    console.log('[SHUTDOWN] Starting shutdown sequence');
     this.START_LOADING();
     this.tcpServerService.stopListening();
 
     window.setTimeout(async () => {
-      obs.NodeObs.InitShutdownSequence();
-      this.crashReporterService.beginShutdown();
-      // this.shutdownStarted.next(); 未実装
-      this.START_SHUTDOWN();
-      // this.keyListenerService.shutdown(); 未実装
-      // this.platformAppsService.unloadAllApps(); 未実装
-      // await this.usageStatisticsService.flushEvents(); 未実装
+      try {
+        // InitShutdownSequence をスキップ (N Air はクラッシュハンドラープロセスを使用していないため)
+        // Streamlabs Desktop では別プロセスとしてクラッシュハンドラーを起動し、named pipe で通信しているが、
+        // N Air にはその実装がないため、InitShutdownSequence は5秒タイムアウトするだけ。
+        // IPC.disconnect() でクリーンアップされるため、明示的な呼び出しは不要。
+        // 参考: https://github.com/streamlabs/obs-studio-node/blob/main/obs-studio-server/source/nodeobs_api.cpp#L1539-L1559
+        // obs.NodeObs.InitShutdownSequence();
 
-      this.transcriptionService.shutdown();
+        this.crashReporterService.beginShutdown();
+        this.START_SHUTDOWN();
 
-      if (this.windowsService.isChildWindowShown()) {
-        // 安全に子ウィンドウを閉じ、クリーンアップを待つ
-        await this.windowsService.closeChildWindow();
+        this.transcriptionService.shutdown();
+
+        if (this.windowsService.isChildWindowShown()) {
+          await this.windowsService.closeChildWindow();
+        }
+
+        await this.windowsService.closeAllOneOffs();
+        NicoliveClient.closeOpenWindows();
+        this.ipcServerService.stopListening();
+        this.stopMonitoringStudioMode();
+        await this.sceneCollectionsService.deinitialize();
+        this.performanceMonitorService.stop();
+        this.transitionsService.shutdown();
+        this.videoSettingsService.shutdown();
+        await this.fileManagerService.flushAll();
+        obs.NodeObs.RemoveSourceCallback();
+        obs.NodeObs.OBS_service_removeCallback();
+        obs.IPC.disconnect();
+        this.crashReporterService.endShutdown();
+        console.log('[SHUTDOWN] Shutdown sequence completed');
+      } catch (e) {
+        console.error('[SHUTDOWN] Error during shutdown:', e);
+      } finally {
+        electron.ipcRenderer.send('shutdownComplete');
       }
-      await this.windowsService.closeAllOneOffs(); // instead .shutdown(); window.child.close is 'Object has been destroyed' in this time
-      NicoliveClient.closeOpenWindows();
-      this.ipcServerService.stopListening();
-      // await this.userService.flushUserSession(); 未実装
-      this.stopMonitoringStudioMode();
-      await this.sceneCollectionsService.deinitialize();
-      this.performanceMonitorService.stop(); // instead this.performanceService.stop();
-      this.transitionsService.shutdown();
-      this.videoSettingsService.shutdown();
-      // await this.gameOverlayService.destroy(); 未実装
-      await this.fileManagerService.flushAll();
-      obs.NodeObs.RemoveSourceCallback();
-      obs.NodeObs.OBS_service_removeCallback();
-      obs.IPC.disconnect();
-      this.crashReporterService.endShutdown();
-      electron.ipcRenderer.send('shutdownComplete');
     }, 300);
   }
 
@@ -225,9 +233,7 @@ export class AppService extends StatefulService<IAppState> {
 
       // This is kind of ugly, but it gives the browser time to paint before
       // we do long blocking operations with OBS.
-      await new Promise(resolve => {
-        setTimeout(resolve, 200);
-      });
+      await sleep(200);
 
       //TODO await this.sceneCollectionsService.disableAutoSave();
     }
