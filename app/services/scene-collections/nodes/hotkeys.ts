@@ -44,4 +44,11 @@ export class HotkeysNode extends ArrayNode<IHotkey, IContext, Hotkey> {
     // We don't support version 1 hotkey schemas
     if (version === 1) this.data = { items: [] };
   }
+
+  protected getItemInfo(item: IHotkey): { type: any; id?: string; name: string } {
+    return {
+      type: 'hotkey',
+      name: item.actionName || 'Unknown hotkey',
+    };
+  }
 }
