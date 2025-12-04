@@ -80,6 +80,18 @@ describe('SceneCollectionsService', () => {
         return acc;
       }, {});
 
+      // Convert failed items array to indexed object for better Sentry display
+      const failedItemsContext = mockLoadErrors.reduce<Record<string, any>>((acc, err, index) => {
+        const key = `${index + 1}_${err.type}`;
+        acc[key] = {
+          type: err.type,
+          id: err.id || 'N/A',
+          name: err.name,
+          errorMessage: err.error instanceof Error ? err.error.message : String(err.error),
+        };
+        return acc;
+      }, {});
+
       Sentry.withScope(scope => {
         scope.setLevel('warning');
         scope.setTag('service', 'SceneCollectionsService');
@@ -87,14 +99,7 @@ describe('SceneCollectionsService', () => {
         scope.setTag('collectionId', 'test-collection-id');
         scope.setTag('errorCount', mockLoadErrors.length.toString());
         scope.setContext('errorsByType', errorsByType);
-        scope.setContext('failedItems', {
-          items: mockLoadErrors.map(err => ({
-            type: err.type,
-            id: err.id,
-            name: err.name,
-            error: err.error instanceof Error ? err.error.message : String(err.error),
-          })),
-        });
+        scope.setContext('failedItems', failedItemsContext);
         Sentry.captureMessage('Scene collection loaded with partial errors', 'warning');
       });
 
@@ -112,29 +117,19 @@ describe('SceneCollectionsService', () => {
         scene: 1,
       });
 
-      // Verify detailed error information
-      expect(mockScope.setContext).toHaveBeenCalledWith('failedItems', {
-        items: [
-          {
-            type: 'source',
-            id: 'source_1',
-            name: 'Invalid Source 1',
-            error: 'Source type not found',
-          },
-          {
-            type: 'source',
-            id: 'source_2',
-            name: 'Invalid Source 2',
-            error: 'Device not found',
-          },
-          {
-            type: 'scene',
-            id: 'scene_1',
-            name: 'Invalid Scene',
-            error: 'Scene load failed',
-          },
-        ],
-      });
+      // Verify detailed error information (now using indexed object format)
+      const expectedFailedItems = mockLoadErrors.reduce<Record<string, any>>((acc, err, index) => {
+        const key = `${index + 1}_${err.type}`;
+        acc[key] = {
+          type: err.type,
+          id: err.id || 'N/A',
+          name: err.name,
+          errorMessage: err.error instanceof Error ? err.error.message : String(err.error),
+        };
+        return acc;
+      }, {});
+
+      expect(mockScope.setContext).toHaveBeenCalledWith('failedItems', expectedFailedItems);
 
       expect(mockCaptureMessage).toHaveBeenCalledWith(
         'Scene collection loaded with partial errors',
@@ -213,6 +208,45 @@ describe('SceneCollectionsService', () => {
 
       expect(items[0].error).toBe('string error');
       expect(items[1].error).toBe('[object Object]');
+    });
+
+    test('handles settings: null error case', () => {
+      // This test verifies the error case discovered during testing
+      // where settings is null causes "Cannot convert undefined or null to object" error
+      const mockLoadErrors = [
+        {
+          type: 'source' as const,
+          id: 'error_test_null_settings',
+          name: 'エラーテスト3: null設定 [browser_source]',
+          error: new TypeError('Cannot convert undefined or null to object'),
+        },
+      ];
+
+      const errorsByType = mockLoadErrors.reduce<Record<string, number>>((acc, err) => {
+        acc[err.type] = (acc[err.type] || 0) + 1;
+        return acc;
+      }, {});
+
+      const failedItemsContext = mockLoadErrors.reduce<Record<string, any>>((acc, err, index) => {
+        const key = `${index + 1}_${err.type}`;
+        acc[key] = {
+          type: err.type,
+          id: err.id || 'N/A',
+          name: err.name,
+          errorMessage: err.error instanceof Error ? err.error.message : String(err.error),
+        };
+        return acc;
+      }, {});
+
+      expect(errorsByType).toEqual({ source: 1 });
+      expect(failedItemsContext).toEqual({
+        '1_source': {
+          type: 'source',
+          id: 'error_test_null_settings',
+          name: 'エラーテスト3: null設定 [browser_source]',
+          errorMessage: 'Cannot convert undefined or null to object',
+        },
+      });
     });
   });
 });
