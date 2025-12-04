@@ -13,7 +13,7 @@
   "quitApp": "アプリを終了",
   "createNewCollection": "新しいコレクションを作成",
   "partialLoadWarningTitle": "一部の要素の読み込みに失敗",
-  "partialLoadWarningMessage": "以下の要素の読み込みに失敗しました:\n\n{itemList}",
+  "partialLoadWarningMessage": "シーンコレクション '{collectionName}' の読み込み中に、以下の要素の読み込みに失敗しました:\n\n{itemList}",
   "projectorPrefix": "全画面表示",
   "defaultTitle": "",
   "manageAll": "シーンコレクションの管理",

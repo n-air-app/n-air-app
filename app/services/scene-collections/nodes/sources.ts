@@ -281,16 +281,8 @@ export class SourcesNode extends Node<ISchema, {}> {
           name: `${sourceInfo.name} [${sourceInfo.type}]`,
           error: e instanceof Error ? e : new Error(String(e)),
         });
-        Sentry.withScope(scope => {
-          scope.setLevel('warning');
-          scope.setTag('service', 'SourcesNode');
-          scope.setTag('method', 'load');
-          scope.setTag('phase', 'createInput');
-          scope.setTag('sourceId', sourceInfo.id);
-          scope.setTag('sourceName', sourceInfo.name);
-          scope.setTag('sourceType', sourceInfo.type);
-          Sentry.captureException(e);
-        });
+        // Note: Individual errors are not sent to Sentry here.
+        // They will be aggregated and sent by SceneCollectionsService.
         return; // Skip to next source
       }
 
@@ -357,16 +349,8 @@ export class SourcesNode extends Node<ISchema, {}> {
             name: `${sourceInfo.name} [${sourceInfo.type}]`,
             error: e instanceof Error ? e : new Error(String(e)),
           });
-          Sentry.withScope(scope => {
-            scope.setLevel('warning');
-            scope.setTag('service', 'SourcesNode');
-            scope.setTag('method', 'load');
-            scope.setTag('phase', 'configureSource');
-            scope.setTag('sourceId', sourceInfo.id);
-            scope.setTag('sourceName', sourceInfo.name);
-            scope.setTag('sourceType', sourceInfo.type);
-            Sentry.captureException(e);
-          });
+          // Note: Individual errors are not sent to Sentry here.
+          // They will be aggregated and sent by SceneCollectionsService.
         }
       }
     });

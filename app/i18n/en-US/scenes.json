@@ -13,7 +13,7 @@
   "quitApp": "Quit Application",
   "createNewCollection": "Create New Collection",
   "partialLoadWarningTitle": "Some Elements Failed to Load",
-  "partialLoadWarningMessage": "The following elements failed to load:\n\n{itemList}",
+  "partialLoadWarningMessage": "While loading scene collection '{collectionName}', the following elements failed to load:\n\n{itemList}",
   "projectorPrefix": "Projector",
   "defaultTitle": "Output",
   "manageAll": "Manage All",

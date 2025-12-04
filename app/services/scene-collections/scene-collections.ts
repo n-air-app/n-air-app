@@ -220,6 +220,17 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.startLoadingOperation();
     await this.deloadCurrentApplicationState();
 
+    // Set scene collection context for all Sentry events during load
+    const collection = this.getCollection(id);
+    const collectionName = collection ? collection.name : id;
+    Sentry.setContext('sceneCollection', {
+      id,
+      name: collectionName,
+      fileName: `${id}.json`,
+    });
+    Sentry.setTag('collectionId', id);
+    Sentry.setTag('collectionName', collectionName);
+
     let loadErrors: ILoadError[] = [];
 
     try {
@@ -230,14 +241,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         scope.setLevel('error');
         scope.setTag('service', 'SceneCollectionsService');
         scope.setTag('method', 'load');
-        scope.setTag('collectionId', id);
         Sentry.captureException(e);
       });
 
-      console.error(`Failed to load scene collection ${id}:`, e);
-
-      const collection = this.getCollection(id);
-      const collectionName = collection ? collection.name : id;
+      console.warn(`Failed to load scene collection ${id}:`, e);
       const errorDetail = e instanceof Error ? e.message : String(e);
 
       const choice = remote.dialog.showMessageBoxSync({
@@ -250,6 +257,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       });
 
       if (choice === 0) {
+        // Clear scene collection context before quitting
+        Sentry.setContext('sceneCollection', null);
+        Sentry.setTag('collectionId', null);
+        Sentry.setTag('collectionName', null);
         // Quit application
         remote.app.quit();
         return;
@@ -273,7 +284,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       // Note: err.name already includes the type for sources (e.g., "Source Name [source_type]")
       // So we don't append (${err.type}) to avoid duplication
       const itemList = sortedLoadErrors.map(err => `- ${err.name}`).join('\n');
-      console.error('Partial load errors:', loadErrors);
+      console.warn('Partial load errors:', loadErrors);
+
+      // Get collection name for better context
+      const collection = this.getCollection(id);
+      const collectionName = collection ? collection.name : id;
 
       // Send partial load errors to Sentry for monitoring
       const errorsByType = loadErrors.reduce<Record<string, number>>((acc, err) => {
@@ -281,31 +296,41 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         return acc;
       }, {});
 
+      // Convert failed items array to indexed object for better Sentry display
+      const failedItemsContext = loadErrors.reduce<Record<string, any>>((acc, err, index) => {
+        const key = `${index + 1}_${err.type}`;
+        acc[key] = {
+          type: err.type,
+          id: err.id || 'N/A',
+          name: err.name,
+          errorMessage: err.error instanceof Error ? err.error.message : String(err.error),
+        };
+        return acc;
+      }, {});
+
       Sentry.withScope(scope => {
         scope.setLevel('warning');
         scope.setTag('service', 'SceneCollectionsService');
         scope.setTag('method', 'load');
-        scope.setTag('collectionId', id);
         scope.setTag('errorCount', loadErrors.length.toString());
+        // Note: collectionId, collectionName, and sceneCollection context are already set globally
         scope.setContext('errorsByType', errorsByType);
-        scope.setContext('failedItems', {
-          items: loadErrors.map(err => ({
-            type: err.type,
-            id: err.id,
-            name: err.name,
-            error: err.error instanceof Error ? err.error.message : String(err.error),
-          })),
-        });
+        scope.setContext('failedItems', failedItemsContext);
         Sentry.captureMessage('Scene collection loaded with partial errors', 'warning');
       });
 
       remote.dialog.showMessageBoxSync({
         type: 'warning',
         title: $t('scenes.partialLoadWarningTitle'),
-        message: $t('scenes.partialLoadWarningMessage', { itemList }),
+        message: $t('scenes.partialLoadWarningMessage', { collectionName, itemList }),
         buttons: ['OK'],
       });
     }
+
+    // Clear scene collection context after all load processing is complete
+    Sentry.setContext('sceneCollection', null);
+    Sentry.setTag('collectionId', null);
+    Sentry.setTag('collectionName', null);
   }
 
   /**
