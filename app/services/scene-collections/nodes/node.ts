@@ -6,7 +6,7 @@ interface SchemaAnnotation {
 }
 
 export interface ILoadError {
-  type: 'source' | 'scene' | 'sceneItem' | 'transition' | 'hotkey' | 'filter';
+  type: 'source' | 'scene' | 'sceneItem' | 'transition' | 'hotkey' | 'filter'; // 'filter' is currently unused (filter errors are logged as warnings only)
   id?: string;
   name: string;
   error: Error;

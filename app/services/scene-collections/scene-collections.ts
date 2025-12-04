@@ -270,7 +270,9 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         return a.type.localeCompare(b.type);
       });
 
-      const itemList = sortedLoadErrors.map(err => `- ${err.name} (${err.type})`).join('\n');
+      // Note: err.name already includes the type for sources (e.g., "Source Name [source_type]")
+      // So we don't append (${err.type}) to avoid duplication
+      const itemList = sortedLoadErrors.map(err => `- ${err.name}`).join('\n');
       console.error('Partial load errors:', loadErrors);
 
       // Send partial load errors to Sentry for monitoring
