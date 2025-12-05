@@ -290,6 +290,24 @@ function convertProgramStatusToMessageResponse(
   return undefined;
 }
 
+function convertStatisticsToMessageResponse(
+  common: CommonComponent,
+  statistics: dwango.nicolive.chat.data.IStatistics,
+): MessageResponse {
+  return {
+    statistics: {
+      ...common,
+      ...(statistics.viewers != null ? { viewers: toNumber(statistics.viewers) } : {}),
+      ...(statistics.comments != null ? { comments: toNumber(statistics.comments) } : {}),
+      ...(statistics.adPoints != null ? { adPoints: toNumber(statistics.adPoints) } : {}),
+      ...(statistics.giftPoints != null ? { giftPoints: toNumber(statistics.giftPoints) } : {}),
+      ...(statistics.timeshiftReservations != null
+        ? { timeshiftReservations: toNumber(statistics.timeshiftReservations) }
+        : {}),
+    },
+  };
+}
+
 function convertSignalToMessageResponse(
   signal: dwango.nicolive.chat.service.edge.ChunkedMessage.Signal,
 ): MessageResponse {
@@ -336,6 +354,9 @@ export function convertChunkedResponseToMessageResponse(
     }
     if (msg.state.programStatus) {
       return convertProgramStatusToMessageResponse(common, msg.state.programStatus);
+    }
+    if (msg.state.statistics) {
+      return convertStatisticsToMessageResponse(common, msg.state.statistics);
     }
   } else if (msg.signal !== undefined) {
     return convertSignalToMessageResponse(msg.signal);
