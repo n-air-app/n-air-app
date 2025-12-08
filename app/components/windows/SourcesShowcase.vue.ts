@@ -148,7 +148,7 @@ export default class SourcesShowcase extends Vue {
   }
 
   downloadNdiRuntime() {
-    remote.shell.openExternal('http://ndi.link/NDIRedistV5');
+    remote.shell.openExternal('https://downloads.ndi.tv/SDK/NDI_SDK/NDI%206%20Runtime.exe');
   }
 
   get readyToAdd() {
