@@ -78,6 +78,9 @@ const setup = createSetupFunction({
       getSourceByDeviceId: jest_fn().mockName('getSourceByDeviceId').mockReturnValue(undefined),
       audioSourceUpdated: new Subject(),
     },
+    TranscriptionSourceService: {
+      updateTranscriptionLines: jest_fn().mockName('updateTranscriptionLines'),
+    },
   },
 });
 
@@ -1070,5 +1073,39 @@ describe('TranscriptionService', () => {
         expect(newClient.startTranscription).toHaveBeenCalled();
       }),
     );
+  });
+
+  describe('setTextFileMaxLine integration', () => {
+    it('should call updateTranscriptionLines when setting new value', () => {
+      const { instance } = prepare();
+      
+      // TranscriptionSourceServiceのupdateTranscriptionLinesをモック
+      const mockUpdateTranscriptionLines = jest_fn().mockName('updateTranscriptionLines');
+      instance.transcriptionSourceService.updateTranscriptionLines = mockUpdateTranscriptionLines;
+
+      // 行数を変更
+      instance.setTextFileMaxLine(5);
+
+      // updateTranscriptionLinesが呼ばれたことを確認
+      expect(mockUpdateTranscriptionLines).toHaveBeenCalledTimes(1);
+      expect(instance.state.textFileMaxLine).toBe(5);
+    });
+
+    it('should update transcription sources when value changes', () => {
+      const { instance } = prepare();
+      
+      // モックを準備
+      const mockUpdateTranscriptionLines = jest_fn().mockName('updateTranscriptionLines');
+      instance.transcriptionSourceService.updateTranscriptionLines = mockUpdateTranscriptionLines;
+
+      // 複数回変更
+      instance.setTextFileMaxLine(3);
+      instance.setTextFileMaxLine(7);
+      instance.setTextFileMaxLine(2);
+
+      // 3回呼ばれたことを確認
+      expect(mockUpdateTranscriptionLines).toHaveBeenCalledTimes(3);
+      expect(instance.state.textFileMaxLine).toBe(2);
+    });
   });
 });
