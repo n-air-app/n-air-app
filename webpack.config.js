@@ -282,7 +282,7 @@ module.exports = function (env, argv) {
       },
 
       entry: {
-        bundle: './nvoice/near/index.src.ts',
+        bundle: './nvoice/near/src/index.ts',
       },
 
       target: 'web',

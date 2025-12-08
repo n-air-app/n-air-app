@@ -21,7 +21,13 @@ const config = {
     'main.js',
     'obs-api',
   ],
-  extraFiles: ['scene-presets', 'nvoice', 'LICENSE', 'AGREEMENT.sjis', 'assets'],
+  extraFiles: [
+    'scene-presets',
+    { from: 'nvoice', to: 'nvoice', filter: ['**/*', '!near/src'] },
+    'LICENSE',
+    'AGREEMENT.sjis',
+    'assets',
+  ],
   detectUpdateChannel: false,
   afterPack: async context => {
     const localesDir = path.join(context.appOutDir, 'locales');
@@ -35,17 +41,11 @@ const config = {
       console.log('remove unnecessary locales files');
     }
 
-    // Remove TypeScript source files from nvoice/near
-    const nvoiceNearDir = path.join(context.appOutDir, 'nvoice', 'near');
-    if (fs.existsSync(nvoiceNearDir)) {
-      const tsFiles = ['index.src.ts', 'bundle.js.map'];
-      tsFiles.forEach(file => {
-        const filePath = path.join(nvoiceNearDir, file);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log(`remove ${file} from nvoice/near`);
-        }
-      });
+    // Remove source map from nvoice/near (only in development builds)
+    const bundleMapPath = path.join(context.appOutDir, 'nvoice', 'near', 'bundle.js.map');
+    if (fs.existsSync(bundleMapPath)) {
+      fs.unlinkSync(bundleMapPath);
+      console.log('remove bundle.js.map from nvoice/near');
     }
   },
   publish: {

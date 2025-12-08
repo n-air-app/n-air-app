@@ -36,8 +36,8 @@
     "screentest": "node test/screentest/runner.js",
     "version": "git add app/services/patch-notes/notes.ts",
     "clear:cache": "npx shx rm -rf node_module/.cache dist bundles test-dist additional/.cache",
-    "lint": "eslint {app,test}/**/*.{ts,js,vue} && stylelint app/**/*.{vue,css,less}",
-    "format": "prettier -w {app,test}/**/*.{ts,js,vue} && eslint --fix {app,test}/**/*.{ts,js,vue} && stylelint --fix app/**/*.{vue,css,less} && npx sort-package-json",
+    "lint": "eslint {app,test,nvoice}/**/*.{ts,js,vue} && stylelint app/**/*.{vue,css,less}",
+    "format": "prettier -w {app,test,nvoice}/**/*.{ts,js,vue} && eslint --fix {app,test,nvoice}/**/*.{ts,js,vue} && stylelint --fix app/**/*.{vue,css,less} && npx sort-package-json",
     "update-gamecapture": "node bin/update-gamecapture.js",
     "postinstall": "node additional/main.mjs"
   },
