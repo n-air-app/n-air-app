@@ -37,26 +37,26 @@ addEventListener('visibilitychange', () => {
 });
 
 const IMAGE_FILENAMES = {
-  default: 'default.png',
-  smile: 'smile.png',
+  default: 'images/default.png',
+  smile: 'images/smile.png',
 
-  a: 'a.png',
+  a: 'images/a.png',
 
-  i: 'i.png',
-  I: 'i.png',
+  i: 'images/i.png',
+  I: 'images/i.png',
 
-  u: 'u.png',
-  U: 'u.png',
-  w: 'u.png',
+  u: 'images/u.png',
+  U: 'images/u.png',
+  w: 'images/u.png',
 
-  e: 'e.png',
+  e: 'images/e.png',
 
-  o: 'o.png',
+  o: 'images/o.png',
 
-  m: 'm.png',
-  p: 'm.png',
-  b: 'm.png',
-  silE: 'm.png',
+  m: 'images/m.png',
+  p: 'images/m.png',
+  b: 'images/m.png',
+  silE: 'images/m.png',
 };
 const DEFAULT_COOL_TIME_MS = 1000;
 
@@ -104,7 +104,7 @@ setInterval(() => {
       const isDefaultOrSmile = image.src.endsWith('default.png') || image.src.endsWith('smile.png');
       ++blinkIndex;
       if (blinkIndex < blinkSequence.length) {
-        eyes.src = `SD_${isDefaultOrSmile ? 'default' : 'read'}_${blinkSequence[blinkIndex]}.png`;
+        eyes.src = `images/SD_${isDefaultOrSmile ? 'default' : 'read'}_${blinkSequence[blinkIndex]}.png`;
         eyes.hidden = false;
         setTimeout(blink, BLINK_FRAME_MS);
       } else {
