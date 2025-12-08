@@ -272,5 +272,37 @@ module.exports = function (env, argv) {
         warningsFilter: ["Can't resolve 'osx-temperature-sensor'"],
       },
     },
+    {
+      ...common,
+
+      output: {
+        path: `${__dirname}/nvoice/near`,
+        filename: 'bundle.js',
+        publicPath: './',
+      },
+
+      entry: {
+        bundle: './nvoice/near/index.src.ts',
+      },
+
+      target: 'web',
+      devtool: argv.mode === 'production' ? false : 'source-map',
+
+      resolve: {
+        extensions: ['.ts', '.js'],
+      },
+
+      module: {
+        rules: [
+          {
+            test: /\.ts$/,
+            loader: 'ts-loader',
+            exclude: /node_modules/,
+          },
+        ],
+      },
+
+      plugins: [definePlugin],
+    },
   ];
 };

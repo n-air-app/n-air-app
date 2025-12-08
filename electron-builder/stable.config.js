@@ -34,6 +34,19 @@ const config = {
       });
       console.log('remove unnecessary locales files');
     }
+
+    // Remove TypeScript source files from nvoice/near
+    const nvoiceNearDir = path.join(context.appOutDir, 'nvoice', 'near');
+    if (fs.existsSync(nvoiceNearDir)) {
+      const tsFiles = ['index.src.ts', 'bundle.js.map'];
+      tsFiles.forEach(file => {
+        const filePath = path.join(nvoiceNearDir, file);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`remove ${file} from nvoice/near`);
+        }
+      });
+    }
   },
   publish: {
     provider: 'generic',

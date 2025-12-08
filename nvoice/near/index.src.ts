@@ -1,11 +1,12 @@
+import { io, Socket } from 'socket.io-client';
+
 const href = window.location.href;
 const params = new URLSearchParams(href.split('?')[1]);
-let socket;
+let socket: Socket | undefined;
 try {
   const port = params.get('port');
   if (port && parseInt(port, 10) !== 0) {
     const host = `http://localhost:${port}`;
-    // eslint-disable-next-line no-undef
     socket = io(host);
   } else {
     console.log('offline mode.');
@@ -16,11 +17,11 @@ try {
 
 const debug = document.getElementById('debug'); // DEBUG時に使う用
 
-const image = document.getElementById('image');
-const eyes = document.getElementById('eyes');
+const image = document.getElementById('image') as HTMLImageElement;
+const eyes = document.getElementById('eyes') as HTMLImageElement;
 
 let active = false;
-function setActive(a) {
+function setActive(a: boolean) {
   if (active !== a) {
     active = a;
     if (socket) {
@@ -62,7 +63,7 @@ const DEFAULT_COOL_TIME_MS = 1000;
 // デフォルト状態に戻る際にdefault.pngとsmile.pngをランダムで選択
 const DEFAULT_IMAGES = [IMAGE_FILENAMES.default, IMAGE_FILENAMES.smile];
 
-let t;
+let t: ReturnType<typeof setTimeout> | undefined;
 function timer_set() {
   timer_reset();
   t = setTimeout(() => {
@@ -79,13 +80,13 @@ function timer_reset() {
 }
 
 if (socket) {
-  socket.on('phoneme', phoneme => {
+  socket.on('phoneme', (phoneme: string) => {
     if (!active) {
       return;
     }
     console.log('phoneme', phoneme);
-    if (IMAGE_FILENAMES[phoneme]) {
-      image.src = IMAGE_FILENAMES[phoneme];
+    if (IMAGE_FILENAMES[phoneme as keyof typeof IMAGE_FILENAMES]) {
+      image.src = IMAGE_FILENAMES[phoneme as keyof typeof IMAGE_FILENAMES];
     }
     timer_set();
   });
