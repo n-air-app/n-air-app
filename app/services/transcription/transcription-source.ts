@@ -114,7 +114,6 @@ export class TranscriptionSourceService extends Service {
   /**
    * text_transcription ソースをデフォルト設定でアクティブシーンに追加する
    * @param name ソース名（省略時は自動生成）
-   * @param lines 表示する行数（省略時は現在の設定値を使用）
    * @returns 作成されたソース
    */
   addTextTranscriptionSourceToActiveScene(name?: string): ISourceApi {
