@@ -1,6 +1,6 @@
 import { InitAfter, Inject, Service } from '../core';
 import { $t } from '../i18n';
-import { ScenesService } from '../scenes';
+import { SceneItem, ScenesService } from '../scenes';
 import { ISourceAddOptions, ISourceApi, SourcesService } from '../sources';
 import { VideoService } from '../video';
 import { TranscriptionService } from './transcription';
@@ -137,10 +137,10 @@ export class TranscriptionSourceService extends Service {
   }
 
   /**
-   * アクティブシーンから文字起こしソースのアイテムを取得
-   * @returns 文字起こしソースのアイテム配列
+   * アクティブシーンから文字起こしソース(text_transcription)のアイテムを取得
+   * @returns 文字起こしソースのSceneItem配列
    */
-  getTranscriptionItemsInActiveScene() {
+  getTranscriptionItemsInActiveScene(): SceneItem[] {
     return this.scenesService.activeScene.getItems().filter(item => {
       const sourceDetails = this.sourcesService.getSource(item.sourceId).getComparisonDetails();
       return sourceDetails.propertiesManager === 'text_transcription';
@@ -148,8 +148,8 @@ export class TranscriptionSourceService extends Service {
   }
 
   /**
-   * アクティブシーンに文字起こしソースが含まれているかチェック
-   * @returns 含まれている場合true
+   * アクティブシーンに文字起こしソース(text_transcription)が含まれているかチェック
+   * @returns 文字起こしソースが1つでも含まれている場合true、それ以外false
    */
   containsTranscriptionInActiveScene(): boolean {
     return this.getTranscriptionItemsInActiveScene().length > 0;
@@ -157,6 +157,7 @@ export class TranscriptionSourceService extends Service {
 
   /**
    * アクティブシーン内の全ての文字起こしソースの行数設定を更新
+   * 現在の設定値(textFileMaxLine)に基づいて、ソースの行数・高さ・位置を自動調整する
    */
   updateTranscriptionLines(): void {
     const params = this.calculateTranscriptionParams(
