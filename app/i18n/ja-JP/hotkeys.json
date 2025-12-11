@@ -13,5 +13,11 @@
   "enableStudioMode": "スタジオモードを有効にする",
   "disableStudioMode": "スタジオモードを無効にする",
   "studioModeTransition": "プレビュー画面の内容をライブ画面に反映する（スタジオモード時）",
-  "saveReplay": "リプレイを保存する"
+  "saveReplay": "リプレイを保存する",
+  "startReplayBuffer": "リプレイバッファーを開始する",
+  "stopReplayBuffer": "リプレイバッファーを停止する",
+  "togglePerformanceMode": "パフォーマンス優先モードを切り替える",
+  "toggleCompactMode": "コンパクトモードを切り替える",
+  "pushToSourceShow": "%{sourcename} を表示する（押している間）",
+  "pushToSourceHide": "%{sourcename} を非表示にする（押している間）"
 }
