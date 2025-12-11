@@ -6,8 +6,8 @@ import { isNoAudioPropertiesManagerType, SourcesService } from 'services/sources
 import { StreamingService } from 'services/streaming';
 import { TransitionsService } from 'services/transitions';
 import { Inject, mutation, ServiceHelper, StatefulService } from './core';
-import { NicoliveProgramService } from './nicolive-program/nicolive-program';
 import { CustomizationService } from './customization';
+import { NicoliveProgramService } from './nicolive-program/nicolive-program';
 
 function getScenesService(): ScenesService {
   return ScenesService.instance;
