@@ -5,11 +5,6 @@ const setup = createSetupFunction({
       pollingPerformanceStatistics: true,
     },
     VideoSettingsService: {
-      establishedContext: {
-        subscribe: jest.fn((callback: () => void) => {
-          callback(); // すぐに実行
-        }),
-      },
       contexts: {
         horizontal: {
           skippedFrames: 0,
@@ -29,7 +24,15 @@ jest.mock('services/core/stateful-service');
 jest.mock('services/core/injector');
 jest.mock('services/settings', () => ({}));
 jest.mock('services/customization', () => ({}));
-jest.mock('services/streaming', () => ({}));
+jest.mock('services/streaming', () => ({
+  EStreamingState: {
+    Offline: 'offline',
+    Starting: 'starting',
+    Live: 'live',
+    Ending: 'ending',
+    Reconnecting: 'reconnecting',
+  },
+}));
 jest.mock('services/settings-v2/video', () => ({}));
 jest.mock('../../../obs-api', () => ({
   NodeObs: {},
@@ -56,11 +59,6 @@ test('getState returns proper state when pollingPerformanceStatistics is false',
         pollingPerformanceStatistics: false, // false に設定
       },
       VideoSettingsService: {
-        establishedContext: {
-          subscribe: jest.fn((callback: () => void) => {
-            // init() で subscribe されるが、ここでは何もしない
-          }),
-        },
         contexts: {
           horizontal: {
             skippedFrames: 0,
@@ -187,5 +185,64 @@ describe('Stream Quality Detection', () => {
 
     const quality = instance.calculateStreamQuality();
     expect(quality).toBe('GOOD');
+  });
+});
+
+describe('Init and Streaming State', () => {
+  test('init sets up interval', () => {
+    setup();
+    const { PerformanceService } = require('./performance');
+    const { instance } = PerformanceService;
+
+    // init() が自動的に呼ばれているので、intervalId が設定されているはず
+    expect(instance.intervalId).toBeDefined();
+    expect(typeof instance.intervalId).toBe('number');
+  });
+
+  test('streamingStatusChange subscription resets historical data', () => {
+    const subscribeMock = jest.fn();
+    const setupWithMock = createSetupFunction({
+      injectee: {
+        CustomizationService: {
+          pollingPerformanceStatistics: true,
+        },
+        VideoSettingsService: {
+          contexts: {
+            horizontal: {
+              skippedFrames: 0,
+              encodedFrames: 0,
+            },
+          },
+        },
+        StreamingService: {
+          streamingStatusChange: {
+            subscribe: subscribeMock,
+          },
+        },
+      },
+    });
+    setupWithMock();
+
+    const { PerformanceService } = require('./performance');
+    const { instance } = PerformanceService;
+
+    // subscribe が呼ばれていることを確認
+    expect(subscribeMock).toHaveBeenCalled();
+
+    // コールバックを取得
+    const callback = subscribeMock.mock.calls[0][0];
+
+    // 履歴にデータを追加
+    instance.historicalDroppedFrames = [0.1, 0.2, 0.3];
+    instance.historicalLaggedFrames = [0.1, 0.2, 0.3];
+    instance.historicalSkippedFrames = [0.1, 0.2, 0.3];
+
+    // Live 状態のコールバックを実行（EStreamingState.Live の値は 'live' という文字列）
+    callback('live');
+
+    // 履歴がリセットされていることを確認
+    expect(instance.historicalDroppedFrames).toEqual([]);
+    expect(instance.historicalLaggedFrames).toEqual([]);
+    expect(instance.historicalSkippedFrames).toEqual([]);
   });
 });
