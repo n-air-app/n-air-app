@@ -28,6 +28,11 @@
   "filters": "フィルター",
   "cpu": "CPU使用率",
   "droppedFrames": "ドロップしたフレーム",
+  "performance": {
+    "qualityGood": "良好",
+    "qualityFair": "注意",
+    "qualityPoor": "不良"
+  },
   "cancel": "キャンセル",
   "done": "完了",
   "logoutConfirmMessage": "ログアウトしてもよろしいですか？",

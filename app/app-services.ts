@@ -42,7 +42,6 @@ export { ObsImporterService } from 'services/obs-importer';
 export { OnboardingService } from 'services/onboarding';
 export { PatchNotesService } from 'services/patch-notes';
 export { PerformanceService } from 'services/performance';
-export { PerformanceMonitorService } from 'services/performance-monitor';
 export { ProjectorService } from 'services/projector';
 export { ProtocolLinksService } from 'services/protocol-links';
 export { RtvcStateService } from 'services/rtvcStateService';

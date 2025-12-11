@@ -13,7 +13,6 @@ import { InformationsService } from 'services/informations';
 import { NicoliveClient } from 'services/nicolive-program/NicoliveClient';
 import { OnboardingService } from 'services/onboarding';
 import { PatchNotesService } from 'services/patch-notes';
-import { PerformanceMonitorService } from 'services/performance-monitor';
 import { ProtocolLinksService } from 'services/protocol-links';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { ScenesService } from 'services/scenes';
@@ -68,7 +67,6 @@ export class AppService extends StatefulService<IAppState> {
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private ipcServerService: IpcServerService;
   @Inject() private tcpServerService: TcpServerService;
-  @Inject() private performanceMonitorService: PerformanceMonitorService;
   @Inject() private fileManagerService: FileManagerService;
   @Inject() private protocolLinksService: ProtocolLinksService;
   @Inject() private informationsService: InformationsService;
@@ -116,8 +114,6 @@ export class AppService extends StatefulService<IAppState> {
     // Eager load services
     const _ = [this.shortcutsService];
 
-    this.performanceMonitorService.start();
-
     this.ipcServerService.listen();
     this.tcpServerService.listen();
 
@@ -163,7 +159,6 @@ export class AppService extends StatefulService<IAppState> {
         this.ipcServerService.stopListening();
         this.stopMonitoringStudioMode();
         await this.sceneCollectionsService.deinitialize();
-        this.performanceMonitorService.stop();
         this.transitionsService.shutdown();
         this.videoSettingsService.shutdown();
         await this.fileManagerService.flushAll();

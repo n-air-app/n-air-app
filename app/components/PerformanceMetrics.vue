@@ -38,6 +38,15 @@
         >
       </span>
     </span>
+
+    <span class="performance-metric-wrapper stream-quality" v-if="!isCompactMode && isStreaming">
+      <i class="performance-metric-icon" :class="qualityIconClass" />
+      <span class="performance-metric">
+        <span class="performance-metric__value" :class="qualityTextClass">
+          {{ qualityText }}
+        </span>
+      </span>
+    </span>
   </div>
 </template>
 
@@ -116,6 +125,20 @@
     content: '';
     background-color: var(--color-bg-primary);
     border-radius: 50%;
+  }
+}
+
+.stream-quality {
+  .quality-good {
+    color: var(--color-teal);
+  }
+
+  .quality-fair {
+    color: var(--color-yellow);
+  }
+
+  .quality-poor {
+    color: var(--color-red);
   }
 }
 </style>
