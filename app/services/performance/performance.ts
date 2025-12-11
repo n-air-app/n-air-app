@@ -1,4 +1,3 @@
-import { Subject } from 'rxjs';
 import Vue from 'vue';
 
 import * as remote from '@electron/remote';
@@ -17,14 +16,14 @@ interface IPerformanceState {
   percentageDroppedFrames: number;
   streamingBandwidth: number;
   frameRate: number;
-  // 新規: 差分計算用
+  // フレーム統計の累積値（差分計算用）
   numberLaggedFrames: number;
   numberRenderedFrames: number;
   numberSkippedFrames: number;
   numberEncodedFrames: number;
-  // 新規: 配信品質インジケーター
+  // 配信品質インジケーター
   streamQuality: 'GOOD' | 'FAIR' | 'POOR';
-  // 新規: UI表示用のファクター
+  // UI表示用の各指標の割合
   percentageLaggedFrames: number;
   percentageSkippedFrames: number;
 }
@@ -55,7 +54,6 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     percentageSkippedFrames: 0,
   };
 
-  droppedFramesDetected = new Subject<number>();
   private intervalId: number;
   private statsFailed: boolean = false;
 
@@ -176,11 +174,6 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
     // 配信品質の計算
     const streamQuality = this.calculateStreamQuality();
-
-    // 既存の Subject 発行（後方互換性）
-    if (stats.percentageDroppedFrames) {
-      this.droppedFramesDetected.next(droppedFactor);
-    }
 
     // 状態更新
     this.SET_PERFORMANCE_STATS({
