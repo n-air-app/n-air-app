@@ -6,8 +6,8 @@ import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
 import { StatefulService, mutation } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
-import { StreamingService, EStreamingState } from 'services/streaming';
 import { VideoSettingsService } from 'services/settings-v2/video';
+import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
 import * as obs from '../../../obs-api';
 
