@@ -6,7 +6,6 @@ import { join } from 'node:path';
 import {
   BehaviorSubject,
   distinctUntilChanged,
-  EMPTY,
   filter,
   map,
   merge,
@@ -25,6 +24,7 @@ import { Inject, mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
 import { CancelledError, downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
+import { TranscriptionSourceService } from './transcription-source';
 import { TranscriptionSourceUsageService } from './transcription-source-usage';
 import {
   CreateVoskCliClient,
@@ -100,6 +100,7 @@ export type VoskError = 'launchError' | 'error';
 
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
+  @Inject() transcriptionSourceService: TranscriptionSourceService;
   @Inject() audioService: AudioService;
   @Inject() nicoliveProgramService: NicoliveProgramService;
 
@@ -674,6 +675,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
   setTextFileMaxLine(textFileMaxLine: number) {
     this.setState({ textFileMaxLine });
+    this.transcriptionSourceService.updateTranscriptionLines();
   }
   setTextFileLineTimeToLive(textFileLineTimeToLive: number) {
     if (textFileLineTimeToLive < 0) {
