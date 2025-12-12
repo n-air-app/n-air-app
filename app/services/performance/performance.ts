@@ -10,6 +10,8 @@ import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
 import * as obs from '../../../obs-api';
 
+export type StreamQuality = 'GOOD' | 'FAIR' | 'POOR';
+
 interface IPerformanceState {
   CPU: number;
   numberDroppedFrames: number;
@@ -22,7 +24,7 @@ interface IPerformanceState {
   numberSkippedFrames: number;
   numberEncodedFrames: number;
   // 配信品質インジケーター
-  streamQuality: 'GOOD' | 'FAIR' | 'POOR';
+  streamQuality: StreamQuality;
   // UI表示用の各指標の割合
   percentageLaggedFrames: number;
   percentageSkippedFrames: number;
@@ -215,7 +217,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
    * 配信品質を計算する（GOOD/FAIR/POOR）
    * upstream と同じ閾値: 15% (POOR), 5% (FAIR)
    */
-  private calculateStreamQuality(): 'GOOD' | 'FAIR' | 'POOR' {
+  private calculateStreamQuality(): StreamQuality {
     const avgDropped = this.averageFactor(this.historicalDroppedFrames);
     const avgLagged = this.averageFactor(this.historicalLaggedFrames);
     const avgSkipped = this.averageFactor(this.historicalSkippedFrames);
