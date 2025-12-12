@@ -86,4 +86,35 @@ export default class PerformanceMetrics extends Vue {
     if (!this.customizationService.pollingPerformanceStatistics) return false;
     return this.isStreaming && this.performanceService.state.streamingBandwidth === 0;
   }
+
+  // 配信品質インジケーター
+  get streamQuality() {
+    return this.performanceService.state.streamQuality;
+  }
+
+  get qualityText() {
+    const quality = this.streamQuality;
+    if (quality === 'GOOD') return $t('common.performance.qualityGood');
+    if (quality === 'FAIR') return $t('common.performance.qualityFair');
+    if (quality === 'POOR') return $t('common.performance.qualityPoor');
+    return '';
+  }
+
+  get qualityIconClass() {
+    const quality = this.streamQuality;
+    return {
+      'icon-checkmark': quality === 'GOOD',
+      'icon-alert': quality === 'FAIR',
+      'icon-error': quality === 'POOR',
+    };
+  }
+
+  get qualityTextClass() {
+    const quality = this.streamQuality;
+    return {
+      'quality-good': quality === 'GOOD',
+      'quality-fair': quality === 'FAIR',
+      'quality-poor': quality === 'POOR',
+    };
+  }
 }
