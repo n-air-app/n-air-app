@@ -33,9 +33,16 @@
     <span class="performance-metric-wrapper dropped_frames" v-if="!isCompactMode">
       <i class="performance-metric-icon icon-drop-fps" />
       <span class="performance-metric">
-        <span class="performance-metric__value"
-          >{{ $t('common.droppedFrames') }}{{ droppedFrames }} ({{ percentDropped }}%)</span
-        >
+        <span class="performance-metric__value">{{ droppedFrames }} ({{ percentDropped }}%)</span>
+      </span>
+    </span>
+
+    <span class="performance-metric-wrapper stream-quality" v-if="!isCompactMode && isStreaming">
+      <i class="performance-metric-icon" :class="qualityIconClass" />
+      <span class="performance-metric">
+        <span class="performance-metric__value" :class="qualityTextClass">
+          {{ $t('settings.quality.streamQuality') }}: {{ qualityText }}
+        </span>
       </span>
     </span>
 
@@ -47,15 +54,6 @@
         <span class="performance-metric__value"
           >{{ $t('settings.SubStream.name') }}: {{ subStreamStatus }}</span
         >
-      </span>
-    </span>
-
-    <span class="performance-metric-wrapper stream-quality" v-if="!isCompactMode && isStreaming">
-      <i class="performance-metric-icon" :class="qualityIconClass" />
-      <span class="performance-metric">
-        <span class="performance-metric__value" :class="qualityTextClass">
-          {{ qualityText }}
-        </span>
       </span>
     </span>
   </div>

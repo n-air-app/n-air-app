@@ -753,6 +753,9 @@
       "deactive": "Inactive"
     }
   },
+  "quality": {
+    "streamQuality": "Quality"
+  },
   "transcription": {
     "name": "Automatic Transcription",
     "help": {

@@ -753,6 +753,9 @@
       "deactive": "停止中"
     }
   },
+  "quality": {
+    "streamQuality": "配信品質"
+  },
   "transcription": {
     "name": "自動文字起こし",
     "help": {
