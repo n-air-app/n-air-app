@@ -6,4 +6,4 @@ updates:
       # Check for updates to GitHub Actions every week
       interval: 'weekly'
     commit-message:
-      prefix: '開発'
+      prefix: '開発:'
