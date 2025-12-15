@@ -33,7 +33,9 @@
     <span class="performance-metric-wrapper dropped_frames" v-if="!isCompactMode">
       <i class="performance-metric-icon icon-drop-fps" />
       <span class="performance-metric">
-        <span class="performance-metric__value">{{ droppedFrames }} ({{ percentDropped }}%)</span>
+        <span class="performance-metric__value"
+          >{{ $t('common.droppedFrames') }}{{ droppedFrames }} ({{ percentDropped }}%)</span
+        >
       </span>
     </span>
 
