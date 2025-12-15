@@ -6,10 +6,10 @@
   "author": "DWANGO Co.,Ltd.",
   "main": "main.js",
   "scripts": {
-    "compile": "yarn clear && webpack-cli --progress --mode development",
-    "compile:ci": "yarn clear && webpack-cli --mode development",
-    "compile:production": "yarn clear && webpack-cli --progress --mode production",
-    "watch": "yarn clear && webpack-cli --watch --progress --mode development",
+    "compile": "pnpm clear && webpack-cli --progress --mode development",
+    "compile:ci": "pnpm clear && webpack-cli --mode development",
+    "compile:production": "pnpm clear && webpack-cli --progress --mode production",
+    "watch": "pnpm clear && webpack-cli --watch --progress --mode development",
     "start": "node bin/start-with-auto-env.js",
     "dev:server": "webpack-cli serve --progress --hot --mode development",
     "dev:start": "cross-env NAIR_UNSTABLE=1 DEV_SERVER=\"http://localhost:8080/index.dev.html\" electron . && echo 'electron exited.'",
@@ -17,19 +17,19 @@
     "start:stable": "electron .",
     "start:unstable": "cross-env NAIR_UNSTABLE=1 electron .",
     "clear-plugins": "shx rm -rf plugins",
-    "package": "yarn package:public-stable",
-    "package:public-stable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/stable.config.js",
-    "package:public-unstable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/unstable.config.js",
-    "package:internal-stable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-stable.config.js",
-    "package:internal-unstable": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-unstable.config.js",
-    "package:local": "shx rm -rf dist && yarn install --cwd bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/local.config.js",
-    "release": "yarn install --cwd bin && yarn --cwd bin release",
-    "patch-note": "yarn install --cwd bin && yarn --cwd bin patch-note",
-    "webfont": "yarn install --cwd bin && yarn --cwd bin webfont",
+    "package": "pnpm run package:public-stable",
+    "package:public-stable": "shx rm -rf dist && pnpm install --dir bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/stable.config.js",
+    "package:public-unstable": "shx rm -rf dist && pnpm install --dir bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/unstable.config.js",
+    "package:internal-stable": "shx rm -rf dist && pnpm install --dir bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-stable.config.js",
+    "package:internal-unstable": "shx rm -rf dist && pnpm install --dir bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-unstable.config.js",
+    "package:local": "shx rm -rf dist && pnpm install --dir bin && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/local.config.js",
+    "release": "pnpm install --dir bin && pnpm --dir bin run release",
+    "patch-note": "pnpm install --dir bin && pnpm --dir bin run patch-note",
+    "webfont": "pnpm install --dir bin && pnpm --dir bin run webfont",
     "test": "node bin/i18n-early-check.js && tsc -p test && ava -v -s",
-    "test:unit": "yarn test:unit:app && yarn test:unit:bin",
+    "test:unit": "pnpm run test:unit:app && pnpm run test:unit:bin",
     "test:unit:app": "jest --silent --config ./jest.config.js",
-    "test:unit:bin": "yarn install --cwd bin && jest --silent --config ./jest.bin-config.js",
+    "test:unit:bin": "pnpm install --dir bin && jest --silent --config ./jest.bin-config.js",
     "clear": "shx rm -rf bundles/media",
     "compile-tests": "tsc -p test",
     "screentest": "node test/screentest/runner.js",
@@ -56,7 +56,7 @@
       "node ./bin/i18n-early-check.js"
     ],
     "{app/fonts/glyphs/*.svg,app/styles/custom-icons.less.njk}": [
-      "yarn webfont",
+      "pnpm webfont",
       "git add app/fonts/n-air.woff app/styles/custom-icons.less"
     ]
   },
@@ -213,13 +213,15 @@
     "webpack-dev-server": "^5.1.0",
     "webpack-merge": "^6.0.1"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "packageManager": "pnpm@10.25.0",
   "resolutions": {
     "tar-fs": "^2.1.4"
   },
   "engines": {
     "node": ">=22.0.0",
-    "npm": "please-use-yarn"
+    "pnpm": ">=10.0.0",
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm"
   },
   "buildProductName": "N Air"
 }

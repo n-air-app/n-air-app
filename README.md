@@ -25,12 +25,12 @@ npm パッケージをインストールし、さまざまなスクリプトを�
 
 現在の LTS リリース 22.x.x を推奨します：<https://nodejs.org/>
 
-### Yarn
+### pnpm
 
-各ノードモジュールの正しいバージョンを使用するためには、yarn パッケージマネージャーを使用する必要があります。
+各ノードモジュールの正しいバージョンを使用するためには、pnpm パッケージマネージャーを使用する必要があります。
 
 Corepack が有効なら自動的にインストールされます。
-手動インストール方法については、こちらを参照してください：<https://classic.yarnpkg.com/en/docs/install>
+手動インストール方法については、こちらを参照してください：<https://pnpm.io/ja/installation>
 
 ### インストール
 
@@ -42,17 +42,17 @@ npm login --scope=@n-air-app --registry=https://npm.pkg.github.com
 > Password: TOKEN (GitHub Personal Access Token(classic) with read:packages scope)
 ```
 
-2. yarn を介してすべての node モジュールをインストールする。
+2. pnpm を介してすべての node モジュールをインストールする。
 
 ```bash
-yarn install
-yarn install --cwd bin # binディレクトリのyarn installも実行する(yarn start に必要)
+pnpm install
+pnpm install --dir bin # binディレクトリのpnpm installも実行する(pnpm start に必要)
 ```
 
 3. webpack を使用してアセットをコンパイルする。
 
 ```bash
-yarn compile
+pnpm run compile
 ```
 
 ### 実行
@@ -61,7 +61,7 @@ Visual Studio Code を使用している場合は、組み込みのデバッガ�
 それ以外の場合は以下のコマンドにより実行可能です。
 
 ```
-yarn start
+pnpm start
 ```
 
 ## ライセンス

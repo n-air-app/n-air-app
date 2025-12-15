@@ -27,7 +27,7 @@ jobs:
           filters: |
             common:
               - 'package.json'
-              - 'yarn.lock'
+              - 'pnpm-lock.yaml'
               - '.github/workflows/test.yml'
             app:
               - 'installer.nsh'
@@ -45,7 +45,7 @@ jobs:
               - 'jest.config.js'
             bin:
               - 'bin/package.json'
-              - 'bin/yarn.lock'
+              - 'bin/pnpm-lock.yaml'
               - 'bin/**/*.js'
               - 'jest.bin-config.js'
 
@@ -58,24 +58,45 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
+      - name: Configure Git to use HTTPS
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
       - name: Set up Node.js
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
           node-version: 22
+
+      - name: Install pnpm
+        run: corepack enable pnpm
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: cache node modules
         id: cache-node-modules
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: npm login
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> $env:USERPROFILE\.npmrc
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile --check-files
+        run: pnpm install --frozen-lockfile
+        env:
+          PNPM_VERIFY_BUILDS: "false"
 
   setup-bin:
     name: setup(bin)
@@ -91,16 +112,19 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install pnpm
+        run: corepack enable pnpm
+
       - name: cache node modules(bin)
         id: cache-node-modules-bin
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/yarn.lock') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
 
       - name: Install dependencies
         if: steps.cache-node-modules-bin.outputs.cache-hit != 'true'
-        run: yarn install --cwd=bin --frozen-lockfile --check-files
+        run: pnpm install --dir bin --frozen-lockfile
 
   unit_test-app:
     name: unit tests(app)
@@ -117,15 +141,18 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install pnpm
+        run: corepack enable pnpm
+
       - name: cache node modules
         id: cache-node-modules
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Run unit tests(app)
-        run: yarn test:unit:app
+        run: pnpm run test:unit:app
 
   unit_test-bin:
     name: unit tests(bin)
@@ -142,22 +169,25 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install pnpm
+        run: corepack enable pnpm
+
       - name: cache node modules
         id: cache-node-modules
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
         id: cache-node-modules-bin
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/yarn.lock') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
 
       - name: Run unit tests(bin)
-        run: yarn test:unit:bin
+        run: pnpm run test:unit:bin
 
   e2e_test:
     name: e2e tests
@@ -182,21 +212,25 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install pnpm
+        if: ${{ needs.changes.outputs.app == 'true' }}
+        run: corepack enable pnpm
+
       - name: cache node modules
         if: ${{ needs.changes.outputs.app == 'true' }}
         id: cache-node-modules
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Compile
         if: ${{ needs.changes.outputs.app == 'true' }}
-        run: yarn compile:ci
+        run: pnpm run compile:ci
 
       - name: Run e2e tests
         if: ${{ needs.changes.outputs.app == 'true' }}
-        run: yarn test --fail-fast test-dist/test/${{ matrix.directory }}
+        run: pnpm test --fail-fast test-dist/test/${{ matrix.directory }}
 
   test-summary:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
