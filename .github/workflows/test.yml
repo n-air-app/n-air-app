@@ -87,7 +87,7 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: npm login
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> $env:USERPROFILE\.npmrc
@@ -149,7 +149,7 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Run unit tests(app)
         run: pnpm run test:unit:app
@@ -177,7 +177,7 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
         id: cache-node-modules-bin
@@ -222,7 +222,7 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Compile
         if: ${{ needs.changes.outputs.app == 'true' }}
