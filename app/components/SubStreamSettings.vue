@@ -156,7 +156,7 @@
           <h4>
             <i v-if="collapsed === true" class="icon-plus section-title__icon" />
             <i v-if="collapsed === false" class="icon-minus section-title__icon" />
-            {{ $t('settings.substream.streamQuality') }}
+            {{ $t('common.performance.streamQuality') }}
           </h4>
         </div>
         <div v-show="!collapsed">

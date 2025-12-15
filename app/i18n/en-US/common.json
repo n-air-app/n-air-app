@@ -31,7 +31,8 @@
   "performance": {
     "qualityGood": "Good",
     "qualityFair": "Fair",
-    "qualityPoor": "Poor"
+    "qualityPoor": "Poor",
+    "streamQuality": "Quality"
   },
   "cancel": "Cancel",
   "done": "Done",

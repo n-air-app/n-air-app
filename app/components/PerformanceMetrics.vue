@@ -43,7 +43,7 @@
       <i class="performance-metric-icon" :class="qualityIconClass" />
       <span class="performance-metric">
         <span class="performance-metric__value" :class="qualityTextClass">
-          {{ $t('settings.quality.streamQuality') }}: {{ qualityText }}
+          {{ $t('common.performance.streamQuality') }}: {{ qualityText }}
         </span>
       </span>
     </span>
