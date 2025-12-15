@@ -124,7 +124,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-node-modules-bin.outputs.cache-hit != 'true'
-        run: pnpm install --dir bin --frozen-lockfile
+        run: pnpm install --dir bin --ignore-workspace --frozen-lockfile
 
   unit_test-app:
     name: unit tests(app)

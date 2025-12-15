@@ -1,3 +1,6 @@
+packages:
+  - '.'
+
 onlyBuiltDependencies:
   - '@sentry/cli'
   - core-js
