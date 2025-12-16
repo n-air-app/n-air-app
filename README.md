@@ -42,14 +42,35 @@ npm login --scope=@n-air-app --registry=https://npm.pkg.github.com
 > Password: TOKEN (GitHub Personal Access Token(classic) with read:packages scope)
 ```
 
-2. pnpm を介してすべての node モジュールをインストールする。
+2. GitHub への SSH 鍵登録（git 依存関係を使用するため必要）
+
+一部の依存関係は GitHub リポジトリから直接取得されます（例: sl-vue-tree）。
+これらは SSH 経由でクローンされるため、GitHub に SSH 公開鍵を登録する必要があります。
+
+**症状**: pnpm install 実行時に以下のようなエラーが出る場合は、SSH 鍵の設定が必要です:
+
+```
+Host key verification failed.
+fatal: Could not read from remote repository.
+Please make sure you have the correct access rights
+```
+
+**設定手順**:
+
+- SSH 鍵の生成と GitHub への登録方法は、GitHub 公式ドキュメントを参照してください
+  - [SSH 鍵の生成](https://docs.github.com/ja/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+  - [GitHub アカウントへの SSH 鍵の追加](https://docs.github.com/ja/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
+
+**注意**: CI 環境では `git config` で HTTPS へ自動変換されるため、SSH 鍵設定は不要です。
+
+3. pnpm を介してすべての node モジュールをインストールする。
 
 ```bash
 pnpm install
 pnpm install --dir bin # binディレクトリのpnpm installも実行する(pnpm start に必要)
 ```
 
-3. webpack を使用してアセットをコンパイルする。
+4. webpack を使用してアセットをコンパイルする。
 
 ```bash
 pnpm run compile
