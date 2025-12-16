@@ -56,7 +56,7 @@ export class NiconicoService extends Service implements IPlatformService {
       return FakeUserAuth.platform.id; // dummy user ID
     }
     const url = `${this.hostsService.niconicoId}/v1/sessions/me`;
-    const request = new Request(url, {
+    const request = new Request(this.hostsService.replaceHost(url), {
       credentials: 'same-origin',
       headers: FrontendIdHeader,
     });
