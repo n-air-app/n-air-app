@@ -23,6 +23,9 @@ export class HostsService extends Service {
   get niconicoAccount() {
     return 'https://account.nicovideo.jp';
   }
+  get niconicoId() {
+    return 'https://api.id.nicovideo.jp';
+  }
   get niconicoOAuth() {
     return 'https://oauth.nicovideo.jp';
   }
