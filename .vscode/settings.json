@@ -156,12 +156,11 @@
     }
   ],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   "editor.codeActionsOnSave": [
     "source.organizeImports",
     "source.fixAll.eslint",
-    "source.fixAll.stylelint",
-    "source.formatDocument"
+    "source.fixAll.stylelint"
   ],
   "css.validate": false,
   "less.validate": false,
