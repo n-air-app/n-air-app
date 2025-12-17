@@ -29,7 +29,7 @@ export default [
       'test-dist/**',
       'plugins/**',
       'bin/node_modules/**',
-      'nvoice/near/socket.io.*',
+      'nvoice/near/bundle.js*',
     ],
   },
 

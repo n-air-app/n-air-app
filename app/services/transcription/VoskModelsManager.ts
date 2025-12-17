@@ -5,7 +5,7 @@ import { $t } from 'services/i18n';
 export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'] as const;
 
 export type VoskModelStatus = {
-  state: 'not_downloaded' | 'downloading' | 'installing' | 'downloaded' | 'download_error' | 'load_error';
+  state: 'not_downloaded' | 'downloading' | 'installing' | 'downloaded' | 'download_error' | 'load_error' | 'cancelled';
   progress?: number; // percentage of download completion
   error_message?: string;
 };

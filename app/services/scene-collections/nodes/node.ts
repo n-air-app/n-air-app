@@ -5,8 +5,17 @@ interface SchemaAnnotation {
   nodeType: string;
 }
 
+export interface ILoadError {
+  type: 'source' | 'scene' | 'sceneItem' | 'transition' | 'hotkey' | 'filter'; // 'filter' is currently unused (filter errors are logged as warnings only)
+  id?: string;
+  name: string;
+  error: Error;
+}
+
 export abstract class Node<TSchema, TContext> {
   abstract schemaVersion: number;
+
+  protected loadErrors: ILoadError[] = [];
 
   /**
    * The save method is responsible for taking the current
@@ -32,6 +41,27 @@ export abstract class Node<TSchema, TContext> {
    */
   migrate(version: number) {
     // By default, do nothing.
+  }
+
+  /**
+   * Get all load errors that occurred during the load operation
+   */
+  getLoadErrors(): ILoadError[] {
+    return this.loadErrors;
+  }
+
+  /**
+   * Clear all load errors
+   */
+  clearLoadErrors(): void {
+    this.loadErrors = [];
+  }
+
+  /**
+   * Add a load error
+   */
+  protected addLoadError(error: ILoadError): void {
+    this.loadErrors.push(error);
   }
 
   data: TSchema;

@@ -36,16 +36,26 @@ export class ExtractError extends Error {
   }
 }
 
+export class CancelledError extends Error {
+  constructor() {
+    super('Download cancelled by user');
+
+    this.name = new.target.name;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
 export async function downloadAndUnzip(
   url: string,
   zipPath: string,
   extractPath: string,
   onProgress: (status: { downloaded: number; total: number }) => void,
+  signal?: AbortSignal,
 ) {
   // 1. Download the zip file
   await (async () => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal });
       if (!response.ok || !response.body) {
         return Promise.reject(new DownloadError({ reason: 'response', response }));
       }
@@ -74,14 +84,42 @@ export async function downloadAndUnzip(
         },
       });
 
-      await pipeline(downloadStream, fileStream);
-      console.log('Download completed:', zipPath);
-      if (progressTimer) {
-        clearInterval(progressTimer);
-        progressTimer = null;
+      // Setup abort listener
+      const abortListener = () => {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+        }
+        reader.cancel();
+      };
+
+      if (signal) {
+        signal.addEventListener('abort', abortListener);
       }
-      onProgress(progress);
+
+      try {
+        await pipeline(downloadStream, fileStream);
+        console.log('Download completed:', zipPath);
+      } catch (error) {
+        if (signal?.aborted) {
+          throw new CancelledError();
+        }
+        throw error;
+      } finally {
+        if (progressTimer) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+        }
+        if (signal) {
+          signal.removeEventListener('abort', abortListener);
+        }
+        onProgress(progress);
+      }
     } catch (error) {
+      // Re-throw CancelledError without wrapping
+      if (error instanceof CancelledError) {
+        throw error;
+      }
       return Promise.reject(
         new DownloadError({
           reason: 'fetch',
@@ -90,6 +128,11 @@ export async function downloadAndUnzip(
       );
     }
   })();
+
+  // Check if download was cancelled before attempting to unzip
+  if (signal?.aborted) {
+    throw new CancelledError();
+  }
 
   try {
     // 2. Unzip the downloaded file

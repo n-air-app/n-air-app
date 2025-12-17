@@ -6,7 +6,6 @@ import { join } from 'node:path';
 import {
   BehaviorSubject,
   distinctUntilChanged,
-  EMPTY,
   filter,
   map,
   merge,
@@ -23,8 +22,9 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import { TranscriptionLog } from 'services/usage-statistics';
 import { Inject, mutation, PersistentStatefulService } from '../core';
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
-import { downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
+import { CancelledError, downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
+import { TranscriptionSourceService } from './transcription-source';
 import { TranscriptionSourceUsageService } from './transcription-source-usage';
 import {
   CreateVoskCliClient,
@@ -39,7 +39,7 @@ import {
   VoskClient,
 } from './VoskClient';
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
-export { VOSK_MODEL_NAMES, VoskModelStatus };
+export { CancelledError, VOSK_MODEL_NAMES, VoskModelStatus };
 
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
 const getVoskModelURL = (name: string): string =>
@@ -100,6 +100,7 @@ export type VoskError = 'launchError' | 'error';
 
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
+  @Inject() transcriptionSourceService: TranscriptionSourceService;
   @Inject() audioService: AudioService;
   @Inject() nicoliveProgramService: NicoliveProgramService;
 
@@ -121,6 +122,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private modelBasePath: string;
   private modelsManager: VoskModelsManager;
   private client: ITranscriber;
+  private downloadControllers: Map<string, AbortController> = new Map();
   private state$ = new BehaviorSubject<ITranscriptionServiceState>(
     TranscriptionService.defaultState,
   );
@@ -673,6 +675,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
   setTextFileMaxLine(textFileMaxLine: number) {
     this.setState({ textFileMaxLine });
+    this.transcriptionSourceService.updateTranscriptionLines();
   }
   setTextFileLineTimeToLive(textFileLineTimeToLive: number) {
     if (textFileLineTimeToLive < 0) {
@@ -687,6 +690,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       category: 'transcription',
       message: `Start downloading Vosk model: ${modelName}`,
     });
+
+    // Prevent downloading the same model multiple times
+    if (this.downloadControllers.has(modelName)) {
+      throw new Error(`Model ${modelName} is already being downloaded`);
+    }
+
+    // Create abort controller for this download
+    const controller = new AbortController();
+    this.downloadControllers.set(modelName, controller);
 
     const tmpDir = tmpdir();
     const tmpZipPath = join(tmpDir, `${modelName}.zip`);
@@ -713,7 +725,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
       const downloadUrl = getVoskModelURL(modelName);
 
-      await downloadAndUnzip(downloadUrl, tmpZipPath, this.modelBasePath, onProgress);
+      await downloadAndUnzip(downloadUrl, tmpZipPath, this.modelBasePath, onProgress, controller.signal);
 
       this.setModelStatus(modelName, { state: 'downloaded' });
       Sentry.captureEvent({
@@ -725,6 +737,19 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         },
       });
     } catch (err) {
+      // Check for cancellation first
+      if (err instanceof CancelledError) {
+        console.log('Download cancelled:', modelName);
+        this.setModelStatus(modelName, { state: 'cancelled' });
+        // Reset to not_downloaded after 3 seconds
+        setTimeout(() => {
+          if (this.modelsManager.getVoskModelStatus(modelName).state === 'cancelled') {
+            this.setModelStatus(modelName, { state: 'not_downloaded' });
+          }
+        }, 3000);
+        return;
+      }
+
       let error_message: string;
       let error_type: string;
       if (err instanceof DownloadError) {
@@ -767,6 +792,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         },
       });
     } finally {
+      // Clear download tracking for this model
+      this.downloadControllers.delete(modelName);
+
       // Delete the temporary zip file
       if (existsSync(tmpZipPath)) {
         try {
@@ -813,6 +841,28 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     } catch (err) {
       console.error('Failed to delete model directory:', err);
     }
+    return true;
+  }
+
+  /**
+   * Cancels the download of a specific model.
+   * @param modelName The name of the model to cancel
+   * @returns true if the download was cancelled, false if no download was in progress for this model
+   */
+  cancelDownloadVoskModel(modelName: string): boolean {
+    const controller = this.downloadControllers.get(modelName);
+    if (!controller) {
+      return false;
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `Cancel downloading Vosk model: ${modelName}`,
+    });
+
+    console.log('Cancelling download:', modelName);
+    controller.abort();
+
     return true;
   }
 

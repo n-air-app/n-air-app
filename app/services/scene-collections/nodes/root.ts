@@ -42,15 +42,71 @@ export class RootNode extends Node<ISchema, {}> {
   }
 
   async load(): Promise<void> {
+    this.clearLoadErrors();
+
     const wh = this.videoSettingsService.baseResolutions.horizontal;
     this.videoService.setBaseResolution({ width: wh.baseWidth, height: wh.baseHeight });
 
-    await this.data.transitions.load();
-    await this.data.sources.load({});
-    await this.data.scenes.load({});
+    // Load transitions
+    try {
+      await this.data.transitions.load();
+      // Collect errors from transitions
+      const transitionErrors = this.data.transitions.getLoadErrors();
+      transitionErrors.forEach(err => this.addLoadError(err));
+    } catch (e) {
+      console.error('Failed to load transitions:', e);
+      this.addLoadError({
+        type: 'transition',
+        name: 'Transitions',
+        error: e instanceof Error ? e : new Error(String(e)),
+      });
+    }
 
+    // Load sources
+    try {
+      await this.data.sources.load({});
+      // Collect errors from sources
+      const sourceErrors = this.data.sources.getLoadErrors();
+      sourceErrors.forEach(err => this.addLoadError(err));
+    } catch (e) {
+      console.error('Failed to load sources:', e);
+      this.addLoadError({
+        type: 'source',
+        name: 'Sources',
+        error: e instanceof Error ? e : new Error(String(e)),
+      });
+    }
+
+    // Load scenes
+    try {
+      await this.data.scenes.load({});
+      // Collect errors from scenes
+      const sceneErrors = this.data.scenes.getLoadErrors();
+      sceneErrors.forEach(err => this.addLoadError(err));
+    } catch (e) {
+      console.error('Failed to load scenes:', e);
+      this.addLoadError({
+        type: 'scene',
+        name: 'Scenes',
+        error: e instanceof Error ? e : new Error(String(e)),
+      });
+    }
+
+    // Load hotkeys
     if (this.data.hotkeys) {
-      await this.data.hotkeys.load({});
+      try {
+        await this.data.hotkeys.load({});
+        // Collect errors from hotkeys
+        const hotkeyErrors = this.data.hotkeys.getLoadErrors();
+        hotkeyErrors.forEach(err => this.addLoadError(err));
+      } catch (e) {
+        console.error('Failed to load hotkeys:', e);
+        this.addLoadError({
+          type: 'hotkey',
+          name: 'Hotkeys',
+          error: e instanceof Error ? e : new Error(String(e)),
+        });
+      }
     }
   }
 

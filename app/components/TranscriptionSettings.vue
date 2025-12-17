@@ -54,6 +54,18 @@
             data-variant="light"
             data-radius="sm"
             data-color="secondary"
+            v-tooltip="$t(cancelButtonText)"
+            @click="cancelDownloadVoskModel()"
+            v-if="isCancelButtonEnabled"
+          >
+            <i class="icon-close"></i>
+          </button>
+          <button
+            class="action-icon"
+            data-size="md"
+            data-variant="light"
+            data-radius="sm"
+            data-color="secondary"
             v-tooltip="$t(deleteButtonText)"
             @click="deleteVoskModel()"
             v-if="isDeleteButtonEnabled"

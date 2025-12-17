@@ -88,6 +88,14 @@ export type StateMessage = DateComponent & {
   state: 'ended';
 };
 
+export type StatisticsMessage = DateComponent & {
+  viewers?: number;
+  comments?: number;
+  adPoints?: number;
+  giftPoints?: number;
+  timeshiftReservations?: number;
+};
+
 export type SignalMessage = 'flushed';
 
 export type MessageResponse =
@@ -98,4 +106,5 @@ export type MessageResponse =
   | { nicoad: NicoadMessage }
   | { gameUpdate: GameUpdateMessage }
   | { state: StateMessage }
+  | { statistics: StatisticsMessage }
   | { signal: SignalMessage };

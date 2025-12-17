@@ -26,8 +26,14 @@
   "remove": "削除",
   "deinterlacing": "インターレース解除",
   "filters": "フィルター",
-  "cpu": "CPU使用率",
-  "droppedFrames": "ドロップしたフレーム",
+  "cpu": "CPU",
+  "droppedFrames": "フレームドロップ",
+  "performance": {
+    "qualityGood": "良い",
+    "qualityFair": "まあまあ",
+    "qualityPoor": "悪い",
+    "streamQuality": "配信品質"
+  },
   "cancel": "キャンセル",
   "done": "完了",
   "logoutConfirmMessage": "ログアウトしてもよろしいですか？",

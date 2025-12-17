@@ -275,6 +275,74 @@ describe('convertChunkedMessageToMessageResponse', () => {
       },
       expected: { signal: 'flushed' },
     },
+    {
+      title: 'statistics',
+      msg: {
+        state: {
+          statistics: {
+            viewers: 100,
+            comments: 50,
+            adPoints: 1000,
+            giftPoints: 2000,
+            timeshiftReservations: 300,
+          },
+        },
+      },
+      expected: {
+        statistics: {
+          date,
+          date_usec,
+          viewers: 100,
+          comments: 50,
+          adPoints: 1000,
+          giftPoints: 2000,
+          timeshiftReservations: 300,
+        },
+      },
+    },
+    {
+      title: 'statistics with null fields',
+      msg: {
+        state: {
+          statistics: {
+            viewers: 100,
+            comments: null,
+            adPoints: null,
+            giftPoints: 2000,
+            timeshiftReservations: null,
+          },
+        },
+      },
+      expected: {
+        statistics: {
+          date,
+          date_usec,
+          viewers: 100,
+          giftPoints: 2000,
+        },
+      },
+    },
+    {
+      title: 'statistics with undefined fields',
+      msg: {
+        state: {
+          statistics: {
+            viewers: 100,
+            comments: undefined,
+            adPoints: undefined,
+            giftPoints: undefined,
+            timeshiftReservations: undefined,
+          },
+        },
+      },
+      expected: {
+        statistics: {
+          date,
+          date_usec,
+          viewers: 100,
+        },
+      },
+    },
   ])('$title', ({ msg, expected }) => {
     expect(convertChunkedResponseToMessageResponse(msg, now)).toEqual(expected);
   });

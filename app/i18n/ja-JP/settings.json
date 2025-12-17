@@ -775,9 +775,11 @@
       "installing": "インストール中...",
       "downloaded": "ダウンロード済み",
       "download_error": "ダウンロードエラー",
-      "load_error": "読み込みエラー"
+      "load_error": "読み込みエラー",
+      "cancelled": "キャンセルされました"
     },
     "downloadVoskModel": "モデルをダウンロードする",
+    "cancelVoskModel": "ダウンロードをキャンセルする",
     "deleteVoskModel": "ダウンロードしたモデルを削除する",
     "audioSettings": "音声設定",
     "audioSource": "音声ソース",

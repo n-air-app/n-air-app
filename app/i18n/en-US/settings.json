@@ -775,9 +775,11 @@
       "installing": "Installing...",
       "downloaded": "Downloaded",
       "download_error": "Download error",
-      "load_error": "Load error"
+      "load_error": "Load error",
+      "cancelled": "Cancelled"
     },
     "downloadVoskModel": "Download model",
+    "cancelVoskModel": "Cancel download",
     "deleteVoskModel": "Delete downloaded model",
     "audioSettings": "Audio Settings",
     "audioSource": "Audio Source",

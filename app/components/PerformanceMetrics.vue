@@ -38,6 +38,25 @@
         >
       </span>
     </span>
+
+    <span class="performance-metric-wrapper stream-quality" v-if="!isCompactMode && isStreaming">
+      <span class="performance-metric">
+        <span class="performance-metric__value">
+          {{ $t('common.performance.streamQuality') }}: {{ qualityText }}
+        </span>
+      </span>
+    </span>
+
+    <span
+      class="performance-metric-wrapper substream-status"
+      v-if="!isCompactMode && subStreamUse && subStreamStatus"
+    >
+      <span class="performance-metric">
+        <span class="performance-metric__value"
+          >{{ $t('settings.SubStream.name') }}: {{ subStreamStatus }}</span
+        >
+      </span>
+    </span>
   </div>
 </template>
 
@@ -116,6 +135,20 @@
     content: '';
     background-color: var(--color-bg-primary);
     border-radius: 50%;
+  }
+}
+
+.stream-quality {
+  .quality-good {
+    color: var(--color-teal);
+  }
+
+  .quality-fair {
+    color: var(--color-yellow);
+  }
+
+  .quality-poor {
+    color: var(--color-red);
   }
 }
 </style>

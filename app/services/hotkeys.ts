@@ -6,6 +6,7 @@ import { isNoAudioPropertiesManagerType, SourcesService } from 'services/sources
 import { StreamingService } from 'services/streaming';
 import { TransitionsService } from 'services/transitions';
 import { Inject, mutation, ServiceHelper, StatefulService } from './core';
+import { CustomizationService } from './customization';
 import { NicoliveProgramService } from './nicolive-program/nicolive-program';
 
 function getScenesService(): ScenesService {
@@ -26,6 +27,10 @@ function getNicoliveProgramService(): NicoliveProgramService {
 
 function getTransitionsService(): TransitionsService {
   return TransitionsService.instance;
+}
+
+function getCustomizationService(): CustomizationService {
+  return CustomizationService.instance;
 }
 
 type THotkeyType = 'GENERAL' | 'SCENE' | 'SCENE_ITEM' | 'SOURCE';
@@ -126,6 +131,37 @@ const HOTKEY_ACTIONS: Dictionary<IHotkeyAction[]> = {
       down: () => getStreamingService().saveReplay(),
     },
     {
+      name: 'START_REPLAY_BUFFER',
+      description: () => $t('hotkeys.startReplayBuffer'),
+      down: () => getStreamingService().startReplayBuffer(),
+      isActive: () => {
+        const streamingService = getStreamingService();
+        return streamingService.state.replayBufferStatus !== 'offline';
+      },
+    },
+    {
+      name: 'STOP_REPLAY_BUFFER',
+      description: () => $t('hotkeys.stopReplayBuffer'),
+      down: () => getStreamingService().stopReplayBuffer(),
+      isActive: () => {
+        const streamingService = getStreamingService();
+        return streamingService.state.replayBufferStatus === 'offline';
+      },
+    },
+    {
+      name: 'TOGGLE_PERFORMANCE_MODE',
+      description: () => $t('hotkeys.togglePerformanceMode'),
+      down: () => {
+        const customization = getCustomizationService();
+        customization.setSettings({ performanceMode: !customization.state.performanceMode });
+      },
+    },
+    {
+      name: 'TOGGLE_COMPACT_MODE',
+      description: () => $t('hotkeys.toggleCompactMode'),
+      down: () => getCustomizationService().toggleCompactMode(),
+    },
+    {
       name: 'START_PROGRAM',
       description: () => '番組開始',
       down: () => getNicoliveProgramService().startProgram(),
@@ -174,6 +210,28 @@ const HOTKEY_ACTIONS: Dictionary<IHotkeyAction[]> = {
       shouldApply: sceneItemId => getScenesService().getSceneItem(sceneItemId).video,
       isActive: sceneItemId => !getScenesService().getSceneItem(sceneItemId).visible,
       down: sceneItemId => getScenesService().getSceneItem(sceneItemId).setVisibility(false),
+    },
+
+    {
+      name: 'PUSH_TO_SOURCE_SHOW',
+      description: sceneItemId => {
+        const sceneItem = getScenesService().getSceneItem(sceneItemId);
+        return $t('hotkeys.pushToSourceShow', { sourcename: sceneItem.source.name });
+      },
+      shouldApply: sceneItemId => getScenesService().getSceneItem(sceneItemId).video,
+      down: sceneItemId => getScenesService().getSceneItem(sceneItemId).setVisibility(true),
+      up: sceneItemId => getScenesService().getSceneItem(sceneItemId).setVisibility(false),
+    },
+
+    {
+      name: 'PUSH_TO_SOURCE_HIDE',
+      description: sceneItemId => {
+        const sceneItem = getScenesService().getSceneItem(sceneItemId);
+        return $t('hotkeys.pushToSourceHide', { sourcename: sceneItem.source.name });
+      },
+      shouldApply: sceneItemId => getScenesService().getSceneItem(sceneItemId).video,
+      down: sceneItemId => getScenesService().getSceneItem(sceneItemId).setVisibility(false),
+      up: sceneItemId => getScenesService().getSceneItem(sceneItemId).setVisibility(true),
     },
   ],
 
