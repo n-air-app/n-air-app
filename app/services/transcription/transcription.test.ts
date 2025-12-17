@@ -39,9 +39,13 @@ jest.mock('services/i18n', () => ({
     .mockName('$t')
     .mockImplementation(key => key),
 }));
-jest.mock('./downloadAndUnzip', () => ({
-  downloadAndUnzip: jest_fn<typeof downloadAndUnzipType>().mockName('downloadAndUnzip'),
-}));
+jest.mock('./downloadAndUnzip', () => {
+  const actual = jest.requireActual('./downloadAndUnzip');
+  return {
+    ...actual,
+    downloadAndUnzip: jest_fn<typeof downloadAndUnzipType>().mockName('downloadAndUnzip'),
+  };
+});
 jest.mock('./filterNoiseText', () => ({
   filterNoiseText: jest_fn<typeof filterNoiseTextType>()
     .mockName('filterNoiseText')
@@ -73,6 +77,9 @@ const setup = createSetupFunction({
     AudioService: {
       getSourceByDeviceId: jest_fn().mockName('getSourceByDeviceId').mockReturnValue(undefined),
       audioSourceUpdated: new Subject(),
+    },
+    TranscriptionSourceService: {
+      updateTranscriptionLines: jest_fn().mockName('updateTranscriptionLines'),
     },
   },
 });
@@ -878,6 +885,112 @@ describe('TranscriptionService', () => {
     });
 
     it(
+      'should cancel download and set model status to cancelled',
+      withClock(async clock => {
+        const { instance, setVoskModelStatus } = setupTranscription();
+        const { downloadAndUnzip, CancelledError } = require('./downloadAndUnzip');
+
+        let rejectDownload: (error: Error) => void;
+
+        // Mock downloadAndUnzip to return a promise we can control
+        downloadAndUnzip.mockImplementation(() => {
+          return new Promise((resolve, reject) => {
+            rejectDownload = reject;
+          });
+        });
+
+        const downloadPromise = instance.startDownloadVoskModel(VOSK_MODEL_NAME);
+
+        // Verify download started
+        expect(setVoskModelStatus).toHaveBeenCalledWith(VOSK_MODEL_NAME, { state: 'downloading' });
+
+        // Cancel the download
+        const wasCancelled = instance.cancelDownloadVoskModel(VOSK_MODEL_NAME);
+        expect(wasCancelled).toBe(true);
+
+        // Simulate downloadAndUnzip throwing CancelledError
+        rejectDownload!(new CancelledError());
+
+        // Wait for download promise to complete
+        await downloadPromise;
+        await clock.tickAsync(0);
+
+        // Verify status was set to cancelled
+        expect(setVoskModelStatus).toHaveBeenCalledWith(VOSK_MODEL_NAME, { state: 'cancelled' });
+
+        // Advance time by 3 seconds to trigger auto-reset
+        await clock.tickAsync(3000);
+
+        // Verify status was reset to not_downloaded
+        expect(setVoskModelStatus).toHaveBeenCalledWith(VOSK_MODEL_NAME, {
+          state: 'not_downloaded',
+        });
+      }),
+    );
+
+    it('should return false when cancelling with no download in progress', () => {
+      const { instance } = setupTranscription();
+      const wasCancelled = instance.cancelDownloadVoskModel(VOSK_MODEL_NAME);
+      expect(wasCancelled).toBe(false);
+    });
+
+    it('should prevent downloading the same model multiple times', async () => {
+      const { instance } = setupTranscription();
+      const { downloadAndUnzip } = require('./downloadAndUnzip');
+
+      let resolveDownload: (value?: unknown) => void;
+
+      // Mock downloadAndUnzip to return a promise we can control
+      downloadAndUnzip.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolveDownload = resolve;
+          }),
+      );
+
+      // Start first download
+      const firstDownload = instance.startDownloadVoskModel(VOSK_MODEL_NAME);
+
+      // Try to start the same model download again
+      await expect(instance.startDownloadVoskModel(VOSK_MODEL_NAME)).rejects.toThrow(
+        `Model ${VOSK_MODEL_NAME} is already being downloaded`,
+      );
+
+      // Complete first download
+      resolveDownload!();
+      await firstDownload;
+    });
+
+    it('should allow downloading different models simultaneously', async () => {
+      const { instance } = setupTranscription();
+      const { downloadAndUnzip } = require('./downloadAndUnzip');
+
+      const resolvers: ((value?: unknown) => void)[] = [];
+
+      // Mock downloadAndUnzip to return a promise we can control
+      downloadAndUnzip.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolvers.push(resolve);
+          }),
+      );
+
+      // Start first download
+      const firstDownload = instance.startDownloadVoskModel(VOSK_MODEL_NAME);
+
+      // Start second download of different model - should succeed
+      const secondDownload = instance.startDownloadVoskModel(VOSK_MODEL_NAME_2);
+
+      // Complete both downloads
+      resolvers[0]!();
+      resolvers[1]!();
+      await firstDownload;
+      await secondDownload;
+
+      expect(downloadAndUnzip).toHaveBeenCalledTimes(2);
+    });
+
+    it(
       'should delete a model and deactivate service',
       withClock(async clock => {
         const { instance, stopTranscription, setVoskModelStatus } = setupTranscription({
@@ -960,5 +1073,39 @@ describe('TranscriptionService', () => {
         expect(newClient.startTranscription).toHaveBeenCalled();
       }),
     );
+  });
+
+  describe('setTextFileMaxLine integration', () => {
+    it('should call updateTranscriptionLines when setting new value', () => {
+      const { instance } = prepare();
+      
+      // TranscriptionSourceServiceのupdateTranscriptionLinesをモック
+      const mockUpdateTranscriptionLines = jest_fn().mockName('updateTranscriptionLines');
+      instance.transcriptionSourceService.updateTranscriptionLines = mockUpdateTranscriptionLines;
+
+      // 行数を変更
+      instance.setTextFileMaxLine(5);
+
+      // updateTranscriptionLinesが呼ばれたことを確認
+      expect(mockUpdateTranscriptionLines).toHaveBeenCalledTimes(1);
+      expect(instance.state.textFileMaxLine).toBe(5);
+    });
+
+    it('should update transcription sources when value changes', () => {
+      const { instance } = prepare();
+      
+      // モックを準備
+      const mockUpdateTranscriptionLines = jest_fn().mockName('updateTranscriptionLines');
+      instance.transcriptionSourceService.updateTranscriptionLines = mockUpdateTranscriptionLines;
+
+      // 複数回変更
+      instance.setTextFileMaxLine(3);
+      instance.setTextFileMaxLine(7);
+      instance.setTextFileMaxLine(2);
+
+      // 3回呼ばれたことを確認
+      expect(mockUpdateTranscriptionLines).toHaveBeenCalledTimes(3);
+      expect(instance.state.textFileMaxLine).toBe(2);
+    });
   });
 });

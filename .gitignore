@@ -26,3 +26,7 @@ chromedriver.log
 .claude/settings.local.json
 
 additional/.cache
+
+# nvoice build artifacts
+nvoice/near/bundle.js
+nvoice/near/bundle.js.map

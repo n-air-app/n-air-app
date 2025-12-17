@@ -140,7 +140,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
         ? { showPlaceholder: false }
         : {}),
     };
-    this.refreshStatisticsPolling(this.state, nextState);
     this.refreshProgramStatusTimer(this.state, nextState);
     this.refreshAutoExtensionTimer(this.state, nextState);
     this.refreshSentryProgramInfo(this.state, nextState);
@@ -157,6 +156,18 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
   // corrected clock in milliseconds
   public correctedNowMs(rawNow = Date.now()): number {
     return rawNow - (this.state.serverClockOffsetSec ?? 0) * 1000;
+  }
+
+  /**
+   * Statisticsメッセージから統計情報を更新する
+   */
+  public updateStatisticsFromMessage(stats: {
+    viewers?: number;
+    comments?: number;
+    adPoint?: number;
+    giftPoint?: number;
+  }): void {
+    this.setState(stats);
   }
 
   /**
@@ -433,61 +444,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     this.setState({ endTime });
   }
 
-  private statsTimer: number = 0;
-  refreshStatisticsPolling(
-    prevState: INicoliveProgramState,
-    nextState: INicoliveProgramState,
-  ): void {
-    const programUpdated = prevState.programID !== nextState.programID;
-
-    const prev = prevState.status === 'onAir';
-    const next = nextState.status === 'onAir';
-
-    if ((!prev && next) || (next && programUpdated)) {
-      clearInterval(this.statsTimer);
-      this.updateStatistics(nextState.programID); // run and forget
-      this.statsTimer = window.setInterval(
-        (id: string) => this.updateStatistics(id),
-        60 * 1000,
-        nextState.programID,
-      );
-    } else if (prev && !next) {
-      clearInterval(this.statsTimer);
-    }
-  }
-
-  updateStatistics(programID: string): Promise<WrappedResult<any>[]> {
-    if (isFakeMode()) {
-      return Promise.resolve([]);
-    }
-    const stats = this.client
-      .fetchStatistics(programID)
-      .then(res => {
-        if (isOk(res)) {
-          this.setState({
-            viewers: res.value.watchCount,
-            comments: res.value.commentCount,
-          });
-          return res;
-        }
-      })
-      .catch((): FailedResult => null);
-    const adStats = this.client
-      .fetchNicoadStatistics(programID)
-      .then(res => {
-        if (isOk(res)) {
-          this.setState({
-            adPoint: res.value.totalAdPoint,
-            giftPoint: res.value.totalGiftPoint,
-          });
-        }
-        return res;
-      })
-      .catch((): FailedResult => null);
-
-    // return for testing
-    return Promise.all([stats, adStats]);
-  }
 
   async sendOperatorComment(text: string, isPermanent: boolean): Promise<void> {
     if (isFakeMode()) {

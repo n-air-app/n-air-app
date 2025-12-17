@@ -425,6 +425,7 @@ function initialize(crashHandler) {
   console.log(`Cores: ${cpus.length}`);
   console.log(`Memory: ${humanFileSize(os.totalmem(), false)}`);
   console.log(`Free: ${humanFileSize(os.freemem(), false)}`);
+  console.log(`UserData path: ${app.getPath('userData')}`);
   console.log('=================================');
 
   app.on('ready', () => {

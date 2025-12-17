@@ -10,6 +10,7 @@ import {
   OperatorMessage,
   SignalMessage,
   StateMessage,
+  StatisticsMessage,
 } from '../ChatMessage';
 
 export function isPremium(chat: ChatMessage): boolean {
@@ -62,6 +63,12 @@ export function isGameUpdateMessage(
 
 export function isStateMessage(msg: MessageResponse): msg is { state: StateMessage } {
   return msg.hasOwnProperty('state');
+}
+
+export function isStatisticsMessage(
+  msg: MessageResponse,
+): msg is { statistics: StatisticsMessage } {
+  return msg.hasOwnProperty('statistics');
 }
 
 export function isSignalMessage(msg: MessageResponse): msg is { signal: SignalMessage } {

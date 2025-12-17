@@ -26,6 +26,7 @@ export abstract class ArrayNode<TSchema, TContext, TItem> extends Node<
   }
 
   async load(context: TContext): Promise<void> {
+    this.clearLoadErrors();
     await this.beforeLoad(context);
 
     const afterLoadItemsCallbacks: (void | (() => Promise<void>))[] = [];
@@ -37,6 +38,14 @@ export abstract class ArrayNode<TSchema, TContext, TItem> extends Node<
         afterLoadItemsCallbacks.push(await this.loadItem(item, context));
       } catch (e) {
         console.error('Array node step failed', e);
+        // ArrayNode subclasses should override getItemInfo to provide better error messages
+        const itemInfo = this.getItemInfo(item);
+        this.addLoadError({
+          type: itemInfo.type,
+          id: itemInfo.id,
+          name: itemInfo.name,
+          error: e instanceof Error ? e : new Error(String(e)),
+        });
       }
     }
 
@@ -46,9 +55,20 @@ export abstract class ArrayNode<TSchema, TContext, TItem> extends Node<
           await cb();
         } catch (e) {
           console.error('Array node callback failed', e);
+          // Callback errors are not specific to an item, so we don't add them to loadErrors
         }
       }
     }
+  }
+
+  /**
+   * Override this method to provide better error messages for failed items
+   */
+  protected getItemInfo(item: TSchema): { type: any; id?: string; name: string } {
+    return {
+      type: 'sceneItem',
+      name: 'Unknown item',
+    };
   }
 
   /**

@@ -83,6 +83,7 @@
     "stylelint",
     "superfast",
     "Telop",
+    "timeshift",
     "toplevel",
     "typedoc",
     "ultrafast",
@@ -156,16 +157,19 @@
   ],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.fixAll.stylelint": "explicit",
-    "source.organizeImports": "explicit"
-  },
+  "editor.codeActionsOnSave": [
+    "source.organizeImports",
+    "source.fixAll.eslint",
+    "source.fixAll.stylelint"
+  ],
   "css.validate": false,
   "less.validate": false,
   "stylelint.validate": ["css", "less", "vue"],
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
+    }
   },
 
   "typescript.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],

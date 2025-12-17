@@ -216,12 +216,29 @@ export default class TranscriptionSettings extends Vue {
 
   get isDownloadButtonEnabled(): boolean {
     return (
-      this.modelStatus.state === 'not_downloaded' || this.modelStatus.state === 'download_error'
+      this.modelStatus.state === 'not_downloaded' ||
+      this.modelStatus.state === 'download_error' ||
+      this.modelStatus.state === 'cancelled'
     );
   }
 
   downloadVoskModel(): void {
     this.transcriptionService.startDownloadVoskModel(this.transcriptionService.state.voskModelName);
+  }
+
+  cancelButtonText = $t('settings.transcription.cancelVoskModel');
+
+  get isCancelButtonEnabled(): boolean {
+    return this.modelStatus.state === 'downloading';
+  }
+
+  cancelDownloadVoskModel(): void {
+    const wasCancelled = this.transcriptionService.cancelDownloadVoskModel(
+      this.transcriptionService.state.voskModelName,
+    );
+    if (wasCancelled) {
+      console.log('Cancelled download for model:', this.transcriptionService.state.voskModelName);
+    }
   }
 
   deleteButtonText = $t('settings.transcription.deleteVoskModel');

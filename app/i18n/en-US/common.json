@@ -28,6 +28,12 @@
   "filters": "Filters",
   "cpu": "CPU",
   "droppedFrames": "Dropped Frames",
+  "performance": {
+    "qualityGood": "Good",
+    "qualityFair": "Fair",
+    "qualityPoor": "Poor",
+    "streamQuality": "Quality"
+  },
   "cancel": "Cancel",
   "done": "Done",
   "logoutConfirmMessage": "Are you sure you want to log out?",

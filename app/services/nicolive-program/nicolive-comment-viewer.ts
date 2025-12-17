@@ -23,7 +23,7 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { FakeModeConfig, isFakeMode } from 'util/fakeMode';
-import { MessageResponse } from './ChatMessage';
+import { MessageResponse, StatisticsMessage } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { classify } from './ChatMessage/classifier';
 import { getDisplayText } from './ChatMessage/displaytext';
@@ -417,6 +417,20 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
                     // 番組情報を更新する
                     this.nicoliveProgramService.refreshProgram();
                   }
+                }),
+                ignoreElements(),
+              );
+
+            case 'statistics':
+              return group$.pipe(
+                filter((msg): msg is { statistics: StatisticsMessage } => 'statistics' in msg),
+                tap(({ statistics }) => {
+                  this.nicoliveProgramService.updateStatisticsFromMessage({
+                    viewers: statistics.viewers,
+                    comments: statistics.comments,
+                    adPoint: statistics.adPoints,
+                    giftPoint: statistics.giftPoints,
+                  });
                 }),
                 ignoreElements(),
               );
