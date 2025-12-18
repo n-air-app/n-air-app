@@ -5,7 +5,7 @@ const { getVersionContext } = require('./release/scripts/patchNote');
 
 const { channel } = getVersionContext(`v${version}`);
 
-const childProcess = exec(`yarn start:${channel} ${process.argv.slice(2).join(' ')}`);
+const childProcess = exec(`pnpm run start:${channel} ${process.argv.slice(2).join(' ')}`);
 
 process.stdin.pipe(childProcess.stdin);
 childProcess.stdout.pipe(process.stdout);

@@ -1,0 +1,12 @@
+packages:
+  - '.'
+
+onlyBuiltDependencies:
+  - '@sentry/cli'
+  - core-js
+  - electron
+  - electron-chromedriver
+  - electron-winstaller
+  - husky
+  - protobufjs
+  - vue-popperjs
