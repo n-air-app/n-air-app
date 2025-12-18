@@ -214,8 +214,10 @@
     "webpack-merge": "^6.0.1"
   },
   "packageManager": "pnpm@10.25.0",
-  "resolutions": {
-    "tar-fs": "^2.1.4"
+  "pnpm": {
+    "overrides": {
+      "tar-fs": "^2.1.4"
+    }
   },
   "engines": {
     "node": ">=22.0.0",
