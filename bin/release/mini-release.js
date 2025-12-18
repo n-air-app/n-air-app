@@ -217,8 +217,13 @@ async function runScript({
   eslintFix(noteFilename);
   info(`generated patch-note file: ${noteFilename}.`);
 
-  // update package.json with newVersion and git tag
-  executeCmd(`pnpm version ${newVersion}`);
+  // update package.json with newVersion (without git operations)
+  executeCmd(`pnpm version ${newVersion} --no-git-tag-version`);
+
+  // commit both notes.ts and package.json together, then create tag
+  executeCmd(`git add ${noteFilename} package.json`);
+  executeCmd(`git commit -m "${newVersion}"`);
+  executeCmd(`git tag v${newVersion}`);
 
   if (skipBuild) {
     info('SKIP build process since skipBuild is set...');
