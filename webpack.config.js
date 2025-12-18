@@ -115,6 +115,12 @@ module.exports = function (env, argv) {
             pathRewrite: { '^/account': '' },
           },
           {
+            context: ['/id'],
+            target: 'https://api.id.nicovideo.jp',
+            changeOrigin: true,
+            pathRewrite: { '^/id': '' },
+          },
+          {
             context: ['/oauth'],
             target: 'https://oauth.nicovideo.jp',
             changeOrigin: true,

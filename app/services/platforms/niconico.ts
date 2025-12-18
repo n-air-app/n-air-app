@@ -9,44 +9,33 @@ import { WindowsService } from 'services/windows';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import { authorizedHeaders, handleErrors } from 'util/requests';
 import { sleep } from 'util/sleep';
-import { parseString } from 'xml2js';
 import { IPlatformService, IStreamingSetting } from '.';
+import { FrontendIdHeader } from './niconicoDefs';
 
-export type INiconicoProgramSelection = {
-  info: LiveProgramInfo;
-  selectedId: string;
-};
+// /v1/sessions/me のレスポンス型
+type NiconicoSessionsMeResponse =
+  | {
+      user: {
+        id: number;
+      };
+    }
+  | {
+      error: {
+        status: number;
+        code: string;
+        message?: string;
+        debug?: string;
+      };
+    };
 
-function parseXml(xml: String): Promise<object> {
-  return new Promise((resolve, reject) => {
-    parseString(xml, (err, result) => {
-      if (err) {
-        // sentryに送る
-        console.error(err, xml);
-        reject(err);
-      } else {
-        resolve(result);
-      }
-    });
-  });
+function isSessionsMeResponse(obj: any): obj is NiconicoSessionsMeResponse {
+  if ('user' in obj) {
+    return typeof obj.user.id === 'number';
+  } else if ('error' in obj) {
+    return typeof obj.error.status === 'number' && typeof obj.error.code === 'string';
+  }
+  return false;
 }
-
-type Program = {
-  id: string;
-};
-
-type SocialGroup = {
-  tfakeype: 'community' | 'channel';
-  id: string;
-  name: string;
-  thumbnailUrl: string;
-  broadcastablePrograms: Program[];
-};
-
-export type LiveProgramInfo = {
-  community?: SocialGroup;
-  channels?: SocialGroup[];
-};
 
 export class NiconicoService extends Service implements IPlatformService {
   @Inject() hostsService: HostsService;
@@ -66,8 +55,11 @@ export class NiconicoService extends Service implements IPlatformService {
     if (isFakeMode()) {
       return FakeUserAuth.platform.id; // dummy user ID
     }
-    const url = `${this.hostsService.niconicoAccount}/api/public/v1/user/id.json`;
-    const request = new Request(url, { credentials: 'same-origin' });
+    const url = `${this.hostsService.niconicoId}/v1/sessions/me`;
+    const request = new Request(this.hostsService.replaceHost(url), {
+      credentials: 'same-origin',
+      headers: FrontendIdHeader,
+    });
 
     const response = await fetch(request);
     if (response.status === 400 || response.status === 401) {
@@ -75,8 +67,12 @@ export class NiconicoService extends Service implements IPlatformService {
     }
     const response_1 = await handleErrors(response); // !response.ok を例外にする
     const json = await response_1.json();
-    if (json.data && json.data.userId) {
-      return json.data.userId;
+    if (isSessionsMeResponse(json)) {
+      if ('user' in json) {
+        return json.user.id.toString();
+      }
+    } else {
+      console.error('NiconicoService.getUserId: invalid response', json);
     }
     return '';
   }

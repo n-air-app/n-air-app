@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import { ipcRenderer } from 'electron';
+import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 import { handleErrors } from 'util/requests';
@@ -143,10 +144,6 @@ export class NicoliveClient {
   static nicoadBaseURL = 'https://api.nicoad.nicovideo.jp' as const;
   static userFollowBaseURL = 'https://user-follow-api.nicovideo.jp' as const;
   static userIconBaseURL = 'https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/' as const;
-
-  private static FrontendIdHeader = {
-    'x-frontend-id': '134',
-  } as const;
 
   private static OpenWindows: { [key: string]: Electron.BrowserWindow | null } = {};
 
@@ -379,7 +376,7 @@ export class NicoliveClient {
     return this.requestAPI<void>(
       'POST',
       `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/comments`,
-      NicoliveClient.jsonBody({ text, vpos, modifier }, NicoliveClient.FrontendIdHeader),
+      NicoliveClient.jsonBody({ text, vpos, modifier }, FrontendIdHeader),
     );
   }
 
@@ -695,7 +692,7 @@ export class NicoliveClient {
     const res = await fetch(
       NicoliveClient.userFollowEndpoint(userId),
       NicoliveClient.createRequest('GET', {
-        headers: NicoliveClient.FrontendIdHeader,
+        headers: FrontendIdHeader,
       }),
     );
     if (res.ok) {
@@ -728,7 +725,7 @@ export class NicoliveClient {
       NicoliveClient.userFollowEndpoint(userId),
       NicoliveClient.createRequest('POST', {
         headers: {
-          ...NicoliveClient.FrontendIdHeader,
+          ...FrontendIdHeader,
           'X-Request-With': 'N Air',
         },
       }),
@@ -748,7 +745,7 @@ export class NicoliveClient {
       NicoliveClient.userFollowEndpoint(userId),
       NicoliveClient.createRequest('DELETE', {
         headers: {
-          ...NicoliveClient.FrontendIdHeader,
+          ...FrontendIdHeader,
           'X-Request-With': 'N Air',
         },
       }),
@@ -775,7 +772,7 @@ export class NicoliveClient {
     return this.requestAPI<AddModerator>(
       'POST',
       `${NicoliveClient.live2BaseURL}/unama/api/v2/broadcasters/moderators`,
-      NicoliveClient.jsonBody({ userId: parseInt(userId, 10) }, NicoliveClient.FrontendIdHeader),
+      NicoliveClient.jsonBody({ userId: parseInt(userId, 10) }, FrontendIdHeader),
     );
   }
   async removeModerator(userId: string): Promise<WrappedResult<void>> {
@@ -783,7 +780,7 @@ export class NicoliveClient {
       'DELETE',
       `${NicoliveClient.live2BaseURL}/unama/api/v2/broadcasters/moderators?userId=${userId}`,
       {
-        headers: NicoliveClient.FrontendIdHeader,
+        headers: FrontendIdHeader,
       },
     );
   }
