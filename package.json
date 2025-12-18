@@ -205,7 +205,7 @@
     "typescript": "5.5.4",
     "typescript-eslint": "8.46.0",
     "vue-loader": "15.11.1",
-    "vue-svg-loader": "0.12.0",
+    "vue-svg-loader": "0.16.0",
     "vue-template-compiler": "2.7.14",
     "webdriverio": "7.30.2",
     "webpack": "^5.97.1",
@@ -216,7 +216,8 @@
   "packageManager": "pnpm@10.25.0",
   "pnpm": {
     "overrides": {
-      "tar-fs": "^2.1.4"
+      "tar-fs": "^2.1.4",
+      "nth-check": "^2.0.1"
     }
   },
   "engines": {
