@@ -1,4 +1,4 @@
-import * as fetchMock from 'fetch-mock';
+import fetchMock from '@fetch-mock/jest';
 
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
@@ -17,8 +17,12 @@ jest.mock('util/fetchViaMainProcess', () => ({
 
 import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
 
+beforeEach(() => {
+  fetchMock.mockGlobal();
+});
+
 afterEach(() => {
-  fetchMock.reset();
+  fetchMock.mockRestore({ includeSticky: true });
   fetchViaMainProcess.mockReset();
 });
 
@@ -77,18 +81,18 @@ test('wrapResultはレスポンスのdataを取り出す', async () => {
     ok: true,
     value: dummyBody.data,
   });
-  expect(fetchMock.done()).toBe(true);
+  expect(fetchMock.callHistory.done()).toBe(true);
 });
 
 test('wrapResultは結果が200でないときレスポンス全体を返す', async () => {
-  fetchMock.get(dummyURL, { body: dummyErrorBody, status: 404 });
+  fetchMock.get(dummyURL, { body: JSON.stringify(dummyErrorBody), status: 404 });
   const res = await fetch(dummyURL);
 
   await expect(NicoliveClient.wrapResult(res)).resolves.toEqual({
     ok: false,
     value: dummyErrorBody,
   });
-  expect(fetchMock.done()).toBe(true);
+  expect(fetchMock.callHistory.done()).toBe(true);
 });
 
 test('wrapResultはbodyがJSONでなければSyntaxErrorをwrapして返す', async () => {
@@ -101,7 +105,7 @@ test('wrapResultはbodyがJSONでなければSyntaxErrorをwrapして返す', as
       "value": [SyntaxError: Unexpected token 'i', "invalid json" is not valid JSON],
     }
   `);
-  expect(fetchMock.done()).toBe(true);
+  expect(fetchMock.callHistory.done()).toBe(true);
 });
 
 interface Suite {
@@ -210,7 +214,7 @@ suites.forEach((suite: Suite) => {
     const result = await client[suite.name](...suite.args);
 
     expect(result).toEqual({ ok: true, value: dummyBody.data });
-    expect(fetchMock.done()).toBe(true);
+    expect(fetchMock.callHistory.done()).toBe(true);
   });
 });
 

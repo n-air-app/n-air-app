@@ -1,4 +1,4 @@
-import * as fetchMock from 'fetch-mock';
+import fetchMock from '@fetch-mock/jest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { createSetupFunction } from 'util/test-setup';
@@ -22,16 +22,14 @@ const dummyInformations = Array.from(Array(3), (_, i) => ({
 }));
 
 beforeEach(() => {
+  fetchMock.mockGlobal();
   // afterInitでフィードをGETするのでリクエストが飛ばないようにモックしておく
   fetchMock.get(dummyURL, xmlFeed);
 });
 
-// テスト側で上書きを許す
-fetchMock.config.overwriteRoutes = true;
-
 afterEach(() => {
   jest.resetModules();
-  fetchMock.reset();
+  fetchMock.mockRestore({ includeSticky: true });
 });
 
 const setup = createSetupFunction({
@@ -76,6 +74,8 @@ test('fetchFeed(private):エラー系レスポンスで失敗', async () => {
 
   m.InformationsService.parseXml = jest.fn();
 
+  // Override the existing route with error response
+  fetchMock.removeRoutes();
   fetchMock.get(dummyURL, { status: 404, body: dummyValue });
   (instance as any).SET_FETCHING = jest.fn();
 
