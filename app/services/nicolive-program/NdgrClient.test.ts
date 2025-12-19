@@ -213,9 +213,9 @@ describe('NdgrClient', () => {
       complete: onCompleted,
     });
     await target.connect();
-    expect(fetchMock).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
-    expect(fetchMock).toHaveBeenNthCalledWith(2, PREV_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(3, MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(2, PREV_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(3, MESSAGES_URL);
 
     const expectedMessages = [...prevMessages, ...messages];
     expect(onReceived).toHaveBeenCalledTimes(expectedMessages.length);
@@ -238,11 +238,11 @@ describe('NdgrClient', () => {
     });
     const WANT_BACKWARDS = 3;
     await target.connect('now', WANT_BACKWARDS);
-    expect(fetchMock).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
-    expect(fetchMock).toHaveBeenNthCalledWith(2, BACKWARD1_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(3, BACKWARD2_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(4, PREV_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(5, MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(2, BACKWARD1_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(3, BACKWARD2_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(4, PREV_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(5, MESSAGES_URL);
 
     const RAW_BACKWARDS_LEN = backwardMessages.flat().length;
     const backwards = backwardMessages
@@ -268,13 +268,13 @@ describe('NdgrClient', () => {
     await expect(target.connect()).rejects.toThrow(
       `Failed to fetch[label:head]: TypeError: network error`,
     );
-    expect(fetchMock).toHaveBeenCalledTimes(MAX_RETRY + 1);
+    expect(fetchMock as any).toHaveBeenCalledTimes(MAX_RETRY + 1);
   });
 
   it('should throw an NdgrFetchError when fetch returns a failed response', async () => {
     expect.assertions(2);
     const target = new NdgrClient(HTTP_ERROR_URL);
     await expect(target.connect()).rejects.toThrow(`Failed to fetch[ndgr:head]: 404`);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock as any).toHaveBeenCalledTimes(1);
   });
 });
