@@ -436,7 +436,8 @@
       "remove_confirm": "削除しますか？",
       "add_voice": "ボイス作成",
       "play_sample": "サンプルボイスを再生",
-      "open_menu": "メニューを開く"
+      "open_menu": "メニューを開く",
+      "preview_audio_on": "プレビュー音声はONになっています"
     },
     "container": {
       "voice_name": "名前",

@@ -50,6 +50,7 @@ export default class RtvcSourceProperties extends SourceProperties {
   currentIndex = 'preset/0';
   isMonitor = false;
   canceled = false;
+  canToggleMonitor = false;
 
   name = '';
   label = '';
@@ -321,6 +322,7 @@ export default class RtvcSourceProperties extends SourceProperties {
       this.initialMonitoringType = m;
       this.currentMonitoringType = m;
       this.isMonitor = m !== obs.EMonitoringType.None;
+      this.canToggleMonitor = m === obs.EMonitoringType.None;
     }
 
     // 初期値修正
