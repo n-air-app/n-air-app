@@ -120,7 +120,7 @@ jobs:
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/package.json', 'bin/pnpm-lock.yaml') }}
 
       - name: Install dependencies
         if: steps.cache-node-modules-bin.outputs.cache-hit != 'true'
@@ -184,7 +184,7 @@ jobs:
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/package.json', 'bin/pnpm-lock.yaml') }}
 
       - name: Run unit tests(bin)
         run: pnpm run test:unit:bin
