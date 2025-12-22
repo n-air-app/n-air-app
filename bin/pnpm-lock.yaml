@@ -6,6 +6,7 @@ settings:
 
 overrides:
   svg2ttf: 6.0.3
+  xml2js: '>=0.5.0'
 
 importers:
 
@@ -1269,8 +1270,8 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  xml2js@0.4.23:
-    resolution: {integrity: sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug==}
+  xml2js@0.6.2:
+    resolution: {integrity: sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==}
     engines: {node: '>=4.0.0'}
 
   xmlbuilder@11.0.1:
@@ -2880,7 +2881,7 @@ snapshots:
       ttf2eot: 2.0.0
       ttf2woff: 2.0.2
       wawoff2: 2.0.1
-      xml2js: 0.4.23
+      xml2js: 0.6.2
     transitivePeerDependencies:
       - chokidar
 
@@ -2892,7 +2893,7 @@ snapshots:
 
   wrappy@1.0.2: {}
 
-  xml2js@0.4.23:
+  xml2js@0.6.2:
     dependencies:
       sax: 1.4.3
       xmlbuilder: 11.0.1
