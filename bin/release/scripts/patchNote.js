@@ -221,7 +221,8 @@ async function collectNonPRMerges(previousVersion) {
     // Get commits included in this merge (from feature branch)
     // Using ^2 to get the second parent (feature branch)
     // Note: Use sh.exec directly to allow error cases (e.g., invalid range)
-    const gitCmd = `git log --no-merges --format="%s (%h)" v${previousVersion}..${hash}^2`;
+    // Quote the range to avoid git parsing ambiguity with hash^2 syntax
+    const gitCmd = `git log --no-merges --format="%s (%h)" "v${previousVersion}..${hash}^2"`;
     const includedCommitsResult = sh.exec(gitCmd, { silent: true });
 
     // If git command failed (e.g., ^2 is older than previousVersion), skip this merge
