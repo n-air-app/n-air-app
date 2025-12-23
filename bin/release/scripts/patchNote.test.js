@@ -212,3 +212,154 @@ export const notes: IPatchNotes = {
 };
 `);
 });
+
+// Mock the log module for collectNonPRMerges tests
+jest.mock('./log', () => {
+  const actualLog = jest.requireActual('./log');
+  return {
+    ...actualLog,
+    executeCmd: jest.fn(),
+  };
+});
+
+const { collectNonPRMerges } = require('./patchNote');
+const { executeCmd } = require('./log');
+
+describe('collectNonPRMerges', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('非PRマージを検出する', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/test"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2', // 2 parents
+      })
+      .mockReturnValueOnce({
+        stdout: '修正: バグを修正 (def456)\n追加: 新機能 (ghi789)',
+      });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toContain('Merge branch "feature/test" (abc1234)');
+    expect(result).toContain('  - 修正: バグを修正 (def456)');
+    expect(result).toContain('  - 追加: 新機能 (ghi789)');
+  });
+
+  test('PRマージは除外する', async () => {
+    executeCmd.mockReturnValueOnce({
+      stdout: 'abc1234 Merge pull request #123 from user/branch',
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toBe('');
+  });
+
+  test('含まれるコミットが0件の場合は空文字列を返す', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/empty"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2', // 2 parents
+      })
+      .mockReturnValueOnce({
+        stdout: '', // 含まれるコミットなし
+      });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toBe('');
+  });
+
+  test('fast-forwardマージは除外する', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/fast-forward"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1', // Only 1 parent (fast-forward)
+      });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toBe('');
+  });
+
+  test('プレフィックスによるソートが機能する', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'aaa1111 開発: マージ3\nbbb2222 修正: マージ2\nccc3333 追加: マージ1',
+      })
+      .mockReturnValueOnce({ stdout: 'aaa1111 p1 p2' })
+      .mockReturnValueOnce({ stdout: 'コミット1 (d1)' })
+      .mockReturnValueOnce({ stdout: 'bbb2222 p1 p2' })
+      .mockReturnValueOnce({ stdout: 'コミット2 (d2)' })
+      .mockReturnValueOnce({ stdout: 'ccc3333 p1 p2' })
+      .mockReturnValueOnce({ stdout: 'コミット3 (d3)' });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    const merges = result.split('\n\n');
+    expect(merges[0]).toContain('追加:'); // 最初
+    expect(merges[1]).toContain('修正:'); // 2番目
+    expect(merges[2]).toContain('開発:'); // 最後
+  });
+
+  test('フォーマットが正しい', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/test"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2',
+      })
+      .mockReturnValueOnce({
+        stdout: 'Fix bug (def456)\nAdd feature (ghi789)',
+      });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    const lines = result.split('\n');
+    expect(lines[0]).toBe('Merge branch "feature/test" (abc1234)');
+    expect(lines[1]).toBe('  - Fix bug (def456)');
+    expect(lines[2]).toBe('  - Add feature (ghi789)');
+  });
+
+  test('複数の非PRマージを正しく処理する', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/A"\ndef5678 Merge branch "hotfix/B"',
+      })
+      .mockReturnValueOnce({ stdout: 'abc1234 p1 p2' })
+      .mockReturnValueOnce({
+        stdout: 'Commit A1 (a1)\nCommit A2 (a2)',
+      })
+      .mockReturnValueOnce({ stdout: 'def5678 p1 p2' })
+      .mockReturnValueOnce({
+        stdout: 'Commit B1 (b1)',
+      });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toContain('Merge branch "feature/A" (abc1234)');
+    expect(result).toContain('  - Commit A1 (a1)');
+    expect(result).toContain('  - Commit A2 (a2)');
+    expect(result).toContain('Merge branch "hotfix/B" (def5678)');
+    expect(result).toContain('  - Commit B1 (b1)');
+  });
+
+  test('マージコミットが全くない場合は空文字列を返す', async () => {
+    executeCmd.mockReturnValueOnce({
+      stdout: '', // マージコミットなし
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toBe('');
+  });
+});

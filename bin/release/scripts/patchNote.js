@@ -93,8 +93,34 @@ function writePatchNoteFile(patchNoteFileName, version, contents) {
   fs.writeFileSync(patchNoteFileName, body);
 }
 
+/**
+ * Get merge commit log since previous version
+ * @param {string} previousVersion - Previous version tag
+ * @returns {string} Git log output
+ */
 function gitLog(previousVersion) {
   return executeCmd(`git log --oneline --merges v${previousVersion}..`, { silent: true }).stdout;
+}
+
+/**
+ * Get priority level for sorting based on Japanese prefix
+ * @param {string} line - Line to check for prefix
+ * @returns {number} Priority level (lower = higher priority)
+ */
+function level(line) {
+  if (line.startsWith('追加:')) {
+    return 0;
+  }
+  if (line.startsWith('変更:')) {
+    return 1;
+  }
+  if (line.startsWith('修正:')) {
+    return 2;
+  }
+  if (line.startsWith('開発:')) {
+    return 999; // 開発は最後に
+  }
+  return 3;
 }
 
 /**
@@ -123,22 +149,6 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
         return { data: {} };
       }),
     );
-  }
-
-  function level(line) {
-    if (line.startsWith('追加:')) {
-      return 0;
-    }
-    if (line.startsWith('変更:')) {
-      return 1;
-    }
-    if (line.startsWith('修正:')) {
-      return 2;
-    }
-    if (line.startsWith('開発:')) {
-      return 999; // 開発は最後に
-    }
-    return 3;
   }
 
   return Promise.all(promises).then(results => {
@@ -170,6 +180,85 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
 
     return summary.join('');
   });
+}
+
+/**
+ * Collect non-PR merge commits and their included commits
+ * @param {string} previousVersion - Previous version tag (e.g., "1.0.20190826-2")
+ * @returns {Promise<string>} Formatted merge commits with their included commits
+ */
+async function collectNonPRMerges(previousVersion) {
+  // Get all merge commits since previous version
+  const merges = gitLog(previousVersion);
+
+  /** @type {Array<{subject: string, hash: string, includedCommits: string[]}>} */
+  const nonPRMerges = [];
+
+  for (const line of merges.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+
+    // Skip PR merges
+    if (line.match(/Merge pull request #[0-9]+/)) {
+      continue;
+    }
+
+    // Parse merge commit: hash and subject
+    const match = line.match(/^([0-9a-f]+)\s+(.+)$/);
+    if (!match) continue;
+
+    const [, hash, subject] = match;
+
+    // Check if this is a real merge (has 2+ parents) to avoid fast-forward merges
+    const parentsCmd = executeCmd(`git rev-list --parents -n 1 ${hash}`, { silent: true });
+    const parentCount = parentsCmd.stdout.trim().split(/\s+/).length - 1;
+
+    if (parentCount < 2) {
+      // Fast-forward merge or not a real merge, skip
+      continue;
+    }
+
+    // Get commits included in this merge (from feature branch)
+    // Using ^2 to get the second parent (feature branch)
+    const includedCommitsCmd = executeCmd(
+      `git log --no-merges --format="%s (%h)" v${previousVersion}..${hash}^2`,
+      { silent: true },
+    );
+
+    const includedCommits = includedCommitsCmd.stdout
+      .split(/\r?\n/)
+      .filter(/** @param {string} line */ line => line.trim())
+      .map(/** @param {string} line */ line => `  - ${line}`);
+
+    if (includedCommits.length > 0) {
+      nonPRMerges.push({
+        subject,
+        hash, // Already 7 chars from --oneline
+        includedCommits,
+      });
+    }
+  }
+
+  // Sort by prefix level using shared level() function
+  nonPRMerges.sort((a, b) => {
+    const d = level(a.subject) - level(b.subject);
+    if (d) return d;
+
+    if (a.subject < b.subject) return -1;
+    if (a.subject === b.subject) return 0;
+    return 1;
+  });
+
+  // Format output
+  if (nonPRMerges.length === 0) {
+    return '';
+  }
+
+  const formatted = nonPRMerges.map(merge => {
+    const header = `${merge.subject} (${merge.hash})`;
+    return `${header}\n${merge.includedCommits.join('\n')}`;
+  });
+
+  return formatted.join('\n\n');
 }
 
 function generateNotesTsContent(version, title, notes) {
@@ -225,6 +314,7 @@ module.exports = {
   readPatchNoteFile,
   writePatchNoteFile,
   collectPullRequestMerges,
+  collectNonPRMerges,
   updateNotesTs,
   readPatchNote,
   generateNotesTsContent,
