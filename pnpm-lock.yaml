@@ -178,24 +178,12 @@ importers:
       '@babel/core':
         specifier: ^7.22.10
         version: 7.28.5
-      '@babel/plugin-proposal-class-properties':
-        specifier: ^7.18.6
-        version: 7.18.6(@babel/core@7.28.5)
       '@babel/plugin-proposal-decorators':
         specifier: ^7.22.10
         version: 7.28.0(@babel/core@7.28.5)
-      '@babel/plugin-proposal-export-namespace-from':
-        specifier: ^7.18.9
-        version: 7.18.9(@babel/core@7.28.5)
       '@babel/plugin-proposal-function-sent':
         specifier: ^7.22.5
         version: 7.27.1(@babel/core@7.28.5)
-      '@babel/plugin-proposal-json-strings':
-        specifier: ^7.18.6
-        version: 7.18.6(@babel/core@7.28.5)
-      '@babel/plugin-proposal-numeric-separator':
-        specifier: ^7.18.6
-        version: 7.18.6(@babel/core@7.28.5)
       '@babel/plugin-proposal-throw-expressions':
         specifier: ^7.22.5
         version: 7.27.1(@babel/core@7.28.5)
@@ -205,6 +193,18 @@ importers:
       '@babel/plugin-syntax-import-meta':
         specifier: ^7.10.4
         version: 7.10.4(@babel/core@7.28.5)
+      '@babel/plugin-transform-class-properties':
+        specifier: ^7.27.1
+        version: 7.27.1(@babel/core@7.28.5)
+      '@babel/plugin-transform-export-namespace-from':
+        specifier: ^7.27.1
+        version: 7.27.1(@babel/core@7.28.5)
+      '@babel/plugin-transform-json-strings':
+        specifier: ^7.27.1
+        version: 7.27.1(@babel/core@7.28.5)
+      '@babel/plugin-transform-numeric-separator':
+        specifier: ^7.27.1
+        version: 7.27.1(@babel/core@7.28.5)
       '@babel/preset-env':
         specifier: ^7.20.2
         version: 7.28.5(@babel/core@7.28.5)
@@ -559,43 +559,15 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0
 
-  '@babel/plugin-proposal-class-properties@7.18.6':
-    resolution: {integrity: sha512-cumfXOF0+nzZrrN8Rf0t7M+tF6sZc7vhQwYQck9q1/5w2OExlD+b4v4RpMJFaV1Z7WcDRgO6FqvxqxGlwo+RHQ==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
   '@babel/plugin-proposal-decorators@7.28.0':
     resolution: {integrity: sha512-zOiZqvANjWDUaUS9xMxbMcK/Zccztbe/6ikvUXaG9nsPH3w6qh5UaPGAnirI/WhIbZ8m3OHU0ReyPrknG+ZKeg==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
-  '@babel/plugin-proposal-export-namespace-from@7.18.9':
-    resolution: {integrity: sha512-k1NtHyOMvlDDFeb9G5PhUXuGj8m/wiwojgQVEhJ/fsVsMCpLyOP4h0uGEjYJKrRI+EVPlb5Jk+Gt9P97lOGwtA==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-export-namespace-from instead.
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
   '@babel/plugin-proposal-function-sent@7.27.1':
     resolution: {integrity: sha512-xA8Bqt8p12TxOFy3os20LxmOoHjyhzRC3zBql57d2W/YarNHgxHB4IlLHf3nXb7N6vSZ6kAdOoK2z5h0evGMhw==}
     engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-proposal-json-strings@7.18.6':
-    resolution: {integrity: sha512-lr1peyn9kOdbYc0xr0OdHTZ5FMqS6Di+H0Fz2I/JwMzGmzJETNeOFq2pBySw6X/KFL5EWDjlJuMsUGRFb8fQgQ==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-json-strings instead.
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-proposal-numeric-separator@7.18.6':
-    resolution: {integrity: sha512-ozlZFogPqoLm8WBr5Z8UckIoE4YQ5KESVcNudyXOR8uqIkliTEgJ3RoketfG6pmzLdeZF0H/wjE9/cCEitBl7Q==}
-    engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -640,11 +612,6 @@ packages:
 
   '@babel/plugin-syntax-dynamic-import@7.8.3':
     resolution: {integrity: sha512-5gdGbFon+PszYzqs83S3E5mpi7/y/8M9eC90MRTZfduQOYW76ig6SOSPNe41IG5LoP3FGBn2N0RjVDSQiS94kQ==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-syntax-export-namespace-from@7.8.3':
-    resolution: {integrity: sha512-MXf5laXo6c1IbEbegDmzGPwGNTsHZmEy6QGznu5Sh2UCWvueywb2ee+CCE4zQiZstxU9BMoQO9i6zUFSY0Kj0Q==}
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -7808,14 +7775,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-proposal-class-properties@7.18.6(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/helper-create-class-features-plugin': 7.28.5(@babel/core@7.28.5)
-      '@babel/helper-plugin-utils': 7.27.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@babel/plugin-proposal-decorators@7.28.0(@babel/core@7.28.5)':
     dependencies:
       '@babel/core': 7.28.5
@@ -7825,12 +7784,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-proposal-export-namespace-from@7.18.9(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/plugin-syntax-export-namespace-from': 7.8.3(@babel/core@7.28.5)
-
   '@babel/plugin-proposal-function-sent@7.27.1(@babel/core@7.28.5)':
     dependencies:
       '@babel/core': 7.28.5
@@ -7838,18 +7791,6 @@ snapshots:
       '@babel/helper-wrap-function': 7.28.3
     transitivePeerDependencies:
       - supports-color
-
-  '@babel/plugin-proposal-json-strings@7.18.6(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/plugin-syntax-json-strings': 7.8.3(@babel/core@7.28.5)
-
-  '@babel/plugin-proposal-numeric-separator@7.18.6(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/helper-plugin-utils': 7.27.1
-      '@babel/plugin-syntax-numeric-separator': 7.10.4(@babel/core@7.28.5)
 
   '@babel/plugin-proposal-private-property-in-object@7.21.0-placeholder-for-preset-env.2(@babel/core@7.28.5)':
     dependencies:
@@ -7886,11 +7827,6 @@ snapshots:
       '@babel/helper-plugin-utils': 7.27.1
 
   '@babel/plugin-syntax-dynamic-import@7.8.3(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/helper-plugin-utils': 7.27.1
-
-  '@babel/plugin-syntax-export-namespace-from@7.8.3(@babel/core@7.28.5)':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.27.1
