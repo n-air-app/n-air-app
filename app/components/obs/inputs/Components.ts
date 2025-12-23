@@ -1,17 +1,20 @@
-import TsxComponent from 'components/tsx-component';
+import { Component } from 'vue';
 import * as comps from './index';
 import { TObsType } from './ObsInput';
 
-const inputComponents = comps as any as { [key: string]: typeof TsxComponent };
+type InputComponent = Component & { obsType: TObsType | TObsType[] };
 
-export function propertyComponentForType(type: TObsType): typeof TsxComponent {
-  const componentName = Object.keys(inputComponents).find(name => {
-    // @ts-expect-error ts7053
-    const componentObsType = inputComponents[name]['obsType'];
-    return Array.isArray(componentObsType)
-      ? componentObsType.includes(type)
-      : componentObsType === type;
+const inputComponents = comps as Record<string, InputComponent>;
+
+export function propertyComponentForType(type: TObsType): Component {
+  const component = Object.values(inputComponents).find(comp => {
+    const obsType = comp.obsType;
+    return Array.isArray(obsType) ? obsType.includes(type) : obsType === type;
   });
-  if (!componentName) console.warn('Component not found. Type:', type);
-  return inputComponents[componentName];
+
+  if (!component) {
+    console.warn('Component not found. Type:', type);
+  }
+
+  return component!;
 }

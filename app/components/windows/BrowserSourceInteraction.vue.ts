@@ -1,15 +1,16 @@
-import TsxComponent from 'components/tsx-component';
+import Display from 'components/shared/Display.vue';
+import { Inject } from 'services/core/injector';
+import { SourcesService } from 'services/sources';
+import Utils from 'services/utils';
+import { WindowsService } from 'services/windows';
+import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import ModalLayout from '../ModalLayout.vue';
-import Display from 'components/shared/Display.vue';
-import { WindowsService } from 'services/windows';
-import { Inject } from 'services/core/injector';
-import Utils from 'services/utils';
-import { SourcesService } from 'services/sources';
-//import { byOS, OS } from 'util/operating-systems';
 
-@Component({})
-export default class BrowserSourceInteraction extends TsxComponent<{}> {
+@Component({
+  components: { ModalLayout, Display },
+})
+export default class BrowserSourceInteraction extends Vue {
   @Inject() windowsService: WindowsService;
   @Inject() sourcesService: SourcesService;
 
@@ -33,7 +34,6 @@ export default class BrowserSourceInteraction extends TsxComponent<{}> {
   }
 
   eventLocationInSourceSpace(e: MouseEvent): IVec2 {
-    //const factor = byOS({ [OS.Windows]: this.windowsService.state.child.scaleFactor, [OS.Mac]: 1 });
     const factor = this.windowsService.state.child.scaleFactor;
     return {
       x:
@@ -98,26 +98,5 @@ export default class BrowserSourceInteraction extends TsxComponent<{}> {
   mounted() {
     // Allows keyboard events to be immediately captured
     this.$refs.eventDiv.focus();
-  }
-
-  render(h: Function) {
-    return (
-      <ModalLayout showControls={false} contentStyles={{ padding: '0px' }}>
-        <div
-          slot="content"
-          onWheel={this.onWheel}
-          onMousedown={this.onMousedown}
-          onMouseup={this.onMouseup}
-          onMousemove={this.onMousemove}
-          onKeydown={this.onKeydown}
-          onKeyup={this.onKeyup}
-          tabindex="0"
-          style={{ outline: 'none', height: '100%' }}
-          ref="eventDiv"
-        >
-          <Display sourceId={this.sourceId} onOutputResize={this.onOutputResize} />
-        </div>
-      </ModalLayout>
-    );
   }
 }
