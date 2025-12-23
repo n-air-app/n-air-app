@@ -1,9 +1,10 @@
+import { Component } from 'vue';
 import * as comps from './index';
 import { TObsType } from './ObsInput';
 
 const inputComponents = comps as any;
 
-export function propertyComponentForType(type: TObsType): any {
+export function propertyComponentForType(type: TObsType): Component {
   const componentName = Object.keys(inputComponents).find(name => {
     const componentObsType = inputComponents[name]['obsType'];
     return Array.isArray(componentObsType)
