@@ -4,7 +4,6 @@ const fs = require('fs');
 const sh = require('shelljs');
 const { DateTime } = require('luxon');
 const { info, error, executeCmd } = require('./log');
-const { getTagCommitId } = require('./util');
 
 // previous tag should be following rule:
 //  v{major}.{minor}.{yyyymmdd}-[{channel}.]{ord}[internalMark]
