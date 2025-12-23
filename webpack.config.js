@@ -140,7 +140,7 @@ module.exports = function (env, argv) {
       target: 'electron29-renderer',
 
       resolve: {
-        extensions: ['.js', '.ts', '.tsx'],
+        extensions: ['.js', '.ts'],
         modules: [path.resolve(__dirname, 'app'), 'node_modules'],
       },
 
@@ -176,11 +176,6 @@ module.exports = function (env, argv) {
             test: /\.ts$/,
             loader: 'ts-loader',
             exclude: /node_modules|vue\/src/,
-          },
-          {
-            test: /\.tsx$/,
-            exclude: /node_modules|vue\/src/,
-            use: ['babel-loader', { loader: 'ts-loader' }],
           },
           {
             test: /\.js$/,

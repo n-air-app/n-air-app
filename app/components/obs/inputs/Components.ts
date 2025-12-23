@@ -1,12 +1,10 @@
-import TsxComponent from 'components/tsx-component';
 import * as comps from './index';
 import { TObsType } from './ObsInput';
 
-const inputComponents = comps as any as { [key: string]: typeof TsxComponent };
+const inputComponents = comps as any;
 
-export function propertyComponentForType(type: TObsType): typeof TsxComponent {
+export function propertyComponentForType(type: TObsType): any {
   const componentName = Object.keys(inputComponents).find(name => {
-    // @ts-expect-error ts7053
     const componentObsType = inputComponents[name]['obsType'];
     return Array.isArray(componentObsType)
       ? componentObsType.includes(type)

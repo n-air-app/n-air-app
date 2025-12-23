@@ -104,7 +104,7 @@ importers:
         version: 7.7.3
       sl-vue-tree:
         specifier: https://github.com/stream-labs/sl-vue-tree
-        version: git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
+        version: git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
       socket.io:
         specifier: 4.8.1
         version: 4.8.1
@@ -250,9 +250,6 @@ importers:
       '@types/xml2js':
         specifier: ^0.4.11
         version: 0.4.14
-      '@vue/babel-preset-jsx':
-        specifier: 1.2.4
-        version: 1.2.4(@babel/core@7.28.5)
       ava:
         specifier: ^6.4.1
         version: 6.4.1(encoding@0.1.13)(rollup@3.29.5)
@@ -2133,49 +2130,6 @@ packages:
     resolution: {integrity: sha512-6lLqMNX3TuycBPABycx7A9F1bHQR7kiQln6abjFbPrf5C/05qHM9M5E4PeTE59c7z8g6vHnx1Ioihb2AQl7BTA==}
     engines: {node: '>=18'}
     hasBin: true
-
-  '@vue/babel-helper-vue-jsx-merge-props@1.4.0':
-    resolution: {integrity: sha512-JkqXfCkUDp4PIlFdDQ0TdXoIejMtTHP67/pvxlgeY+u5k3LEdKuWZ3LK6xkxo52uDoABIVyRwqVkfLQJhk7VBA==}
-
-  '@vue/babel-plugin-transform-vue-jsx@1.4.0':
-    resolution: {integrity: sha512-Fmastxw4MMx0vlgLS4XBX0XiBbUFzoMGeVXuMV08wyOfXdikAFqBTuYPR0tlk+XskL19EzHc39SgjrPGY23JnA==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-preset-jsx@1.2.4':
-    resolution: {integrity: sha512-oRVnmN2a77bYDJzeGSt92AuHXbkIxbf/XXSE3klINnh9AXBmVS1DGa1f0d+dDYpLfsAKElMnqKTQfKn7obcL4w==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-sugar-composition-api-inject-h@1.4.0':
-    resolution: {integrity: sha512-VQq6zEddJHctnG4w3TfmlVp5FzDavUSut/DwR0xVoe/mJKXyMcsIibL42wPntozITEoY90aBV0/1d2KjxHU52g==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-sugar-composition-api-render-instance@1.4.0':
-    resolution: {integrity: sha512-6ZDAzcxvy7VcnCjNdHJ59mwK02ZFuP5CnucloidqlZwVQv5CQLijc3lGpR7MD3TWFi78J7+a8J56YxbCtHgT9Q==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-sugar-functional-vue@1.4.0':
-    resolution: {integrity: sha512-lTEB4WUFNzYt2In6JsoF9sAYVTo84wC4e+PoZWSgM6FUtqRJz7wMylaEhSRgG71YF+wfLD6cc9nqVeXN2rwBvw==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-sugar-inject-h@1.4.0':
-    resolution: {integrity: sha512-muwWrPKli77uO2fFM7eA3G1lAGnERuSz2NgAxuOLzrsTlQl8W4G+wwbM4nB6iewlKbwKRae3nL03UaF5ffAPMA==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-sugar-v-model@1.4.0':
-    resolution: {integrity: sha512-0t4HGgXb7WHYLBciZzN5s0Hzqan4Ue+p/3FdQdcaHAb7s5D9WZFGoSxEZHrR1TFVZlAPu1bejTKGeAzaaG3NCQ==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@vue/babel-sugar-v-on@1.4.0':
-    resolution: {integrity: sha512-m+zud4wKLzSKgQrWwhqRObWzmTuyzl6vOP7024lrpeJM4x2UhQtRDLgYjXAw9xBXjCwS0pP9kXjg91F9ZNo9JA==}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
 
   '@vue/compiler-sfc@2.7.14':
     resolution: {integrity: sha512-aNmNHyLPsw+sVvlQFQ2/8sjNuLtK54TC6cuKnVzAY93ks4ZBrvwQSnkkIh7bsbNhum5hJBS00wSDipQ937f5DA==}
@@ -4326,10 +4280,6 @@ packages:
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
 
-  html-tags@2.0.0:
-    resolution: {integrity: sha512-+Il6N8cCo2wB/Vd3gqy/8TZhTD3QvcVeQLCnZiGkGCH3JP28IgGAY41giccp2W4R3jfyJPAP318FQTa1yU7K7g==}
-    engines: {node: '>=4'}
-
   html-tags@3.3.1:
     resolution: {integrity: sha512-ztqyC3kLto0e9WbNp0aeP+M3kTt+nbaIveGmUxAtZa+8iFgKLUOD4YKM5j+f3QD89bra7UeumolZHKuOXnTmeQ==}
     engines: {node: '>=8'}
@@ -5138,9 +5088,6 @@ packages:
 
   lodash.isplainobject@4.0.6:
     resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
-
-  lodash.kebabcase@4.1.1:
-    resolution: {integrity: sha512-N8XRTIMMqqDgSy4VLKPnJ/+hpGZN+PHQiJnSenYqPaVV/NCqEogTnAdZLQiGKhxX+JCs8waWq2t1XHWKOmlY8g==}
 
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
@@ -6495,8 +6442,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
-    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: git@github.com:stream-labs/sl-vue-tree.git, type: git}
+  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
+    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: https://github.com/stream-labs/sl-vue-tree.git, type: git}
     version: 1.8.3
 
   slash@3.0.0:
@@ -9882,75 +9829,6 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vue/babel-helper-vue-jsx-merge-props@1.4.0': {}
-
-  '@vue/babel-plugin-transform-vue-jsx@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/helper-module-imports': 7.27.1
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-      '@vue/babel-helper-vue-jsx-merge-props': 1.4.0
-      html-tags: 2.0.0
-      lodash.kebabcase: 4.1.1
-      svg-tags: 1.0.0
-    transitivePeerDependencies:
-      - supports-color
-
-  '@vue/babel-preset-jsx@1.2.4(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@vue/babel-helper-vue-jsx-merge-props': 1.4.0
-      '@vue/babel-plugin-transform-vue-jsx': 1.4.0(@babel/core@7.28.5)
-      '@vue/babel-sugar-composition-api-inject-h': 1.4.0(@babel/core@7.28.5)
-      '@vue/babel-sugar-composition-api-render-instance': 1.4.0(@babel/core@7.28.5)
-      '@vue/babel-sugar-functional-vue': 1.4.0(@babel/core@7.28.5)
-      '@vue/babel-sugar-inject-h': 1.4.0(@babel/core@7.28.5)
-      '@vue/babel-sugar-v-model': 1.4.0(@babel/core@7.28.5)
-      '@vue/babel-sugar-v-on': 1.4.0(@babel/core@7.28.5)
-    transitivePeerDependencies:
-      - supports-color
-
-  '@vue/babel-sugar-composition-api-inject-h@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-
-  '@vue/babel-sugar-composition-api-render-instance@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-
-  '@vue/babel-sugar-functional-vue@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-
-  '@vue/babel-sugar-inject-h@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-
-  '@vue/babel-sugar-v-model@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-      '@vue/babel-helper-vue-jsx-merge-props': 1.4.0
-      '@vue/babel-plugin-transform-vue-jsx': 1.4.0(@babel/core@7.28.5)
-      camelcase: 5.3.1
-      html-tags: 2.0.0
-      svg-tags: 1.0.0
-    transitivePeerDependencies:
-      - supports-color
-
-  '@vue/babel-sugar-v-on@1.4.0(@babel/core@7.28.5)':
-    dependencies:
-      '@babel/core': 7.28.5
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
-      '@vue/babel-plugin-transform-vue-jsx': 1.4.0(@babel/core@7.28.5)
-      camelcase: 5.3.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@vue/compiler-sfc@2.7.14':
     dependencies:
       '@babel/parser': 7.28.5
@@ -12466,8 +12344,6 @@ snapshots:
 
   html-escaper@2.0.2: {}
 
-  html-tags@2.0.0: {}
-
   html-tags@3.3.1: {}
 
   htmlparser2@8.0.2:
@@ -13452,8 +13328,6 @@ snapshots:
   lodash.isobject@3.0.2: {}
 
   lodash.isplainobject@4.0.6: {}
-
-  lodash.kebabcase@4.1.1: {}
 
   lodash.memoize@4.1.2: {}
 
@@ -14842,7 +14716,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
+  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
 
   slash@3.0.0: {}
 
