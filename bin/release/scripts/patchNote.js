@@ -104,27 +104,6 @@ function gitLog(previousVersion) {
 }
 
 /**
- * Get priority level for sorting based on Japanese prefix
- * @param {string} line - Line to check for prefix
- * @returns {number} Priority level (lower = higher priority)
- */
-function level(line) {
-  if (line.startsWith('追加:')) {
-    return 0;
-  }
-  if (line.startsWith('変更:')) {
-    return 1;
-  }
-  if (line.startsWith('修正:')) {
-    return 2;
-  }
-  if (line.startsWith('開発:')) {
-    return 999; // 開発は最後に
-  }
-  return 3;
-}
-
-/**
  *
  * @param {Object} param0
  * @param {import('@octokit/rest').Octokit} param0.octokit
@@ -150,6 +129,22 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
         return { data: {} };
       }),
     );
+  }
+
+  function level(line) {
+    if (line.startsWith('追加:')) {
+      return 0;
+    }
+    if (line.startsWith('変更:')) {
+      return 1;
+    }
+    if (line.startsWith('修正:')) {
+      return 2;
+    }
+    if (line.startsWith('開発:')) {
+      return 999; // 開発は最後に
+    }
+    return 3;
   }
 
   return Promise.all(promises).then(results => {
