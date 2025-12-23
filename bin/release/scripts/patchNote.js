@@ -233,6 +233,7 @@ async function collectNonPRMerges(previousVersion) {
     const includedCommits = includedCommitsResult.stdout
       .split(/\r?\n/)
       .filter(/** @param {string} line */ line => line.trim())
+      .reverse() // Reverse to show chronological order (oldest first)
       .map(/** @param {string} line */ line => `  - ${line}`);
 
     if (includedCommits.length > 0) {
@@ -244,15 +245,9 @@ async function collectNonPRMerges(previousVersion) {
     }
   }
 
-  // Sort by prefix level using shared level() function
-  nonPRMerges.sort((a, b) => {
-    const d = level(a.subject) - level(b.subject);
-    if (d) return d;
-
-    if (a.subject < b.subject) return -1;
-    if (a.subject === b.subject) return 0;
-    return 1;
-  });
+  // Reverse to show chronological order (oldest merge first)
+  // git log outputs newest first, so we reverse it
+  nonPRMerges.reverse();
 
   // Format output
   if (nonPRMerges.length === 0) {

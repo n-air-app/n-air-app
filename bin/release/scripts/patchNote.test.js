@@ -251,14 +251,20 @@ describe('collectNonPRMerges', () => {
 
     execSpy.mockReturnValueOnce({
       code: 0,
-      stdout: '修正: バグを修正 (def456)\n追加: 新機能 (ghi789)',
+      stdout: '修正: バグを修正 (def456)\n追加: 新機能 (ghi789)', // git log output (newest first)
     });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
     expect(result).toContain('Merge branch "feature/test" (abc1234)');
-    expect(result).toContain('  - 修正: バグを修正 (def456)');
+    // Commits are shown in chronological order (oldest first, reversed from git log)
     expect(result).toContain('  - 追加: 新機能 (ghi789)');
+    expect(result).toContain('  - 修正: バグを修正 (def456)');
+    // Verify the order
+    const lines = result.split('\n');
+    const addIndex = lines.findIndex(l => l.includes('追加: 新機能'));
+    const fixIndex = lines.findIndex(l => l.includes('修正: バグを修正'));
+    expect(addIndex).toBeLessThan(fixIndex); // 追加 comes before 修正
   });
 
   test('PRマージは除外する', async () => {
@@ -337,15 +343,16 @@ describe('collectNonPRMerges', () => {
 
     execSpy.mockReturnValueOnce({
       code: 0,
-      stdout: 'Fix bug (def456)\nAdd feature (ghi789)',
+      stdout: 'Fix bug (def456)\nAdd feature (ghi789)', // git log output (newest first)
     });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
     const lines = result.split('\n');
     expect(lines[0]).toBe('Merge branch "feature/test" (abc1234)');
-    expect(lines[1]).toBe('  - Fix bug (def456)');
-    expect(lines[2]).toBe('  - Add feature (ghi789)');
+    // Chronological order (oldest first, reversed from git log)
+    expect(lines[1]).toBe('  - Add feature (ghi789)');
+    expect(lines[2]).toBe('  - Fix bug (def456)');
   });
 
   test('複数の非PRマージを正しく処理する', async () => {
@@ -359,7 +366,7 @@ describe('collectNonPRMerges', () => {
     sh.exec
       .mockReturnValueOnce({
         code: 0,
-        stdout: 'Commit A1 (a1)\nCommit A2 (a2)',
+        stdout: 'Commit A1 (a1)\nCommit A2 (a2)', // git log output (newest first)
       })
       .mockReturnValueOnce({
         code: 0,
@@ -369,10 +376,16 @@ describe('collectNonPRMerges', () => {
     const result = await collectNonPRMerges('1.0.20190826-2');
 
     expect(result).toContain('Merge branch "feature/A" (abc1234)');
-    expect(result).toContain('  - Commit A1 (a1)');
+    // Chronological order (oldest first)
     expect(result).toContain('  - Commit A2 (a2)');
+    expect(result).toContain('  - Commit A1 (a1)');
     expect(result).toContain('Merge branch "hotfix/B" (def5678)');
     expect(result).toContain('  - Commit B1 (b1)');
+    // Verify order for feature/A
+    const lines = result.split('\n');
+    const a2Index = lines.findIndex(l => l.includes('Commit A2'));
+    const a1Index = lines.findIndex(l => l.includes('Commit A1'));
+    expect(a2Index).toBeLessThan(a1Index); // A2 (older) comes before A1 (newer)
   });
 
   test('マージコミットが全くない場合は空文字列を返す', async () => {
