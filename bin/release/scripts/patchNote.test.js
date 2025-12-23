@@ -310,26 +310,63 @@ describe('collectNonPRMerges', () => {
     expect(result).toBe('');
   });
 
-  test('プレフィックスによるソートが機能する', async () => {
+  test('同じブランチの連続マージは空行なしで並ぶ', async () => {
     executeCmd
       .mockReturnValueOnce({
-        stdout: 'aaa1111 開発: マージ3\nbbb2222 修正: マージ2\nccc3333 追加: マージ1',
+        // Same branch merged twice consecutively (git log: newest first)
+        stdout:
+          'bbb2222 Merge branch \'feature/test\' into main\naaa1111 Merge branch \'feature/test\' into main',
+      })
+      .mockReturnValueOnce({ stdout: 'bbb2222 p1 p2' })
+      .mockReturnValueOnce({ stdout: 'aaa1111 p1 p2' });
+
+    sh.exec
+      .mockReturnValueOnce({ code: 0, stdout: 'Commit 2 (c2)' })
+      .mockReturnValueOnce({ code: 0, stdout: 'Commit 1 (c1)' });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    // Same branch merged consecutively - no blank line between them
+    // After reverse: aaa1111 (oldest) -> bbb2222 (newest)
+    const lines = result.split('\n');
+    expect(lines[0]).toContain('feature/test');
+    expect(lines[1]).toContain('Commit 1');
+    expect(lines[2]).toContain('feature/test'); // No blank line
+    expect(lines[3]).toContain('Commit 2');
+    expect(lines[2]).not.toBe(''); // Verify it's not a blank line
+  });
+
+  test('異なるブランチのマージは空行で区切られる', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        // Different branches: git log order (newest first): A, B, A
+        stdout:
+          'aaa1111 Merge branch \'feature/A\' into main\nbbb2222 Merge branch \'feature/B\' into main\nccc3333 Merge branch \'feature/A\' into main',
       })
       .mockReturnValueOnce({ stdout: 'aaa1111 p1 p2' })
       .mockReturnValueOnce({ stdout: 'bbb2222 p1 p2' })
       .mockReturnValueOnce({ stdout: 'ccc3333 p1 p2' });
 
     sh.exec
-      .mockReturnValueOnce({ code: 0, stdout: 'コミット1 (d1)' })
-      .mockReturnValueOnce({ code: 0, stdout: 'コミット2 (d2)' })
-      .mockReturnValueOnce({ code: 0, stdout: 'コミット3 (d3)' });
+      .mockReturnValueOnce({ code: 0, stdout: 'Commit A2 (a2)' })
+      .mockReturnValueOnce({ code: 0, stdout: 'Commit B1 (b1)' })
+      .mockReturnValueOnce({ code: 0, stdout: 'Commit A1 (a1)' });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
-    const merges = result.split('\n\n');
-    expect(merges[0]).toContain('追加:'); // 最初
-    expect(merges[1]).toContain('修正:'); // 2番目
-    expect(merges[2]).toContain('開発:'); // 最後
+    // Git log order: aaa1111 (newest), bbb2222, ccc3333 (oldest)
+    // After reverse: ccc3333 -> bbb2222 -> aaa1111 (oldest to newest)
+    // Which is: A (ccc) -> B (bbb) -> A (aaa)
+    // Expected: A, blank line, B, blank line, A
+    const lines = result.split('\n');
+    expect(lines[0]).toContain('feature/A');
+    expect(lines[1]).toContain('Commit A1');
+    expect(lines[2]).toBe(''); // Blank line before different branch
+    expect(lines[3]).toContain('feature/B');
+    expect(lines[4]).toContain('Commit B1');
+    expect(lines[5]).toBe(''); // Blank line before returning to feature/A
+    expect(lines[6]).toContain('feature/A');
+    expect(lines[7]).toContain('Commit A2');
   });
 
   test('フォーマットが正しい', async () => {

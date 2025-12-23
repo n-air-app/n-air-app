@@ -253,12 +253,35 @@ async function collectNonPRMerges(previousVersion) {
     return '';
   }
 
-  const formatted = nonPRMerges.map(merge => {
-    const header = `${merge.subject} (${merge.hash})`;
-    return `${header}\n${merge.includedCommits.join('\n')}`;
-  });
+  /**
+   * Extract branch name from merge subject
+   * @param {string} subject - Merge commit subject
+   * @returns {string|null} Branch name or null if not found
+   */
+  const extractBranchName = subject => {
+    const match = subject.match(/Merge branch '([^']+)'/);
+    return match ? match[1] : null;
+  };
 
-  return formatted.join('\n\n');
+  const formatted = [];
+  let prevBranch = null;
+
+  for (let i = 0; i < nonPRMerges.length; i++) {
+    const merge = nonPRMerges[i];
+    const currentBranch = extractBranchName(merge.subject);
+    const header = `${merge.subject} (${merge.hash})`;
+    const entry = `${header}\n${merge.includedCommits.join('\n')}`;
+
+    // Add blank line before this merge if it's from a different branch
+    if (i > 0 && currentBranch !== prevBranch) {
+      formatted.push('');
+    }
+
+    formatted.push(entry);
+    prevBranch = currentBranch;
+  }
+
+  return formatted.join('\n');
 }
 
 function generateNotesTsContent(version, title, notes) {
