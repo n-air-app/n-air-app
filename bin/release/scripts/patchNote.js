@@ -1,6 +1,7 @@
 // @ts-check
 
 const fs = require('fs');
+const sh = require('shelljs');
 const { DateTime } = require('luxon');
 const { info, error, executeCmd } = require('./log');
 const { getTagCommitId } = require('./util');
@@ -219,12 +220,16 @@ async function collectNonPRMerges(previousVersion) {
 
     // Get commits included in this merge (from feature branch)
     // Using ^2 to get the second parent (feature branch)
-    const includedCommitsCmd = executeCmd(
-      `git log --no-merges --format="%s (%h)" v${previousVersion}..${hash}^2`,
-      { silent: true },
-    );
+    // Note: Use sh.exec directly to allow error cases (e.g., invalid range)
+    const gitCmd = `git log --no-merges --format="%s (%h)" v${previousVersion}..${hash}^2`;
+    const includedCommitsResult = sh.exec(gitCmd, { silent: true });
 
-    const includedCommits = includedCommitsCmd.stdout
+    // If git command failed (e.g., ^2 is older than previousVersion), skip this merge
+    if (includedCommitsResult.code !== 0) {
+      continue;
+    }
+
+    const includedCommits = includedCommitsResult.stdout
       .split(/\r?\n/)
       .filter(/** @param {string} line */ line => line.trim())
       .map(/** @param {string} line */ line => `  - ${line}`);

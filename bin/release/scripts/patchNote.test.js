@@ -224,10 +224,20 @@ jest.mock('./log', () => {
 
 const { collectNonPRMerges } = require('./patchNote');
 const { executeCmd } = require('./log');
+const sh = require('shelljs');
 
 describe('collectNonPRMerges', () => {
+  let execSpy;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    execSpy = jest.spyOn(sh, 'exec');
+  });
+
+  afterEach(() => {
+    if (execSpy) {
+      execSpy.mockRestore();
+    }
   });
 
   test('非PRマージを検出する', async () => {
@@ -237,10 +247,12 @@ describe('collectNonPRMerges', () => {
       })
       .mockReturnValueOnce({
         stdout: 'abc1234 parent1 parent2', // 2 parents
-      })
-      .mockReturnValueOnce({
-        stdout: '修正: バグを修正 (def456)\n追加: 新機能 (ghi789)',
       });
+
+    execSpy.mockReturnValueOnce({
+      code: 0,
+      stdout: '修正: バグを修正 (def456)\n追加: 新機能 (ghi789)',
+    });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
@@ -266,10 +278,12 @@ describe('collectNonPRMerges', () => {
       })
       .mockReturnValueOnce({
         stdout: 'abc1234 parent1 parent2', // 2 parents
-      })
-      .mockReturnValueOnce({
-        stdout: '', // 含まれるコミットなし
       });
+
+    execSpy.mockReturnValueOnce({
+      code: 0,
+      stdout: '', // 含まれるコミットなし
+    });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
@@ -296,11 +310,13 @@ describe('collectNonPRMerges', () => {
         stdout: 'aaa1111 開発: マージ3\nbbb2222 修正: マージ2\nccc3333 追加: マージ1',
       })
       .mockReturnValueOnce({ stdout: 'aaa1111 p1 p2' })
-      .mockReturnValueOnce({ stdout: 'コミット1 (d1)' })
       .mockReturnValueOnce({ stdout: 'bbb2222 p1 p2' })
-      .mockReturnValueOnce({ stdout: 'コミット2 (d2)' })
-      .mockReturnValueOnce({ stdout: 'ccc3333 p1 p2' })
-      .mockReturnValueOnce({ stdout: 'コミット3 (d3)' });
+      .mockReturnValueOnce({ stdout: 'ccc3333 p1 p2' });
+
+    sh.exec
+      .mockReturnValueOnce({ code: 0, stdout: 'コミット1 (d1)' })
+      .mockReturnValueOnce({ code: 0, stdout: 'コミット2 (d2)' })
+      .mockReturnValueOnce({ code: 0, stdout: 'コミット3 (d3)' });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
@@ -317,10 +333,12 @@ describe('collectNonPRMerges', () => {
       })
       .mockReturnValueOnce({
         stdout: 'abc1234 parent1 parent2',
-      })
-      .mockReturnValueOnce({
-        stdout: 'Fix bug (def456)\nAdd feature (ghi789)',
       });
+
+    execSpy.mockReturnValueOnce({
+      code: 0,
+      stdout: 'Fix bug (def456)\nAdd feature (ghi789)',
+    });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
 
@@ -336,11 +354,15 @@ describe('collectNonPRMerges', () => {
         stdout: 'abc1234 Merge branch "feature/A"\ndef5678 Merge branch "hotfix/B"',
       })
       .mockReturnValueOnce({ stdout: 'abc1234 p1 p2' })
+      .mockReturnValueOnce({ stdout: 'def5678 p1 p2' });
+
+    sh.exec
       .mockReturnValueOnce({
+        code: 0,
         stdout: 'Commit A1 (a1)\nCommit A2 (a2)',
       })
-      .mockReturnValueOnce({ stdout: 'def5678 p1 p2' })
       .mockReturnValueOnce({
+        code: 0,
         stdout: 'Commit B1 (b1)',
       });
 
@@ -356,6 +378,26 @@ describe('collectNonPRMerges', () => {
   test('マージコミットが全くない場合は空文字列を返す', async () => {
     executeCmd.mockReturnValueOnce({
       stdout: '', // マージコミットなし
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toBe('');
+  });
+
+  test('git logコマンドがエラーの場合はそのマージをスキップする', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/test"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 p1 p2',
+      });
+
+    execSpy.mockReturnValueOnce({
+      code: 128,
+      stdout: '',
+      stderr: 'fatal: Invalid revision range',
     });
 
     const result = await collectNonPRMerges('1.0.20190826-2');
