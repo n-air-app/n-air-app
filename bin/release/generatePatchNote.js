@@ -58,7 +58,6 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
   log('channel', (channel === 'stable' ? colors.red : colors.cyan)(channel));
 
   /** @type {import('./configs/type').ReleaseConfig} */
-   
   const config = require(`./configs/${environment}-${channel}`);
 
   info('checking current branch...');
