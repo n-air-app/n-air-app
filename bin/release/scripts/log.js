@@ -1,7 +1,7 @@
 // @ts-check
 
 const sh = require('shelljs');
-const colors = require('colors/safe');
+let colors; // Lazy load to avoid requiring 'colors' when not needed
 
 /**
  * @param {string[]} msg
@@ -14,6 +14,7 @@ function log(...msg) {
  * @param {string} msg
  */
 function info(msg) {
+  if (!colors) colors = require('colors/safe');
   sh.echo(colors.magenta(msg));
 }
 
@@ -21,6 +22,7 @@ function info(msg) {
  * @param {string} msg
  */
 function error(msg) {
+  if (!colors) colors = require('colors/safe');
   sh.echo(colors.red(`ERROR: ${msg}`));
 }
 
