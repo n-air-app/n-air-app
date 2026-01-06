@@ -1,4 +1,4 @@
-const rimraf = require('rimraf');
+const { rimrafSync } = require('rimraf');
 const { execSync } = require('child_process');
 const fs = require('fs');
 
@@ -10,7 +10,7 @@ const returnCode = (function main() {
   log('use branches', branches);
 
   const dir = CONFIG.dist;
-  rimraf.sync(dir);
+  rimrafSync(dir);
 
   // create dir
   let currentPath = '';

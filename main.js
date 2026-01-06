@@ -42,14 +42,14 @@ const electron = require('electron');
 const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter } =
   electron;
 const path = require('path');
-const rimraf = require('rimraf');
+const { rimrafSync } = require('rimraf');
 const remote = require('@electron/remote/main');
 
 function rimrafWithRetry(rmPath) {
   const MAX_RETRIES = 3;
   for (let t = MAX_RETRIES; t > 0; t--) {
     try {
-      rimraf.sync(rmPath);
+      rimrafSync(rmPath);
     } catch (e) {
       console.error(`failed to delete '${rmPath}: `, e);
       if (!t) {
