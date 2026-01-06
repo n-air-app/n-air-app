@@ -94,7 +94,7 @@ class Application {
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const rimraf = require('rimraf');
+const { rimraf } = require('rimraf');
 
 const afterStartCallbacks: ((t: TExecutionContext) => any)[] = [];
 export function afterAppStart(cb: (t: TExecutionContext) => any) {
@@ -279,9 +279,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     appIsRunning = false;
 
     if (!clearCache) return;
-    await new Promise(resolve => {
-      rimraf(lastCacheDir, resolve);
-    });
+    await rimraf(lastCacheDir);
   };
 
   test.beforeEach(async t => {
