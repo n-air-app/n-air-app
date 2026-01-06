@@ -9,7 +9,7 @@ import AddSourceFilter from 'components/windows/AddSourceFilter.vue';
 import AdvancedAudio from 'components/windows/AdvancedAudio.vue';
 import AutoCompactConfirmDialog from 'components/windows/AutoCompactConfirmDialog.vue';
 import Blank from 'components/windows/Blank.vue';
-import BrowserSourceInteraction from 'components/windows/BrowserSourceInteraction';
+import BrowserSourceInteraction from 'components/windows/BrowserSourceInteraction.vue';
 import CroppingOverlay from 'components/windows/CroppingOverlay.vue';
 import Informations from 'components/windows/Informations.vue';
 import Main from 'components/windows/Main.vue';
