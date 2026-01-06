@@ -115,7 +115,7 @@ export class OverlaysPersistenceService extends Service {
     const archive = archiver('zip', { zlib: { level: 9 } });
 
     await new Promise<void>(resolve => {
-      output.on('close', (err: any) => {
+      output.on('close', () => {
         resolve();
       });
 

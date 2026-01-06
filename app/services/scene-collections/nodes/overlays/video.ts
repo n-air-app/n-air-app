@@ -31,8 +31,8 @@ export class VideoNode extends Node<ISchema, IContext> {
     const input = fs.createReadStream(filePath);
     const output = fs.createWriteStream(destination);
 
-    await new Promise(resolve => {
-      output.on('close', resolve);
+    await new Promise<void>(resolve => {
+      output.on('close', () => resolve());
       input.pipe(output);
     });
 
