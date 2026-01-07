@@ -190,6 +190,7 @@ module.exports = function (env, argv) {
                 loader: 'css-loader',
                 options: {
                   importLoaders: 1,
+                  esModule: false,
                 },
               },
               {
@@ -210,6 +211,7 @@ module.exports = function (env, argv) {
                 loader: 'css-loader',
                 options: {
                   importLoaders: 1,
+                  esModule: false,
                 },
               },
               {
@@ -230,6 +232,7 @@ module.exports = function (env, argv) {
               name: '[name]-[hash].[ext]',
               outputPath: 'media/',
               publicPath: 'bundles/media/',
+              esModule: false,
             },
           },
           // Handles custom fonts. Currently used for icons.
@@ -240,6 +243,7 @@ module.exports = function (env, argv) {
               name: '[name].[ext]',
               outputPath: 'fonts/',
               publicPath: 'bundles/fonts/',
+              esModule: false,
             },
           },
           {
