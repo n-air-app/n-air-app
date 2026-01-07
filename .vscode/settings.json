@@ -155,7 +155,6 @@
       }
     }
   ],
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": [
     "source.organizeImports",
@@ -166,7 +165,6 @@
   "less.validate": false,
   "stylelint.validate": ["css", "less", "vue"],
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always"
     }
