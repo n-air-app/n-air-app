@@ -155,6 +155,7 @@
       }
     }
   ],
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": [
     "source.organizeImports",
@@ -165,6 +166,7 @@
   "less.validate": false,
   "stylelint.validate": ["css", "less", "vue"],
   "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always"
     }
