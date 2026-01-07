@@ -279,7 +279,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     appIsRunning = false;
 
     if (!clearCache) return;
-    await rimraf(lastCacheDir, { maxRetries: 10, retryDelay: 100 });
+    await rimraf(lastCacheDir, { maxRetries: 30, retryDelay: 100 });
   };
 
   test.beforeEach(async t => {
