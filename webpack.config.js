@@ -190,7 +190,7 @@ module.exports = function (env, argv) {
                 loader: 'css-loader',
                 options: {
                   importLoaders: 1,
-                  esModule: true,
+                  esModule: false,
                 },
               },
               {
@@ -211,7 +211,7 @@ module.exports = function (env, argv) {
                 loader: 'css-loader',
                 options: {
                   importLoaders: 1,
-                  esModule: true,
+                  esModule: false,
                 },
               },
               {
@@ -227,19 +227,23 @@ module.exports = function (env, argv) {
           },
           {
             test: /\.(png|jpe?g|gif|mp4|mp3|ico|wav|webm)(\?.*)?$/,
-            type: 'asset/resource',
-            generator: {
-              filename: 'media/[name]-[hash][ext]',
+            loader: 'file-loader',
+            options: {
+              name: '[name]-[hash].[ext]',
+              outputPath: 'media/',
               publicPath: 'bundles/media/',
+              esModule: false,
             },
           },
           // Handles custom fonts. Currently used for icons.
           {
             test: /\.woff$/,
-            type: 'asset/resource',
-            generator: {
-              filename: 'fonts/[name][ext]',
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+              outputPath: 'fonts/',
               publicPath: 'bundles/fonts/',
+              esModule: false,
             },
           },
           {
