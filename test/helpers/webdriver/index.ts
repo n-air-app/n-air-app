@@ -10,6 +10,7 @@ import {
   initializeTasks,
   killElectronInstances,
   testFn,
+  waitForCrashHandlerExit,
   waitForElectronInstancesExist,
 } from './runner-utils';
 export const test = testFn; // the overridden "test" function
@@ -276,6 +277,11 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
       console.error(e);
     }
     await killElectronInstances();
+
+    // Wait for crash-handler-process.exe to exit before attempting cleanup
+    // This ensures crash-handler.log is closed before rimraf attempts deletion
+    await waitForCrashHandlerExit();
+
     appIsRunning = false;
 
     if (!clearCache) return;
