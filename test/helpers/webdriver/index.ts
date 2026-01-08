@@ -276,6 +276,11 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
       console.error(e);
     }
     await killElectronInstances();
+
+    // Wait for file handles to be released after killing processes
+    // This ensures crash-handler.log is closed before rimraf attempts deletion
+    await sleep(200);
+
     appIsRunning = false;
 
     if (!clearCache) return;

@@ -137,7 +137,10 @@ export function saveTestStatsToFile(stats: Record<string, ITestStats>) {
 let ignoreTaskPIDs: number[] = [];
 async function getRawElectronTasks() {
   const tasks = await tasklist();
-  return tasks.filter((task: any) => task.imageName === 'electron.exe');
+  return tasks.filter(
+    (task: any) =>
+      task.imageName === 'electron.exe' || task.imageName === 'crash-handler-process.exe',
+  );
 }
 
 export async function initializeTasks() {
