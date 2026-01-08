@@ -137,7 +137,10 @@ export function saveTestStatsToFile(stats: Record<string, ITestStats>) {
 let ignoreTaskPIDs: number[] = [];
 async function getRawElectronTasks() {
   const tasks = await tasklist();
-  return tasks.filter((task: any) => task.imageName === 'electron.exe');
+  return tasks.filter(
+    (task: any) =>
+      task.imageName === 'electron.exe' || task.imageName === 'crash-handler-process.exe',
+  );
 }
 
 export async function initializeTasks() {
@@ -153,6 +156,31 @@ async function getElectronInstances() {
 export async function killElectronInstances() {
   const tasks = await getElectronInstances();
   tasks.forEach((task: any) => kill(task.pid));
+}
+
+export async function waitForCrashHandlerExit() {
+  const interval = 100;
+  const timeout = 5000;
+
+  let timeLeft = timeout;
+
+  do {
+    const tasks = await tasklist();
+    const crashHandlerTasks = tasks.filter(
+      (task: any) => task.imageName === 'crash-handler-process.exe',
+    );
+
+    if (crashHandlerTasks.length === 0) {
+      return;
+    }
+
+    await sleep(interval);
+    timeLeft -= interval;
+  } while (timeLeft > 0);
+
+  console.warn(
+    `Warning: crash-handler-process.exe still running after ${timeout}ms timeout`,
+  );
 }
 
 export async function waitForElectronInstancesExist() {
