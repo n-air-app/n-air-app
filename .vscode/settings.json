@@ -155,21 +155,28 @@
       }
     }
   ],
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": [
-    "source.organizeImports",
-    "source.fixAll.eslint",
-    "source.fixAll.stylelint"
-  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.stylelint": "explicit"
+  },
   "css.validate": false,
   "less.validate": false,
   "stylelint.validate": ["css", "less", "vue"],
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always"
     }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features",
+    "editor.formatOnSave": true
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur",
+    "editor.formatOnSave": true
   },
 
   "typescript.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],

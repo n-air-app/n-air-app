@@ -34,7 +34,7 @@ export default [
   },
 
   // Base config for all JS/TS files
-  ...compat.extends('airbnb-base', 'prettier'),
+  ...compat.extends('airbnb-base'),
   js.configs.recommended,
 
   // Vue plugin configs
@@ -173,6 +173,17 @@ export default [
       'no-undef': OFF,
       'vue/no-use-v-if-with-v-for': OFF,
       'vue/require-v-for-key': OFF,
+
+      // Prettier compatibility: disable style rules that Prettier handled
+      quotes: OFF,
+      curly: OFF,
+      'nonblock-statement-body-position': OFF,
+      'no-spaced-func': OFF,
+      'func-call-spacing': OFF,
+      'array-bracket-spacing': OFF,
+      'no-multiple-empty-lines': OFF,
+      'no-trailing-spaces': OFF,
+      'wrap-iife': OFF,
     },
   },
 
@@ -314,6 +325,17 @@ export default [
       'no-undef': OFF,
       'vue/no-use-v-if-with-v-for': OFF,
       'vue/require-v-for-key': OFF,
+
+      // Prettier compatibility: disable style rules that Prettier handled
+      quotes: OFF,
+      curly: OFF,
+      'nonblock-statement-body-position': OFF,
+      'no-spaced-func': OFF,
+      'func-call-spacing': OFF,
+      'array-bracket-spacing': OFF,
+      'no-multiple-empty-lines': OFF,
+      'no-trailing-spaces': OFF,
+      'wrap-iife': OFF,
 
       // Temporarily disable Vue rules that flag existing code
       // TODO: Fix these issues in a separate PR

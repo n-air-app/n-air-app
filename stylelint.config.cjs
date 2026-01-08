@@ -4,7 +4,6 @@ module.exports = {
   extends: [
     'stylelint-config-standard',
     'stylelint-config-recess-order',
-    'stylelint-config-prettier',
   ],
   rules: {
     // ルールは随時追加する
@@ -24,6 +23,17 @@ module.exports = {
     ],
     'color-function-notation': null,
     'block-no-empty': null,
+
+    // Prettier compatibility: disable style rules that Prettier handled
+    'string-quotes': null,
+    'declaration-block-trailing-semicolon': null,
+    'declaration-bang-space-before': null,
+    indentation: null,
+    'color-hex-case': null,
+    'selector-combinator-space-after': null,
+    'selector-combinator-space-before': null,
+    'function-comma-space-after': null,
+    'declaration-colon-newline-after': null,
   },
   overrides: [
     {
