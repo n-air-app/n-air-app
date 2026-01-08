@@ -201,7 +201,7 @@
     "webpack-dev-server": "^5.1.0",
     "webpack-merge": "^6.0.1"
   },
-  "packageManager": "pnpm@10.25.0",
+  "packageManager": "pnpm@10.27.0",
   "pnpm": {
     "overrides": {
       "tar-fs": "^2.1.4",
