@@ -147,8 +147,8 @@
 }
 
 .transition-default {
-  color: var(--color-text-active);
   vertical-align: middle;
+  color: var(--color-text-active);
 }
 
 .transition-default-selector {
@@ -206,8 +206,8 @@ td {
 
 .modal-layout-content {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   height: 100%;
   padding: 0;
   overflow-x: hidden;

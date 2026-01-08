@@ -109,8 +109,8 @@
 
 .help-tip__inner {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   color: var(--color-object-emphasis-inverse);
 }
 

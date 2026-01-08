@@ -13,15 +13,15 @@
 
 .program-description {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   width: 100%;
 }
 
 .program-description-header {
   display: flex;
-  flex-direction: row-reverse;
   flex-shrink: 0;
+  flex-direction: row-reverse;
   align-items: center;
   width: 100%;
   height: 48px;

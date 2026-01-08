@@ -45,14 +45,14 @@
 
 .main-contents {
   display: flex;
-  flex-direction: row;
   flex-grow: 1;
+  flex-direction: row;
 }
 
 .main-middle {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
 }
 
 .main-page-container {
@@ -65,8 +65,8 @@
 
 .main-loading {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }

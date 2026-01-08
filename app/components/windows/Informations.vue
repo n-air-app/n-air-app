@@ -91,8 +91,8 @@
 
 .information-error {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   gap: var(--spacing-sm);
   align-items: center;
   justify-content: center;
