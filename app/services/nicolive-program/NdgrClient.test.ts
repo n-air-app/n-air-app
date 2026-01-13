@@ -82,20 +82,13 @@ const prevMessages = [moderatorAdd(3, 'prev')];
 
 const messages = [moderatorAdd(1, 'test'), moderatorDelete(2, 'test2')];
 
-// Uint8Array<ArrayBufferLike>をArrayBufferに変換するヘルパー関数
-function toArrayBuffer(data: Uint8Array): ArrayBuffer {
-  const buffer = new ArrayBuffer(data.byteLength);
-  new Uint8Array(buffer).set(data);
-  return buffer;
-}
-
 function packedSegmentResponse(
   packedSegment: dwango.nicolive.chat.service.edge.IPackedSegment,
   headers: Headers,
 ): Response {
   const writer = new Writer();
   dwango.nicolive.chat.service.edge.PackedSegment.encode(packedSegment, writer);
-  return new Response(toArrayBuffer(writer.finish()), {
+  return new Response(new Uint8Array(writer.finish()), {
     headers,
   });
 }
@@ -144,7 +137,7 @@ describe('NdgrClient', () => {
           case ENTRY_URL_WITH_TIMESTAMP:
             return Promise.resolve(
               new Response(
-                toArrayBuffer(
+                new Uint8Array(
                   encodeMessages(
                     msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
                     entries,
@@ -179,7 +172,7 @@ describe('NdgrClient', () => {
           case PREV_MESSAGES_URL:
             return Promise.resolve(
               new Response(
-                toArrayBuffer(
+                new Uint8Array(
                   encodeMessages(
                     msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
                     prevMessages.map(message => ({ message })),
@@ -194,7 +187,7 @@ describe('NdgrClient', () => {
           case MESSAGES_URL:
             return Promise.resolve(
               new Response(
-                toArrayBuffer(
+                new Uint8Array(
                   encodeMessages(
                     msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
                     messages.map(message => ({ message })),
