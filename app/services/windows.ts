@@ -39,7 +39,7 @@ import Vue from 'vue';
 
 const { ipcRenderer } = electron;
 const BrowserWindow = remote.BrowserWindow;
-const uuid = window['require']('uuid/v4');
+const { v4: uuid } = window['require']('uuid');
 
 // This is a list of components that are registered to be
 // top level components in new child windows.

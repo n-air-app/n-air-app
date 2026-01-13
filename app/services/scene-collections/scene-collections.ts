@@ -36,7 +36,7 @@ import { IDownloadProgress, OverlaysPersistenceService } from './overlays';
 import { parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
 
-const uuid = window['require']('uuid/v4');
+const { v4: uuid } = window['require']('uuid');
 
 export const NODE_TYPES = {
   RootNode,

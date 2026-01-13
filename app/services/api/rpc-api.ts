@@ -9,7 +9,7 @@ import {
   JsonrpcService,
 } from 'services/api/jsonrpc';
 import traverse from 'traverse';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { ServicesManager } from '../../services-manager';
 import { Service } from '../core/service';
 

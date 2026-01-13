@@ -15,7 +15,7 @@ import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService } from 
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import {

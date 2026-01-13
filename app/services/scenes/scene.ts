@@ -9,7 +9,7 @@ import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import * as obs from '../../../obs-api';
 import {
   EBlendingMethod,

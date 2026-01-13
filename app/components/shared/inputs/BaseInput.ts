@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import { getKeys } from 'util/getKeys';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import Vue from 'vue';
 import { Prop } from 'vue-property-decorator';
 import { IInputMetadata } from './index';

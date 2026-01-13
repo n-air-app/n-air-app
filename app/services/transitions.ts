@@ -8,7 +8,7 @@ import { ScenesService } from 'services/scenes';
 import { DefaultManager } from 'services/sources/properties-managers/default-manager';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import * as obs from '../../obs-api';
 
 export enum ETransitionType {

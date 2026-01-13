@@ -229,7 +229,7 @@ remote.initialize();
 function initialize(crashHandler) {
   const fs = require('node:fs');
   const { Updater } = require('./updater/Updater.js');
-  const uuid = require('uuid/v4');
+  const { v4: uuid } = require('uuid');
   const windowStateKeeper = require('electron-window-state');
   const { URL } = require('url');
 

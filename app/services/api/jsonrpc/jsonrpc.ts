@@ -1,5 +1,5 @@
 import { Service } from 'services/core/service';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import {
   E_JSON_RPC_ERROR,
   IJsonRpcEvent,

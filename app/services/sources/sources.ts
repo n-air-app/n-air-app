@@ -14,7 +14,7 @@ import { UserService } from 'services/user';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';

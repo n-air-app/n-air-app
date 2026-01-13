@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 // @ts-expect-error

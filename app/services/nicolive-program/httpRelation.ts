@@ -1,4 +1,4 @@
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 import { ChatMessageType } from './ChatMessage/classifier';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { sendLogGif } from './nicolive-logger';

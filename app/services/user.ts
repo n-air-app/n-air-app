@@ -11,7 +11,7 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import URI from 'urijs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import Vue from 'vue';
 import { OnboardingService } from './onboarding';
 import {

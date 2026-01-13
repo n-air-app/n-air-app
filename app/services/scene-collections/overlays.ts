@@ -7,7 +7,7 @@ import path from 'path';
 import { ScenesService } from 'services/scenes';
 import { SelectionService } from 'services/selection';
 import unzip from 'unzip-stream';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { Inject } from '../core/injector';
 import { Service } from '../core/service';
 import { ImageNode } from './nodes/overlays/image';
