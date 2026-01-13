@@ -42,7 +42,7 @@ export class FontLibraryService extends Service {
           return json;
         })
         .catch(() => {
-          return { families: [] };
+          return { families: [] as string[] };
         });
     }
 

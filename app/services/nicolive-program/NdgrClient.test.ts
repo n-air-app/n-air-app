@@ -88,7 +88,7 @@ function packedSegmentResponse(
 ): Response {
   const writer = new Writer();
   dwango.nicolive.chat.service.edge.PackedSegment.encode(packedSegment, writer);
-  return new Response(writer.finish(), {
+  return new Response(writer.finish() as BodyInit, {
     headers,
   });
 }
@@ -140,7 +140,7 @@ describe('NdgrClient', () => {
                 encodeMessages(
                   msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
                   entries,
-                ),
+                ) as BodyInit,
                 { headers },
               ),
             );
@@ -172,7 +172,7 @@ describe('NdgrClient', () => {
                 encodeMessages(
                   msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
                   prevMessages.map(message => ({ message })),
-                ),
+                ) as BodyInit,
                 { headers },
               ),
             );
@@ -183,7 +183,7 @@ describe('NdgrClient', () => {
                 encodeMessages(
                   msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
                   messages.map(message => ({ message })),
-                ),
+                ) as BodyInit,
                 { headers },
               ),
             );
