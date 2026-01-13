@@ -82,6 +82,13 @@ const prevMessages = [moderatorAdd(3, 'prev')];
 
 const messages = [moderatorAdd(1, 'test'), moderatorDelete(2, 'test2')];
 
+// Uint8Array<ArrayBufferLike>をArrayBufferに変換するヘルパー関数
+function toArrayBuffer(data: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(data.byteLength);
+  new Uint8Array(buffer).set(data);
+  return buffer;
+}
+
 function packedSegmentResponse(
   packedSegment: dwango.nicolive.chat.service.edge.IPackedSegment,
   headers: Headers,
@@ -89,9 +96,7 @@ function packedSegmentResponse(
   const writer = new Writer();
   dwango.nicolive.chat.service.edge.PackedSegment.encode(packedSegment, writer);
   const data = writer.finish();
-  const buffer = new ArrayBuffer(data.byteLength);
-  new Uint8Array(buffer).set(data);
-  return new Response(buffer, {
+  return new Response(toArrayBuffer(data), {
     headers,
   });
 }
@@ -142,10 +147,8 @@ describe('NdgrClient', () => {
               msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
               entries,
             );
-            const buffer = new ArrayBuffer(data.byteLength);
-            new Uint8Array(buffer).set(data);
             return Promise.resolve(
-              new Response(buffer, {
+              new Response(toArrayBuffer(data), {
                 headers,
               }),
             );
@@ -176,10 +179,8 @@ describe('NdgrClient', () => {
               msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
               prevMessages.map(message => ({ message })),
             );
-            const buffer = new ArrayBuffer(data.byteLength);
-            new Uint8Array(buffer).set(data);
             return Promise.resolve(
-              new Response(buffer, {
+              new Response(toArrayBuffer(data), {
                 headers,
               }),
             );
@@ -190,10 +191,8 @@ describe('NdgrClient', () => {
               msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
               messages.map(message => ({ message })),
             );
-            const buffer = new ArrayBuffer(data.byteLength);
-            new Uint8Array(buffer).set(data);
             return Promise.resolve(
-              new Response(buffer, {
+              new Response(toArrayBuffer(data), {
                 headers,
               }),
             );
