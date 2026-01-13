@@ -14,7 +14,7 @@ import { UserService } from 'services/user';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -161,7 +161,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     settings: Dictionary<any> = {},
     options: ISourceAddOptions = {},
   ): Source {
-    const id: string = options.sourceId || `${type}_${uuid()}`;
+    const id: string = options.sourceId || `${type}_${uuidv4()}`;
     const obsInputSettings = this.getObsSourceCreateSettings(type, settings);
     const obsInput = obs.InputFactory.create(type, id, obsInputSettings);
 

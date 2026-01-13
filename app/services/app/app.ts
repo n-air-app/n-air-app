@@ -27,7 +27,7 @@ import Utils from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../../obs-api';
 import { RunInLoadingMode } from './app-decorators';
 
@@ -244,7 +244,7 @@ export class AppService extends StatefulService<IAppState> {
 
     let returningValue = result;
     if (result instanceof Promise) {
-      const promiseId = uuid();
+      const promiseId = uuidv4();
       this.loadingPromises[promiseId] = result;
       try {
         returningValue = await result;

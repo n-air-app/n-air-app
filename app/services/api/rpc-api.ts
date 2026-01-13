@@ -9,7 +9,7 @@ import {
   JsonrpcService,
 } from 'services/api/jsonrpc';
 import traverse from 'traverse';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { ServicesManager } from '../../services-manager';
 import { Service } from '../core/service';
 
@@ -179,7 +179,7 @@ export abstract class RpcApi extends Service {
     // and send events when promise will be resolved or rejected
     const isPromise = !!responsePayload.then;
     if (isPromise) {
-      const promiseId = uuid(); // the API client app can use this id for waiting this Promise
+      const promiseId = uuidv4(); // the API client app can use this id for waiting this Promise
       const promise = responsePayload as PromiseLike<any>;
 
       promise.then(
