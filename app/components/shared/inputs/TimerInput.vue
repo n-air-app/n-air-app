@@ -122,9 +122,9 @@
 
   &:active,
   &:focus {
+    outline: none;
     background-color: @day-button;
     border-color: transparent;
-    outline: none;
     box-shadow: none;
   }
 

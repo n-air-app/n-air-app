@@ -167,9 +167,9 @@
 
 .container {
   display: flex;
+  flex-grow: 1;
   flex-basis: 0;
   flex-direction: column;
-  flex-grow: 1;
   width: 100%;
   overflow-y: auto;
 }
@@ -203,8 +203,8 @@
 
 .content {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
 }
 
 .tab-list {
@@ -259,9 +259,9 @@
 
 .list {
   display: flex;
+  flex-grow: 1;
   flex-basis: 0;
   flex-direction: column;
-  flex-grow: 1;
   overflow-y: auto;
 }
 
@@ -304,8 +304,8 @@
 
 .item-box {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
 }
 
 .item-body {

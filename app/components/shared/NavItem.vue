@@ -29,8 +29,8 @@
   padding-left: 16px;
   font-size: @font-size4;
   color: var(--color-text);
-  list-style: none;
   cursor: pointer;
+  list-style: none;
 
   &.nav-item--child {
     padding-left: 0;
@@ -69,8 +69,8 @@
   width: 100%;
   max-width: 100%;
   overflow: hidden;
-  line-height: 14px;
   text-overflow: ellipsis;
+  line-height: 14px;
   white-space: nowrap;
 }
 

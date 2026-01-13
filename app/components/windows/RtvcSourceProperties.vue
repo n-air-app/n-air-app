@@ -348,8 +348,8 @@
 
   .modal-contents {
     display: flex;
-    flex-direction: row;
     flex-grow: 1;
+    flex-direction: row;
     height: calc(100% - 48px); // フッターを除いた高さ
   }
 
@@ -649,8 +649,8 @@
 
 .content-container {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   padding: 8px 0 0 8px;
   margin: 0;
   overflow-y: scroll;
@@ -658,8 +658,8 @@
 
   .content-inner {
     display: flex;
-    flex-direction: column;
     flex-grow: 1;
+    flex-direction: column;
   }
 
   .input-container {

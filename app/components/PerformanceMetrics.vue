@@ -100,8 +100,8 @@
   width: auto;
   margin-right: 8px;
   font-size: @font-size4;
-  color: var(--color-text-dark);
   vertical-align: middle;
+  color: var(--color-text-dark);
 }
 
 .performance-metric__value {

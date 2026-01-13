@@ -343,6 +343,19 @@ export default [
       'vue/no-deprecated-slot-attribute': OFF,
       'vue/no-deprecated-slot-scope-attribute': OFF,
       'vue/no-deprecated-v-on-native-modifier': OFF,
+
+      // Enable Vue template formatting
+      'vue/html-indent': [ERROR, 2, {
+        attribute: 1,
+        baseIndent: 1,
+        closeBracket: 0,
+        alignAttributesVertically: true,
+        ignores: []
+      }],
+      'vue/max-attributes-per-line': OFF, // Don't enforce attribute line breaks
+      'vue/html-closing-bracket-newline': OFF, // Don't enforce bracket newlines
+      'vue/singleline-html-element-content-newline': OFF, // Don't enforce content newlines
+      'vue/multiline-html-element-content-newline': OFF, // Don't enforce content newlines
     },
   },
 

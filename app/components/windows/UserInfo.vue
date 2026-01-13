@@ -198,8 +198,8 @@
 .user-info {
   position: relative;
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   margin: -16px;
   overflow: hidden;
   background-color: var(--color-bg-secondary);
@@ -225,8 +225,8 @@
 
 .user-detail-body {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   margin-top: 4px;
 }
 
@@ -320,8 +320,8 @@
 
 .tag-list {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -375,8 +375,8 @@
 
 .comment-list {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   overflow: hidden;
   background-color: var(--color-bg-secondary);
 }

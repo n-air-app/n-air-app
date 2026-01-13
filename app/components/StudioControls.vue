@@ -105,8 +105,8 @@
 
 .studio-controls-panel {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   padding: 0 8px;
@@ -114,8 +114,8 @@
 
 .studio-controls-compact {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   .text-ellipsis;
 }
 

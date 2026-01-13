@@ -485,7 +485,7 @@ function initialize(crashHandler) {
     dialog.showErrorBox(
       '予期せぬエラー',
       '予期しないエラーが発生したため、アプリケーションをシャットダウンします。ご不便をおかけして申し訳ありません。\n' +
-        'この件に関する情報はデバッグ目的で送信されました。不具合を解決するためにご協力いただきありがとうございます。',
+      'この件に関する情報はデバッグ目的で送信されました。不具合を解決するためにご協力いただきありがとうございます。',
     );
 
     // ダイアログが閉じたら終了
@@ -596,9 +596,9 @@ function initialize(crashHandler) {
       title: process.env.NAIR_PRODUCT_NAME,
       ...(mainWindowIsVisible
         ? {
-            x: mainWindowState.x,
-            y: mainWindowState.y,
-          }
+          x: mainWindowState.x,
+          y: mainWindowState.y,
+        }
         : {}),
       webPreferences: {
         nodeIntegration: true,

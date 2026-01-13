@@ -37,8 +37,8 @@
   border-bottom: 1px solid var(--color-border-light);
 
   > button {
-    flex-basis: 0;
     flex-grow: 1;
+    flex-basis: 0;
     height: 100%;
   }
 }
