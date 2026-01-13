@@ -95,8 +95,7 @@ function packedSegmentResponse(
 ): Response {
   const writer = new Writer();
   dwango.nicolive.chat.service.edge.PackedSegment.encode(packedSegment, writer);
-  const data = writer.finish();
-  return new Response(toArrayBuffer(data), {
+  return new Response(toArrayBuffer(writer.finish()), {
     headers,
   });
 }
@@ -142,17 +141,20 @@ describe('NdgrClient', () => {
         const headers = new Headers();
         headers.append('Content-Type', 'application/octet-stream');
         switch (input) {
-          case ENTRY_URL_WITH_TIMESTAMP: {
-            const data = encodeMessages(
-              msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
-              entries,
-            );
+          case ENTRY_URL_WITH_TIMESTAMP:
             return Promise.resolve(
-              new Response(toArrayBuffer(data), {
-                headers,
-              }),
+              new Response(
+                toArrayBuffer(
+                  encodeMessages(
+                    msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
+                    entries,
+                  ),
+                ),
+                {
+                  headers,
+                },
+              ),
             );
-          }
 
           case BACKWARD1_MESSAGES_URL:
             return Promise.resolve(
@@ -174,29 +176,35 @@ describe('NdgrClient', () => {
               ),
             );
 
-          case PREV_MESSAGES_URL: {
-            const data = encodeMessages(
-              msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
-              prevMessages.map(message => ({ message })),
-            );
+          case PREV_MESSAGES_URL:
             return Promise.resolve(
-              new Response(toArrayBuffer(data), {
-                headers,
-              }),
+              new Response(
+                toArrayBuffer(
+                  encodeMessages(
+                    msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
+                    prevMessages.map(message => ({ message })),
+                  ),
+                ),
+                {
+                  headers,
+                },
+              ),
             );
-          }
 
-          case MESSAGES_URL: {
-            const data = encodeMessages(
-              msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
-              messages.map(message => ({ message })),
-            );
+          case MESSAGES_URL:
             return Promise.resolve(
-              new Response(toArrayBuffer(data), {
-                headers,
-              }),
+              new Response(
+                toArrayBuffer(
+                  encodeMessages(
+                    msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
+                    messages.map(message => ({ message })),
+                  ),
+                ),
+                {
+                  headers,
+                },
+              ),
             );
-          }
 
           case NETWORK_ERROR_URL_WITH_TIMESTAMP:
             return Promise.reject(new TypeError('network error'));
