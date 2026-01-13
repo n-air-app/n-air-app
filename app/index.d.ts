@@ -1,4 +1,5 @@
 /// <reference path="../vendor/toasted.d.ts" />
+/// <reference path="./vue-augmentations.d.ts" />
 
 // all global interfaces here
 
