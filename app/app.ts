@@ -1,4 +1,5 @@
 import { I18nService } from 'services/i18n';
+import { get } from 'lodash';
 
 // eslint-disable-next-line
 window['eval'] = global.eval = () => {
@@ -227,6 +228,19 @@ document.addEventListener('DOMContentLoaded', () => {
       messages: i18nService.getLoadedDictionaries(),
       missing: ((locale: VueI18n.Locale, key: VueI18n.Path, vm: Vue, values: any[]): string => {
         if (values[0] && typeof values[0].fallback === 'string') {
+          // Check if the key exists in the dictionary with a null value
+          // If so, don't warn - null means "use the fallback value from OBS"
+          const dictionaries = i18nService.getLoadedDictionaries();
+          // Convert key path like "settings.Output['Streaming']['Preset']['ultrafast']"
+          // to lodash-compatible path like "settings.Output.Streaming.Preset.ultrafast"
+          const lodashPath = key.replace(/\['([^']+)'\]/g, '.$1');
+          const value = get(dictionaries[locale], lodashPath);
+
+          if (value === null) {
+            // Key exists with null value - this is intentional, use fallback without warning
+            return values[0].fallback;
+          }
+
           if (!isProduction) {
             // beware: enable following line only when investigating around i18n keys!
             // this adds huge amount of lines to console.
