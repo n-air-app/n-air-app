@@ -72,7 +72,7 @@ export function isOk<T>(result: WrappedResult<T>): result is SucceededResult<T> 
   return result.ok === true;
 }
 
-export class NotLoggedInError {}
+export class NotLoggedInError { }
 
 type Quality = {
   bitrate: number;
@@ -82,12 +82,12 @@ type Quality = {
 
 export function parseMaxQuality(maxQuality: string, fallback: Quality): Quality {
   try {
-    const match = maxQuality.match(/(\d+)([Mk])bps(\d+)p((\d+)fps)?/);
+    const match = maxQuality.match(/(\d+([.]\d+)?)([Mk])bps(\d+)p((\d+([.]\d+)?)fps)?/);
 
     return {
-      bitrate: parseInt(match[1], 10) * (match[2] === 'M' ? 1000 : 1),
-      height: parseInt(match[3], 10),
-      fps: parseInt(match[5], 10) || 30,
+      bitrate: parseFloat(match[1]) * (match[3] === 'M' ? 1000 : 1),
+      height: parseInt(match[4], 10),
+      fps: parseFloat(match[6]) || 30,
     };
   } catch (e) {
     console.warn('Failed to parse max quality', maxQuality, e);
@@ -173,7 +173,7 @@ export class NicoliveClient {
     private options: {
       niconicoSession?: string;
     } = {},
-  ) {}
+  ) { }
 
   static isProgramPage(url: string): boolean {
     return /^https?:\/\/live2?\.nicovideo\.jp\/watch\/lv\d+/.test(url);
@@ -813,8 +813,7 @@ export class NicoliveClient {
 
     return this.requestAPI<void>(
       'DELETE',
-      `${
-        NicoliveClient.live2BaseURL
+      `${NicoliveClient.live2BaseURL
       }/unama/api/v4/programs/${programId}/comments?${params.toString()}`,
       {
         headers: NicoliveClient.v4ApiHeaders(programId),

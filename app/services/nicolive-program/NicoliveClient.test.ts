@@ -1,4 +1,5 @@
 import fetchMock from '@fetch-mock/jest';
+import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
@@ -7,7 +8,6 @@ jest.mock('util/menus/Menu', () => ({}));
 jest.mock('@electron/remote', () => ({
   BrowserWindow: jest.fn(),
 }));
-import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 const fetchViaMainProcess = jest
   .fn<Promise<MainProcessFetchResponse>, [string, RequestInit]>()
   .mockName('fetchViaMainProcess');
@@ -35,6 +35,9 @@ describe('parseMaxQuality', () => {
     ['384kbps288p', 384, 288, 30],
     ['192kbps288p', 192, 288, 30],
     ['8Mbps1080p60fps', 8000, 1080, 60],
+    ['1.5Mbps480p', 1500, 480, 30],
+    ['1500kbps480p', 1500, 480, 30],
+    ['1.5Mbps480p29.97fps', 1500, 480, 29.97],
     ['invalid', fallback.bitrate, fallback.height, fallback.fps],
   ])(`%s => %d kbps, %d x %d`, (maxQuality, bitrate, height, fps) => {
     expect(parseMaxQuality(maxQuality, fallback)).toEqual({
@@ -235,7 +238,7 @@ function setupMock() {
     loadURL(url: string) {
       this.url = url;
       for (const cb of this.webContentsCallbacks) {
-        cb({ preventDefault() {} }, url);
+        cb({ preventDefault() { } }, url);
       }
     }
     close = jest.fn().mockImplementation(() => {
@@ -268,7 +271,7 @@ function setupMock() {
   }));
   jest.doMock('electron', () => ({
     ipcRenderer: {
-      send() {},
+      send() { },
     },
   }));
 
@@ -442,11 +445,11 @@ describe('NicoliveClient.wrapResult', () => {
             expect,
             viaMainProcess
               ? {
-                  ok,
-                  headers,
-                  status,
-                  text,
-                }
+                ok,
+                headers,
+                status,
+                text,
+              }
               : new Response(text, { status, headers }),
           ];
         },
