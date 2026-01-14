@@ -15,7 +15,7 @@ import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService } from 
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import {
@@ -264,8 +264,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   getDevices(): IAudioDevice[] {
     const devices: IAudioDevice[] = [];
-    const obsAudioInput = obs.InputFactory.create('wasapi_input_capture', uuid());
-    const obsAudioOutput = obs.InputFactory.create('wasapi_output_capture', uuid());
+    const obsAudioInput = obs.InputFactory.create('wasapi_input_capture', uuidv4());
+    const obsAudioOutput = obs.InputFactory.create('wasapi_output_capture', uuidv4());
 
     (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach(item => {
       devices.push({

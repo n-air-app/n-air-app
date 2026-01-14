@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import { getKeys } from 'util/getKeys';
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { Prop } from 'vue-property-decorator';
 import { IInputMetadata } from './index';
@@ -19,7 +19,7 @@ export class BaseInput<TValueType, TMetadataType extends IInputMetadata> extends
    * uuid serves to link input field and validator message
    */
   // @ts-expect-error: ts2729: use before initialization
-  readonly uuid = (this.metadata && this.metadata.uuid) || uuid();
+  readonly uuid = (this.metadata && this.metadata.uuid) || uuidv4();
 
   emitInput(eventData: TValueType, event?: any) {
     this.$emit('input', eventData, event);

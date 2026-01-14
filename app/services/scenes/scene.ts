@@ -9,7 +9,7 @@ import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../../obs-api';
 import {
   EBlendingMethod,
@@ -153,7 +153,7 @@ export class Scene {
 
     if (!this.canAddSource(sourceId)) return null;
 
-    const sceneItemId = options.id || uuid();
+    const sceneItemId = options.id || uuidv4();
 
     const obsSceneItem: obs.ISceneItem = this.getObsScene().add(source.getObsInput());
 
@@ -231,7 +231,7 @@ export class Scene {
   }
 
   createFolder(name: string, options: ISceneNodeAddOptions = {}) {
-    const id = options.id || uuid();
+    const id = options.id || uuidv4();
 
     this.ADD_FOLDER_TO_SCENE({
       id,

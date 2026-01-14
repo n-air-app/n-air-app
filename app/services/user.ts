@@ -11,7 +11,7 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import URI from 'urijs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { OnboardingService } from './onboarding';
 import {
@@ -120,7 +120,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     let userId = localStorage.getItem(localStorageKey);
 
     if (!userId) {
-      userId = uuid();
+      userId = uuidv4();
       localStorage.setItem(localStorageKey, userId);
     }
 

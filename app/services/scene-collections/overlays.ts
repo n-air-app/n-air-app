@@ -7,7 +7,7 @@ import path from 'path';
 import { ScenesService } from 'services/scenes';
 import { SelectionService } from 'services/selection';
 import unzip from 'unzip-stream';
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import { Inject } from '../core/injector';
 import { Service } from '../core/service';
 import { ImageNode } from './nodes/overlays/image';
@@ -49,7 +49,7 @@ export class OverlaysPersistenceService extends Service {
    * Downloads the requested overlay into a temporary directory
    */
   async downloadOverlay(url: string, progressCallback?: (progress: IDownloadProgress) => void) {
-    const overlayFilename = `${uuid()}.overlay`;
+    const overlayFilename = `${uuidv4()}.overlay`;
     const overlayPath = path.join(os.tmpdir(), overlayFilename);
     const fileStream = fs.createWriteStream(overlayPath);
 

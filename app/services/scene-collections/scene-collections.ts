@@ -36,7 +36,7 @@ import { IDownloadProgress, OverlaysPersistenceService } from './overlays';
 import { parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
 
-const uuid = window['require']('uuid/v4');
+const { v4: uuidv4 } = window['require']('uuid');
 
 export const NODE_TYPES = {
   RootNode,
@@ -350,7 +350,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       this.suggestName(
         $t('scenes.sceneCollectionDefaultName', { fallback: DEFAULT_COLLECTION_NAME }),
       );
-    const id: string = uuid();
+    const id: string = uuidv4();
 
     await this.insertCollection(id, name);
     await this.setActiveCollection(id);
@@ -411,7 +411,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.disableAutoSave();
 
     id = id || this.activeCollection.id;
-    const newId = uuid();
+    const newId = uuidv4();
     await this.stateService.copyCollectionFile(id, newId);
     await this.insertCollection(newId, name);
     this.stateService.SET_NEEDS_RENAME(newId);
@@ -445,7 +445,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.startLoadingOperation();
     await this.deloadCurrentApplicationState();
 
-    const id: string = uuid();
+    const id: string = uuidv4();
     await this.insertCollection(id, name);
     await this.setActiveCollection(id);
 
@@ -830,7 +830,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
         if (oldData) {
           await this.stateService.ensureDirectory();
-          const id: string = uuid();
+          const id: string = uuidv4();
           await this.stateService.writeDataToCollectionFile(id, oldData);
           this.stateService.ADD_COLLECTION(
             id,

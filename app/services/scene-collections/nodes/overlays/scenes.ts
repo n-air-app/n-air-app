@@ -1,4 +1,4 @@
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { Scene, ScenesService } from '../../../scenes';
 import { ArrayNode } from '../array-node';
 import { IFolderSchema, SlotsNode, TSlotSchema } from './slots';
@@ -64,7 +64,7 @@ export class ScenesNode extends ArrayNode<ISchema, IContext, Scene> {
       // version 1 doesn't have sceneId, so generate a random id
       this.data.items = this.data.items.map(item => {
         if (item.sceneId) return item;
-        return { ...item, sceneId: uuid() };
+        return { ...item, sceneId: uuidv4() };
       });
     }
   }

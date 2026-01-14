@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 // @ts-expect-error
@@ -14,7 +14,7 @@ import { IInputMetadata } from './index';
 @Component({})
 export default class ValidatedForm extends Vue {
   validated = new Subject<ErrorField[]>();
-  validationScopeId = uuid();
+  validationScopeId = uuidv4();
 
   getInputs(children?: Vue[]): BaseInput<any, IInputMetadata>[] {
     children = children || this.$children;

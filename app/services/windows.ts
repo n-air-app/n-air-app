@@ -39,7 +39,7 @@ import Vue from 'vue';
 
 const { ipcRenderer } = electron;
 const BrowserWindow = remote.BrowserWindow;
-const uuid = window['require']('uuid/v4');
+const { v4: uuidv4 } = window['require']('uuid');
 
 // This is a list of components that are registered to be
 // top level components in new child windows.
@@ -251,7 +251,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     options: Partial<IWindowOptions & { limitMinimumSize?: boolean }>,
     windowId?: string,
   ): string {
-    windowId = windowId || uuid();
+    windowId = windowId || uuidv4();
 
     Sentry.addBreadcrumb({
       category: 'createOneOffWindow',

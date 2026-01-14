@@ -9,7 +9,7 @@ import { ISource, ISourceAddOptions, SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
-import uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import { IVideo } from '../../../obs-api';
@@ -187,7 +187,7 @@ export class ScenesService extends StatefulService<IScenesState> {
 
   createScene(name: string, options: ISceneCreateOptions = {}) {
     // Get an id to identify the scene on the frontend
-    const id = options.sceneId || `scene_${uuid()}`;
+    const id = options.sceneId || `scene_${uuidv4()}`;
     this.ADD_SCENE(id, name);
     const obsScene = obs.SceneFactory.create(id);
     this.sourcesService.addSource(obsScene.source, name, { sourceId: id });
