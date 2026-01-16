@@ -19,6 +19,7 @@ import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+import * as remote from '@electron/remote';
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
 import { VideoSettingsService } from '../settings-v2';
@@ -156,13 +157,24 @@ export class SettingsService
   }
 
   showSettings(categoryName?: SettingsCategory) {
+    // 画面サイズを考慮したウィンドウサイズを計算（画面からはみ出さないようにする）
+    const currentWindow = remote.getCurrentWindow();
+    const bounds = currentWindow.getBounds();
+    const currentDisplay = remote.screen.getDisplayMatching(bounds);
+    const { width: screenWidth, height: screenHeight } = currentDisplay.workArea;
+
+    // 希望サイズは800x800だが、画面サイズに収まらない場合は画面サイズ - 余白(100px)
+    const margin = 100;
+    const width = Math.min(800, screenWidth - margin);
+    const height = Math.min(800, screenHeight - margin);
+
     this.windowsService.showWindow({
       componentName: 'Settings',
       title: $t('common.settings'),
       queryParams: { categoryName },
       size: {
-        width: 800,
-        height: 800,
+        width,
+        height,
       },
     });
   }
