@@ -19,7 +19,6 @@ import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
-import * as remote from '@electron/remote';
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
 import { VideoSettingsService } from '../settings-v2';
@@ -97,8 +96,7 @@ type RecordingSettings = {
 
 export class SettingsService
   extends StatefulService<ISettingsState>
-  implements ISettingsServiceApi, ISettingsAccessor
-{
+  implements ISettingsServiceApi, ISettingsAccessor {
   static initialState = {};
 
   static convertFormDataToState(settingsFormData: TSettingsFormData): ISettingsState {
@@ -157,24 +155,13 @@ export class SettingsService
   }
 
   showSettings(categoryName?: SettingsCategory) {
-    // 画面サイズを考慮したウィンドウサイズを計算（画面からはみ出さないようにする）
-    const currentWindow = remote.getCurrentWindow();
-    const bounds = currentWindow.getBounds();
-    const currentDisplay = remote.screen.getDisplayMatching(bounds);
-    const { width: screenWidth, height: screenHeight } = currentDisplay.workArea;
-
-    // 希望サイズは800x800だが、画面サイズに収まらない場合は画面サイズ - 余白(100px)
-    const margin = 100;
-    const width = Math.min(800, screenWidth - margin);
-    const height = Math.min(800, screenHeight - margin);
-
     this.windowsService.showWindow({
       componentName: 'Settings',
       title: $t('common.settings'),
       queryParams: { categoryName },
       size: {
-        width,
-        height,
+        width: 800,
+        height: 800,
       },
     });
   }
@@ -471,10 +458,10 @@ export class SettingsService
       : (this.findSettingValue(output, 'Audio - Track 1', 'Track1Bitrate') as string);
     const rate_control = !isSimple
       ? (this.findSettingValue(output, 'Streaming', 'rate_control') as
-          | 'CBR'
-          | 'VBR'
-          | 'ABR'
-          | 'CRF')
+        | 'CBR'
+        | 'VBR'
+        | 'ABR'
+        | 'CRF')
       : null;
     const profile = !isSimple
       ? (this.findSettingValue(output, 'Streaming', 'profile') as 'high' | 'main' | 'baseline')
