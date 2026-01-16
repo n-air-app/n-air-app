@@ -351,7 +351,7 @@ export class SourcesNode extends Node<ISchema, {}> {
                     sourceType: sourceInfo.type,
                     migration: 'audioMixers',
                   },
-                  fingerprint: ['audioMixers-migration', sourceInfo.type],
+                  fingerprint: ['audioMixers-migration'],
                   extra: {
                     sourceName: sourceInfo.name,
                     oldAudioMixers: 0,
