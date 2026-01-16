@@ -437,7 +437,7 @@
       "add_voice": "ボイス作成",
       "play_sample": "サンプルボイスを再生",
       "open_menu": "メニューを開く",
-      "preview_audio_on": "プレビュー音声はONになっています"
+      "preview_audio_on": "ミキサーの高度な設定でプレビュー音声がONになっています"
     },
     "container": {
       "voice_name": "名前",
