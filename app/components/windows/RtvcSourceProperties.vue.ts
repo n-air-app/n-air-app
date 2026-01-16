@@ -50,7 +50,7 @@ export default class RtvcSourceProperties extends SourceProperties {
   currentIndex = 'preset/0';
   isMonitor = false;
   canceled = false;
-  canToggleMonitor = false;
+  canToggleMonitor = true;
 
   name = '';
   label = '';
@@ -318,7 +318,15 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
     const audio = this.audioService.getSource(this.sourceId);
     if (audio) {
-      const m = audio.monitoringType;
+      const mt = audio.monitoringType;
+      // 有効なmonitoringType以外の値はNoneに正規化
+      const m = [
+        obs.EMonitoringType.None,
+        obs.EMonitoringType.MonitoringOnly,
+        obs.EMonitoringType.MonitoringAndOutput,
+      ].includes(mt)
+        ? mt
+        : obs.EMonitoringType.None;
       this.initialMonitoringType = m;
       this.currentMonitoringType = m;
       this.isMonitor = m !== obs.EMonitoringType.None;
