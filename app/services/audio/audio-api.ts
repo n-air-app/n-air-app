@@ -3,6 +3,12 @@ import { Observable, Subscription } from 'rxjs';
 import * as obs from '../../../obs-api';
 import { ISource } from '../sources/sources-api';
 
+/**
+ * audioMixersのデフォルト値（全トラックON）
+ * 8ビット = 0b11111111 = 255
+ */
+export const DEFAULT_AUDIO_MIXERS = 255;
+
 export interface IAudioSourcesState {
   audioSources: Dictionary<IAudioSource>;
 }
