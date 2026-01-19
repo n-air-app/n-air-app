@@ -1,4 +1,3 @@
-/// <reference path="../vendor/toasted.d.ts" />
 /// <reference path="./vue-augmentations.d.ts" />
 
 // all global interfaces here
@@ -56,7 +55,6 @@ declare module 'vuedraggable';
 declare module 'font-manager';
 declare module 'vue-codemirror';
 declare module 'recursive-readdir';
-declare module 'vue-toasted';
 declare module 'hyperform';
 declare module '*.svg';
 declare module 'emojione';
