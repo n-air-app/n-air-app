@@ -339,6 +339,71 @@ describe('TocManager', () => {
     });
   });
 
+  describe('duplicate prevention', () => {
+    it('同じカテゴリに同じセクションを再登録しようとすると無視される', () => {
+      const section: TocSectionData = {
+        id: 'test-section',
+        title: 'Test',
+        order: 0,
+        level: 1,
+      };
+
+      manager.register('General', section);
+      manager.register('General', section);
+      manager.register('General', section);
+
+      expect(manager.getSections('General')).toHaveLength(1);
+    });
+
+    it('カテゴリ再選択シナリオ: clear してから再登録', () => {
+      // 初回選択
+      manager.register('Comment', { id: 'section-1', title: 'S1', order: 0, level: 1 });
+      manager.register('Comment', { id: 'section-2', title: 'S2', order: 0, level: 1 });
+      expect(manager.getSections('Comment')).toHaveLength(2);
+
+      // 別のカテゴリに切り替え
+      manager.register('General', { id: 'general-1', title: 'G1', order: 0, level: 1 });
+      expect(manager.getSections('General')).toHaveLength(1);
+      expect(manager.getSections('Comment')).toHaveLength(2); // Comment は残っている
+
+      // Comment に戻る前にクリア（Settings の Watch で実行される）
+      manager.clear('Comment');
+      expect(manager.getSections('Comment')).toHaveLength(0);
+
+      // Comment に戻って再登録
+      manager.register('Comment', { id: 'section-1', title: 'S1', order: 0, level: 1 });
+      manager.register('Comment', { id: 'section-2', title: 'S2', order: 0, level: 1 });
+      expect(manager.getSections('Comment')).toHaveLength(2);
+    });
+
+    it('同じカテゴリを連続選択: clear してから再登録', () => {
+      // 初回選択
+      manager.register('General', { id: 'g1', title: 'G1', order: 0, level: 1 });
+      manager.register('General', { id: 'g2', title: 'G2', order: 0, level: 1 });
+      expect(manager.getSections('General')).toHaveLength(2);
+
+      // 同じカテゴリを再選択（Settings の Watch でクリアされる）
+      manager.clear('General');
+      expect(manager.getSections('General')).toHaveLength(0);
+
+      // 再登録
+      manager.register('General', { id: 'g1', title: 'G1', order: 0, level: 1 });
+      manager.register('General', { id: 'g2', title: 'G2', order: 0, level: 1 });
+      expect(manager.getSections('General')).toHaveLength(2);
+    });
+
+    it('複数回の再選択でもセクション数が正しい', () => {
+      for (let i = 0; i < 5; i++) {
+        manager.clear('General');
+        manager.register('General', { id: 'g1', title: 'G1', order: 0, level: 1 });
+        manager.register('General', { id: 'g2', title: 'G2', order: 0, level: 1 });
+        manager.register('General', { id: 'g3', title: 'G3', order: 0, level: 1 });
+
+        expect(manager.getSections('General')).toHaveLength(3);
+      }
+    });
+  });
+
   describe('integration scenarios', () => {
     it('複雑な階層構造を正しく管理できる', () => {
       manager.register('Comment', {
