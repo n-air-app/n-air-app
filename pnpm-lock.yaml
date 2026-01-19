@@ -98,7 +98,7 @@ importers:
         version: 7.7.3
       sl-vue-tree:
         specifier: https://github.com/stream-labs/sl-vue-tree
-        version: git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
+        version: git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
       socket.io:
         specifier: 4.8.3
         version: 4.8.3
@@ -132,9 +132,6 @@ importers:
       vue:
         specifier: 2.7.14
         version: 2.7.14
-      vue-codemirror:
-        specifier: 4.0.6
-        version: 4.0.6
       vue-color:
         specifier: 2.8.1
         version: 2.8.1
@@ -2831,9 +2828,6 @@ packages:
     resolution: {integrity: sha512-xxodCmBen3iy2i0WtAK8FlFNrRzjUqjRsMfho58xT/wvZU1YTM3fCnRjcy1gJPMepaRlgm/0e6w8SpWHpn3/cA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  codemirror@5.65.20:
-    resolution: {integrity: sha512-i5dLDDxwkFCbhjvL2pNjShsojoL3XHyDwsGv1jqETUoW+lzpBKKqNTUWgQwVAOa0tUm4BwekT455ujafi8payA==}
-
   collect-v8-coverage@1.0.3:
     resolution: {integrity: sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==}
 
@@ -3395,9 +3389,6 @@ packages:
   devtools@7.30.2:
     resolution: {integrity: sha512-aDcSj/L5Z+JPUW9qY9HD+64/HbWmgBpi/9ev6q4e5MHv8CnL5wXQqF7icrJfZOsIl7JC81z8aVUFCPwIjbhgxg==}
     engines: {node: '>=12.0.0'}
-
-  diff-match-patch@1.0.5:
-    resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -6415,8 +6406,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
-    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: git@github.com:stream-labs/sl-vue-tree.git, type: git}
+  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
+    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: https://github.com/stream-labs/sl-vue-tree.git, type: git}
     version: 1.8.3
 
   slash@3.0.0:
@@ -7136,10 +7127,6 @@ packages:
   vue-class-component@6.3.2:
     resolution: {integrity: sha512-cH208IoM+jgZyEf/g7mnFyofwPDJTM/QvBNhYMjqGB8fCsRyTf68rH2ISw/G20tJv+5mIThQ3upKwoL4jLTr1A==}
 
-  vue-codemirror@4.0.6:
-    resolution: {integrity: sha512-ilU7Uf0mqBNSSV3KT7FNEeRIxH4s1fmpG4TfHlzvXn0QiQAbkXS9lLfwuZpaBVEnpP5CSE62iGJjoliTuA8poQ==}
-    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
-
   vue-color@2.8.1:
     resolution: {integrity: sha512-BoLCEHisXi2QgwlhZBg9UepvzZZmi4176vbr+31Shen5WWZwSLVgdScEPcB+yrAtuHAz42309C0A4+WiL9lNBw==}
 
@@ -7154,6 +7141,7 @@ packages:
 
   vue-i18n@7.8.1:
     resolution: {integrity: sha512-BzB+EAPo/iFyFn/GXd/qVdDe67jfk+gmQaWUKD5BANhUclGrFxzRExzW2pYEAbhNm2pg0F12Oo+gL2IMLDcTAw==}
+    deprecated: v9 and v10 no longer supported. please migrate to v11. about maintenance status, see https://vue-i18n.intlify.dev/guide/maintenance.html
     peerDependencies:
       vue: ^2
 
@@ -10765,8 +10753,6 @@ snapshots:
     dependencies:
       convert-to-spaces: 2.0.1
 
-  codemirror@5.65.20: {}
-
   collect-v8-coverage@1.0.3: {}
 
   color-convert@1.9.3:
@@ -11164,8 +11150,6 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
-
-  diff-match-patch@1.0.5: {}
 
   diff-sequences@29.6.3: {}
 
@@ -14618,7 +14602,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
+  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
 
   slash@3.0.0: {}
 
@@ -15429,11 +15413,6 @@ snapshots:
   vosk-cli@https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz: {}
 
   vue-class-component@6.3.2: {}
-
-  vue-codemirror@4.0.6:
-    dependencies:
-      codemirror: 5.65.20
-      diff-match-patch: 1.0.5
 
   vue-color@2.8.1:
     dependencies:
