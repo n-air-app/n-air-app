@@ -1,34 +1,37 @@
 <template>
   <div class="setting-section">
-    <div class="section">
-      <div class="input-container">
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">
-              {{ $t('settings.transcription.enable')
-              }}<i
-                class="icon-help-border icon-tooltip"
-                v-tooltip.bottom="commentSectionNotice1"
-              ></i>
-            </div>
-            <div class="value">
-              <input type="checkbox" v-model="enabled" class="toggle-button" />
+    <toc-section :title="$t('settings.transcription.enable')">
+      <div class="section">
+        <div class="input-container">
+          <div class="input-wrapper">
+            <div class="row">
+              <div class="name">
+                {{ $t('settings.transcription.enable')
+                }}<i
+                  class="icon-help-border icon-tooltip"
+                  v-tooltip.bottom="commentSectionNotice1"
+                ></i>
+              </div>
+              <div class="value">
+                <input type="checkbox" v-model="enabled" class="toggle-button" />
+              </div>
             </div>
           </div>
         </div>
+        <p class="section-notice-text">
+          {{ $t('settings.transcription.help.beforeLink') }}
+          <a class="link--underline" @click="openHelp">{{
+            $t('settings.transcription.help.linkText')
+          }}</a>
+          {{ $t('settings.transcription.help.afterLink') }}
+        </p>
       </div>
-      <p class="section-notice-text">
-        {{ $t('settings.transcription.help.beforeLink') }}
-        <a class="link--underline" @click="openHelp">{{
-          $t('settings.transcription.help.linkText')
-        }}</a>
-        {{ $t('settings.transcription.help.afterLink') }}
-      </p>
-    </div>
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>{{ $t('settings.transcription.audioSettings') }}</label>
-      </div>
+    </toc-section>
+    <toc-section :title="$t('settings.transcription.audioSettings')">
+      <div class="section">
+        <div class="input-label section-heading">
+          <label>{{ $t('settings.transcription.audioSettings') }}</label>
+        </div>
       <ObsListInput v-model="audioSourceIdModel" />
       <div class="input-container">
         <div class="input-label">
@@ -83,11 +86,13 @@
           <p class="disabled-reason" v-else>{{ disabledReason }}</p>
         </div>
       </div>
-    </div>
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>{{ $t('settings.transcription.displaySettings') }}</label>
       </div>
+    </toc-section>
+    <toc-section :title="$t('settings.transcription.displaySettings')">
+      <div class="section">
+        <div class="input-label section-heading">
+          <label>{{ $t('settings.transcription.displaySettings') }}</label>
+        </div>
       <p
         class="alert"
         data-variant="light"
@@ -177,7 +182,8 @@
           <ObsIntInput v-model="commentVposOffsetModel" />
         </div>
       </div>
-    </div>
+      </div>
+    </toc-section>
   </div>
 </template>
 

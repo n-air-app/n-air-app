@@ -2,9 +2,10 @@ import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 import { ISettingsSubCategory } from '../../../services/settings';
 import GenericForm from './GenericForm.vue';
+import TocSection from '../../shared/TocSection.vue';
 
 @Component({
-  components: { GenericForm },
+  components: { GenericForm, TocSection },
 })
 export default class GenericFormGroups extends Vue {
   @Prop()

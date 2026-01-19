@@ -16,6 +16,7 @@ import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
 import VueSlider from 'vue-slider-component';
 import IconListSelect from './IconListSelect.vue';
+import TocSection from './shared/TocSection.vue';
 
 type MethodObject = {
   text: string;
@@ -40,6 +41,7 @@ type SynthesizerItem = {
     Multiselect,
     VueSlider,
     IconListSelect,
+    TocSection,
   },
 })
 export default class CommentSettings extends Vue {

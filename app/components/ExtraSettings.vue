@@ -1,75 +1,83 @@
 <template>
   <div>
-    <div class="section" v-if="isNiconicoLoggedIn()">
-      <div class="input-label">
-        <label>{{ $t('settings.optimizationForNiconicoLiveService') }}</label>
+    <toc-section v-if="isNiconicoLoggedIn()" :title="$t('settings.optimizationForNiconicoLiveService')" :visible="isNiconicoLoggedIn()">
+      <div class="section">
+        <div class="input-label">
+          <label>{{ $t('settings.optimizationForNiconicoLiveService') }}</label>
+        </div>
+        <ObsBoolInput :value="optimizeForNiconicoModel" @input="setOptimizeForNiconico" />
+        <ObsBoolInput
+          :value="showOptimizationDialogForNiconicoModel"
+          v-show="optimizeForNiconicoModel.value"
+          @input="setShowOptimizationDialogForNiconico"
+          class="optional-item"
+        />
+        <ObsBoolInput
+          :value="optimizeWithHardwareEncoderModel"
+          v-show="optimizeForNiconicoModel.value"
+          @input="setOptimizeWithHardwareEncoder"
+          class="optional-item"
+        />
       </div>
-      <ObsBoolInput :value="optimizeForNiconicoModel" @input="setOptimizeForNiconico" />
-      <ObsBoolInput
-        :value="showOptimizationDialogForNiconicoModel"
-        v-show="optimizeForNiconicoModel.value"
-        @input="setShowOptimizationDialogForNiconico"
-        class="optional-item"
-      />
-      <ObsBoolInput
-        :value="optimizeWithHardwareEncoderModel"
-        v-show="optimizeForNiconicoModel.value"
-        @input="setOptimizeWithHardwareEncoder"
-        class="optional-item"
-      />
-    </div>
+    </toc-section>
 
-    <div class="section">
-      <div class="input-label">
-        <label>{{ $t('settings.compactMode') }}</label>
+    <toc-section :title="$t('settings.compactMode')">
+      <div class="section">
+        <div class="input-label">
+          <label>{{ $t('settings.compactMode') }}</label>
+        </div>
+        <ObsBoolInput :value="autoCompactModel" @input="setAutoCompact" />
+        <ObsBoolInput :value="showAutoCompactDialogModel" @input="setShowAutoCompactDialog" />
+        <ObsBoolInput :value="compactAlwaysOnTopModel" @input="setCompactAlwaysOnTop" />
       </div>
-      <ObsBoolInput :value="autoCompactModel" @input="setAutoCompact" />
-      <ObsBoolInput :value="showAutoCompactDialogModel" @input="setShowAutoCompactDialog" />
-      <ObsBoolInput :value="compactAlwaysOnTopModel" @input="setCompactAlwaysOnTop" />
-    </div>
+    </toc-section>
 
-    <div class="section">
-      <div class="input-label">
-        <label>{{ $t('settings.cacheManagement') }}</label>
-      </div>
-      <p>{{ $t('settings.cacheClearDescription') }}</p>
+    <toc-section :title="$t('settings.cacheManagement')">
+      <div class="section">
+        <div class="input-label">
+          <label>{{ $t('settings.cacheManagement') }}</label>
+        </div>
+        <p>{{ $t('settings.cacheClearDescription') }}</p>
 
-      <div class="flex">
-        <a class="button button--secondary" @click="showCacheDir">
-          {{ $t('settings.showCacheDirectory') }}
+        <div class="flex">
+          <a class="button button--secondary" @click="showCacheDir">
+            {{ $t('settings.showCacheDirectory') }}
+          </a>
+          <a class="button button--secondary" @click="deleteCacheDir">
+            {{ $t('settings.deleteCacheAndRestart') }}
+          </a>
+        </div>
+
+        <div class="input-label">
+          <label for="cacheId">{{ $t('settings.cacheId') }}</label>
+        </div>
+        <p>{{ $t('settings.cacheIdDescription') }}</p>
+
+        <div class="cacheid-view">
+          <label>
+            <input type="checkbox" v-model="showCacheId" />
+            <div class="view-button"><i class="icon-unhide off" /><i class="icon-hide on" /></div>
+            <input :type="showCacheId ? 'text' : 'password'" id="cacheId" :value="cacheId" readonly />
+          </label>
+          <button class="cacheid-copy button button--secondary" @click="copyToClipboard(cacheId)">
+            {{ $t('settings.cacheIdCopy') }}
+          </button>
+        </div>
+        <a class="button button--secondary" @click="deleteCookies">
+          {{ $t('settings.deleteCookiesAndRestart') }}
         </a>
-        <a class="button button--secondary" @click="deleteCacheDir">
-          {{ $t('settings.deleteCacheAndRestart') }}
-        </a>
       </div>
+    </toc-section>
 
-      <div class="input-label">
-        <label for="cacheId">{{ $t('settings.cacheId') }}</label>
+    <toc-section :title="$t('settings.pollingPerformanceStatistics')">
+      <div class="section">
+        <ObsBoolInput
+          :value="pollingPerformanceStatisticsModel"
+          @input="setPollingPerformanceStatistics"
+        />
+        <p>{{ $t('settings.pollingPerformanceStatisticsDescription') }}</p>
       </div>
-      <p>{{ $t('settings.cacheIdDescription') }}</p>
-
-      <div class="cacheid-view">
-        <label>
-          <input type="checkbox" v-model="showCacheId" />
-          <div class="view-button"><i class="icon-unhide off" /><i class="icon-hide on" /></div>
-          <input :type="showCacheId ? 'text' : 'password'" id="cacheId" :value="cacheId" readonly />
-        </label>
-        <button class="cacheid-copy button button--secondary" @click="copyToClipboard(cacheId)">
-          {{ $t('settings.cacheIdCopy') }}
-        </button>
-      </div>
-      <a class="button button--secondary" @click="deleteCookies">
-        {{ $t('settings.deleteCookiesAndRestart') }}
-      </a>
-    </div>
-
-    <div class="section">
-      <ObsBoolInput
-        :value="pollingPerformanceStatisticsModel"
-        @input="setPollingPerformanceStatistics"
-      />
-      <p>{{ $t('settings.pollingPerformanceStatisticsDescription') }}</p>
-    </div>
+    </toc-section>
   </div>
 </template>
 

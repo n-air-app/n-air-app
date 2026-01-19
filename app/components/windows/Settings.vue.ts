@@ -24,8 +24,18 @@ import ModalLayout from '../ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
 import SpeechEngineSettings from '../SpeechEngineSettings.vue';
+import TableOfContents from '../shared/TableOfContents.vue';
+import { TocManager } from '../shared/TocManager';
+import TocSection from '../shared/TocSection.vue';
 import TranscriptionSettings from '../TranscriptionSettings.vue';
 import { CategoryIcons } from './CategoryIcons';
+
+interface TocSectionData {
+  id: string;
+  title: string;
+  order: number;
+  level: number;
+}
 
 @Component({
   components: {
@@ -43,6 +53,21 @@ import { CategoryIcons } from './CategoryIcons';
     SpeechEngineSettings,
     SubStreamSettings,
     TranscriptionSettings,
+    TableOfContents,
+    TocSection,
+  },
+  provide(this: Settings) {
+    return {
+      getTocSectionId: (): string => {
+        return this.tocManager.generateId();
+      },
+      registerTocSection: (section: TocSectionData) => {
+        this.tocManager.register(this.categoryName, section);
+      },
+      unregisterTocSection: (sectionId: string) => {
+        this.tocManager.unregister(this.categoryName, sectionId);
+      },
+    };
   },
 })
 export default class Settings extends Vue {
@@ -61,6 +86,14 @@ export default class Settings extends Vue {
   userSubscription: Subscription;
   icons = CategoryIcons;
   isLoggedIn = false;
+
+  // TOC管理
+  private tocManager = new TocManager();
+
+  // 現在のカテゴリのセクションリストを取得
+  get currentSections(): TocSectionData[] {
+    return this.tocManager.getSections(this.categoryName);
+  }
 
   mounted() {
     // Categories depend on whether the user is logged in or not.
@@ -107,5 +140,20 @@ export default class Settings extends Vue {
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
     this.settingsData = this.settingsService.getSettingsFormData(categoryName);
     this.$refs.settingsContainer.scrollTop = 0;
+  }
+
+  scrollToSection(sectionId: string) {
+    const element = document.getElementById(sectionId);
+    if (element && this.$refs.settingsContainer) {
+      const container = this.$refs.settingsContainer;
+      const containerTop = container.getBoundingClientRect().top;
+      const elementTop = element.getBoundingClientRect().top;
+      const offset = elementTop - containerTop - 16; // 16px padding
+
+      container.scrollTo({
+        top: container.scrollTop + offset,
+        behavior: 'smooth',
+      });
+    }
   }
 }

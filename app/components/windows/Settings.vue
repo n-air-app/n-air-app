@@ -2,15 +2,22 @@
   <modal-layout bare-content :show-cancel="false" :done-handler="done">
     <div slot="content" class="settings" data-test="Settings">
       <NavMenu v-model="categoryName" class="side-menu" data-test="SideMenu">
-        <NavItem
-          v-for="category in categoryNames"
-          :key="category"
-          :to="category"
-          :ico="icons.get(category)"
-          :data-test="category"
-        >
-          {{ $t(`settings.${category}.name`, { fallback: category }) }}
-        </NavItem>
+        <template v-for="category in categoryNames">
+          <NavItem
+            :key="category"
+            :to="category"
+            :ico="icons.get(category)"
+            :data-test="category"
+          >
+            {{ $t(`settings.${category}.name`, { fallback: category }) }}
+          </NavItem>
+          <TableOfContents
+            v-if="category === categoryName && currentSections.length > 0"
+            :key="`${category}-toc`"
+            :sections="currentSections"
+            @navigate="scrollToSection"
+          />
+        </template>
       </NavMenu>
       <div class="settings-container" ref="settingsContainer">
         <aside class="notification-root" v-if="isStreaming">
@@ -68,6 +75,7 @@
   margin: 0;
   overflow-x: auto;
   overflow-y: scroll;
+  scroll-behavior: smooth;
 }
 </style>
 
