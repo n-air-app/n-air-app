@@ -318,8 +318,13 @@
     </div>
     <div class="modal-controls">
       <div class="toggle-wrapper">
-        <span class="toggle-label">{{ $t('source-props.nair-rtvc-source.nav.check_voice') }}</span>
-        <input v-model="isMonitor" type="checkbox" class="toggle-button" />
+        <div v-if="canToggleMonitor">
+          <span class="toggle-label">{{
+            $t('source-props.nair-rtvc-source.nav.check_voice')
+          }}</span>
+          <input v-model="isMonitor" type="checkbox" class="toggle-button" />
+        </div>
+        <div v-else>{{ $t('source-props.nair-rtvc-source.nav.preview_audio_on') }}</div>
       </div>
 
       <button class="button button--secondary" @click="cancel" data-test="Cancel">
