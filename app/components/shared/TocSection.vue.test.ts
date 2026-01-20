@@ -38,7 +38,9 @@ describe('TocSection', () => {
     mockGetTocSectionId = jest_fn()
       .mockName('getTocSectionId')
       .mockImplementation(() => `toc-section-${sectionIdCounter++}`);
-    mockRegisterTocSection = jest_fn().mockName('registerTocSection');
+    mockRegisterTocSection = jest_fn()
+      .mockName('registerTocSection')
+      .mockReturnValue('TestCategory'); // Return category name
     mockUnregisterTocSection = jest_fn().mockName('unregisterTocSection');
 
     TocSection = require('./TocSection.vue.ts').default;
@@ -251,18 +253,22 @@ describe('TocSection', () => {
   });
 
   describe('beforeDestroy', () => {
-    it('unregisterTocSection が呼ばれる（明示的なID）', () => {
+    it('unregisterTocSection が呼ばれる（明示的なID）', async () => {
       const instance = createInstance({
         title: 'Test Section',
         id: 'test-id',
       });
 
+      // mounted を呼び出して登録（非同期）
+      instance.mounted();
+      await new Promise(resolve => setImmediate(resolve)); // Wait for $nextTick
+
       instance.beforeDestroy();
 
-      expect(mockUnregisterTocSection).toHaveBeenCalledWith('test-id');
+      expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', 'test-id');
     });
 
-    it('unregisterTocSection が生成されたIDで呼ばれる', () => {
+    it('unregisterTocSection が生成されたIDで呼ばれる', async () => {
       const instance = createInstance({
         title: 'Test Section',
       });
@@ -270,10 +276,14 @@ describe('TocSection', () => {
       // sectionId を先に取得して ID を生成
       const generatedId = instance.sectionId;
 
+      // mounted を呼び出して登録（非同期）
+      instance.mounted();
+      await new Promise(resolve => setImmediate(resolve)); // Wait for $nextTick
+
       instance.beforeDestroy();
 
-      expect(mockUnregisterTocSection).toHaveBeenCalledWith(generatedId);
-      expect(mockUnregisterTocSection).toHaveBeenCalledWith('toc-section-0');
+      expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', generatedId);
+      expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', 'toc-section-0');
     });
   });
 });
