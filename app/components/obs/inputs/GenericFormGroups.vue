@@ -2,12 +2,15 @@
   <div class="form-groups">
     <component
       v-for="(formGroup, groupIndex) in value"
-      :key="formGroup.nameSubCategory + groupIndex"
-      v-if="hasAnyVisibleSettings(formGroup) && formGroup.nameSubCategory !== 'Untitled'"
+      :key="(formGroup.nameSubCategory === 'Untitled' ? 'untitled-' : '') + formGroup.nameSubCategory + groupIndex"
+      v-if="hasAnyVisibleSettings(formGroup)"
       :is="isSimpleCategory ? 'div' : 'toc-section'"
-      :title="isSimpleCategory ? undefined : $t(`settings.${category}['${formGroup.nameSubCategory}'].name`, {
-        fallback: formGroup.nameSubCategory,
-      })"
+      :title="isSimpleCategory ? undefined :
+        formGroup.nameSubCategory === 'Untitled'
+          ? getUntitledSectionTitle(formGroup)
+          : $t(`settings.${category}['${formGroup.nameSubCategory}'].name`, {
+              fallback: formGroup.nameSubCategory,
+            })"
     >
       <div class="section">
         <aside class="notification-root" v-if="category === 'Stream'">
@@ -21,7 +24,8 @@
             </i18n>
           </p>
         </aside>
-        <div class="section-title--dropdown">
+
+        <div class="section-title--dropdown" v-if="formGroup.nameSubCategory !== 'Untitled'">
           <h4 class="section-title" @click="toggleGroup(groupIndex)">
             <i class="icon-plus" v-show="collapsedGroups[groupIndex]"></i>
             <i class="icon-minus" v-show="!collapsedGroups[groupIndex]"></i>
@@ -34,40 +38,9 @@
         </div>
 
         <div
-          class="section-content section-content--dropdown"
-          v-if="!collapsedGroups[groupIndex] || formGroup.nameSubCategory === 'Untitled'"
+          :class="formGroup.nameSubCategory === 'Untitled' ? 'section-content' : 'section-content section-content--dropdown'"
+          v-if="formGroup.nameSubCategory === 'Untitled' || !collapsedGroups[groupIndex]"
         >
-          <GenericForm
-            v-model="formGroup.parameters"
-            @input="onInputHandler"
-            :category="category"
-            :subCategory="formGroup.nameSubCategory"
-          ></GenericForm>
-        </div>
-      </div>
-    </component>
-
-    <component
-      v-for="(formGroup, groupIndex) in value"
-      :key="'untitled-' + groupIndex"
-      v-if="hasAnyVisibleSettings(formGroup) && formGroup.nameSubCategory === 'Untitled'"
-      :is="isSimpleCategory ? 'div' : 'toc-section'"
-      :title="isSimpleCategory ? undefined : getUntitledSectionTitle(formGroup)"
-    >
-      <div class="section">
-        <aside class="notification-root" v-if="category === 'Stream'">
-          <i class="notification-icon icon-notification" />
-          <p class="notification-message">
-            <i18n path="settings.noticeForStreaming" v-if="isLoggedIn">
-              <br place="br" />
-            </i18n>
-            <i18n path="settings.noticeForStreamingNotLoggedIn" v-else>
-              <br place="br" />
-            </i18n>
-          </p>
-        </aside>
-
-        <div class="section-content">
           <GenericForm
             v-model="formGroup.parameters"
             @input="onInputHandler"
