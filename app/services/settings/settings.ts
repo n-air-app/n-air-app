@@ -245,6 +245,16 @@ export class SettingsService
       if (delaySecSetting) {
         delaySecSetting.type = 'OBS_PROPERTY_UINT';
       }
+      // subCategory = Audio が二つあるので統する
+      const audioSubCategories = this.findSubCategory(settings, 'Audio');
+      if (audioSubCategories.length > 1) {
+        const mainAudioSubCategory = audioSubCategories[0];
+        for (let i = 1; i < audioSubCategories.length; i++) {
+          const subCategory = audioSubCategories[i];
+          mainAudioSubCategory.parameters.push(...subCategory.parameters);
+          subCategory.parameters = []; // 空にすることで削除されるようにする
+        }
+      }
     }
 
     if (categoryName === 'Stream') {
