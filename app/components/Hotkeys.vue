@@ -1,18 +1,28 @@
 <template>
   <div>
-    <hotkey-group :hotkeys="hotkeySet.general" />
-    <hotkey-group
+    <toc-section :title="$t('common.basic')">
+      <hotkey-group :title="$t('common.basic')" :hotkeys="hotkeySet.general" />
+    </toc-section>
+    <toc-section
       v-for="(scenesHotkeys, sceneId) in hotkeySet.scenes"
       :key="sceneId"
-      :title="scenesService.getScene(sceneId).name"
-      :hotkeys="scenesHotkeys"
-    />
-    <hotkey-group
+      :title="getSceneName(sceneId)"
+    >
+      <hotkey-group
+        :title="getSceneName(sceneId)"
+        :hotkeys="scenesHotkeys"
+      />
+    </toc-section>
+    <toc-section
       v-for="(sourceHotkeys, sourceId) in hotkeySet.sources"
       :key="sourceId"
-      :title="sourcesService.getSource(sourceId).name"
-      :hotkeys="sourceHotkeys"
-    />
+      :title="getSourceName(sourceId)"
+    >
+      <hotkey-group
+        :title="getSourceName(sourceId)"
+        :hotkeys="sourceHotkeys"
+      />
+    </toc-section>
   </div>
 </template>
 
