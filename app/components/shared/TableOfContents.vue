@@ -26,12 +26,12 @@
 }
 
 .toc-item {
-  display: flex;
-  align-items: center;
+  display: block;
   min-height: 32px;
   padding-right: 16px;
   padding-top: 4px;
   padding-bottom: 4px;
+  line-height: 24px; // Ensure vertical centering
   font-size: @font-size3;
   color: var(--color-text-light);
   cursor: pointer;
