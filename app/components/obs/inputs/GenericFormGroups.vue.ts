@@ -32,4 +32,14 @@ export default class GenericFormGroups extends Vue {
       return setting.visible;
     });
   }
+
+  getUntitledSectionTitle(formGroup: ISettingsSubCategory): string {
+    // For Untitled groups, use the first visible parameter's description as the title
+    const firstVisibleParam = formGroup.parameters.find(p => p.visible);
+    if (firstVisibleParam && firstVisibleParam.description) {
+      return firstVisibleParam.description;
+    }
+    // Fallback to category name
+    return this.category || 'Settings';
+  }
 }

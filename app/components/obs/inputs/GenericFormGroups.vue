@@ -47,33 +47,35 @@
       </div>
     </toc-section>
 
-    <div
-      class="section"
+    <toc-section
       v-for="(formGroup, groupIndex) in value"
       :key="'untitled-' + groupIndex"
       v-if="hasAnyVisibleSettings(formGroup) && formGroup.nameSubCategory === 'Untitled'"
+      :title="getUntitledSectionTitle(formGroup)"
     >
-      <aside class="notification-root" v-if="category === 'Stream'">
-        <i class="notification-icon icon-notification" />
-        <p class="notification-message">
-          <i18n path="settings.noticeForStreaming" v-if="isLoggedIn">
-            <br place="br" />
-          </i18n>
-          <i18n path="settings.noticeForStreamingNotLoggedIn" v-else>
-            <br place="br" />
-          </i18n>
-        </p>
-      </aside>
+      <div class="section">
+        <aside class="notification-root" v-if="category === 'Stream'">
+          <i class="notification-icon icon-notification" />
+          <p class="notification-message">
+            <i18n path="settings.noticeForStreaming" v-if="isLoggedIn">
+              <br place="br" />
+            </i18n>
+            <i18n path="settings.noticeForStreamingNotLoggedIn" v-else>
+              <br place="br" />
+            </i18n>
+          </p>
+        </aside>
 
-      <div class="section-content">
-        <GenericForm
-          v-model="formGroup.parameters"
-          @input="onInputHandler"
-          :category="category"
-          :subCategory="formGroup.nameSubCategory"
-        ></GenericForm>
+        <div class="section-content">
+          <GenericForm
+            v-model="formGroup.parameters"
+            @input="onInputHandler"
+            :category="category"
+            :subCategory="formGroup.nameSubCategory"
+          ></GenericForm>
+        </div>
       </div>
-    </div>
+    </toc-section>
   </div>
 </template>
 
