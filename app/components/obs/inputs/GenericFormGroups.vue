@@ -1,13 +1,13 @@
 <template>
   <div class="form-groups">
-    <toc-section
+    <component
       v-for="(formGroup, groupIndex) in value"
       :key="formGroup.nameSubCategory + groupIndex"
       v-if="hasAnyVisibleSettings(formGroup) && formGroup.nameSubCategory !== 'Untitled'"
-      :title="$t(`settings.${category}['${formGroup.nameSubCategory}'].name`, {
+      :is="isSimpleCategory ? 'div' : 'toc-section'"
+      :title="isSimpleCategory ? undefined : $t(`settings.${category}['${formGroup.nameSubCategory}'].name`, {
         fallback: formGroup.nameSubCategory,
       })"
-     
     >
       <div class="section">
         <aside class="notification-root" v-if="category === 'Stream'">
@@ -45,13 +45,14 @@
           ></GenericForm>
         </div>
       </div>
-    </toc-section>
+    </component>
 
-    <toc-section
+    <component
       v-for="(formGroup, groupIndex) in value"
       :key="'untitled-' + groupIndex"
       v-if="hasAnyVisibleSettings(formGroup) && formGroup.nameSubCategory === 'Untitled'"
-      :title="getUntitledSectionTitle(formGroup)"
+      :is="isSimpleCategory ? 'div' : 'toc-section'"
+      :title="isSimpleCategory ? undefined : getUntitledSectionTitle(formGroup)"
     >
       <div class="section">
         <aside class="notification-root" v-if="category === 'Stream'">
@@ -75,7 +76,7 @@
           ></GenericForm>
         </div>
       </div>
-    </toc-section>
+    </component>
   </div>
 </template>
 

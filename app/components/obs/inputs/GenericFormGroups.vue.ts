@@ -42,4 +42,9 @@ export default class GenericFormGroups extends Vue {
     // Fallback to category name
     return this.category || 'Settings';
   }
+
+  get isSimpleCategory(): boolean {
+    // Categories with few settings that don't need TOC
+    return ['Stream', 'Audio', 'Video'].includes(this.category);
+  }
 }

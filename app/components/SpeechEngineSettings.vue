@@ -1,8 +1,7 @@
 <template>
   <div class="setting-section">
-    <toc-section title="N Voice 琴詠ニア">
-      <div class="section">
-        <div class="speech-engine-heading">
+    <div class="section">
+      <div class="speech-engine-heading">
         <img src="../../media/images/listicon_nvoice.png" class="image" alt="" />
         <div class="text">
           <p class="speech-engine-heading-label">N Voice 琴詠ニア</p>
@@ -57,11 +56,9 @@
           </button>
         </div>
       </div>
-      </div>
-    </toc-section>
-    <toc-section title="Windowsの音声合成">
-      <div class="section">
-        <div class="speech-engine-heading">
+    </div>
+    <div class="section">
+      <div class="speech-engine-heading">
         <img src="../../media/images/listicon_windows.png" class="image" alt="" />
         <div class="text">
           <p class="speech-engine-heading-label">Windowsの音声合成</p>
@@ -114,8 +111,7 @@
           </button>
         </div>
       </div>
-      </div>
-    </toc-section>
+    </div>
   </div>
 </template>
 

@@ -4,12 +4,10 @@ import { SynthesizerId } from 'services/nicolive-program/state';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import VueSlider from 'vue-slider-component';
-import TocSection from './shared/TocSection.vue';
 
 @Component({
   components: {
     VueSlider,
-    TocSection,
   },
 })
 export default class SpeechEngineSettings extends Vue {
