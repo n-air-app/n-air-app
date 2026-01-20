@@ -25,6 +25,59 @@ export class TocManager {
   }
 
   /**
+   * Check if newElement should be inserted before existingElement in DOM order
+   * @param newElement - The element being inserted
+   * @param existingElement - An existing element to compare against
+   * @returns true if newElement comes before existingElement in DOM
+   */
+  private shouldInsertBefore(newElement: HTMLElement, existingElement: HTMLElement): boolean {
+    const position = newElement.compareDocumentPosition(existingElement);
+
+    // DOCUMENT_POSITION_FOLLOWING (4): newElement comes before existingElement
+    // DOCUMENT_POSITION_CONTAINED_BY (16): existingElement is inside newElement (newElement is parent)
+    return (
+      position === Node.DOCUMENT_POSITION_FOLLOWING ||
+      position === Node.DOCUMENT_POSITION_CONTAINED_BY ||
+      (position & Node.DOCUMENT_POSITION_CONTAINED_BY) !== 0
+    );
+  }
+
+  /**
+   * Find the insertion index for a new section based on DOM order
+   * @param sections - Existing sections in the category
+   * @param newElement - The DOM element of the new section
+   * @returns The index where the new section should be inserted
+   */
+  private findInsertionIndex(sections: TocSectionData[], newElement: HTMLElement): number {
+    for (let i = 0; i < sections.length; i++) {
+      const existingElement = document.getElementById(sections[i].id);
+      if (existingElement && this.shouldInsertBefore(newElement, existingElement)) {
+        return i;
+      }
+    }
+    return sections.length; // Append to end if not found
+  }
+
+  /**
+   * Check if the section is a consecutive duplicate of the previous section
+   * @param sections - Existing sections in the category
+   * @param insertIndex - The proposed insertion index
+   * @param section - The section to check
+   * @returns true if this is a consecutive duplicate
+   */
+  private isConsecutiveDuplicate(
+    sections: TocSectionData[],
+    insertIndex: number,
+    section: TocSectionData,
+  ): boolean {
+    if (insertIndex === 0) {
+      return false;
+    }
+    const prevSection = sections[insertIndex - 1];
+    return prevSection.level === section.level && prevSection.title === section.title;
+  }
+
+  /**
    * Register a TOC section for a specific category
    * @param categoryName - The category this section belongs to
    * @param section - The section data to register
@@ -39,37 +92,11 @@ export class TocManager {
 
     // Determine insertion position based on DOM order
     const element = document.getElementById(section.id);
-    let insertIndex = sections.length; // Default: append to end
-
-    if (element) {
-      // Find the correct position based on DOM order
-      for (let i = 0; i < sections.length; i++) {
-        const existingElement = document.getElementById(sections[i].id);
-        if (existingElement) {
-          const position = element.compareDocumentPosition(existingElement);
-
-          // DOCUMENT_POSITION_FOLLOWING (4): element comes before existingElement
-          // DOCUMENT_POSITION_CONTAINED_BY (16): existingElement is inside element (element is parent)
-          if (
-            position === Node.DOCUMENT_POSITION_FOLLOWING ||
-            position === Node.DOCUMENT_POSITION_CONTAINED_BY ||
-            (position & Node.DOCUMENT_POSITION_CONTAINED_BY) !== 0
-          ) {
-            // element comes before existingElement in DOM, or element contains existingElement
-            insertIndex = i;
-            break;
-          }
-        }
-      }
-    }
+    const insertIndex = element ? this.findInsertionIndex(sections, element) : sections.length;
 
     // Check for consecutive duplicate at insertion position
-    if (insertIndex > 0) {
-      const prevSection = sections[insertIndex - 1];
-      if (prevSection.level === section.level && prevSection.title === section.title) {
-        // Skip consecutive duplicate with same level and title
-        return;
-      }
+    if (this.isConsecutiveDuplicate(sections, insertIndex, section)) {
+      return; // Skip consecutive duplicate with same level and title
     }
 
     // Insert at the calculated position
