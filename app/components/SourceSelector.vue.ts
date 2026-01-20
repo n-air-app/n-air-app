@@ -2,11 +2,11 @@ import { $t } from 'services/i18n';
 import { ISceneItemNode, ScenesService, TSceneNode } from 'services/scenes';
 import { SelectionService } from 'services/selection/selection';
 import { SourcesService } from 'services/sources';
-import SlVueTree, { ICursorPosition, ISlTreeNode, ISlTreeNodeModel } from 'sl-vue-tree';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import { Inject } from '../services/core/injector';
 import { EditMenu } from '../util/menus/EditMenu';
+import SlVueTree, { ICursorPosition, ISlTreeNode, ISlTreeNodeModel } from './shared/sl-vue-tree';
 
 const sourceIconMap = {
   ffmpeg_source: 'icon-media',
@@ -53,7 +53,7 @@ export default class SourceSelector extends Vue {
 
   $refs: {
     treeContainer: HTMLDivElement;
-    slVueTree: SlVueTree<ISceneItemNode>;
+    slVueTree: InstanceType<typeof SlVueTree>;
   };
 
   get nodes(): ISlTreeNodeModel<ISceneItemNode>[] {
@@ -112,10 +112,10 @@ export default class SourceSelector extends Vue {
     const sceneNode = this.scene.getNode(sceneNodeId);
     const menuOptions = sceneNode
       ? {
-          selectedSceneId: this.scene.id,
-          sceneNodeId,
-          showSceneItemMenu: true,
-        }
+        selectedSceneId: this.scene.id,
+        sceneNodeId,
+        showSceneItemMenu: true,
+      }
       : { selectedSceneId: this.scene.id };
 
     const menu = new EditMenu(menuOptions);
