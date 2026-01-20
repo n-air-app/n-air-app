@@ -61,11 +61,13 @@ interface TocSectionData {
       getTocSectionId: (): string => {
         return this.tocManager.generateId();
       },
-      registerTocSection: (section: TocSectionData) => {
-        this.tocManager.register(this.categoryName, section);
+      registerTocSection: (section: TocSectionData): string => {
+        const categoryName = this.categoryName;
+        this.tocManager.register(categoryName, section);
+        return categoryName; // Return the category name so TocSection can remember it
       },
-      unregisterTocSection: (sectionId: string) => {
-        this.tocManager.unregister(this.categoryName, sectionId);
+      unregisterTocSection: (categoryName: string, sectionId: string) => {
+        this.tocManager.unregister(categoryName, sectionId);
       },
     };
   },
@@ -79,7 +81,7 @@ export default class Settings extends Vue {
 
   $refs: { settingsContainer: HTMLElement };
 
-  categoryName: SettingsCategory = 'General';
+  categoryName: SettingsCategory | null = null;
   settingsData: ISettingsSubCategory[] = [];
   // @ts-expect-error: ts2729: use before initialization
   categoryNames = this.settingsService.getCategories();
@@ -92,6 +94,7 @@ export default class Settings extends Vue {
 
   // 現在のカテゴリのセクションリストを取得
   get currentSections(): TocSectionData[] {
+    if (!this.categoryName) return [];
     return this.tocManager.getSections(this.categoryName);
   }
 
@@ -106,7 +109,10 @@ export default class Settings extends Vue {
     });
     this.isLoggedIn = this.userService.isLoggedIn();
 
-    this.categoryName = this.getInitialCategoryName();
+    // Initialize category and TOC before setting categoryName to avoid cross-category TOC contamination
+    const initialCategory = this.getInitialCategoryName();
+    this.tocManager.clearAll(); // Clear all categories to start fresh
+    this.categoryName = initialCategory;
     this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
   }
 
@@ -120,7 +126,7 @@ export default class Settings extends Vue {
     return this.streamingService.isStreaming;
   }
 
-  getInitialCategoryName() {
+  getInitialCategoryName(): SettingsCategory {
     if (this.windowsService.state.child.queryParams) {
       return this.windowsService.state.child.queryParams.categoryName || 'General';
     }
@@ -136,18 +142,13 @@ export default class Settings extends Vue {
     this.windowsService.closeChildWindow();
   }
 
-  @Watch('categoryName', { immediate: true })
+  @Watch('categoryName')
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
     this.settingsData = this.settingsService.getSettingsFormData(categoryName);
-
-    // Guard for initial call before mounted
-    if (this.$refs.settingsContainer) {
-      this.$refs.settingsContainer.scrollTop = 0;
-    }
+    this.$refs.settingsContainer.scrollTop = 0;
 
     // Clear TOC sections for the current category to prevent duplicates on re-selection
     // This ensures a clean slate when switching tabs or re-selecting the same tab
-    // With immediate: true, this also runs on initial mount
     this.tocManager.clear(categoryName);
   }
 

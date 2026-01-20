@@ -28,11 +28,12 @@ export default class TocSection extends Vue {
   @Prop({ default: true }) visible!: boolean;
 
   getTocSectionId!: () => string;
-  registerTocSection!: (section: TocSectionData) => void;
-  unregisterTocSection!: (sectionId: string) => void;
+  registerTocSection!: (section: TocSectionData) => string;
+  unregisterTocSection!: (categoryName: string, sectionId: string) => void;
   parentTocLevel!: number | undefined;
 
   private _generatedId?: string;
+  private _registeredCategoryName?: string;
 
   get sectionId() {
     if (this.id) {
@@ -62,7 +63,7 @@ export default class TocSection extends Vue {
       // Use $nextTick to ensure all components are mounted before registering
       this.$nextTick(() => {
         if (this.registerTocSection && typeof this.registerTocSection === 'function') {
-          this.registerTocSection({
+          this._registeredCategoryName = this.registerTocSection({
             id: this.sectionId,
             title: this.title,
             order: 0, // Will be recalculated based on DOM position
@@ -74,6 +75,8 @@ export default class TocSection extends Vue {
   }
 
   beforeDestroy() {
-    this.unregisterTocSection(this.sectionId);
+    if (this._registeredCategoryName) {
+      this.unregisterTocSection(this._registeredCategoryName, this.sectionId);
+    }
   }
 }
