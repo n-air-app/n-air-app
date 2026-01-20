@@ -27,11 +27,11 @@
 
 .toc-item {
   display: block;
-  min-height: 32px;
+  min-height: 24px;
   padding-right: 16px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  line-height: 24px; // Ensure vertical centering
+  padding-top: 2px;
+  padding-bottom: 2px;
+  line-height: 20px;
   font-size: @font-size3;
   color: var(--color-text-light);
   cursor: pointer;
