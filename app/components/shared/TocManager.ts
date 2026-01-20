@@ -37,14 +37,12 @@ export class TocManager {
       return;
     }
 
-    // Find the DOM element for this section
+    // Determine insertion position based on DOM order
     const element = document.getElementById(section.id);
-    if (!element) {
-      // Element not in DOM yet, just append
-      sections.push(section);
-    } else {
+    let insertIndex = sections.length; // Default: append to end
+
+    if (element) {
       // Find the correct position based on DOM order
-      let insertIndex = sections.length;
       for (let i = 0; i < sections.length; i++) {
         const existingElement = document.getElementById(sections[i].id);
         if (existingElement) {
@@ -63,8 +61,19 @@ export class TocManager {
           }
         }
       }
-      sections.splice(insertIndex, 0, section);
     }
+
+    // Check for consecutive duplicate at insertion position
+    if (insertIndex > 0) {
+      const prevSection = sections[insertIndex - 1];
+      if (prevSection.level === section.level && prevSection.title === section.title) {
+        // Skip consecutive duplicate with same level and title
+        return;
+      }
+    }
+
+    // Insert at the calculated position
+    sections.splice(insertIndex, 0, section);
 
     // Update order based on array index
     sections.forEach((s, index) => (s.order = index));

@@ -455,4 +455,123 @@ describe('TocManager', () => {
       expect(manager.getSections('Comment')).toHaveLength(1);
     });
   });
+
+  describe('consecutive duplicate title filtering', () => {
+    it('連続する同名・同レベルのセクションは2つ目以降を除外', () => {
+      manager.register('Advanced', {
+        id: 'audio-1',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+      manager.register('Advanced', {
+        id: 'audio-2',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+
+      const sections = manager.getSections('Advanced');
+      expect(sections).toHaveLength(1);
+      expect(sections[0].id).toBe('audio-1');
+      expect(sections[0].title).toBe('音声');
+    });
+
+    it('連続する同名でも異なるレベルは両方表示', () => {
+      manager.register('Comment', {
+        id: 'voice-parent',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+      manager.register('Comment', {
+        id: 'voice-child',
+        title: '音声',
+        order: 0,
+        level: 2,
+      });
+
+      const sections = manager.getSections('Comment');
+      expect(sections).toHaveLength(2);
+      expect(sections[0]).toEqual({
+        id: 'voice-parent',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+      expect(sections[1]).toEqual({
+        id: 'voice-child',
+        title: '音声',
+        order: 1,
+        level: 2,
+      });
+    });
+
+    it('連続しない同名セクションは両方表示', () => {
+      manager.register('Advanced', {
+        id: 'audio-1',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+      manager.register('Advanced', {
+        id: 'video-1',
+        title: 'ビデオ',
+        order: 0,
+        level: 1,
+      });
+      manager.register('Advanced', {
+        id: 'audio-2',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+
+      const sections = manager.getSections('Advanced');
+      expect(sections).toHaveLength(3);
+      expect(sections[0].title).toBe('音声');
+      expect(sections[1].title).toBe('ビデオ');
+      expect(sections[2].title).toBe('音声');
+    });
+
+    it('DOM順序ベースの挿入でも連続重複を除外', () => {
+      // DOM要素を作成
+      document.body.innerHTML = `
+        <div id="audio-1"></div>
+        <div id="audio-2"></div>
+        <div id="video-1"></div>
+      `;
+
+      // DOM順序でaudio-1が最初
+      manager.register('Advanced', {
+        id: 'audio-1',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+
+      // audio-2はaudio-1の直後にあるので除外される
+      manager.register('Advanced', {
+        id: 'audio-2',
+        title: '音声',
+        order: 0,
+        level: 1,
+      });
+
+      // video-1は挿入される
+      manager.register('Advanced', {
+        id: 'video-1',
+        title: 'ビデオ',
+        order: 0,
+        level: 1,
+      });
+
+      const sections = manager.getSections('Advanced');
+      expect(sections).toHaveLength(2);
+      expect(sections[0].id).toBe('audio-1');
+      expect(sections[0].title).toBe('音声');
+      expect(sections[1].id).toBe('video-1');
+      expect(sections[1].title).toBe('ビデオ');
+    });
+  });
 });
