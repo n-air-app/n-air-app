@@ -136,13 +136,18 @@ export default class Settings extends Vue {
     this.windowsService.closeChildWindow();
   }
 
-  @Watch('categoryName')
+  @Watch('categoryName', { immediate: true })
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
     this.settingsData = this.settingsService.getSettingsFormData(categoryName);
-    this.$refs.settingsContainer.scrollTop = 0;
+
+    // Guard for initial call before mounted
+    if (this.$refs.settingsContainer) {
+      this.$refs.settingsContainer.scrollTop = 0;
+    }
 
     // Clear TOC sections for the current category to prevent duplicates on re-selection
     // This ensures a clean slate when switching tabs or re-selecting the same tab
+    // With immediate: true, this also runs on initial mount
     this.tocManager.clear(categoryName);
   }
 

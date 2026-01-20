@@ -25,6 +25,7 @@
   align-items: center;
   justify-content: flex-start;
   height: 40px;
+  flex-shrink: 0; // Prevent height compression in flex container
   padding: 0;
   padding-left: 16px;
   font-size: @font-size4;
