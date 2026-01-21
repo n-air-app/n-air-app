@@ -1,4 +1,4 @@
-import { throttle } from 'lodash-decorators';
+import { throttle } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import VueSlider from 'vue-slider-component';
 import { Inject } from '../../../services/core/injector';
@@ -33,15 +33,24 @@ export default class SliderInput extends BaseInput<number, ISliderMetadata> {
     }, 500);
   }
 
-  @throttle(500)
-  updateValue(value: number) {
+  private updateValueImpl(value: number) {
     if (!this.isFullyMounted) return;
     this.emitInput(this.roundNumber(value));
+  }
+
+  private throttledUpdateValue = throttle(this.updateValueImpl, 500);
+
+  updateValue(value: number) {
+    this.throttledUpdateValue(value);
   }
 
   handleKeydown(event: KeyboardEvent) {
     if (event.code === 'ArrowUp') this.updateValue(this.value + this.interval);
     if (event.code === 'ArrowDown') this.updateValue(this.value - this.interval);
+  }
+
+  beforeDestroy() {
+    this.throttledUpdateValue.cancel();
   }
 
   // Javascript precision is weird
