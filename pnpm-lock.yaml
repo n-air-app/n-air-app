@@ -49,8 +49,8 @@ importers:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz
         version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz
       fuse.js:
-        specifier: ~3.6.1
-        version: 3.6.1
+        specifier: ~7.1.0
+        version: 7.1.0
       game_overlay:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/game-overlay-0.0.63-win64.tar.gz
         version: '@streamlabs/game_overlay@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/game-overlay-0.0.63-win64.tar.gz'
@@ -98,7 +98,7 @@ importers:
         version: 7.7.3
       sl-vue-tree:
         specifier: https://github.com/stream-labs/sl-vue-tree
-        version: git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
+        version: git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
       socket.io:
         specifier: 4.8.3
         version: 4.8.3
@@ -4047,9 +4047,9 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  fuse.js@3.6.1:
-    resolution: {integrity: sha512-hT9yh/tiinkmirKrlv4KWOjztdoZo1mx9Qh4KvWqC7isoXwdUY3PNWUxceF4/qO9R6riA2C29jdTOeQOIROjgw==}
-    engines: {node: '>=6'}
+  fuse.js@7.1.0:
+    resolution: {integrity: sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ==}
+    engines: {node: '>=10'}
 
   generate-function@1.1.0:
     resolution: {integrity: sha512-Wv4qgYgt2m9QH7K+jklCX/o4gn1ijnS4nT+nxPYBbhdqZLDLtvNh2o26KP/nxN42Tk6AnrGftCLzjiMuckZeQw==}
@@ -6400,8 +6400,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
-    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: https://github.com/stream-labs/sl-vue-tree.git, type: git}
+  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
+    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: git@github.com:stream-labs/sl-vue-tree.git, type: git}
     version: 1.8.3
 
   slash@3.0.0:
@@ -12024,7 +12024,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  fuse.js@3.6.1: {}
+  fuse.js@7.1.0: {}
 
   generate-function@1.1.0: {}
 
@@ -14590,7 +14590,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
+  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
 
   slash@3.0.0: {}
 
