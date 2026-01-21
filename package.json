@@ -111,14 +111,12 @@
     "vee-validate": "~2.2.15",
     "vosk-cli": "https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz",
     "vue": "2.7.14",
-    "vue-codemirror": "4.0.6",
     "vue-color": "2.8.1",
     "vue-i18n": "7.8.1",
     "vue-multiselect": "2.1.9",
     "vue-popperjs": "2.3.0",
     "vue-property-decorator": "7.3.0",
     "vue-slider-component": "2.8.16",
-    "vue-toasted": "1.1.24",
     "vuedraggable": "2.24.3",
     "vuex": "3.1.1",
     "xml2js": "^0.6.2"
@@ -200,7 +198,7 @@
     "webpack-dev-server": "^5.1.0",
     "webpack-merge": "^6.0.1"
   },
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.28.1+sha512.7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316",
   "engines": {
     "node": ">=22.0.0",
     "npm": "please-use-pnpm",

@@ -98,7 +98,7 @@ importers:
         version: 7.7.3
       sl-vue-tree:
         specifier: https://github.com/stream-labs/sl-vue-tree
-        version: git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
+        version: git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
       socket.io:
         specifier: 4.8.3
         version: 4.8.3
@@ -132,18 +132,12 @@ importers:
       vue:
         specifier: 2.7.14
         version: 2.7.14
-      vue-codemirror:
-        specifier: 4.0.6
-        version: 4.0.6
       vue-color:
         specifier: 2.8.1
         version: 2.8.1
       vue-i18n:
         specifier: 7.8.1
         version: 7.8.1(vue@2.7.14)
-      vue-js-modal:
-        specifier: 1.3.35
-        version: 1.3.35(vue@2.7.14)
       vue-multiselect:
         specifier: 2.1.9
         version: 2.1.9
@@ -156,9 +150,6 @@ importers:
       vue-slider-component:
         specifier: 2.8.16
         version: 2.8.16
-      vue-toasted:
-        specifier: 1.1.24
-        version: 1.1.24
       vuedraggable:
         specifier: 2.24.3
         version: 2.24.3
@@ -2831,9 +2822,6 @@ packages:
     resolution: {integrity: sha512-xxodCmBen3iy2i0WtAK8FlFNrRzjUqjRsMfho58xT/wvZU1YTM3fCnRjcy1gJPMepaRlgm/0e6w8SpWHpn3/cA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  codemirror@5.65.20:
-    resolution: {integrity: sha512-i5dLDDxwkFCbhjvL2pNjShsojoL3XHyDwsGv1jqETUoW+lzpBKKqNTUWgQwVAOa0tUm4BwekT455ujafi8payA==}
-
   collect-v8-coverage@1.0.3:
     resolution: {integrity: sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==}
 
@@ -3396,9 +3384,6 @@ packages:
     resolution: {integrity: sha512-aDcSj/L5Z+JPUW9qY9HD+64/HbWmgBpi/9ev6q4e5MHv8CnL5wXQqF7icrJfZOsIl7JC81z8aVUFCPwIjbhgxg==}
     engines: {node: '>=12.0.0'}
 
-  diff-match-patch@1.0.5:
-    resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
-
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -3561,8 +3546,8 @@ packages:
     resolution: {integrity: sha512-HqD3yTBfnBxIrbnM1DoD6Pcq8NECnh8d4As1Qgh0z5Gg3jRRIqijury0CL3ghu/edArpUYiYqQiDUQBIs4np3Q==}
     engines: {node: '>=10.0.0'}
 
-  engine.io@6.6.4:
-    resolution: {integrity: sha512-ZCkIjSYNDyGn0R6ewHDtXgns/Zre/NT6Agvq1/WobF7JXgFff4SeDroKiCO3fNJreU9YG429Sc81o4w5ok/W5g==}
+  engine.io@6.6.5:
+    resolution: {integrity: sha512-2RZdgEbXmp5+dVbRm0P7HQUImZpICccJy7rN7Tv+SFa55pH+lxnuw6/K1ZxxBfHoYpSkHLAO92oa8O4SwFXA2A==}
     engines: {node: '>=10.2.0'}
 
   enhanced-resolve@5.18.4:
@@ -6415,8 +6400,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
-    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: git@github.com:stream-labs/sl-vue-tree.git, type: git}
+  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
+    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: https://github.com/stream-labs/sl-vue-tree.git, type: git}
     version: 1.8.3
 
   slash@3.0.0:
@@ -6450,8 +6435,8 @@ packages:
   smob@1.5.0:
     resolution: {integrity: sha512-g6T+p7QO8npa+/hNx9ohv1E5pVCmWrVCUzUXJyLdMmftX6ER0oiWY/w9knEonLpnOp6b6FenKnMfR8gqwWdwig==}
 
-  socket.io-adapter@2.5.5:
-    resolution: {integrity: sha512-eLDQas5dzPgOWCk9GuuJC2lBqItuhKI4uxGgo9aIV7MYbk2h9Q6uULEh8WBzThoI7l+qU9Ast9fVUmkqPP9wYg==}
+  socket.io-adapter@2.5.6:
+    resolution: {integrity: sha512-DkkO/dz7MGln0dHn5bmN3pPy+JmywNICWrJqVWiVOyvXjWQFIv9c2h24JrQLLFJ2aQVQf/Cvl1vblnd4r2apLQ==}
 
   socket.io-client@4.8.3:
     resolution: {integrity: sha512-uP0bpjWrjQmUt5DTHq9RuoCBdFJF10cdX9X+a368j/Ft0wmaVgxlrjvK3kjvgCODOMMOz9lcaRzxmso0bTWZ/g==}
@@ -6747,10 +6732,12 @@ packages:
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   tar@7.5.2:
     resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   tasklist@3.1.1:
     resolution: {integrity: sha512-G3I7QWUBSNWaekrJcDabydF6dcvy+vZ2PrX04JYq1p914TOLgpN+ryMtheGavs1LYVevTbTmwjQY8aeX8yLsyA==}
@@ -7136,10 +7123,6 @@ packages:
   vue-class-component@6.3.2:
     resolution: {integrity: sha512-cH208IoM+jgZyEf/g7mnFyofwPDJTM/QvBNhYMjqGB8fCsRyTf68rH2ISw/G20tJv+5mIThQ3upKwoL4jLTr1A==}
 
-  vue-codemirror@4.0.6:
-    resolution: {integrity: sha512-ilU7Uf0mqBNSSV3KT7FNEeRIxH4s1fmpG4TfHlzvXn0QiQAbkXS9lLfwuZpaBVEnpP5CSE62iGJjoliTuA8poQ==}
-    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
-
   vue-color@2.8.1:
     resolution: {integrity: sha512-BoLCEHisXi2QgwlhZBg9UepvzZZmi4176vbr+31Shen5WWZwSLVgdScEPcB+yrAtuHAz42309C0A4+WiL9lNBw==}
 
@@ -7154,13 +7137,9 @@ packages:
 
   vue-i18n@7.8.1:
     resolution: {integrity: sha512-BzB+EAPo/iFyFn/GXd/qVdDe67jfk+gmQaWUKD5BANhUclGrFxzRExzW2pYEAbhNm2pg0F12Oo+gL2IMLDcTAw==}
+    deprecated: v9 and v10 no longer supported. please migrate to v11. about maintenance status, see https://vue-i18n.intlify.dev/guide/maintenance.html
     peerDependencies:
       vue: ^2
-
-  vue-js-modal@1.3.35:
-    resolution: {integrity: sha512-DKtxUCW/oprM/ndn9h/cnVgsmqjQ/ARy5rH4q/11Pas04og2td+sltl91H/rlwXTwJIqWyt+lJizK5o4ErjWIQ==}
-    peerDependencies:
-      vue: ^2.2.6
 
   vue-loader@15.11.1:
     resolution: {integrity: sha512-0iw4VchYLePqJfJu9s62ACWUXeSqM30SQqlIftbYWM3C+jpPcEHKSPUZBLjSF9au4HTHQ/naF6OGnO3Q/qGR3Q==}
@@ -7212,9 +7191,6 @@ packages:
 
   vue-template-es2015-compiler@1.9.1:
     resolution: {integrity: sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==}
-
-  vue-toasted@1.1.24:
-    resolution: {integrity: sha512-K7RkyqnafWS0/FL30Bz2AC/CEvbnmV/nDMMcjd5/2tgPDkCw1ScNEXXcXevDb5ruXvE0BWfRfG6rbY5On+eSEg==}
 
   vue@2.7.14:
     resolution: {integrity: sha512-b2qkFyOM0kwqWFuQmgd4o+uHGU7T+2z3T+WQp8UBjADfEv2n4FEMffzBmCKNP0IGzOEEfYjvtcC62xaSKeQDrQ==}
@@ -10765,8 +10741,6 @@ snapshots:
     dependencies:
       convert-to-spaces: 2.0.1
 
-  codemirror@5.65.20: {}
-
   collect-v8-coverage@1.0.3: {}
 
   color-convert@1.9.3:
@@ -11165,8 +11139,6 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  diff-match-patch@1.0.5: {}
-
   diff-sequences@29.6.3: {}
 
   dir-compare@4.2.0:
@@ -11404,7 +11376,7 @@ snapshots:
 
   engine.io-parser@5.2.3: {}
 
-  engine.io@6.6.4:
+  engine.io@6.6.5:
     dependencies:
       '@types/cors': 2.8.19
       '@types/node': 20.19.27
@@ -11412,9 +11384,9 @@ snapshots:
       base64id: 2.0.0
       cookie: 0.7.2
       cors: 2.8.5
-      debug: 4.3.7
+      debug: 4.4.3
       engine.io-parser: 5.2.3
-      ws: 8.17.1
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -14618,7 +14590,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
+  sl-vue-tree@git+https://github.com/stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
 
   slash@3.0.0: {}
 
@@ -14651,10 +14623,10 @@ snapshots:
 
   smob@1.5.0: {}
 
-  socket.io-adapter@2.5.5:
+  socket.io-adapter@2.5.6:
     dependencies:
-      debug: 4.3.7
-      ws: 8.17.1
+      debug: 4.4.3
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -14684,8 +14656,8 @@ snapshots:
       base64id: 2.0.0
       cors: 2.8.5
       debug: 4.4.3
-      engine.io: 6.6.4
-      socket.io-adapter: 2.5.5
+      engine.io: 6.6.5
+      socket.io-adapter: 2.5.6
       socket.io-parser: 4.2.4
     transitivePeerDependencies:
       - bufferutil
@@ -15430,11 +15402,6 @@ snapshots:
 
   vue-class-component@6.3.2: {}
 
-  vue-codemirror@4.0.6:
-    dependencies:
-      codemirror: 5.65.20
-      diff-match-patch: 1.0.5
-
   vue-color@2.8.1:
     dependencies:
       clamp: 1.0.1
@@ -15458,10 +15425,6 @@ snapshots:
   vue-hot-reload-api@2.3.4: {}
 
   vue-i18n@7.8.1(vue@2.7.14):
-    dependencies:
-      vue: 2.7.14
-
-  vue-js-modal@1.3.35(vue@2.7.14):
     dependencies:
       vue: 2.7.14
 
@@ -15566,8 +15529,6 @@ snapshots:
       he: 1.2.0
 
   vue-template-es2015-compiler@1.9.1: {}
-
-  vue-toasted@1.1.24: {}
 
   vue@2.7.14:
     dependencies:
