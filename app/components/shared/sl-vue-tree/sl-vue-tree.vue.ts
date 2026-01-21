@@ -151,6 +151,13 @@ export default Vue.extend({
     dragSize(): number {
       return this.getDraggable().length;
     },
+
+    dragInfoText(): string {
+      const selected = this.getSelected();
+      if (selected.length === 0) return '';
+      if (selected.length === 1) return selected[0].title;
+      return `${selected[0].title} +${selected.length - 1}`;
+    },
   },
   methods: {
 

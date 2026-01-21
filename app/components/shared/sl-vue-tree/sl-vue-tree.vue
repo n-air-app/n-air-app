@@ -138,7 +138,7 @@
 
       <div v-show="isDragging" v-if="isRoot" ref="dragInfo" class="sl-vue-tree-drag-info">
         <slot name="draginfo">
-          Items: {{selectionSize}}
+          {{dragInfoText}}
         </slot>
       </div>
 
