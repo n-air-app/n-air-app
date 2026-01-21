@@ -27,9 +27,6 @@ importers:
       '@sentry/vue':
         specifier: 10.27.0
         version: 10.27.0(vue@2.7.14)
-      '@types/unzip-stream':
-        specifier: ^0.3.4
-        version: 0.3.4
       archiver:
         specifier: ^5.3.1
         version: 5.3.2
@@ -81,9 +78,6 @@ importers:
       protobufjs:
         specifier: ^7.5.3
         version: 7.5.4
-      recursive-readdir:
-        specifier: ~2.2.3
-        version: 2.2.3
       reflect-metadata:
         specifier: ~0.2.2
         version: 0.2.2
@@ -226,6 +220,9 @@ importers:
       '@types/sinonjs__fake-timers':
         specifier: 15.0.1
         version: 15.0.1
+      '@types/unzip-stream':
+        specifier: ^0.3.4
+        version: 0.3.4
       '@types/urijs':
         specifier: ^1.19.19
         version: 1.19.26
@@ -319,6 +316,9 @@ importers:
       postcss-loader:
         specifier: ^8.2.0
         version: 8.2.0(postcss@8.5.6)(typescript@5.9.3)(webpack@5.104.1)
+      recursive-readdir:
+        specifier: ~2.2.3
+        version: 2.2.3
       shx:
         specifier: ^0.4.0
         version: 0.4.0
