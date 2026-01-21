@@ -21,7 +21,6 @@ import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu'
 import VTooltip from 'v-tooltip';
 import VeeValidate from 'vee-validate';
 import VueI18n from 'vue-i18n';
-import VModal from 'vue-js-modal';
 import * as obs from '../obs-api';
 import { AppService } from './services/app';
 import Utils from './services/utils';
@@ -115,7 +114,6 @@ require('./theme2.less');
 Vue.use(VTooltip);
 VTooltip.options.defaultContainer = '#mainWrapper';
 Vue.use(VeeValidate); // form validations
-Vue.use(VModal);
 
 // Disable chrome default drag/drop behavior
 document.addEventListener('dragover', event => event.preventDefault());

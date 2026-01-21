@@ -1,6 +1,6 @@
 import ConnectionSettings from 'components/ConnectionSettings.vue';
 import ModalLayout from 'components/ModalLayout.vue';
-import Tabs, { ITab } from 'components/Tabs.vue';
+import Tabs from 'components/Tabs.vue';
 import TransitionSettings from 'components/TransitionSettings.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
@@ -8,10 +8,12 @@ import { ScenesService } from 'services/scenes';
 import { ETransitionType, TransitionsService } from 'services/transitions';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
-import VModal from 'vue-js-modal';
 import { Component } from 'vue-property-decorator';
 
-Vue.use(VModal);
+interface ITab {
+  name: string;
+  value: string;
+}
 
 @Component({
   components: {
@@ -28,6 +30,8 @@ export default class SceneTransitions extends Vue {
 
   inspectedTransition = '';
   inspectedConnection = '';
+  showTransitionSettings = false;
+  showConnectionSettings = false;
 
   tabs: ITab[] = [
     {
@@ -68,7 +72,7 @@ export default class SceneTransitions extends Vue {
 
   editTransition(id: string) {
     this.inspectedTransition = id;
-    this.$modal.show('transition-settings');
+    this.showTransitionSettings = true;
   }
 
   deleteTransition(id: string) {
@@ -101,7 +105,7 @@ export default class SceneTransitions extends Vue {
 
   editConnection(id: string) {
     this.inspectedConnection = id;
-    this.$modal.show('connection-settings');
+    this.showConnectionSettings = true;
   }
 
   deleteConnection(id: string) {
@@ -135,6 +139,10 @@ export default class SceneTransitions extends Vue {
   }
 
   dismissModal(modal: string) {
-    this.$modal.hide(modal);
+    if (modal === 'transition-settings') {
+      this.showTransitionSettings = false;
+    } else if (modal === 'connection-settings') {
+      this.showConnectionSettings = false;
+    }
   }
 }
