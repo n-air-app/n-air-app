@@ -27,9 +27,6 @@ importers:
       '@sentry/vue':
         specifier: 10.27.0
         version: 10.27.0(vue@2.7.14)
-      '@types/unzip-stream':
-        specifier: ^0.3.4
-        version: 0.3.4
       archiver:
         specifier: ^5.3.1
         version: 5.3.2
@@ -49,8 +46,8 @@ importers:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz
         version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz
       fuse.js:
-        specifier: ~3.6.1
-        version: 3.6.1
+        specifier: ~7.1.0
+        version: 7.1.0
       game_overlay:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/game-overlay-0.0.63-win64.tar.gz
         version: '@streamlabs/game_overlay@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/game-overlay-0.0.63-win64.tar.gz'
@@ -81,9 +78,6 @@ importers:
       protobufjs:
         specifier: ^7.5.3
         version: 7.5.4
-      recursive-readdir:
-        specifier: ~2.2.3
-        version: 2.2.3
       reflect-metadata:
         specifier: ~0.2.2
         version: 0.2.2
@@ -223,6 +217,9 @@ importers:
       '@types/sinonjs__fake-timers':
         specifier: 15.0.1
         version: 15.0.1
+      '@types/unzip-stream':
+        specifier: ^0.3.4
+        version: 0.3.4
       '@types/urijs':
         specifier: ^1.19.19
         version: 1.19.26
@@ -316,6 +313,9 @@ importers:
       postcss-loader:
         specifier: ^8.2.0
         version: 8.2.0(postcss@8.5.6)(typescript@5.9.3)(webpack@5.104.1)
+      recursive-readdir:
+        specifier: ~2.2.3
+        version: 2.2.3
       shx:
         specifier: ^0.4.0
         version: 0.4.0
@@ -4044,9 +4044,9 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  fuse.js@3.6.1:
-    resolution: {integrity: sha512-hT9yh/tiinkmirKrlv4KWOjztdoZo1mx9Qh4KvWqC7isoXwdUY3PNWUxceF4/qO9R6riA2C29jdTOeQOIROjgw==}
-    engines: {node: '>=6'}
+  fuse.js@7.1.0:
+    resolution: {integrity: sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ==}
+    engines: {node: '>=10'}
 
   generate-function@1.1.0:
     resolution: {integrity: sha512-Wv4qgYgt2m9QH7K+jklCX/o4gn1ijnS4nT+nxPYBbhdqZLDLtvNh2o26KP/nxN42Tk6AnrGftCLzjiMuckZeQw==}
@@ -12016,7 +12016,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  fuse.js@3.6.1: {}
+  fuse.js@7.1.0: {}
 
   generate-function@1.1.0: {}
 
