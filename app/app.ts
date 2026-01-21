@@ -1,5 +1,5 @@
-import { I18nService } from 'services/i18n';
 import { get } from 'lodash';
+import { I18nService } from 'services/i18n';
 
 // eslint-disable-next-line
 window['eval'] = global.eval = () => {
@@ -21,8 +21,6 @@ import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu'
 import VTooltip from 'v-tooltip';
 import VeeValidate from 'vee-validate';
 import VueI18n from 'vue-i18n';
-import VModal from 'vue-js-modal';
-import Toasted from 'vue-toasted';
 import * as obs from '../obs-api';
 import { AppService } from './services/app';
 import Utils from './services/utils';
@@ -115,9 +113,7 @@ require('./theme2.less');
 // Initiates tooltips and sets their parent wrapper
 Vue.use(VTooltip);
 VTooltip.options.defaultContainer = '#mainWrapper';
-Vue.use(Toasted);
 Vue.use(VeeValidate); // form validations
-Vue.use(VModal);
 
 // Disable chrome default drag/drop behavior
 document.addEventListener('dragover', event => event.preventDefault());

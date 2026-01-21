@@ -5,8 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  tar-fs: ^2.1.4
   nth-check: ^2.0.1
+  tar-fs: ^2.1.4
 
 importers:
 
@@ -129,18 +129,12 @@ importers:
       vue:
         specifier: 2.7.14
         version: 2.7.14
-      vue-codemirror:
-        specifier: 4.0.6
-        version: 4.0.6
       vue-color:
         specifier: 2.8.1
         version: 2.8.1
       vue-i18n:
         specifier: 7.8.1
         version: 7.8.1(vue@2.7.14)
-      vue-js-modal:
-        specifier: 1.3.35
-        version: 1.3.35(vue@2.7.14)
       vue-multiselect:
         specifier: 2.1.9
         version: 2.1.9
@@ -153,9 +147,6 @@ importers:
       vue-slider-component:
         specifier: 2.8.16
         version: 2.8.16
-      vue-toasted:
-        specifier: 1.1.24
-        version: 1.1.24
       vuedraggable:
         specifier: 2.24.3
         version: 2.24.3
@@ -2828,9 +2819,6 @@ packages:
     resolution: {integrity: sha512-xxodCmBen3iy2i0WtAK8FlFNrRzjUqjRsMfho58xT/wvZU1YTM3fCnRjcy1gJPMepaRlgm/0e6w8SpWHpn3/cA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  codemirror@5.65.20:
-    resolution: {integrity: sha512-i5dLDDxwkFCbhjvL2pNjShsojoL3XHyDwsGv1jqETUoW+lzpBKKqNTUWgQwVAOa0tUm4BwekT455ujafi8payA==}
-
   collect-v8-coverage@1.0.3:
     resolution: {integrity: sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==}
 
@@ -3392,9 +3380,6 @@ packages:
   devtools@7.30.2:
     resolution: {integrity: sha512-aDcSj/L5Z+JPUW9qY9HD+64/HbWmgBpi/9ev6q4e5MHv8CnL5wXQqF7icrJfZOsIl7JC81z8aVUFCPwIjbhgxg==}
     engines: {node: '>=12.0.0'}
-
-  diff-match-patch@1.0.5:
-    resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -6005,7 +5990,6 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
-
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qified@0.5.3:
@@ -7131,10 +7115,6 @@ packages:
   vue-class-component@6.3.2:
     resolution: {integrity: sha512-cH208IoM+jgZyEf/g7mnFyofwPDJTM/QvBNhYMjqGB8fCsRyTf68rH2ISw/G20tJv+5mIThQ3upKwoL4jLTr1A==}
 
-  vue-codemirror@4.0.6:
-    resolution: {integrity: sha512-ilU7Uf0mqBNSSV3KT7FNEeRIxH4s1fmpG4TfHlzvXn0QiQAbkXS9lLfwuZpaBVEnpP5CSE62iGJjoliTuA8poQ==}
-    engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
-
   vue-color@2.8.1:
     resolution: {integrity: sha512-BoLCEHisXi2QgwlhZBg9UepvzZZmi4176vbr+31Shen5WWZwSLVgdScEPcB+yrAtuHAz42309C0A4+WiL9lNBw==}
 
@@ -7152,11 +7132,6 @@ packages:
     deprecated: v9 and v10 no longer supported. please migrate to v11. about maintenance status, see https://vue-i18n.intlify.dev/guide/maintenance.html
     peerDependencies:
       vue: ^2
-
-  vue-js-modal@1.3.35:
-    resolution: {integrity: sha512-DKtxUCW/oprM/ndn9h/cnVgsmqjQ/ARy5rH4q/11Pas04og2td+sltl91H/rlwXTwJIqWyt+lJizK5o4ErjWIQ==}
-    peerDependencies:
-      vue: ^2.2.6
 
   vue-loader@15.11.1:
     resolution: {integrity: sha512-0iw4VchYLePqJfJu9s62ACWUXeSqM30SQqlIftbYWM3C+jpPcEHKSPUZBLjSF9au4HTHQ/naF6OGnO3Q/qGR3Q==}
@@ -7208,9 +7183,6 @@ packages:
 
   vue-template-es2015-compiler@1.9.1:
     resolution: {integrity: sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==}
-
-  vue-toasted@1.1.24:
-    resolution: {integrity: sha512-K7RkyqnafWS0/FL30Bz2AC/CEvbnmV/nDMMcjd5/2tgPDkCw1ScNEXXcXevDb5ruXvE0BWfRfG6rbY5On+eSEg==}
 
   vue@2.7.14:
     resolution: {integrity: sha512-b2qkFyOM0kwqWFuQmgd4o+uHGU7T+2z3T+WQp8UBjADfEv2n4FEMffzBmCKNP0IGzOEEfYjvtcC62xaSKeQDrQ==}
@@ -10761,8 +10733,6 @@ snapshots:
     dependencies:
       convert-to-spaces: 2.0.1
 
-  codemirror@5.65.20: {}
-
   collect-v8-coverage@1.0.3: {}
 
   color-convert@1.9.3:
@@ -11160,8 +11130,6 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
-
-  diff-match-patch@1.0.5: {}
 
   diff-sequences@29.6.3: {}
 
@@ -15424,11 +15392,6 @@ snapshots:
 
   vue-class-component@6.3.2: {}
 
-  vue-codemirror@4.0.6:
-    dependencies:
-      codemirror: 5.65.20
-      diff-match-patch: 1.0.5
-
   vue-color@2.8.1:
     dependencies:
       clamp: 1.0.1
@@ -15452,10 +15415,6 @@ snapshots:
   vue-hot-reload-api@2.3.4: {}
 
   vue-i18n@7.8.1(vue@2.7.14):
-    dependencies:
-      vue: 2.7.14
-
-  vue-js-modal@1.3.35(vue@2.7.14):
     dependencies:
       vue: 2.7.14
 
@@ -15560,8 +15519,6 @@ snapshots:
       he: 1.2.0
 
   vue-template-es2015-compiler@1.9.1: {}
-
-  vue-toasted@1.1.24: {}
 
   vue@2.7.14:
     dependencies:
