@@ -14,7 +14,6 @@ export enum EInputType {
   textArea = 'textArea',
   fontSize = 'fontSize',
   fontFamily = 'fontFamily',
-  code = 'code',
   timer = 'timer',
 }
 
@@ -85,7 +84,6 @@ export const metadata = {
     ({ type: EInputType.fontSize, ...options } as IInputMetadata),
   fontFamily: (options: IInputMetadata) =>
     ({ type: EInputType.fontFamily, ...options } as IInputMetadata),
-  code: (options: IInputMetadata) => ({ type: EInputType.code, ...options } as IInputMetadata),
 };
 
 // rules https://baianat.github.io/vee-validate/guide/rules.html
