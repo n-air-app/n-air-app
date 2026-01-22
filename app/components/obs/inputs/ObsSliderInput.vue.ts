@@ -1,4 +1,4 @@
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import Slider from '../../shared/Slider.vue';
 import { IObsSliderInputValue, ObsInput, TObsType } from './ObsInput';
@@ -16,14 +16,23 @@ class ObsSliderInput extends ObsInput<IObsSliderInputValue> {
   // moves the slider.  It makes the UI feel more responsive.
   localValue = this.value.value;
 
+  private emitValueImpl(value: number) {
+    this.emitInput({ ...this.value, value });
+  }
+
+  private debouncedEmitValue = debounce(this.emitValueImpl, 100);
+
   updateValue(value: number) {
     this.localValue = value;
     this.emitValue(value);
   }
 
-  @debounce(100)
   emitValue(value: number) {
-    this.emitInput({ ...this.value, value });
+    this.debouncedEmitValue(value);
+  }
+
+  beforeDestroy() {
+    this.debouncedEmitValue.cancel();
   }
 }
 
