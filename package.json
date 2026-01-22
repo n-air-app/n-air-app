@@ -85,7 +85,7 @@
     "fuse.js": "~7.1.0",
     "game_overlay": "https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/game-overlay-0.0.63-win64.tar.gz",
     "iconv-lite": "^0.7.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "long": "^5.2.3",
     "luxon": "^3.5.0",
     "node-fontinfo": "https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz",
