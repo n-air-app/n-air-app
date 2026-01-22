@@ -248,13 +248,12 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     this.setVideoSetting('fpsDen', 1, display);
   }
 
-  private debouncedUpdateObsSettings = debounce(
-    (display: TDisplayType = 'horizontal') => {
-      this.contexts[display].video = this.state[display];
-      this.contexts[display].legacySettings = this.state[display];
-    },
-    200,
-  );
+  private updateObsSettingsImpl(display: TDisplayType = 'horizontal') {
+    this.contexts[display].video = this.state[display];
+    this.contexts[display].legacySettings = this.state[display];
+  }
+
+  private debouncedUpdateObsSettings = debounce(this.updateObsSettingsImpl, 200);
 
   updateObsSettings(display: TDisplayType = 'horizontal') {
     this.debouncedUpdateObsSettings(display);
