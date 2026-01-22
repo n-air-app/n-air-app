@@ -5,8 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  tar-fs: ^2.1.4
   nth-check: ^2.0.1
+  tar-fs: ^2.1.4
 
 importers:
 
@@ -87,9 +87,6 @@ importers:
       semver:
         specifier: ^7.5.4
         version: 7.7.3
-      sl-vue-tree:
-        specifier: https://github.com/stream-labs/sl-vue-tree
-        version: git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4
       socket.io:
         specifier: 4.8.3
         version: 4.8.3
@@ -5984,7 +5981,6 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
-
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qified@0.5.3:
@@ -6390,10 +6386,6 @@ packages:
 
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
-
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4:
-    resolution: {commit: 30627b72cdac4755e82816a2bf00737a7c5806e4, repo: git@github.com:stream-labs/sl-vue-tree.git, type: git}
-    version: 1.8.3
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -14575,8 +14567,6 @@ snapshots:
       semver: 7.7.3
 
   sisteransi@1.0.5: {}
-
-  sl-vue-tree@git+https://git@github.com:stream-labs/sl-vue-tree.git#30627b72cdac4755e82816a2bf00737a7c5806e4: {}
 
   slash@3.0.0: {}
 
