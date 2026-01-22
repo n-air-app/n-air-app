@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'crypto';
 import { StatefulService } from './core/stateful-service';
 
-interface IUuidServiceState {}
+interface IUuidServiceState { }
 
 export class UuidService extends StatefulService<IUuidServiceState> {
   localStorageKey = 'InstallationUuidv4';

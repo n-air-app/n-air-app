@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import archiver from 'archiver';
+import { randomUUID as uuidv4 } from 'crypto';
 import fs from 'fs';
 import https from 'https';
 import os from 'os';
@@ -7,7 +8,6 @@ import path from 'path';
 import { ScenesService } from 'services/scenes';
 import { SelectionService } from 'services/selection';
 import unzip from 'unzip-stream';
-import { v4 as uuidv4 } from 'uuid';
 import { Inject } from '../core/injector';
 import { Service } from '../core/service';
 import { ImageNode } from './nodes/overlays/image';

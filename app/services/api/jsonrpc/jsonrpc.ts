@@ -1,5 +1,5 @@
+import { randomUUID as uuidv4 } from 'crypto';
 import { Service } from 'services/core/service';
-import { v4 as uuidv4 } from 'uuid';
 import {
   E_JSON_RPC_ERROR,
   IJsonRpcEvent,

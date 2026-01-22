@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'crypto';
 import { Scene, ScenesService } from '../../../scenes';
 import { ArrayNode } from '../array-node';
 import { IFolderSchema, SlotsNode, TSlotSchema } from './slots';
