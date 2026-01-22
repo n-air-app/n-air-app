@@ -1,5 +1,5 @@
+import { randomUUID as uuidv4 } from 'crypto';
 import { Subject } from 'rxjs';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 // @ts-expect-error

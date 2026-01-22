@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'crypto';
 import { ChatMessageType } from './ChatMessage/classifier';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { sendLogGif } from './nicolive-logger';
@@ -18,11 +18,11 @@ type SendParam = {
 
 export type HttpRelationResult =
   | {
-      error: string;
-    }
+    error: string;
+  }
   | {
-      result: string;
-    };
+    result: string;
+  };
 
 export class HttpRelation {
   static async sendChat(

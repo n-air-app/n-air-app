@@ -45,10 +45,10 @@ declare module 'traverse';
 declare module 'vue-multiselect';
 // declare module 'unzip-stream';
 declare module 'node-fontinfo';
-declare module 'uuid/*';
 declare module 'rimraf';
 declare module '@xkeshi/vue-qrcode';
 declare module 'vue-color';
+
 declare module 'vue-popperjs';
 declare module 'vue-slider-component';
 declare module 'vuedraggable';

@@ -1,3 +1,4 @@
+import { randomUUID as uuidv4 } from 'crypto';
 import 'reflect-metadata';
 import { Observable, Subject, Subscription } from 'rxjs';
 import {
@@ -9,7 +10,6 @@ import {
   JsonrpcService,
 } from 'services/api/jsonrpc';
 import traverse from 'traverse';
-import { v4 as uuidv4 } from 'uuid';
 import { ServicesManager } from '../../services-manager';
 import { Service } from '../core/service';
 

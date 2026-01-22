@@ -1,3 +1,4 @@
+import { randomUUID as uuidv4 } from 'crypto';
 import { without } from 'lodash';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
@@ -9,7 +10,6 @@ import { ISource, ISourceAddOptions, SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import { IVideo } from '../../../obs-api';

@@ -52,13 +52,14 @@
 }
 
 .colorpicker-menu {
-  top: 6px;
+  position: absolute;
+  top: 36px;
   z-index: 10;
   .radius !important;
 
   background: @bg-secondary !important;
   border-color: @bg-secondary !important;
-  box-shadow: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 30%) !important;
 }
 
 .vue-color__editable-input__label {
