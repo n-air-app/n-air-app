@@ -1,5 +1,5 @@
 import { IObsListOption, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';

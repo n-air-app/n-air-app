@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import archiver from 'archiver';
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import fs from 'fs';
 import https from 'https';
 import os from 'os';

@@ -1,6 +1,6 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { ipcRenderer } from 'electron';
 import { merge, Observable, Subject } from 'rxjs';
 import { AppService } from 'services/app';

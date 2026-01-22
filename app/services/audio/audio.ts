@@ -5,7 +5,7 @@ import {
   IObsNumberInputValue,
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { omit } from 'lodash';
 import { merge, Subject, Subscription } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';

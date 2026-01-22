@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import electron from 'electron';
 import { Subscription } from 'rxjs';
 import { IpcServerService } from 'services/api/ipc-server';

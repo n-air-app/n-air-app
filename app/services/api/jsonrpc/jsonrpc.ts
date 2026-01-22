@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { Service } from 'services/core/service';
 import {
   E_JSON_RPC_ERROR,

@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import * as fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';

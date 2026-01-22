@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import 'reflect-metadata';
 import { Observable, Subject, Subscription } from 'rxjs';
 import {

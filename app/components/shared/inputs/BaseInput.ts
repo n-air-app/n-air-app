@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { cloneDeep } from 'lodash';
 import { getKeys } from 'util/getKeys';
 import Vue from 'vue';

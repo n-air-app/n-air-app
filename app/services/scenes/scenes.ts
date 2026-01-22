@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { without } from 'lodash';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';

@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { Subject } from 'rxjs';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';

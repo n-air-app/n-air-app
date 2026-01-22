@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { StatefulService } from './core/stateful-service';
 
 interface IUuidServiceState { }
