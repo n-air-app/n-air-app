@@ -17,47 +17,6 @@ export class NamedPipeClient {
     this.name = name;
   }
 
-  // バッファ内で完全なJSONオブジェクトの終端位置を探す
-  // @returns 完全なJSONの終端位置（次の文字の位置）、見つからない場合は-1
-  // @internal テスト用にpublic
-  public findCompleteJson(str: string): number {
-    let depth = 0;
-    let inString = false;
-    let escaping = false;
-
-    for (let i = 0; i < str.length; i++) {
-      const char = str[i];
-
-      if (escaping) {
-        escaping = false;
-        continue;
-      }
-
-      if (char === '\\' && inString) {
-        escaping = true;
-        continue;
-      }
-
-      if (char === '"') {
-        inString = !inString;
-        continue;
-      }
-
-      if (inString) continue;
-
-      if (char === '{') {
-        depth++;
-      } else if (char === '}') {
-        depth--;
-        if (depth === 0) {
-          return i + 1; // JSONの終端位置（次の文字の位置）
-        }
-      }
-    }
-
-    return -1; // 完全なJSONが見つからない
-  }
-
   private async open(): Promise<void> {
     if (this.client) return;
 
@@ -84,13 +43,14 @@ export class NamedPipeClient {
         // データをバッファに追加
         this.buffer += data.toString();
 
-        // 完全なJSONメッセージを抽出して処理
-        while (true) {
-          const jsonEnd = this.findCompleteJson(this.buffer);
-          if (jsonEnd === -1) break;
+        // 改行で分割してメッセージを処理
+        const lines = this.buffer.split('\n');
+        // 最後の要素は未完成の可能性があるため残す
+        this.buffer = lines.pop() || '';
 
-          const message = this.buffer.substring(0, jsonEnd);
-          this.buffer = this.buffer.substring(jsonEnd);
+        for (const line of lines) {
+          const message = line.trim();
+          if (!message) continue; // 空行をスキップ
 
           try {
             const response = JSON.parse(message);
@@ -108,9 +68,6 @@ export class NamedPipeClient {
             }
           } catch (err) {
             console.error('Invalid response format:', message, err);
-            // パースエラーが起きたらバッファをクリアして再同期
-            this.buffer = '';
-            break;
           }
         }
       });
@@ -137,8 +94,7 @@ export class NamedPipeClient {
       }, 1000);
 
       this.queue.set(id, { resolve, reject, timeout });
-      this.client.write(JSON.stringify({ id, fn, arg }));
-      //      console.log('np-send:', JSON.stringify({ id, fn, arg }));
+      this.client.write(JSON.stringify({ id, fn, arg }) + '\n');
     });
   }
 
