@@ -32,7 +32,6 @@ import { ISceneItemInfo, SceneItemsNode } from './nodes/scene-items';
 import { ISceneSchema, ScenesNode } from './nodes/scenes';
 import { ISourceInfo, SourcesNode } from './nodes/sources';
 import { TransitionsNode } from './nodes/transitions';
-import { IDownloadProgress, OverlaysPersistenceService } from './overlays';
 import { parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
 
@@ -74,7 +73,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   @Inject() hotkeysService: HotkeysService;
   @Inject() windowsService: WindowsService;
   @Inject() userService: UserService;
-  @Inject() overlaysPersistenceService: OverlaysPersistenceService;
   @Inject() tcpServerService: TcpServerService;
   @Inject() transitionsService: TransitionsService;
   @Inject() dismissablesService: DismissablesService;
@@ -418,56 +416,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.enableAutoSave();
   }
 
-  /**
-   * Install a new overlay from a URL
-   * @param url the URL of the overlay file
-   * @param name the name of the overlay
-   * @param progressCallback a callback that receives progress of the download
-   */
-  async installOverlay(
-    url: string,
-    name: string,
-    progressCallback?: (info: IDownloadProgress) => void,
-  ) {
-    this.startLoadingOperation(); // memo: calling this in loadOverlay() too
-
-    const pathName = await this.overlaysPersistenceService.downloadOverlay(url, progressCallback);
-    const collectionName = this.suggestName(name);
-    await this.loadOverlay(pathName, collectionName);
-  }
-
-  /**
-   * Install a new overlay from a file path
-   * @param filePath the location of the overlay file
-   * @param name the name of the overlay
-   */
-  async loadOverlay(filePath: string, name: string) {
-    this.startLoadingOperation();
-    await this.deloadCurrentApplicationState();
-
-    const id: string = uuidv4();
-    await this.insertCollection(id, name);
-    await this.setActiveCollection(id);
-
-    try {
-      await this.overlaysPersistenceService.loadOverlay(filePath);
-      this.setupDefaultAudio();
-    } catch (e) {
-      // We tried really really hard :(
-      Sentry.withScope(scope => {
-        scope.setLevel('error');
-        scope.setTag('service', 'SceneCollectionsService');
-        scope.setTag('method', 'loadOverlay');
-        scope.setExtra('filePath', filePath);
-        scope.setExtra('name', name);
-        Sentry.captureException(e);
-      });
-    }
-
-    this.collectionLoaded = true;
-    await this.save();
-    this.finishLoadingOperation();
-  }
 
   /**
    * Based on the provided name, suggest a new name that does
