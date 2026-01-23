@@ -84,7 +84,7 @@
 
 <style lang="less">
 @import url('../styles/index');
-@import url('~sl-vue-tree/dist/sl-vue-tree-dark.css');
+@import url('./shared/sl-vue-tree/sl-vue-tree-dark.css');
 
 .studio-controls-top-sidebar {
   display: flex;
