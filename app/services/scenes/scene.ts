@@ -1,3 +1,4 @@
+import { randomUUID as uuidv4 } from 'node:crypto';
 import * as fs from 'fs';
 import { uniqBy } from 'lodash';
 import { filter } from 'rxjs/operators';
@@ -9,7 +10,6 @@ import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
-import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../../obs-api';
 import {
   EBlendingMethod,

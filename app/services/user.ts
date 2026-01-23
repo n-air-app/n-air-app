@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { ipcRenderer } from 'electron';
 import { merge, Observable, Subject } from 'rxjs';
 import { AppService } from 'services/app';
@@ -11,7 +12,6 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import URI from 'urijs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { OnboardingService } from './onboarding';
 import {
@@ -302,8 +302,8 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
     this.startAuth({
       platform: this.platform.type,
-      onAuthFinish: () => {},
-      onAuthClose: () => {},
+      onAuthFinish: () => { },
+      onAuthClose: () => { },
     });
   }
 

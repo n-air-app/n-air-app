@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import * as fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
@@ -14,7 +15,6 @@ import { UserService } from 'services/user';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';

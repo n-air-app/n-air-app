@@ -1,4 +1,5 @@
 import { IObsListOption, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
@@ -8,7 +9,6 @@ import { ScenesService } from 'services/scenes';
 import { DefaultManager } from 'services/sources/properties-managers/default-manager';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../obs-api';
 
 export enum ETransitionType {

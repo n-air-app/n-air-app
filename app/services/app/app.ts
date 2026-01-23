@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import electron from 'electron';
 import { Subscription } from 'rxjs';
 import { IpcServerService } from 'services/api/ipc-server';
@@ -27,7 +28,6 @@ import Utils from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
-import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../../obs-api';
 import { RunInLoadingMode } from './app-decorators';
 

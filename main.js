@@ -229,14 +229,14 @@ remote.initialize();
 function initialize(crashHandler) {
   const fs = require('node:fs');
   const { Updater } = require('./updater/Updater.js');
-  const { v4: uuidv4 } = require('uuid');
+  const { randomUUID } = require('node:crypto');
   const windowStateKeeper = require('electron-window-state');
   const { URL } = require('url');
 
   const pid = require('process').pid;
 
   app.commandLine.appendSwitch('force-ui-direction', 'ltr');
-  process.env.IPC_UUID = `nair-${uuidv4()}`;
+  process.env.IPC_UUID = `nair-${randomUUID()}`;
 
   /* Determine the current release channel we're
    * on based on name. The channel will always be

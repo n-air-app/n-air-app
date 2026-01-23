@@ -1,7 +1,7 @@
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { Inject } from 'services/core/injector';
 import { Display as OBSDisplay, VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 

@@ -5,6 +5,7 @@ import {
   IObsNumberInputValue,
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { omit } from 'lodash';
 import { merge, Subject, Subscription } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
@@ -15,7 +16,6 @@ import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService } from 
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import {
