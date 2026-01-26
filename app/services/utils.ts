@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import { isEqual } from 'lodash';
-import URI from 'urijs';
 import { getKeys } from 'util/getKeys';
 
 export const enum EBit {
@@ -29,7 +28,13 @@ export default class Utils {
   }
 
   static getUrlParams(url: string) {
-    return URI.parseQuery(URI.parse(url).query) as Dictionary<string>;
+    try {
+      const urlObj = new URL(url);
+      return Object.fromEntries(urlObj.searchParams.entries()) as Dictionary<string>;
+    } catch (e) {
+      console.warn('Invalid URL:', url);
+      return {};
+    }
   }
 
   static isMainWindow(): boolean {
