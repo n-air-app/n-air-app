@@ -1,6 +1,5 @@
-const { rimrafSync } = require('rimraf');
 const { execSync } = require('child_process');
-const fs = require('fs');
+const fs = require('node:fs');
 
 const CONFIG = JSON.parse(fs.readFileSync('test/screentest/config.json'));
 
@@ -10,7 +9,7 @@ const returnCode = (function main() {
   log('use branches', branches);
 
   const dir = CONFIG.dist;
-  rimrafSync(dir);
+  fs.rmSync(dir, { recursive: true, force: true });
 
   // create dir
   let currentPath = '';
