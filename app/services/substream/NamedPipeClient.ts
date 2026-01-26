@@ -30,12 +30,10 @@ export class NamedPipeClient {
       });
 
       client.on('end', () => {
-        this.buffer = '';
-        this.client = undefined;
+        this.close();
       });
       client.on('error', (err: Error) => {
-        this.buffer = '';
-        this.client = undefined;
+        this.close();
         reject(err);
       });
 
@@ -72,6 +70,23 @@ export class NamedPipeClient {
         }
       });
     });
+  }
+
+  private clearQueue(): void {
+    for (const item of this.queue.values()) {
+      clearTimeout(item.timeout);
+      item.reject(new Error('Connection closed'));
+    }
+    this.queue.clear();
+  }
+
+  close(): void {
+    if (this.client) {
+      this.client.destroy();
+      this.client = undefined;
+    }
+    this.buffer = '';
+    this.clearQueue();
   }
 
   // {id, fn, arg} を送信
