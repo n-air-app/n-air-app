@@ -1,6 +1,11 @@
 import * as remote from '@electron/remote';
 import { isEqual } from 'lodash';
+import { randomUUID } from 'node:crypto';
 import { getKeys } from 'util/getKeys';
+
+export function uuidv4(): string {
+  return randomUUID();
+}
 
 export const enum EBit {
   ZERO,

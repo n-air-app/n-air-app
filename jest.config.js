@@ -12,7 +12,4 @@ module.exports = {
     },
   },
   testMatch: ['**/app/**/*.test.ts'],
-  moduleNameMapper: {
-    '^uuid$': require.resolve('uuid'),
-  },
 };

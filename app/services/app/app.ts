@@ -1,5 +1,4 @@
 import * as remote from '@electron/remote';
-import { randomUUID as uuidv4 } from 'node:crypto';
 import electron from 'electron';
 import { Subscription } from 'rxjs';
 import { IpcServerService } from 'services/api/ipc-server';
@@ -24,7 +23,7 @@ import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
 import { track } from 'services/usage-statistics';
 import { UserService } from 'services/user';
-import Utils from 'services/utils';
+import Utils, { uuidv4 } from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';

@@ -1,4 +1,4 @@
-import { randomUUID as uuidv4 } from 'node:crypto';
+import { uuidv4 } from 'services/utils';
 import { ChatMessageType } from './ChatMessage/classifier';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { sendLogGif } from './nicolive-logger';

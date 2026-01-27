@@ -1,5 +1,5 @@
-import { randomUUID as uuidv4 } from 'node:crypto';
 import { Inject } from 'services/core/injector';
+import { uuidv4 } from 'services/utils';
 import { Display as OBSDisplay, VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';

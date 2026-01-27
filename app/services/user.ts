@@ -1,7 +1,6 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { ipcRenderer } from 'electron';
-import { randomUUID as uuidv4 } from 'node:crypto';
 import { merge, Observable, Subject } from 'rxjs';
 import { AppService } from 'services/app';
 import { Inject } from 'services/core/injector';
@@ -9,7 +8,7 @@ import { PersistentStatefulService } from 'services/core/persistent-stateful-ser
 import { mutation } from 'services/core/stateful-service';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
 import { SceneCollectionsService } from 'services/scene-collections';
-import Utils from 'services/utils';
+import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import Vue from 'vue';

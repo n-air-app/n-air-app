@@ -1,5 +1,5 @@
-import { randomUUID as uuidv4 } from 'node:crypto';
 import { cloneDeep } from 'lodash';
+import { uuidv4 } from 'services/utils';
 import { getKeys } from 'util/getKeys';
 import Vue from 'vue';
 import { Prop } from 'vue-property-decorator';
