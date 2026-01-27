@@ -16,6 +16,7 @@ import { SettingsService } from 'services/settings';
 import { SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
+import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import {
   ISceneCollectionCreateOptions,
@@ -34,8 +35,6 @@ import { ISourceInfo, SourcesNode } from './nodes/sources';
 import { TransitionsNode } from './nodes/transitions';
 import { parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
-
-const { v4: uuidv4 } = window['require']('uuid');
 
 export const NODE_TYPES = {
   RootNode,

@@ -1,4 +1,3 @@
-import { randomUUID as uuidv4 } from 'node:crypto';
 import * as fs from 'fs';
 import { uniqBy } from 'lodash';
 import { filter } from 'rxjs/operators';
@@ -8,7 +7,7 @@ import { TSceneNodeInfo } from 'services/scene-collections/nodes/scene-items';
 import { Selection, SelectionService, TNodesList } from 'services/selection';
 import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
-import Utils from 'services/utils';
+import Utils, { uuidv4 } from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
 import * as obs from '../../../obs-api';
 import {

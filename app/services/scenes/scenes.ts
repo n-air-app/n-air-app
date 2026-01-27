@@ -1,4 +1,3 @@
-import { randomUUID as uuidv4 } from 'node:crypto';
 import { without } from 'lodash';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
@@ -8,6 +7,7 @@ import { $t } from 'services/i18n';
 import { TDisplayType } from 'services/settings-v2/video';
 import { ISource, ISourceAddOptions, SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
+import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
 import Vue from 'vue';
