@@ -45,7 +45,6 @@ declare module 'traverse';
 declare module 'vue-multiselect';
 // declare module 'unzip-stream';
 declare module 'node-fontinfo';
-declare module 'rimraf';
 declare module '@xkeshi/vue-qrcode';
 declare module 'vue-color';
 

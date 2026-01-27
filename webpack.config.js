@@ -153,7 +153,6 @@ module.exports = function (env, argv) {
         'aws-sdk': 'require("aws-sdk")',
         asar: 'require("asar")',
         'node-fontinfo': 'require("node-fontinfo")',
-        rimraf: 'require("rimraf")',
 
         'utf-8-validate': 'require("utf-8-validate")',
         bufferutil: 'require("bufferutil")',
