@@ -1,5 +1,4 @@
 import { IObsListOption, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
-import { randomUUID as uuidv4 } from 'node:crypto';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
@@ -7,6 +6,7 @@ import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { ScenesService } from 'services/scenes';
 import { DefaultManager } from 'services/sources/properties-managers/default-manager';
+import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import * as obs from '../../obs-api';

@@ -34,12 +34,11 @@ import UserInfo from 'components/windows/UserInfo.vue';
 import electron from 'electron';
 import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
-import Util from 'services/utils';
+import Util, { uuidv4 } from 'services/utils';
 import Vue from 'vue';
 
 const { ipcRenderer } = electron;
 const BrowserWindow = remote.BrowserWindow;
-const { v4: uuidv4 } = window['require']('uuid');
 
 // This is a list of components that are registered to be
 // top level components in new child windows.

@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/vue';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
-import { randomUUID as uuidv4 } from 'node:crypto';
 import * as fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
@@ -12,6 +11,7 @@ import { IPCWrapper } from 'services/ipc-wrapper';
 import { NVoiceCharacterTypes } from 'services/nvoice-character';
 import { ISceneItem, ScenesService } from 'services/scenes';
 import { UserService } from 'services/user';
+import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
