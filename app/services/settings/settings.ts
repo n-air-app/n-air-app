@@ -808,7 +808,7 @@ export class SettingsService
           this.sourcesService.createSource(
             displayName,
             isOutput ? 'wasapi_output_capture' : 'wasapi_input_capture',
-            {},
+            { device_id: deviceForm.value },
             { channel },
           );
         } else {
