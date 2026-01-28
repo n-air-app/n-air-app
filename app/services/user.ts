@@ -8,8 +8,7 @@ import { PersistentStatefulService } from 'services/core/persistent-stateful-ser
 import { mutation } from 'services/core/stateful-service';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
 import { SceneCollectionsService } from 'services/scene-collections';
-import { uuidv4 } from 'services/utils';
-import URI from 'urijs';
+import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import Vue from 'vue';
@@ -319,7 +318,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
    * Parses tokens out of the auth URL
    */
   private parseAuthFromUrl(url: string) {
-    const query = URI.parseQuery(URI.parse(url).query) as Dictionary<string>;
+    const query = Utils.getUrlParams(url);
 
     if (
       query.token &&
