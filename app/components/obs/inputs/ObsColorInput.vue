@@ -54,7 +54,7 @@
 .colorpicker-menu {
   top: 6px;
   z-index: 10;
-  .radius !important;
+  .radius() !important;
 
   background: @bg-secondary !important;
   border-color: @bg-secondary !important;

@@ -14,7 +14,7 @@
 
 .streaming-status-text {
   margin: 0 2px 0 4px;
-  .semibold;
+  .semibold();
 
   color: @white;
 }

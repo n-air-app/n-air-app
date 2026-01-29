@@ -30,7 +30,7 @@
   color: var(--color-surface-inverse);
   white-space: initial;
   background-color: currentcolor;
-  .radius;
+  .radius();
 
   &[data-mode='scene-selector'] {
     top: -8px;

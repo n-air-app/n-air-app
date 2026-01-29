@@ -96,13 +96,13 @@
 }
 
 .elapsed-time {
-  .time-styling;
+  .time-styling();
 
   margin-right: auto;
 }
 
 .record-button {
-  .bold;
+  .bold();
 
   letter-spacing: 0.2px;
 
@@ -129,7 +129,7 @@
   height: @item-generic-size;
   overflow: hidden;
   border-radius: 16px;
-  .transition;
+  .transition();
 
   &.is-replay-start {
     width: @item-generic-size*2;

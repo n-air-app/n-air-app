@@ -52,7 +52,7 @@
 }
 
 .indicator {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;
@@ -82,7 +82,7 @@
 }
 
 .popper {
-  .popper-styling;
+  .popper-styling();
 
   width: 320px;
   padding: 0;

@@ -173,7 +173,7 @@
 
 .program-time,
 .reservation-timer {
-  .time-styling;
+  .time-styling();
 }
 
 .side-bar {
@@ -183,7 +183,7 @@
 }
 
 .popper {
-  .popper-styling;
+  .popper-styling();
 
   width: 240px;
   padding: 0;

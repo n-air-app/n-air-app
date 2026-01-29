@@ -25,11 +25,11 @@
   padding: 16px;
   background-color: var(--color-bg-quinary);
   border: 1px solid var(--color-border-light);
-  .radius;
+  .radius();
 }
 
 .banner-header {
-  .bold;
+  .bold();
 
   margin-bottom: 4px;
   font-size: @font-size3;

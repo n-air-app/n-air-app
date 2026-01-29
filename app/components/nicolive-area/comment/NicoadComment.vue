@@ -14,16 +14,16 @@
 @import url('./comment');
 
 .comment-root {
-  .common__comment-root;
+  .common__comment-root();
   .comment-row-fade(@nicoad-brand-color);
 }
 
 .comment-wrapper {
-  .common__comment-wrapper;
+  .common__comment-wrapper();
 }
 
 .comment-header {
-  .common__comment-header;
+  .common__comment-header();
 
   > i {
     color: var(--color-brand-nicoad);
@@ -31,7 +31,7 @@
 }
 
 .comment-body {
-  .common__comment-body;
+  .common__comment-body();
 
   color: var(--color-text);
 

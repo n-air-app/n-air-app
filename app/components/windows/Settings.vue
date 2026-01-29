@@ -79,7 +79,7 @@
 子コンポーネントのclassを直接参照しているのでscopedにできない
 */
 .notification-root {
-  .notification-styling;
+  .notification-styling();
 
   margin-bottom: var(--spacing-lg);
 }

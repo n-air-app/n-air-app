@@ -226,7 +226,7 @@ p.error {
 }
 
 .notification-root {
-  .notification-styling;
+  .notification-styling();
 
   margin-bottom: var(--spacing-lg);
 }

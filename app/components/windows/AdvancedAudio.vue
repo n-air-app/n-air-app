@@ -38,7 +38,7 @@
 @import url('../../styles/index');
 
 .table-wrapper {
-  .radius;
+  .radius();
 
   flex-grow: 1;
   padding: 0;
