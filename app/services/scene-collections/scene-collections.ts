@@ -668,17 +668,28 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * Creates the default audio sources
    */
   private setupDefaultAudio() {
+    // 実際には以下のようにデバイス一覧を取得してからデフォルトデバイスを探すべきですが、
+    // 既存が強制だったのでそのままの形にしておきます
+    // 参考:
+    // const audioDevices = this.audioService.getDevices();
+    // // デフォルトの出力デバイスがあれば作成
+    // const defaultOutput = audioDevices.find(device => device.type === 'output' && device.id === 'default');
+    // if (defaultOutput) {...}
+    // // デフォルトの入力デバイスがあれば作成
+    // const defaultInput = audioDevices.find(device => device.type === 'input' && device.id === 'default');
+    // if (defaultInput) {...}
+
     this.sourcesService.createSource(
       $t('sources.desktopAudio'),
       'wasapi_output_capture',
-      {},
+      { device_id: 'default' },
       { channel: E_AUDIO_CHANNELS.OUTPUT_1 },
     );
 
     this.sourcesService.createSource(
       $t('sources.micAux'),
       'wasapi_input_capture',
-      {},
+      { device_id: 'default' },
       { channel: E_AUDIO_CHANNELS.INPUT_1 },
     );
   }
