@@ -61,7 +61,7 @@
     ]
   },
   "browserslist": [
-    "chrome >= 76"
+    "chrome >= 122"
   ],
   "ava": {
     "files": [
