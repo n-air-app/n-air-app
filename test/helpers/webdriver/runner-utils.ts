@@ -7,8 +7,8 @@ import avaTest, { TestFn } from 'ava';
 import { uniq } from 'lodash';
 import { sleep } from '../../../app/util/sleep';
 import { ITestContext } from './index';
+import { tasklist } from 'tasklist';
 const fs = require('fs');
-const tasklist = require('tasklist');
 const kill = require('tree-kill');
 
 export interface ITestStats {
