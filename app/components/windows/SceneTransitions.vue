@@ -128,7 +128,7 @@
 @import url('../../styles/index');
 
 .noScroll > div {
-  .flex__column;
+  .flex__column();
 
   flex-grow: 1;
 }
@@ -145,7 +145,7 @@
 .transition-tab {
   flex-grow: 1;
   padding: 16px;
-  .flex__column;
+  .flex__column();
 
   .button {
     flex-shrink: 0;
@@ -188,7 +188,7 @@
 }
 
 .table-wrapper {
-  .radius;
+  .radius();
 
   padding: 8px 0;
   overflow: auto;

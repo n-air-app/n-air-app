@@ -249,7 +249,7 @@
   line-height: @font-line-height-md;
   color: var(--color-text-light);
   text-align: center;
-  .text-ellipsis;
+  .text-ellipsis();
 }
 
 .icon-moderator {
@@ -440,7 +440,7 @@
 }
 
 .scroll-to-latest {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;

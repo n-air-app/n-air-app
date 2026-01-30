@@ -91,7 +91,7 @@
   color: @grey !important;
   background-color: transparent !important;
   border: none !important;
-  .transition;
+  .transition();
 
   &::before {
     display: none;

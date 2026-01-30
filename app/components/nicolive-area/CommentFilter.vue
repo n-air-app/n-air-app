@@ -182,7 +182,7 @@
   height: 48px;
   padding: 4px 16px;
   color: var(--color-text-light);
-  .bold;
+  .bold();
 
   border-bottom: 1px solid var(--color-border-light);
 
@@ -348,11 +348,11 @@
   right: 16px;
   bottom: 16px;
   left: 16px;
-  .shadow;
+  .shadow();
 }
 
 .indicator {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;
@@ -372,6 +372,6 @@
 }
 
 .popper {
-  .popper-styling;
+  .popper-styling();
 }
 </style>

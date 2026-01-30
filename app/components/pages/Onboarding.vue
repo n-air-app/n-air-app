@@ -64,7 +64,7 @@
 
 .onboarding-title--sm {
   font-size: 15px;
-  .semibold;
+  .semibold();
 
   color: @white;
 }

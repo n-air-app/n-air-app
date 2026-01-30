@@ -191,7 +191,7 @@
 }
 
 .snackbar {
-  .snackbar-styling;
+  .snackbar-styling();
 
   position: absolute;
   top: 8px;
@@ -223,7 +223,7 @@
   }
 
   .comment-header {
-    .common__comment-header;
+    .common__comment-header();
 
     > i {
       color: var(--color-object-accent-primary);
@@ -232,7 +232,7 @@
 }
 
 .scroll-to-latest {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;

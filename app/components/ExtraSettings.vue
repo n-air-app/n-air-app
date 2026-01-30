@@ -112,7 +112,7 @@
       display: none;
 
       & ~ .view-button {
-        .transition;
+        .transition();
 
         position: relative;
         display: inline-block;

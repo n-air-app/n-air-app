@@ -48,7 +48,7 @@
     width: 30px;
     color: var(--color-text);
     cursor: pointer;
-    .transition;
+    .transition();
 
     .arrow {
       display: flex !important;

@@ -58,7 +58,7 @@
   .voption span {
     height: 100%;
 
-    .text-ellipsis;
+    .text-ellipsis();
   }
 }
 

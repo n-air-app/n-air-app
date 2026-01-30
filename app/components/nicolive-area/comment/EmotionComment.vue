@@ -14,15 +14,15 @@
 @import url('./comment');
 
 .comment-root {
-  .common__comment-root;
+  .common__comment-root();
 }
 
 .comment-wrapper {
-  .common__comment-wrapper;
+  .common__comment-wrapper();
 }
 
 .comment-header {
-  .common__comment-header;
+  .common__comment-header();
 
   > i {
     color: var(--color-brand-emotion);
@@ -30,8 +30,8 @@
 }
 
 .comment-body {
-  .common__comment-body;
-  .text-ellipsis;
+  .common__comment-body();
+  .text-ellipsis();
 
   color: var(--color-text);
 

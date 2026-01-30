@@ -368,7 +368,7 @@
   background-color: var(--color-surface-primary);
   border: 1px solid var(--color-border-emphasis-low);
 
-  .radius;
+  .radius();
 
   &[data-type='error'] {
     background-color: color-mix(in srgb, var(--color-caution-primary) 15%, transparent);
@@ -377,7 +377,7 @@
 }
 
 .banner-header {
-  .bold;
+  .bold();
 
   padding-right: 16px;
   color: var(--color-object-emphasis-high);

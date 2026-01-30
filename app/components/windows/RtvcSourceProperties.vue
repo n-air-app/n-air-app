@@ -400,7 +400,7 @@
     font-size: @font-size5;
     cursor: pointer;
     border-radius: 4px;
-    .transition;
+    .transition();
 
     &:not(.nav-icon-active):hover {
       color: var(--color-text-light);
@@ -485,7 +485,7 @@
     border-radius: 32px;
     box-shadow: @shadow;
     opacity: 0;
-    .transition;
+    .transition();
 
     &:hover {
       color: var(--color-text-dark);
@@ -551,7 +551,7 @@
     line-height: @font-line-height-md;
     text-align: center;
     .paragraph-ellipsis(3);
-    .transition;
+    .transition();
 
     .main-cell:not(.active):hover & {
       color: var(--color-text-light);

@@ -60,11 +60,11 @@
 @import url('./comment');
 
 .comment-root {
-  .common__comment-root;
+  .common__comment-root();
 }
 
 .comment-wrapper {
-  .common__comment-wrapper;
+  .common__comment-wrapper();
 
   .comment-root:not(.comment-readonly):hover &,
   .comment-root:not(.comment-readonly):hover &.pseudoHover {
@@ -73,7 +73,7 @@
 }
 
 .comment-number {
-  .common__comment-number;
+  .common__comment-number();
 
   &:has(+ .comment-box .comment-name-box) {
     margin-top: 4px;
@@ -132,7 +132,7 @@
 }
 
 .comment-body {
-  .common__comment-body;
+  .common__comment-body();
 
   color: var(--color-text-light);
 
@@ -146,7 +146,7 @@
 }
 
 .comment-misc {
-  .common__comment-misc;
+  .common__comment-misc();
 
   position: absolute;
   top: 0;
@@ -165,11 +165,11 @@
   padding: 12px 16px;
   margin: 8px 16px;
   background-color: var(--color-bg-quinary);
-  .radius;
+  .radius();
 }
 
 .nameplate-hint-header {
-  .bold;
+  .bold();
 
   margin-bottom: 4px;
   font-size: @font-size3;

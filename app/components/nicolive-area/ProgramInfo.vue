@@ -137,7 +137,7 @@
 }
 
 .program-title-link {
-  .text-ellipsis;
+  .text-ellipsis();
 
   display: inline-block;
   font-size: @font-size4;
@@ -201,7 +201,7 @@
 }
 
 .indicator {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;

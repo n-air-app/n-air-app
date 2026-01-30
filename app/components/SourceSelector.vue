@@ -92,7 +92,7 @@
 }
 
 .sl-vue-tree.sl-vue-tree-root {
-  .radius;
+  .radius();
 
   flex-grow: 1;
   overflow: auto;
