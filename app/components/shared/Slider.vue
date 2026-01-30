@@ -93,8 +93,8 @@
   background-color: var(--color-tooltip-bg) !important;
   border: 1px solid var(--color-tooltip-border) !important;
   border-radius: 4px !important;
-  .transition;
-  .shadow;
+  .transition();
+  .shadow();
 
   &::before {
     display: none;

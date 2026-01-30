@@ -13,15 +13,15 @@
 @import url('./comment');
 
 .comment-root {
-  .common__comment-root;
+  .common__comment-root();
 }
 
 .comment-wrapper {
-  .common__comment-wrapper;
+  .common__comment-wrapper();
 }
 
 .comment-body {
-  .common__comment-body;
+  .common__comment-body();
 
   color: var(--color-text-dark);
 }

@@ -182,7 +182,7 @@
       border: 2px solid var(--color-bg-quaternary);
       border-radius: 50%;
       transform: scale(0);
-      .transition;
+      .transition();
     }
 
     &.notify-new-comment {

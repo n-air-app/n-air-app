@@ -23,7 +23,7 @@
 @import url('../styles/index');
 
 .footer {
-  .dividing-border;
+  .dividing-border();
 
   position: relative;
   display: flex;

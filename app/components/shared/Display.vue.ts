@@ -1,7 +1,7 @@
 import { Inject } from 'services/core/injector';
+import { uuidv4 } from 'services/utils';
 import { Display as OBSDisplay, VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 

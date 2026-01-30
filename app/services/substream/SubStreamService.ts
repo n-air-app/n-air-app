@@ -32,9 +32,9 @@ export interface StartParam {
   videoId: string;
   audioId: string;
   output: { [name: string]: Primitive };
-  service: { key: string; server: string; [name: string]: Primitive };
-  video: { bitrate: number; keyint_sec: number; [name: string]: Primitive };
-  audio: { bitrate: number; [name: string]: Primitive };
+  service: { key: string; server: string;[name: string]: Primitive };
+  video: { bitrate: number; keyint_sec: number;[name: string]: Primitive };
+  audio: { bitrate: number;[name: string]: Primitive };
 }
 
 /** サブストリームの状態値を表す型 */

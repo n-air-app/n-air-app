@@ -78,38 +78,46 @@
           </div>
         </div>
       </tabs>
-      <modal name="transition-settings" :height="550">
-        <div class="modal-layout transition-settings-modal">
-          <div class="modal-layout-content">
-            <div class="settings-container">
-              <div class="section">
-                <transition-settings :transition-id="inspectedTransition" />
+      <transition name="modal-fade">
+        <div v-if="showTransitionSettings" class="modal-backdrop" @click.self="dismissModal('transition-settings')">
+          <div class="modal-container">
+            <div class="modal-layout transition-settings-modal">
+              <div class="modal-layout-content">
+                <div class="settings-container">
+                  <div class="section">
+                    <transition-settings :transition-id="inspectedTransition" />
+                  </div>
+                </div>
+              </div>
+              <div class="modal-layout-controls">
+                <button class="button button--primary" @click="dismissModal('transition-settings')">
+                  {{ $t('common.done') }}
+                </button>
               </div>
             </div>
           </div>
-          <div class="modal-layout-controls">
-            <button class="button button--primary" @click="dismissModal('transition-settings')">
-              {{ $t('common.done') }}
-            </button>
-          </div>
         </div>
-      </modal>
-      <modal name="connection-settings" :height="550">
-        <div class="modal-layout connection-settings-modal">
-          <div class="modal-layout-content">
-            <div class="settings-container">
-              <div class="section">
-                <connection-settings :connection-id="inspectedConnection" />
+      </transition>
+      <transition name="modal-fade">
+        <div v-if="showConnectionSettings" class="modal-backdrop" @click.self="dismissModal('connection-settings')">
+          <div class="modal-container">
+            <div class="modal-layout connection-settings-modal">
+              <div class="modal-layout-content">
+                <div class="settings-container">
+                  <div class="section">
+                    <connection-settings :connection-id="inspectedConnection" />
+                  </div>
+                </div>
+              </div>
+              <div class="modal-layout-controls">
+                <button class="button button--primary" @click="dismissModal('connection-settings')">
+                  {{ $t('common.done') }}
+                </button>
               </div>
             </div>
           </div>
-          <div class="modal-layout-controls">
-            <button class="button button--primary" @click="dismissModal('connection-settings')">
-              {{ $t('common.done') }}
-            </button>
-          </div>
         </div>
-      </modal>
+      </transition>
     </div>
   </modal-layout>
 </template>
@@ -120,7 +128,7 @@
 @import url('../../styles/index');
 
 .noScroll > div {
-  .flex__column;
+  .flex__column();
 
   flex-grow: 1;
 }
@@ -137,7 +145,7 @@
 .transition-tab {
   flex-grow: 1;
   padding: 16px;
-  .flex__column;
+  .flex__column();
 
   .button {
     flex-shrink: 0;
@@ -180,7 +188,7 @@
 }
 
 .table-wrapper {
-  .radius;
+  .radius();
 
   padding: 8px 0;
   overflow: auto;
@@ -245,5 +253,37 @@ td {
   margin: 0;
   overflow-x: auto;
   overflow-y: scroll;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 50%);
+}
+
+.modal-container {
+  width: 600px;
+  max-width: 90%;
+  max-height: 550px;
+  overflow: auto;
+  background: var(--background);
+  border-radius: 4px;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter,
+.modal-fade-leave-to {
+  opacity: 0;
 }
 </style>

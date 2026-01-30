@@ -23,11 +23,10 @@ import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
 import { track } from 'services/usage-statistics';
 import { UserService } from 'services/user';
-import Utils from 'services/utils';
+import Utils, { uuidv4 } from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
-import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../../obs-api';
 import { RunInLoadingMode } from './app-decorators';
 

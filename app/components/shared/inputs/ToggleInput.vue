@@ -24,7 +24,7 @@
 }
 
 .toggleinput__track {
-  .transition;
+  .transition();
 
   width: 100%;
   height: 100%;

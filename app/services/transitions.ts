@@ -6,9 +6,9 @@ import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { ScenesService } from 'services/scenes';
 import { DefaultManager } from 'services/sources/properties-managers/default-manager';
+import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../obs-api';
 
 export enum ETransitionType {

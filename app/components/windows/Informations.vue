@@ -23,7 +23,7 @@
             place="link"
             href="https://blog.nicovideo.jp/niconews/category/se_n-air/"
             @click="handleAnchorClick($event)"
-            >{{ $t('informations.errorAttentionLink') }}</a
+          >{{ $t('informations.errorAttentionLink') }}</a
           >
         </i18n>
       </div>

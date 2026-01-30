@@ -102,7 +102,7 @@
   margin-bottom: 5px;
   font-size: 11px;
   letter-spacing: 0.7px;
-  .semibold;
+  .semibold();
 }
 
 .source-info__body {

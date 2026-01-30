@@ -59,7 +59,7 @@ button {
 }
 
 .manage-scene-collections__body {
-  .radius;
+  .radius();
 
   display: flex;
   flex-direction: column;

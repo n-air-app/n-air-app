@@ -7,9 +7,8 @@ import { TSceneNodeInfo } from 'services/scene-collections/nodes/scene-items';
 import { Selection, SelectionService, TNodesList } from 'services/selection';
 import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
-import Utils from 'services/utils';
+import Utils, { uuidv4 } from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
-import { v4 as uuidv4 } from 'uuid';
 import * as obs from '../../../obs-api';
 import {
   EBlendingMethod,

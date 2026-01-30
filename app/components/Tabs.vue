@@ -23,7 +23,7 @@
 @import url('../styles/index');
 
 .tabs__container {
-  .flex__column;
+  .flex__column();
 
   flex-grow: 1;
 }
@@ -44,7 +44,7 @@
 }
 
 .tab-content {
-  .flex__column;
+  .flex__column();
 
   position: relative;
   flex-grow: 1;

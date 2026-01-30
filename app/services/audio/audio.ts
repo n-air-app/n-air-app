@@ -12,10 +12,9 @@ import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'ser
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
 import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService } from 'services/sources';
-import Utils from 'services/utils';
+import Utils, { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import { v4 as uuidv4 } from 'uuid';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import {

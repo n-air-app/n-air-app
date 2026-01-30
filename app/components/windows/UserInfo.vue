@@ -50,7 +50,7 @@
                       popper.doClose();
                     "
                     class="link"
-                    >ユーザーIDをコピー</a
+                  >ユーザーIDをコピー</a
                   >
                 </li>
               </ul>
@@ -63,7 +63,7 @@
                     "
                     class="link"
                     v-if="!isBlockedUser"
-                    >配信からブロック</a
+                  >配信からブロック</a
                   >
                   <a
                     @click="
@@ -72,7 +72,7 @@
                     "
                     class="link"
                     v-if="isBlockedUser"
-                    >配信用ブロックから削除</a
+                  >配信用ブロックから削除</a
                   >
                 </li>
               </ul>
@@ -85,7 +85,7 @@
                     "
                     class="link"
                     v-if="isFollowing"
-                    >フォローを解除</a
+                  >フォローを解除</a
                   >
                   <a
                     @click="
@@ -94,7 +94,7 @@
                     "
                     class="link"
                     v-if="!isFollowing"
-                    >ユーザーをフォロー</a
+                  >ユーザーをフォロー</a
                   >
                 </li>
               </ul>
@@ -107,7 +107,7 @@
                     "
                     class="link"
                     v-if="!isModerator"
-                    >モデレーターに追加</a
+                  >モデレーターに追加</a
                   >
                   <a
                     @click="
@@ -116,7 +116,7 @@
                     "
                     class="link text--red"
                     v-if="isModerator"
-                    >モデレーターから削除</a
+                  >モデレーターから削除</a
                   >
                 </li>
               </ul>
@@ -249,7 +249,7 @@
   line-height: @font-line-height-md;
   color: var(--color-text-light);
   text-align: center;
-  .text-ellipsis;
+  .text-ellipsis();
 }
 
 .icon-moderator {
@@ -440,7 +440,7 @@
 }
 
 .scroll-to-latest {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;

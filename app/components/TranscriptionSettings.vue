@@ -170,7 +170,7 @@
               class="icon-help-border icon-tooltip"
               v-tooltip.bottom="$t(commentSectionNotice3)"
             ></i
-          ></label>
+            ></label>
         </div>
         <p class="section-notice-text">{{ commentSectionNotice4 }}</p>
         <div>
@@ -232,7 +232,7 @@ p.error {
 }
 
 .notification-root {
-  .notification-styling;
+  .notification-styling();
 
   margin-bottom: var(--spacing-lg);
 }

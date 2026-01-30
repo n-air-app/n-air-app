@@ -8,8 +8,8 @@ import {
   IMutation,
   JsonrpcService,
 } from 'services/api/jsonrpc';
+import { uuidv4 } from 'services/utils';
 import traverse from 'traverse';
-import { v4 as uuidv4 } from 'uuid';
 import { ServicesManager } from '../../services-manager';
 import { Service } from '../core/service';
 

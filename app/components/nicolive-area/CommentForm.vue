@@ -59,7 +59,7 @@
 
   > i {
     color: var(--color-text);
-    .transition;
+    .transition();
   }
 
   &:hover {

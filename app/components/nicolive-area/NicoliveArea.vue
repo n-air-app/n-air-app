@@ -15,7 +15,7 @@
           <program-statistics class="program-area-item" />
           <area-switcher class="switch-area" :contents="contents">
             <template v-slot:commentViewer
-              ><comment-viewer :showPlaceholder="showPlaceholder"
+            ><comment-viewer :showPlaceholder="showPlaceholder"
             /></template>
             <template v-slot:description><program-description /></template>
           </area-switcher>
@@ -177,7 +177,7 @@
 }
 
 .footer {
-  .dividing-border;
+  .dividing-border();
 
   position: relative;
   display: flex;
