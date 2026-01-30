@@ -47,7 +47,7 @@
           @click.prevent="openInDefaultBrowser($event)"
           href="https://qa.nicovideo.jp/faq/show/21148?site_domain=default"
           class="text-link"
-          ><i class="icon-question"></i><span>なふだ機能とは？</span></a
+        ><i class="icon-question"></i><span>なふだ機能とは？</span></a
         >
       </div>
     </div>

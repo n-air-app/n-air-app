@@ -101,7 +101,7 @@
               VOICEVOXを起動して、好きなキャラクターに読み上げてもらおう
             </div>
             <a class="banner-anchor" @click="showVoicevoxInformation()"
-              >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
+            >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
             ></a>
             <div class="banner-close">
               <i class="icon-close icon-btn" @click="closeVoicevoxInformation"></i>
@@ -115,7 +115,7 @@
           >
             <div class="banner-header">VOICEVOXを起動してください</div>
             <a class="banner-anchor" @click="showVoicevoxInformation()"
-              >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
+            >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
             ></a>
           </div>
 
