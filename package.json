@@ -197,6 +197,16 @@
     "yarn": "please-use-pnpm"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "electron",
+      "electron-chromedriver",
+      "electron-winstaller",
+      "husky",
+      "less",
+      "protobufjs",
+      "vue-popperjs"
+    ],
     "overrides": {
       "nth-check": "^2.0.1",
       "tar-fs": "^2.1.4"
