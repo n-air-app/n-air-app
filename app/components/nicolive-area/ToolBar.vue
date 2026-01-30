@@ -45,9 +45,9 @@
                 "
                 :disabled="
                   autoExtensionEnabled ||
-                  isExtending ||
-                  !isProgramExtendable ||
-                  programStatus === 'reserved'
+                    isExtending ||
+                    !isProgramExtendable ||
+                    programStatus === 'reserved'
                 "
               >
                 30分延長
@@ -78,8 +78,8 @@
         <button
           v-if="
             programStatus === 'onAir' ||
-            programStatus === 'reserved' ||
-            (programStatus === 'test' && selectedButton === 'end')
+              programStatus === 'reserved' ||
+              (programStatus === 'test' && selectedButton === 'end')
           "
           @click="endProgram"
           :disabled="isEnding || programStatus === 'reserved'"

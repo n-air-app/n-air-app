@@ -165,7 +165,7 @@
               <label>
                 {{ $t('settings.substream.videoEncoder')
                 }}<span class="label-description"
-                  >({{ $t('settings.substream.default') }}: x264)</span
+                >({{ $t('settings.substream.default') }}: x264)</span
                 >
               </label>
             </div>
@@ -185,7 +185,7 @@
               <label>
                 {{ $t('settings.substream.videoBitrate') }}
                 <span class="label-description"
-                  >({{ $t('settings.substream.default') }}: 2500Kbps)</span
+                >({{ $t('settings.substream.default') }}: 2500Kbps)</span
                 ></label
               >
             </div>
@@ -205,10 +205,10 @@
           <div class="input-wrapper">
             <div class="input-label">
               <label
-                >{{ $t('settings.substream.audioEncoder')
-                }}<span class="label-description"
-                  >({{ $t('settings.substream.default') }}: FFmpeg AAC)</span
-                >
+              >{{ $t('settings.substream.audioEncoder')
+              }}<span class="label-description"
+              >({{ $t('settings.substream.default') }}: FFmpeg AAC)</span
+              >
               </label>
             </div>
             <multiselect
@@ -225,9 +225,9 @@
           <div class="input-wrapper">
             <div class="input-label">
               <label
-                >{{ $t('settings.substream.audioBitrate') }}
+              >{{ $t('settings.substream.audioBitrate') }}
                 <span class="label-description"
-                  >({{ $t('settings.substream.default') }}: 128Kbps)</span
+                >({{ $t('settings.substream.default') }}: 128Kbps)</span
                 ></label
               >
               <input type="number" v-model="audioBitrate" min="64" max="320" />

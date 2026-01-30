@@ -15,7 +15,7 @@
             <li class="optimize-setting-list-item" v-for="o in category[1]" :key="o.key">
               <span class="item-name">{{ o.name }}: </span
               ><span class="item-value"
-                >{{ o.currentValue }}
+              >{{ o.currentValue }}
                 <span class="item-new-value" v-if="o.newValue"> -&gt; {{ o.newValue }}</span></span
               >
             </li>
