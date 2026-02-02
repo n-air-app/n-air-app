@@ -208,7 +208,7 @@ export const notes: IPatchNotes = {
   title: 'title',
   notes: [
     "a\\"b\\"c",
-  ]
+  ],
 };
 `);
 });
