@@ -111,11 +111,11 @@ async function showRequiredSystemComponentInstallGuideDialog() {
   });
   switch (result.response) {
     case 0:
-      await shell.openExternal('https://aka.ms/vs/17/release/vc_redist.x64.exe');
+      await shell.openExternal('https://aka.ms/vc14/vc_redist.x64.exe');
       break;
     case 1:
       await shell.openExternal(
-        'https://support.microsoft.com/ja-jp/help/2977003/the-latest-supported-visual-c-downloads',
+        'https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version',
       );
       break;
     case 2:

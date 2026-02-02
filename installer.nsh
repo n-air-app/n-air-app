@@ -39,7 +39,7 @@ LangString failed_download 1041 "警告: Microsoft から最新の Visual C++ �
   
   ; vc_redistのインストール処理
   DetailPrint "Visual C++ Redistributable not found. Downloading and installing..."
-  NSISdl::download https://aka.ms/vs/17/release/vc_redist.x64.exe "$INSTDIR\vc_redist.x64.exe"  
+  NSISdl::download https://aka.ms/vc14/vc_redist.x64.exe "$INSTDIR\vc_redist.x64.exe"  
 
   ${If} ${FileExists} `$INSTDIR\vc_redist.x64.exe`
     ExecWait '$INSTDIR\vc_redist.x64.exe /passive /norestart' $1
