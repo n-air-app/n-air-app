@@ -3,14 +3,7 @@ import { Store } from 'vuex';
 
 // Vue instance type augmentations
 declare module 'vue/types/vue' {
-  interface Vue {
-    $validator: {
-      validateAll(scope?: string): Promise<boolean>;
-      errors: {
-        items: unknown[];
-      };
-    };
-  }
+  interface Vue { }
 }
 
 // Vue component options augmentations

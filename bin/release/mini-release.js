@@ -77,25 +77,18 @@ async function postReleaseToSlack({ version, environment, channel, link, notes }
         },
       },
       {
-        type: 'section',
+        type: 'header',
         text: {
-          type: 'mrkdwn',
+          type: 'plain_text',
           text: 'Patch Note',
         },
       },
-    ],
-    attachments: [
       {
-        color: '#36a64f',
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'plain_text',
-              text: notes,
-            },
-          },
-        ],
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: notes,
+        },
       },
     ],
   });
