@@ -19,7 +19,6 @@ import path from 'path';
 import util from 'util';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
 import VTooltip from 'v-tooltip';
-import VeeValidate from 'vee-validate';
 import VueI18n from 'vue-i18n';
 import * as obs from '../obs-api';
 import { AppService } from './services/app';
@@ -113,7 +112,6 @@ require('./theme2.less');
 // Initiates tooltips and sets their parent wrapper
 Vue.use(VTooltip);
 VTooltip.options.defaultContainer = '#mainWrapper';
-Vue.use(VeeValidate); // form validations
 
 // Disable chrome default drag/drop behavior
 document.addEventListener('dragover', event => event.preventDefault());
