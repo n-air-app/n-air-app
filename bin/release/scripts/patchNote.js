@@ -290,7 +290,7 @@ ${notes
   .split('\n')
   .map(s => `    ${JSON.stringify(s)},`)
   .join('\n')}
-  ]
+  ],
 };
 `;
   info(`patch-note: '${patchNote}'`);
