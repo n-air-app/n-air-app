@@ -232,9 +232,47 @@ jobs:
         if: ${{ needs.changes.outputs.app == 'true' }}
         run: pnpm test --fail-fast test-dist/test/${{ matrix.directory }}
 
+  build_check:
+    name: build check
+    needs: [changes, setup-app, setup-bin]
+    if: ${{ needs.changes.outputs.app == 'true' }}
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: corepack enable pnpm
+
+      - name: cache node modules
+        id: cache-node-modules
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+
+      - name: cache node modules(bin)
+        id: cache-node-modules-bin
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: bin/node_modules
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
+
+      - name: Compile production
+        run: pnpm run compile:production
+
+      - name: Package local
+        run: pnpm run package:local
+
   test-summary:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
-    needs: [setup-app, setup-bin, unit_test-app, unit_test-bin, e2e_test]
+    needs: [setup-app, setup-bin, unit_test-app, unit_test-bin, e2e_test, build_check]
     if: always()
     steps:
       - name: test-summary
