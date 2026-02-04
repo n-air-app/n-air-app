@@ -13,12 +13,12 @@ import * as Sentry from '@sentry/electron/renderer';
 import { init as sentryVueInit } from '@sentry/vue';
 import ChildWindow from 'components/windows/ChildWindow.vue';
 import OneOffWindow from 'components/windows/OneOffWindow.vue';
+import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import path from 'path';
 import util from 'util';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
-import VTooltip from 'v-tooltip';
 import VueI18n from 'vue-i18n';
 import * as obs from '../obs-api';
 import { AppService } from './services/app';
@@ -109,9 +109,8 @@ require('./app.less');
 require('./theme.less');
 require('./theme2.less');
 
-// Initiates tooltips and sets their parent wrapper
-Vue.use(VTooltip);
-VTooltip.options.defaultContainer = '#mainWrapper';
+// Initiates tooltips
+Vue.directive('tooltip', tooltipDirective);
 
 // Disable chrome default drag/drop behavior
 document.addEventListener('dragover', event => event.preventDefault());
