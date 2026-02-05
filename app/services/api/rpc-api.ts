@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { Observable, Subject, Subscription } from 'rxjs';
 import {
   E_JSON_RPC_ERROR,
