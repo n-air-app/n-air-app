@@ -268,7 +268,7 @@ jobs:
         run: pnpm run compile:production
 
       - name: Package local
-        run: pnpm run package:local
+        run: pnpm run package:local -- --publish never
 
   test-summary:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
