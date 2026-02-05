@@ -264,6 +264,18 @@ jobs:
           path: bin/node_modules
           key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
 
+      - name: Get electron-builder version
+        id: electron-builder-version
+        run: |
+          $version = (Get-Content node_modules/electron-builder/package.json | ConvertFrom-Json).version
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: cache electron-builder
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/AppData/Local/electron-builder/Cache
+          key: ${{ runner.os }}-electron-builder-${{ steps.electron-builder-version.outputs.version }}
+
       - name: Compile production
         run: pnpm run compile:production
 
