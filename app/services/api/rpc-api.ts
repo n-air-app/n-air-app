@@ -23,7 +23,6 @@ export interface ISerializable {
  * A base class for implementing serializable JSON-RPC API
  * with supporting of Promises and Subscriptions
  * @see InternalApiService
- * @see ExternalApiService
  */
 export abstract class RpcApi extends Service {
   serviceEvent = new Subject<IJsonRpcResponse<IJsonRpcEvent>>();
