@@ -436,7 +436,8 @@
       "remove_confirm": "Remove?",
       "add_voice": "Add voice",
       "play_sample": "Play sample",
-      "open_menu": "Open menu"
+      "open_menu": "Open menu",
+      "preview_audio_on": "Preview audio is turned on in the mixer advanced settings"
     },
     "container": {
       "voice_name": "Name",

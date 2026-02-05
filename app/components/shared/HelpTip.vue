@@ -30,7 +30,7 @@
   color: var(--color-surface-inverse);
   white-space: initial;
   background-color: currentcolor;
-  .radius;
+  .radius();
 
   &[data-mode='scene-selector'] {
     top: -8px;
@@ -109,8 +109,8 @@
 
 .help-tip__inner {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   color: var(--color-object-emphasis-inverse);
 }
 

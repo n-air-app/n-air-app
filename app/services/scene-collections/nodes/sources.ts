@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import * as fi from 'node-fontinfo';
-import { AudioService } from 'services/audio';
+import { AudioService, DEFAULT_AUDIO_MIXERS } from 'services/audio';
 import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
@@ -10,12 +10,12 @@ import {
   TSourceType,
   isNoAudioPropertiesManagerType,
 } from 'services/sources';
+import Utils from 'services/utils';
 import * as obs from '../../../../obs-api';
 import { Inject } from '../../core/injector';
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { applyPathConvertForPreset, unapplyPathConvertForPreset } from './sources-util';
-import Utils from 'services/utils';
 
 interface ISchema {
   items: ISourceInfo[];
@@ -326,12 +326,48 @@ export class SourcesNode extends Node<ISchema, {}> {
               });
             } else {
               audioSource.setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);
+
+              // マイグレーション: 音声を持つべきソースでaudioMixers=0の場合、デフォルト値に修正
+              // 注: 内部的には8ビットだがUIでは6トラック（ビット0-5）しか操作できないため、
+              //     手動で全トラックOFFにしても0（全ビットOFF）にはならない（ビット6-7は変更されない）
+              //     audioMixers=0は過去のバグや初期化ミスによる異常値であり、マイグレーション対象とする
+              let audioMixers = sourceInfo.audioMixers;
+              const sourceTypesWithAudio = [
+                'nair-rtvc-source',
+                'game_capture',
+                'wasapi_input_capture',
+                'wasapi_output_capture',
+              ];
+
+              if (audioMixers === 0 && sourceTypesWithAudio.includes(sourceInfo.type)) {
+                const message = `Migrating audioMixers for source "${sourceInfo.name}" (${sourceInfo.type}) from 0 to ${DEFAULT_AUDIO_MIXERS}`;
+                console.warn(message);
+
+                // Sentryに警告を送信（タグとfingerprintを付けて同一イベントとして集計）
+                Sentry.captureEvent({
+                  message,
+                  level: 'warning',
+                  tags: {
+                    sourceType: sourceInfo.type,
+                    migration: 'audioMixers',
+                  },
+                  fingerprint: ['audioMixers-migration'],
+                  extra: {
+                    sourceName: sourceInfo.name,
+                    oldAudioMixers: 0,
+                    newAudioMixers: DEFAULT_AUDIO_MIXERS,
+                  },
+                });
+
+                audioMixers = DEFAULT_AUDIO_MIXERS; // 全トラックON
+              }
+
               audioSource.setSettings({
                 forceMono: sourceInfo.forceMono,
                 syncOffset: sourceInfo.syncOffset
                   ? AudioService.timeSpecToMs(sourceInfo.syncOffset)
                   : 0,
-                audioMixers: sourceInfo.audioMixers,
+                audioMixers,
                 monitoringType: sourceInfo.monitoringType,
               });
               audioSource.setHidden(!!sourceInfo.mixerHidden);

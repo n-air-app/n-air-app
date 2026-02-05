@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import { debounce } from 'lodash-decorators';
+import _, { debounce } from 'lodash';
 import VueColor from 'vue-color';
 import { Component, Prop } from 'vue-property-decorator';
 import Utils from '../../../services/utils';
@@ -28,16 +27,25 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
     this.pickerVisible = !this.pickerVisible;
   }
 
-  @debounce(500)
-  setValue(rgba: IColor) {
+  private setValueImpl(rgba: IColor) {
     if (!_.isEqual(rgba, this.obsColor)) {
       const intColor = Utils.rgbaToInt(rgba.r, rgba.g, rgba.b, Math.round(255 * rgba.a));
       this.emitInput({ ...this.value, value: intColor });
     }
   }
 
+  private debouncedSetValue = debounce(this.setValueImpl, 500);
+
+  setValue(rgba: IColor) {
+    this.debouncedSetValue(rgba);
+  }
+
   mounted() {
     this.setValue(this.obsColor);
+  }
+
+  beforeDestroy() {
+    this.debouncedSetValue.cancel();
   }
 
   get hexAlpha() {

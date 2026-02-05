@@ -1,4 +1,4 @@
-import { debounce } from 'lodash-decorators';
+import { debounce } from 'lodash';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { SettingsService } from 'services/settings';
@@ -248,10 +248,15 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     this.setVideoSetting('fpsDen', 1, display);
   }
 
-  @debounce(200)
-  updateObsSettings(display: TDisplayType = 'horizontal') {
+  private updateObsSettingsImpl(display: TDisplayType = 'horizontal') {
     this.contexts[display].video = this.state[display];
     this.contexts[display].legacySettings = this.state[display];
+  }
+
+  private debouncedUpdateObsSettings = debounce(this.updateObsSettingsImpl, 200);
+
+  updateObsSettings(display: TDisplayType = 'horizontal') {
+    this.debouncedUpdateObsSettings(display);
   }
 
   setVideoSetting(key: string, value: unknown, display: TDisplayType = 'horizontal') {
@@ -267,7 +272,7 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     const legacySettings = this.contexts[display].legacySettings;
     this.contexts[display].video = legacySettings;
 
-    getKeys(legacySettings).forEach(key => {
+    getKeys(legacySettings).forEach((key) => {
       this.SET_VIDEO_SETTING(key, legacySettings[key], 'horizontal');
     });
   }
@@ -279,7 +284,9 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
    * Each context must be destroyed when shutting down the app to prevent errors
    */
   shutdown() {
-    displays.forEach(display => {
+    this.debouncedUpdateObsSettings.cancel();
+
+    displays.forEach((display) => {
       if (this.contexts[display]) {
         // save settings as legacy settings
         this.contexts[display].legacySettings = this.state[display];

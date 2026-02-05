@@ -88,7 +88,7 @@ function packedSegmentResponse(
 ): Response {
   const writer = new Writer();
   dwango.nicolive.chat.service.edge.PackedSegment.encode(packedSegment, writer);
-  return new Response(writer.finish(), {
+  return new Response(new Uint8Array(writer.finish()), {
     headers,
   });
 }
@@ -134,17 +134,20 @@ describe('NdgrClient', () => {
         const headers = new Headers();
         headers.append('Content-Type', 'application/octet-stream');
         switch (input) {
-          case ENTRY_URL_WITH_TIMESTAMP: {
+          case ENTRY_URL_WITH_TIMESTAMP:
             return Promise.resolve(
               new Response(
-                encodeMessages(
-                  msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
-                  entries,
+                new Uint8Array(
+                  encodeMessages(
+                    msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
+                    entries,
+                  ),
                 ),
-                { headers },
+                {
+                  headers,
+                },
               ),
             );
-          }
 
           case BACKWARD1_MESSAGES_URL:
             return Promise.resolve(
@@ -169,22 +172,30 @@ describe('NdgrClient', () => {
           case PREV_MESSAGES_URL:
             return Promise.resolve(
               new Response(
-                encodeMessages(
-                  msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
-                  prevMessages.map(message => ({ message })),
+                new Uint8Array(
+                  encodeMessages(
+                    msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
+                    prevMessages.map(message => ({ message })),
+                  ),
                 ),
-                { headers },
+                {
+                  headers,
+                },
               ),
             );
 
           case MESSAGES_URL:
             return Promise.resolve(
               new Response(
-                encodeMessages(
-                  msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
-                  messages.map(message => ({ message })),
+                new Uint8Array(
+                  encodeMessages(
+                    msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
+                    messages.map(message => ({ message })),
+                  ),
                 ),
-                { headers },
+                {
+                  headers,
+                },
               ),
             );
 
@@ -213,9 +224,9 @@ describe('NdgrClient', () => {
       complete: onCompleted,
     });
     await target.connect();
-    expect(fetchMock).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
-    expect(fetchMock).toHaveBeenNthCalledWith(2, PREV_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(3, MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(2, PREV_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(3, MESSAGES_URL);
 
     const expectedMessages = [...prevMessages, ...messages];
     expect(onReceived).toHaveBeenCalledTimes(expectedMessages.length);
@@ -238,11 +249,11 @@ describe('NdgrClient', () => {
     });
     const WANT_BACKWARDS = 3;
     await target.connect('now', WANT_BACKWARDS);
-    expect(fetchMock).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
-    expect(fetchMock).toHaveBeenNthCalledWith(2, BACKWARD1_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(3, BACKWARD2_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(4, PREV_MESSAGES_URL);
-    expect(fetchMock).toHaveBeenNthCalledWith(5, MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(1, ENTRY_URL_WITH_TIMESTAMP);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(2, BACKWARD1_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(3, BACKWARD2_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(4, PREV_MESSAGES_URL);
+    expect(fetchMock as any).toHaveBeenNthCalledWith(5, MESSAGES_URL);
 
     const RAW_BACKWARDS_LEN = backwardMessages.flat().length;
     const backwards = backwardMessages
@@ -268,13 +279,13 @@ describe('NdgrClient', () => {
     await expect(target.connect()).rejects.toThrow(
       `Failed to fetch[label:head]: TypeError: network error`,
     );
-    expect(fetchMock).toHaveBeenCalledTimes(MAX_RETRY + 1);
+    expect(fetchMock as any).toHaveBeenCalledTimes(MAX_RETRY + 1);
   });
 
   it('should throw an NdgrFetchError when fetch returns a failed response', async () => {
     expect.assertions(2);
     const target = new NdgrClient(HTTP_ERROR_URL);
     await expect(target.connect()).rejects.toThrow(`Failed to fetch[ndgr:head]: 404`);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock as any).toHaveBeenCalledTimes(1);
   });
 });

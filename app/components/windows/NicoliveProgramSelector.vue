@@ -158,7 +158,7 @@
   margin: 4px 0 0;
   font-size: @font-size2;
   color: var(--color-text-dark);
-  .text-ellipsis;
+  .text-ellipsis();
 }
 
 .nicolive-program-selector-container {
@@ -224,7 +224,7 @@
         margin: 0;
         font-size: @font-size4;
         color: var(--color-text);
-        .text-ellipsis;
+        .text-ellipsis();
       }
 
       &:hover {

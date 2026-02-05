@@ -15,6 +15,7 @@ const {
   readPatchNoteFile,
   writePatchNoteFile,
   collectPullRequestMerges,
+  collectNonPRMerges,
 } = require('./scripts/patchNote');
 
 const projectRoot = path.resolve(__dirname, '..', '..');
@@ -57,7 +58,6 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
   log('channel', (channel === 'stable' ? colors.red : colors.cyan)(channel));
 
   /** @type {import('./configs/type').ReleaseConfig} */
-  // eslint-disable-next-line import/no-dynamic-require
   const config = require(`./configs/${environment}-${channel}`);
 
   info('checking current branch...');
@@ -127,6 +127,11 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
     },
   );
 
+  // Collect non-PR merge commits
+  const nonPRMerges = await collectNonPRMerges(previousVersion);
+  const nonPRMergesNotes = nonPRMerges ? `\nMerge Commits:\n${nonPRMerges}` : '';
+
+  // Collect direct commits
   const directCommits = executeCmd(
     `git log --no-merges --first-parent --pretty=format:"%s (%t)" v${previousVersion}..`,
     {
@@ -134,7 +139,9 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
     },
   ).stdout;
   const directCommitsNotes = directCommits ? `\nDirect Commits:\n${directCommits}` : '';
-  const newNotes = `${prMerges}${directCommitsNotes}`;
+
+  // Integrate: PR merges → non-PR merges → direct commits
+  const newNotes = `${prMerges}${nonPRMergesNotes}${directCommitsNotes}`;
 
   writePatchNoteFile(patchNoteFileName, newVersion, newNotes);
   info(`generated ${patchNoteFileName}:`);

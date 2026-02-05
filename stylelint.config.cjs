@@ -4,7 +4,6 @@ module.exports = {
   extends: [
     'stylelint-config-standard',
     'stylelint-config-recess-order',
-    'stylelint-config-prettier',
   ],
   rules: {
     // ルールは随時追加する
@@ -24,16 +23,28 @@ module.exports = {
     ],
     'color-function-notation': null,
     'block-no-empty': null,
+
+    // v16 new rules: disable for LESS compatibility or project preferences
+    'color-function-alias-notation': null, // LESS uses rgba() with variables
+    'property-no-deprecated': null, // word-wrap still widely used
   },
   overrides: [
     {
       files: ['**/*{.html,.vue}'],
       customSyntax: 'postcss-html',
+      rules: {
+        // LESS variables in Vue <style lang="less"> blocks
+        'declaration-property-value-no-unknown': null,
+      },
     },
     {
       files: ['**/*.less'],
       ignoreFiles: ['app/styles/custom-icons.less'], // 自動生成のため除外
       customSyntax: 'postcss-less',
+      rules: {
+        // LESS variables and operations are not recognized by standard CSS validators
+        'declaration-property-value-no-unknown': null,
+      },
     },
   ],
 };

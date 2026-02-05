@@ -73,8 +73,8 @@
   right: 0;
   width: 0;
   cursor: pointer;
+  outline: none;
   background-color: rgba(0, 0, 0, 0%);
   border: 0;
-  outline: none;
 }
 </style>

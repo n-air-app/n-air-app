@@ -1,5 +1,5 @@
 import { Service } from 'services/core/service';
-import uuid from 'uuid/v4';
+import { uuidv4 } from 'services/utils';
 import {
   E_JSON_RPC_ERROR,
   IJsonRpcEvent,
@@ -34,7 +34,7 @@ export class JsonrpcService extends Service implements IJsonrpcServiceApi {
     return {
       method,
       jsonrpc: '2.0',
-      id: uuid(),
+      id: uuidv4(),
       params: {
         args,
         resource: resourceId,

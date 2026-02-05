@@ -41,7 +41,7 @@ export class FontLibraryService extends Service {
           this.manifest = json;
           return json;
         })
-        .catch(() => {
+        .catch((): IFontManifest => {
           return { families: [] };
         });
     }

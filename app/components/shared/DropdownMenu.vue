@@ -18,7 +18,7 @@
 
 // 詳細度でライブラリ側の指定を上書きする
 .popper.dropdown-menu {
-  .popper-styling;
+  .popper-styling();
 
   width: 100%;
   max-height: 152px;
@@ -34,7 +34,7 @@
   color: var(--color-text);
   text-align: left;
   letter-spacing: 0.7px;
-  .semibold;
+  .semibold();
 
   i {
     margin-left: 8px;
@@ -49,7 +49,7 @@
   }
 
   > .scene-name {
-    .text-ellipsis;
+    .text-ellipsis();
 
     display: inline-block;
     font-size: @font-size4;
@@ -58,7 +58,7 @@
 }
 
 .dropdown-menu__item {
-  .text-ellipsis;
+  .text-ellipsis();
 
   width: 100%;
   padding: 0 8px;

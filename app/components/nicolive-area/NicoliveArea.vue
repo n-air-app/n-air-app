@@ -15,7 +15,7 @@
           <program-statistics class="program-area-item" />
           <area-switcher class="switch-area" :contents="contents">
             <template v-slot:commentViewer
-              ><comment-viewer :showPlaceholder="showPlaceholder"
+            ><comment-viewer :showPlaceholder="showPlaceholder"
             /></template>
             <template v-slot:description><program-description /></template>
           </area-switcher>
@@ -95,8 +95,8 @@
 
 .nicolive-area-container {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   align-items: center;
   width: @nicolive-area-width;
   background-color: var(--color-bg-quinary);
@@ -104,8 +104,8 @@
 
 .program-area {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   justify-content: center;
   width: 100%;
 
@@ -152,8 +152,8 @@
 }
 
 .switch-area {
-  flex-basis: 0;
   flex-grow: 1;
+  flex-basis: 0;
 }
 
 .devider {
@@ -177,7 +177,7 @@
 }
 
 .footer {
-  .dividing-border;
+  .dividing-border();
 
   position: relative;
   display: flex;

@@ -46,7 +46,6 @@ export { ProjectorService } from 'services/projector';
 export { ProtocolLinksService } from 'services/protocol-links';
 export { RtvcStateService } from 'services/rtvcStateService';
 export { SceneCollectionsService } from 'services/scene-collections';
-export { OverlaysPersistenceService } from 'services/scene-collections/overlays';
 export { SceneCollectionsStateService } from 'services/scene-collections/state';
 export { Scene, SceneItem, SceneItemFolder, SceneItemNode, ScenesService } from 'services/scenes';
 export { Selection, SelectionService } from 'services/selection';

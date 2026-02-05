@@ -40,8 +40,8 @@
 
 .studio-mode-container {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   background-color: var(--color-bg-quinary);
 
   &.compact-mode {

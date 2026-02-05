@@ -2,9 +2,9 @@ import { Inject } from 'services/core/injector';
 import { SourceFiltersService } from 'services/source-filters';
 import { ISourcesServiceApi } from 'services/sources';
 import { WindowsService } from 'services/windows';
-import SlVueTree, { ICursorPosition, ISlTreeNodeModel } from 'sl-vue-tree';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
+import SlVueTree, { ICursorPosition, ISlTreeNodeModel } from '../shared/sl-vue-tree';
 
 import ModalLayout from 'components/ModalLayout.vue';
 import GenericForm from 'components/obs/inputs/GenericForm.vue';

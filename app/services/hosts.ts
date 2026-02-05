@@ -11,6 +11,9 @@ export class HostsService extends Service {
       if (url.startsWith(this.niconicoAccount)) {
         return url.replace(this.niconicoAccount, 'http://localhost:8080/account');
       }
+      if (url.startsWith(this.niconicoId)) {
+        return url.replace(this.niconicoId, 'http://localhost:8080/id');
+      }
       if (url.startsWith(this.niconicoOAuth)) {
         return url.replace(this.niconicoOAuth, 'http://localhost:8080/oauth');
       }
@@ -22,6 +25,9 @@ export class HostsService extends Service {
   }
   get niconicoAccount() {
     return 'https://account.nicovideo.jp';
+  }
+  get niconicoId() {
+    return 'https://api.id.nicovideo.jp';
   }
   get niconicoOAuth() {
     return 'https://oauth.nicovideo.jp';

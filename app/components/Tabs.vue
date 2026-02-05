@@ -23,7 +23,7 @@
 @import url('../styles/index');
 
 .tabs__container {
-  .flex__column;
+  .flex__column();
 
   flex-grow: 1;
 }
@@ -37,14 +37,14 @@
   border-bottom: 1px solid var(--color-border-light);
 
   > button {
-    flex-basis: 0;
     flex-grow: 1;
+    flex-basis: 0;
     height: 100%;
   }
 }
 
 .tab-content {
-  .flex__column;
+  .flex__column();
 
   position: relative;
   flex-grow: 1;

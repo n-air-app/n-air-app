@@ -115,6 +115,12 @@ module.exports = function (env, argv) {
             pathRewrite: { '^/account': '' },
           },
           {
+            context: ['/id'],
+            target: 'https://api.id.nicovideo.jp',
+            changeOrigin: true,
+            pathRewrite: { '^/id': '' },
+          },
+          {
             context: ['/oauth'],
             target: 'https://oauth.nicovideo.jp',
             changeOrigin: true,
@@ -134,7 +140,7 @@ module.exports = function (env, argv) {
       target: 'electron29-renderer',
 
       resolve: {
-        extensions: ['.js', '.ts', '.tsx'],
+        extensions: ['.js', '.ts'],
         modules: [path.resolve(__dirname, 'app'), 'node_modules'],
       },
 
@@ -147,7 +153,6 @@ module.exports = function (env, argv) {
         'aws-sdk': 'require("aws-sdk")',
         asar: 'require("asar")',
         'node-fontinfo': 'require("node-fontinfo")',
-        rimraf: 'require("rimraf")',
 
         'utf-8-validate': 'require("utf-8-validate")',
         bufferutil: 'require("bufferutil")',
@@ -172,11 +177,6 @@ module.exports = function (env, argv) {
             exclude: /node_modules|vue\/src/,
           },
           {
-            test: /\.tsx$/,
-            exclude: /node_modules|vue\/src/,
-            use: ['babel-loader', { loader: 'ts-loader' }],
-          },
-          {
             test: /\.js$/,
             loader: 'babel-loader',
             exclude: [/node_modules/, path.join(__dirname, 'bin')],
@@ -189,6 +189,7 @@ module.exports = function (env, argv) {
                 loader: 'css-loader',
                 options: {
                   importLoaders: 1,
+                  esModule: false,
                 },
               },
               {
@@ -209,6 +210,7 @@ module.exports = function (env, argv) {
                 loader: 'css-loader',
                 options: {
                   importLoaders: 1,
+                  esModule: false,
                 },
               },
               {
@@ -229,6 +231,7 @@ module.exports = function (env, argv) {
               name: '[name]-[hash].[ext]',
               outputPath: 'media/',
               publicPath: 'bundles/media/',
+              esModule: false,
             },
           },
           // Handles custom fonts. Currently used for icons.
@@ -239,6 +242,7 @@ module.exports = function (env, argv) {
               name: '[name].[ext]',
               outputPath: 'fonts/',
               publicPath: 'bundles/fonts/',
+              esModule: false,
             },
           },
           {

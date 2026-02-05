@@ -1,9 +1,49 @@
 version: 2
 updates:
+  # GitHub Actions
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      # Check for updates to GitHub Actions every week
       interval: 'weekly'
+    commit-message:
+      prefix: '開発:'
+
+  # Root npm dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    ignore:
+      # @n-air-app/* パッケージは内製なので即座に更新可能
+      - dependency-name: '@n-air-app/*'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+    groups:
+      external-dependencies:
+        patterns:
+          - '*'
+        exclude-patterns:
+          - '@n-air-app/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    commit-message:
+      prefix: '開発:'
+
+  # bin/ npm dependencies
+  - package-ecosystem: 'npm'
+    directory: '/bin'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    groups:
+      bin-dependencies:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
     commit-message:
       prefix: '開発:'

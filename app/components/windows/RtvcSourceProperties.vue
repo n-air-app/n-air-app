@@ -145,9 +145,9 @@
               <div class="header">
                 {{ $t('source-props.nair-rtvc-source.nav.voice_setting') }}
                 <span v-if="!isPreset"
-                  ><button class="button--text" @click="onRandom">
-                    {{ $t('source-props.nair-rtvc-source.container.make_random.name') }}
-                  </button>
+                ><button class="button--text" @click="onRandom">
+                   {{ $t('source-props.nair-rtvc-source.container.make_random.name') }}
+                 </button>
                   <i
                     class="icon-help icon-tooltip"
                     v-tooltip.bottom="
@@ -161,7 +161,7 @@
             <div v-if="isSongMode">
               <div class="labels">
                 <span
-                  >{{ $t('source-props.nair-rtvc-source.pitch_shift.name') }}
+                >{{ $t('source-props.nair-rtvc-source.pitch_shift.name') }}
                   <i
                     class="icon-help icon-tooltip"
                     v-tooltip.bottom="$t('source-props.nair-rtvc-source.preset.description')"
@@ -181,7 +181,7 @@
             <div v-else>
               <div class="labels">
                 <span
-                  >{{ $t('source-props.nair-rtvc-source.pitch_shift.name') }}
+                >{{ $t('source-props.nair-rtvc-source.pitch_shift.name') }}
                   <i
                     class="icon-help icon-tooltip"
                     v-tooltip.bottom="$t('source-props.nair-rtvc-source.preset.description')"
@@ -276,12 +276,12 @@
             <div class="input-container">
               <div class="input-label">
                 <label
-                  >{{ $t('source-props.nair-rtvc-source.latency.name') }}
+                >{{ $t('source-props.nair-rtvc-source.latency.name') }}
                   <i
                     class="icon-help icon-tooltip wide"
                     v-tooltip.top="$t('source-props.nair-rtvc-source.latency.description')"
                   ></i
-                ></label>
+                  ></label>
               </div>
               <div class="input-wrapper">
                 <multiselect
@@ -318,8 +318,13 @@
     </div>
     <div class="modal-controls">
       <div class="toggle-wrapper">
-        <span class="toggle-label">{{ $t('source-props.nair-rtvc-source.nav.check_voice') }}</span>
-        <input v-model="isMonitor" type="checkbox" class="toggle-button" />
+        <div v-if="canToggleMonitor">
+          <span class="toggle-label">{{
+            $t('source-props.nair-rtvc-source.nav.check_voice')
+          }}</span>
+          <input v-model="isMonitor" type="checkbox" class="toggle-button" />
+        </div>
+        <div v-else>{{ $t('source-props.nair-rtvc-source.nav.preview_audio_on') }}</div>
       </div>
 
       <button class="button button--secondary" @click="cancel" data-test="Cancel">
@@ -348,8 +353,8 @@
 
   .modal-contents {
     display: flex;
-    flex-direction: row;
     flex-grow: 1;
+    flex-direction: row;
     height: calc(100% - 48px); // フッターを除いた高さ
   }
 
@@ -395,7 +400,7 @@
     font-size: @font-size5;
     cursor: pointer;
     border-radius: 4px;
-    .transition;
+    .transition();
 
     &:not(.nav-icon-active):hover {
       color: var(--color-text-light);
@@ -480,7 +485,7 @@
     border-radius: 32px;
     box-shadow: @shadow;
     opacity: 0;
-    .transition;
+    .transition();
 
     &:hover {
       color: var(--color-text-dark);
@@ -546,7 +551,7 @@
     line-height: @font-line-height-md;
     text-align: center;
     .paragraph-ellipsis(3);
-    .transition;
+    .transition();
 
     .main-cell:not(.active):hover & {
       color: var(--color-text-light);
@@ -649,8 +654,8 @@
 
 .content-container {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   padding: 8px 0 0 8px;
   margin: 0;
   overflow-y: scroll;
@@ -658,8 +663,8 @@
 
   .content-inner {
     display: flex;
-    flex-direction: column;
     flex-grow: 1;
+    flex-direction: column;
   }
 
   .input-container {

@@ -25,12 +25,12 @@ npm パッケージをインストールし、さまざまなスクリプトを�
 
 現在の LTS リリース 22.x.x を推奨します：<https://nodejs.org/>
 
-### Yarn
+### pnpm
 
-各ノードモジュールの正しいバージョンを使用するためには、yarn パッケージマネージャーを使用する必要があります。
+各ノードモジュールの正しいバージョンを使用するためには、pnpm パッケージマネージャーを使用する必要があります。
 
 Corepack が有効なら自動的にインストールされます。
-手動インストール方法については、こちらを参照してください：<https://classic.yarnpkg.com/en/docs/install>
+手動インストール方法については、こちらを参照してください：<https://pnpm.io/ja/installation>
 
 ### インストール
 
@@ -42,17 +42,38 @@ npm login --scope=@n-air-app --registry=https://npm.pkg.github.com
 > Password: TOKEN (GitHub Personal Access Token(classic) with read:packages scope)
 ```
 
-2. yarn を介してすべての node モジュールをインストールする。
+2. GitHub への SSH 鍵登録（git 依存関係を使用するため必要）
 
-```bash
-yarn install
-yarn install --cwd bin # binディレクトリのyarn installも実行する(yarn start に必要)
+一部の依存関係は GitHub リポジトリから直接取得されます（例: sl-vue-tree）。
+これらは SSH 経由でクローンされるため、GitHub に SSH 公開鍵を登録する必要があります。
+
+**症状**: pnpm install 実行時に以下のようなエラーが出る場合は、SSH 鍵の設定が必要です:
+
+```
+Host key verification failed.
+fatal: Could not read from remote repository.
+Please make sure you have the correct access rights
 ```
 
-3. webpack を使用してアセットをコンパイルする。
+**設定手順**:
+
+- SSH 鍵の生成と GitHub への登録方法は、GitHub 公式ドキュメントを参照してください
+  - [SSH 鍵の生成](https://docs.github.com/ja/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+  - [GitHub アカウントへの SSH 鍵の追加](https://docs.github.com/ja/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
+
+**注意**: CI 環境では `git config` で HTTPS へ自動変換されるため、SSH 鍵設定は不要です。
+
+3. pnpm を介してすべての node モジュールをインストールする。
 
 ```bash
-yarn compile
+pnpm install
+pnpm install --dir bin # binディレクトリのpnpm installも実行する(pnpm start に必要)
+```
+
+4. webpack を使用してアセットをコンパイルする。
+
+```bash
+pnpm run compile
 ```
 
 ### 実行
@@ -61,7 +82,7 @@ Visual Studio Code を使用している場合は、組み込みのデバッガ�
 それ以外の場合は以下のコマンドにより実行可能です。
 
 ```
-yarn start
+pnpm start
 ```
 
 ## ライセンス

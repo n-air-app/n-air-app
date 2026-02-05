@@ -14,37 +14,37 @@ N Air is an Electron-based desktop streaming application for niconico live strea
 ```bash
 # Install dependencies (requires GitHub Personal Access Token for @n-air-app packages)
 npm login --scope=@n-air-app --registry=https://npm.pkg.github.com
-yarn install
-yarn install --cwd bin  # Required for yarn start
+pnpm install
+pnpm install --dir bin  # Required for pnpm start
 ```
 
 **Development:**
 ```bash
-yarn compile        # Build development assets
-yarn start          # Run application
-yarn dev            # Development mode with hot reload (webpack dev server + electron)
-yarn watch          # Watch mode compilation
+pnpm run compile    # Build development assets
+pnpm start          # Run application
+pnpm dev            # Development mode with hot reload (webpack dev server + electron)
+pnpm run watch      # Watch mode compilation
 ```
 
 **Build & Package:**
 ```bash
-yarn compile:production     # Production build
-yarn package               # Package for distribution (stable)
-yarn package:public-unstable  # Package unstable build
+pnpm run compile:production     # Production build
+pnpm run package                # Package for distribution (stable)
+pnpm run package:public-unstable  # Package unstable build
 ```
 
 **Testing:**
 ```bash
-yarn test           # Full test suite (i18n check + TypeScript compile + AVA)
-yarn test:unit      # Unit tests (Jest for app + bin)
-yarn test:unit:app  # Jest tests for app only
-yarn screentest     # Visual regression tests
+pnpm test           # Full test suite (i18n check + TypeScript compile + AVA)
+pnpm run test:unit  # Unit tests (Jest for app + bin)
+pnpm run test:unit:app  # Jest tests for app only
+pnpm screentest     # Visual regression tests
 ```
 
 **Code Quality:**
 ```bash
-yarn lint           # ESLint + Stylelint
-yarn format         # Prettier + ESLint fix + Stylelint fix
+pnpm lint           # ESLint + Stylelint
+pnpm format         # Prettier + ESLint fix + Stylelint fix
 ```
 
 ## Architecture
@@ -160,5 +160,6 @@ test('service behavior', () => {
 ## Dependencies Notes
 
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
-**Package Manager:** Must use Yarn (npm blocked), lockfile committed
+**Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
 **Node Version:** Requires Node.js 22.x LTS
+**Important:** `.npmrc` is configured with `node-linker=hoisted` to maintain flat node_modules structure for native modules that use relative path references in electron-builder packaging

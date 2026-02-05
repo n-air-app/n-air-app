@@ -1,4 +1,4 @@
-import uuid from 'uuid';
+import { uuidv4 } from 'services/utils';
 import { ChatMessageType } from './ChatMessage/classifier';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { sendLogGif } from './nicolive-logger';
@@ -18,11 +18,11 @@ type SendParam = {
 
 export type HttpRelationResult =
   | {
-      error: string;
-    }
+    error: string;
+  }
   | {
-      result: string;
-    };
+    result: string;
+  };
 
 export class HttpRelation {
   static async sendChat(
@@ -46,7 +46,7 @@ export class HttpRelation {
 
     if (isWrappedChat(item)) {
       if (!item.value.content) return { error: 'no-content' };
-      param.id = item.value.id ?? uuid();
+      param.id = item.value.id ?? uuidv4();
       param.comment = item.value.content;
       param.isOwner = bool2string(item.type === 'operator');
       param.userId = item.value.user_id ?? '-';
@@ -64,7 +64,7 @@ export class HttpRelation {
 
   static async sendTest(httpRelation: HttpRelationState): Promise<HttpRelationResult> {
     const param: SendParam = {
-      id: uuid(),
+      id: uuidv4(),
       comment: 'テストコメントです',
       isOwner: 'false',
       userId: '-',

@@ -63,8 +63,8 @@
   max-width: 100%;
   height: 30px;
   overflow: hidden;
-  line-height: 30px;
   text-overflow: ellipsis;
+  line-height: 30px;
   white-space: nowrap;
   animation: notify-appears 0.3s;
   .padding-left();

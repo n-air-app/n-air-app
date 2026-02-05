@@ -57,7 +57,7 @@
 <script lang="ts" src="./SourceFilters.vue.ts"></script>
 
 <style lang="less" scoped>
-@import url('~sl-vue-tree/dist/sl-vue-tree-dark.css');
+@import url('../shared/sl-vue-tree/sl-vue-tree-dark.css');
 
 .content {
   flex-grow: 1;

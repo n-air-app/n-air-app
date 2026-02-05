@@ -1,7 +1,7 @@
 import { Inject } from 'services/core/injector';
+import { uuidv4 } from 'services/utils';
 import { Display as OBSDisplay, VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
-import uuid from 'uuid/v4';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 
@@ -31,7 +31,7 @@ export default class Display extends Vue {
   }
 
   createDisplay() {
-    const displayId = uuid();
+    const displayId = uuidv4();
     this.display = new OBSDisplay(displayId, {
       sourceId: this.sourceId,
       paddingSize: this.paddingSize,

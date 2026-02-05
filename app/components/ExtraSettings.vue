@@ -112,7 +112,7 @@
       display: none;
 
       & ~ .view-button {
-        .transition;
+        .transition();
 
         position: relative;
         display: inline-block;
@@ -156,12 +156,12 @@
         color: @text-primary;
         color: var(--color-text-light);
         text-align: center;
+        appearance: none;
         cursor: default;
+        outline: none;
         background: none;
         border: none;
         border-radius: 0;
-        outline: none;
-        appearance: none;
       }
 
       &:checked ~ input {
@@ -199,8 +199,8 @@
     &:active {
       &::before {
         opacity: 1;
-        transition: all 0.3s;
         transform: scale(1.2) translateY(-8px);
+        transition: all 0.3s;
       }
     }
   }
