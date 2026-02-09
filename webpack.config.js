@@ -5,6 +5,7 @@ const DefinePlugin = require('webpack').DefinePlugin;
 const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
 
 const path = require('node:path');
+// Test: verify build_check runs without setup-bin dependency
 
 const package = require('./package.json');
 

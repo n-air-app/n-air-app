@@ -28,7 +28,6 @@ jobs:
             common:
               - 'package.json'
               - 'pnpm-lock.yaml'
-              - '.github/workflows/test.yml'
             app:
               - 'installer.nsh'
               - 'tsconfig.json'
