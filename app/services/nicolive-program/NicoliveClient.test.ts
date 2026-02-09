@@ -1,4 +1,5 @@
-import * as fetchMock from 'fetch-mock';
+import fetchMock from '@fetch-mock/jest';
+import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
@@ -7,7 +8,6 @@ jest.mock('util/menus/Menu', () => ({}));
 jest.mock('@electron/remote', () => ({
   BrowserWindow: jest.fn(),
 }));
-import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 const fetchViaMainProcess = jest
   .fn<Promise<MainProcessFetchResponse>, [string, RequestInit]>()
   .mockName('fetchViaMainProcess');
@@ -17,8 +17,12 @@ jest.mock('util/fetchViaMainProcess', () => ({
 
 import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
 
+beforeEach(() => {
+  fetchMock.mockGlobal();
+});
+
 afterEach(() => {
-  fetchMock.reset();
+  fetchMock.mockRestore({ includeSticky: true });
   fetchViaMainProcess.mockReset();
 });
 
@@ -31,6 +35,9 @@ describe('parseMaxQuality', () => {
     ['384kbps288p', 384, 288, 30],
     ['192kbps288p', 192, 288, 30],
     ['8Mbps1080p60fps', 8000, 1080, 60],
+    ['1.5Mbps480p', 1500, 480, 30],
+    ['1500kbps480p', 1500, 480, 30],
+    ['1.5Mbps480p29.97fps', 1500, 480, 29.97],
     ['invalid', fallback.bitrate, fallback.height, fallback.fps],
   ])(`%s => %d kbps, %d x %d`, (maxQuality, bitrate, height, fps) => {
     expect(parseMaxQuality(maxQuality, fallback)).toEqual({
@@ -77,18 +84,18 @@ test('wrapResultはレスポンスのdataを取り出す', async () => {
     ok: true,
     value: dummyBody.data,
   });
-  expect(fetchMock.done()).toBe(true);
+  expect(fetchMock.callHistory.done()).toBe(true);
 });
 
 test('wrapResultは結果が200でないときレスポンス全体を返す', async () => {
-  fetchMock.get(dummyURL, { body: dummyErrorBody, status: 404 });
+  fetchMock.get(dummyURL, { body: JSON.stringify(dummyErrorBody), status: 404 });
   const res = await fetch(dummyURL);
 
   await expect(NicoliveClient.wrapResult(res)).resolves.toEqual({
     ok: false,
     value: dummyErrorBody,
   });
-  expect(fetchMock.done()).toBe(true);
+  expect(fetchMock.callHistory.done()).toBe(true);
 });
 
 test('wrapResultはbodyがJSONでなければSyntaxErrorをwrapして返す', async () => {
@@ -101,7 +108,7 @@ test('wrapResultはbodyがJSONでなければSyntaxErrorをwrapして返す', as
       "value": [SyntaxError: Unexpected token 'i', "invalid json" is not valid JSON],
     }
   `);
-  expect(fetchMock.done()).toBe(true);
+  expect(fetchMock.callHistory.done()).toBe(true);
 });
 
 interface Suite {
@@ -210,7 +217,7 @@ suites.forEach((suite: Suite) => {
     const result = await client[suite.name](...suite.args);
 
     expect(result).toEqual({ ok: true, value: dummyBody.data });
-    expect(fetchMock.done()).toBe(true);
+    expect(fetchMock.callHistory.done()).toBe(true);
   });
 });
 
@@ -231,7 +238,7 @@ function setupMock() {
     loadURL(url: string) {
       this.url = url;
       for (const cb of this.webContentsCallbacks) {
-        cb({ preventDefault() {} }, url);
+        cb({ preventDefault() { } }, url);
       }
     }
     close = jest.fn().mockImplementation(() => {
@@ -264,7 +271,7 @@ function setupMock() {
   }));
   jest.doMock('electron', () => ({
     ipcRenderer: {
-      send() {},
+      send() { },
     },
   }));
 
@@ -438,11 +445,11 @@ describe('NicoliveClient.wrapResult', () => {
             expect,
             viaMainProcess
               ? {
-                  ok,
-                  headers,
-                  status,
-                  text,
-                }
+                ok,
+                headers,
+                status,
+                text,
+              }
               : new Response(text, { status, headers }),
           ];
         },

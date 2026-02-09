@@ -6,6 +6,7 @@ export class NamedPipeClient {
   name = '';
   client: net.Socket = undefined;
   lastPromise: Promise<any> = Promise.resolve();
+  private buffer = '';
 
   queue = new Map<
     string,
@@ -19,38 +20,73 @@ export class NamedPipeClient {
   private async open(): Promise<void> {
     if (this.client) return;
 
+    // 再接続時は前のバッファをクリア
+    this.buffer = '';
+
     return new Promise((resolve, reject) => {
       const client = net.createConnection(this.name, () => {
         this.client = client;
         resolve();
       });
 
-      client.on('end', () => {});
+      client.on('end', () => {
+        this.close();
+      });
       client.on('error', (err: Error) => {
+        this.close();
         reject(err);
       });
 
       client.on('data', (data: Buffer) => {
-        try {
-          //          console.log('np-recv:', data.toString());
-          const response = JSON.parse(data.toString());
+        // データをバッファに追加
+        this.buffer += data.toString();
 
-          if (response.id) {
-            const r = this.queue.get(response.id);
-            if (r) {
-              clearTimeout(r.timeout);
-              this.queue.delete(response.id);
-              const result = response.res ?? {};
-              r.resolve(result);
+        // 改行で分割してメッセージを処理
+        const lines = this.buffer.split('\n');
+        // 最後の要素は未完成の可能性があるため残す
+        this.buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const message = line.trim();
+          if (!message) continue; // 空行をスキップ
+
+          try {
+            const response = JSON.parse(message);
+
+            if (response.id) {
+              const r = this.queue.get(response.id);
+              if (r) {
+                clearTimeout(r.timeout);
+                this.queue.delete(response.id);
+                const result = response.res ?? {};
+                r.resolve(result);
+              }
+            } else {
+              console.log('no id:', message);
             }
-          } else {
-            console.log('no id:', data.toString());
+          } catch (err) {
+            console.error('Invalid response format:', message, err);
           }
-        } catch (err) {
-          console.error('Invalid response format:', data.toString());
         }
       });
     });
+  }
+
+  private clearQueue(): void {
+    for (const item of this.queue.values()) {
+      clearTimeout(item.timeout);
+      item.reject(new Error('Connection closed'));
+    }
+    this.queue.clear();
+  }
+
+  close(): void {
+    if (this.client) {
+      this.client.destroy();
+      this.client = undefined;
+    }
+    this.buffer = '';
+    this.clearQueue();
   }
 
   // {id, fn, arg} を送信
@@ -73,8 +109,7 @@ export class NamedPipeClient {
       }, 1000);
 
       this.queue.set(id, { resolve, reject, timeout });
-      this.client.write(JSON.stringify({ id, fn, arg }));
-      //      console.log('np-send:', JSON.stringify({ id, fn, arg }));
+      this.client.write(JSON.stringify({ id, fn, arg }) + '\n');
     });
   }
 

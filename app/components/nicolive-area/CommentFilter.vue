@@ -167,9 +167,9 @@
 
 .container {
   display: flex;
+  flex-grow: 1;
   flex-basis: 0;
   flex-direction: column;
-  flex-grow: 1;
   width: 100%;
   overflow-y: auto;
 }
@@ -182,7 +182,7 @@
   height: 48px;
   padding: 4px 16px;
   color: var(--color-text-light);
-  .bold;
+  .bold();
 
   border-bottom: 1px solid var(--color-border-light);
 
@@ -203,8 +203,8 @@
 
 .content {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
 }
 
 .tab-list {
@@ -259,9 +259,9 @@
 
 .list {
   display: flex;
+  flex-grow: 1;
   flex-basis: 0;
   flex-direction: column;
-  flex-grow: 1;
   overflow-y: auto;
 }
 
@@ -304,8 +304,8 @@
 
 .item-box {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
 }
 
 .item-body {
@@ -348,11 +348,11 @@
   right: 16px;
   bottom: 16px;
   left: 16px;
-  .shadow;
+  .shadow();
 }
 
 .indicator {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;
@@ -372,6 +372,6 @@
 }
 
 .popper {
-  .popper-styling;
+  .popper-styling();
 }
 </style>

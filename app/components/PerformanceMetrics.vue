@@ -34,7 +34,7 @@
       <i class="performance-metric-icon icon-drop-fps" />
       <span class="performance-metric">
         <span class="performance-metric__value"
-          >{{ $t('common.droppedFrames') }}{{ droppedFrames }} ({{ percentDropped }}%)</span
+        >{{ $t('common.droppedFrames') }}{{ droppedFrames }} ({{ percentDropped }}%)</span
         >
       </span>
     </span>
@@ -53,7 +53,7 @@
     >
       <span class="performance-metric">
         <span class="performance-metric__value"
-          >{{ $t('settings.SubStream.name') }}: {{ subStreamStatus }}</span
+        >{{ $t('settings.SubStream.name') }}: {{ subStreamStatus }}</span
         >
       </span>
     </span>
@@ -100,8 +100,8 @@
   width: auto;
   margin-right: 8px;
   font-size: @font-size4;
-  color: var(--color-text-dark);
   vertical-align: middle;
+  color: var(--color-text-dark);
 }
 
 .performance-metric__value {

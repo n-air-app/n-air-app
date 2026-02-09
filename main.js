@@ -41,15 +41,15 @@ const osnVersion = getObsStudioNodeVersion();
 const electron = require('electron');
 const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter } =
   electron;
-const path = require('path');
-const rimraf = require('rimraf');
+const path = require('node:path');
+const fs = require('node:fs');
 const remote = require('@electron/remote/main');
 
-function rimrafWithRetry(rmPath) {
+function removePathWithRetry(rmPath) {
   const MAX_RETRIES = 3;
   for (let t = MAX_RETRIES; t > 0; t--) {
     try {
-      rimraf.sync(rmPath);
+      fs.rmSync(rmPath, { recursive: true, force: true });
     } catch (e) {
       console.error(`failed to delete '${rmPath}: `, e);
       if (!t) {
@@ -71,7 +71,7 @@ if (process.env.NAIR_CACHE_DIR) {
 if (process.argv.includes('--clearCacheDir')) {
   const rmPath = app.getPath('userData');
   console.log('clear cache directory!: ', rmPath);
-  rimrafWithRetry(rmPath);
+  removePathWithRetry(rmPath);
 }
 
 function getCookieFiles() {
@@ -89,7 +89,7 @@ async function clearCookies() {
   console.log('clear cookies: ', files);
   for (const file of files) {
     try {
-      rimrafWithRetry(file);
+      removePathWithRetry(file);
     } catch (e) {
       console.error('failed to delete cookie file', file, e);
     }
@@ -111,11 +111,11 @@ async function showRequiredSystemComponentInstallGuideDialog() {
   });
   switch (result.response) {
     case 0:
-      await shell.openExternal('https://aka.ms/vs/17/release/vc_redist.x64.exe');
+      await shell.openExternal('https://aka.ms/vc14/vc_redist.x64.exe');
       break;
     case 1:
       await shell.openExternal(
-        'https://support.microsoft.com/ja-jp/help/2977003/the-latest-supported-visual-c-downloads',
+        'https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version',
       );
       break;
     case 2:
@@ -227,16 +227,15 @@ try {
 remote.initialize();
 
 function initialize(crashHandler) {
-  const fs = require('node:fs');
   const { Updater } = require('./updater/Updater.js');
-  const uuid = require('uuid/v4');
+  const { randomUUID } = require('node:crypto');
   const windowStateKeeper = require('electron-window-state');
-  const { URL } = require('url');
+  const { URL } = require('node:url');
 
-  const pid = require('process').pid;
+  const pid = require('node:process').pid;
 
   app.commandLine.appendSwitch('force-ui-direction', 'ltr');
-  process.env.IPC_UUID = `nair-${uuid()}`;
+  process.env.IPC_UUID = `nair-${randomUUID()}`;
 
   /* Determine the current release channel we're
    * on based on name. The channel will always be
@@ -258,9 +257,9 @@ function initialize(crashHandler) {
   // 起動速度改善: 重い同期処理は app.on('ready') 後に実行
   // workaround for  https://github.com/electron/electron/issues/19468, https://github.com/electron/electron/issues/19978
   // (Electron 6 to 8 does not launch in Win10 dark mode with DevTool extensions installed)
-  // rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
+  // removePathWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
 
-  const util = require('util');
+  const util = require('node:util');
   const logFile = path.join(app.getPath('userData'), 'app.log');
   const maxLogBytes = 131072;
 
@@ -390,7 +389,7 @@ function initialize(crashHandler) {
     });
   }
 
-  const os = require('os');
+  const os = require('node:os');
   const cpus = os.cpus();
 
   ipcMain.on('get-cpu-model', e => {
@@ -485,7 +484,7 @@ function initialize(crashHandler) {
     dialog.showErrorBox(
       '予期せぬエラー',
       '予期しないエラーが発生したため、アプリケーションをシャットダウンします。ご不便をおかけして申し訳ありません。\n' +
-        'この件に関する情報はデバッグ目的で送信されました。不具合を解決するためにご協力いただきありがとうございます。',
+      'この件に関する情報はデバッグ目的で送信されました。不具合を解決するためにご協力いただきありがとうございます。',
     );
 
     // ダイアログが閉じたら終了
@@ -596,9 +595,9 @@ function initialize(crashHandler) {
       title: process.env.NAIR_PRODUCT_NAME,
       ...(mainWindowIsVisible
         ? {
-            x: mainWindowState.x,
-            y: mainWindowState.y,
-          }
+          x: mainWindowState.x,
+          y: mainWindowState.y,
+        }
         : {}),
       webPreferences: {
         nodeIntegration: true,
@@ -846,7 +845,7 @@ function initialize(crashHandler) {
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
     setTimeout(() => {
       // DevTools Extensions削除
-      rimrafWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
+      removePathWithRetry(path.join(app.getPath('userData'), 'DevTools Extensions'));
 
       // ログファイル切り詰め
       if (fs.existsSync(logFile) && fs.statSync(logFile).size > maxLogBytes) {

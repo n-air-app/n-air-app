@@ -77,25 +77,18 @@ async function postReleaseToSlack({ version, environment, channel, link, notes }
         },
       },
       {
-        type: 'section',
+        type: 'header',
         text: {
-          type: 'mrkdwn',
+          type: 'plain_text',
           text: 'Patch Note',
         },
       },
-    ],
-    attachments: [
       {
-        color: '#36a64f',
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'plain_text',
-              text: notes,
-            },
-          },
-        ],
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: notes,
+        },
       },
     ],
   });
@@ -217,8 +210,13 @@ async function runScript({
   eslintFix(noteFilename);
   info(`generated patch-note file: ${noteFilename}.`);
 
-  // update package.json with newVersion and git tag
-  executeCmd(`yarn version --new-version=${newVersion}`);
+  // update package.json with newVersion (without git operations)
+  executeCmd(`pnpm version ${newVersion} --no-git-tag-version`);
+
+  // commit both notes.ts and package.json together, then create tag
+  executeCmd(`git add ${noteFilename} package.json`);
+  executeCmd(`git commit -m "${newVersion}"`);
+  executeCmd(`git tag v${newVersion}`);
 
   if (skipBuild) {
     info('SKIP build process since skipBuild is set...');
@@ -229,14 +227,14 @@ async function runScript({
       sh.rm('-rf', 'node_modules');
     }
 
-    info('Installing yarn packages...');
-    executeCmd('yarn install --frozen-lockfile');
+    info('Installing pnpm packages...');
+    executeCmd('pnpm install --frozen-lockfile');
 
     info('Compiling assets...');
-    executeCmd('yarn compile:production');
+    executeCmd('pnpm run compile:production');
 
     info('Making the package...');
-    executeCmd(`yarn package:${releaseEnvironment}-${releaseChannel}`);
+    executeCmd(`pnpm run package:${releaseEnvironment}-${releaseChannel}`);
   }
 
   info('Pushing to the repository...');
@@ -406,7 +404,7 @@ async function releaseRoutine() {
   const patchNote = readPatchNote({ patchNoteFileName });
   if (!patchNote) {
     error(`patchNote is not found in ${patchNoteFileName}.`);
-    info('Use `yarn patch-note` to generate patchNote.');
+    info('Use `pnpm patch-note` to generate patchNote.');
     throw new Error(`patchNote is not found in ${patchNoteFileName}.`);
   }
 

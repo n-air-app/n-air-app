@@ -8,10 +8,9 @@ import { PersistentStatefulService } from 'services/core/persistent-stateful-ser
 import { mutation } from 'services/core/stateful-service';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
 import { SceneCollectionsService } from 'services/scene-collections';
-import URI from 'urijs';
+import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
-import uuid from 'uuid/v4';
 import Vue from 'vue';
 import { OnboardingService } from './onboarding';
 import {
@@ -120,7 +119,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     let userId = localStorage.getItem(localStorageKey);
 
     if (!userId) {
-      userId = uuid();
+      userId = uuidv4();
       localStorage.setItem(localStorageKey, userId);
     }
 
@@ -302,8 +301,8 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
     this.startAuth({
       platform: this.platform.type,
-      onAuthFinish: () => {},
-      onAuthClose: () => {},
+      onAuthFinish: () => { },
+      onAuthClose: () => { },
     });
   }
 
@@ -319,7 +318,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
    * Parses tokens out of the auth URL
    */
   private parseAuthFromUrl(url: string) {
-    const query = URI.parseQuery(URI.parse(url).query) as Dictionary<string>;
+    const query = Utils.getUrlParams(url);
 
     if (
       query.token &&

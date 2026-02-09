@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import { ipcRenderer } from 'electron';
+import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 import { handleErrors } from 'util/requests';
@@ -71,7 +72,7 @@ export function isOk<T>(result: WrappedResult<T>): result is SucceededResult<T> 
   return result.ok === true;
 }
 
-export class NotLoggedInError {}
+export class NotLoggedInError { }
 
 type Quality = {
   bitrate: number;
@@ -81,12 +82,12 @@ type Quality = {
 
 export function parseMaxQuality(maxQuality: string, fallback: Quality): Quality {
   try {
-    const match = maxQuality.match(/(\d+)([Mk])bps(\d+)p((\d+)fps)?/);
+    const match = maxQuality.match(/(\d+([.]\d+)?)([Mk])bps(\d+)p((\d+([.]\d+)?)fps)?/);
 
     return {
-      bitrate: parseInt(match[1], 10) * (match[2] === 'M' ? 1000 : 1),
-      height: parseInt(match[3], 10),
-      fps: parseInt(match[5], 10) || 30,
+      bitrate: parseFloat(match[1]) * (match[3] === 'M' ? 1000 : 1),
+      height: parseInt(match[4], 10),
+      fps: parseFloat(match[6]) || 30,
     };
   } catch (e) {
     console.warn('Failed to parse max quality', maxQuality, e);
@@ -144,10 +145,6 @@ export class NicoliveClient {
   static userFollowBaseURL = 'https://user-follow-api.nicovideo.jp' as const;
   static userIconBaseURL = 'https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/' as const;
 
-  private static FrontendIdHeader = {
-    'x-frontend-id': '134',
-  } as const;
-
   private static OpenWindows: { [key: string]: Electron.BrowserWindow | null } = {};
 
   static registerWindow(key: 'createProgram' | 'editProgram', win: Electron.BrowserWindow) {
@@ -176,7 +173,7 @@ export class NicoliveClient {
     private options: {
       niconicoSession?: string;
     } = {},
-  ) {}
+  ) { }
 
   static isProgramPage(url: string): boolean {
     return /^https?:\/\/live2?\.nicovideo\.jp\/watch\/lv\d+/.test(url);
@@ -379,7 +376,7 @@ export class NicoliveClient {
     return this.requestAPI<void>(
       'POST',
       `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/comments`,
-      NicoliveClient.jsonBody({ text, vpos, modifier }, NicoliveClient.FrontendIdHeader),
+      NicoliveClient.jsonBody({ text, vpos, modifier }, FrontendIdHeader),
     );
   }
 
@@ -695,7 +692,7 @@ export class NicoliveClient {
     const res = await fetch(
       NicoliveClient.userFollowEndpoint(userId),
       NicoliveClient.createRequest('GET', {
-        headers: NicoliveClient.FrontendIdHeader,
+        headers: FrontendIdHeader,
       }),
     );
     if (res.ok) {
@@ -728,7 +725,7 @@ export class NicoliveClient {
       NicoliveClient.userFollowEndpoint(userId),
       NicoliveClient.createRequest('POST', {
         headers: {
-          ...NicoliveClient.FrontendIdHeader,
+          ...FrontendIdHeader,
           'X-Request-With': 'N Air',
         },
       }),
@@ -748,7 +745,7 @@ export class NicoliveClient {
       NicoliveClient.userFollowEndpoint(userId),
       NicoliveClient.createRequest('DELETE', {
         headers: {
-          ...NicoliveClient.FrontendIdHeader,
+          ...FrontendIdHeader,
           'X-Request-With': 'N Air',
         },
       }),
@@ -775,7 +772,7 @@ export class NicoliveClient {
     return this.requestAPI<AddModerator>(
       'POST',
       `${NicoliveClient.live2BaseURL}/unama/api/v2/broadcasters/moderators`,
-      NicoliveClient.jsonBody({ userId: parseInt(userId, 10) }, NicoliveClient.FrontendIdHeader),
+      NicoliveClient.jsonBody({ userId: parseInt(userId, 10) }, FrontendIdHeader),
     );
   }
   async removeModerator(userId: string): Promise<WrappedResult<void>> {
@@ -783,7 +780,7 @@ export class NicoliveClient {
       'DELETE',
       `${NicoliveClient.live2BaseURL}/unama/api/v2/broadcasters/moderators?userId=${userId}`,
       {
-        headers: NicoliveClient.FrontendIdHeader,
+        headers: FrontendIdHeader,
       },
     );
   }
@@ -816,8 +813,7 @@ export class NicoliveClient {
 
     return this.requestAPI<void>(
       'DELETE',
-      `${
-        NicoliveClient.live2BaseURL
+      `${NicoliveClient.live2BaseURL
       }/unama/api/v4/programs/${programId}/comments?${params.toString()}`,
       {
         headers: NicoliveClient.v4ApiHeaders(programId),

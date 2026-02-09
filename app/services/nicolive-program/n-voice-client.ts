@@ -16,7 +16,7 @@ async function playAudio(
   buffer: Buffer,
   volume: number = 1.0,
 ): Promise<{ cancel: () => void; done: Promise<void> }> {
-  const url = URL.createObjectURL(new Blob([buffer]));
+  const url = URL.createObjectURL(new Blob([new Uint8Array(buffer)]));
   let cancel: () => void;
 
   let completed = false;

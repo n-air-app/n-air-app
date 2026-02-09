@@ -23,7 +23,7 @@
             place="link"
             href="https://blog.nicovideo.jp/niconews/category/se_n-air/"
             @click="handleAnchorClick($event)"
-            >{{ $t('informations.errorAttentionLink') }}</a
+          >{{ $t('informations.errorAttentionLink') }}</a
           >
         </i18n>
       </div>
@@ -91,8 +91,8 @@
 
 .information-error {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   gap: var(--spacing-sm);
   align-items: center;
   justify-content: center;

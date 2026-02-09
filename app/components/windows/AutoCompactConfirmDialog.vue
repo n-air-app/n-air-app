@@ -40,7 +40,7 @@
 }
 
 .confirm-list-item {
-  .radius;
+  .radius();
 
   padding: 16px 16px 0;
   margin-bottom: 16px;

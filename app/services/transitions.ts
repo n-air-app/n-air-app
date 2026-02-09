@@ -6,9 +6,9 @@ import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { ScenesService } from 'services/scenes';
 import { DefaultManager } from 'services/sources/properties-managers/default-manager';
+import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import uuid from 'uuid/v4';
 import * as obs from '../../obs-api';
 
 export enum ETransitionType {
@@ -120,7 +120,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
     if (!this.studioModeTransition) this.createStudioModeTransition();
     const currentScene = this.scenesService.activeScene.getObsScene();
-    this.sceneDuplicate = currentScene.duplicate(uuid(), obs.ESceneDupType.Copy);
+    this.sceneDuplicate = currentScene.duplicate(uuidv4(), obs.ESceneDupType.Copy);
 
     // Immediately switch to the duplicated scene
     this.getCurrentTransition().set(this.sceneDuplicate);
@@ -150,7 +150,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     const currentScene = this.scenesService.activeScene.getObsScene();
 
     const oldDuplicate = this.sceneDuplicate;
-    this.sceneDuplicate = currentScene.duplicate(uuid(), obs.ESceneDupType.Copy);
+    this.sceneDuplicate = currentScene.duplicate(uuidv4(), obs.ESceneDupType.Copy);
 
     // TODO: Make this a dropdown box
     const transition = this.getDefaultTransition();
@@ -178,7 +178,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   createStudioModeTransition() {
     this.studioModeTransition = obs.TransitionFactory.create(
       ETransitionType.Cut,
-      `studio_transition_${uuid()}`,
+      `studio_transition_${uuidv4()}`,
     );
   }
 
@@ -221,7 +221,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
       obs.Global.setOutputSource(0, obsTransition);
       obsTransition.start(transition.duration, obsScene);
     } else {
-      const defaultTransition = obs.TransitionFactory.create(ETransitionType.Cut, uuid());
+      const defaultTransition = obs.TransitionFactory.create(ETransitionType.Cut, uuidv4());
       defaultTransition.set(obsScene);
       obs.Global.setOutputSource(0, defaultTransition);
       obsTransition.start(transition.duration, obsScene);
@@ -281,7 +281,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   createTransition(type: ETransitionType, name: string, options: ITransitionCreateOptions = {}) {
-    const id = options.id || uuid();
+    const id = options.id || uuidv4();
     const transition = obs.TransitionFactory.create(type, id, options.settings || {});
     const manager = new DefaultManager(transition, options.propertiesManagerSettings || {});
 
@@ -354,7 +354,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   addConnection(fromId: string, toId: string, transitionId: string) {
-    const id = uuid();
+    const id = uuidv4();
     this.ADD_CONNECTION({
       id,
       fromSceneId: fromId,

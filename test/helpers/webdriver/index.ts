@@ -10,6 +10,7 @@ import {
   initializeTasks,
   killElectronInstances,
   testFn,
+  waitForCrashHandlerExit,
   waitForElectronInstancesExist,
 } from './runner-utils';
 export const test = testFn; // the overridden "test" function
@@ -25,7 +26,7 @@ class Application {
   client: WebdriverIO.Browser;
   process: ChildProcess.ChildProcess;
 
-  constructor(public options: RemoteOptions) {}
+  constructor(public options: RemoteOptions) { }
 
   async start(cacheDir: string, chromedriverLogging = false) {
     if (this.process) return;
@@ -87,14 +88,13 @@ class Application {
     try {
       const result = await fetch(statusUrl);
       return result.status === 200;
-    } catch (e: unknown) {}
+    } catch (e: unknown) { }
   }
 }
 
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const rimraf = require('rimraf');
 
 const afterStartCallbacks: ((t: TExecutionContext) => any)[] = [];
 export function afterAppStart(cb: (t: TExecutionContext) => any) {
@@ -276,12 +276,27 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
       console.error(e);
     }
     await killElectronInstances();
+
+    // Wait for crash-handler-process.exe to exit before attempting cleanup
+    // This ensures crash-handler.log is closed before fs.rmSync attempts deletion
+    await waitForCrashHandlerExit();
+
     appIsRunning = false;
 
     if (!clearCache) return;
-    await new Promise(resolve => {
-      rimraf(lastCacheDir, resolve);
-    });
+
+    // Retry logic for cleanup to handle locked files
+    const maxRetries = 30;
+    const retryDelay = 100;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        fs.rmSync(lastCacheDir, { recursive: true, force: true });
+        break;
+      } catch (e) {
+        if (i === maxRetries - 1) throw e;
+        await sleep(retryDelay);
+      }
+    }
   };
 
   test.beforeEach(async t => {

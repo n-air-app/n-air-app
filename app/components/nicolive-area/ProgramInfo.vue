@@ -35,7 +35,7 @@
               "
               :href="watchPageURL"
               class="link"
-              ><i class="icon-browser"></i>番組ページを開く</a
+            ><i class="icon-browser"></i>番組ページを開く</a
             >
           </li>
           <li class="popup-menu-item">
@@ -45,7 +45,7 @@
                 popper.doClose();
               "
               class="link"
-              ><i class="icon-clipboard-copy"></i>番組URLをコピーする</a
+            ><i class="icon-clipboard-copy"></i>番組URLをコピーする</a
             >
           </li>
           <li class="popup-menu-item" v-if="existsProgramPassword">
@@ -55,7 +55,7 @@
                 popper.doClose();
               "
               class="link"
-              ><i class="icon-clipboard-copy"></i>番組の合い言葉をコピーする</a
+            ><i class="icon-clipboard-copy"></i>番組の合い言葉をコピーする</a
             >
           </li>
         </ul>
@@ -67,7 +67,7 @@
                 popper.doClose();
               "
               class="link"
-              ><i class="icon-edit"></i>番組を編集する</a
+            ><i class="icon-edit"></i>番組を編集する</a
             >
           </li>
         </ul>
@@ -80,7 +80,7 @@
               "
               :href="xShareURL"
               class="link"
-              ><i class="icon-x"></i>Xでポストする</a
+            ><i class="icon-x"></i>Xでポストする</a
             >
           </li>
           <li class="popup-menu-item">
@@ -91,7 +91,7 @@
               "
               :href="contentTreeURL"
               class="link"
-              ><i class="icon-contents-tree"></i>コンテンツツリーを見る</a
+            ><i class="icon-contents-tree"></i>コンテンツツリーを見る</a
             >
           </li>
           <li class="popup-menu-item">
@@ -102,7 +102,7 @@
               "
               :href="creatorsProgramURL"
               class="link"
-              ><i class="icon-creator-promotion-program"></i>この番組で収入を得る</a
+            ><i class="icon-creator-promotion-program"></i>この番組で収入を得る</a
             >
           </li>
         </ul>
@@ -137,7 +137,7 @@
 }
 
 .program-title-link {
-  .text-ellipsis;
+  .text-ellipsis();
 
   display: inline-block;
   font-size: @font-size4;
@@ -201,7 +201,7 @@
 }
 
 .indicator {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;

@@ -29,7 +29,7 @@
   .flex();
   .flex--start();
   .flex--align-center();
-  .cursor--pointer;
+  .cursor--pointer();
 
   &:not(.collapsible-section__title--visible) {
     .icon-down {
@@ -39,7 +39,7 @@
 
   h2 {
     color: @day-title;
-    .margin--none;
+    .margin--none();
 
     text-transform: capitalize;
   }

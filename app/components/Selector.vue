@@ -59,8 +59,8 @@
   padding: 0 12px;
   cursor: pointer;
 
-  .text-ellipsis;
-  .transition;
+  .text-ellipsis();
+  .transition();
 
   &.selector-item--active {
     color: var(--color-text-light);
@@ -86,7 +86,7 @@
 }
 
 .selector-item-text {
-  .text-ellipsis;
+  .text-ellipsis();
 
   display: flex;
   align-items: center;
@@ -101,6 +101,6 @@
 
 .selector-drag-handle {
   cursor: move;
-  .icon-hover;
+  .icon-hover();
 }
 </style>

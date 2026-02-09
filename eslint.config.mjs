@@ -34,7 +34,7 @@ export default [
   },
 
   // Base config for all JS/TS files
-  ...compat.extends('airbnb-base', 'prettier'),
+  ...compat.extends('airbnb-base'),
   js.configs.recommended,
 
   // Vue plugin configs
@@ -173,6 +173,17 @@ export default [
       'no-undef': OFF,
       'vue/no-use-v-if-with-v-for': OFF,
       'vue/require-v-for-key': OFF,
+
+      // Prettier compatibility: disable style rules that Prettier handled
+      quotes: OFF,
+      curly: OFF,
+      'nonblock-statement-body-position': OFF,
+      'no-spaced-func': OFF,
+      'func-call-spacing': OFF,
+      'array-bracket-spacing': OFF,
+      'no-multiple-empty-lines': OFF,
+      'no-trailing-spaces': OFF,
+      'wrap-iife': OFF,
     },
   },
 
@@ -315,12 +326,36 @@ export default [
       'vue/no-use-v-if-with-v-for': OFF,
       'vue/require-v-for-key': OFF,
 
+      // Prettier compatibility: disable style rules that Prettier handled
+      quotes: OFF,
+      curly: OFF,
+      'nonblock-statement-body-position': OFF,
+      'no-spaced-func': OFF,
+      'func-call-spacing': OFF,
+      'array-bracket-spacing': OFF,
+      'no-multiple-empty-lines': OFF,
+      'no-trailing-spaces': OFF,
+      'wrap-iife': OFF,
+
       // Temporarily disable Vue rules that flag existing code
       // TODO: Fix these issues in a separate PR
       'vue/valid-v-for': OFF,
       'vue/no-deprecated-slot-attribute': OFF,
       'vue/no-deprecated-slot-scope-attribute': OFF,
       'vue/no-deprecated-v-on-native-modifier': OFF,
+
+      // Enable Vue template formatting
+      'vue/html-indent': [ERROR, 2, {
+        attribute: 1,
+        baseIndent: 1,
+        closeBracket: 0,
+        alignAttributesVertically: true,
+        ignores: []
+      }],
+      'vue/max-attributes-per-line': OFF, // Don't enforce attribute line breaks
+      'vue/html-closing-bracket-newline': OFF, // Don't enforce bracket newlines
+      'vue/singleline-html-element-content-newline': OFF, // Don't enforce content newlines
+      'vue/multiline-html-element-content-newline': OFF, // Don't enforce content newlines
     },
   },
 

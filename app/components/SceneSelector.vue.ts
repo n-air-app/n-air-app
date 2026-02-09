@@ -122,7 +122,7 @@ export default class SceneSelector extends Vue {
         keys: ['name'],
       });
 
-      return fuse.search(this.searchQuery);
+      return fuse.search(this.searchQuery).map(result => result.item);
     }
 
     return list;

@@ -4,7 +4,6 @@
 @import url('./styles/custom-icons');
 @import url('./styles/inputs');
 @import url('./styles/tooltips');
-@import url('~codemirror/lib/codemirror.css');
 
 body {
   font-family: @font-family;
@@ -26,7 +25,7 @@ body {
 }
 
 a {
-  .transition;
+  .transition();
 
   color: var(--color-object-accent-primary);
   text-decoration: underline;
@@ -66,8 +65,8 @@ a {
 // Layout
 .page-container {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   max-width: 1920px;
   margin: 0 auto;
 }
@@ -76,7 +75,7 @@ a {
 h3 {
   font-size: @font-size4;
   color: var(--color-text-light);
-  .semibold;
+  .semibold();
 }
 
 h4 {
@@ -85,8 +84,8 @@ h4 {
   margin-bottom: 20px;
   font-size: @font-size4;
   color: var(--color-text-light);
-  .letter-spacing;
-  .semibold;
+  .letter-spacing();
+  .semibold();
 
   i {
     margin-right: 8px;
@@ -102,13 +101,13 @@ h4 {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   background: @accent;
-  .radius;
-  .semibold;
+  .radius();
+  .semibold();
 }
 
 .link {
-  .semibold;
-  .transition;
+  .semibold();
+  .transition();
 
   display: flex;
   align-items: center;
@@ -223,8 +222,8 @@ h4 {
     color: var(--color-text);
     background: transparent;
     border: none;
-    .radius;
-    .transition;
+    .radius();
+    .transition();
 
     &:focus {
       outline: none;
@@ -273,8 +272,8 @@ h4 {
   display: flex;
   padding: 0 12px;
   background-color: var(--color-bg-secondary);
-  .radius;
-  .shadow;
+  .radius();
+  .shadow();
 }
 
 .tabs {
@@ -290,8 +289,8 @@ h4 {
   color: var(--color-text);
   text-transform: uppercase;
   letter-spacing: 0.7px;
-  .semibold;
-  .transition;
+  .semibold();
+  .transition();
 
   &::after {
     position: absolute;
@@ -332,7 +331,7 @@ h4 {
 }
 
 select {
-  .radius;
+  .radius();
 
   height: @item-generic-size;
 }
@@ -373,7 +372,7 @@ th {
   color: var(--color-text-dark);
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  .semibold;
+  .semibold();
 }
 
 // Scrolls

@@ -8,8 +8,8 @@ import {
   IMutation,
   JsonrpcService,
 } from 'services/api/jsonrpc';
+import { uuidv4 } from 'services/utils';
 import traverse from 'traverse';
-import uuid from 'uuid/v4';
 import { ServicesManager } from '../../services-manager';
 import { Service } from '../core/service';
 
@@ -179,7 +179,7 @@ export abstract class RpcApi extends Service {
     // and send events when promise will be resolved or rejected
     const isPromise = !!responsePayload.then;
     if (isPromise) {
-      const promiseId = uuid(); // the API client app can use this id for waiting this Promise
+      const promiseId = uuidv4(); // the API client app can use this id for waiting this Promise
       const promise = responsePayload as PromiseLike<any>;
 
       promise.then(

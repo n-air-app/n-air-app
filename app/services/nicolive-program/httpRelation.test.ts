@@ -1,4 +1,4 @@
-import * as fetchMock from 'fetch-mock';
+import fetchMock from '@fetch-mock/jest';
 import { NicoadMessage } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { WrappedChatWithComponent, WrappedMessageWithComponent } from './WrappedChat';
@@ -6,8 +6,12 @@ import { HttpRelation } from './httpRelation';
 import { HttpRelationState } from './state';
 
 describe('HttpRelation', () => {
+  beforeEach(() => {
+    fetchMock.mockGlobal();
+  });
+
   afterEach(() => {
-    fetchMock.restore();
+    fetchMock.mockRestore({ includeSticky: true });
   });
 
   const makeChat: (content: string) => WrappedChatWithComponent = content =>
@@ -87,14 +91,16 @@ describe('HttpRelation', () => {
 
       const result = await HttpRelation.sendChat(msgChat, mockState);
       if (method === '') {
-        expect(fetchMock.called()).toBe(false);
+        expect(fetchMock.callHistory.called()).toBe(false);
       } else {
-        expect(fetchMock.called()).toBe(true);
-        const [url, options] = fetchMock.lastCall();
+        expect(fetchMock.callHistory.called()).toBe(true);
+        const callLog = fetchMock.callHistory.lastCall();
+        if (!callLog) throw new Error('No call recorded');
+        const [url, options] = callLog.args as [string, RequestInit];
         expect(url).toBe(expectedUrl);
         expect(options.method).toBe(method);
         if (method !== 'GET') {
-          const requestBody = options.body.toString();
+          const requestBody = (options.body as string | undefined)?.toString();
           expect(requestBody).toEqual(expectedBody);
         }
         expect(result).toEqual({ result: '' });
@@ -120,11 +126,13 @@ describe('HttpRelation', () => {
     };
     fetchMock.post(mockState.url, 200);
     await HttpRelation.sendChat(msgNicoad, mockState);
-    expect(fetchMock.called()).toBe(true);
-    const [url, options] = fetchMock.lastCall();
+    expect(fetchMock.callHistory.called()).toBe(true);
+    const callLog = fetchMock.callHistory.lastCall();
+    if (!callLog) throw new Error('No call recorded');
+    const [url, options] = callLog.args as [string, RequestInit];
     expect(url).toBe(mockState.url);
     expect(options.method).toBe(mockState.method);
-    expect(options.body.toString()).toEqual('id= userId= name= type=nicoad comment=nicoad message');
+    expect((options.body as string | undefined)?.toString()).toEqual('id= userId= name= type=nicoad comment=nicoad message');
   });
 
   test('sendChat with empty message', async () => {
@@ -135,9 +143,9 @@ describe('HttpRelation', () => {
       url: '/api/',
       body: '{type} {comment}',
     };
-    fetchMock.post(mockState.url, 200);
+    // empty messageの場合はfetchが呼ばれないので、モックも不要
     const result = await HttpRelation.sendChat(msgEmpty, mockState);
-    expect(fetchMock.called()).toBe(false);
+    expect(fetchMock.callHistory.called()).toBe(false);
     expect(result).toEqual({ error: 'no-content' });
   });
 
@@ -150,10 +158,12 @@ describe('HttpRelation', () => {
     };
     fetchMock.post(mockState.url, 200);
     await HttpRelation.sendChat(msgQuote, mockState);
-    expect(fetchMock.called()).toBe(true);
-    const [url, options] = fetchMock.lastCall();
+    expect(fetchMock.callHistory.called()).toBe(true);
+    const callLog = fetchMock.callHistory.lastCall();
+    if (!callLog) throw new Error('No call recorded');
+    const [url, options] = callLog.args as [string, RequestInit];
     expect(url).toBe(mockState.url);
     expect(options.method).toBe(mockState.method);
-    expect(options.body.toString()).toEqual('"Hello, \\"world\\"!"');
+    expect((options.body as string | undefined)?.toString()).toEqual('"Hello, \\"world\\"!"');
   });
 });

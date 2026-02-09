@@ -9,7 +9,7 @@ import AddSourceFilter from 'components/windows/AddSourceFilter.vue';
 import AdvancedAudio from 'components/windows/AdvancedAudio.vue';
 import AutoCompactConfirmDialog from 'components/windows/AutoCompactConfirmDialog.vue';
 import Blank from 'components/windows/Blank.vue';
-import BrowserSourceInteraction from 'components/windows/BrowserSourceInteraction';
+import BrowserSourceInteraction from 'components/windows/BrowserSourceInteraction.vue';
 import CroppingOverlay from 'components/windows/CroppingOverlay.vue';
 import Informations from 'components/windows/Informations.vue';
 import Main from 'components/windows/Main.vue';
@@ -34,12 +34,11 @@ import UserInfo from 'components/windows/UserInfo.vue';
 import electron from 'electron';
 import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
-import Util from 'services/utils';
+import Util, { uuidv4 } from 'services/utils';
 import Vue from 'vue';
 
 const { ipcRenderer } = electron;
 const BrowserWindow = remote.BrowserWindow;
-const uuid = window['require']('uuid/v4');
 
 // This is a list of components that are registered to be
 // top level components in new child windows.
@@ -180,6 +179,25 @@ export class WindowsService extends StatefulService<IWindowsState> {
       message: options.componentName,
     });
 
+    // 画面サイズを考慮してウィンドウサイズを調整（画面からはみ出さないようにする）
+    if (options.size) {
+      const currentDisplay = remote.screen.getDisplayMatching(remote.getCurrentWindow().getBounds());
+      if (currentDisplay.workArea) {
+        // 画面サイズに収まらない場合は画面サイズ - 余白(100px)に調整、ただし最低サイズは100px
+        const margin = 100;
+        const minSize = 100;
+        const minWindow = margin + minSize + 50;
+        if (options.size.width && currentDisplay.workArea.width > minWindow) {
+          const maxWidth = currentDisplay.workArea.width - margin;
+          options.size.width = Math.min(Math.max(options.size.width, minSize), maxWidth);
+        }
+        if (options.size.height && currentDisplay.workArea.height > minWindow) {
+          const maxHeight = currentDisplay.workArea.height - margin;
+          options.size.height = Math.min(Math.max(options.size.height, minSize), maxHeight);
+        }
+      }
+    }
+
     // Don't center the window if it's the same component
     // This prevents "snapping" behavior when navigating settings
     if (options.componentName !== this.state.child.componentName) {
@@ -251,7 +269,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     options: Partial<IWindowOptions & { limitMinimumSize?: boolean }>,
     windowId?: string,
   ): string {
-    windowId = windowId || uuid();
+    windowId = windowId || uuidv4();
 
     Sentry.addBreadcrumb({
       category: 'createOneOffWindow',

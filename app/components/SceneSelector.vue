@@ -82,7 +82,7 @@
 }
 
 .input-wrapper--search {
-  .radius;
+  .radius();
 
   width: calc(100% - 38px); // .settings-link + 余白のサイズを引く
   margin: 8px;
@@ -100,7 +100,7 @@
 }
 
 .scene-collections__dropdown {
-  .text-ellipsis;
+  .text-ellipsis();
 
   display: flex;
   width: 100%;

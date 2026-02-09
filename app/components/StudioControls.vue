@@ -27,13 +27,13 @@
             @click="compactModeStudioController = 'mixer'"
             class="studio-controls-tab button--tab"
             :class="{ active: compactModeStudioController === 'mixer' }"
-            >ミキサー</a
+          >ミキサー</a
           >
           <a
             @click="compactModeStudioController = 'scenes'"
             class="studio-controls-tab button--tab"
             :class="{ active: compactModeStudioController === 'scenes' }"
-            >{{ activeCollection.name }}</a
+          >{{ activeCollection.name }}</a
           >
         </div>
         <scene-selector
@@ -57,7 +57,7 @@
 @import url('../styles/index');
 
 .studio-controls {
-  .dividing-border;
+  .dividing-border();
 
   position: relative;
   width: 100%;
@@ -83,7 +83,7 @@
     margin-left: 8px;
 
     > i {
-      .icon-hover;
+      .icon-hover();
 
       display: block;
       font-size: @font-size2;
@@ -105,8 +105,8 @@
 
 .studio-controls-panel {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   padding: 0 8px;
@@ -114,9 +114,9 @@
 
 .studio-controls-compact {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
-  .text-ellipsis;
+  flex-direction: column;
+  .text-ellipsis();
 }
 
 .studio-controls-tabs {
@@ -126,7 +126,7 @@
 }
 
 .studio-controls-tab {
-  .text-ellipsis;
+  .text-ellipsis();
 
   display: block;
   flex: 1 0 50%;
@@ -148,14 +148,14 @@
   margin-bottom: 0;
   font-size: @font-size4;
   color: var(--color-text-light);
-  .semibold;
+  .semibold();
 }
 
 .studio-controls-selector {
   flex-grow: 1;
   overflow-y: auto;
   background: var(--color-bg-tertiary);
-  .radius;
+  .radius();
 }
 
 .studio-controls-header {

@@ -11,10 +11,10 @@ import { IPCWrapper } from 'services/ipc-wrapper';
 import { NVoiceCharacterTypes } from 'services/nvoice-character';
 import { ISceneItem, ScenesService } from 'services/scenes';
 import { UserService } from 'services/user';
+import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
-import uuid from 'uuid/v4';
 import Vue from 'vue';
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -161,7 +161,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     settings: Dictionary<any> = {},
     options: ISourceAddOptions = {},
   ): Source {
-    const id: string = options.sourceId || `${type}_${uuid()}`;
+    const id: string = options.sourceId || `${type}_${uuidv4()}`;
     const obsInputSettings = this.getObsSourceCreateSettings(type, settings);
     const obsInput = obs.InputFactory.create(type, id, obsInputSettings);
 

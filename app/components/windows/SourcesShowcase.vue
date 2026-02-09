@@ -303,7 +303,7 @@
   text-align: center;
   cursor: pointer;
   border-radius: 4px;
-  .transition;
+  .transition();
 
   &:hover,
   &.source--active {
@@ -311,7 +311,7 @@
   }
 
   > div {
-    .text-ellipsis;
+    .text-ellipsis();
 
     display: inline-block;
     max-width: 100%;

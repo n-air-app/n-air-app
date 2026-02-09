@@ -1,9 +1,9 @@
 // @ts-check
 
 const fs = require('fs');
+const sh = require('shelljs');
 const { DateTime } = require('luxon');
 const { info, error, executeCmd } = require('./log');
-const { getTagCommitId } = require('./util');
 
 // previous tag should be following rule:
 //  v{major}.{minor}.{yyyymmdd}-[{channel}.]{ord}[internalMark]
@@ -93,6 +93,11 @@ function writePatchNoteFile(patchNoteFileName, version, contents) {
   fs.writeFileSync(patchNoteFileName, body);
 }
 
+/**
+ * Get merge commit log since previous version
+ * @param {string} previousVersion - Previous version tag
+ * @returns {string} Git log output
+ */
 function gitLog(previousVersion) {
   return executeCmd(`git log --oneline --merges v${previousVersion}..`, { silent: true }).stdout;
 }
@@ -172,6 +177,107 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
   });
 }
 
+/**
+ * Collect non-PR merge commits and their included commits
+ * @param {string} previousVersion - Previous version tag (e.g., "1.0.20190826-2")
+ * @returns {Promise<string>} Formatted merge commits with their included commits
+ */
+async function collectNonPRMerges(previousVersion) {
+  // Get all merge commits since previous version
+  const merges = gitLog(previousVersion);
+
+  /** @type {Array<{subject: string, hash: string, includedCommits: string[]}>} */
+  const nonPRMerges = [];
+
+  for (const line of merges.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+
+    // Skip PR merges
+    if (line.match(/Merge pull request #[0-9]+/)) {
+      continue;
+    }
+
+    // Parse merge commit: hash and subject
+    const match = line.match(/^([0-9a-f]+)\s+(.+)$/);
+    if (!match) continue;
+
+    const [, hash, subject] = match;
+
+    // Check if this is a real merge (has 2+ parents) to avoid fast-forward merges
+    const parentsCmd = executeCmd(`git rev-list --parents -n 1 ${hash}`, { silent: true });
+    const parentCount = parentsCmd.stdout.trim().split(/\s+/).length - 1;
+
+    if (parentCount < 2) {
+      // Fast-forward merge or not a real merge, skip
+      continue;
+    }
+
+    // Get commits added by this merge (from first parent to second parent)
+    // Using ^1..^2 to get only the commits introduced by this specific merge
+    // This avoids duplicates when the same branch is merged multiple times
+    const gitCmd = `git log --no-merges --format="%s (%h)" "${hash}^1..${hash}^2"`;
+    const includedCommitsResult = sh.exec(gitCmd, { silent: true });
+
+    // If git command failed, skip this merge
+    if (includedCommitsResult.code !== 0) {
+      continue;
+    }
+
+    const includedCommits = includedCommitsResult.stdout
+      .split(/\r?\n/)
+      .filter(/** @param {string} line */ line => line.trim())
+      .reverse() // Reverse to show chronological order (oldest first)
+      .map(/** @param {string} line */ line => `  - ${line}`);
+
+    if (includedCommits.length > 0) {
+      nonPRMerges.push({
+        subject,
+        hash, // Already 7 chars from --oneline
+        includedCommits,
+      });
+    }
+  }
+
+  // Reverse to show chronological order (oldest merge first)
+  // git log outputs newest first, so we reverse it
+  nonPRMerges.reverse();
+
+  // Format output
+  if (nonPRMerges.length === 0) {
+    return '';
+  }
+
+  /**
+   * Extract branch name from merge subject
+   * @param {string} subject - Merge commit subject
+   * @returns {string|null} Branch name or null if not found
+   */
+  const extractBranchName = subject => {
+    const match = subject.match(/Merge branch '([^']+)'/);
+    return match ? match[1] : null;
+  };
+
+  const formatted = [];
+  let prevBranch = null;
+
+  for (let i = 0; i < nonPRMerges.length; i++) {
+    const merge = nonPRMerges[i];
+    const currentBranch = extractBranchName(merge.subject);
+    const header = `${merge.subject} (${merge.hash})`;
+    const entry = `${header}\n${merge.includedCommits.join('\n')}`;
+
+    // Add blank line before this merge if it's from a different branch
+    if (i > 0 && currentBranch !== prevBranch) {
+      formatted.push('');
+    }
+
+    formatted.push(entry);
+    prevBranch = currentBranch;
+  }
+
+  return formatted.join('\n');
+}
+
 function generateNotesTsContent(version, title, notes) {
   const patchNote = `import { IPatchNotes } from '.';
 
@@ -184,7 +290,7 @@ ${notes
   .split('\n')
   .map(s => `    ${JSON.stringify(s)},`)
   .join('\n')}
-  ]
+  ],
 };
 `;
   info(`patch-note: '${patchNote}'`);
@@ -225,6 +331,7 @@ module.exports = {
   readPatchNoteFile,
   writePatchNoteFile,
   collectPullRequestMerges,
+  collectNonPRMerges,
   updateNotesTs,
   readPatchNote,
   generateNotesTsContent,

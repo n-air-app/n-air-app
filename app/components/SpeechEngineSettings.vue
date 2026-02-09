@@ -6,7 +6,7 @@
         <div class="text">
           <p class="speech-engine-heading-label">N Voice 琴詠ニア</p>
           <span class="speech-engine-heading-text"
-            >ニコニコから生まれた素直な声が特徴の音声合成エンジン</span
+          >ニコニコから生まれた素直な声が特徴の音声合成エンジン</span
           >
         </div>
       </div>
@@ -63,7 +63,7 @@
         <div class="text">
           <p class="speech-engine-heading-label">Windowsの音声合成</p>
           <span class="speech-engine-heading-text"
-            >Windowsの設定で選択されている音声合成エンジン</span
+          >Windowsの設定で選択されている音声合成エンジン</span
           >
         </div>
       </div>

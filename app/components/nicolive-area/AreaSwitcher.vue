@@ -52,7 +52,7 @@
 }
 
 .indicator {
-  .transition;
+  .transition();
 
   display: flex;
   align-items: center;
@@ -77,12 +77,12 @@
 
 .contentContainer {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
 }
 
 .popper {
-  .popper-styling;
+  .popper-styling();
 
   width: 320px;
   padding: 0;

@@ -28,8 +28,8 @@
 
 .step-body {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   padding: 0;
   border: none;
 }
