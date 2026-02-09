@@ -1,8 +1,8 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20260209-2',
-  title: '1.1.20260209-2',
+  version: '1.1.20260209-1',
+  title: '1.1.20260209-1',
   notes: [
     "変更: ミキサーの高度な設定でボイスチェンジャーソースがプレビューONになっているときは、ボイスチェンジャーのプロパティの変換後音声スイッチを非表示に (#1074)",
     "修正: Visual C++ Redistributableのダウンロードリンクを更新 (#1136)",
