@@ -234,7 +234,7 @@ jobs:
 
   build_check:
     name: build check
-    needs: [changes, setup-app, setup-bin]
+    needs: [changes, setup-app]
     if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: windows-2022
 
@@ -258,6 +258,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
+        if: ${{ needs.changes.outputs.bin == 'true' }}
         id: cache-node-modules-bin
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
