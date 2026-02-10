@@ -315,7 +315,7 @@ describe('collectNonPRMerges', () => {
       .mockReturnValueOnce({
         // Same branch merged twice consecutively (git log: newest first)
         stdout:
-          'bbb2222 Merge branch \'feature/test\' into main\naaa1111 Merge branch \'feature/test\' into main',
+          'bbb2222 Merge branch \'feature/test\'\naaa1111 Merge branch \'feature/test\'',
       })
       .mockReturnValueOnce({ stdout: 'bbb2222 p1 p2' })
       .mockReturnValueOnce({ stdout: 'aaa1111 p1 p2' });
@@ -341,7 +341,7 @@ describe('collectNonPRMerges', () => {
       .mockReturnValueOnce({
         // Different branches: git log order (newest first): A, B, A
         stdout:
-          'aaa1111 Merge branch \'feature/A\' into main\nbbb2222 Merge branch \'feature/B\' into main\nccc3333 Merge branch \'feature/A\' into main',
+          'aaa1111 Merge branch \'feature/A\'\nbbb2222 Merge branch \'feature/B\'\nccc3333 Merge branch \'feature/A\'',
       })
       .mockReturnValueOnce({ stdout: 'aaa1111 p1 p2' })
       .mockReturnValueOnce({ stdout: 'bbb2222 p1 p2' })
@@ -453,5 +453,117 @@ describe('collectNonPRMerges', () => {
     const result = await collectNonPRMerges('1.0.20190826-2');
 
     expect(result).toBe('');
+  });
+
+  test('PRブランチ内のマージ(into付き)は除外される', async () => {
+    executeCmd.mockReturnValueOnce({
+      stdout: 'abc1234 Merge branch "n-air_development" into feature/test',
+    });
+    // into付きなので親チェックもsh.execも呼ばれない
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toBe('');
+    // into付きのマージは処理がスキップされるため、親チェック(executeCmd)もsh.execも呼ばれない
+    expect(executeCmd).toHaveBeenCalledTimes(1); // git logのみ
+    expect(execSpy).not.toHaveBeenCalled();
+  });
+
+  test('直接マージ(intoなし)は含まれる', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "hotfix/urgent"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2', // 2 parents
+      });
+    execSpy.mockReturnValue({
+      code: 0,
+      stdout: '修正: 緊急パッチ (def456)',
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    expect(result).toContain('Merge branch "hotfix/urgent" (abc1234)');
+    expect(result).toContain('修正: 緊急パッチ (def456)');
+  });
+
+  test('混在シナリオ: into付きは除外、intoなしは含む', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        // 3つのマージコミット: 1つ目と3つ目はinto付き(除外)、2つ目はintoなし(含む)
+        stdout:
+          'aaa1111 Merge branch "n-air_development" into feature/A\n' +
+          'bbb2222 Merge branch "hotfix/critical"\n' +
+          'ccc3333 Merge branch "main" into refactor/B',
+      })
+      // aaa1111はinto付きなので、親チェックの前にスキップされる
+      .mockReturnValueOnce({ stdout: 'bbb2222 parent1 parent2' });
+    // bbb2222のみ親チェックが実行される
+    // ccc3333もinto付きなので、親チェックの前にスキップされる
+
+    execSpy.mockReturnValue({
+      code: 0,
+      stdout: '修正: 重大なバグ修正 (xyz789)',
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    // bbb2222のみ含まれる
+    expect(result).toContain('Merge branch "hotfix/critical" (bbb2222)');
+    expect(result).toContain('修正: 重大なバグ修正 (xyz789)');
+    // aaa1111とccc3333は含まれない
+    expect(result).not.toContain('feature/A');
+    expect(result).not.toContain('refactor/B');
+    // sh.execは1回だけ呼ばれる(bbb2222のため)
+    expect(execSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test('エッジケース: マージ内のコミットメッセージに"into"があっても影響しない', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 Merge branch "feature/refactor"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2',
+      });
+    execSpy.mockReturnValue({
+      code: 0,
+      stdout: '変更: Refactor code into modules (def456)', // コミットメッセージに"into"
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    // マージ件名に"into"がなければ含まれる
+    expect(result).toContain('Merge branch "feature/refactor" (abc1234)');
+    expect(result).toContain('変更: Refactor code into modules (def456)');
+  });
+
+  test('direct mergeブランチ内のsync merge (into付き)は掲載される', async () => {
+    executeCmd
+      .mockReturnValueOnce({
+        // hotfix/urgentを直接マージ（intoなし）
+        stdout: 'abc1234 Merge branch "hotfix/urgent"',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2',
+      });
+    execSpy.mockReturnValue({
+      code: 0,
+      // hotfix/urgentブランチ内のコミット（sync mergeを含む）
+      stdout:
+        '修正: 緊急バグ修正 (def456)\n' +
+        'Merge branch "n-air_development" into hotfix/urgent (ghi789)\n' +
+        '追加: 新機能追加 (jkl012)',
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    // direct mergeは含まれる
+    expect(result).toContain('Merge branch "hotfix/urgent" (abc1234)');
+    // 内訳コミットも全て含まれる（sync mergeも含む）
+    expect(result).toContain('修正: 緊急バグ修正 (def456)');
+    expect(result).toContain('Merge branch "n-air_development" into hotfix/urgent (ghi789)');
+    expect(result).toContain('追加: 新機能追加 (jkl012)');
   });
 });
