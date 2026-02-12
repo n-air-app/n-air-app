@@ -163,3 +163,7 @@ test('service behavior', () => {
 **Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
 **Node Version:** Requires Node.js 22.x LTS
 **Important:** `.npmrc` is configured with `node-linker=hoisted` to maintain flat node_modules structure for native modules that use relative path references in electron-builder packaging
+
+## Decorators
+
+**Current Status:** See [docs/decorators.md](docs/decorators.md) for decorator usage inventory and Vue 3 migration strategy

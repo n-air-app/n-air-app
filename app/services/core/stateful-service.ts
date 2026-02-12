@@ -150,10 +150,3 @@ export function getModule(ModuleContainer: any): Module<any, any> {
       : {},
   };
 }
-
-// tslint:disable-next-line:function-name
-export function InheritMutations(): ClassDecorator {
-  return function (target: any) {
-    inheritMutations(target);
-  };
-}

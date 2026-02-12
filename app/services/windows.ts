@@ -374,17 +374,14 @@ export class WindowsService extends StatefulService<IWindowsState> {
     });
   }
 
-  // @ExecuteInCurrentWindow()
   getChildWindowOptions(): IWindowOptions {
     return this.state.child;
   }
 
-  // @ExecuteInCurrentWindow()
   getChildWindowQueryParams(): Dictionary<any> {
     return this.getChildWindowOptions().queryParams || {};
   }
 
-  // @ExecuteInCurrentWindow()
   getWindowOptions(windowId: string) {
     return this.state[windowId].queryParams || {};
   }

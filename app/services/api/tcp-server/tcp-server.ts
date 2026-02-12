@@ -13,7 +13,7 @@ import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { ISettingsSubCategory } from 'services/settings/index';
 import { UsageStatisticsService } from 'services/usage-statistics';
-import { ExternalApiService } from '../external-api';
+import { InternalApiService } from '../internal-api';
 import { IIPAddressDescription, ITcpServerServiceApi, ITcpServersSettings } from './tcp-server-api';
 
 const net = require('net');
@@ -49,8 +49,7 @@ const TCP_PORT = 28194;
  */
 export class TcpServerService
   extends PersistentStatefulService<ITcpServersSettings>
-  implements ITcpServerServiceApi
-{
+  implements ITcpServerServiceApi {
   static defaultState: ITcpServersSettings = {
     token: '',
     namedPipe: {
@@ -66,7 +65,7 @@ export class TcpServerService
 
   @Inject() private jsonrpcService: JsonrpcService;
   @Inject() private usageStatisticsService: UsageStatisticsService;
-  @Inject() private externalApiService: ExternalApiService;
+  @Inject() private internalApiService: InternalApiService;
   private clients: Dictionary<IClient> = {};
   private nextClientId = 1;
   private servers: IServer[] = [];
@@ -77,7 +76,7 @@ export class TcpServerService
 
   init() {
     super.init();
-    this.externalApiService.serviceEvent.subscribe(event => this.onServiceEventHandler(event));
+    this.internalApiService.serviceEvent.subscribe(event => this.onServiceEventHandler(event));
   }
 
   listen() {
@@ -362,7 +361,7 @@ export class TcpServerService
         // some requests have to be handled by TcpServerService
         if (this.hadleTcpServerDirectives(client, request)) return;
 
-        const response = this.externalApiService.executeServiceRequest(request);
+        const response = this.internalApiService.executeServiceRequest(request);
 
         // if response is subscription then add this subscription to client
         if (response.result && response.result._type === 'SUBSCRIPTION') {
@@ -456,7 +455,7 @@ export class TcpServerService
     // handle unsubscribing by clearing client subscriptions
     if (
       request.method === 'unsubscribe' &&
-      this.externalApiService.subscriptions[request.params.resource]
+      this.internalApiService.subscriptions[request.params.resource]
     ) {
       const subscriptionInd = client.subscriptions.indexOf(request.params.resource);
       if (subscriptionInd !== -1) client.subscriptions.splice(subscriptionInd, 1);
