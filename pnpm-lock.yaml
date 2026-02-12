@@ -90,9 +90,6 @@ importers:
       unzip-stream:
         specifier: ^0.3.4
         version: 0.3.4
-      v-tooltip:
-        specifier: ~2.1.3
-        version: 2.1.3(vue@2.7.14)
       vosk-cli:
         specifier: https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz
         version: https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz
@@ -995,10 +992,6 @@ packages:
     resolution: {integrity: sha512-HrcgcIESLm9aIR842yhJ5RWan/gebQUJ6E/E5+rf0y9o6oj7w0Br+sWuL6kEQ/o/AdfvR1Je9jG18/gnpwjEyA==}
     peerDependencies:
       '@babel/core': ^7.0.0-0 || ^8.0.0-0 <8.0.0
-
-  '@babel/runtime@7.28.4':
-    resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
     resolution: {integrity: sha512-LPDZ85aEJyYSd18/DkjNh4/y1ntkE5KwUHWTiqgRxruuZL2F1yuHligVHLvcHY2vMHXttKFpJn6LwfI7cw7ODw==}
@@ -7041,9 +7034,6 @@ packages:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
 
-  v-tooltip@2.1.3:
-    resolution: {integrity: sha512-xXngyxLQTOx/yUEy50thb8te7Qo4XU6h4LZB6cvEfVd9mnysUxLEoYwGWDdqR+l69liKsy3IPkdYff3J1gAJ5w==}
-
   v8-to-istanbul@9.3.0:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
     engines: {node: '>=10.12.0'}
@@ -7112,11 +7102,6 @@ packages:
 
   vue-property-decorator@7.3.0:
     resolution: {integrity: sha512-HarXfTQ/Nxm4s/APpAaGIGHq5ZzslApImQy8ZrtkfGamw8rUFAVgMS5C50/AQ80+wfw3Wpnf4bNzbmj75m/k2Q==}
-
-  vue-resize@1.0.1:
-    resolution: {integrity: sha512-z5M7lJs0QluJnaoMFTIeGx6dIkYxOwHThlZDeQnWZBizKblb99GSejPnK37ZbNE/rVwDcYcHY+Io+AxdpY952w==}
-    peerDependencies:
-      vue: ^2.6.0
 
   vue-slider-component@2.8.16:
     resolution: {integrity: sha512-06gDoheKMU8TdqjoofIJaYfXw3uuWOXF2I14d/F5yW/8iOxnoI4Ks9WSXy8RWY+gs62GBE6tQXHDSX/H6IOaAw==}
@@ -8220,8 +8205,6 @@ snapshots:
       '@babel/helper-plugin-utils': 7.28.6
       '@babel/types': 7.28.5
       esutils: 2.0.3
-
-  '@babel/runtime@7.28.4': {}
 
   '@babel/template@7.27.2':
     dependencies:
@@ -15296,15 +15279,6 @@ snapshots:
 
   uuid@9.0.1: {}
 
-  v-tooltip@2.1.3(vue@2.7.14):
-    dependencies:
-      '@babel/runtime': 7.28.4
-      lodash: 4.17.23
-      popper.js: 1.16.1
-      vue-resize: 1.0.1(vue@2.7.14)
-    transitivePeerDependencies:
-      - vue
-
   v8-to-istanbul@9.3.0:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -15431,11 +15405,6 @@ snapshots:
   vue-property-decorator@7.3.0:
     dependencies:
       vue-class-component: 6.3.2
-
-  vue-resize@1.0.1(vue@2.7.14):
-    dependencies:
-      '@babel/runtime': 7.28.4
-      vue: 2.7.14
 
   vue-slider-component@2.8.16: {}
 
