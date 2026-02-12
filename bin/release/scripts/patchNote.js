@@ -203,6 +203,14 @@ async function collectNonPRMerges(previousVersion) {
 
     const [, hash, subject] = match;
 
+    // Skip merges into feature branches (these are PR internal syncs)
+    // Example: "Merge branch 'n-air_development' into feature/xyz"
+    // These are already captured by the PR merge that eventually happened
+    // NOTE: This only filters top-level merge commits, not commits within the merged branch
+    if (subject.match(/\sinto\s/)) {
+      continue;
+    }
+
     // Check if this is a real merge (has 2+ parents) to avoid fast-forward merges
     const parentsCmd = executeCmd(`git rev-list --parents -n 1 ${hash}`, { silent: true });
     const parentCount = parentsCmd.stdout.trim().split(/\s+/).length - 1;
@@ -215,7 +223,8 @@ async function collectNonPRMerges(previousVersion) {
     // Get commits added by this merge (from first parent to second parent)
     // Using ^1..^2 to get only the commits introduced by this specific merge
     // This avoids duplicates when the same branch is merged multiple times
-    const gitCmd = `git log --no-merges --format="%s (%h)" "${hash}^1..${hash}^2"`;
+    // NOTE: Include merge commits in the branch (e.g., sync merges) for direct merge branches
+    const gitCmd = `git log --format="%s (%h)" "${hash}^1..${hash}^2"`;
     const includedCommitsResult = sh.exec(gitCmd, { silent: true });
 
     // If git command failed, skip this merge

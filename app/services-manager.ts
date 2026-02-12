@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { ObserveList, StatefulService } from 'services/core';
 import { Service } from 'services/core/service';
 import Utils from 'services/utils';
