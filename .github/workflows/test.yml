@@ -237,6 +237,8 @@ jobs:
     needs: [changes, setup-app]
     if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: windows-2022
+    env:
+      MIN_INSTALLER_SIZE_MB: 300  # Minimum installer size in MB (adjust if needed)
 
     steps:
       - name: Checkout code
@@ -282,6 +284,25 @@ jobs:
 
       - name: Package local
         run: pnpm run package:local -- --publish never
+
+      - name: Check installer size
+        shell: pwsh
+        run: |
+          $minSize = [int]$env:MIN_INSTALLER_SIZE_MB
+          $installers = Get-ChildItem -Path dist -Filter "*.exe" -File
+          if ($installers.Count -eq 0) {
+            echo "::error::No installer .exe found in dist/"
+            exit 1
+          }
+          foreach ($file in $installers) {
+            $sizeMB = [math]::Round($file.Length / 1MB, 2)
+            echo "Installer: $($file.Name), Size: ${sizeMB} MB"
+            if ($file.Length -lt ($minSize * 1024 * 1024)) {
+              echo "::error::Installer $($file.Name) is ${sizeMB} MB, which is less than the minimum ${minSize} MB"
+              exit 1
+            }
+          }
+          echo "All installers meet the minimum size requirement of ${minSize} MB"
 
   test-summary:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
