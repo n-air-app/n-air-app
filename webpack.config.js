@@ -147,15 +147,7 @@ module.exports = function (env, argv) {
       // We want to dynamically require native addons
       externals: {
         'font-manager': 'require("font-manager")',
-
-        // Not actually a native addons, but for one reason or another
-        // we don't want them compiled in our webpack bundle.
-        'aws-sdk': 'require("aws-sdk")',
-        asar: 'require("asar")',
         'node-fontinfo': 'require("node-fontinfo")',
-
-        'utf-8-validate': 'require("utf-8-validate")',
-        bufferutil: 'require("bufferutil")',
       },
 
       module: {
