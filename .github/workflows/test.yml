@@ -287,11 +287,6 @@ jobs:
         shell: pwsh
         run: |
           $minSize = $env:MIN_INSTALLER_SIZE_MB
-          if (-not $minSize) {
-            echo "::warning::MIN_INSTALLER_SIZE_MB is not set, skipping installer size check"
-            exit 0
-          }
-          $minBytes = [long]$minSize * 1024 * 1024
           $installers = Get-ChildItem -Path dist -Filter "*.exe" -File
           if ($installers.Count -eq 0) {
             echo "::error::No installer .exe found in dist/"
@@ -300,7 +295,15 @@ jobs:
           foreach ($file in $installers) {
             $sizeMB = [math]::Round($file.Length / 1MB, 2)
             echo "Installer: $($file.Name), Size: ${sizeMB} MB"
+          }
+          if (-not $minSize) {
+            echo "::warning::MIN_INSTALLER_SIZE_MB is not set, skipping size validation"
+            exit 0
+          }
+          $minBytes = [long]$minSize * 1024 * 1024
+          foreach ($file in $installers) {
             if ($file.Length -lt $minBytes) {
+              $sizeMB = [math]::Round($file.Length / 1MB, 2)
               echo "::error::Installer $($file.Name) is ${sizeMB} MB, which is less than the minimum ${minSize} MB"
               exit 1
             }
