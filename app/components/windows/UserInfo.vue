@@ -33,22 +33,16 @@
             ユーザーページを見る
           </button>
           <popper
-            trigger="click"
-            :options="{ placement: 'bottom-end' }"
-            @show="
-              showPopupMenu = true;
-              popper = $event;
-            "
+
+            placement="bottom-end"
+            @show="showPopupMenu = true"
             @hide="showPopupMenu = false"
           >
             <div class="popper">
               <ul class="popup-menu-list">
                 <li class="popup-menu-item">
                   <a
-                    @click="
-                      copyUserId();
-                      popper.doClose();
-                    "
+                    @click="copyUserId()"
                     class="link"
                   >ユーザーIDをコピー</a
                   >
@@ -57,19 +51,13 @@
               <ul class="popup-menu-list" v-if="!isBroadcaster">
                 <li class="popup-menu-item">
                   <a
-                    @click="
-                      blockUser();
-                      popper.doClose();
-                    "
+                    @click="blockUser()"
                     class="link"
                     v-if="!isBlockedUser"
                   >配信からブロック</a
                   >
                   <a
-                    @click="
-                      unBlockUser();
-                      popper.doClose();
-                    "
+                    @click="unBlockUser()"
                     class="link"
                     v-if="isBlockedUser"
                   >配信用ブロックから削除</a
@@ -79,19 +67,13 @@
               <ul class="popup-menu-list" v-if="!isBroadcaster">
                 <li class="popup-menu-item">
                   <a
-                    @click="
-                      unFollowUser();
-                      popper.doClose();
-                    "
+                    @click="unFollowUser()"
                     class="link"
                     v-if="isFollowing"
                   >フォローを解除</a
                   >
                   <a
-                    @click="
-                      followUser();
-                      popper.doClose();
-                    "
+                    @click="followUser()"
                     class="link"
                     v-if="!isFollowing"
                   >ユーザーをフォロー</a
@@ -101,19 +83,13 @@
               <ul class="popup-menu-list" v-if="!isBroadcaster">
                 <li class="popup-menu-item">
                   <a
-                    @click="
-                      addModerator();
-                      popper.doClose();
-                    "
+                    @click="addModerator()"
                     class="link"
                     v-if="!isModerator"
                   >モデレーターに追加</a
                   >
                   <a
-                    @click="
-                      removeModerator();
-                      popper.doClose();
-                    "
+                    @click="removeModerator()"
                     class="link text--red"
                     v-if="isModerator"
                   >モデレーターから削除</a
@@ -298,10 +274,6 @@
     max-width: 288px;
     margin-right: 8px;
   }
-}
-
-.popper {
-  .popper-styling();
 }
 
 .tab-list {

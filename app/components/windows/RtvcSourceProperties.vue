@@ -68,16 +68,9 @@
                 </div>
 
                 <popper
-                  trigger="click"
-                  :options="{ placement: 'bottom-end' }"
-                  @show="
-                    showPopupMenu = true;
-                    popper = $event;
-                  "
-                  @hide="
-                    showPopupMenu = false;
-                    popper = undefined;
-                  "
+                  placement="bottom-end"
+                  @show="showPopupMenu = true"
+                  @hide="showPopupMenu = false"
                 >
                   <div class="popper">
                     <ul class="popup-menu-list">
@@ -464,8 +457,6 @@
   width: 104px;
 
   .popper {
-    .popper-styling();
-
     width: 160px;
   }
 

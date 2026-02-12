@@ -4,7 +4,7 @@
       <slot :name="activeContent.slotName" />
     </div>
     <div class="header" v-if="!isCompactMode">
-      <popper trigger="click" :options="{ placement: 'bottom-start' }" @show="popper = $event">
+      <popper placement="bottom-start">
         <div class="popper">
           <ul class="popup-menu-list">
             <li
@@ -12,10 +12,7 @@
               :class="{ active: content.slotName === activeContent.slotName }"
               :key="content.slotName"
               v-for="content in contents"
-              @click="
-                select(content.slotName);
-                popper.doClose();
-              "
+              @click="select(content.slotName)"
             >
               <p class="item-name">{{ content.name }}</p>
               <p class="item-text">{{ content.text }}</p>
@@ -82,8 +79,6 @@
 }
 
 .popper {
-  .popper-styling();
-
   width: 320px;
   padding: 0;
   margin-left: 8px;

@@ -87,7 +87,6 @@
     "vue-color": "2.8.1",
     "vue-i18n": "7.8.1",
     "vue-multiselect": "2.1.9",
-    "vue-popperjs": "2.3.0",
     "vue-property-decorator": "7.3.0",
     "vue-slider-component": "2.8.16",
     "vuedraggable": "2.24.3",
@@ -186,8 +185,7 @@
       "electron-winstaller",
       "husky",
       "less",
-      "protobufjs",
-      "vue-popperjs"
+      "protobufjs"
     ],
     "overrides": {
       "nth-check": "^2.0.1",

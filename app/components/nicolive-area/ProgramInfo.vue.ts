@@ -8,8 +8,8 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import Vue from 'vue';
-import Popper from 'vue-popperjs';
 import { Component } from 'vue-property-decorator';
+import Popper from '../shared/Popper.vue';
 
 @Component({
   components: {
@@ -26,7 +26,6 @@ export default class ProgramInfo extends Vue {
   private subscription: Subscription = null;
 
   showPopupMenu: boolean = false;
-  popper: PopperEvent;
 
   get isOnAir(): boolean {
     return this.nicoliveProgramService.state.status === 'onAir';
