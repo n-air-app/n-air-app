@@ -288,7 +288,7 @@ jobs:
       - name: Check installer size
         shell: pwsh
         run: |
-          $minSize = $env:MIN_INSTALLER_SIZE_MB
+          $minSize = [int]$env:MIN_INSTALLER_SIZE_MB
           $installers = Get-ChildItem -Path dist -Filter "*.exe" -File
           if ($installers.Count -eq 0) {
             echo "::error::No installer .exe found in dist/"
