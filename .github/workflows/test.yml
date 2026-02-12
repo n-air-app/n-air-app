@@ -237,6 +237,8 @@ jobs:
     needs: [changes, setup-app]
     if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: windows-2022
+    env:
+      MIN_INSTALLER_SIZE_MB: 300  # Minimum installer size in MB (adjust if needed)
 
     steps:
       - name: Checkout code
@@ -295,22 +297,12 @@ jobs:
           foreach ($file in $installers) {
             $sizeMB = [math]::Round($file.Length / 1MB, 2)
             echo "Installer: $($file.Name), Size: ${sizeMB} MB"
-          }
-          if (-not $minSize) {
-            echo "::warning::MIN_INSTALLER_SIZE_MB is not set, skipping size validation"
-            exit 0
-          }
-          $minBytes = [long]$minSize * 1024 * 1024
-          foreach ($file in $installers) {
-            if ($file.Length -lt $minBytes) {
-              $sizeMB = [math]::Round($file.Length / 1MB, 2)
+            if ($file.Length -lt ($minSize * 1024 * 1024)) {
               echo "::error::Installer $($file.Name) is ${sizeMB} MB, which is less than the minimum ${minSize} MB"
               exit 1
             }
           }
           echo "All installers meet the minimum size requirement of ${minSize} MB"
-        env:
-          MIN_INSTALLER_SIZE_MB: ${{ vars.MIN_INSTALLER_SIZE_MB }}
 
   test-summary:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
