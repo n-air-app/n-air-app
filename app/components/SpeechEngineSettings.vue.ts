@@ -3,12 +3,10 @@ import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nic
 import { SynthesizerId } from 'services/nicolive-program/state';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import VueSlider from 'vue-slider-component';
+import Slider from './shared/Slider.vue';
 
 @Component({
-  components: {
-    VueSlider,
-  },
+  components: { Slider },
 })
 export default class SpeechEngineSettings extends Vue {
   @Inject()

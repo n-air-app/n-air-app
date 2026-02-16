@@ -163,8 +163,7 @@
                 </span>
                 <span> {{ labelForPitchSong(pitchShiftSong) }} </span>
               </div>
-              <VueSlider
-                class="slider"
+              <slider
                 v-model="pitchShiftSong"
                 :min="-1200"
                 :max="1200"
@@ -183,8 +182,7 @@
                 </span>
                 <span> {{ pitchShift.toFixed(0) + ' cent' }} </span>
               </div>
-              <VueSlider
-                class="slider"
+              <slider
                 v-model="pitchShift"
                 :min="-1200"
                 :max="1200"
@@ -230,8 +228,7 @@
                 <span>{{ $t('source-props.nair-rtvc-source.amount.name') }} </span>
                 <span> {{ amount.toFixed(0) + '%' }}</span>
               </div>
-              <VueSlider
-                class="slider"
+              <slider
                 v-model="amount"
                 :min="0"
                 :max="100"

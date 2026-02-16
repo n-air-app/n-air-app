@@ -14,8 +14,8 @@ import { WrappedChat } from 'services/nicolive-program/WrappedChat';
 import Vue from 'vue';
 import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
-import VueSlider from 'vue-slider-component';
 import IconListSelect from './IconListSelect.vue';
+import Slider from './shared/Slider.vue';
 
 type MethodObject = {
   text: string;
@@ -38,8 +38,8 @@ type SynthesizerItem = {
 @Component({
   components: {
     Multiselect,
-    VueSlider,
     IconListSelect,
+    Slider,
   },
 })
 export default class CommentSettings extends Vue {
