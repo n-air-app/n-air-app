@@ -14,8 +14,8 @@
     "luxon": "^3.5.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.657.0",
-    "@aws-sdk/lib-storage": "^3.657.0",
+    "@aws-sdk/client-s3": "^3.990.0",
+    "@aws-sdk/lib-storage": "^3.990.0",
     "@inquirer/prompts": "^7.3.2",
     "colors": "^1.4.0",
     "iconv-lite": "^0.7.1",
