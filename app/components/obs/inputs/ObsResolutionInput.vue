@@ -8,19 +8,13 @@
       <label>{{ value.description }}</label>
     </div>
     <div class="input-wrapper">
-      <multiselect
+      <dropdown
         :value="currentValue"
         :disabled="value.enabled === false"
         :options="value.options"
-        track-by="value"
-        :close-on-select="true"
-        :placeholder="placeholder || $t('settings.resolutionPlaceholder')"
-        :allow-custom="getCustomResolution"
-        :allow-empty="false"
         label="description"
+        track-by="value"
         @input="onInputHandler"
-        @search-change="onSearchChange"
-        :searchable="false"
       >
         <template slot="option" slot-scope="props">
           <span>
@@ -30,7 +24,7 @@
         <template slot="noResult">
           {{ $t('settings.itemNotFoundMessage') }}
         </template>
-      </multiselect>
+      </dropdown>
     </div>
   </div>
 </template>

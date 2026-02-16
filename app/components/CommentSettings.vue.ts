@@ -12,9 +12,9 @@ import {
 } from 'services/nicolive-program/state';
 import { WrappedChat } from 'services/nicolive-program/WrappedChat';
 import Vue from 'vue';
-import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
-import IconListSelect from './IconListSelect.vue';
+import Dropdown from './shared/Dropdown.vue';
+import DropdownIcon from './DropdownIcon.vue';
 import Slider from './shared/Slider.vue';
 import TocSection from './shared/TocSection.vue';
 import SoundDetectorSettings from './SoundDetectorSettings.vue';
@@ -39,9 +39,9 @@ type SynthesizerItem = {
 
 @Component({
   components: {
-    Multiselect,
+    Dropdown,
+    DropdownIcon,
     Slider,
-    IconListSelect,
     SoundDetectorSettings,
     TocSection,
   },

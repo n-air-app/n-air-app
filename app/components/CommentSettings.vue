@@ -266,17 +266,14 @@
             <div class="input-label">
               <label>Method</label>
             </div>
-            <multiselect
+            <dropdown
               v-model="httpRelationMethod"
               :options="httpRelationMethods"
               label="text"
-              trackBy="value"
-              :allow-empty="false"
-              :searchable="false"
-              :placeholder="$t('settings.listPlaceholder')"
+              track-by="value"
               data-variant="filled"
             >
-            </multiselect>
+            </dropdown>
           </div>
 
           <div class="input-wrapper" v-if="httpRelationMethod.value !== ''">
@@ -424,10 +421,10 @@
   width: 100%;
   margin-bottom: 16px;
 
-  .multiselect {
+  .dropdown {
     flex-grow: 1;
 
-    & + .multiselect {
+    & + .dropdown {
       flex-grow: 1.4;
     }
   }

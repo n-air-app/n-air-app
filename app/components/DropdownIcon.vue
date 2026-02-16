@@ -1,10 +1,10 @@
 <template>
-  <multiselect
-    v-model="model"
+  <dropdown
+    :value="value"
+    @input="$emit('input', $event)"
     :options="options"
-    :allow-empty="false"
-    :searchable="false"
-    :placeholder="$t('settings.listPlaceholder')"
+    label="name"
+    track-by="id"
     :disabled="disabled"
     :loading="loading"
   >
@@ -20,49 +20,37 @@
         <span>{{ p.option.name }}</span>
       </div>
     </template>
-  </multiselect>
+  </dropdown>
 </template>
 
-<style scoped>
-.voption {
-  display: flex;
-  align-items: center;
-}
+<script lang="ts" src="./DropdownIcon.vue.ts"></script>
 
-.voption img {
-  height: 24px;
-  margin-right: 8px;
-}
-</style>
-<script lang="ts" src="./IconListSelect.vue.ts"></script>
 <style lang="less" scoped>
 @import url('../styles/index');
 @item-height: 36px;
 
-.multiselect {
+.voption {
+  display: flex;
+  align-items: center;
+
+  img {
+    height: 24px;
+    margin-right: 8px;
+  }
+}
+
+.dropdown {
   min-height: @item-height;
 }
 
-/deep/ .multiselect__select {
-  line-height: @item-height;
-}
-
-/deep/ .multiselect__single,
-.multiselect__placeholder {
-  width: 100%;
-  height: @item-height;
-  line-height: @item-height;
-}
-
-/deep/ .multiselect__single {
+/deep/ .dropdown__single {
   .voption span {
     height: 100%;
-
     .text-ellipsis();
   }
 }
 
-/deep/ .multiselect__option {
+/deep/ .dropdown__option {
   height: @item-height;
   line-height: @item-height;
 }

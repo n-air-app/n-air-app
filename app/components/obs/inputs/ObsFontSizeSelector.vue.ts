@@ -1,8 +1,8 @@
-import { Multiselect } from 'vue-multiselect';
+import Dropdown from 'components/shared/Dropdown.vue';
 import { Component, Prop } from 'vue-property-decorator';
 import { ObsInput } from './ObsInput';
 
-@Component({ components: { Multiselect } })
+@Component({ components: { Dropdown } })
 export default class ObsFontSizeSelector extends ObsInput<number> {
   @Prop()
   value: number;

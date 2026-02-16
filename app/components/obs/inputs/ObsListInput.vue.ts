@@ -1,9 +1,9 @@
-import { Multiselect } from 'vue-multiselect';
+import Dropdown from 'components/shared/Dropdown.vue';
 import { Component, Prop } from 'vue-property-decorator';
 import { IObsListInput, IObsListOption, ObsInput, TObsType, TObsValue } from './ObsInput';
 
 @Component({
-  components: { Multiselect },
+  components: { Dropdown },
 })
 class ObsListInput extends ObsInput<IObsListInput<TObsValue>> {
   static obsType: TObsType;
@@ -26,10 +26,6 @@ class ObsListInput extends ObsInput<IObsListInput<TObsValue>> {
 
   onInputHandler(option: IObsListOption<string>) {
     this.emitInput({ ...this.value, value: option ? option.value : null });
-  }
-
-  onSearchChange(value: string) {
-    this.$emit('search-change', value);
   }
 
   get currentValue() {

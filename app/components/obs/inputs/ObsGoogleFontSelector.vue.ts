@@ -1,6 +1,6 @@
+import Dropdown from 'components/shared/Dropdown.vue';
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
-import { Multiselect } from 'vue-multiselect';
 import { Component, Prop } from 'vue-property-decorator';
 import { Inject } from '../../../services/core/injector';
 import { FontLibraryService } from '../../../services/font-library';
@@ -9,7 +9,7 @@ import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import { IGoogleFont, ObsInput } from './ObsInput';
 
 @Component({
-  components: { Multiselect, FontSizeSelector: ObsFontSizeSelector },
+  components: { Dropdown, FontSizeSelector: ObsFontSizeSelector },
 })
 export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
   @Inject()

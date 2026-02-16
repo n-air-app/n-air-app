@@ -21,9 +21,7 @@
             v-if="profiles.length > 1"
             v-model="selectedProfile"
             :options="profiles"
-            :allow-empty="false"
             :show-labels="false"
-            :searchable="false"
           >
           </multiselect>
         </div>

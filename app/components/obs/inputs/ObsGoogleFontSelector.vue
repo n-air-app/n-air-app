@@ -9,14 +9,13 @@
           </label>
         </div>
         <div class="input-wrapper">
-          <multiselect
+          <dropdown
             :value="selectedFamily"
             :options="fontFamilies"
             :disabled="isLoading"
             @input="setFamily"
-            :searchable="true"
           >
-          </multiselect>
+          </dropdown>
         </div>
       </div>
       <div class="input-container">
@@ -27,15 +26,13 @@
           </label>
         </div>
         <div class="input-wrapper">
-          <multiselect
+          <dropdown
             :value="selectedStyle"
             :options="fontStyles"
-            :allow-empty="false"
             :disabled="isLoading"
             @input="setStyle"
-            :searchable="false"
           >
-          </multiselect>
+          </dropdown>
           <template slot="noResult">
             {{ $t('settings.itemNotFoundMessage') }}
           </template>

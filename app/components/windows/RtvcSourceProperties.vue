@@ -193,14 +193,12 @@
               <div class="labels">
                 <span>{{ $t('source-props.nair-rtvc-source.primary_voice.name') }}</span>
               </div>
-              <multiselect
+              <dropdown
                 v-model="primaryVoiceModel"
                 :options="primaryVoiceList"
                 label="description"
-                trackBy="value"
-                :allow-empty="false"
+                track-by="value"
                 :placeholder="$t('settings.listPlaceholder')"
-                :searchable="false"
                 class="short"
               />
             </div>
@@ -209,14 +207,12 @@
               <div class="labels">
                 <span>{{ $t('source-props.nair-rtvc-source.secondary_voice.name') }}</span>
               </div>
-              <multiselect
+              <dropdown
                 v-model="secondaryVoiceModel"
                 :options="secondaryVoiceList"
                 label="description"
-                trackBy="value"
-                :allow-empty="false"
+                track-by="value"
                 :placeholder="$t('settings.listPlaceholder')"
-                :searchable="false"
                 class="short"
               />
             </div>
@@ -249,14 +245,12 @@
                 <label>{{ $t('source-props.nair-rtvc-source.device.name') }}</label>
               </div>
               <div class="input-wrapper">
-                <multiselect
+                <dropdown
                   v-model="deviceModel"
                   :options="deviceList"
                   label="description"
-                  trackBy="value"
-                  :allow-empty="false"
+                  track-by="value"
                   :placeholder="$t('settings.listPlaceholder')"
-                  :searchable="false"
                 />
               </div>
             </div>
@@ -272,14 +266,12 @@
                   ></label>
               </div>
               <div class="input-wrapper">
-                <multiselect
+                <dropdown
                   v-model="latencyModel"
                   :options="latencyList"
                   label="description"
-                  trackBy="value"
-                  :allow-empty="false"
+                  track-by="value"
                   :placeholder="$t('settings.listPlaceholder')"
-                  :searchable="false"
                 />
               </div>
             </div>
@@ -621,7 +613,7 @@
 }
 
 .short {
-  /deep/ .multiselect__content {
+  /deep/ .dropdown__dropdown {
     max-height: 104px;
   }
 }
