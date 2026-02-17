@@ -1,21 +1,25 @@
 <template>
   <modal-layout bare-content :show-cancel="false" :done-handler="done">
     <div slot="content" class="settings" data-test="Settings">
-      <NavMenu v-model="categoryName" class="side-menu" data-test="SideMenu">
+      <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
         <template v-for="category in categoryNames">
           <NavItem
             :key="category"
             :to="category"
             :ico="icons.get(category)"
             :data-test="category"
+            :show-arrow="hasSections(category)"
+            :is-toc-open="category === categoryName ? isTocOpen : false"
+            @click.native.prevent="handleCategoryClick(category)"
           >
             {{ $t(`settings.${category}.name`, { fallback: category }) }}
           </NavItem>
           <TableOfContents
-            v-if="category === categoryName && currentSections.length > 0"
+            v-if="category === categoryName && currentSections.length > 0 && isTocOpen"
             :key="`${category}-toc`"
             :sections="currentSections"
-            @navigate="scrollToSection"
+            :activeId="currentActiveTocId"
+            @navigate="handleTocNavigate"
           />
         </template>
       </NavMenu>

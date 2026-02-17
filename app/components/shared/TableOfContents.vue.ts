@@ -11,4 +11,9 @@ interface TocSectionData {
 @Component({})
 export default class TableOfContents extends Vue {
   @Prop({ required: true }) sections!: TocSectionData[];
+  @Prop({ default: null }) activeId!: string | null;
+
+  public onNavigate(id: string): void {
+    this.$emit('navigate', id);
+  }
 }

@@ -23,10 +23,10 @@ import Hotkeys from '../Hotkeys.vue';
 import ModalLayout from '../ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
-import SpeechEngineSettings from '../SpeechEngineSettings.vue';
 import TableOfContents from '../shared/TableOfContents.vue';
 import { TocManager } from '../shared/TocManager';
 import TocSection from '../shared/TocSection.vue';
+import SpeechEngineSettings from '../SpeechEngineSettings.vue';
 import TranscriptionSettings from '../TranscriptionSettings.vue';
 import { CategoryIcons } from './CategoryIcons';
 
@@ -36,6 +36,16 @@ interface TocSectionData {
   order: number;
   level: number;
 }
+
+// 目次を持っているカテゴリ
+const CATEGORIES_WITH_TOC: string[] = [
+  'General',
+  'Output',
+  'Hotkeys',
+  'Advanced',
+  'Transcription',
+  'Comment',
+];
 
 @Component({
   components: {
@@ -88,6 +98,22 @@ export default class Settings extends Vue {
   userSubscription: Subscription;
   icons = CategoryIcons;
   isLoggedIn = false;
+
+  // TOCの開閉状態を管理するプロパティを追加
+  public isTocOpen: boolean = true;
+  public currentActiveTocId: string | null = null;
+
+  // NavItemのクリック時に呼び出すメソッド
+  public handleCategoryClick(category: SettingsCategory) {
+    if (this.categoryName === category) {
+      // 1. すでに選択中なら開閉をトグル
+      this.isTocOpen = !this.isTocOpen;
+    } else {
+      // 2. 新しいカテゴリなら、まずカテゴリをセット
+      // ※ ここで isTocOpen = true にしても良いですが、Watcher側に任せるとより確実です
+      this.categoryName = category;
+    }
+  }
 
   // TOC管理
   private tocManager = new TocManager();
@@ -146,10 +172,23 @@ export default class Settings extends Vue {
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
     this.settingsData = this.settingsService.getSettingsFormData(categoryName);
     this.$refs.settingsContainer.scrollTop = 0;
+    this.isTocOpen = true;
 
     // Clear TOC sections for the current category to prevent duplicates on re-selection
     // This ensures a clean slate when switching tabs or re-selecting the same tab
     this.tocManager.clear(categoryName);
+
+    this.currentActiveTocId = null;
+
+    this.$nextTick(() => {
+      this.$nextTick(() => {
+        const sections = this.tocManager.getSections(categoryName);
+        if (sections && sections.length > 0) {
+          // 先頭の目次をアクティブにする
+          this.currentActiveTocId = sections[0].id;
+        }
+      });
+    });
   }
 
   scrollToSection(sectionId: string) {
@@ -165,5 +204,14 @@ export default class Settings extends Vue {
         behavior: 'smooth',
       });
     }
+  }
+
+  public handleTocNavigate(sectionId: string) {
+    this.currentActiveTocId = sectionId; // ハイライトを切り替える
+    this.scrollToSection(sectionId); // すでにあるスクロール関数を呼ぶ
+  }
+
+  public hasSections(category: SettingsCategory): boolean {
+    return CATEGORIES_WITH_TOC.includes(category);
   }
 }

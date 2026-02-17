@@ -6,9 +6,10 @@
       class="toc-item"
       :class="{
         'toc-item--level1': section.level === 1,
-        'toc-item--level2': section.level === 2
+        'toc-item--level2': section.level === 2,
+        'toc-item--active': section.id === activeId
       }"
-      @click="$emit('navigate', section.id)"
+      @click="onNavigate(section.id)"
     >
       {{ section.title }}
     </div>
@@ -27,34 +28,26 @@
 
 .toc-item {
   display: block;
-  min-height: 24px;
-  padding-right: 16px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  line-height: 20px;
-  font-size: @font-size3;
-  color: var(--color-text-light);
+  min-height: 35px;
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) var(--spacing-2xl);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-object-emphasis-medium);
   cursor: pointer;
   list-style: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &.toc-item--level1 {
-    padding-left: 48px; // 16px (親のpadding) + 32px (インデント)
-  }
 
   &.toc-item--level2 {
     padding-left: 64px; // さらに16px追加でネスト
   }
 
   &.toc-item--active {
-    color: var(--color-text-active);
-    border-left: 2px solid var(--color-text-active);
+    color: var(--color-object-emphasis-high);
+    background-color: var(--color-highlight-low);
+    border-radius: var(--radius-sm);
   }
 
   &:not(.toc-item--active):hover {
-    color: var(--color-text);
+    color: var(--color-object-emphasis-high);
   }
 }
 </style>
