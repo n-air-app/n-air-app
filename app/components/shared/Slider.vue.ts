@@ -1,3 +1,58 @@
+/**
+ * カスタムスライダーコンポーネント
+ *
+ * ## 利用方法
+ *
+ * ### 基本的な使い方（数値範囲指定）
+ * ```vue
+ * <slider
+ *   :value="currentValue"
+ *   :min="0"
+ *   :max="100"
+ *   :interval="1"
+ *   @input="handleInput"
+ * />
+ * ```
+ *
+ * ### 配列から値を選択
+ * ```vue
+ * <slider
+ *   :value="selectedValue"
+ *   :data="[0.1, 0.5, 1.0, 1.5, 2.0]"
+ *   @input="handleInput"
+ * />
+ * ```
+ * dataプロパティを指定すると、配列のインデックスで内部管理し、
+ * 実際の値（配列の要素）をemitします。
+ *
+ * ### その他のオプション
+ * - `disabled`: スライダーを無効化
+ * - `tooltip`: ツールチップ表示 ('none' | 'hover')
+ * - `valueBox`: 値を表示するボックスを表示
+ * - `usePercentages`: 値をパーセンテージ表示
+ *
+ * ## 現在の利用箇所
+ *
+ * 1. **ObsSliderInput** (app/components/obs/inputs/ObsSliderInput.vue.ts)
+ *    - OBSプロパティのスライダー入力のベースコンポーネント
+ *    - デバウンス処理によるパフォーマンス最適化
+ *
+ * 2. **MixerItem** (app/components/MixerItem.vue.ts)
+ *    - オーディオミキサーの音量調整
+ *    - 0.0〜1.0の範囲で音量を制御
+ *
+ * 3. **CommentSettings** (app/components/CommentSettings.vue.ts)
+ *    - コメント読み上げの速度(rate)と音量(volume)調整
+ *    - dataプロパティで離散的な値のリストから選択
+ *
+ * 4. **SpeechEngineSettings** (app/components/SpeechEngineSettings.vue.ts)
+ *    - 音声合成エンジンの最大時間(maxTime)とピッチ(pitch)調整
+ *    - dataプロパティで事前定義された値から選択
+ *
+ * 5. **RtvcSourceProperties** (app/components/windows/RtvcSourceProperties.vue.ts)
+ *    - RTVCソースのピッチシフトや音量調整など
+ *    - ボイスチェンジャーのパラメータ制御
+ */
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 
 export default defineComponent({

@@ -168,7 +168,6 @@
                 :min="-1200"
                 :max="1200"
                 :interval="1200"
-                tooltip="none"
               />
             </div>
             <div v-else>
@@ -187,7 +186,6 @@
                 :min="-1200"
                 :max="1200"
                 :interval="1"
-                tooltip="none"
               />
             </div>
             <!-- primary -->
@@ -233,7 +231,6 @@
                 :min="0"
                 :max="100"
                 :interval="1"
-                tooltip="none"
               />
             </div>
             <!-- -->
