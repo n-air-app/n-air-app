@@ -415,7 +415,12 @@
   },
   "near": {
     "name": "KOTOYOMI Near",
-    "description": "Add a character to your scene that reads comments to the \"N Voice\" voice."
+    "description": "Add a character to your scene that reads comments to the \"N Voice\" voice.",
+    "avatar_style": {
+      "name": "Avatar Style",
+      "standing1": "Standing 1",
+      "standing2": "Standing 2"
+    }
   },
   "wasapi_process_output_capture": {
     "name": "App Audio Capture (BETA)",

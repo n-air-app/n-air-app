@@ -415,7 +415,12 @@
   },
   "near": {
     "name": "琴詠ニア",
-    "description": "シーンにN Voiceの音声に合わせてコメントを読み上げるキャラクターを追加します"
+    "description": "シーンにN Voiceの音声に合わせてコメントを読み上げるキャラクターを追加します",
+    "avatar_style": {
+      "name": "アバタースタイル",
+      "standing1": "立ち絵1",
+      "standing2": "立ち絵2"
+    }
   },
   "wasapi_process_output_capture": {
     "name": "アプリ音声キャプチャ(β版)",
