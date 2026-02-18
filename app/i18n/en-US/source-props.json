@@ -418,8 +418,8 @@
     "description": "Add a character to your scene that reads comments to the \"N Voice\" voice.",
     "avatar_style": {
       "name": "Avatar Style",
-      "standing1": "Standing 1",
-      "standing2": "Standing 2"
+      "standing1": "ORIGIN",
+      "standing2": "NEXT"
     }
   },
   "wasapi_process_output_capture": {
