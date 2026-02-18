@@ -418,8 +418,8 @@
     "description": "シーンにN Voiceの音声に合わせてコメントを読み上げるキャラクターを追加します",
     "avatar_style": {
       "name": "アバタースタイル",
-      "standing1": "ORIGIN（いつもの絵柄）",
-      "standing2": "NEXT（星間通信でおなじみの絵柄）"
+      "standing1": "ORIGIN（おなじみの絵柄）",
+      "standing2": "NEXT（星間通信の絵柄）"
     }
   },
   "wasapi_process_output_capture": {
