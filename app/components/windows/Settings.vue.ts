@@ -106,11 +106,8 @@ export default class Settings extends Vue {
   // NavItemのクリック時に呼び出すメソッド
   public handleCategoryClick(category: SettingsCategory) {
     if (this.categoryName === category) {
-      // 1. すでに選択中なら開閉をトグル
       this.isTocOpen = !this.isTocOpen;
     } else {
-      // 2. 新しいカテゴリなら、まずカテゴリをセット
-      // ※ ここで isTocOpen = true にしても良いですが、Watcher側に任せるとより確実です
       this.categoryName = category;
     }
   }
