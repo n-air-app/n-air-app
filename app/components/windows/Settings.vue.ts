@@ -23,6 +23,7 @@ import Hotkeys from '../Hotkeys.vue';
 import ModalLayout from '../ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
+import SoundDetectorSettings from '../SoundDetectorSettings.vue';
 import SpeechEngineSettings from '../SpeechEngineSettings.vue';
 import TranscriptionSettings from '../TranscriptionSettings.vue';
 import { CategoryIcons } from './CategoryIcons';
@@ -40,6 +41,7 @@ import { CategoryIcons } from './CategoryIcons';
     ExperimentalSettings,
     LanguageSettings,
     CommentSettings,
+    SoundDetectorSettings,
     SpeechEngineSettings,
     SubStreamSettings,
     TranscriptionSettings,
@@ -75,6 +77,16 @@ export default class Settings extends Vue {
 
     this.categoryName = this.getInitialCategoryName();
     this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
+    // scroll to the anchor if it exists
+    const anchor = this.getInitialAnchor();
+    if (anchor) {
+      this.$nextTick(() => {
+        const element = document.querySelector(anchor);
+        if (element) {
+          element.scrollIntoView();
+        }
+      });
+    }
   }
 
   beforeDestroy() {
@@ -88,10 +100,13 @@ export default class Settings extends Vue {
   }
 
   getInitialCategoryName() {
-    if (this.windowsService.state.child.queryParams) {
-      return this.windowsService.state.child.queryParams.categoryName || 'General';
-    }
-    return 'General';
+    const queryParams = this.windowsService.state.child.queryParams;
+    return queryParams?.categoryName || 'General';
+  }
+
+  getInitialAnchor(): string {
+    const anchor = this.windowsService.state.child.anchor;
+    return anchor || undefined;
   }
 
   save(settingsData: ISettingsSubCategory[]) {

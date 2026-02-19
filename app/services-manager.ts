@@ -114,7 +114,7 @@ export class ServicesManager extends Service {
   private initService(serviceName: string): Service {
     const ServiceClass = this.services[serviceName];
     if (!ServiceClass) throw Error(`unknown service: ${serviceName}`);
-    if (this.instances[serviceName]) return;
+    if (this.instances[serviceName]) return this.instances[serviceName];
     this.instances[serviceName] = ServiceClass.instance;
     return ServiceClass.instance;
   }

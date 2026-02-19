@@ -15,7 +15,9 @@ import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
 import { StatefulService, mutation } from 'services/core/stateful-service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
+import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
+import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
@@ -126,6 +128,8 @@ export class SettingsService
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private dismissablesService: DismissablesService;
   @Inject() private nicoliveProgramStateService: NicoliveProgramStateService;
+  @Inject() private nicoliveCommentSynthesizerService: NicoliveCommentSynthesizerService;
+  @Inject() private soundDetectorService: SoundDetectorService;
 
   init() {
     this.loadSettingsIntoStore();
@@ -154,16 +158,21 @@ export class SettingsService
     }
   }
 
-  showSettings(categoryName?: SettingsCategory) {
+  showSettings(categoryName?: SettingsCategory, anchor?: string) {
     this.windowsService.showWindow({
       componentName: 'Settings',
       title: $t('common.settings'),
       queryParams: { categoryName },
+      anchor,
       size: {
         width: 800,
         height: 800,
       },
     });
+  }
+
+  showSoundDetectorSettings() {
+    this.showSettings('SoundDetector');
   }
 
   advancedSettingEnabled(): boolean {
@@ -178,7 +187,17 @@ export class SettingsService
     categories.push('Transcription');
 
     if (this.userService.isLoggedIn()) {
-      categories.push('Comment', 'SpeechEngine');
+      categories.push('Comment');
+
+      // ニコニコログイン中かつコメント読み上げ有効時のみ
+      if (
+        this.userService.isNiconicoLoggedIn() &&
+        this.nicoliveCommentSynthesizerService.enabled
+      ) {
+        categories.push('SoundDetector');
+      }
+
+      categories.push('SpeechEngine');
     }
 
     categories.push('SubStream');
@@ -851,6 +870,20 @@ export class SettingsService
           },
         ],
       },
+      {
+        nameSubCategory: 'SoundDetector',
+        codeSubCategory: 'SoundDetector',
+        parameters: [
+          <IObsInput<boolean>>{
+            value: this.soundDetectorService.isCalibrated,
+            name: 'Calibrated',
+            description: '読み上げ停止の音量設定済み',
+            type: 'OBS_PROPERTY_BOOL',
+            visible: true,
+            enabled: true,
+          },
+        ],
+      },
     ];
   }
 
@@ -869,8 +902,19 @@ export class SettingsService
           break;
         case 'NicoliveProgramState':
           for (const item of setting.parameters) {
-            if (item.name === 'ResetNameplateHint') {
+            if (item.name === 'ResetNameplateHint' && !item.value) {
               this.nicoliveProgramStateService.updateNameplateHint(undefined);
+            }
+          }
+          break;
+        case 'SoundDetector':
+          for (const item of setting.parameters) {
+            if (item.name === 'Calibrated') {
+              if (item.value) {
+                this.soundDetectorService.markCalibrated();
+              } else {
+                this.soundDetectorService.resetCalibrated();
+              }
             }
           }
           break;

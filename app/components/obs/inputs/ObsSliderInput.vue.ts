@@ -1,5 +1,5 @@
 import { debounce } from 'lodash';
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import Slider from '../../shared/Slider.vue';
 import { IObsSliderInputValue, ObsInput, TObsType } from './ObsInput';
 
@@ -15,6 +15,11 @@ class ObsSliderInput extends ObsInput<IObsSliderInputValue> {
   // Local value is an instaneous value that is updated as the user
   // moves the slider.  It makes the UI feel more responsive.
   localValue = this.value.value;
+
+  @Watch('value.value')
+  onValueChange(newValue: number) {
+    this.localValue = newValue;
+  }
 
   private emitValueImpl(value: number) {
     this.emitInput({ ...this.value, value });

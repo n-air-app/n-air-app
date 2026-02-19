@@ -1,8 +1,10 @@
+import { Subject, Subscription } from 'rxjs';
 import { InitAfter, Inject } from 'services/core';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NVoiceCharacterService } from 'services/nvoice-character';
+import { SoundDetectorService } from 'services/sound-detector';
 import { UserService } from 'services/user';
-import { QueueRunner } from 'util/QueueRunner';
+import { QueueRunner, QueueRunnerState } from 'util/QueueRunner';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { NVoiceClientService } from './n-voice-client';
@@ -36,6 +38,8 @@ export type Speech = {
 
 export interface ICommentSynthesizerState {
   enabled: boolean;
+  soundDetectorEnabled: boolean;
+  queueRunnerState: QueueRunnerState;
   pitch: number; // SpeechSynthesisUtterance.pitch; 0.1(lowest) to 2(highest) (default: 1), only for web speech
   rate: number; // SpeechSynthesisUtterence.rate; 0.1(lowest) to 10(highest); default:1
   volume: number; // SpeechSynthesisUtterance.volume; 0.1(lowest) to 1(highest)
@@ -54,9 +58,12 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   @Inject() nVoiceClientService: NVoiceClientService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
   @Inject() private userService: UserService;
+  @Inject() soundDetectorService: SoundDetectorService;
 
   static initialState: ICommentSynthesizerState = {
     enabled: true,
+    soundDetectorEnabled: false,
+    queueRunnerState: null,
     pitch: 1,
     rate: 1,
     volume: 1,
@@ -74,7 +81,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   };
 
   // この数すでにキューに溜まっている場合は破棄してから追加する
-  NUM_COMMENTS_TO_SKIP = 5;
+  NUM_COMMENTS_TO_SKIP = 5 as const;
 
   // delegate synth
   webSpeech = new WebSpeechSynthesizer();
@@ -95,8 +102,18 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   }
 
   queue = new QueueRunner();
+  get queueLength(): number {
+    return this.state.queueRunnerState.length;
+  }
+  get queueState(): QueueRunnerState['state'] {
+    return this.state.queueRunnerState.state;
+  }
+  get queueDisabled(): boolean {
+    return this.state.queueRunnerState.disabled;
+  }
 
   phonemeServer: PhonemeServer;
+  private queueStateSubscription: Subscription;
 
   init(): void {
     this.setState({
@@ -104,6 +121,12 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       ...(this.stateService.state.speechSynthesizerSettings
         ? this.stateService.state.speechSynthesizerSettings
         : {}),
+      soundDetectorEnabled: false, // 起動時には毎回false
+      queueRunnerState: null, // 起動時にはnull
+    });
+
+    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
+      this.setState({ queueRunnerState });
     });
 
     this.stateService.updated.subscribe({
@@ -113,6 +136,11 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
           ...persistentState.speechSynthesizerSettings,
         };
         this.SET_STATE(newState);
+        if (newState.enabled && newState.soundDetectorEnabled) {
+          this.subscribeSoundDetector();
+        } else {
+          this.unsubscribeSoundDetector();
+        }
       },
     });
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
@@ -122,6 +150,59 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         this.nVoiceCharacterService.updateSocketIoPort(port);
       },
     });
+  }
+
+  private soundDetectorSubscription: Subscription;
+
+  private subscribeSoundDetector() {
+    if (this.soundDetectorSubscription) {
+      return;
+    }
+    this.soundDetectorSubscription = this.soundDetectorService.speechActionObservable.subscribe({
+      next: action => {
+        switch (action) {
+          case 'pause':
+            this.queue.disable({ interruptAction: 'pause' });
+            break;
+          case 'cancel':
+            this.queue.disable({ interruptAction: 'cancel' });
+            break;
+          case 'graceful':
+            this.queue.disable({ interruptAction: 'graceful' });
+            break;
+
+          case 'resume':
+            this.queue.enable();
+            break;
+
+          default:
+            console.warn(`Unknown sound detector action: ${action}`);
+        }
+      },
+    });
+  }
+
+  private unsubscribeSoundDetector() {
+    if (this.soundDetectorSubscription) {
+      this.soundDetectorSubscription.unsubscribe();
+      this.soundDetectorSubscription = null;
+    }
+  }
+
+  // 音声検出の有効/無効化(ネスト対応)
+  enableSoundDetector(enable: boolean) {
+    if (enable) {
+      this.soundDetectorService.enable();
+    } else {
+      this.soundDetectorService.disable();
+    }
+    this.setState({ soundDetectorEnabled: this.soundDetectorService.isEnabled() });
+  }
+  get isSoundDetectorSourceEnabled(): boolean {
+    return this.soundDetectorService.state.sourceId !== null;
+  }
+  get isSoundDetectorCalibrated(): boolean {
+    return this.soundDetectorService.isCalibrated;
   }
 
   private dictionary = new ParaphraseDictionary();
@@ -212,20 +293,49 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     );
   }
 
-  startSpeakingSimple(speech: Speech) {
-    // empty anonymous functions must be created in this service
-    this.queueToSpeech(
-      speech,
-      () => {},
-      () => {},
-      true,
-    );
+  private speakingSubject = new Subject<boolean>();
+  speaking = this.speakingSubject.asObservable();
+
+  startSpeakingSimple(speech: Speech, cancelBeforeSpeaking = true) {
+    const onstart = () => {
+      this.speakingSubject.next(true);
+    };
+    const onend = () => {
+      this.speakingSubject.next(false);
+    };
+    this.queueToSpeech(speech, onstart, onend, cancelBeforeSpeaking);
   }
 
-  startTestSpeech(text: string, synthId: SynthesizerId, type: WrappedChat['type']) {
+  startTestSpeech(
+    text: string,
+    synthId: SynthesizerId,
+    type: WrappedChat['type'],
+    cancelBeforeSpeaking = true,
+  ) {
     const speech = this.makeSimpleTextSpeech(text, synthId, type);
     if (!speech) return;
-    this.startSpeakingSimple(speech);
+    this.startSpeakingSimple(speech, cancelBeforeSpeaking);
+  }
+
+  /**
+   * テスト音声を再生する（UIコンポーネントから使用）
+   * @param synthId 音声合成エンジンID
+   * @param type チャットタイプ ('normal', 'operator', 'system')
+   * @param cancelBeforeSpeaking 再生前にキューをキャンセルするか
+   */
+  testSpeechPlay(
+    synthId: SynthesizerSelector,
+    type: WrappedChat['type'],
+    cancelBeforeSpeaking = true,
+  ): void {
+    if (synthId === 'ignore') return;
+
+    this.startTestSpeech(
+      'これは読み上げ設定のテスト音声です',
+      synthId,
+      type,
+      cancelBeforeSpeaking,
+    );
   }
 
   queueToSpeech(
@@ -233,6 +343,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     onstart: () => void,
     onend: () => void,
     cancelBeforeSpeaking = false,
+    label?: string,
   ) {
     if (!this.enabled) {
       return;
@@ -263,7 +374,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
           this.phonemeServer?.emitPhoneme(phoneme);
         },
       ),
-      speech.text,
+      label ?? speech.text,
     );
     this.queue.runNext();
   }

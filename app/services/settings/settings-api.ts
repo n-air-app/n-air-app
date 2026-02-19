@@ -15,6 +15,7 @@ export type SettingsCategory =
   | 'Hotkeys'
   | 'Advanced'
   | 'Comment'
+  | 'SoundDetector'
   | 'SpeechEngine'
   | 'Developer'
   | 'Scene Collections'
@@ -30,5 +31,6 @@ export interface ISettingsServiceApi {
   getCategories(): SettingsCategory[];
   getSettingsFormData(categoryName: SettingsCategory): ISettingsSubCategory[];
   setSettings(categoryName: SettingsCategory, settingsData: ISettingsSubCategory[]): void;
-  showSettings(categoryName?: SettingsCategory): void;
+  showSettings(categoryName?: SettingsCategory, anchor?: string): void;
+  showSoundDetectorSettings(): void;
 }

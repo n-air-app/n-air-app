@@ -1,3 +1,4 @@
+import { decycle } from 'json-cycle';
 import { Observable, Subject, Subscription } from 'rxjs';
 import {
   E_JSON_RPC_ERROR,
@@ -150,27 +151,77 @@ export abstract class RpcApi extends Service {
       return this.jsonrpc.createResponse(request.id, responsePayload);
     }
 
-    // if response is RxJs Observable then subscribe to it and return subscription
-    if (responsePayload instanceof Observable) {
-      // each subscription has unique id
-      const subscriptionId = `${request.params.resource}.${request.method}`;
+    const debugLog: string[] = [];
 
-      // create the subscription if it doesn't exist
-      if (!this.subscriptions[subscriptionId]) {
-        const subscriptionName = subscriptionId.split('.')[1];
-        this.subscriptions[subscriptionId] = resource[subscriptionName].subscribe((data: any) => {
-          this.serviceEvent.next(
-            this.jsonrpc.createEvent({ data, emitter: 'STREAM', resourceId: subscriptionId }),
-          );
+    try {
+      // if response is RxJs Observable then subscribe to it and return subscription
+      if (responsePayload instanceof Observable) {
+        // each subscription has unique id
+        const subscriptionId = `${request.params.resource}.${request.method}`;
+        try {
+          debugLog.push(
+            `serializePayload(resource=${JSON.stringify(
+              decycle(resource),
+              null,
+              2,
+            )}, responsePayload=${JSON.stringify(
+              decycle(responsePayload),
+              null,
+              2,
+            )}, request=${JSON.stringify(decycle(request), null, 2)})`,
+          ); // DEBUG
+        } catch (e) {
+          // RxJS Observables may have circular references that can't be serialized
+          debugLog.push(
+            `serializePayload(resource=[object], responsePayload=[Observable], request=${JSON.stringify(decycle(request), null, 2)})`,
+          ); // DEBUG
+        }
+        debugLog.push(`subscriptionId=${subscriptionId}`); // DEBUG
+        try {
+          debugLog.push(
+            `this.subscriptions[subscriptionId]=${JSON.stringify(
+              this.subscriptions[subscriptionId],
+              null,
+              2,
+            )}`,
+          ); // DEBUG
+        } catch (e) {
+          debugLog.push(`this.subscriptions[subscriptionId]=[Subscription]`); // DEBUG
+        }
+
+        // create the subscription if it doesn't exist
+        if (!this.subscriptions[subscriptionId]) {
+          debugLog.push(`typeof responsePayload.subscribe: ${typeof responsePayload.subscribe}`); // DEBUG
+
+          if (!responsePayload.subscribe) {
+            throw new Error(
+              `Response is not subscribable for '${request.method}' in resource '${request.params.resource}'`,
+            );
+          }
+
+          debugLog.push('call subscribe on responsePayload'); // DEBUG
+          this.subscriptions[subscriptionId] = responsePayload.subscribe((data: any) => {
+            this.serviceEvent.next(
+              this.jsonrpc.createEvent({ data, emitter: 'STREAM', resourceId: subscriptionId }),
+            );
+          });
+        }
+        debugLog.push('createResponse'); // DEBUG
+        // return subscription
+        // the API client can use subscriptionId to listen events from this subscription
+        const result = this.jsonrpc.createResponse(request.id, {
+          _type: 'SUBSCRIPTION',
+          resourceId: subscriptionId,
+          emitter: 'STREAM',
         });
+
+        return result;
       }
-      // return subscription
-      // the API client can use subscriptionId to listen events from this subscription
-      return this.jsonrpc.createResponse(request.id, {
-        _type: 'SUBSCRIPTION',
-        resourceId: subscriptionId,
-        emitter: 'STREAM',
-      });
+    } catch (e) {
+      for (const log of debugLog) {
+        console.log(log); // DEBUG
+      }
+      console.error(`* Error while serializing Observable: ${e.toString()}`); // DEBUG
     }
 
     // if payload is Promise, then subscribe to this promise

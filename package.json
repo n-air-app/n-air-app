@@ -68,6 +68,7 @@
     "font-manager": "https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz",
     "fuse.js": "~7.1.0",
     "iconv-lite": "^0.7.1",
+    "json-cycle": "^1.5.0",
     "lodash": "^4.17.23",
     "long": "^5.2.3",
     "luxon": "^3.5.0",
