@@ -21,20 +21,13 @@
         <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <api-settings v-if="categoryName === 'API'" />
         <notifications-settings v-if="categoryName === 'Notifications'" />
-        <appearance-settings v-if="categoryName === 'Appearance'" />
-        <experimental-settings v-if="categoryName === 'Experimental'" />
         <comment-settings v-if="categoryName === 'Comment'" />
         <speech-engine-settings v-if="categoryName === 'SpeechEngine'" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
         <transcription-settings v-if="categoryName === 'Transcription'" />
         <GenericFormGroups
-          v-if="
-            !['Hotkeys', 'API', 'Notifications', 'Appearance', 'Experimental'].includes(
-              categoryName,
-            )
-          "
+          v-if="!['Hotkeys', 'Notifications'].includes(categoryName)"
           v-model="settingsData"
           :category="categoryName"
           :isLoggedIn="isLoggedIn"
