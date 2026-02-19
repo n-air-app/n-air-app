@@ -76,6 +76,8 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
       return;
     }
 
+    console.log('SoundDetectorService enabled'); // DEBUG
+
     this.internalSubscriptions = new Subscription();
     this.internalSubscriptions.add(
       this.stateUpdated.subscribe({
@@ -118,6 +120,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     if (this.enableCounter > 0) {
       return;
     }
+    console.log('SoundDetectorService disabled'); // DEBUG
     this.unsubscribeAudioSource();
 
     this.endSoundDetected();
@@ -211,18 +214,21 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
         return [
           id,
           this.audioSubscriptions.get(id) ??
-          (() => {
-            return source.getVolmeterStream().subscribe(volmeter => {
-              if (volmeter.peak.some((p: number) => isFinite(p))) {
-                if (volmeter.peak.some((p: number) => p > this.state.soundThresholdDb)) {
-                  this.startSoundDetected();
-                } else {
-                  this.signalDetected();
+            (() => {
+              console.log(
+                `subscribe audio source: ${id}, ${source.source.type}, muted:${source.muted}`,
+              ); // DEBUG
+              return source.getVolmeterStream().subscribe(volmeter => {
+                if (volmeter.peak.some((p: number) => isFinite(p))) {
+                  if (volmeter.peak.some((p: number) => p > this.state.soundThresholdDb)) {
+                    this.startSoundDetected();
+                  } else {
+                    this.signalDetected();
+                  }
+                  this.startNoSignalTimer();
                 }
-                this.startNoSignalTimer();
-              }
-            });
-          })(),
+              });
+            })(),
         ];
       }),
     );
@@ -312,5 +318,6 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   @mutation()
   private SET_STATE(nextState: ISoundDetectorState): void {
     this.state = nextState;
+    console.log(`SoundDetectorService state updated: ${JSON.stringify(nextState)}`); // DEBUG
   }
 }
