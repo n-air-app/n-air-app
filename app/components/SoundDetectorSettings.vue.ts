@@ -149,6 +149,9 @@ export default class SoundDetectorSettings extends Vue {
     return this.soundDetectorService.state.enabled;
   }
   set soundDetectorEnabled(b: boolean) {
+    if (!b) {
+      this.stopContinuousPlayback();
+    }
     this.soundDetectorService.setEnabled(b);
   }
 
