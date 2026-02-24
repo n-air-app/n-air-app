@@ -3,7 +3,6 @@ import {
   distinctUntilChanged,
   map,
   Observable,
-  startWith,
   Subject,
   Subscription,
 } from 'rxjs';
@@ -135,7 +134,9 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.internalSubscriptions = null;
   }
 
-  private soundDetectedSubject = new Subject<{ soundDetected: SoundDetectedState }>();
+  private soundDetectedSubject = new BehaviorSubject<{ soundDetected: SoundDetectedState }>({
+    soundDetected: 'no-signal',
+  });
   soundDetectedObservable = this.soundDetectedSubject.asObservable();
 
   speechActionObservable: Observable<'pause' | 'cancel' | 'graceful' | 'resume'> =
@@ -155,7 +156,6 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
    * 'graceful' の場合は loud でもブロックしない（現在の再生は最後まで続く）
    */
   isBlockingObservable: Observable<boolean> = this.soundDetectedObservable.pipe(
-    startWith({ soundDetected: 'no-signal' as SoundDetectedState }),
     map(({ soundDetected }) => {
       return (
         soundDetected === 'loud' && this.state.speechActionOnSoundDetected !== 'graceful'
