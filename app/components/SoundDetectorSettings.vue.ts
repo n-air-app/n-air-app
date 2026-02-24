@@ -139,6 +139,9 @@ export default class SoundDetectorSettings extends Vue {
         this.soundDetected = detected.soundDetected;
       },
     });
+    // 子ウィンドウではIPCプロキシにより BehaviorSubject の現在値がリプレイされないため、
+    // 明示的に現在の状態を取得して反映する（getter はIPC経由にならないためメソッドで呼ぶ）
+    this.soundDetected = this.soundDetectorService.getCurrentSoundDetected();
   }
   endSoundDetection() {
     this.soundDetectSubscription.unsubscribe();

@@ -139,6 +139,10 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   });
   soundDetectedObservable = this.soundDetectedSubject.asObservable();
 
+  getCurrentSoundDetected(): SoundDetectedState {
+    return this.soundDetectedSubject.getValue().soundDetected;
+  }
+
   speechActionObservable: Observable<'pause' | 'cancel' | 'graceful' | 'resume'> =
     this.soundDetectedObservable.pipe(
       map(({ soundDetected }) => soundDetected === 'loud'),
