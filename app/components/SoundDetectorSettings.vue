@@ -22,7 +22,6 @@
         </div>
         <ObsListInput v-model="soundDetectorSourceModel" />
         <ObsSliderInput v-model="soundThresholdDbModel" />
-        <p v-if="!isCalibrated" class="section-notice-text">コメントの読み上げを一時停止する最低音量を設定してください</p>
       </div>
 
       <div class="section">
