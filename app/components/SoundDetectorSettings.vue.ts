@@ -176,7 +176,7 @@ export default class SoundDetectorSettings extends Vue {
   }
   get soundThresholdDbModel(): IObsSliderInputValue {
     return {
-      description: '一時停止する最低音量音(dB)',
+      description: '一時停止する最低音量(dB)',
       name: 'soundThresholdDb',
       value: this.soundDetectorService.state.soundThresholdDb,
       minVal: -60,
