@@ -49,6 +49,17 @@
 .slider-value-input {
   width: 60px;
   margin-left: 10px;
+
+  &:disabled {
+    cursor: not-allowed;
+    border-color: var(--color-border-light);
+    opacity: var(--opacity-disabled);
+  }
+
+  &:disabled:hover,
+  &:disabled:focus {
+    border-color: var(--color-border-light);
+  }
 }
 
 // スライダー本体
