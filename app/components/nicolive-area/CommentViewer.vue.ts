@@ -407,7 +407,8 @@ export default class CommentViewer extends Vue {
     if (
       this.speakingEnabled &&
       this.nicoliveCommentViewerService.isSoundDetectorSourceEnabled &&
-      !this.nicoliveCommentViewerService.isSoundDetectorCalibrated
+      !this.nicoliveCommentViewerService.isSoundDetectorCalibrated &&
+      !this.nicoliveCommentViewerService.isSoundDetectorDeclined
     ) {
       // 放送者の声を避けたコメント読み上げ機能を提案する
       remote.dialog
@@ -422,6 +423,8 @@ export default class CommentViewer extends Vue {
         .then(({ response }) => {
           if (response === 0) {
             this.settingsService.showSoundDetectorSettings();
+          } else {
+            this.nicoliveCommentViewerService.markSoundDetectorDeclined();
           }
         });
     }

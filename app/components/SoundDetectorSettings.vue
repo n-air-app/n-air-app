@@ -16,7 +16,7 @@
         </div>
       </div>
 
-      <div class="section" v-if="soundDetectorEnabled">
+      <div class="section">
         <div class="input-label section-heading">
           <label>基本設定</label>
         </div>
@@ -25,23 +25,27 @@
         <p v-if="!isCalibrated" class="section-notice-text">コメントの読み上げを一時停止する最低音量を設定してください</p>
       </div>
 
-      <div class="section" v-if="soundDetectorEnabled">
+      <div class="section">
         <div class="input-label section-heading">
           <label>コメント読み上げテスト</label>
         </div>
         <div v-if="soundDetectorSourceModel.value !== null">
           <div class="sound-detector-volmeter-label">
             音声検出:
-            <span v-if="soundDetected === 'loud'">しゃべっています</span>
-            <span v-else-if="soundDetected === 'no-signal'">無音(信号なし)</span>
-            <span v-else>静か</span>
-            <span v-if="sourceMuted">(ミュート状態)</span>
+            <template v-if="soundDetectorEnabled">
+              <span v-if="soundDetected === 'loud'">しゃべっています</span>
+              <span v-else-if="soundDetected === 'no-signal'">無音(信号なし)</span>
+              <span v-else>静か</span>
+              <span v-if="sourceMuted">(ミュート状態)</span>
+            </template>
+            <span v-else>設定がOFFです</span>
           </div>
           <div class="sound-detector-volmeter-container">
             <SoundDetectorVolmeter
               v-for="audioSource in soundDetectorAudioSources"
               :audioSource="audioSource"
               :threshold="soundThresholdDbModel.value"
+              :enabled="soundDetectorEnabled"
               :key="audioSource.sourceId"
             />
           </div>
@@ -49,7 +53,7 @@
           <button
             v-if="!isTestPlaybackActive"
             class="button button--secondary"
-            :disabled="!synthesizerEnabled"
+            :disabled="!synthesizerEnabled || !soundDetectorEnabled"
             @click="startContinuousPlayback"
           >
             テストを開始
@@ -57,6 +61,7 @@
           <button
             v-else
             class="button button--primary"
+            :disabled="!soundDetectorEnabled"
             @click="stopContinuousPlayback"
           >
             テストを停止
@@ -67,7 +72,7 @@
         </div>
       </div>
 
-      <div class="section" v-if="soundDetectorEnabled">
+      <div class="section">
         <div class="input-label section-heading--dropdown" :class="{ 'is-collapsed': collapsed }" @click="collapsed = !collapsed">
           <label>詳細設定</label>
           <i :class="collapsed ? 'icon-arrow-bottom-fill' : 'icon-arrow-top-fill'" />
@@ -112,7 +117,6 @@
 .sound-detector-volmeter-container {
   width: 100%;
   margin-bottom: var(--spacing-lg);
-  background-color: color-mix(in srgb, #411431 40%, transparent);
   }
 
 .sound-detector-volmeter-label {

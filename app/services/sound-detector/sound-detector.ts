@@ -23,6 +23,7 @@ export interface ISoundDetectorState {
   speechActionOnSoundDetected: SpeechActionOnSoundDetected;
   noSignalTimeoutMs: number;
   calibrated: boolean; // 音声しきい値が設定されているか
+  declined: boolean; // ユーザーがダイアログで「いいえ」を選択したか
 }
 
 export class SoundDetectorService extends PersistentStatefulService<ISoundDetectorState> {
@@ -35,6 +36,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     resumeSilenceMs: 500,
     speechActionOnSoundDetected: 'graceful',
     calibrated: false,
+    declined: false,
     noSignalTimeoutMs: 1000,
   };
 
@@ -293,6 +295,14 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.setState({ calibrated: false });
   }
 
+  get isDeclined(): boolean {
+    return this.state.declined;
+  }
+
+  markDeclined(): void {
+    this.setState({ declined: true });
+  }
+
   updateSourceId(id: string | null): void {
     this.setState({ sourceId: id });
   }
@@ -310,6 +320,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     const newState = { ...this.state, ...nextState };
     if (this.state.sourceId !== newState.sourceId) {
       newState.calibrated = false;
+      newState.declined = false;
     }
     this.stateSubject.next(newState);
     this.SET_STATE(newState);

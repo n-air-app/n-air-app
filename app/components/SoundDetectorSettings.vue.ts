@@ -158,6 +158,7 @@ export default class SoundDetectorSettings extends Vue {
       description: '入力音声ソース',
       name: 'audioWatchSource',
       value: this.soundDetectorService.state.sourceId,
+      enabled: this.soundDetectorEnabled,
       options: [
         {
           description: 'マイクまたはボイスチェンジャー(自動)',
@@ -178,10 +179,11 @@ export default class SoundDetectorSettings extends Vue {
       description: '一時停止する最低音量音(dB)',
       name: 'soundThresholdDb',
       value: this.soundDetectorService.state.soundThresholdDb,
-      minVal: -100,
+      minVal: -60,
       maxVal: 0,
       stepVal: 1,
       tooltip: 'hover',
+      enabled: this.soundDetectorEnabled,
     };
   }
   set soundThresholdDbModel(model: IObsInput<number>) {
@@ -196,6 +198,7 @@ export default class SoundDetectorSettings extends Vue {
       maxVal: 10000,
       stepVal: 100,
       tooltip: 'hover',
+      enabled: this.soundDetectorEnabled,
     };
   }
   set resumeSilenceMsModel(model: IObsInput<number>) {
@@ -205,11 +208,11 @@ export default class SoundDetectorSettings extends Vue {
   get soundDetectedSpeechActionModel(): IObsListInput<string> {
     const options: { description: string; value: SpeechActionOnSoundDetected }[] = [
       {
-        description: 'pause',
+        description: '一時停止',
         value: 'pause',
       },
       {
-        description: 'cancel',
+        description: '中断',
         value: 'cancel',
       },
       {
@@ -222,6 +225,7 @@ export default class SoundDetectorSettings extends Vue {
       description: '一時停止する際の挙動',
       name: 'soundDetectedSpeechAction',
       value: this.soundDetectorService.state.speechActionOnSoundDetected,
+      enabled: this.soundDetectorEnabled,
       options,
     };
   }

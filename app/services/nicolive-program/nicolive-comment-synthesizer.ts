@@ -191,6 +191,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       this.soundDetectorSubscription.unsubscribe();
       this.soundDetectorSubscription = null;
     }
+    this.queue.enable();
   }
 
   // 音声検出の有効/無効化(ネスト対応)
@@ -207,6 +208,9 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   }
   get isSoundDetectorCalibrated(): boolean {
     return this.soundDetectorService.isCalibrated;
+  }
+  get isSoundDetectorDeclined(): boolean {
+    return this.soundDetectorService.isDeclined;
   }
 
   private dictionary = new ParaphraseDictionary();

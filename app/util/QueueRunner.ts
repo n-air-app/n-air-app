@@ -260,21 +260,19 @@ export class QueueRunner {
   async disable(options: { interruptAction?: 'pause' | 'cancel' | 'graceful' } = {}) {
     // pause後の場合再度disableできるので、既にdisable中であっても実行する
 
-    if (this.runningState) {
-      if (this.runningState.state === 'running') {
-        switch (options.interruptAction) {
-          case 'pause':
-            if (this.runningState.pause) {
-              this.runningState.pause();
-            }
-            break;
-          case 'cancel':
-            await this.runningState.cancel();
-            break;
-          case 'graceful':
-            // 現在実行中のものは最後まで実行する
-            break;
-        }
+    if (this.runningState?.state === 'running') {
+      switch (options.interruptAction) {
+        case 'pause':
+          if (this.runningState.pause) {
+            this.runningState.pause();
+          }
+          break;
+        case 'cancel':
+          await this.runningState.cancel();
+          break;
+        case 'graceful':
+          // 現在実行中のものは最後まで実行する
+          break;
       }
     }
 
@@ -292,13 +290,9 @@ export class QueueRunner {
     this._disabled = false;
     this.notifyStateChange();
 
-    if (this.runningState) {
-      if (this.runningState.state === 'running') {
-        if (this.runningState.resume) {
-          this.runningState.resume();
-          return;
-        }
-      }
+    if (this.runningState?.state === 'running' && this.runningState.resume) {
+      this.runningState.resume();
+      return;
     }
     this.runNext();
   }

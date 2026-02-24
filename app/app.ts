@@ -41,6 +41,7 @@ function wrapLogFn(fn: (typeof logFunctions)[number]) {
     const fixedArgs = args.map(arg => {
       try {
         if (typeof arg === 'object' && arg !== null) {
+          // Vue のプロキシオブジェクトを通常のオブジェクトに変換してログ出力
           return JSON.parse(JSON.stringify(arg));
         }
         return arg;

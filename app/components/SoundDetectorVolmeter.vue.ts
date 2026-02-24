@@ -24,6 +24,7 @@ const ADVANCED_BG = '#050e18';
 export default class SoundDetectorVolmeter extends Vue {
   @Prop() audioSource!: AudioSource;
   @Prop({ default: -19 }) threshold!: number;
+  @Prop({ default: true }) enabled!: boolean;
 
   private volmeterSubscription?: Subscription;
 
@@ -51,7 +52,11 @@ export default class SoundDetectorVolmeter extends Vue {
     this.ctx = this.$refs.canvas.getContext('2d')!;
     this.setChannelCount(1);
     this.updateCanvasWidth();
-    this.subscribeVolmeter();
+    if (this.enabled) {
+      this.subscribeVolmeter();
+    } else {
+      this.drawVolmeter([-Infinity]);
+    }
 
     // ResizeObserverでサイズ変更を監視
     this.resizeObserver = new ResizeObserver(() => this.updateCanvasWidth());
@@ -104,6 +109,17 @@ export default class SoundDetectorVolmeter extends Vue {
   onThresholdChange(): void {
     this.thresholdPx = this.convertDbToPixelsWithClipping(this.threshold);
     this.hasDrawn = false; // Force redraw
+  }
+
+  @Watch('enabled')
+  onEnabledChange(enabled: boolean): void {
+    if (enabled) {
+      this.subscribeVolmeter();
+    } else {
+      this.unsubscribeVolmeter();
+      this.drawVolmeter([-Infinity]);
+      this.hasDrawn = false;
+    }
   }
 
   private convertDbToPixelsWithClipping(db: number): number {

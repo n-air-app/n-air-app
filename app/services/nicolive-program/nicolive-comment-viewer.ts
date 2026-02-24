@@ -159,6 +159,12 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   get isSoundDetectorCalibrated(): boolean {
     return this.nicoliveCommentSynthesizerService.isSoundDetectorCalibrated;
   }
+  get isSoundDetectorDeclined(): boolean {
+    return this.nicoliveCommentSynthesizerService.isSoundDetectorDeclined;
+  }
+  markSoundDetectorDeclined(): void {
+    this.nicoliveCommentSynthesizerService.soundDetectorService.markDeclined();
+  }
 
   get filterFn() {
     return (chat: WrappedMessageWithComponent) =>
