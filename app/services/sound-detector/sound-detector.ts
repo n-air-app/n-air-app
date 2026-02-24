@@ -62,6 +62,9 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   private internalSubscriptions: Subscription = null;
 
   setEnabled(enabled: boolean): void {
+    if (!enabled) {
+      this.endSoundDetected();
+    }
     this.setState({ enabled });
   }
 
@@ -182,6 +185,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     if (!this.isSoundDetected()) {
       return;
     }
+    clearTimeout(this.resumeTimer);
     this.resumeTimer = null;
     this.soundDetectedSubject.next({ soundDetected: 'silence' });
   }
@@ -194,6 +198,9 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   }
 
   private startSoundDetected() {
+    if (!this.state.enabled) {
+      return;
+    }
     if (this.isSoundDetected()) {
       // soundDetected中に呼ばれると再開タイマーを延長する
       clearTimeout(this.resumeTimer);
