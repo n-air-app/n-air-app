@@ -29,49 +29,16 @@ test('Popper basic functionality', async (t: TExecutionContext) => {
   // シーンコレクション切り替えボタンが表示されてクリック可能になるまで待つ
   const webdriverClient = await import('../helpers/modules/core').then(m => m.getClient());
   const toggleButton = await webdriverClient.$('.scene-collections__toggle');
-  console.log('[Popper Test] Waiting for toggle button to be displayed...');
   await toggleButton.waitForDisplayed({ timeout: 10000 });
-  console.log('[Popper Test] Toggle button displayed');
   await toggleButton.waitForClickable({ timeout: 10000 });
-  console.log('[Popper Test] Toggle button clickable');
 
   // Vueコンポーネントのマウントとイベントリスナー登録を待つ
-  console.log('[Popper Test] Waiting for Vue component to be fully mounted...');
   await sleep(1000);
-  console.log('[Popper Test] Vue component should be ready');
-
-  // デバッグ: Popperコンポーネントの存在確認
-  const popperComponent = await webdriverClient.$('.scene-collections__dropdown');
-  const popperExists = await popperComponent.isExisting();
-  console.log('[Popper Test] Popper component exists:', popperExists);
-
-  if (popperExists) {
-    const popperHtml = await popperComponent.getHTML();
-    console.log('[Popper Test] Popper HTML:', popperHtml.substring(0, 300));
-  }
 
   // テスト1: ポップアップを開いて項目を選択できる
-  console.log('[Popper Test] Clicking toggle button...');
   await toggleButton.click();
-  console.log('[Popper Test] Toggle button clicked');
   await sleep(1000); // クリック後、nextTick待ち（CI環境では長めに）
-  console.log('[Popper Test] Waited 1000ms after click');
-
-  // デバッグ: ドロップダウンメニューが存在するか確認
-  const dropdownMenu = await webdriverClient.$('.scene-collections-menu');
-  const exists = await dropdownMenu.isExisting();
-  console.log('[Popper Test] Dropdown menu exists:', exists);
-
-  if (exists) {
-    const displayed = await dropdownMenu.isDisplayed();
-    console.log('[Popper Test] Dropdown menu displayed:', displayed);
-    const html = await dropdownMenu.getHTML();
-    console.log('[Popper Test] Dropdown menu HTML:', html.substring(0, 200));
-  }
-
-  console.log('[Popper Test] Waiting for dropdown menu to be displayed...');
   await waitForDisplayed('.scene-collections-menu');
-  console.log('[Popper Test] Dropdown menu is now displayed');
   t.true(await isDisplayed('.scene-collections-menu'));
   t.true(await isDisplayed('.scene-collections-menu__item'));
 
@@ -111,9 +78,7 @@ test('Popper basic functionality', async (t: TExecutionContext) => {
   const buttonRect = await button.getLocation();
   const dropdownRect = await dropdown.getLocation();
 
-  // bottom-start なので、ドロップダウンはボタンの下、左端揃えで表示される
   t.true(dropdownRect.y > buttonRect.y, 'Dropdown should be below button');
-  // 左端が揃っている（多少の誤差は許容）
   t.true(
     Math.abs(dropdownRect.x - buttonRect.x) < 50,
     'Dropdown should be aligned to the left of button',
