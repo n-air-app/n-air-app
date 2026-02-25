@@ -11,7 +11,7 @@
             <div class="colorpicker__swatch" :style="swatchStyle" />
           </div>
           <button class="colorpicker__eyedropper" @click="startEyedropper" title="Color picker">
-            <i class="icon-eyedropper" />
+            <i class="icon-eyedropper-fill" />
           </button>
           <color-picker
             :value="obsColor"
