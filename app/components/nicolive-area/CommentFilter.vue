@@ -9,7 +9,7 @@
       <div class="tab-list">
         <popper
 
-          placement="bottom"
+          placement="bottom-start"
           @show="showPopupMenu = true"
           @hide="showPopupMenu = false"
         >

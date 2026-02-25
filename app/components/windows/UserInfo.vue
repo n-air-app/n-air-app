@@ -276,6 +276,10 @@
   }
 }
 
+.popper {
+  width: 180px;
+}
+
 .tab-list {
   display: flex;
   flex-shrink: 0;

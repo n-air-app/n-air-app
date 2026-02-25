@@ -43,7 +43,9 @@
                 30分延長
               </button>
             </li>
-          </ul>          </div>        <button
+          </ul>
+        </div>
+        <button
           class="button--circle button--secondary button--extension"
           v-tooltip.bottom="extensionTooltip"
           :class="{ 'is-show': showPopupMenu, active: autoExtensionEnabled }"
@@ -82,7 +84,12 @@
         >
           番組作成
         </button>
-        <button v-else @click="startProgram" :disabled="isStarting" class="button button--action">
+        <button
+          v-else
+          @click="startProgram"
+          :disabled="isStarting"
+          class="button button--action"
+        >
           番組開始
         </button>
         <popper
@@ -94,20 +101,30 @@
             <ul class="popup-menu-list">
               <li class="item">
                 <button
-                  :class="{ 'button-selector': true, current: selectedButton === 'start' }"
+                  :class="{
+                    'button-selector': true,
+                    current: selectedButton === 'start',
+                  }"
                   @click="selectButton('start')"
                 >
                   <span class="item-name">番組開始</span>
-                  <span class="item-text">番組を開始して視聴者に公開します</span>
+                  <span class="item-text"
+                  >番組を開始して視聴者に公開します</span
+                  >
                 </button>
               </li>
               <li class="item">
                 <button
-                  :class="{ 'button-selector': true, current: selectedButton === 'end' }"
+                  :class="{
+                    'button-selector': true,
+                    current: selectedButton === 'end',
+                  }"
                   @click="selectButton('end')"
                 >
                   <span class="item-name">番組終了</span>
-                  <span class="item-text">番組を視聴者に公開せず終了します</span>
+                  <span class="item-text"
+                  >番組を視聴者に公開せず終了します</span
+                  >
                 </button>
               </li>
             </ul>
@@ -133,7 +150,7 @@
 </template>
 <script lang="ts" src="./ToolBar.vue.ts"></script>
 <style lang="less" scoped>
-@import url('../../styles/index');
+@import url("../../styles/index");
 
 .tool-bar {
   position: relative;
