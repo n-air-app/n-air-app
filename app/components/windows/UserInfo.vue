@@ -33,8 +33,8 @@
             ユーザーページを見る
           </button>
           <popper
-
             placement="bottom-end"
+            width="180px"
             @show="showPopupMenu = true"
             @hide="showPopupMenu = false"
           >
@@ -274,10 +274,6 @@
     max-width: 288px;
     margin-right: 8px;
   }
-}
-
-.popper {
-  width: 180px;
 }
 
 .tab-list {

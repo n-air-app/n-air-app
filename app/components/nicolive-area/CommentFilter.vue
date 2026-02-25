@@ -8,8 +8,8 @@
     <div class="content">
       <div class="tab-list">
         <popper
-
           placement="bottom-start"
+          width="160px"
           @show="showPopupMenu = true"
           @hide="showPopupMenu = false"
         >

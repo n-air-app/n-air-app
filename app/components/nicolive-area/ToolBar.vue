@@ -13,6 +13,7 @@
     <div class="side-bar">
       <popper
         placement="bottom-end"
+        width="240px"
         @show="showPopupMenu = true"
         @hide="showPopupMenu = false"
       >
@@ -94,6 +95,7 @@
         </button>
         <popper
           placement="bottom-end"
+          width="240px"
           @show="showButtonSelector = true"
           @hide="showButtonSelector = false"
         >
@@ -175,12 +177,6 @@
   display: flex;
   align-items: center;
   margin-left: auto;
-}
-
-.popper {
-  width: 240px;
-  padding: 0;
-  margin: 0 0 8px 8px;
 }
 
 .toggle-button {

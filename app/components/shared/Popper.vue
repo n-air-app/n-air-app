@@ -15,8 +15,8 @@
 @import url('../../styles/index');
 
 // Popperの共通スタイル（グローバル）
-// 利用側: <popper><div class="popper">コンテンツ</div><button slot="reference">...</button></popper>
-// 各コンポーネントのscoped stylesで .popper { width: XXpx; } のように個別スタイル指定可能
+// 利用側: <popper width="240px"><div class="popper">コンテンツ</div><button slot="reference">...</button></popper>
+// 幅は width プロパティで指定（例: width="240px"）。未指定の場合はコンテンツ幅に依存
 .popper {
   .shadow();
 

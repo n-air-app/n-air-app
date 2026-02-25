@@ -4,7 +4,7 @@
       <slot :name="activeContent.slotName" />
     </div>
     <div class="header" v-if="!isCompactMode">
-      <popper placement="bottom-start">
+      <popper placement="bottom-start" width="320px">
         <div class="popper">
           <ul class="popup-menu-list">
             <li
@@ -79,8 +79,6 @@
 }
 
 .popper {
-  width: 320px;
-  padding: 0;
   margin-left: 8px;
 
   .popup-menu-list {

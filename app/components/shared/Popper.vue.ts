@@ -31,6 +31,7 @@
  * 
  * Props:
  *   - placement: 'bottom' | 'bottom-start' | 'bottom-end' | 'top' | 'top-start' | ... (デフォルト: 'bottom')
+ *   - width: string (例: '240px', '100%') - ポップアップの幅。未指定の場合はコンテンツに依存
  *   - closeOnContentClick: boolean (デフォルト: true) - メニュー項目クリック時に自動的に閉じるか
  * 
  * Events:
@@ -179,6 +180,10 @@ export default defineComponent({
             type: String as PropType<Placement>,
             default: 'bottom',
         },
+        width: {
+            type: String,
+            default: undefined,
+        },
         closeOnContentClick: {
             type: Boolean,
             default: true,
@@ -199,6 +204,7 @@ export default defineComponent({
                 position: 'fixed',
                 top: `${top}px`,
                 left: `${left}px`,
+                ...(props.width !== undefined ? { width: props.width } : {}),
             });
 
             popperEl.value.setAttribute('x-placement', placement);

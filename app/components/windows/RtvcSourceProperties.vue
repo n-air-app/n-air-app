@@ -69,6 +69,7 @@
 
                 <popper
                   placement="bottom-end"
+                  width="160px"
                   @show="showPopupMenu = true"
                   @hide="showPopupMenu = false"
                 >
@@ -455,10 +456,6 @@
   flex-direction: column;
   align-items: center;
   width: 104px;
-
-  .popper {
-    width: 160px;
-  }
 
   .indicator {
     position: absolute;

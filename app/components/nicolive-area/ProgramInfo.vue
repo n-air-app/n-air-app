@@ -17,6 +17,7 @@
     </div>
     <popper
       placement="bottom-end"
+      width="260px"
       @show="showPopupMenu = true"
       @hide="showPopupMenu = false"
     >
@@ -167,10 +168,6 @@
       animation-name: thumbnail-live-effect2;
     }
   }
-}
-
-.popper {
-  width: 260px;
 }
 
 .indicator {
