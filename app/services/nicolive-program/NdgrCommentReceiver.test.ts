@@ -1,10 +1,137 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
+import { Subject } from 'rxjs';
 import { MessageResponse } from './ChatMessage';
 import { isChatMessage } from './ChatMessage/util';
 import {
+  NdgrCommentReceiver,
   convertChunkedResponseToMessageResponse,
   convertModifierToMail,
 } from './NdgrCommentReceiver';
+
+describe('NdgrCommentReceiver', () => {
+  // NdgrClient のモック: messages Subject と connect() の挙動を制御する
+  let mockMessages: Subject<dwango.nicolive.chat.service.edge.ChunkedMessage>;
+  let mockConnectImpl: () => Promise<void>;
+
+  // NdgrClient をモックし、NdgrCommentReceiver をロードして返す
+  function setupReceiverWithMock(): typeof NdgrCommentReceiver {
+    jest.resetModules();
+    jest.doMock('./NdgrClient', () => ({
+      // toNumber は NdgrCommentReceiver.ts から参照されるので実装を残す
+      toNumber: (n: number | { toNumber(): number }) =>
+        typeof n === 'number' ? n : n.toNumber(),
+      NdgrClient: jest.fn().mockImplementation(() => ({
+        messages: mockMessages,
+        connect: jest.fn().mockImplementation(() => mockConnectImpl()),
+        dispose: jest.fn().mockImplementation(() => {
+          mockMessages.complete();
+        }),
+      })),
+    }));
+    return (
+      require('./NdgrCommentReceiver') as { NdgrCommentReceiver: typeof NdgrCommentReceiver }
+    ).NdgrCommentReceiver;
+  }
+
+  beforeEach(() => {
+    mockMessages = new Subject();
+    mockConnectImpl = () => Promise.resolve();
+  });
+
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  test('connect() でメッセージを受信できる', done => {
+    const Receiver = setupReceiverWithMock();
+    const receiver = new Receiver('https://example.com/view');
+    const received: MessageResponse[] = [];
+
+    receiver.connect().subscribe({
+      next: msg => received.push(msg),
+      error: done,
+    });
+
+    // チャットメッセージを送信
+    const chatMsg = new dwango.nicolive.chat.service.edge.ChunkedMessage({
+      meta: { at: { seconds: 1000, nanos: 0 } },
+      message: { chat: { content: 'hello' } },
+    });
+    mockMessages.next(chatMsg);
+
+    expect(received).toHaveLength(1);
+    expect(received[0]).toMatchObject({ chat: { content: 'hello' } });
+    done();
+  });
+
+  test('接続エラー後に close() → connect() で再接続できる', async () => {
+    const Receiver = setupReceiverWithMock();
+    const receiver = new Receiver('https://example.com/view');
+
+    // --- 1回目の接続: エラーを発生させる ---
+    const error = new Error('network error');
+    mockConnectImpl = () => Promise.reject(error);
+
+    const errors: unknown[] = [];
+    receiver.connect().subscribe({ error: e => errors.push(e) });
+
+    // connect() のエラーが Promise.reject で非同期に来るので待つ
+    await Promise.resolve();
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toBe(error);
+
+    // --- close() して再接続準備 ---
+    receiver.close();
+
+    // 2回目の接続用に新しい Subject とモックをセットアップ
+    mockMessages = new Subject();
+    mockConnectImpl = () => Promise.resolve();
+
+    // --- 2回目の接続: 正常に動作することを確認 ---
+    const received: MessageResponse[] = [];
+    const errors2: unknown[] = [];
+    receiver.connect().subscribe({
+      next: msg => received.push(msg),
+      error: e => errors2.push(e),
+    });
+
+    // メッセージを送信
+    const chatMsg = new dwango.nicolive.chat.service.edge.ChunkedMessage({
+      meta: { at: { seconds: 2000, nanos: 0 } },
+      message: { chat: { content: 'reconnected' } },
+    });
+    mockMessages.next(chatMsg);
+
+    expect(received).toHaveLength(1);
+    expect(received[0]).toMatchObject({ chat: { content: 'reconnected' } });
+    expect(errors2).toHaveLength(0);
+  });
+
+  test('エラー後の再接続で古いエラーが新しい購読者に伝播しない', async () => {
+    const Receiver = setupReceiverWithMock();
+    const receiver = new Receiver('https://example.com/view');
+
+    // 1回目: エラーで切断
+    const error = new Error('fetch error');
+    mockConnectImpl = () => Promise.reject(error);
+    receiver.connect().subscribe({ error: () => {} }); // エラーを捨てる
+
+    await Promise.resolve();
+    receiver.close();
+
+    // 2回目の接続用にリセット
+    mockMessages = new Subject();
+    mockConnectImpl = () => Promise.resolve();
+
+    // 2回目の接続: 新しい購読者がすぐにエラーにならないことを確認
+    let immediateError: unknown = null;
+    receiver.connect().subscribe({ error: e => (immediateError = e) });
+
+    // 同期的にはエラーが来ないはず
+    expect(immediateError).toBeNull();
+  });
+});
 
 // convertModifierToMail の test
 describe('convertModifierToMail', () => {
