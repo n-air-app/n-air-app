@@ -17,7 +17,6 @@ import { ServicesManager } from '../../services-manager';
  * }
  *
  */
-// tslint:disable-next-line:function-name
 export function Inject(serviceName?: string) {
   return function (target: Object, key: string) {
     Object.defineProperty(target, key, {
