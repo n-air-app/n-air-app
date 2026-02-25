@@ -8,8 +8,6 @@ import { FilterRecord, FilterType } from 'services/nicolive-program/ResponseType
 import Vue from 'vue';
 import Popper from 'vue-popperjs';
 import { Component, Watch } from 'vue-property-decorator';
-import Banner from '../shared/banner.vue';
-
 function isHash(item: FilterRecord): boolean {
   if (item.type !== 'user') return false;
   return item.isHashed || false;
@@ -27,7 +25,6 @@ type FilterByUser = 'all' | 'broadcaster' | 'moderator';
 
 @Component({
   components: {
-    Banner,
     Popper,
   },
 })
