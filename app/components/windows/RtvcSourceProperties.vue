@@ -68,16 +68,10 @@
                 </div>
 
                 <popper
-                  trigger="click"
-                  :options="{ placement: 'bottom-end' }"
-                  @show="
-                    showPopupMenu = true;
-                    popper = $event;
-                  "
-                  @hide="
-                    showPopupMenu = false;
-                    popper = undefined;
-                  "
+                  placement="bottom-end"
+                  width="160px"
+                  @show="showPopupMenu = true"
+                  @hide="showPopupMenu = false"
                 >
                   <div class="popper">
                     <ul class="popup-menu-list">
@@ -462,12 +456,6 @@
   flex-direction: column;
   align-items: center;
   width: 104px;
-
-  .popper {
-    .popper-styling();
-
-    width: 160px;
-  }
 
   .indicator {
     position: absolute;
