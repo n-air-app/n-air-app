@@ -1,5 +1,3 @@
-/* tslint:disable:max-line-length quotemark */
-
 import { apply, splitByRegExpWithMatchedValues } from './autoLink';
 
 test('全部入り', () => {
