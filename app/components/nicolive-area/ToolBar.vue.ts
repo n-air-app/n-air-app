@@ -221,7 +221,7 @@ export default class ToolBar extends Vue {
 
   private async refreshProgram() {
     try {
-      return await this.nicoliveProgramService.refreshProgram();
+      await this.nicoliveProgramService.refreshProgram();
     } catch (caught) {
       if (caught instanceof NicoliveFailure) {
         await openErrorDialogFromFailure(caught);
