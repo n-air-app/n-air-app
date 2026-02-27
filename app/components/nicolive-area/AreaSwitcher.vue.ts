@@ -1,8 +1,8 @@
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import Vue from 'vue';
-import Popper from 'vue-popperjs';
 import { Component, Prop } from 'vue-property-decorator';
+import Popper from '../shared/Popper.vue';
 
 export interface IArea {
   name: string;
@@ -20,8 +20,6 @@ export default class AreaSwitcher extends Vue {
 
   @Inject()
   private customizationService: CustomizationService;
-
-  popper: PopperEvent;
 
   get isCompactMode(): boolean {
     return this.customizationService.state.compactMode;

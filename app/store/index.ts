@@ -16,7 +16,6 @@ const { ipcRenderer } = electron;
 const debug = process.env.NODE_ENV !== 'production';
 
 const mutations = {
-  // tslint:disable-next-line:function-name
   BULK_LOAD_STATE(state: any, data: any) {
     each(data.state, (value, key) => {
       state[key] = value;

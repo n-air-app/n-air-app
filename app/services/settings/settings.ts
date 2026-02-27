@@ -678,7 +678,6 @@ export class SettingsService
     name: string,
     patch: Partial<IObsInput<TObsValue>>,
   ) {
-    // tslint:disable-next-line
     settingsFormData = cloneDeep(settingsFormData);
     for (const subcategory of settingsFormData) {
       for (const field of subcategory.parameters) {

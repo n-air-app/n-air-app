@@ -8,8 +8,8 @@ import {
 } from 'services/nicolive-program/NicoliveFailure';
 import { StreamingService } from 'services/streaming';
 import Vue from 'vue';
-import Popper from 'vue-popperjs';
 import { Component, Watch } from 'vue-property-decorator';
+import Popper from '../shared/Popper.vue';
 
 @Component({
   components: { Popper },
@@ -27,9 +27,6 @@ export default class ToolBar extends Vue {
   showPopupMenu: boolean = false;
   selectedButton: 'start' | 'end' = 'start';
   showButtonSelector: boolean = false;
-
-  popper1: PopperEvent;
-  popper2: PopperEvent;
 
   selectButton(button: 'start' | 'end') {
     this.selectedButton = button;
@@ -221,7 +218,7 @@ export default class ToolBar extends Vue {
 
   private async refreshProgram() {
     try {
-      return await this.nicoliveProgramService.refreshProgram();
+      await this.nicoliveProgramService.refreshProgram();
     } catch (caught) {
       if (caught instanceof NicoliveFailure) {
         await openErrorDialogFromFailure(caught);

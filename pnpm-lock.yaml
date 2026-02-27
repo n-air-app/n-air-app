@@ -105,9 +105,6 @@ importers:
       vue-multiselect:
         specifier: 2.1.9
         version: 2.1.9
-      vue-popperjs:
-        specifier: 2.3.0
-        version: 2.3.0
       vue-property-decorator:
         specifier: 7.3.0
         version: 7.3.0
@@ -5560,10 +5557,6 @@ packages:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
     engines: {node: '>=18'}
 
-  opencollective-postinstall@2.0.3:
-    resolution: {integrity: sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==}
-    hasBin: true
-
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -7119,9 +7112,6 @@ packages:
   vue-multiselect@2.1.9:
     resolution: {integrity: sha512-nGEppmzhQQT2iDz4cl+ZCX3BpeNhygK50zWFTIRS+r7K7i61uWXJWSioMuf+V/161EPQjexI8NaEBdUlF3dp+g==}
     engines: {node: '>= 4.0.0', npm: '>= 3.0.0'}
-
-  vue-popperjs@2.3.0:
-    resolution: {integrity: sha512-925QEeNjlMtb3eDHl5ZlODJzqnQL0nQPEKpr9aQ3XBg21DyqAdfLgD/At4svsPwFeIkpdF1gvHarENon47L9Cg==}
 
   vue-property-decorator@7.3.0:
     resolution: {integrity: sha512-HarXfTQ/Nxm4s/APpAaGIGHq5ZzslApImQy8ZrtkfGamw8rUFAVgMS5C50/AQ80+wfw3Wpnf4bNzbmj75m/k2Q==}
@@ -13710,8 +13700,6 @@ snapshots:
       is-inside-container: 1.0.0
       wsl-utils: 0.1.0
 
-  opencollective-postinstall@2.0.3: {}
-
   optionator@0.9.4:
     dependencies:
       deep-is: 0.1.4
@@ -15441,11 +15429,6 @@ snapshots:
       - whiskers
 
   vue-multiselect@2.1.9: {}
-
-  vue-popperjs@2.3.0:
-    dependencies:
-      opencollective-postinstall: 2.0.3
-      popper.js: 1.16.1
 
   vue-property-decorator@7.3.0:
     dependencies:
