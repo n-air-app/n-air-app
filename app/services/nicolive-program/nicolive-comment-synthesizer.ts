@@ -162,20 +162,16 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       next: action => {
         switch (action) {
           case 'pause':
-            console.log('pause'); // DEBUG
             this.queue.disable({ interruptAction: 'pause' });
             break;
           case 'cancel':
-            console.log('cancel'); // DEBUG
             this.queue.disable({ interruptAction: 'cancel' });
             break;
           case 'graceful':
-            console.log('graceful'); // DEBUG
             this.queue.disable({ interruptAction: 'graceful' });
             break;
 
           case 'resume':
-            console.log('resume'); // DEBUG
             this.queue.enable();
             break;
 
