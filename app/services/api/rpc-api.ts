@@ -1,4 +1,3 @@
-import { decycle } from 'json-cycle';
 import { Observable, Subject, Subscription } from 'rxjs';
 import {
   E_JSON_RPC_ERROR,
@@ -160,20 +159,12 @@ export abstract class RpcApi extends Service {
         const subscriptionId = `${request.params.resource}.${request.method}`;
         try {
           debugLog.push(
-            `serializePayload(resource=${JSON.stringify(
-              decycle(resource),
-              null,
-              2,
-            )}, responsePayload=${JSON.stringify(
-              decycle(responsePayload),
-              null,
-              2,
-            )}, request=${JSON.stringify(decycle(request), null, 2)})`,
+            `serializePayload(resource=${safeStringify(resource, 2)}, responsePayload=${safeStringify(responsePayload, 2)}, request=${safeStringify(request, 2)})`,
           ); // DEBUG
         } catch (e) {
           // RxJS Observables may have circular references that can't be serialized
           debugLog.push(
-            `serializePayload(resource=[object], responsePayload=[Observable], request=${JSON.stringify(decycle(request), null, 2)})`,
+            `serializePayload(resource=[object], responsePayload=[Observable], request=${safeStringify(request, 2)})`,
           ); // DEBUG
         }
         debugLog.push(`subscriptionId=${subscriptionId}`); // DEBUG
@@ -357,4 +348,20 @@ export abstract class RpcApi extends Service {
       }),
     );
   }
+}
+
+/** 循環参照を '[Circular]' に置き換えて JSON.stringify する */
+function safeStringify(obj: any, indent?: number): string {
+  const seen = new WeakSet();
+  return JSON.stringify(
+    obj,
+    (_key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) return '[Circular]';
+        seen.add(value);
+      }
+      return value;
+    },
+    indent,
+  );
 }
