@@ -8,6 +8,7 @@ import {
 } from 'rxjs';
 import { AudioService, AudioSource } from 'services/audio';
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
+import { SoundDetectorLog } from 'services/usage-statistics';
 
 export const SpeechActionsOnSoundDetected = ['pause', 'cancel', 'graceful'] as const;
 export type SpeechActionOnSoundDetected = (typeof SpeechActionsOnSoundDetected)[number];
@@ -319,6 +320,17 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   }
   updateSpeechActionOnSoundDetected(action: SpeechActionOnSoundDetected): void {
     this.setState({ speechActionOnSoundDetected: action });
+  }
+
+  getActionLog(): SoundDetectorLog {
+    return {
+      enabled: this.state.enabled,
+      sourceId: this.state.sourceId,
+      soundThresholdDb: this.state.soundThresholdDb,
+      resumeSilenceMs: this.state.resumeSilenceMs,
+      speechActionOnSoundDetected: this.state.speechActionOnSoundDetected,
+      calibrated: this.state.calibrated,
+    };
   }
 
   private setState(nextState: Partial<ISoundDetectorState>): void {

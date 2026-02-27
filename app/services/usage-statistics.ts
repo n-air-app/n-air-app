@@ -6,6 +6,7 @@ import { Service } from './core/service';
 import { HostsService } from './hosts';
 import { SynthesizerSelector } from './nicolive-program/state';
 import { EncoderFamily } from './settings/optimizer';
+import { SpeechActionOnSoundDetected } from './sound-detector/sound-detector';
 import {
   CommentColor,
   CommentFont,
@@ -56,6 +57,15 @@ export type SubStreamLog = {
   videoCodec: string;
   audioCodec: string;
   sync: boolean;
+};
+
+export type SoundDetectorLog = {
+  enabled: boolean;
+  sourceId: string | null | 'mic';
+  soundThresholdDb: number;
+  resumeSilenceMs: number;
+  speechActionOnSoundDetected: SpeechActionOnSoundDetected;
+  calibrated: boolean;
 };
 
 export type TranscriptionLog = {
@@ -133,6 +143,7 @@ export type TUsageEvent =
       rtvc: RtvcEventLog;
       substream?: SubStreamLog;
       transcription?: TranscriptionLog;
+      soundDetector?: SoundDetectorLog;
     }
   | {
       event: 'app_start' | 'app_close';
