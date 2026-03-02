@@ -67,7 +67,7 @@ function makeEmulatedChat(
   };
 }
 
-// yarn dev 用: ダミーでコメントを5秒ごとに出し続ける
+// pnpm dev 用: ダミーでコメントを5秒ごとに出し続ける
 class DummyMessageServerClient implements IMessageServerClient {
   connect(): Observable<MessageResponse> {
     return interval(5000).pipe(
@@ -274,7 +274,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     if (!viewUri) return;
 
     if (isFakeMode() && FakeModeConfig.dummyComment) {
-      // yarn dev 時はダミーでコメントを5秒ごとに出し続ける
+      // pnpm dev 時はダミーでコメントを5秒ごとに出し続ける
       this.client = new DummyMessageServerClient();
     } else {
       this.client = new NdgrCommentReceiver(viewUri);
