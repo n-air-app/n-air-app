@@ -32,60 +32,60 @@
         <div class="input-label section-heading">
           <label>{{ $t('settings.transcription.audioSettings') }}</label>
         </div>
-      <ObsListInput v-model="audioSourceIdModel" />
-      <div class="input-container">
-        <div class="input-label">
-          <label>{{ $t('settings.transcription.voskModel') }}</label>
+        <ObsListInput v-model="audioSourceIdModel" />
+        <div class="input-container">
+          <div class="input-label">
+            <label>{{ $t('settings.transcription.voskModel') }}</label>
+          </div>
+          <div class="select-button-wrapper">
+            <ObsListInput v-model="voskModelModel" />
+            <button
+              class="action-icon"
+              data-size="md"
+              data-variant="light"
+              data-radius="sm"
+              data-color="secondary"
+              v-tooltip="$t(downloadButtonText)"
+              @click="downloadVoskModel()"
+              v-if="isDownloadButtonEnabled"
+            >
+              <i class="icon-download-fill"></i>
+            </button>
+            <button
+              class="action-icon"
+              data-size="md"
+              data-variant="light"
+              data-radius="sm"
+              data-color="secondary"
+              v-tooltip="$t(cancelButtonText)"
+              @click="cancelDownloadVoskModel()"
+              v-if="isCancelButtonEnabled"
+            >
+              <i class="icon-close"></i>
+            </button>
+            <button
+              class="action-icon"
+              data-size="md"
+              data-variant="light"
+              data-radius="sm"
+              data-color="secondary"
+              v-tooltip="$t(deleteButtonText)"
+              @click="deleteVoskModel()"
+              v-if="isDeleteButtonEnabled"
+            >
+              <i class="icon-trash-fill"></i>
+            </button>
+          </div>
         </div>
-        <div class="select-button-wrapper">
-          <ObsListInput v-model="voskModelModel" />
-          <button
-            class="action-icon"
-            data-size="md"
-            data-variant="light"
-            data-radius="sm"
-            data-color="secondary"
-            v-tooltip="$t(downloadButtonText)"
-            @click="downloadVoskModel()"
-            v-if="isDownloadButtonEnabled"
-          >
-            <i class="icon-download-fill"></i>
-          </button>
-          <button
-            class="action-icon"
-            data-size="md"
-            data-variant="light"
-            data-radius="sm"
-            data-color="secondary"
-            v-tooltip="$t(cancelButtonText)"
-            @click="cancelDownloadVoskModel()"
-            v-if="isCancelButtonEnabled"
-          >
-            <i class="icon-close"></i>
-          </button>
-          <button
-            class="action-icon"
-            data-size="md"
-            data-variant="light"
-            data-radius="sm"
-            data-color="secondary"
-            v-tooltip="$t(deleteButtonText)"
-            @click="deleteVoskModel()"
-            v-if="isDeleteButtonEnabled"
-          >
-            <i class="icon-trash-fill"></i>
-          </button>
+        <div class="input-container">
+          <div class="input-label">
+            <label>{{ preview }}</label>
+          </div>
+          <div class="preview-text">
+            <p v-if="activeStatus === 'active'">{{ previewText || '--' }}</p>
+            <p class="disabled-reason" v-else>{{ disabledReason }}</p>
+          </div>
         </div>
-      </div>
-      <div class="input-container">
-        <div class="input-label">
-          <label>{{ preview }}</label>
-        </div>
-        <div class="preview-text">
-          <p v-if="activeStatus === 'active'">{{ previewText || '--' }}</p>
-          <p class="disabled-reason" v-else>{{ disabledReason }}</p>
-        </div>
-      </div>
       </div>
     </toc-section>
     <toc-section :title="$t('settings.transcription.displaySettings')">
@@ -93,95 +93,95 @@
         <div class="input-label section-heading">
           <label>{{ $t('settings.transcription.displaySettings') }}</label>
         </div>
-      <p
-        class="alert"
-        data-variant="light"
-        data-type="caution"
-        v-if="commentEnabled && transcriptionSourceInActiveScene && isNiconicoLoggedIn()"
-      >
-        <i class="icon-warning-circle"></i>
-        {{ $t('settings.transcription.warningBothActive') }}
-      </p>
-      <p
-        class="alert"
-        data-variant="light"
-        v-if="
-          enabled && !commentEnabled && !transcriptionSourceInActiveScene && isNiconicoLoggedIn()
-        "
-      >
-        <i class="icon-notification"></i>
-        {{ $t('settings.transcription.warningNoOutput') }}
-      </p>
-      <p
-        class="alert"
-        data-variant="light"
-        v-if="enabled && !transcriptionSourceInActiveScene && !isNiconicoLoggedIn()"
-      >
-        <i class="icon-notification"></i>
-        {{ $t('settings.transcription.warningNoOutput2') }}
-      </p>
-      <div class="select-button-wrapper">
-        <div class="name">
-          {{ $t('settings.transcription.addSourceSection.title')
-          }}<i
-            class="icon-help-border icon-tooltip"
-            v-tooltip.bottom="$t(commentSectionNotice2)"
-          ></i>
-        </div>
-        <button
-          v-if="!transcriptionSourceInActiveScene"
-          class="button basic-button"
-          data-size="xs"
-          data-radius="sm"
+        <p
+          class="alert"
           data-variant="light"
-          data-color="secondary"
-          @click="addTranscriptionSourceToActiveScene"
+          data-type="caution"
+          v-if="commentEnabled && transcriptionSourceInActiveScene && isNiconicoLoggedIn()"
         >
-          {{ $t('settings.transcription.addSourceSection.add') }}
-        </button>
-        <div class="chip" v-else>
-          <i class="icon-check-circle-fill"></i
-          >{{ $t('settings.transcription.addSourceSection.added') }}
+          <i class="icon-warning-circle"></i>
+          {{ $t('settings.transcription.warningBothActive') }}
+        </p>
+        <p
+          class="alert"
+          data-variant="light"
+          v-if="
+            enabled && !commentEnabled && !transcriptionSourceInActiveScene && isNiconicoLoggedIn()
+          "
+        >
+          <i class="icon-notification"></i>
+          {{ $t('settings.transcription.warningNoOutput') }}
+        </p>
+        <p
+          class="alert"
+          data-variant="light"
+          v-if="enabled && !transcriptionSourceInActiveScene && !isNiconicoLoggedIn()"
+        >
+          <i class="icon-notification"></i>
+          {{ $t('settings.transcription.warningNoOutput2') }}
+        </p>
+        <div class="select-button-wrapper">
+          <div class="name">
+            {{ $t('settings.transcription.addSourceSection.title')
+            }}<i
+              class="icon-help-border icon-tooltip"
+              v-tooltip.bottom="$t(commentSectionNotice2)"
+            ></i>
+          </div>
+          <button
+            v-if="!transcriptionSourceInActiveScene"
+            class="button basic-button"
+            data-size="xs"
+            data-radius="sm"
+            data-variant="light"
+            data-color="secondary"
+            @click="addTranscriptionSourceToActiveScene"
+          >
+            {{ $t('settings.transcription.addSourceSection.add') }}
+          </button>
+          <div class="chip" v-else>
+            <i class="icon-check-circle-fill"></i
+            >{{ $t('settings.transcription.addSourceSection.added') }}
+          </div>
         </div>
-      </div>
-      <div class="section" v-if="transcriptionSourceInActiveScene">
-        <h4 class="section-title">{{ textFileSectionTitle }}</h4>
-        <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
-        <div v-if="textFileEnabledModel.value">
-          <ObsIntInput v-model="textFileMaxLineModel" />
-          <ObsIntInput v-model="textFileLineTimeToLiveModel" />
+        <div class="section" v-if="transcriptionSourceInActiveScene">
+          <h4 class="section-title">{{ textFileSectionTitle }}</h4>
+          <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
+          <div v-if="textFileEnabledModel.value">
+            <ObsIntInput v-model="textFileMaxLineModel" />
+            <ObsIntInput v-model="textFileLineTimeToLiveModel" />
+          </div>
         </div>
-      </div>
-      <div class="input-container" v-if="isNiconicoLoggedIn()">
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">{{ $t('settings.transcription.comment.enable') }}</div>
-            <div class="value">
-              <input type="checkbox" v-model="commentEnabled" class="toggle-button" />
+        <div class="input-container" v-if="isNiconicoLoggedIn()">
+          <div class="input-wrapper">
+            <div class="row">
+              <div class="name">{{ $t('settings.transcription.comment.enable') }}</div>
+              <div class="value">
+                <input type="checkbox" v-model="commentEnabled" class="toggle-button" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="section" v-if="isNiconicoLoggedIn() && commentEnabled">
-        <div class="input-label section-heading">
-          <label>
-            {{ commentSectionTitle
-            }}<i
-              class="icon-help-border icon-tooltip"
-              v-tooltip.bottom="$t(commentSectionNotice3)"
-            ></i
-            ></label>
+        <div class="section" v-if="isNiconicoLoggedIn() && commentEnabled">
+          <div class="input-label section-heading">
+            <label>
+              {{ commentSectionTitle
+              }}<i
+                class="icon-help-border icon-tooltip"
+                v-tooltip.bottom="$t(commentSectionNotice3)"
+              ></i
+              ></label>
+          </div>
+          <p class="section-notice-text">{{ commentSectionNotice4 }}</p>
+          <div>
+            <ObsListInput v-model="commentSizeModel" />
+            <ObsListInput v-model="commentPositionModel" />
+            <ObsListInput v-model="commentColorModel" />
+            <ObsListInput v-model="commentFontModel" />
+            <ObsIntInput v-model="commentPostDelayModel" />
+            <ObsIntInput v-model="commentVposOffsetModel" />
+          </div>
         </div>
-        <p class="section-notice-text">{{ commentSectionNotice4 }}</p>
-        <div>
-          <ObsListInput v-model="commentSizeModel" />
-          <ObsListInput v-model="commentPositionModel" />
-          <ObsListInput v-model="commentColorModel" />
-          <ObsListInput v-model="commentFontModel" />
-          <ObsIntInput v-model="commentPostDelayModel" />
-          <ObsIntInput v-model="commentVposOffsetModel" />
-        </div>
-      </div>
       </div>
     </toc-section>
   </div>

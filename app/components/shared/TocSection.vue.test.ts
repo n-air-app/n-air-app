@@ -193,7 +193,7 @@ describe('TocSection', () => {
       });
 
       await instance.mounted();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => { void setTimeout(resolve, 0); });
 
       expect(mockRegisterTocSection).toHaveBeenCalledWith({
         id: 'toc-section-0',
@@ -210,7 +210,7 @@ describe('TocSection', () => {
       });
 
       await instance.mounted();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => { void setTimeout(resolve, 0); });
 
       expect(mockRegisterTocSection).not.toHaveBeenCalled();
     });
@@ -222,7 +222,7 @@ describe('TocSection', () => {
       });
 
       await instance.mounted();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => { void setTimeout(resolve, 0); });
 
       expect(mockRegisterTocSection).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -238,7 +238,7 @@ describe('TocSection', () => {
       instance.registerTocSection = undefined;
 
       expect(() => instance.mounted()).not.toThrow();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => { void setTimeout(resolve, 0); });
     });
 
     it('registerTocSection が関数でない場合でもエラーにならない', async () => {
@@ -248,7 +248,7 @@ describe('TocSection', () => {
       instance.registerTocSection = 'not a function' as any;
 
       expect(() => instance.mounted()).not.toThrow();
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => { void setTimeout(resolve, 0); });
     });
   });
 
@@ -261,7 +261,7 @@ describe('TocSection', () => {
 
       // mounted を呼び出して登録（非同期）
       instance.mounted();
-      await new Promise(resolve => setImmediate(resolve)); // Wait for $nextTick
+      await new Promise(resolve => { void setImmediate(resolve); }); // Wait for $nextTick
 
       instance.beforeDestroy();
 
@@ -278,7 +278,7 @@ describe('TocSection', () => {
 
       // mounted を呼び出して登録（非同期）
       instance.mounted();
-      await new Promise(resolve => setImmediate(resolve)); // Wait for $nextTick
+      await new Promise(resolve => { void setImmediate(resolve); }); // Wait for $nextTick
 
       instance.beforeDestroy();
 

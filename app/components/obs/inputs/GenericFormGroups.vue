@@ -9,8 +9,8 @@
         formGroup.nameSubCategory === 'Untitled'
           ? getUntitledSectionTitle(formGroup)
           : $t(`settings.${category}['${formGroup.nameSubCategory}'].name`, {
-              fallback: formGroup.nameSubCategory,
-            })"
+            fallback: formGroup.nameSubCategory,
+          })"
     >
       <div class="section">
         <aside class="notification-root" v-if="category === 'Stream'">
