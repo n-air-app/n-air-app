@@ -35,7 +35,6 @@ jest.mock('@electron/remote', () => ({
 jest.mock('services/customization', () => ({}));
 jest.mock('services/user', () => ({}));
 jest.mock('util/menus/Menu', () => ({}));
-jest.mock('services/notifications', () => ({}));
 jest.mock('services/nicolive-program/nicolive-program', () => ({}));
 jest.mock('services/nicolive-program/nicolive-comment-synthesizer', () => ({}));
 jest.mock('services/custom-cast-usage', () => ({}));

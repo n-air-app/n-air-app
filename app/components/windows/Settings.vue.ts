@@ -1,5 +1,4 @@
 import LanguageSettings from 'components/LanguageSettings.vue';
-import NotificationsSettings from 'components/NotificationsSettings.vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import SubStreamSettings from 'components/SubStreamSettings.vue';
 import { Subscription } from 'rxjs';
@@ -54,7 +53,6 @@ const CATEGORIES_WITH_TOC: string[] = [
     NavItem,
     ExtraSettings,
     Hotkeys,
-    NotificationsSettings,
     LanguageSettings,
     CommentSettings,
     SoundDetectorSettings,

@@ -32,7 +32,6 @@
         <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <notifications-settings v-if="categoryName === 'Notifications'" />
         <comment-settings v-if="categoryName === 'Comment'" />
         <sound-detector-settings
           v-if="categoryName === 'SoundDetector'"
@@ -44,7 +43,6 @@
           v-if="
             ![
               'Hotkeys',
-              'Notifications',
               'Comment',
               'SoundDetector',
               'SpeechEngine',

@@ -74,11 +74,5 @@ test('Settings Scene Collections', async t => {
   t.pass();
 });
 
-test('Settings Notifications', async t => {
-  const client = await getApiClient();
-  const settingsService = client.getResource<ISettingsServiceApi>('SettingsService');
-  settingsService.showSettings('Notifications');
-  t.pass();
-});
 
 
