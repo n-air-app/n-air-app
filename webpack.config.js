@@ -106,6 +106,9 @@ module.exports = function (env, argv) {
         static: {
           directory: __dirname,
           publicPath: '/',
+          watch: {
+            ignored: /node_modules/,
+          },
         },
         proxy: [
           {
