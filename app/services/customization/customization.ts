@@ -1,4 +1,3 @@
-import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import { Subject } from 'rxjs';
 import Utils from 'services/utils';
 import { PersistentStatefulService } from '../core/persistent-stateful-service';
@@ -159,16 +158,6 @@ export class CustomizationService
   }
   setStudioMode(studioMode: boolean) {
     this.setSettings({ studioMode });
-  }
-
-  getSettingsFormData(): TObsFormData {
-    const settings = this.getSettings();
-
-    return [];
-  }
-
-  getExperimentalSettingsFormData(): TObsFormData {
-    return [];
   }
 
   restoreDefaults() {

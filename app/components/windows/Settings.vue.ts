@@ -1,5 +1,3 @@
-import AppearanceSettings from 'components/AppearanceSettings.vue';
-import ExperimentalSettings from 'components/ExperimentalSettings.vue';
 import LanguageSettings from 'components/LanguageSettings.vue';
 import NotificationsSettings from 'components/NotificationsSettings.vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
@@ -8,7 +6,6 @@ import { Subscription } from 'rxjs';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
 import { Inject } from '../../services/core/injector';
-import { CustomizationService } from '../../services/customization';
 import {
   ISettingsServiceApi,
   ISettingsSubCategory,
@@ -36,8 +33,6 @@ import { CategoryIcons } from './CategoryIcons';
     ExtraSettings,
     Hotkeys,
     NotificationsSettings,
-    AppearanceSettings,
-    ExperimentalSettings,
     LanguageSettings,
     CommentSettings,
     SpeechEngineSettings,
@@ -49,7 +44,6 @@ export default class Settings extends Vue {
   @Inject() settingsService: ISettingsServiceApi;
   @Inject() windowsService: WindowsService;
   @Inject() userService: UserService;
-  @Inject() customizationService: CustomizationService;
   @Inject() streamingService: StreamingService;
 
   $refs: { settingsContainer: HTMLElement };
