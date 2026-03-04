@@ -33,9 +33,6 @@
             @input="setStyle"
           >
           </dropdown>
-          <template slot="noResult">
-            {{ $t('settings.itemNotFoundMessage') }}
-          </template>
         </div>
       </div>
       <font-size-selector :value="value.size" @input="setSize" />
