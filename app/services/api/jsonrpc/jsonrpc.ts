@@ -24,7 +24,6 @@ export class JsonrpcService extends Service implements IJsonrpcServiceApi {
       jsonrpc: '2.0',
       error: {
         code: options.code,
-        // tslint:disable-next-line:prefer-template
         message: E_JSON_RPC_ERROR[options.code] + (options.message ? ' ' + options.message : ''),
       },
     };

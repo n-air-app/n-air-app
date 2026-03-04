@@ -9,7 +9,6 @@ import {
 } from 'components/obs/inputs/ObsInput';
 import fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
-import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
 import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
 import { StatefulService, mutation } from 'services/core/stateful-service';
@@ -119,8 +118,6 @@ export class SettingsService
   @Inject() private audioService: AudioService;
   @Inject() private windowsService: WindowsService;
   @Inject() private appService: AppService;
-  @Inject() private tcpServerService: TcpServerService;
-
   @Inject() private userService: UserService;
 
   @Inject() videoSettingsService: VideoSettingsService;
@@ -186,7 +183,6 @@ export class SettingsService
     if (Utils.isDevMode()) {
       categories.push('Developer');
     }
-    // if (this.advancedSettingEnabled()) categories.push('Experimental');
 
     return categories;
   }
@@ -659,7 +655,6 @@ export class SettingsService
     name: string,
     patch: Partial<IObsInput<TObsValue>>,
   ) {
-    // tslint:disable-next-line
     settingsFormData = cloneDeep(settingsFormData);
     for (const subcategory of settingsFormData) {
       for (const field of subcategory.parameters) {
@@ -821,7 +816,6 @@ export class SettingsService
 
   private getDeveloperSettingsFormData(): ISettingsSubCategory[] {
     return [
-      // ...this.tcpServerService.getApiSettingsFormData(), // 機能していないためコメントアウト
       {
         nameSubCategory: 'Dismissables',
         codeSubCategory: 'Dismissables',

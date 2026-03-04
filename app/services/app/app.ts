@@ -21,14 +21,13 @@ import { ShortcutsService } from 'services/shortcuts';
 import { SourcesService } from 'services/sources';
 import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
-import { track } from 'services/usage-statistics';
+import { UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils, { uuidv4 } from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
 import * as obs from '../../../obs-api';
-import { RunInLoadingMode } from './app-decorators';
 
 interface IAppState {
   loading: boolean;
@@ -76,59 +75,60 @@ export class AppService extends StatefulService<IAppState> {
 
   readonly pid = require('process').pid;
 
-  @track({ event: 'boot' })
-  @RunInLoadingMode()
   async load() {
-    if (Utils.isDevMode()) {
-      electron.ipcRenderer.on('showErrorAlert', () => {
-        this.SET_ERROR_ALERT(true);
+    UsageStatisticsService.instance.recordEvent({ event: 'boot' });
+    return this.runInLoadingMode(async () => {
+      if (Utils.isDevMode()) {
+        electron.ipcRenderer.on('showErrorAlert', () => {
+          this.SET_ERROR_ALERT(true);
+        });
+      }
+
+      // We want to start this as early as possible so that any
+      // exceptions raised while loading the configuration are
+      // associated with the user in sentry.
+      // await this.userService.initialize();
+      await this.userService;
+
+      // Second, we want to start the crash reporter service.  We do this
+      // after the user service because we want crashes to be associated
+      // with a particular user if possible.
+      this.crashReporterService.beginStartup();
+
+      // Initialize any apps before loading the scene collection.  This allows
+      // the apps to already be in place when their sources are created.
+      // await this.platformAppsService.initialize();
+
+      await this.sceneCollectionsService.initialize();
+
+      this.startMonitoringStudioMode();
+      const onboarded = this.onboardingService.startOnboardingIfRequired();
+
+      electron.ipcRenderer.on('shutdown', () => {
+        electron.ipcRenderer.send('acknowledgeShutdown');
+        this.shutdownHandler();
       });
-    }
 
-    // We want to start this as early as possible so that any
-    // exceptions raised while loading the configuration are
-    // associated with the user in sentry.
-    // await this.userService.initialize();
-    await this.userService;
+      // Eager load services
+      const _ = [this.shortcutsService];
 
-    // Second, we want to start the crash reporter service.  We do this
-    // after the user service because we want crashes to be associated
-    // with a particular user if possible.
-    this.crashReporterService.beginStartup();
+      this.ipcServerService.listen();
+      this.tcpServerService.listen();
 
-    // Initialize any apps before loading the scene collection.  This allows
-    // the apps to already be in place when their sources are created.
-    // await this.platformAppsService.initialize();
+      this.patchNotesService.showPatchNotesIfRequired(onboarded);
 
-    await this.sceneCollectionsService.initialize();
+      this.informationsService;
 
-    this.startMonitoringStudioMode();
-    const onboarded = this.onboardingService.startOnboardingIfRequired();
+      this.transcriptionService;
 
-    electron.ipcRenderer.on('shutdown', () => {
-      electron.ipcRenderer.send('acknowledgeShutdown');
-      this.shutdownHandler();
+      this.crashReporterService.endStartup();
+
+      this.protocolLinksService.start(this.state.argv);
     });
-
-    // Eager load services
-    const _ = [this.shortcutsService];
-
-    this.ipcServerService.listen();
-    this.tcpServerService.listen();
-
-    this.patchNotesService.showPatchNotesIfRequired(onboarded);
-
-    this.informationsService;
-
-    this.transcriptionService;
-
-    this.crashReporterService.endStartup();
-
-    this.protocolLinksService.start(this.state.argv);
   }
 
-  @track({ event: 'app_close' })
   private shutdownHandler() {
+    UsageStatisticsService.instance.recordEvent({ event: 'app_close' });
     // SLOBS の shutdownHandlerでの順序に従います
     // https://github.com/stream-labs/desktop/blob/05edf2206a3c10c13b60ede8ddd5e776509ebd5f/app/services/app/app.ts#L178
     console.log('[SHUTDOWN] Starting shutdown sequence');
@@ -209,7 +209,6 @@ export class AppService extends StatefulService<IAppState> {
    * Show loading, block the nav-buttons and disable autosaving
    * If called several times - unlock the screen only after the last function/promise has been finished
    * Should be called for any scene-collections loading operations
-   * @see RunInLoadingMode decorator
    */
   async runInLoadingMode(fn: () => Promise<any> | void) {
     if (!this.state.loading) {

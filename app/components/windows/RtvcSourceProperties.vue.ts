@@ -11,11 +11,11 @@ import {
 } from 'services/rtvcStateService';
 import { ScenesService } from 'services/scenes';
 import Multiselect from 'vue-multiselect';
-import Popper from 'vue-popperjs';
 import { Component, Watch } from 'vue-property-decorator';
 import VueSlider from 'vue-slider-component';
 import * as obs from '../../../obs-api';
 import { AudioService } from '../../services/audio';
+import Popper from '../shared/Popper.vue';
 import SourceProperties from './SourceProperties.vue';
 
 // for set param
@@ -71,7 +71,6 @@ export default class RtvcSourceProperties extends SourceProperties {
   canAdd = false;
 
   showPopupMenu = false;
-  popper: PopperEvent;
 
   primaryVoiceModel: IObsListOption<number> = { description: '', value: 0 };
   secondaryVoiceModel: IObsListOption<number> = { description: '', value: 0 };
@@ -428,17 +427,11 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.currentIndex = index;
   }
 
-  closePopupMenu() {
-    this.popper?.doClose();
-    this.popper = undefined;
-  }
-
   canDelete(index: string): boolean {
     return this.manualList.length > 1 && this.currentIndex !== index;
   }
 
   async onDelete(index: string) {
-    this.closePopupMenu();
     const num = this.getManualIndexNum(index);
     if (num < 0) return;
 
@@ -464,7 +457,6 @@ export default class RtvcSourceProperties extends SourceProperties {
   }
 
   onCopy(index: string) {
-    this.closePopupMenu();
     if (this.draftState.manuals.length >= this.manualMax) return;
     const num = this.getManualIndexNum(index);
     if (num < 0) return;

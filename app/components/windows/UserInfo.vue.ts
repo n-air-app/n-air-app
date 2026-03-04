@@ -18,13 +18,13 @@ import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-mo
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
-import Popper from 'vue-popperjs';
 import { Component } from 'vue-property-decorator';
 import CommonComment from '../nicolive-area/comment/CommonComment.vue';
 import EmotionComment from '../nicolive-area/comment/EmotionComment.vue';
 import GiftComment from '../nicolive-area/comment/GiftComment.vue';
 import NicoadComment from '../nicolive-area/comment/NicoadComment.vue';
 import SystemMessage from '../nicolive-area/comment/SystemMessage.vue';
+import Popper from '../shared/Popper.vue';
 
 const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   common: CommonComment,
@@ -64,7 +64,6 @@ export default class UserInfo extends Vue {
   private cleanup: () => void = undefined;
   isLatestVisible = true;
   showPopupMenu = false;
-  popper: PopperEvent;
 
   isBlockedUser = false;
   isFollowing = false;

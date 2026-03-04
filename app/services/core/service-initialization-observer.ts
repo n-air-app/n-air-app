@@ -5,7 +5,6 @@ import { Service } from './service';
  * service initialization. This allows observable service to know nothing about observer.
  * In this case observer-service is like a "plugin" for observable service.
  */
-// tslint:disable-next-line:function-name
 export function InitAfter(observableServiceName: string) {
   return function (target: typeof Service) {
     const observeList = ObserveList.instance;

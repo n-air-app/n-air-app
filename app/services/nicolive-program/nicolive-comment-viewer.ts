@@ -67,7 +67,7 @@ function makeEmulatedChat(
   };
 }
 
-// yarn dev 用: ダミーでコメントを5秒ごとに出し続ける
+// pnpm dev 用: ダミーでコメントを5秒ごとに出し続ける
 class DummyMessageServerClient implements IMessageServerClient {
   connect(): Observable<MessageResponse> {
     return interval(5000).pipe(
@@ -267,15 +267,14 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   nextConfigLoaded: Subject<void> = new Subject();
   private onNextConfig({ viewUri }: MessageServerConfig): void {
     this.unsubscribe();
+    this.clearList();
+    this.pinComment(null);
 
     // 予約番組は30分前にならないとURLが来ない
     if (!viewUri) return;
 
-    this.clearList();
-    this.pinComment(null);
-
     if (isFakeMode() && FakeModeConfig.dummyComment) {
-      // yarn dev 時はダミーでコメントを5秒ごとに出し続ける
+      // pnpm dev 時はダミーでコメントを5秒ごとに出し続ける
       this.client = new DummyMessageServerClient();
     } else {
       this.client = new NdgrCommentReceiver(viewUri);
