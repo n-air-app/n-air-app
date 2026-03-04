@@ -52,7 +52,15 @@ plugins.push((store: Store<any>) => {
   // Only the main window should ever receive this
   ipcRenderer.on('vuex-sendState', (event: Electron.Event, windowId: number) => {
     const win = remote.BrowserWindow.fromId(windowId);
-    win.webContents.send('vuex-loadState', store.state);
+    if (!win || win.isDestroyed()) return;
+    try {
+      win.webContents.send('vuex-loadState', store.state);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message?.includes('Render frame was disposed')) {
+        return;
+      }
+      throw e;
+    }
   });
 
   // Only child windows should ever receive this
