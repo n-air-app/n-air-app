@@ -5,6 +5,7 @@
   z-index: @z-index-tooltip;
   display: block !important;
   visibility: hidden;
+  max-width: none !important; // Foundation の max-width: 10rem !important を上書き
   padding: 0;
   background: transparent;
   border: 0;
@@ -29,7 +30,7 @@
   padding: 8px 12px;
   font-size: @font-size2;
   color: var(--color-tooltip-text);
-  word-wrap: break-word;
+  word-break: keep-all;
   background-color: var(--color-tooltip-bg);
   border: 1px solid var(--color-tooltip-border);
 }

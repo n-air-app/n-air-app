@@ -2,7 +2,7 @@
   <div class="root comment-root" :class="[chat.type, { pseudoHover: commentMenuOpened }]">
     <div class="comment-wrapper" :speaking="speaking" :class="{ 'is-speaking': speaking }" @dblclick="$emit('pinned')">
       <div class="comment-number">
-        <i v-if="showSpeakingIcon" :class="isSpeaking ? 'icon-play-fill' : 'icon-pause-fill'" v-tooltip.top="'コメント読み上げ: ' + speakingTooltip"></i>
+        <i v-if="showSpeakingIcon" :class="isSpeaking ? 'icon-play-fill' : 'icon-pause-fill'" v-tooltip.right="'コメント読み上げ: ' + speakingTooltip"></i>
         <template v-else>{{ chat.value.no }}</template>
       </div>
       <div class="comment-box">

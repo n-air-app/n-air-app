@@ -12,7 +12,9 @@ export default class CommonComment extends CommentBase {
 
   moderatorTooltip = 'モデレーター';
   supporterTooltip = 'サポーター';
-  speakingTooltip = this.isSpeaking ? '読み上げ中' : '一時停止中';
+  get speakingTooltip() {
+    return this.isSpeaking ? '読み上げ中' : '一時停止中';
+  }
 
   get isSpeaking(): boolean {
     return this.speaking === SpeakingType.SPEAKING;
