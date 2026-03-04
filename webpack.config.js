@@ -106,6 +106,11 @@ module.exports = function (env, argv) {
         static: {
           directory: __dirname,
           publicPath: '/',
+          watch: {
+            // Ignore source directories compiled by webpack — they should trigger
+            // webpack HMR, not a static-file live reload before recompilation.
+            ignored: [/node_modules/, /[/\\]app[/\\]/, /[/\\]nvoice[/\\]/],
+          },
         },
         proxy: [
           {

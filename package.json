@@ -13,7 +13,7 @@
     "compile:ci": "pnpm clear && webpack-cli --mode development",
     "compile:production": "pnpm clear && webpack-cli --progress --mode production",
     "compile-tests": "tsc -p test",
-    "dev": "run-p dev:*",
+    "dev": "run-p --race dev:*",
     "dev:server": "webpack-cli serve --progress --hot --mode development",
     "dev:start": "cross-env NAIR_UNSTABLE=1 DEV_SERVER=\"http://localhost:8080/index.dev.html\" electron . && echo 'electron exited.'",
     "format": "eslint --fix {app,test,nvoice}/**/*.{ts,js,vue} && stylelint --fix app/**/*.{vue,css,less} && npx sort-package-json",

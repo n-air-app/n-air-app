@@ -463,7 +463,20 @@ function initialize(crashHandler) {
 
   global.indexUrl = process.env.DEV_SERVER || `file://${__dirname}/index.html`;
 
-   
+  if (process.env.DEV_SERVER) {
+    // During dev server hot reload, Electron's WebFrameMain.prototype.send() catches
+    // "Render frame was disposed" internally and calls console.error() without re-throwing.
+    // try-catch cannot suppress this, so we filter the console output directly.
+    const originalConsoleError = console.error;
+    console.error = function (...args) {
+      if (typeof args[0] === 'string' && args[0].startsWith('Error sending from webFrameMain')) {
+        return;
+      }
+      return originalConsoleError.apply(this, args);
+    };
+  }
+
+  // eslint-disable-next-line no-inner-declarations
   function openDevTools() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.openDevTools({ mode: 'undocked' });
@@ -526,7 +539,25 @@ function initialize(crashHandler) {
   // Import splash window functions
   const { createSplashWindow, closeSplashWindow } = require('./splash/splash-window');
 
-   
+  // Safely send IPC messages to a BrowserWindow or WebContents.
+  // During dev hot reload, the render frame may be disposed while the window is still alive.
+  // BrowserWindow.isDestroyed() does not catch this — only the frame is replaced, not the window.
+  // eslint-disable-next-line no-inner-declarations
+  function safeSend(target, channel, ...args) {
+    try {
+      if (target.isDestroyed()) return false;
+      const wc = target.webContents || target;
+      wc.send(channel, ...args);
+      return true;
+    } catch (e) {
+      if (e.message && e.message.includes('Render frame was disposed')) {
+        return false;
+      }
+      throw e;
+    }
+  }
+
+  // eslint-disable-next-line no-inner-declarations
   async function startApp() {
     if (process.argv.includes('--clearCookies')) {
       SentryElectron.captureEvent({
@@ -637,7 +668,7 @@ function initialize(crashHandler) {
       if (!shutdownStarted) {
         console.log('[EXIT] Starting shutdown sequence');
         shutdownStarted = true;
-        mainWindow.send('shutdown');
+        safeSend(mainWindow, 'shutdown');
 
         // We give the main window 10 seconds to acknowledge a request
         // to shut down.  Otherwise, we just close it.
@@ -737,7 +768,7 @@ function initialize(crashHandler) {
     // background until it is needed.
     childWindow.on('close', e => {
       if (!shutdownStarted) {
-        childWindow.send('closeWindow');
+        safeSend(childWindow, 'closeWindow');
 
         // Prevent the window from actually closing
         e.preventDefault();
@@ -752,7 +783,7 @@ function initialize(crashHandler) {
     const requests = {};
 
     function sendRequest(request, event = null) {
-      mainWindow.webContents.send('services-request', request);
+      if (!safeSend(mainWindow, 'services-request', request)) return;
       if (!event) return;
       requests[request.id] = Object.assign({}, request, { event });
     }
@@ -771,7 +802,14 @@ function initialize(crashHandler) {
 
     ipcMain.on('services-ready', () => {
       if (!childWindow.isDestroyed()) {
-        childWindow.loadURL(`${global.indexUrl}?windowId=child`);
+        // Only load the URL if the child window hasn't been initialized yet.
+        // During HMR hot reload, the child window reloads itself independently,
+        // so calling loadURL again would interrupt its own reload and break the
+        // vuex state sync chain.
+        const currentUrl = childWindow.webContents.getURL();
+        if (!currentUrl || currentUrl === 'about:blank') {
+          childWindow.loadURL(`${global.indexUrl}?windowId=child`);
+        }
       }
     });
 
@@ -789,7 +827,7 @@ function initialize(crashHandler) {
       const windows = BrowserWindow.getAllWindows();
       windows.forEach(window => {
         if (window.id === mainWindow.id || window.isDestroyed()) return;
-        window.webContents.send('services-message', payload);
+        safeSend(window, 'services-message', payload);
       });
     });
 
@@ -824,7 +862,7 @@ function initialize(crashHandler) {
     // Check for protocol links in the argv of the other process
     argv.forEach(arg => {
       if (arg.match(/^n-air-app:\/\//)) {
-        mainWindow.send('protocolLink', arg);
+        safeSend(mainWindow, 'protocolLink', arg);
       }
     });
 
@@ -1034,7 +1072,7 @@ function initialize(crashHandler) {
       // Tell the mainWindow to send its current store state
       // to the newly registered window
 
-      mainWindow.webContents.send('vuex-sendState', windowId);
+      safeSend(mainWindow, 'vuex-sendState', windowId);
     }
   });
 
@@ -1049,7 +1087,7 @@ function initialize(crashHandler) {
         .filter(id => id !== windowId.toString())
         .forEach(id => {
           const win = registeredStores[id];
-          if (!win.isDestroyed()) win.webContents.send('vuex-mutation', mutation);
+          safeSend(win, 'vuex-mutation', mutation);
         });
     }
   });
@@ -1088,14 +1126,11 @@ function initialize(crashHandler) {
 
   ipcMain.on('requestPerformanceStats', e => {
     const stats = app.getAppMetrics();
-    e.sender.send('performanceStatsResponse', stats);
+    safeSend(e.sender, 'performanceStatsResponse', stats);
   });
 
   ipcMain.on('showErrorAlert', () => {
-    if (!mainWindow.isDestroyed()) {
-      // main window may be destroyed on shutdown
-      mainWindow.send('showErrorAlert');
-    }
+    safeSend(mainWindow, 'showErrorAlert');
   });
 
   ipcMain.on('webContents-enableRemote', (e, id) => {

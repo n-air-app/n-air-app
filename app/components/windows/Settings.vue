@@ -21,10 +21,7 @@
         <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <api-settings v-if="categoryName === 'API'" />
         <notifications-settings v-if="categoryName === 'Notifications'" />
-        <appearance-settings v-if="categoryName === 'Appearance'" />
-        <experimental-settings v-if="categoryName === 'Experimental'" />
         <comment-settings v-if="categoryName === 'Comment'" />
         <sound-detector-settings
           v-if="categoryName === 'SoundDetector'"
@@ -36,10 +33,7 @@
           v-if="
             ![
               'Hotkeys',
-              'API',
               'Notifications',
-              'Appearance',
-              'Experimental',
               'Comment',
               'SoundDetector',
               'SpeechEngine',
