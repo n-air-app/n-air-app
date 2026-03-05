@@ -1,11 +1,11 @@
 <template>
   <span>
     <transition>
-      <span v-show="showPopper">
+      <span v-show="showPopper" ref="popperWrapper">
         <slot />
       </span>
     </transition>
-    <slot name="reference" />
+    <span ref="referenceWrapper"><slot name="reference" /></span>
   </span>
 </template>
 

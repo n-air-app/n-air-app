@@ -193,18 +193,28 @@ export default defineComponent({
         const showPopper = ref(false);
         const referenceEl = ref<Element | null>(null);
         const popperEl = ref<HTMLElement | null>(null);
+        // テンプレート ref: slot コンテンツのラッパー要素
+        const referenceWrapper = ref<HTMLElement | null>(null);
+        const popperWrapper = ref<HTMLElement | null>(null);
 
         const updatePosition = () => {
             if (!referenceEl.value || !popperEl.value) return;
 
             const placement = props.placement;
+
+            // width を先に設定してから寸法を測定する
+            // 未設定のまま getBoundingClientRect を呼ぶと viewport 端に追い込まれて
+            // 幅が圧縮され、高さが異常に大きくなって位置計算がおかしくなる
+            if (props.width !== undefined) {
+                popperEl.value.style.width = props.width;
+            }
+
             const { top, left } = calculatePosition(referenceEl.value, popperEl.value, placement);
 
             Object.assign(popperEl.value.style, {
                 position: 'fixed',
                 top: `${top}px`,
                 left: `${left}px`,
-                ...(props.width !== undefined ? { width: props.width } : {}),
             });
 
             popperEl.value.setAttribute('x-placement', placement);
@@ -267,21 +277,20 @@ export default defineComponent({
         });
 
         onMounted(() => {
-            nextTick(() => {
-                const referenceSlot = slots.reference?.();
-                const defaultSlot = slots.default?.();
+            // テンプレート ref 経由で slot コンテンツの DOM 要素を取得する。
+            // slots.xxx()[0].elm は setup() 呼び出し時に新しい VNode が生成されるため
+            // .elm が未設定になる場合があり使用できない。
+            // ラッパー span の firstElementChild が実際のコンテンツ要素となる。
+            if (referenceWrapper.value?.firstElementChild) {
+                referenceEl.value = referenceWrapper.value.firstElementChild;
+            }
+            if (popperWrapper.value?.firstElementChild) {
+                popperEl.value = popperWrapper.value.firstElementChild as HTMLElement;
+            }
 
-                if (referenceSlot?.[0]?.elm) {
-                    referenceEl.value = referenceSlot[0].elm as Element;
-                }
-                if (defaultSlot?.[0]?.elm) {
-                    popperEl.value = defaultSlot[0].elm as HTMLElement;
-                }
-
-                referenceEl.value?.addEventListener('click', onReferenceClick);
-                popperEl.value?.addEventListener('click', onPopperClick);
-                document.addEventListener('click', onDocumentClick);
-            });
+            referenceEl.value?.addEventListener('click', onReferenceClick);
+            popperEl.value?.addEventListener('click', onPopperClick);
+            document.addEventListener('click', onDocumentClick);
         });
 
         onBeforeUnmount(() => {
@@ -293,6 +302,8 @@ export default defineComponent({
         return {
             showPopper,
             doClose,
+            referenceWrapper,
+            popperWrapper,
         };
     },
 });
