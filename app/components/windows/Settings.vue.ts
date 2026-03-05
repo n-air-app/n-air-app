@@ -43,6 +43,7 @@ const CATEGORIES_WITH_TOC: string[] = [
   'Advanced',
   'Transcription',
   'Comment',
+  'SoundDetector',
 ];
 
 @Component({
