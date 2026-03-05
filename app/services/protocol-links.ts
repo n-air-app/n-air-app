@@ -13,6 +13,7 @@ import Utils from './utils';
 interface IProtocolLinkInfo {
   base: string;
   path: string;
+  hash: string;
   query: URLSearchParams;
 }
 
@@ -42,6 +43,7 @@ export class ProtocolLinksService extends Service {
     const info: IProtocolLinkInfo = {
       base: parsed.host,
       path: parsed.pathname,
+      hash: parsed.hash,
       query: parsed.searchParams,
     };
 
@@ -63,6 +65,6 @@ export class ProtocolLinksService extends Service {
   private openSettings(info: IProtocolLinkInfo) {
     const category = info.path.replace('/', '') as SettingsCategory;
 
-    this.settingsService.showSettings(category);
+    this.settingsService.showSettings(category, info.hash || undefined);
   }
 }

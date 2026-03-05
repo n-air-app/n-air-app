@@ -54,6 +54,22 @@
     border: 1px solid var(--color-border-emphasis-low);
   }
 
+  .section-heading--dropdown {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    &.is-collapsed {
+      margin-bottom: var(--spacing-sm);
+    }
+
+    i {
+      margin-left: auto;
+      font-size: var(--font-size-xl);
+    }
+
+  }
+
   .section-heading-wrapper {
     display: flex;
     width: 100%;
@@ -69,6 +85,10 @@
   .section-notice-text {
     font-size: var(--font-size-xs);
     color: var(--color-object-emphasis-medium);
+
+    &:last-child {
+      margin-bottom: var(--spacing-sm);
+    }
   }
 
   p,

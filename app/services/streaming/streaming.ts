@@ -32,6 +32,7 @@ import { HttpRelation } from 'services/nicolive-program/httpRelation';
 import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { TranscriptionService } from 'services/transcription/transcription';
+import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { RtvcStateService } from '../../services/rtvcStateService';
 import { SubStreamService } from '../substream/SubStreamService';
 
@@ -77,6 +78,7 @@ export class StreamingService
   @Inject() private nicoliveProgramStateService: NicoliveProgramStateService;
   @Inject() private subStreamService: SubStreamService;
   @Inject() private transcriptionService: TranscriptionService;
+  @Inject() private soundDetectorService: SoundDetectorService;
 
   streamingStatusChange = new Subject<EStreamingState>();
   recordingStatusChange = new Subject<ERecordingState>();
@@ -824,6 +826,7 @@ export class StreamingService
     if (this.transcriptionService.state.enabled) {
       event.transcription = this.transcriptionService.getActionLog();
     }
+    event.soundDetector = this.soundDetectorService.getActionLog();
 
     this.usageStatisticsService.recordEvent(event);
   }

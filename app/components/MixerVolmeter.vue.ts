@@ -218,12 +218,14 @@ export default class MixerVolmeter extends Vue {
   }
 
   private subscribeVolmeter(): void {
-    this.volmeterSubscription = this.audioSource.subscribeVolmeter(volmeter => {
-      if (this.checkPeaks(volmeter.peak)) return;
-      this.setChannelCount(volmeter.peak.length);
-      this.drawVolmeter(volmeter.peak);
-      this.hasDrawn = true;
-    });
+    this.volmeterSubscription = this.audioSource
+      .getVolmeterStream()
+      .subscribe(volmeter => {
+        if (this.checkPeaks(volmeter.peak)) return;
+        this.setChannelCount(volmeter.peak.length);
+        this.drawVolmeter(volmeter.peak);
+        this.hasDrawn = true;
+      });
   }
 
   private unsubscribeVolmeter(): void {
