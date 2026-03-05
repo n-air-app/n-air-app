@@ -20,5 +20,6 @@
     "jsx": "preserve",
     "types": ["webdriverio/async"]
   },
+  "include": ["../test/**/*.ts", "../app/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

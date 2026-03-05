@@ -18,6 +18,8 @@ describe('NVoiceSynthesizer', () => {
       if (text) {
         return async () => ({
           cancel: cancelMock,
+          pause: () => {},
+          resume: () => {},
           speaking: speakingPromise,
         });
       } else {
@@ -41,7 +43,7 @@ describe('NVoiceSynthesizer', () => {
     const prepare = synth.speakText(speech, onstart, onend, onPhoneme);
     const running = prepare().then(start => (start ? start() : null));
 
-    expect(talkMock).toBeCalledTimes(1);
+    expect(talkMock).toHaveBeenCalledTimes(1);
     if (talkMock.mock.calls[0].length > 0) {
       const textArg = talkMock.mock.calls[0][0];
       expect(textArg).toEqual(speech.text);
@@ -54,13 +56,13 @@ describe('NVoiceSynthesizer', () => {
     resolvePrepare();
     const result = await running;
     expect(result).not.toBeNull();
-    expect(cancelMock).toBeCalledTimes(0);
-    expect(onstart).toBeCalledTimes(1);
-    expect(onend).toBeCalledTimes(0);
+    expect(cancelMock).toHaveBeenCalledTimes(0);
+    expect(onstart).toHaveBeenCalledTimes(1);
+    expect(onend).toHaveBeenCalledTimes(0);
 
     resolveSpeaking();
     await sleep(0);
-    expect(onend).toBeCalledTimes(1);
+    expect(onend).toHaveBeenCalledTimes(1);
     await result.running;
   });
 

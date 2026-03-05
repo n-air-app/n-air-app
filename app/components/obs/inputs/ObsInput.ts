@@ -85,6 +85,8 @@ export interface IObsNumberInputValue extends IObsInput<number> {
 
 export interface IObsSliderInputValue extends IObsNumberInputValue {
   usePercentages?: boolean;
+  valueBox?: boolean;
+  tooltip?: 'always' | 'hover' | 'active' | 'focus' | false;
 }
 
 export interface IObsTextInputValue extends IObsInput<string> {

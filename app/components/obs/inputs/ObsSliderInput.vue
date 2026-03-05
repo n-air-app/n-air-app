@@ -12,8 +12,8 @@
           :max="value.maxVal"
           :min="value.minVal"
           :interval="value.stepVal"
-          tooltip="always"
-          :valueBox="true"
+          :tooltip="value.tooltip !== undefined ? value.tooltip : 'always'"
+          :valueBox="value.valueBox !== false"
           :enabled="value.enabled"
           :usePercentages="value.usePercentages"
         />
