@@ -40,7 +40,7 @@ test('Dropdown interaction in output settings', async t => {
   await client.pause(500);
 
   // ドロップダウンメニューが表示されるまで待つ
-  await client.$('.dropdown__dropdown').waitForDisplayed({ timeout: 3000 });
+  await client.$('.dropdown__menu').waitForDisplayed({ timeout: 3000 });
 
   // オプションが表示されることを確認
   const options = await dropdown.$$('.dropdown__item[data-option-label]');

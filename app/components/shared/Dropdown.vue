@@ -17,11 +17,20 @@
       <span v-else class="dropdown__placeholder">{{ placeholder }}</span>
       <input class="dropdown__input" type="text" readonly :placeholder="isOpen ? '' : placeholder" />
     </div>
-    <div v-if="isOpen" class="selectoror-dropdown__content-wrapper">
-      <div class="dropdown__dropdown">
+    <div v-if="isOpen" class="dropdown__content-wrapper">
+      <div class="dropdown__menu">
+        <div v-if="searchable || allowCustom" class="dropdown__search" @click.stop>
+          <input
+            ref="searchInputEl"
+            type="text"
+            class="dropdown__search-input"
+            :value="searchQuery"
+            @input="onSearchInput"
+          />
+        </div>
         <div v-if="loading" class="dropdown__loading">Loading...</div>
         <div
-          v-for="option in options"
+          v-for="option in filteredOptions"
           :key="getOptionKey(option)"
           class="dropdown__item"
           :data-option-value="getOptionKey(option)"
@@ -37,7 +46,12 @@
             </slot>
           </span>
         </div>
-        <div v-if="options.length === 0 && !loading" class="dropdown__option dropdown__option--disabled">
+        <div v-if="customOption" class="dropdown__item">
+          <span class="dropdown__option dropdown__option--custom" @click.stop="selectOption(customOption)">
+            {{ getOptionLabel(customOption) }}
+          </span>
+        </div>
+        <div v-if="filteredOptions.length === 0 && !customOption && !loading" class="dropdown__option dropdown__option--disabled">
           <slot name="noResult">No results found</slot>
         </div>
       </div>
@@ -169,7 +183,7 @@
 /* ========================================
  * Dropdown Menu
  * ======================================== */
-.dropdown__dropdown {
+.dropdown__menu {
   .shadow();
 
   position: absolute;
@@ -220,7 +234,35 @@
   // 無効
   &--disabled {
     cursor: not-allowed;
-    opacity: @opacity-disabled;
+    opacity: var(--opacity-disabled);
+  }
+
+  // カスタム入力候補
+  &--custom {
+    font-style: italic;
+    color: var(--color-text-dark);
+  }
+}
+
+/* ========================================
+ * Search Input
+ * ======================================== */
+.dropdown__search {
+  padding: 4px;
+  border-bottom: 1px solid var(--color-border-light);
+
+  &-input {
+    width: 100% !important;
+    height: 24px !important;
+    padding: 0 8px !important;
+    margin-bottom: 0 !important;
+    font-size: @font-size4;
+    line-height: 24px;
+    color: var(--color-text);
+    cursor: text;
+    background: var(--color-bg-secondary) !important;
+    border: 1px solid var(--color-border-light) !important;
+    border-radius: 2px;
   }
 }
 </style>

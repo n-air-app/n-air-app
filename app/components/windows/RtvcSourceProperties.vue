@@ -613,7 +613,7 @@
 }
 
 .short {
-  /deep/ .dropdown__dropdown {
+  /deep/ .dropdown__menu {
     max-height: 104px;
   }
 }

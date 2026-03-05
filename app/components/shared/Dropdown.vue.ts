@@ -1,4 +1,4 @@
-import { computed, defineComponent, PropType, ref } from 'vue';
+import { computed, defineComponent, nextTick, PropType, ref, watch } from 'vue';
 
 /**
  * Dropdown - カスタムドロップダウンコンポーネント
@@ -131,9 +131,21 @@ export default defineComponent({
             type: String,
             default: '',
         },
+        // 検索機能（trueにするとテキスト入力で選択肢を絞り込み可能）
+        searchable: {
+            type: Boolean,
+            default: false,
+        },
+        // カスタム選択肢生成関数（検索テキストからオプションを生成して追加表示）
+        allowCustom: {
+            type: Function as PropType<((search: string) => any) | null>,
+            default: null,
+        },
     },
     setup(props, { emit }) {
         const isOpen = ref(false);
+        const searchQuery = ref('');
+        const searchInputEl = ref<HTMLInputElement | null>(null);
 
         // オプション比較ロジック
         // trackBy指定時: 指定プロパティで比較
@@ -176,6 +188,19 @@ export default defineComponent({
             return !!props.value && compareOptions(option, props.value);
         };
 
+        // 検索で絞り込んだ選択肢（searchable=true のときのみフィルタリング）
+        const filteredOptions = computed(() => {
+            if (!props.searchable || !searchQuery.value) return props.options;
+            const q = searchQuery.value.toLowerCase();
+            return props.options.filter(opt => getOptionLabel(opt).toLowerCase().includes(q));
+        });
+
+        // カスタム選択肢（allowCustom が指定されていて検索テキストがある場合）
+        const customOption = computed(() => {
+            if (!props.allowCustom || !searchQuery.value) return null;
+            return props.allowCustom(searchQuery.value);
+        });
+
         // ドロップダウンの開閉
         const toggleDropdown = () => {
             if (!props.disabled) {
@@ -185,7 +210,22 @@ export default defineComponent({
 
         const closeDropdown = () => {
             isOpen.value = false;
+            searchQuery.value = '';
         };
+
+        // 検索入力ハンドラ
+        const onSearchInput = (e: Event) => {
+            searchQuery.value = (e.target as HTMLInputElement).value;
+            emit('search-change', searchQuery.value);
+        };
+
+        // ドロップダウンが開いたとき検索入力にフォーカス
+        watch(isOpen, async (newVal) => {
+            if (newVal && (props.searchable || props.allowCustom)) {
+                await nextTick();
+                searchInputEl.value?.focus();
+            }
+        });
 
         // オプション選択
         const selectOption = (option: any) => {
@@ -195,13 +235,18 @@ export default defineComponent({
 
         return {
             isOpen,
+            searchQuery,
+            searchInputEl,
             selectedOption,
+            filteredOptions,
+            customOption,
             getOptionLabel,
             getOptionKey,
             isSelected,
             toggleDropdown,
             closeDropdown,
             selectOption,
+            onSearchInput,
         };
     },
 });

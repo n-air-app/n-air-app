@@ -14,6 +14,8 @@
         :options="value.options"
         label="description"
         track-by="value"
+        :allow-custom="getCustomResolution"
+        @search-change="onSearchChange"
         @input="onInputHandler"
       >
         <template slot="option" slot-scope="props">

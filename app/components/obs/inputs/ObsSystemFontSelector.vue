@@ -12,6 +12,7 @@
           :options="fontFamilies"
           track-by="family"
           label="family"
+          :searchable="true"
           @input="setFamily"
         >
           <template slot="option" slot-scope="props">
