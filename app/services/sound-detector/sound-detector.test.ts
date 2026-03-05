@@ -296,6 +296,49 @@ describe('SoundDetectorService', () => {
       });
     });
 
+    // loud 状態中に resumeSilenceMs を変更しても silence が emit されないことを確認
+    test('loud 状態中に resumeSilenceMs を変更しても silence に戻らない', () => {
+      const { instance, micStream } = prepare();
+
+      const states: string[] = [];
+      instance.soundDetectedObservable.subscribe(({ soundDetected }) => {
+        states.push(soundDetected);
+      });
+
+      const high = instance.state.soundThresholdDb + 1;
+      micStream.next({ peak: [high] } as IVolmeter);
+      expect(states.at(-1)).toBe('loud');
+
+      // loud 状態中に resumeSilenceMs を変更
+      instance.updateResumeSilenceMs(2000);
+      // silence が emit されていないこと
+      expect(states.at(-1)).toBe('loud');
+    });
+
+    test('loud 状態中に resumeSilenceMs を変更すると変更後の時間で silence になる', () => {
+      const { instance, micStream } = prepare();
+
+      const states: string[] = [];
+      instance.soundDetectedObservable.subscribe(({ soundDetected }) => {
+        states.push(soundDetected);
+      });
+
+      const high = instance.state.soundThresholdDb + 1;
+      micStream.next({ peak: [high] } as IVolmeter);
+      expect(states.at(-1)).toBe('loud');
+
+      // loud 状態中に resumeSilenceMs を 2000ms に変更（デフォルト 500ms より長い）
+      instance.updateResumeSilenceMs(2000);
+
+      // 旧 resumeSilenceMs (500ms) 経過後もまだ loud のまま
+      clock.tick(500);
+      expect(states.at(-1)).toBe('loud');
+
+      // 新 resumeSilenceMs (2000ms) 経過後に silence になる
+      clock.tick(1500);
+      expect(states.at(-1)).toBe('silence');
+    });
+
     // resumeSilenceMs=0 の場合に silence/loud の高速振動が起きないことを確認
     // (0 を設定しようとしてもデフォルト値にリセットされるため振動は発生しない)
     test('resumeSilenceMs=0 の設定値は補正されるため高速振動しない', () => {

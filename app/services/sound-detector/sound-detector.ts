@@ -110,7 +110,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
             this.subscribeAudioSource(this.getEffectiveWatchSources(state.sourceId));
           }
           if (state.resumeSilenceMs !== this.state.resumeSilenceMs) {
-            this.endSoundDetected();
+            this.restartResumeTimer(state.resumeSilenceMs);
           }
         },
       }),
@@ -202,6 +202,15 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
 
   private isSoundDetected(): boolean {
     return this.resumeTimer !== null;
+  }
+  // resumeTimer が動作中(=loud状態)なら、新しい resumeSilenceMs でタイマーを再スタートする
+  // loud状態でなければ何もしない
+  private restartResumeTimer(resumeSilenceMs: number) {
+    if (!this.isSoundDetected()) {
+      return;
+    }
+    clearTimeout(this.resumeTimer);
+    this.resumeTimer = setTimeout(() => this.endSoundDetected(), resumeSilenceMs);
   }
   private endSoundDetected() {
     if (!this.isSoundDetected()) {
