@@ -42,6 +42,11 @@
           {{ $t('settings.deleteCacheAndRestart') }}
         </a>
       </div>
+      <div class="flex">
+        <a class="button button--secondary" @click="deleteAllCacheDir">
+          {{ $t('settings.deleteAllCacheAndRestart') }}
+        </a>
+      </div>
 
       <div class="input-label">
         <label for="cacheId">{{ $t('settings.cacheId') }}</label>

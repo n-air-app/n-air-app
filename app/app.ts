@@ -174,6 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // await this.obsUserPluginsService.initialize();
 
       // Initialize OBS API
+      // basic.ini が存在しない場合、OBS はデフォルト値(1920x1080)で初期化するため、事前に確認する
+      const fs = remote.require('fs') as typeof import('fs');
+      appService.obsConfigExisted = fs.existsSync(
+        path.join(appService.appDataDirectory, 'basic.ini'),
+      );
+
       const apiResult = obs.NodeObs.OBS_API_initAPI(
         'en-US',
         appService.appDataDirectory,
