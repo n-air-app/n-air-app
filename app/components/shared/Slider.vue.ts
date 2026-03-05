@@ -64,11 +64,7 @@ export default defineComponent({
     interval: { type: Number, default: undefined },
     data: { type: Array as () => number[], default: undefined },
     disabled: { type: Boolean, default: false },
-    tooltip: {
-      type: String,
-      default: 'none',
-      validator: (value: string) => ['none', 'hover', 'always'].includes(value),
-    },
+    tooltip: { type: String, default: 'none' },
     valueBox: { type: Boolean, default: false },
     usePercentages: { type: Boolean, default: false },
   },
