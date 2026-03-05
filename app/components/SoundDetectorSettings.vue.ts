@@ -200,7 +200,7 @@ export default class SoundDetectorSettings extends Vue {
       description: '読み上げ再開までの時間(ms)',
       name: 'resumeSilenceMs',
       value: this.soundDetectorService.state.resumeSilenceMs,
-      minVal: 0,
+      minVal: 100,
       maxVal: 10000,
       stepVal: 100,
       tooltip: 'hover',

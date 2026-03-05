@@ -51,7 +51,14 @@ function makeAudioSource({
   } as AudioSource;
 }
 
-function prepare(options: { speechActionOnSoundDetected?: 'pause' | 'cancel' | 'graceful' } = {}) {
+function prepare(
+  options: {
+    speechActionOnSoundDetected?: 'pause' | 'cancel' | 'graceful';
+    soundThresholdDb?: number;
+    resumeSilenceMs?: number;
+    noSignalTimeoutMs?: number;
+  } = {},
+) {
   // AudioService
   const audioSourcesChanged = new Subject<void>();
   const muteChanged = new Subject<{ sourceId: string; muted: boolean }>();
@@ -79,9 +86,28 @@ function prepare(options: { speechActionOnSoundDetected?: 'pause' | 'cancel' | '
   };
   const isMuted = (sourceId: string) => mutedSources.has(sourceId);
 
-  const stateOverride = options.speechActionOnSoundDetected
-    ? { SoundDetectorService: { speechActionOnSoundDetected: options.speechActionOnSoundDetected } }
-    : {};
+  const stateOverride: Record<string, Record<string, unknown>> = {};
+  if (
+    options.speechActionOnSoundDetected !== undefined ||
+    options.soundThresholdDb !== undefined ||
+    options.resumeSilenceMs !== undefined ||
+    options.noSignalTimeoutMs !== undefined
+  ) {
+    stateOverride.SoundDetectorService = {};
+    if (options.speechActionOnSoundDetected !== undefined) {
+      stateOverride.SoundDetectorService.speechActionOnSoundDetected =
+        options.speechActionOnSoundDetected;
+    }
+    if (options.soundThresholdDb !== undefined) {
+      stateOverride.SoundDetectorService.soundThresholdDb = options.soundThresholdDb;
+    }
+    if (options.resumeSilenceMs !== undefined) {
+      stateOverride.SoundDetectorService.resumeSilenceMs = options.resumeSilenceMs;
+    }
+    if (options.noSignalTimeoutMs !== undefined) {
+      stateOverride.SoundDetectorService.noSignalTimeoutMs = options.noSignalTimeoutMs;
+    }
+  }
 
   setup({
     state: stateOverride,
@@ -199,6 +225,100 @@ describe('SoundDetectorService', () => {
     expect(sourceMuted).toBe(false);
     mute('rtvc', false);
     expect(sourceMuted).toBe(false);
+  });
+
+  describe('init() の不正値補正', () => {
+    const defaultState = {
+      soundThresholdDb: -19,
+      resumeSilenceMs: 500,
+      noSignalTimeoutMs: 1000,
+    };
+
+    describe('soundThresholdDb', () => {
+      test.each([
+        ['NaN', NaN],
+        ['Infinity', Infinity],
+        ['-Infinity', -Infinity],
+        ['範囲外(正の値)', 1],
+        ['範囲外(-96未満)', -100],
+      ])('%s はデフォルト値にリセットされる', (_label, value) => {
+        const { instance } = prepare({ soundThresholdDb: value });
+        expect(instance.state.soundThresholdDb).toBe(defaultState.soundThresholdDb);
+      });
+
+      test.each([
+        ['下限値', -96],
+        ['上限値', 0],
+        ['通常値', -19],
+      ])('%s はそのまま保持される', (_label, value) => {
+        const { instance } = prepare({ soundThresholdDb: value });
+        expect(instance.state.soundThresholdDb).toBe(value);
+      });
+    });
+
+    describe('resumeSilenceMs', () => {
+      test.each([
+        ['NaN', NaN],
+        ['Infinity', Infinity],
+        ['0', 0],
+        ['負の値', -1],
+      ])('%s はデフォルト値にリセットされる', (_label, value) => {
+        const { instance } = prepare({ resumeSilenceMs: value });
+        expect(instance.state.resumeSilenceMs).toBe(defaultState.resumeSilenceMs);
+      });
+
+      test.each([
+        ['最小有効値(1)', 1],
+        ['通常値', 500],
+      ])('%s はそのまま保持される', (_label, value) => {
+        const { instance } = prepare({ resumeSilenceMs: value });
+        expect(instance.state.resumeSilenceMs).toBe(value);
+      });
+    });
+
+    describe('noSignalTimeoutMs', () => {
+      test.each([
+        ['NaN', NaN],
+        ['Infinity', Infinity],
+        ['0', 0],
+        ['負の値', -1],
+      ])('%s はデフォルト値にリセットされる', (_label, value) => {
+        const { instance } = prepare({ noSignalTimeoutMs: value });
+        expect(instance.state.noSignalTimeoutMs).toBe(defaultState.noSignalTimeoutMs);
+      });
+
+      test.each([
+        ['最小有効値(1)', 1],
+        ['通常値', 1000],
+      ])('%s はそのまま保持される', (_label, value) => {
+        const { instance } = prepare({ noSignalTimeoutMs: value });
+        expect(instance.state.noSignalTimeoutMs).toBe(value);
+      });
+    });
+
+    // resumeSilenceMs=0 の場合に silence/loud の高速振動が起きないことを確認
+    // (0 を設定しようとしてもデフォルト値にリセットされるため振動は発生しない)
+    test('resumeSilenceMs=0 の設定値は補正されるため高速振動しない', () => {
+      const { instance, micStream } = prepare({ resumeSilenceMs: 0 });
+
+      const states: string[] = [];
+      instance.soundDetectedObservable.subscribe(({ soundDetected }) => {
+        states.push(soundDetected);
+      });
+
+      const high = instance.state.soundThresholdDb + 1;
+      micStream.next({ peak: [high] } as IVolmeter);
+      // loud になる
+      expect(states.at(-1)).toBe('loud');
+
+      // resumeSilenceMs が正常値(500ms)に補正されているため、時間経過前は silence に戻らない
+      clock.tick(1);
+      expect(states.at(-1)).toBe('loud');
+
+      // 正常な resumeSilenceMs 後に silence になる
+      clock.tick(instance.state.resumeSilenceMs - 1);
+      expect(states.at(-1)).toBe('silence');
+    });
   });
 
   describe('isBlockingObservable', () => {

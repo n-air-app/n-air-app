@@ -55,6 +55,26 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
       });
     }
 
+    // soundThresholdDb の不正値補正（NaN/Infinity/範囲外 → デフォルト値に戻す）
+    if (
+      !Number.isFinite(this.state.soundThresholdDb) ||
+      this.state.soundThresholdDb < -96 ||
+      this.state.soundThresholdDb > 0
+    ) {
+      this.setState({ soundThresholdDb: SoundDetectorService.defaultState.soundThresholdDb });
+    }
+
+    // resumeSilenceMs の不正値補正（NaN/Infinity/0以下 → デフォルト値に戻す）
+    // 0 や負値は setTimeout が即時発火して silence/loud の高速振動を引き起こす
+    if (!Number.isFinite(this.state.resumeSilenceMs) || this.state.resumeSilenceMs <= 0) {
+      this.setState({ resumeSilenceMs: SoundDetectorService.defaultState.resumeSilenceMs });
+    }
+
+    // noSignalTimeoutMs の不正値補正（NaN/Infinity/0以下 → デフォルト値に戻す）
+    if (!Number.isFinite(this.state.noSignalTimeoutMs) || this.state.noSignalTimeoutMs <= 0) {
+      this.setState({ noSignalTimeoutMs: SoundDetectorService.defaultState.noSignalTimeoutMs });
+    }
+
     this.stateSubject = new BehaviorSubject<ISoundDetectorState>(this.state);
     this.stateUpdated = this.stateSubject.asObservable();
   }
