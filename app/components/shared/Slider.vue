@@ -11,7 +11,6 @@
         :disabled="disabled"
         :style="{ '--slider-percent': sliderPercent + '%' }"
         @input="updateValue(parseFloat($event.target.value))"
-        @keydown="handleKeydown"
         ref="slider"
       />
       <div

@@ -64,7 +64,11 @@ export default defineComponent({
     interval: { type: Number, default: undefined },
     data: { type: Array as () => number[], default: undefined },
     disabled: { type: Boolean, default: false },
-    tooltip: { type: String, default: 'none' },
+    tooltip: {
+      type: String,
+      default: 'none',
+      validator: (value: string) => ['none', 'hover', 'always'].includes(value),
+    },
     valueBox: { type: Boolean, default: false },
     usePercentages: { type: Boolean, default: false },
   },
@@ -138,6 +142,7 @@ export default defineComponent({
     };
 
     const updateValue = (inputValue: number) => {
+      if (isNaN(inputValue)) return;
       const newValue = useData.value ? indexToValue(inputValue) : inputValue;
       emit('input', roundNumber(newValue));
     };
