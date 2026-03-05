@@ -45,17 +45,32 @@ export default class SoundDetectorSettings extends Vue {
   audioSourcesVersion: number = 0;
   audioSourcesChangedSubscription: Subscription;
 
-  startMonitorSpeaking() {
-    this.speakingSubscription = this.nicoliveCommentSynthesizerService.speaking.subscribe({
-      next: speaking => {
-        this.speaking = speaking;
+  // 連続再生モード: 再生が終了したら次をキュー
+  private triggerNextTestPlaybackIfNeeded() {
+    if (!this.speaking && this.isTestPlaybackActive && this.queueLength === 0) {
+      this.play();
+    }
+  }
 
-        // 連続再生モード: 再生が終了したら次をキュー
-        if (!speaking && this.isTestPlaybackActive && this.queueLength === 0) {
-          this.play();
-        }
-      },
-    });
+  startMonitorSpeaking() {
+    this.speakingSubscription = new Subscription();
+    this.speakingSubscription.add(
+      this.nicoliveCommentSynthesizerService.speaking.subscribe({
+        next: speaking => {
+          this.speaking = speaking;
+          this.triggerNextTestPlaybackIfNeeded();
+        },
+      }),
+    );
+    // 実コメント読み上げは speakingSubject を emit しないため、
+    // キューがアイドルになったタイミングでも連続再生ループを再トリガーする
+    this.speakingSubscription.add(
+      this.nicoliveCommentSynthesizerService.queueBecameIdle.subscribe({
+        next: () => {
+          this.triggerNextTestPlaybackIfNeeded();
+        },
+      }),
+    );
   }
   endMonitorSpeaking() {
     this.speakingSubscription.unsubscribe();

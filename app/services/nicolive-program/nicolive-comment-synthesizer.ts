@@ -1,4 +1,4 @@
-import { Subject, Subscription } from 'rxjs';
+import { Subject, Subscription, debounceTime } from 'rxjs';
 import { InitAfter, Inject } from 'services/core';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NVoiceCharacterService } from 'services/nvoice-character';
@@ -115,6 +115,11 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   phonemeServer: PhonemeServer;
   private queueStateSubscription: Subscription;
 
+  // キューが完全にアイドル状態（実行中・準備中・待機中すべてなし）になったときに emit する
+  // 遷移の瞬間の一時的な偽アイドル状態を避けるため debounceTime(0) を使用している
+  private queueBecameIdleSubject = new Subject<void>();
+  queueBecameIdle = this.queueBecameIdleSubject.asObservable();
+
   init(): void {
     this.setState({
       ...NicoliveCommentSynthesizerService.initialState,
@@ -127,6 +132,12 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
     this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
       this.setState({ queueRunnerState });
+    });
+
+    this.queue.state$.pipe(debounceTime(0)).subscribe(() => {
+      if (!this.queue.isRunning) {
+        this.queueBecameIdleSubject.next();
+      }
     });
 
     this.stateService.updated.subscribe({
