@@ -267,11 +267,13 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   nextConfigLoaded: Subject<void> = new Subject();
   private onNextConfig({ viewUri }: MessageServerConfig): void {
     this.unsubscribe();
-    this.clearList();
-    this.pinComment(null);
 
     // 予約番組は30分前にならないとURLが来ない
     if (!viewUri) return;
+
+    // 再接続時のみコメントリストをクリアする（番組終了で viewUri が空になる場合はクリアしない）
+    this.clearList();
+    this.pinComment(null);
 
     if (isFakeMode() && FakeModeConfig.dummyComment) {
       // pnpm dev 時はダミーでコメントを5秒ごとに出し続ける

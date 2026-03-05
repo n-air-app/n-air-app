@@ -1,6 +1,7 @@
 import * as remote from '@electron/remote';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
+import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import {
   NicoliveFailure,
@@ -17,6 +18,7 @@ import Popper from '../shared/Popper.vue';
 export default class ToolBar extends Vue {
   @Inject()
   nicoliveProgramService: NicoliveProgramService;
+  @Inject() nicoliveCommentViewerService: NicoliveCommentViewerService;
   @Inject() streamingService: StreamingService;
 
   // TODO: 後で言語ファイルに移動する
@@ -61,6 +63,8 @@ export default class ToolBar extends Vue {
     if (this.isFetching) throw new Error('fetchProgram is running');
     try {
       await this.nicoliveProgramService.fetchProgram();
+      // 番組情報取得時にコメント接続も更新する
+      await this.nicoliveCommentViewerService.refreshConnection();
     } catch (caught) {
       if (caught instanceof NicoliveFailure) {
         await openErrorDialogFromFailure(caught);
