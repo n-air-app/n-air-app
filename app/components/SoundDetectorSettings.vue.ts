@@ -159,6 +159,8 @@ export default class SoundDetectorSettings extends Vue {
   }
 
   get soundDetectorSourceModel(): IObsListInput<string> {
+    // audioSourcesChanged/muteChanged 時にgetterを再評価させる
+    this.audioSourcesVersion;
     const sources = this.soundDetectorService.getAvailableSources();
     return {
       description: '入力音声ソース',
