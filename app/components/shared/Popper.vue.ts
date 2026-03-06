@@ -189,7 +189,7 @@ export default defineComponent({
             default: true,
         },
     },
-    setup(props, { emit, slots }) {
+    setup(props, { emit }) {
         const showPopper = ref(false);
         const referenceEl = ref<Element | null>(null);
         const popperEl = ref<HTMLElement | null>(null);
