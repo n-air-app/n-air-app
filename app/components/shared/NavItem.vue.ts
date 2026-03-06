@@ -19,6 +19,12 @@ export default class NavItem extends Vue {
   @Prop({ default: true, type: Boolean })
   enabled: boolean;
 
+  @Prop({ default: false, type: Boolean })
+  showArrow: boolean;
+
+  @Prop({ default: true, type: Boolean })
+  isTocOpen: boolean;
+
   expanded = false;
 
   get value() {

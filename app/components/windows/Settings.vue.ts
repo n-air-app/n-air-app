@@ -21,9 +21,30 @@ import ModalLayout from '../ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
 import SoundDetectorSettings from '../SoundDetectorSettings.vue';
+import TableOfContents from '../shared/TableOfContents.vue';
+import { TocManager } from '../shared/TocManager';
+import TocSection from '../shared/TocSection.vue';
 import SpeechEngineSettings from '../SpeechEngineSettings.vue';
 import TranscriptionSettings from '../TranscriptionSettings.vue';
 import { CategoryIcons } from './CategoryIcons';
+
+interface TocSectionData {
+  id: string;
+  title: string;
+  order: number;
+  level: number;
+}
+
+// 目次を持っているカテゴリ
+const CATEGORIES_WITH_TOC: string[] = [
+  'General',
+  'Output',
+  'Hotkeys',
+  'Advanced',
+  'Transcription',
+  'Comment',
+  'SoundDetector',
+];
 
 @Component({
   components: {
@@ -40,6 +61,23 @@ import { CategoryIcons } from './CategoryIcons';
     SpeechEngineSettings,
     SubStreamSettings,
     TranscriptionSettings,
+    TableOfContents,
+    TocSection,
+  },
+  provide(this: Settings) {
+    return {
+      getTocSectionId: (): string => {
+        return this.tocManager.generateId();
+      },
+      registerTocSection: (section: TocSectionData): string => {
+        const categoryName = this.categoryName;
+        this.tocManager.register(categoryName, section);
+        return categoryName; // Return the category name so TocSection can remember it
+      },
+      unregisterTocSection: (categoryName: string, sectionId: string) => {
+        this.tocManager.unregister(categoryName, sectionId);
+      },
+    };
   },
 })
 export default class Settings extends Vue {
@@ -50,13 +88,35 @@ export default class Settings extends Vue {
 
   $refs: { settingsContainer: HTMLElement };
 
-  categoryName: SettingsCategory = 'General';
+  categoryName: SettingsCategory | null = null;
   settingsData: ISettingsSubCategory[] = [];
   // @ts-expect-error: ts2729: use before initialization
   categoryNames = this.settingsService.getCategories();
   userSubscription: Subscription;
   icons = CategoryIcons;
   isLoggedIn = false;
+
+  // TOCの開閉状態を管理するプロパティを追加
+  public isTocOpen: boolean = true;
+  public currentActiveTocId: string | null = null;
+
+  // NavItemのクリック時に呼び出すメソッド
+  public handleCategoryClick(category: SettingsCategory) {
+    if (this.categoryName === category) {
+      this.isTocOpen = !this.isTocOpen;
+    } else {
+      this.categoryName = category;
+    }
+  }
+
+  // TOC管理
+  private tocManager = new TocManager();
+
+  // 現在のカテゴリのセクションリストを取得
+  get currentSections(): TocSectionData[] {
+    if (!this.categoryName) return [];
+    return this.tocManager.getSections(this.categoryName);
+  }
 
   mounted() {
     // Categories depend on whether the user is logged in or not.
@@ -69,7 +129,10 @@ export default class Settings extends Vue {
     });
     this.isLoggedIn = this.userService.isLoggedIn();
 
-    this.categoryName = this.getInitialCategoryName();
+    // Initialize category and TOC before setting categoryName to avoid cross-category TOC contamination
+    const initialCategory = this.getInitialCategoryName();
+    this.tocManager.clearAll(); // Clear all categories to start fresh
+    this.categoryName = initialCategory;
     this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
     // scroll to the anchor if it exists
     const anchor = this.getInitialAnchor();
@@ -93,7 +156,7 @@ export default class Settings extends Vue {
     return this.streamingService.isStreaming;
   }
 
-  getInitialCategoryName() {
+  getInitialCategoryName(): SettingsCategory {
     const queryParams = this.windowsService.state.child.queryParams;
     return queryParams?.categoryName || 'General';
   }
@@ -116,5 +179,46 @@ export default class Settings extends Vue {
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
     this.settingsData = this.settingsService.getSettingsFormData(categoryName);
     this.$refs.settingsContainer.scrollTop = 0;
+    this.isTocOpen = true;
+
+    // Clear TOC sections for the current category to prevent duplicates on re-selection
+    // This ensures a clean slate when switching tabs or re-selecting the same tab
+    this.tocManager.clear(categoryName);
+
+    this.currentActiveTocId = null;
+
+    this.$nextTick(() => {
+      this.$nextTick(() => {
+        const sections = this.tocManager.getSections(categoryName);
+        if (sections && sections.length > 0) {
+          // 先頭の目次をアクティブにする
+          this.currentActiveTocId = sections[0].id;
+        }
+      });
+    });
+  }
+
+  scrollToSection(sectionId: string) {
+    const element = document.getElementById(sectionId);
+    if (element && this.$refs.settingsContainer) {
+      const container = this.$refs.settingsContainer;
+      const containerTop = container.getBoundingClientRect().top;
+      const elementTop = element.getBoundingClientRect().top;
+      const offset = elementTop - containerTop - 16; // 16px padding
+
+      container.scrollTo({
+        top: container.scrollTop + offset,
+        behavior: 'smooth',
+      });
+    }
+  }
+
+  public handleTocNavigate(sectionId: string) {
+    this.currentActiveTocId = sectionId; // ハイライトを切り替える
+    this.scrollToSection(sectionId); // すでにあるスクロール関数を呼ぶ
+  }
+
+  public hasSections(category: SettingsCategory): boolean {
+    return CATEGORIES_WITH_TOC.includes(category);
   }
 }

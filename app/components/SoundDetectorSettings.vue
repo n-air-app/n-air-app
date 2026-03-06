@@ -1,21 +1,25 @@
 <template>
   <div class="setting-section">
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>読み上げ停止設定</label>
-      </div>
-      <p class="section-notice-text">放送者の発声中にコメント読み上げを一時停止する設定です</p>
-      <div class="input-container">
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">有効にする</div>
-            <div class="value">
-              <input type="checkbox" v-model="soundDetectorEnabled" class="toggle-button" />
+    <toc-section title="読み上げ停止設定">
+      <div class="section">
+        <div class="input-label section-heading">
+          <label>読み上げ停止設定</label>
+        </div>
+        <p class="section-notice-text">放送者の発声中にコメント読み上げを一時停止する設定です</p>
+        <div class="input-container">
+          <div class="input-wrapper">
+            <div class="row">
+              <div class="name">有効にする</div>
+              <div class="value">
+                <input type="checkbox" v-model="soundDetectorEnabled" class="toggle-button" />
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </toc-section>
 
+    <toc-section title="基本設定">
       <div class="section">
         <div class="input-label section-heading">
           <label>基本設定</label>
@@ -23,7 +27,9 @@
         <ObsListInput v-model="soundDetectorSourceModel" />
         <ObsSliderInput v-model="soundThresholdDbModel" />
       </div>
+    </toc-section>
 
+    <toc-section title="コメント読み上げテスト">
       <div class="section">
         <div class="input-label section-heading">
           <label>コメント読み上げテスト</label>
@@ -70,7 +76,9 @@
 
         </div>
       </div>
+    </toc-section>
 
+    <toc-section title="詳細設定">
       <div class="section">
         <div class="input-label section-heading--dropdown" :class="{ 'is-collapsed': collapsed }" @click="collapsed = !collapsed">
           <label>詳細設定</label>
@@ -81,8 +89,7 @@
           <ObsListInput v-model="soundDetectedSpeechActionModel" />
         </div>
       </div>
-
-    </div>
+    </toc-section>
   </div>
 </template>
 <script lang="ts" src="./SoundDetectorSettings.vue.ts"></script>

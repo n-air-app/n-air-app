@@ -12,6 +12,7 @@ import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import { ObsListInput, ObsSliderInput } from './obs/inputs';
 import { IObsInput, IObsListInput, IObsSliderInputValue } from './obs/inputs/ObsInput';
+import TocSection from './shared/TocSection.vue';
 import SoundDetectorVolmeter from './SoundDetectorVolmeter.vue';
 
 @Component({
@@ -19,6 +20,7 @@ import SoundDetectorVolmeter from './SoundDetectorVolmeter.vue';
     SoundDetectorVolmeter,
     ObsSliderInput,
     ObsListInput,
+    TocSection,
   },
 })
 export default class SoundDetectorSettings extends Vue {
