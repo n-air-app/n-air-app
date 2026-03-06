@@ -26,6 +26,7 @@
       class="slider-value-input"
       type="text"
       :value="value"
+      :disabled="disabled"
       @change="updateValue(parseFloat($event.target.value))"
       @keydown="handleKeydown"
     />

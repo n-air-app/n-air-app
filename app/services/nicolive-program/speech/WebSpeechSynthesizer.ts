@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import Utils from 'services/utils';
+import { PrepareFunc } from 'util/QueueRunner';
 import { Speech } from '../nicolive-comment-synthesizer';
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
@@ -12,7 +13,7 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
   private speakingResolve: () => void | null = null;
   private speakingCounter: number = 0;
 
-  speakText(speech: Speech, onstart: () => void, onend: () => void) {
+  speakText(speech: Speech, onstart: () => void, onend: () => void): PrepareFunc {
     return async () => async () => {
       if (!speech || speech.text === '' || !this.available) {
         return null;
@@ -62,6 +63,12 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
       return {
         cancel: async () => {
           speechSynthesis.cancel();
+        },
+        pause: () => {
+          speechSynthesis.pause();
+        },
+        resume: () => {
+          speechSynthesis.resume();
         },
         running: this.speakingPromise,
       };

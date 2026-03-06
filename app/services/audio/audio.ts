@@ -6,7 +6,7 @@ import {
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
 import { omit } from 'lodash';
-import { merge, Subject, Subscription } from 'rxjs';
+import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
@@ -38,7 +38,6 @@ export enum E_AUDIO_CHANNELS {
 interface IAudioSourceData {
   fader?: obs.IFader;
   volmeter?: obs.IVolmeter;
-  callbackInfo?: obs.ICallbackData;
   stream?: Subject<IVolmeter>;
 }
 
@@ -49,6 +48,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   };
 
   audioSourceUpdated = new Subject<IAudioSource>();
+  audioSourcesChanged = new Subject<void>();
+  muteChanged = new Subject<{ sourceId: string; muted: boolean }>();
 
   sourceData: Dictionary<IAudioSourceData> = {};
 
@@ -99,6 +100,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
         this.UPDATE_AUDIO_SOURCE(source.sourceId, {
           isControlledViaObs: !!formData.value,
         });
+        this.audioSourcesChanged.next();
       }
 
       const useAudio =
@@ -115,12 +117,18 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       }
 
       this.audioSourceUpdated.next(this.state.audioSources[source.sourceId]);
+
+      if (audioSource && useAudio) {
+        this.muteChanged.next({ sourceId: source.sourceId, muted: source.muted });
+      }
     });
 
     this.sourcesService.sourceRemoved.subscribe(source => {
-      if (source.audio) {
-        this.removeAudioSource(source.sourceId);
-      }
+      if (source.audio) this.removeAudioSource(source.sourceId);
+    });
+    this.scenesService.sceneSwitched.subscribe(() => {
+      // 最初にシーンがアクティブになったときに音声ソースが有効になる
+      this.audioSourcesChanged.next();
     });
   }
 
@@ -200,9 +208,10 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   getVisibleSourcesForCurrentScene(): AudioSource[] {
-    return this.getSourcesForCurrentScene().filter(
+    const audioSources = this.getSourcesForCurrentScene().filter(
       source => !source.mixerHidden && source.isControlledViaObs,
     );
+    return audioSources;
   }
 
   getSourcesForScene(sceneId: string): AudioSource[] {
@@ -360,12 +369,14 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
     this.sourceData[source.sourceId].stream = new Subject<IVolmeter>();
     this.ADD_AUDIO_SOURCE(this.generateAudioSourceData(source.sourceId));
+    this.audioSourcesChanged.next();
   }
 
   private removeAudioSource(sourceId: string) {
     if (this.sourceData[sourceId]) {
       delete this.sourceData[sourceId];
       this.REMOVE_AUDIO_SOURCE(sourceId);
+      this.audioSourcesChanged.next();
     }
   }
 
@@ -507,8 +518,8 @@ export class AudioSource implements IAudioSourceApi {
     this.sourcesService.setMuted(this.sourceId, muted);
   }
 
-  subscribeVolmeter(cb: (volmeter: IVolmeter) => void): Subscription {
-    const stream = this.audioService.sourceData[this.sourceId].stream;
-    return stream.subscribe(cb);
+  getVolmeterStream(): Observable<IVolmeter> {
+    const stream = this.audioService.sourceData[this.sourceId]?.stream;
+    return stream ? stream.asObservable() : EMPTY;
   }
 }

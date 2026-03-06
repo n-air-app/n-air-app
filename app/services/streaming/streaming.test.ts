@@ -137,6 +137,16 @@ const createInjectee = ({
     startStreaming: noop,
     stopStreaming: noop,
   },
+  SoundDetectorService: {
+    getActionLog: () => ({
+      enabled: false,
+      sourceId: 'mic',
+      soundThresholdDb: -19,
+      resumeSilenceMs: 500,
+      speechActionOnSoundDetected: 'graceful',
+      calibrated: false,
+    }),
+  },
 });
 
 const setup = createSetupFunction({
