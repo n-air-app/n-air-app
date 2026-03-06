@@ -5,9 +5,10 @@ import { HotkeysService, IHotkeysSet } from '../services/hotkeys';
 import { ScenesService } from '../services/scenes';
 import { SourcesService } from '../services/sources';
 import HotkeyGroup from './HotkeyGroup.vue';
+import TocSection from './shared/TocSection.vue';
 
 @Component({
-  components: { HotkeyGroup },
+  components: { HotkeyGroup, TocSection },
 })
 export default class Hotkeys extends Vue {
   @Inject() private sourcesService: SourcesService;
@@ -35,5 +36,13 @@ export default class Hotkeys extends Vue {
 
   get sources() {
     return this.sourcesService.sources;
+  }
+
+  getSceneName(sceneId: string): string {
+    return this.scenesService.getScene(sceneId).name;
+  }
+
+  getSourceName(sourceId: string): string {
+    return this.sourcesService.getSource(sourceId).name;
   }
 }

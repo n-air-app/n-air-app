@@ -14,11 +14,13 @@ import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import ClipBoardCopy from '../../media/images/clipboard-copy.svg';
+import TocSection from './shared/TocSection.vue';
 
 @Component({
   components: {
     ObsBoolInput,
     ClipBoardCopy,
+    TocSection,
   },
 })
 export default class ExtraSettings extends Vue {

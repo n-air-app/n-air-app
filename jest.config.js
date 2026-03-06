@@ -12,4 +12,11 @@ module.exports = {
     },
   },
   testMatch: ['**/app/**/*.test.ts'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(ml-kmeans|ml-distance-euclidean|ml-matrix|ml-nearest-vector|ml-random|ml-xsadd))',
+  ],
+  transform: {
+    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.jsx?$': 'ts-jest',
+  },
 };

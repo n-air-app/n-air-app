@@ -1,10 +1,29 @@
+import { BehaviorSubject, Observable } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { WaitNotify } from './WaitNotify';
 
-export type StartFunc = () => Promise<{
+type StartRecordCommon = {
   cancel: () => Promise<void>;
   running: Promise<void>;
-} | null>;
+};
+type StartRecordPauseable = StartRecordCommon & {
+  pause: () => void;
+  resume: () => void;
+};
+export type StartRecord = StartRecordCommon | StartRecordPauseable;
+function canPause(r: StartRecord): r is StartRecordPauseable {
+  return 'pause' in r;
+}
+
+export type StartFunc = () => Promise<StartRecord | null>;
 export type PrepareFunc = () => Promise<StartFunc | null>;
+
+export type QueueRunnerState = {
+  length: number;
+  state: 'preparing' | 'running' | 'disabled' | null;
+  disabled: boolean;
+  nextLabel: string | null;
+};
 
 export class QueueRunner {
   private queue: {
@@ -13,16 +32,37 @@ export class QueueRunner {
   }[] = [];
   private preparing: {
     preparing: Promise<StartFunc>;
+    cancel: boolean;
     label: string;
   } | null = null;
   private runningState: {
     cancel: () => Promise<void>;
+    pause: () => void;
+    resume: () => void;
     running: Promise<void>;
     state: 'preparing' | 'running';
   } | null = null;
+  private _disabled: boolean = false;
+  get disabled() {
+    return this._disabled;
+  }
+
+  private readonly stateSubject: BehaviorSubject<QueueRunnerState>;
+  public readonly state$: Observable<QueueRunnerState>;
+
+  private notifyStateChange() {
+    this.stateSubject.next({
+      length: this.length,
+      state: this.state,
+      disabled: this.disabled,
+      nextLabel: this.queue.length > 0 ? this.queue[0].label : null,
+    });
+  }
 
   runNext() {
-    setTimeout(() => this._run(), 0);
+    if (!this._disabled) {
+      setTimeout(() => this._run(), 0);
+    }
   }
   private finishNotifier = new WaitNotify();
   private logCallback: (obj: { state: string; label: string }) => void;
@@ -33,6 +73,23 @@ export class QueueRunner {
     } = {},
   ) {
     this.logCallback = options.log || undefined;
+    this.stateSubject = new BehaviorSubject({
+      length: this.length,
+      state: this.state,
+      disabled: this.disabled,
+      nextLabel: null,
+    });
+    this.state$ = this.stateSubject
+      .asObservable()
+      .pipe(
+        distinctUntilChanged(
+          (a, b) =>
+            a.length === b.length &&
+            a.state === b.state &&
+            a.disabled === b.disabled &&
+            a.nextLabel === b.nextLabel,
+        ),
+      );
   }
 
   log(state: string, label: string) {
@@ -42,24 +99,44 @@ export class QueueRunner {
   }
 
   private async _run() {
+    if (this._disabled) {
+      return;
+    }
     if (!this.preparing) {
       const next = this.queue.shift();
+      this.notifyStateChange();
       if (next) {
         const { prepare, label } = next;
-        const preparing = prepare();
+        const preparing = prepare().then(async start => {
+          if (this.preparing?.cancel) {
+            this.log('prepare canceled', label);
+            if (start) {
+              const { cancel } = await start();
+              cancel();
+            }
+            return null;
+          } else {
+            if (start) {
+              this.log('prepared', label);
+              return start;
+            } else {
+              this.log('prepared null', label);
+              return null;
+            }
+          }
+        });
         this.preparing = {
           preparing,
           label,
+          cancel: false,
         };
+        this.notifyStateChange();
         preparing.then(start => {
           if (!start) {
-            this.preparing = null;
-            this.log('prepared null', label);
-            this.runNext();
+            this._run();
           } else {
-            this.log('prepared', label);
             if (!this.runningState) {
-              this.runNext();
+              this._run();
             }
           }
         });
@@ -68,11 +145,13 @@ export class QueueRunner {
           this.finishNotifier.notify();
         }
       }
+      return;
     }
     if (!this.runningState && this.preparing) {
-      const { preparing, label } = this.preparing;
+      const { preparing, label, cancel: cancelPreparing } = this.preparing;
       this.preparing = null;
-      let earlyCancel = false;
+      this.notifyStateChange();
+      let earlyCancel = cancelPreparing;
       let resolveRunning2: () => void = () => {};
       const running2 = new Promise<void>(resolve => {
         resolveRunning2 = resolve;
@@ -80,6 +159,7 @@ export class QueueRunner {
       running2.then(() => {
         this.log('finished', label);
         this.runningState = null;
+        this.notifyStateChange();
         this.runNext();
       });
       this.runningState = {
@@ -90,9 +170,12 @@ export class QueueRunner {
           earlyCancel = true;
           await running2;
         },
+        pause: () => {},
+        resume: () => {},
         running: running2,
         state: 'preparing',
       };
+      this.notifyStateChange();
       this.log('preparing', label);
       preparing
         .then(start => {
@@ -119,23 +202,36 @@ export class QueueRunner {
                   await cancel();
                   await running2;
                 },
+                pause: () => {
+                  if (canPause(r)) {
+                    r.pause();
+                  }
+                },
+                resume: () => {
+                  if (canPause(r)) {
+                    r.resume();
+                  }
+                },
                 running: running.then(() => {
                   resolveRunning2();
                 }),
                 state: 'running',
               };
+              this.notifyStateChange();
             }
           }
         });
     }
   }
 
-  async cancelQueue() {
+  cancelQueue() {
     // 実行中のものはキャンセルしない
     this.queue = [];
     if (this.preparing) {
-      this.preparing = null;
+      // 準備中ならキャンセルする
+      this.preparing.cancel = true;
     }
+    this.notifyStateChange();
   }
 
   async cancel() {
@@ -158,17 +254,65 @@ export class QueueRunner {
   }
 
   /**
+   * キューの進行を停止する
+   * @param options interruptAction: 'pause'なら、実行中のものを pause する。'cancel' ならキャンセル、 'graceful'(デフォルト)なら何もしない
+   */
+  async disable(options: { interruptAction?: 'pause' | 'cancel' | 'graceful' } = {}) {
+    // pause後の場合再度disableできるので、既にdisable中であっても実行する
+
+    if (this.runningState?.state === 'running') {
+      switch (options.interruptAction) {
+        case 'pause':
+          if (this.runningState.pause) {
+            this.runningState.pause();
+          }
+          break;
+        case 'cancel':
+          await this.runningState.cancel();
+          break;
+        case 'graceful':
+          // 現在実行中のものは最後まで実行する
+          break;
+      }
+    }
+
+    this._disabled = true;
+    this.notifyStateChange();
+  }
+
+  /**
+   * キューの進行を再開させる。pauseしていたなら再開する
+   */
+  enable() {
+    if (!this._disabled) {
+      return;
+    }
+    this._disabled = false;
+    this.notifyStateChange();
+
+    if (this.runningState?.state === 'running' && this.runningState.resume) {
+      this.runningState.resume();
+      return;
+    }
+    this.runNext();
+  }
+
+  /**
    *
-   * @param prepare 準備を開始する関数。準備が完了したら、キャンセル関数と実行中のPromiseをobjectで返す。実行を開始しなかったらnullを返す。
+   * @param prepare 準備を開始する関数。準備が完了したら、開始関数を返す。準備が失敗したらnullを返す。
    * @param label デバッグ表示用のラベル
    */
   add(prepare: PrepareFunc, label: string) {
     if (prepare) {
       this.queue.push({ prepare, label });
+      this.notifyStateChange();
     }
   }
 
-  get state(): 'preparing' | 'running' | null {
+  get state(): 'preparing' | 'running' | 'disabled' | null {
+    if (this._disabled) {
+      return 'disabled';
+    }
     if (this.runningState) {
       return this.runningState.state;
     }

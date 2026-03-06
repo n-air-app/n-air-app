@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import { clipboard } from 'electron';
+import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { HostsService } from 'services/hosts';
@@ -24,16 +25,19 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { ISettingsServiceApi } from 'services/settings';
 import { SnackbarService } from 'services/snackbar';
+import { SoundDetectorService } from 'services/sound-detector';
 import { Menu } from 'util/menus/Menu';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import NAirLogo from '../../../media/images/n-air-logo.svg';
 import CommentFilter from './CommentFilter.vue';
 import CommentForm from './CommentForm.vue';
+import SoundDetectorButton from './SoundDetectorButton.vue';
 import CommonComment from './comment/CommonComment.vue';
 import EmotionComment from './comment/EmotionComment.vue';
 import GiftComment from './comment/GiftComment.vue';
 import NicoadComment from './comment/NicoadComment.vue';
+import { SpeakingType } from './comment/SpeakingType';
 import SystemMessage from './comment/SystemMessage.vue';
 
 const componentMap: { [type in ChatComponentType]: Vue.Component } = {
@@ -48,6 +52,7 @@ const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   components: {
     CommentForm,
     CommentFilter,
+    SoundDetectorButton,
     CommonComment,
     NicoadComment,
     GiftComment,
@@ -76,8 +81,15 @@ export default class CommentViewer extends Vue {
   @Inject() private nicoliveModeratorsService: NicoliveModeratorsService;
   @Inject() private hostsService: HostsService;
   @Inject() private snackbarService: SnackbarService;
+  @Inject() private soundDetectorService: SoundDetectorService;
 
   @Prop({ default: false }) showPlaceholder: boolean;
+
+  isBlocking: boolean = false;
+  private blockingSubscription: Subscription = null;
+
+  // テンプレートから SpeakingType enum を参照できるように公開
+  readonly SpeakingType = SpeakingType;
 
   get isCompactMode(): boolean {
     return this.customizationService.state.compactMode;
@@ -162,6 +174,22 @@ export default class CommentViewer extends Vue {
 
   get speakingSeqId() {
     return this.nicoliveCommentViewerService.speakingSeqId;
+  }
+
+  get blockingNextSeqId(): number | null {
+    return this.nicoliveCommentViewerService.blockingNextSeqId;
+  }
+
+  getSpeakingType(item: WrappedMessageWithComponent): SpeakingType {
+    if (this.speakingSeqId === item.seqId) {
+      return this.isBlocking ? SpeakingType.BLOCKING : SpeakingType.SPEAKING;
+    }
+    // speakingSeqId が null（cancel/graceful で終了後）かつ
+    // キューが disabled で、このコメントが次の待機アイテムの場合
+    if (this.speakingSeqId === null && this.blockingNextSeqId === item.seqId) {
+      return SpeakingType.BLOCKING;
+    }
+    return SpeakingType.NONE;
   }
 
   get nameplateHintNo(): number | undefined {
@@ -368,6 +396,38 @@ export default class CommentViewer extends Vue {
       io.unobserve(sentinelEl);
     };
     this.scrollToLatest();
+
+    this.blockingSubscription = this.soundDetectorService.isBlockingObservable.subscribe({
+      next: isBlocking => {
+        this.isBlocking = isBlocking;
+      },
+    });
+
+    this.nicoliveCommentViewerService.enableSoundDetector(true);
+    if (
+      this.speakingEnabled &&
+      this.nicoliveCommentViewerService.isSoundDetectorSourceEnabled &&
+      !this.nicoliveCommentViewerService.isSoundDetectorCalibrated &&
+      !this.nicoliveCommentViewerService.isSoundDetectorDeclined
+    ) {
+      // 放送者の声を避けたコメント読み上げ機能を提案する
+      remote.dialog
+        .showMessageBox(remote.getCurrentWindow(), {
+          type: 'question',
+          buttons: ['yes', 'no'],
+          title: 'コメント読み上げ抑制機能',
+          message: '放送者がしゃべっているときにコメント読み上げを停止する設定をしますか?',
+          defaultId: 0,
+          cancelId: 1,
+        })
+        .then(({ response }) => {
+          if (response === 0) {
+            this.settingsService.showSoundDetectorSettings();
+          } else {
+            this.nicoliveCommentViewerService.markSoundDetectorDeclined();
+          }
+        });
+    }
   }
 
   beforeDestroy() {
@@ -376,6 +436,11 @@ export default class CommentViewer extends Vue {
       this.cleanup = undefined;
     }
     this.clearSnackbarTimeout();
+    if (this.blockingSubscription) {
+      this.blockingSubscription.unsubscribe();
+      this.blockingSubscription = null;
+    }
+    this.nicoliveCommentViewerService.enableSoundDetector(false);
   }
 
   updated() {

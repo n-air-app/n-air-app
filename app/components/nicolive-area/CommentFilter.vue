@@ -299,7 +299,7 @@
 .item-body {
   font-size: @font-size4;
   line-height: @font-line-height-md;
-  color: var(--color-text);
+  color: var(--color-object-emphasis-high);
   word-break: break-all;
 }
 
@@ -308,7 +308,7 @@
   margin-top: 4px;
   font-size: @font-size2;
   line-height: @font-line-height-md;
-  color: var(--color-text-dark);
+  color: var(--color-object-emphasis-medium);
 
   &:empty {
     display: none;

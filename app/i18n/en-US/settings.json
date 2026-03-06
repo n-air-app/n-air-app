@@ -647,6 +647,9 @@
   "Comment": {
     "name": "Comment Settings"
   },
+  "SoundDetector": {
+    "name": "Sound Detection (Provisional)"
+  },
   "SpeechEngine": {
     "name": "Speech Engine"
   },

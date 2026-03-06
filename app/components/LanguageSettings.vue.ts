@@ -5,9 +5,10 @@ import { Inject } from 'services/core/injector';
 import { $t, I18nServiceApi } from 'services/i18n';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+import TocSection from './shared/TocSection.vue';
 
 @Component({
-  components: { GenericForm },
+  components: { GenericForm, TocSection },
 })
 export default class LanguageSettings extends Vue {
   @Inject() private i18nService: I18nServiceApi;

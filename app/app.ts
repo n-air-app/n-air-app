@@ -38,11 +38,22 @@ const logFunctions = ['log', 'info', 'warn', 'error'] as const;
 function wrapLogFn(fn: (typeof logFunctions)[number]) {
   const old: Function = console[fn];
   console[fn] = (...args: any[]) => {
-    old.apply(console, args);
+    const fixedArgs = args.map(arg => {
+      try {
+        if (typeof arg === 'object' && arg !== null) {
+          // Vue のプロキシオブジェクトを通常のオブジェクトに変換してログ出力
+          return JSON.parse(JSON.stringify(arg));
+        }
+        return arg;
+      } catch (e) {
+        return `[Error: ${(e as Error).message}]`;
+      }
+    });
+    old.apply(console, fixedArgs);
 
     const level = fn === 'log' ? 'info' : fn;
 
-    sendLogMsg(level, ...args);
+    sendLogMsg(level, ...fixedArgs);
   };
 }
 

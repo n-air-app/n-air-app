@@ -1,7 +1,10 @@
 <template>
   <div class="root comment-root" :class="[chat.type, { pseudoHover: commentMenuOpened }]">
-    <div class="comment-wrapper" :speaking="speaking" @dblclick="$emit('pinned')">
-      <div class="comment-number">{{ chat.value.no }}</div>
+    <div class="comment-wrapper" :speaking="speaking" :class="{ 'is-speaking': speaking }" @dblclick="$emit('pinned')">
+      <div class="comment-number">
+        <i v-if="showSpeakingIcon" :class="isSpeaking ? 'icon-play-fill' : 'icon-pause-fill'" v-tooltip.right="'コメント読み上げ: ' + speakingTooltip"></i>
+        <template v-else>{{ chat.value.no }}</template>
+      </div>
       <div class="comment-box">
         <div class="comment-name-box" v-if="computedName && !chat.isDeleted">
           <img
@@ -70,13 +73,26 @@
   .comment-root:not(.comment-readonly):hover &.pseudoHover {
     .bg-hover();
   }
+
+  &.is-speaking {
+    background-color: var(--color-highlight-low);
+  }
 }
 
 .comment-number {
   .common__comment-number();
 
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
   &:has(+ .comment-box .comment-name-box) {
     margin-top: 4px;
+  }
+
+  > i {
+    font-size: var(--font-size-md);
+    color: var(--color-object-accent-primary)
   }
 }
 
@@ -140,7 +156,9 @@
     color: var(--color-accent);
   }
 
-  [speaking='true'] & {
+  // SpeakingType.SPEAKING (1) or SpeakingType.BLOCKING (2)
+  [speaking='1'] &,
+  [speaking='2'] & {
     color: var(--color-text-active);
   }
 }
