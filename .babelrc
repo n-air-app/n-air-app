@@ -18,11 +18,8 @@
     ],
     "@babel/plugin-transform-class-properties",
     "@babel/plugin-transform-export-namespace-from",
-    "@babel/plugin-proposal-function-sent",
     "@babel/plugin-transform-json-strings",
     "@babel/plugin-transform-numeric-separator",
-    "@babel/plugin-proposal-throw-expressions",
-    "@babel/plugin-syntax-dynamic-import",
-    "@babel/plugin-syntax-import-meta"
+    "@babel/plugin-proposal-throw-expressions"
   ]
 }
