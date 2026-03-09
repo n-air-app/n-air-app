@@ -155,7 +155,7 @@
     "stylelint-less": "^4.0.0",
     "stylelint-order": "7.0.1",
     "tasklist": "^5.0.0",
-    "terser-webpack-plugin": "^5.3.10",
+    "terser-webpack-plugin": "^5.3.17",
     "tree-kill": "^1.2.2",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.1",
