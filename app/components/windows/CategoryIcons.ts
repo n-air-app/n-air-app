@@ -9,7 +9,6 @@ export const CategoryIcons = new Map<SettingsCategory, string>([
   ['Hotkeys', 'icon-keyboard'],
   ['Advanced', 'icon-details-setting'],
   ['Comment', 'icon-comment-setting'],
-  ['SoundDetector', 'icon-sound-fill'],
   ['SpeechEngine', 'icon-speech-engine'],
   ['SubStream', 'icon-output'],
   ['Transcription', 'icon-text' /* TODO */],

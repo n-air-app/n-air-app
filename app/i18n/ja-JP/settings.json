@@ -647,9 +647,6 @@
   "Comment": {
     "name": "コメント設定"
   },
-  "SoundDetector": {
-    "name": "読み上げ停止設定"
-  },
   "SpeechEngine": {
     "name": "音声エンジン"
   },

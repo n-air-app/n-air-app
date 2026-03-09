@@ -1,6 +1,6 @@
 <template>
   <div class="setting-section">
-    <toc-section title="読み上げ停止設定">
+    <toc-section title="読み上げ停止設定" id="sound-detector-settings">
       <div class="section">
         <div class="input-label section-heading">
           <label>読み上げ停止設定</label>

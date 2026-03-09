@@ -224,6 +224,8 @@
       </div>
     </toc-section>
 
+    <sound-detector-settings />
+
     <toc-section title="わんコメ連携">
       <div class="section">
         <div class="input-label section-heading">
