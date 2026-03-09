@@ -14,7 +14,7 @@
     <i v-if="expandable" :class="expanded ? 'icon-subtract' : 'icon-add'" />
     <i
       v-if="showArrow"
-      class="icon-drop-down-arrow nav-item__arrow"
+      class="icon-arrow-bottom-border nav-item__arrow"
       :class="{ 'is-opened': isTocOpen }"
     />
   </li>
@@ -61,7 +61,7 @@
   }
 
   i {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-lg);
   }
 }
 

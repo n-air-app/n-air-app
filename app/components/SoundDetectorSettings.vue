@@ -56,7 +56,11 @@
 
             <button
               v-if="!isTestPlaybackActive"
-              class="button button--secondary"
+              data-color="secondary"
+              data-size="md"
+              data-variant="light"
+              data-radius="sm"
+              class="basic-button"
               :disabled="!synthesizerEnabled || !soundDetectorEnabled"
               @click="startContinuousPlayback"
             >
@@ -64,7 +68,11 @@
             </button>
             <button
               v-else
-              class="button button--primary"
+              data-color="primary"
+              data-size="md"
+              data-variant="filled"
+              data-radius="sm"
+              class="basic-button"
               :disabled="!soundDetectorEnabled"
               @click="stopContinuousPlayback"
             >
