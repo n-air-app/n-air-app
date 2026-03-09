@@ -58,6 +58,9 @@ export class AppService extends StatefulService<IAppState> {
 
   readonly appDataDirectory = remote.app.getPath('userData');
 
+  /** OBS init前にbasic.iniが存在していたか。falseの場合はOBSがデフォルト値で初期化している */
+  obsConfigExisted = true;
+
   @Inject() transitionsService: TransitionsService;
   @Inject() sourcesService: SourcesService;
   @Inject() scenesService: ScenesService;
@@ -268,17 +271,25 @@ export class AppService extends StatefulService<IAppState> {
     return returningValue;
   }
 
-  relaunch({ clearCacheDir }: { clearCacheDir?: 'all' | 'cookie' } = {}) {
+  relaunch({ clearCacheDir }: { clearCacheDir?: 'all' | 'cache' | 'cookie' } = {}) {
     const originalArgs: string[] = remote.process.argv.slice(1);
 
-    const args = originalArgs.filter(x => !['--clearCacheDir', '--clearCookies'].includes(x));
+    const args = originalArgs.filter(
+      x => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x),
+    );
     // キャッシュクリアしたいときだけつくようにする
     switch (clearCacheDir) {
       case 'cookie':
         args.push('--clearCookies');
         break;
-      case 'all':
+      case 'cache':
+        // シーンコレクションを保持してキャッシュを削除
         args.push('--clearCacheDir');
+        break;
+      case 'all':
+        // シーンコレクションを含むすべてを削除
+        args.push('--clearCacheDir');
+        args.push('--includeSceneCollections');
         break;
     }
 

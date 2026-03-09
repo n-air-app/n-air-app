@@ -60,6 +60,24 @@ function removePathWithRetry(rmPath) {
   }
 }
 
+function clearCacheDirSelectively(userDataPath, preserveDirs) {
+  const preserveSet = new Set(preserveDirs.map(d => d.toLowerCase()));
+  let entries;
+  try {
+    entries = fs.readdirSync(userDataPath, { withFileTypes: true });
+  } catch (e) {
+    console.error(`failed to read directory '${userDataPath}': `, e);
+    return;
+  }
+  for (const entry of entries) {
+    if (preserveSet.has(entry.name.toLowerCase())) {
+      console.log(`preserving: ${entry.name}`);
+      continue;
+    }
+    removePathWithRetry(path.join(userDataPath, entry.name));
+  }
+}
+
 // We use a special cache directory for running tests
 if (process.env.NAIR_CACHE_DIR) {
   app.setPath('appData', process.env.NAIR_CACHE_DIR);
@@ -70,8 +88,13 @@ if (process.env.NAIR_CACHE_DIR) {
 
 if (process.argv.includes('--clearCacheDir')) {
   const rmPath = app.getPath('userData');
-  console.log('clear cache directory!: ', rmPath);
-  removePathWithRetry(rmPath);
+  if (process.argv.includes('--includeSceneCollections')) {
+    console.log('clear cache directory (including scene collections)!: ', rmPath);
+    removePathWithRetry(rmPath);
+  } else {
+    console.log('clear cache directory (preserving scene collections)!: ', rmPath);
+    clearCacheDirSelectively(rmPath, ['SceneCollections', 'SceneConfigs']);
+  }
 }
 
 function getCookieFiles() {
@@ -1096,7 +1119,7 @@ function initialize(crashHandler) {
     // prevent unexpected cache clear
     const args = process.argv
       .slice(1)
-      .filter(x => !['--clearCacheDir', '--clearCookies'].includes(x));
+      .filter(x => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x));
 
     app.relaunch({ args });
     // Closing the main window starts the shut down sequence

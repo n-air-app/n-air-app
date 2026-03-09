@@ -123,6 +123,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     if (this.collections.length === 1 && scenes.length === 1 && scenes[0].getItems().length === 0) {
       // シーンが一つで空であるため、シーンプリセットをインストールする
       await this.installPresetSceneCollection();
+    } else if (!this.appService.obsConfigExisted) {
+      // basic.ini がなかった場合(キャッシュクリア後など)、OBS がデフォルト値(1920x1080)で
+      // 初期化するため、N Air のデフォルト解像度(1280x720)に戻す
+      this.ensureCanvasResolution('1280x720');
     }
 
     // 読み込んだソース情報を環境に合わせて更新する
@@ -131,25 +135,29 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.initialized = true;
   }
 
+  /** キャンバス解像度を指定の値に設定する */
+  private ensureCanvasResolution(resolution: string) {
+    const video = this.settingsService.getSettingsFormData('Video');
+    if (video) {
+      const setting = this.settingsService.findSetting(video, 'Untitled', 'Base');
+      if (setting) {
+        if (setting.value !== resolution) {
+          console.log(`Canvas resolution is ${setting.value}. reset to ${resolution}.`);
+          setting.value = resolution;
+          this.settingsService.setSettings('Video', video);
+          this.settingsService.setSettingValue('Video', 'Base', resolution);
+        }
+      }
+    }
+  }
+
   /// install preset scene collection into active scene collection
   async installPresetSceneCollection() {
     // 既存scene を消す
     this.scenesService.removeAllScenes();
 
     // キャンバス解像度を 1280x720 に変更する
-    const CanvasResolution = '1280x720';
-    const video = this.settingsService.getSettingsFormData('Video');
-    if (video) {
-      const setting = this.settingsService.findSetting(video, 'Untitled', 'Base');
-      if (setting) {
-        if (setting.value !== CanvasResolution) {
-          console.log(`Canvas resolution is ${setting.value}. reset to ${CanvasResolution}.`);
-          setting.value = CanvasResolution;
-          this.settingsService.setSettings('Video', video);
-          this.settingsService.setSettingValue('Video', 'Base', CanvasResolution);
-        }
-      }
-    }
+    this.ensureCanvasResolution('1280x720');
 
     // this.load() を参考に
 
