@@ -329,11 +329,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
         this.state.viewUri !== '' &&
         !this.state.showPlaceholder;
 
-      // viewUri が変わらない場合は一度空にしてコメント再接続をトリガーする
-      if (this.state.programID === nicoliveProgramId && this.state.viewUri === newViewUri && newViewUri !== '') {
-        this.setState({ viewUri: '' });
-      }
-
       this.setState({
         programID: nicoliveProgramId,
         status: program.status,
@@ -372,11 +367,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     const program = programResponse.value;
     const room = program.rooms.length > 0 ? program.rooms[0] : undefined;
     const newViewUri = room ? room.viewUri : '';
-
-    // viewUri が変わらない場合は一度空にしてコメント再接続をトリガーする
-    if (this.state.viewUri === newViewUri) {
-      this.setState({ viewUri: '' });
-    }
 
     this.setState({
       status: program.status,
