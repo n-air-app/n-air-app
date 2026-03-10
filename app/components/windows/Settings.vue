@@ -34,9 +34,6 @@
         <hotkeys v-if="categoryName === 'Hotkeys'" />
         <notifications-settings v-if="categoryName === 'Notifications'" />
         <comment-settings v-if="categoryName === 'Comment'" />
-        <sound-detector-settings
-          v-if="categoryName === 'SoundDetector'"
-        />
         <speech-engine-settings v-if="categoryName === 'SpeechEngine'" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
         <transcription-settings v-if="categoryName === 'Transcription'" />
@@ -46,7 +43,6 @@
               'Hotkeys',
               'Notifications',
               'Comment',
-              'SoundDetector',
               'SpeechEngine',
               'SubStream',
               'Transcription',

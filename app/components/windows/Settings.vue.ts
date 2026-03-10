@@ -20,7 +20,6 @@ import Hotkeys from '../Hotkeys.vue';
 import ModalLayout from '../ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
-import SoundDetectorSettings from '../SoundDetectorSettings.vue';
 import TableOfContents from '../shared/TableOfContents.vue';
 import { TocManager } from '../shared/TocManager';
 import TocSection from '../shared/TocSection.vue';
@@ -43,7 +42,6 @@ const CATEGORIES_WITH_TOC: string[] = [
   'Advanced',
   'Transcription',
   'Comment',
-  'SoundDetector',
 ];
 
 @Component({
@@ -57,7 +55,6 @@ const CATEGORIES_WITH_TOC: string[] = [
     NotificationsSettings,
     LanguageSettings,
     CommentSettings,
-    SoundDetectorSettings,
     SpeechEngineSettings,
     SubStreamSettings,
     TranscriptionSettings,

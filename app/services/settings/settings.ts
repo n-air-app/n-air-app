@@ -169,7 +169,7 @@ export class SettingsService
   }
 
   showSoundDetectorSettings() {
-    this.showSettings('SoundDetector');
+    this.showSettings('Comment', '#sound-detector-settings');
   }
 
   advancedSettingEnabled(): boolean {
@@ -185,15 +185,6 @@ export class SettingsService
 
     if (this.userService.isLoggedIn()) {
       categories.push('Comment');
-
-      // ニコニコログイン中かつコメント読み上げ有効時のみ
-      if (
-        this.userService.isNiconicoLoggedIn() &&
-        this.nicoliveCommentSynthesizerService.enabled
-      ) {
-        categories.push('SoundDetector');
-      }
-
       categories.push('SpeechEngine');
     }
 
