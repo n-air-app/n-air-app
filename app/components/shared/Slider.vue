@@ -20,9 +20,12 @@
     <input
       v-if="valueBox && !usePercentages"
       class="slider-input"
-      type="text"
+      type="number"
       :value="value"
       :disabled="disabled"
+      :min="min"
+      :max="max"
+      :step="interval"
       @change="updateValue(parseFloat($event.target.value))"
       @keydown="handleKeydown"
     />

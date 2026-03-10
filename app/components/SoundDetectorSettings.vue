@@ -24,6 +24,9 @@
             <label>基本設定</label>
           </div>
           <ObsListInput v-model="soundDetectorSourceModel" />
+          <p v-if="!sourceAvailable" class="source-unavailable-warning">
+            選択したソースがこのシーンに存在しません。入力音声ソースを選び直してください。
+          </p>
           <ObsSliderInput v-model="soundThresholdDbModel" />
         </div>
       </toc-section>
@@ -136,5 +139,11 @@
 .sound-detector-volmeter-label {
   font-size: var(--font-size-xs);
   color: var(--color-object-emphasis-medium);
+}
+
+.source-unavailable-warning {
+  margin: 4px 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
 }
 </style>

@@ -30,13 +30,15 @@ function makeAudioSource({
   sourceId,
   name,
   stream,
+  isMuted,
 }: {
   type: TSourceType;
   sourceId: string;
   name: string;
   stream: Subject<IVolmeter>;
+  isMuted?: () => boolean;
 }): AudioSource {
-  return {
+  const audioSource = {
     sourceId,
     name,
     source: {
@@ -49,6 +51,12 @@ function makeAudioSource({
     } as Source,
     getVolmeterStream: () => stream.asObservable(),
   } as AudioSource;
+  Object.defineProperty(audioSource, 'muted', {
+    get: () => (isMuted ? isMuted() : false),
+    enumerable: true,
+    configurable: true,
+  });
+  return audioSource;
 }
 
 function prepare(
@@ -62,12 +70,14 @@ function prepare(
   // AudioService
   const audioSourcesChanged = new Subject<void>();
   const muteChanged = new Subject<{ sourceId: string; muted: boolean }>();
+  const mutedSources = new Set<string>();
   const micStream = new Subject<IVolmeter>();
   const micSource = makeAudioSource({
     sourceId: 'mic',
     name: 'マイク',
     type: 'wasapi_input_capture',
     stream: micStream,
+    isMuted: () => mutedSources.has('mic'),
   });
   const rtvcStream = new Subject<IVolmeter>();
   const rtvcSource = makeAudioSource({
@@ -75,8 +85,8 @@ function prepare(
     sourceId: 'rtvc',
     type: 'nair-rtvc-source',
     stream: rtvcStream,
+    isMuted: () => mutedSources.has('rtvc'),
   });
-  const mutedSources = new Set<string>();
   const mute = (sourceId: string, muted: boolean) => {
     if (mutedSources.has(sourceId) === muted) {
       return;
@@ -225,6 +235,120 @@ describe('SoundDetectorService', () => {
     expect(sourceMuted).toBe(false);
     mute('rtvc', false);
     expect(sourceMuted).toBe(false);
+  });
+
+  test('監視対象のソースが存在しない場合 sourceMuted は false になる', () => {
+    const { instance } = prepare();
+
+    let sourceMuted: boolean;
+    instance.sourceMuted.subscribe(muted => {
+      sourceMuted = muted;
+    });
+
+    // 空のソースリストで subscribeAudioSource を呼ぶ（シーン切り替えで対象ソースがない場合を再現）
+    instance.subscribeAudioSource([]);
+    expect(sourceMuted).toBe(false);
+  });
+
+  describe('sourceAvailable', () => {
+    test('sourceId が mic の場合は常に true', () => {
+      // sourceId='mic' はデフォルト値
+      const { instance } = prepare();
+
+      let sourceAvailable: boolean;
+      instance.sourceAvailable.subscribe(available => {
+        sourceAvailable = available;
+      });
+
+      expect(sourceAvailable).toBe(true);
+    });
+
+    test('特定ソースが存在する場合は true', () => {
+      const audioSourcesChanged = new Subject<void>();
+      const muteChanged = new Subject<{ sourceId: string; muted: boolean }>();
+      const micStream = new Subject<IVolmeter>();
+      const micSource = makeAudioSource({
+        sourceId: 'mic',
+        name: 'マイク',
+        type: 'wasapi_input_capture',
+        stream: micStream,
+      });
+
+      const availableSources: AudioSource[] = [micSource];
+
+      setup({
+        state: { SoundDetectorService: { sourceId: 'mic' } },
+        injectee: {
+          AudioService: {
+            audioSourcesChanged,
+            muteChanged,
+            getVisibleSourcesForCurrentScene: () => availableSources,
+            getSource: (sourceId: string) => ({ muted: false }),
+          },
+        },
+      });
+
+      const { SoundDetectorService } = require('./sound-detector');
+      const instance = SoundDetectorService.instance as SoundDetectorService;
+      instance.enable();
+
+      let sourceAvailable: boolean;
+      instance.sourceAvailable.subscribe(available => {
+        sourceAvailable = available;
+      });
+
+      // 特定ソースを選択
+      instance.updateSourceId('mic');
+      expect(sourceAvailable).toBe(true);
+    });
+
+    test('選択中のソースがシーン切り替えで消えた場合は false になる', () => {
+      const audioSourcesChanged = new Subject<void>();
+      const muteChanged = new Subject<{ sourceId: string; muted: boolean }>();
+      const micStream = new Subject<IVolmeter>();
+      const micSource = makeAudioSource({
+        sourceId: 'specific-mic',
+        name: 'マイク(特定)',
+        type: 'wasapi_input_capture',
+        stream: micStream,
+      });
+
+      let availableSources: AudioSource[] = [micSource];
+
+      setup({
+        state: { SoundDetectorService: { sourceId: 'specific-mic' } },
+        injectee: {
+          AudioService: {
+            audioSourcesChanged,
+            muteChanged,
+            getVisibleSourcesForCurrentScene: () => availableSources,
+            getSource: (sourceId: string) => ({ muted: false }),
+          },
+        },
+      });
+
+      const { SoundDetectorService } = require('./sound-detector');
+      const instance = SoundDetectorService.instance as SoundDetectorService;
+      instance.enable();
+
+      let sourceAvailable: boolean;
+      instance.sourceAvailable.subscribe(available => {
+        sourceAvailable = available;
+      });
+
+      // 初期状態: ソースが存在する
+      expect(sourceAvailable).toBe(true);
+
+      // シーン切り替えでソースが消える
+      availableSources = [];
+      audioSourcesChanged.next();
+      expect(sourceAvailable).toBe(false);
+
+      // 元のシーンに戻ってソースが復活
+      availableSources = [micSource];
+      audioSourcesChanged.next();
+      expect(sourceAvailable).toBe(true);
+    });
   });
 
   describe('init() の不正値補正', () => {

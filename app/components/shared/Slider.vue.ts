@@ -33,17 +33,30 @@ export default class SliderInput extends Vue {
   }
 
   updateValue(value: number) {
-    this.$emit('input', this.roundNumber(value));
+    this.$emit('input', this.roundNumber(this.clampValue(value)));
   }
 
   handleKeydown(event: KeyboardEvent) {
-    if (event.code === 'ArrowUp') this.updateValue(this.value + this.interval);
-    if (event.code === 'ArrowDown') this.updateValue(this.value - this.interval);
+    if (event.code === 'ArrowUp') {
+      event.preventDefault();
+      this.updateValue(this.value + this.interval);
+    }
+    if (event.code === 'ArrowDown') {
+      event.preventDefault();
+      this.updateValue(this.value - this.interval);
+    }
   }
 
   // Javascript precision is weird
   roundNumber(num: number) {
     return parseFloat(num.toFixed(6));
+  }
+
+  clampValue(value: number): number {
+    if (Number.isNaN(value)) {
+      return this.value;
+    }
+    return Math.min(Math.max(value, this.min), this.max);
   }
 
   formatter(value: number) {
