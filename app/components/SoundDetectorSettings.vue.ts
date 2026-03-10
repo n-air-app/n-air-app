@@ -109,6 +109,19 @@ export default class SoundDetectorSettings extends Vue {
     this.sourceMutedSubscription.unsubscribe();
   }
 
+  sourceAvailable = true;
+  sourceAvailableSubscription: Subscription;
+  subscribeSourceAvailable() {
+    this.sourceAvailableSubscription = this.soundDetectorService.sourceAvailable.subscribe({
+      next: available => {
+        this.sourceAvailable = available;
+      },
+    });
+  }
+  unsubscribeSourceAvailable() {
+    this.sourceAvailableSubscription.unsubscribe();
+  }
+
   subscribeAudioSourcesChanged() {
     const sub = new Subscription();
     sub.add(
@@ -136,12 +149,14 @@ export default class SoundDetectorSettings extends Vue {
     this.startMonitorSpeaking();
     this.startSoundDetection();
     this.subscribeMuted();
+    this.subscribeSourceAvailable();
     this.subscribeAudioSourcesChanged();
   }
 
   beforeDestroy() {
     this.stopContinuousPlayback();
     this.unsubscribeMuted();
+    this.unsubscribeSourceAvailable();
     this.unsubscribeAudioSourcesChanged();
     this.endSoundDetection();
     this.endMonitorSpeaking();
@@ -179,21 +194,27 @@ export default class SoundDetectorSettings extends Vue {
     // audioSourcesChanged/muteChanged 時にgetterを再評価させる
     this.audioSourcesVersion;
     const sources = this.soundDetectorService.getAvailableSources();
+    const sourceId = this.soundDetectorService.state.sourceId;
+    const options: { description: string; value: string }[] = [
+      {
+        description: 'マイクまたはボイスチェンジャー(自動)',
+        value: 'mic',
+      },
+      ...sources.map(source => ({
+        description: source.name,
+        value: source.sourceId,
+      })),
+    ];
+    // 選択中のソースがオプションに存在しない場合、不在表示を追加
+    if (sourceId !== null && sourceId !== 'mic' && !options.some(o => o.value === sourceId)) {
+      options.push({ description: '(このシーンにありません)', value: sourceId });
+    }
     return {
       description: '入力音声ソース',
       name: 'audioWatchSource',
-      value: this.soundDetectorService.state.sourceId,
+      value: sourceId,
       enabled: this.soundDetectorEnabled,
-      options: [
-        {
-          description: 'マイクまたはボイスチェンジャー(自動)',
-          value: 'mic',
-        },
-        ...sources.map(source => ({
-          description: source.name,
-          value: source.sourceId,
-        })),
-      ],
+      options,
     };
   }
   set soundDetectorSourceModel(model: IObsListInput<string>) {
