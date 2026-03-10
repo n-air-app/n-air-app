@@ -165,6 +165,9 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   markSoundDetectorDeclined(): void {
     this.nicoliveCommentSynthesizerService.soundDetectorService.markDeclined();
   }
+  setSoundDetectorEnabled(enabled: boolean): void {
+    this.nicoliveCommentSynthesizerService.soundDetectorService.setEnabled(enabled);
+  }
 
   get filterFn() {
     return (chat: WrappedMessageWithComponent) =>
