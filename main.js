@@ -1,4 +1,4 @@
- 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Environment Variables
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,14 +47,18 @@ const remote = require('@electron/remote/main');
 
 function removePathWithRetry(rmPath) {
   const MAX_RETRIES = 3;
-  for (let t = MAX_RETRIES; t > 0; t--) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       fs.rmSync(rmPath, { recursive: true, force: true });
+      return; // 成功したら即座に終了
     } catch (e) {
-      console.error(`failed to delete '${rmPath}: `, e);
-      if (!t) {
+      console.error(`failed to delete '${rmPath}' (attempt ${attempt}/${MAX_RETRIES}): `, e);
+      if (attempt === MAX_RETRIES) {
         // Sentry未初期化のため送信できない
         dialog.showErrorBox('ファイルの削除に失敗しました', `Failed to delete '${rmPath}'.\n${e}`);
+      } else {
+        // ファイルロック解放を待つ
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
       }
     }
   }
@@ -290,7 +294,7 @@ function initialize(crashHandler) {
     logFromRemote(msg.level, msg.sender, msg.message);
   });
 
-   
+
   function logFromRemote(level, sender, msg) {
     msg.split('\n').forEach(line => {
       writeLogLine(`[${new Date().toISOString()}] [${level}] [${sender}] - ${line}`);
@@ -367,7 +371,7 @@ function initialize(crashHandler) {
 
   const lineBuffer = [];
 
-   
+
   function writeLogLine(line) {
     // Also print to stdout
     consoleLog(line);
@@ -377,7 +381,7 @@ function initialize(crashHandler) {
   }
 
   // Synchronously flush all pending log lines
-   
+
   function flushLogBufferSync() {
     if (lineBuffer.length === 0) return;
     try {
@@ -391,7 +395,7 @@ function initialize(crashHandler) {
 
   let writeInProgress = false;
 
-   
+
   function flushNextLine() {
     if (lineBuffer.length === 0) return;
     if (writeInProgress) return;
@@ -420,7 +424,7 @@ function initialize(crashHandler) {
   });
 
   // Source: https://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable-string/10420404
-   
+
   function humanFileSize(bytes, si) {
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
@@ -499,7 +503,7 @@ function initialize(crashHandler) {
     };
   }
 
-  // eslint-disable-next-line no-inner-declarations
+
   function openDevTools() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.openDevTools({ mode: 'undocked' });
@@ -565,7 +569,7 @@ function initialize(crashHandler) {
   // Safely send IPC messages to a BrowserWindow or WebContents.
   // During dev hot reload, the render frame may be disposed while the window is still alive.
   // BrowserWindow.isDestroyed() does not catch this — only the frame is replaced, not the window.
-  // eslint-disable-next-line no-inner-declarations
+
   function safeSend(target, channel, ...args) {
     try {
       if (target.isDestroyed()) return false;
@@ -580,7 +584,7 @@ function initialize(crashHandler) {
     }
   }
 
-  // eslint-disable-next-line no-inner-declarations
+
   async function startApp() {
     if (process.argv.includes('--clearCookies')) {
       SentryElectron.captureEvent({
@@ -1015,7 +1019,7 @@ function initialize(crashHandler) {
     mainWindow.focus();
   });
 
-   
+
   function preventClose(e) {
     if (!shutdownStarted) {
       e.preventDefault();
@@ -1037,7 +1041,7 @@ function initialize(crashHandler) {
    * rendererプロセスからは遷移前に止められないのでここに実装がある
    * @see https://github.com/electron/electron/pull/11679#issuecomment-359180722
    **/
-   
+
   function preventLogout(e, url) {
     const urlObj = new URL(url);
     const isLogout =
@@ -1059,7 +1063,7 @@ function initialize(crashHandler) {
    * rendererプロセスからは処理を止められないのでここに実装がある
    * @see https://github.com/electron/electron/pull/11679#issuecomment-359180722
    **/
-   
+
   function preventNewWindow(e, url) {
     e.preventDefault();
     shell.openExternal(url);

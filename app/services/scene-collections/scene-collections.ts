@@ -194,12 +194,16 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   /**
    * Generally called on application shutdown.
    */
-  async deinitialize() {
+  async deinitialize({ saveOnExit = true }: { saveOnExit?: boolean } = {}) {
     this.disableAutoSave();
-    await this.save();
+    if (saveOnExit) {
+      await this.save();
+    }
     this.tcpServerService.stopRequestsHandling();
-    await this.deloadCurrentApplicationState();
-    await this.stateService.flushManifestFile();
+    await this.deloadCurrentApplicationState({ saveOnExit });
+    if (saveOnExit) {
+      await this.stateService.flushManifestFile();
+    }
   }
 
   /**
@@ -609,13 +613,15 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * ready to load a new config file.  This should only ever be
    * performed while the application is already in a "LOADING" state.
    */
-  private async deloadCurrentApplicationState() {
+  private async deloadCurrentApplicationState({ saveOnExit = true }: { saveOnExit?: boolean } = {}) {
     if (!this.initialized) return;
 
     this.collectionWillSwitch.next();
 
     this.disableAutoSave();
-    await this.save();
+    if (saveOnExit) {
+      await this.save();
+    }
 
     // we should remove inactive scenes first to avoid the switching between scenes
     try {
