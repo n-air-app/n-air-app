@@ -188,6 +188,7 @@ export default class SoundDetectorSettings extends Vue {
       this.stopContinuousPlayback();
     }
     this.soundDetectorService.setEnabled(b);
+    this.nicoliveCommentSynthesizerService.syncSoundDetectorSubscription();
   }
 
   get soundDetectorSourceModel(): IObsListInput<string> {

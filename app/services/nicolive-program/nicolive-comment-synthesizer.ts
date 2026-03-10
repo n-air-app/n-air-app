@@ -147,11 +147,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
           ...persistentState.speechSynthesizerSettings,
         };
         this.SET_STATE(newState);
-        if (newState.enabled && newState.soundDetectorEnabled) {
-          this.subscribeSoundDetector();
-        } else {
-          this.unsubscribeSoundDetector();
-        }
+        this.syncSoundDetectorSubscription();
       },
     });
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
@@ -199,6 +195,14 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       this.soundDetectorSubscription = null;
     }
     this.queue.enable();
+  }
+
+  syncSoundDetectorSubscription(): void {
+    if (this.state.enabled && this.state.soundDetectorEnabled) {
+      this.subscribeSoundDetector();
+    } else {
+      this.unsubscribeSoundDetector();
+    }
   }
 
   // 音声検出の有効/無効化(ネスト対応)
