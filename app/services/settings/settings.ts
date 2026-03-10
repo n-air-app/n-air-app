@@ -9,13 +9,14 @@ import {
 } from 'components/obs/inputs/ObsInput';
 import fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
-import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
 import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
 import { StatefulService, mutation } from 'services/core/stateful-service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
+import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
+import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
@@ -119,13 +120,13 @@ export class SettingsService
   @Inject() private audioService: AudioService;
   @Inject() private windowsService: WindowsService;
   @Inject() private appService: AppService;
-  @Inject() private tcpServerService: TcpServerService;
-
   @Inject() private userService: UserService;
 
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private dismissablesService: DismissablesService;
   @Inject() private nicoliveProgramStateService: NicoliveProgramStateService;
+  @Inject() private nicoliveCommentSynthesizerService: NicoliveCommentSynthesizerService;
+  @Inject() private soundDetectorService: SoundDetectorService;
 
   init() {
     this.loadSettingsIntoStore();
@@ -154,16 +155,21 @@ export class SettingsService
     }
   }
 
-  showSettings(categoryName?: SettingsCategory) {
+  showSettings(categoryName?: SettingsCategory, anchor?: string) {
     this.windowsService.showWindow({
       componentName: 'Settings',
       title: $t('common.settings'),
       queryParams: { categoryName },
+      anchor,
       size: {
         width: 800,
         height: 800,
       },
     });
+  }
+
+  showSoundDetectorSettings() {
+    this.showSettings('Comment', '#sound-detector-settings');
   }
 
   advancedSettingEnabled(): boolean {
@@ -178,7 +184,8 @@ export class SettingsService
     categories.push('Transcription');
 
     if (this.userService.isLoggedIn()) {
-      categories.push('Comment', 'SpeechEngine');
+      categories.push('Comment');
+      categories.push('SpeechEngine');
     }
 
     categories.push('SubStream');
@@ -186,7 +193,6 @@ export class SettingsService
     if (Utils.isDevMode()) {
       categories.push('Developer');
     }
-    // if (this.advancedSettingEnabled()) categories.push('Experimental');
 
     return categories;
   }
@@ -659,7 +665,6 @@ export class SettingsService
     name: string,
     patch: Partial<IObsInput<TObsValue>>,
   ) {
-    // tslint:disable-next-line
     settingsFormData = cloneDeep(settingsFormData);
     for (const subcategory of settingsFormData) {
       for (const field of subcategory.parameters) {
@@ -821,7 +826,6 @@ export class SettingsService
 
   private getDeveloperSettingsFormData(): ISettingsSubCategory[] {
     return [
-      // ...this.tcpServerService.getApiSettingsFormData(), // 機能していないためコメントアウト
       {
         nameSubCategory: 'Dismissables',
         codeSubCategory: 'Dismissables',
@@ -851,6 +855,20 @@ export class SettingsService
           },
         ],
       },
+      {
+        nameSubCategory: 'SoundDetector',
+        codeSubCategory: 'SoundDetector',
+        parameters: [
+          <IObsInput<boolean>>{
+            value: this.soundDetectorService.isCalibrated,
+            name: 'Calibrated',
+            description: '読み上げ停止の音量設定済み',
+            type: 'OBS_PROPERTY_BOOL',
+            visible: true,
+            enabled: true,
+          },
+        ],
+      },
     ];
   }
 
@@ -869,8 +887,19 @@ export class SettingsService
           break;
         case 'NicoliveProgramState':
           for (const item of setting.parameters) {
-            if (item.name === 'ResetNameplateHint') {
+            if (item.name === 'ResetNameplateHint' && !item.value) {
               this.nicoliveProgramStateService.updateNameplateHint(undefined);
+            }
+          }
+          break;
+        case 'SoundDetector':
+          for (const item of setting.parameters) {
+            if (item.name === 'Calibrated') {
+              if (item.value) {
+                this.soundDetectorService.markCalibrated();
+              } else {
+                this.soundDetectorService.resetCalibrated();
+              }
             }
           }
           break;

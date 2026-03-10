@@ -1,4 +1,4 @@
-/* eslint-disable no-inner-declarations */
+
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Environment Variables
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,16 +47,38 @@ const remote = require('@electron/remote/main');
 
 function removePathWithRetry(rmPath) {
   const MAX_RETRIES = 3;
-  for (let t = MAX_RETRIES; t > 0; t--) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       fs.rmSync(rmPath, { recursive: true, force: true });
+      return; // 成功したら即座に終了
     } catch (e) {
-      console.error(`failed to delete '${rmPath}: `, e);
-      if (!t) {
+      console.error(`failed to delete '${rmPath}' (attempt ${attempt}/${MAX_RETRIES}): `, e);
+      if (attempt === MAX_RETRIES) {
         // Sentry未初期化のため送信できない
         dialog.showErrorBox('ファイルの削除に失敗しました', `Failed to delete '${rmPath}'.\n${e}`);
+      } else {
+        // ファイルロック解放を待つ
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
       }
     }
+  }
+}
+
+function clearCacheDirSelectively(userDataPath, preserveDirs) {
+  const preserveSet = new Set(preserveDirs.map(d => d.toLowerCase()));
+  let entries;
+  try {
+    entries = fs.readdirSync(userDataPath, { withFileTypes: true });
+  } catch (e) {
+    console.error(`failed to read directory '${userDataPath}': `, e);
+    return;
+  }
+  for (const entry of entries) {
+    if (preserveSet.has(entry.name.toLowerCase())) {
+      console.log(`preserving: ${entry.name}`);
+      continue;
+    }
+    removePathWithRetry(path.join(userDataPath, entry.name));
   }
 }
 
@@ -70,8 +92,13 @@ if (process.env.NAIR_CACHE_DIR) {
 
 if (process.argv.includes('--clearCacheDir')) {
   const rmPath = app.getPath('userData');
-  console.log('clear cache directory!: ', rmPath);
-  removePathWithRetry(rmPath);
+  if (process.argv.includes('--includeSceneCollections')) {
+    console.log('clear cache directory (including scene collections)!: ', rmPath);
+    removePathWithRetry(rmPath);
+  } else {
+    console.log('clear cache directory (preserving scene collections)!: ', rmPath);
+    clearCacheDirSelectively(rmPath, ['SceneCollections', 'SceneConfigs']);
+  }
 }
 
 function getCookieFiles() {
@@ -267,7 +294,7 @@ function initialize(crashHandler) {
     logFromRemote(msg.level, msg.sender, msg.message);
   });
 
-  // eslint-disable-next-line no-inner-declarations
+
   function logFromRemote(level, sender, msg) {
     msg.split('\n').forEach(line => {
       writeLogLine(`[${new Date().toISOString()}] [${level}] [${sender}] - ${line}`);
@@ -344,7 +371,7 @@ function initialize(crashHandler) {
 
   const lineBuffer = [];
 
-  // eslint-disable-next-line no-inner-declarations
+
   function writeLogLine(line) {
     // Also print to stdout
     consoleLog(line);
@@ -354,7 +381,7 @@ function initialize(crashHandler) {
   }
 
   // Synchronously flush all pending log lines
-  // eslint-disable-next-line no-inner-declarations
+
   function flushLogBufferSync() {
     if (lineBuffer.length === 0) return;
     try {
@@ -368,7 +395,7 @@ function initialize(crashHandler) {
 
   let writeInProgress = false;
 
-  // eslint-disable-next-line no-inner-declarations
+
   function flushNextLine() {
     if (lineBuffer.length === 0) return;
     if (writeInProgress) return;
@@ -397,7 +424,7 @@ function initialize(crashHandler) {
   });
 
   // Source: https://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable-string/10420404
-  // eslint-disable-next-line no-inner-declarations
+
   function humanFileSize(bytes, si) {
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
@@ -463,7 +490,20 @@ function initialize(crashHandler) {
 
   global.indexUrl = process.env.DEV_SERVER || `file://${__dirname}/index.html`;
 
-  // eslint-disable-next-line no-inner-declarations
+  if (process.env.DEV_SERVER) {
+    // During dev server hot reload, Electron's WebFrameMain.prototype.send() catches
+    // "Render frame was disposed" internally and calls console.error() without re-throwing.
+    // try-catch cannot suppress this, so we filter the console output directly.
+    const originalConsoleError = console.error;
+    console.error = function (...args) {
+      if (typeof args[0] === 'string' && args[0].startsWith('Error sending from webFrameMain')) {
+        return;
+      }
+      return originalConsoleError.apply(this, args);
+    };
+  }
+
+
   function openDevTools() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.openDevTools({ mode: 'undocked' });
@@ -526,7 +566,25 @@ function initialize(crashHandler) {
   // Import splash window functions
   const { createSplashWindow, closeSplashWindow } = require('./splash/splash-window');
 
-  // eslint-disable-next-line no-inner-declarations
+  // Safely send IPC messages to a BrowserWindow or WebContents.
+  // During dev hot reload, the render frame may be disposed while the window is still alive.
+  // BrowserWindow.isDestroyed() does not catch this — only the frame is replaced, not the window.
+
+  function safeSend(target, channel, ...args) {
+    try {
+      if (target.isDestroyed()) return false;
+      const wc = target.webContents || target;
+      wc.send(channel, ...args);
+      return true;
+    } catch (e) {
+      if (e.message && e.message.includes('Render frame was disposed')) {
+        return false;
+      }
+      throw e;
+    }
+  }
+
+
   async function startApp() {
     if (process.argv.includes('--clearCookies')) {
       SentryElectron.captureEvent({
@@ -637,7 +695,7 @@ function initialize(crashHandler) {
       if (!shutdownStarted) {
         console.log('[EXIT] Starting shutdown sequence');
         shutdownStarted = true;
-        mainWindow.send('shutdown');
+        safeSend(mainWindow, 'shutdown');
 
         // We give the main window 10 seconds to acknowledge a request
         // to shut down.  Otherwise, we just close it.
@@ -737,7 +795,7 @@ function initialize(crashHandler) {
     // background until it is needed.
     childWindow.on('close', e => {
       if (!shutdownStarted) {
-        childWindow.send('closeWindow');
+        safeSend(childWindow, 'closeWindow');
 
         // Prevent the window from actually closing
         e.preventDefault();
@@ -752,7 +810,7 @@ function initialize(crashHandler) {
     const requests = {};
 
     function sendRequest(request, event = null) {
-      mainWindow.webContents.send('services-request', request);
+      if (!safeSend(mainWindow, 'services-request', request)) return;
       if (!event) return;
       requests[request.id] = Object.assign({}, request, { event });
     }
@@ -771,7 +829,14 @@ function initialize(crashHandler) {
 
     ipcMain.on('services-ready', () => {
       if (!childWindow.isDestroyed()) {
-        childWindow.loadURL(`${global.indexUrl}?windowId=child`);
+        // Only load the URL if the child window hasn't been initialized yet.
+        // During HMR hot reload, the child window reloads itself independently,
+        // so calling loadURL again would interrupt its own reload and break the
+        // vuex state sync chain.
+        const currentUrl = childWindow.webContents.getURL();
+        if (!currentUrl || currentUrl === 'about:blank') {
+          childWindow.loadURL(`${global.indexUrl}?windowId=child`);
+        }
       }
     });
 
@@ -789,7 +854,7 @@ function initialize(crashHandler) {
       const windows = BrowserWindow.getAllWindows();
       windows.forEach(window => {
         if (window.id === mainWindow.id || window.isDestroyed()) return;
-        window.webContents.send('services-message', payload);
+        safeSend(window, 'services-message', payload);
       });
     });
 
@@ -824,7 +889,7 @@ function initialize(crashHandler) {
     // Check for protocol links in the argv of the other process
     argv.forEach(arg => {
       if (arg.match(/^n-air-app:\/\//)) {
-        mainWindow.send('protocolLink', arg);
+        safeSend(mainWindow, 'protocolLink', arg);
       }
     });
 
@@ -954,7 +1019,7 @@ function initialize(crashHandler) {
     mainWindow.focus();
   });
 
-  // eslint-disable-next-line no-inner-declarations
+
   function preventClose(e) {
     if (!shutdownStarted) {
       e.preventDefault();
@@ -976,7 +1041,7 @@ function initialize(crashHandler) {
    * rendererプロセスからは遷移前に止められないのでここに実装がある
    * @see https://github.com/electron/electron/pull/11679#issuecomment-359180722
    **/
-  // eslint-disable-next-line no-inner-declarations
+
   function preventLogout(e, url) {
     const urlObj = new URL(url);
     const isLogout =
@@ -998,7 +1063,7 @@ function initialize(crashHandler) {
    * rendererプロセスからは処理を止められないのでここに実装がある
    * @see https://github.com/electron/electron/pull/11679#issuecomment-359180722
    **/
-  // eslint-disable-next-line no-inner-declarations
+
   function preventNewWindow(e, url) {
     e.preventDefault();
     shell.openExternal(url);
@@ -1034,7 +1099,7 @@ function initialize(crashHandler) {
       // Tell the mainWindow to send its current store state
       // to the newly registered window
 
-      mainWindow.webContents.send('vuex-sendState', windowId);
+      safeSend(mainWindow, 'vuex-sendState', windowId);
     }
   });
 
@@ -1049,7 +1114,7 @@ function initialize(crashHandler) {
         .filter(id => id !== windowId.toString())
         .forEach(id => {
           const win = registeredStores[id];
-          if (!win.isDestroyed()) win.webContents.send('vuex-mutation', mutation);
+          safeSend(win, 'vuex-mutation', mutation);
         });
     }
   });
@@ -1058,7 +1123,7 @@ function initialize(crashHandler) {
     // prevent unexpected cache clear
     const args = process.argv
       .slice(1)
-      .filter(x => !['--clearCacheDir', '--clearCookies'].includes(x));
+      .filter(x => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x));
 
     app.relaunch({ args });
     // Closing the main window starts the shut down sequence
@@ -1088,14 +1153,11 @@ function initialize(crashHandler) {
 
   ipcMain.on('requestPerformanceStats', e => {
     const stats = app.getAppMetrics();
-    e.sender.send('performanceStatsResponse', stats);
+    safeSend(e.sender, 'performanceStatsResponse', stats);
   });
 
   ipcMain.on('showErrorAlert', () => {
-    if (!mainWindow.isDestroyed()) {
-      // main window may be destroyed on shutdown
-      mainWindow.send('showErrorAlert');
-    }
+    safeSend(mainWindow, 'showErrorAlert');
   });
 
   ipcMain.on('webContents-enableRemote', (e, id) => {

@@ -1,35 +1,67 @@
 <template>
   <div class="container">
     <div class="header" v-if="!isCompactMode">
-      <i
-        class="icon-reload icon-btn"
+      <button
+        data-size="md"
+        data-variant="sabtle"
+        data-radius="xl"
+        data-color="secondary"
+        class="action-icon"
         v-tooltip.bottom="commentReloadTooltip"
-        @click="refreshConnection"
-      ></i>
-      <i
-        class="icon-btn"
-        :class="speakingEnabled ? 'icon-speaker' : 'icon-mute'"
+        @click="refreshConnection">
+        <i
+          class="icon-swap-fill"
+        ></i>
+      </button>
+      <button
+        data-size="md"
+        data-variant="sabtle"
+        data-radius="xl"
+        data-color="secondary"
+        class="action-icon"
+        @click="speakingEnabled = !speakingEnabled"
         v-tooltip.bottom="
           speakingEnabled ? commentSynthesizerOnTooltip : commentSynthesizerOffTooltip
-        "
-        @click="speakingEnabled = !speakingEnabled"
-      ></i>
+        ">
+        <i :class="speakingEnabled ? 'icon-sound-fill' : 'icon-sound-off-fill'"></i>
+      </button>
       <div class="divider"></div>
-      <i
-        class="icon-ng icon-btn"
+      <button
+        data-size="md"
+        data-variant="sabtle"
+        data-radius="xl"
+        data-color="secondary"
+        class="action-icon"
         v-tooltip.bottom="filterTooltip"
-        @click="isFilterOpened = true"
-      ></i>
-      <i
-        class="icon-menu-moderator icon-btn"
+        @click="isFilterOpened = true">
+        <i
+          class="icon-comment-ng-fill"
+        ></i>
+      </button>
+      <button
+        data-size="md"
+        data-variant="sabtle"
+        data-radius="xl"
+        data-color="secondary"
+        class="action-icon"
         v-tooltip.bottom="moderatorTooltip"
-        @click="openModeratorSettings"
-      ></i>
-      <i
-        class="icon-settings icon-btn"
+        @click="openModeratorSettings">
+        <i
+          class="icon-moderator-menu-fill"
+        ></i>
+      </button>
+      <button
+        data-size="md"
+        data-variant="sabtle"
+        data-radius="xl"
+        data-color="secondary"
+        class="action-icon"
         v-tooltip.bottom="settingsTooltip"
-        @click="openCommentSettings"
-      ></i>
+        @click="openCommentSettings">
+        <i
+          class="icon-comment-command-fill"
+        ></i>
+      </button>
     </div>
     <div class="content">
       <div class="pinned" v-if="Boolean(pinnedComment)">
@@ -44,7 +76,7 @@
           :chat="pinnedItem"
           :getFormattedLiveTime="getFormattedLiveTime"
           :commentMenuOpened="false"
-          :speaking="false"
+          :speaking="SpeakingType.NONE"
           :nameplateHint="false"
           @commentUser="showUserInfo(pinnedComment)"
         />
@@ -72,7 +104,7 @@
           :chat="item"
           :getFormattedLiveTime="getFormattedLiveTime"
           :commentMenuOpened="commentMenuTarget === item"
-          :speaking="speakingSeqId === item.seqId"
+          :speaking="getSpeakingType(item)"
           :nameplateHint="hasNamePlateHint(item)"
           @pinned="pin(item)"
           @commentMenu="showCommentMenu(item)"
@@ -164,7 +196,7 @@
   .divider {
     width: 1px;
     height: 14px;
-    margin-left: 16px;
+    margin: 0 8px;
     background-color: var(--color-border-light);
   }
 }
@@ -309,7 +341,7 @@
   text-align: center;
 }
 
-.icon-menu-moderator {
-  font-size: @font-size5;
+.icon-btn {
+  font-size: var(--font-size-sm);
 }
 </style>

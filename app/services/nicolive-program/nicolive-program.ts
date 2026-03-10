@@ -320,6 +320,15 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
 
       const room = program.rooms.length > 0 ? program.rooms[0] : undefined;
 
+      const newViewUri = room ? room.viewUri : '';
+
+      // setState 前に「同じ番組をすでに接続済みでコメントを受信していたか」を保存
+      // viewUri != '' はコメント接続済みであることを示す
+      const isRefetchSameProgram =
+        this.state.programID === nicoliveProgramId &&
+        this.state.viewUri !== '' &&
+        !this.state.showPlaceholder;
+
       this.setState({
         programID: nicoliveProgramId,
         status: program.status,
@@ -329,14 +338,15 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
         vposBaseTime: program.vposBaseAt,
         endTime: program.endAt,
         isMemberOnly: program.isMemberOnly,
-        viewUri: room ? room.viewUri : '',
+        viewUri: newViewUri,
         ...(program.moderatorViewUri && !isFakeMode()
           ? { moderatorViewUri: program.moderatorViewUri }
           : {}),
         serverClockOffsetSec: calcServerClockOffsetSec(programResponse),
         ...(password ? { password } : {}),
       });
-      if (program.status === 'test') {
+      if (program.status === 'test' && !isRefetchSameProgram) {
+        // 同じ番組の再取得でコメント受信済みの場合は showPlaceholder を再セットしない
         this.showPlaceholder();
       }
     } finally {
@@ -356,6 +366,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
 
     const program = programResponse.value;
     const room = program.rooms.length > 0 ? program.rooms[0] : undefined;
+    const newViewUri = room ? room.viewUri : '';
 
     this.setState({
       status: program.status,
@@ -364,7 +375,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
       startTime: program.beginAt,
       endTime: program.endAt,
       isMemberOnly: program.isMemberOnly,
-      viewUri: room ? room.viewUri : '',
+      viewUri: newViewUri,
       serverClockOffsetSec: calcServerClockOffsetSec(programResponse),
     });
   }

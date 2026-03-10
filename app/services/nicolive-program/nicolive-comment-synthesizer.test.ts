@@ -1,4 +1,5 @@
-import { QueueRunner } from 'util/QueueRunner';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { QueueRunner, QueueRunnerState } from 'util/QueueRunner';
 import { createSetupFunction } from 'util/test-setup';
 import type { ICommentSynthesizerState, Speech } from './nicolive-comment-synthesizer';
 import { isWrappedChat, WrappedChat, WrappedMessage } from './WrappedChat';
@@ -22,6 +23,9 @@ const setup = createSetupFunction({
         id: '<platform_id>',
       },
     },
+    SoundDetectorService: {
+      soundDetectedSubject: new Subject(),
+    },
   },
 });
 
@@ -33,7 +37,31 @@ jest.mock('services/user', () => ({ UserService: {} }));
 beforeEach(() => {
   jest.doMock('services/core/stateful-service');
   jest.doMock('services/core/injector');
-  jest.doMock('util/QueueRunner');
+  jest.doMock('util/QueueRunner', () => ({
+    QueueRunner: jest.fn().mockImplementation(() => {
+      const mockState: QueueRunnerState = {
+        length: 0,
+        state: null,
+        disabled: false,
+        nextLabel: null,
+      };
+      const stateSubject = new BehaviorSubject(mockState);
+      return {
+        state$: stateSubject.asObservable(),
+        add: jest.fn(),
+        cancel: jest.fn().mockResolvedValue(undefined),
+        cancelQueue: jest.fn(),
+        runNext: jest.fn(),
+        enable: jest.fn(),
+        disable: jest.fn().mockResolvedValue(undefined),
+        get length() { return mockState.length; },
+        get state() { return mockState.state; },
+        get disabled() { return mockState.disabled; },
+        isRunning: false,
+        waitUntilFinished: jest.fn().mockResolvedValue(undefined),
+      };
+    }),
+  }));
   jest.doMock('./speech/NVoiceSynthesizer');
   jest.doMock('./speech/WebSpeechSynthesizer');
 });
@@ -49,6 +77,8 @@ const testMaxTime = 4;
 
 const mockedState: ICommentSynthesizerState = {
   enabled: true,
+  soundDetectorEnabled: false,
+  queueRunnerState: null,
   rate: testRate,
   pitch: testPitch,
   maxTime: testMaxTime,
@@ -176,14 +206,14 @@ test.each([
     Object.defineProperty(queue, 'length', {
       get: () => (filled ? instance.NUM_COMMENTS_TO_SKIP : 0),
     });
-    expect(queue.cancel).toBeCalledTimes(0);
-    expect(queue.add).toBeCalledTimes(0);
+    expect(queue.cancel).toHaveBeenCalledTimes(0);
+    expect(queue.add).toHaveBeenCalledTimes(0);
     instance.queueToSpeech(speech, onstart, onend, cancelBeforeSpeaking);
-    expect(queue.cancel).toBeCalledTimes(numCancel);
-    expect(queue.cancelQueue).toBeCalledTimes(numCancelQueue);
-    expect(queue.add).toBeCalledTimes(numAdd);
+    expect(queue.cancel).toHaveBeenCalledTimes(numCancel);
+    expect(queue.cancelQueue).toHaveBeenCalledTimes(numCancelQueue);
+    expect(queue.add).toHaveBeenCalledTimes(numAdd);
     if (numAdd) {
-      expect(queue.add).toBeCalledWith(expect.anything(), speech.text);
+      expect(queue.add).toHaveBeenCalledWith(expect.anything(), speech.text);
     }
   },
 );

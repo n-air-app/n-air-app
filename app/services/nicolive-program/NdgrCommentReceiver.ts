@@ -367,11 +367,12 @@ export function convertChunkedResponseToMessageResponse(
 export class NdgrCommentReceiver implements IMessageServerClient {
   private ndgrClient: NdgrClient;
   private ndgrSubscription: Subscription;
-  private messageSubject = new Subject<MessageResponse>();
+  private messageSubject: Subject<MessageResponse>;
 
   constructor(private uri: string, private label = 'comment') {}
 
   connect(): Observable<MessageResponse> {
+    this.messageSubject = new Subject<MessageResponse>();
     this.ndgrClient = new NdgrClient(this.uri, this.label);
     this.ndgrSubscription = this.ndgrClient.messages.subscribe({
       next: msg => {

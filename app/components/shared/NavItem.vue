@@ -12,6 +12,11 @@
       </div>
     </div>
     <i v-if="expandable" :class="expanded ? 'icon-subtract' : 'icon-add'" />
+    <i
+      v-if="showArrow"
+      class="icon-arrow-bottom-border nav-item__arrow"
+      :class="{ 'is-opened': isTocOpen }"
+    />
   </li>
 </template>
 
@@ -22,15 +27,18 @@
 
 .nav-item {
   display: flex;
+  flex-shrink: 0; // Prevent height compression in flex container
+  gap: var(--spacing-sm);
   align-items: center;
   justify-content: flex-start;
-  height: 40px;
-  padding: 0;
-  padding-left: 16px;
-  font-size: @font-size4;
-  color: var(--color-text);
+  min-height: 35px;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight:bold;
+  color: var(--color-object-emphasis-medium);
   cursor: pointer;
   list-style: none;
+  border-radius: var(--radius-sm);
 
   &.nav-item--child {
     padding-left: 0;
@@ -38,29 +46,31 @@
   }
 
   &.active {
-    color: var(--color-text-active);
-
-    i {
-      color: var(--color-text-active);
-    }
+    color: var(--color-object-accent-primary);
+    background-color: var(--color-highlight-medium);
   }
 
   &:not(.active):hover {
-    color: var(--color-text-light);
-
-    i {
-      color: var(--color-text-light);
-    }
+    color: var(--color-object-emphasis-high);
+    background-color: var(--color-highlight-medium);
   }
 
   &.disabled {
-    color: var(--color-text-disabled);
     cursor: default;
+   opacity: .3;
   }
 
   i {
-    margin-right: 16px;
-    font-size: @font-size4;
+    font-size: var(--font-size-lg);
+  }
+}
+
+.nav-item__arrow {
+  margin-left: auto;
+  font-size: var(--font-size-2xs);
+
+  &.is-opened {
+    transform: rotate(180deg);
   }
 }
 

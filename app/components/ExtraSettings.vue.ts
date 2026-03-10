@@ -14,11 +14,13 @@ import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import ClipBoardCopy from '../../media/images/clipboard-copy.svg';
+import TocSection from './shared/TocSection.vue';
 
 @Component({
   components: {
     ObsBoolInput,
     ClipBoardCopy,
+    TocSection,
   },
 })
 export default class ExtraSettings extends Vue {
@@ -131,6 +133,12 @@ export default class ExtraSettings extends Vue {
 
   deleteCacheDir() {
     if (confirm($t('settings.clearCacheConfirm'))) {
+      this.appService.relaunch({ clearCacheDir: 'cache' });
+    }
+  }
+
+  deleteAllCacheDir() {
+    if (confirm($t('settings.clearAllCacheConfirm'))) {
       this.appService.relaunch({ clearCacheDir: 'all' });
     }
   }

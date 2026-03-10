@@ -508,6 +508,29 @@ test('refreshProgram:成功', async () => {
   `);
 });
 
+test('refreshProgram: viewUri が同じでも setState は1回のみ（viewUri リセットトリックなし）', async () => {
+  setup();
+  const { instance, setState } = setupInstance({ mockSetState: true });
+
+  // 初期状態として status と viewUri を設定（配信中で接続済みの状態）
+  (instance as any).state = {
+    ...(instance as any).state,
+    status: 'onAir',
+    viewUri: 'https://example.com/lv1',
+  };
+
+  instance.client.fetchProgram = jest
+    .fn()
+    .mockName('fetchProgram')
+    .mockResolvedValue({ ok: true, value: programs.onAir });
+
+  await expect(instance.refreshProgram()).resolves.toBeUndefined();
+  expect(instance.client.fetchProgram).toHaveBeenCalledTimes(1);
+  // viewUri リセットトリックが削除されたため、viewUri が同じでも setState は1回のみ
+  expect(setState).toHaveBeenCalledTimes(1);
+  expect(setState.mock.calls[0][0]).not.toHaveProperty('viewUri', '');
+});
+
 test('refreshProgram:失敗', async () => {
   setup();
   const { instance, setState } = setupInstance({ mockSetState: true });

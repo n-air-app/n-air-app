@@ -16,6 +16,8 @@ import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
 import VueSlider from 'vue-slider-component';
 import IconListSelect from './IconListSelect.vue';
+import SoundDetectorSettings from './SoundDetectorSettings.vue';
+import TocSection from './shared/TocSection.vue';
 
 type MethodObject = {
   text: string;
@@ -40,6 +42,8 @@ type SynthesizerItem = {
     Multiselect,
     VueSlider,
     IconListSelect,
+    SoundDetectorSettings,
+    TocSection,
   },
 })
 export default class CommentSettings extends Vue {
@@ -71,23 +75,35 @@ export default class CommentSettings extends Vue {
     },
   ];
 
-  close() {
-    this.$emit('close');
-  }
-
   mounted() {
     this.startVoicevoxChecker();
     this.initOneComme();
+  }
+
+  close() {
+    this.$emit('close');
   }
 
   beforeDestroy() {
     this.stopVoicevoxChecker();
   }
 
-  async testSpeechPlay(synthId: SynthesizerSelector, type: WrappedChat['type']) {
-    const service = this.nicoliveCommentSynthesizerService;
-    if (synthId === 'ignore') return;
-    service.startTestSpeech('これは読み上げ設定のテスト音声です', synthId, type);
+  get queueLength(): number {
+    return this.nicoliveCommentSynthesizerService.queueLength;
+  }
+  get queueState(): string | null {
+    return this.nicoliveCommentSynthesizerService.queueState;
+  }
+  get queueDisabled(): boolean {
+    return this.nicoliveCommentSynthesizerService.queueDisabled;
+  }
+
+  testSpeechPlay(
+    synthId: SynthesizerSelector,
+    type: WrappedChat['type'],
+    cancelBeforeSpeaking = true,
+  ) {
+    this.nicoliveCommentSynthesizerService.testSpeechPlay(synthId, type, cancelBeforeSpeaking);
   }
 
   get synthesizerEnabled(): boolean {

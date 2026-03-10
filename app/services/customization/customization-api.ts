@@ -1,4 +1,3 @@
-import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import { Observable } from 'rxjs';
 
 export type TCompactModeTab = 'studio' | 'niconico';
@@ -34,7 +33,5 @@ export interface ICustomizationServiceApi {
   settingsChanged: Observable<Partial<ICustomizationSettings>>;
   setSettings(settingsPatch: Partial<ICustomizationSettings>): void;
   getSettings(): ICustomizationSettings;
-  getSettingsFormData(): TObsFormData;
-  getExperimentalSettingsFormData(): TObsFormData;
   restoreDefaults(): void;
 }

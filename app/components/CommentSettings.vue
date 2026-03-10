@@ -1,308 +1,324 @@
 <template>
   <div class="setting-section">
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>表示設定</label>
-      </div>
-      <div class="input-container">
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">匿名コメントを表示</div>
-            <div class="value">
-              <input type="checkbox" v-model="showAnonymous" class="toggle-button" />
-            </div>
-          </div>
-        </div>
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">なふだを表示</div>
-            <div class="value">
-              <input type="checkbox" v-model="nameplateEnabled" class="toggle-button" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>読み上げ設定</label>
-      </div>
-      <div class="input-container">
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">コメントを読み上げる</div>
-            <div class="value">
-              <input type="checkbox" v-model="synthesizerEnabled" class="toggle-button" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section" v-if="synthesizerEnabled">
+    <toc-section title="表示設定">
+      <div class="section">
         <div class="input-label section-heading">
-          <label>音声設定</label>
+          <label>表示設定</label>
         </div>
         <div class="input-container">
           <div class="input-wrapper">
             <div class="row">
-              <div class="name">速度</div>
-              <div class="value">×{{ rate }}<span v-if="rate == rateDefault">（既定）</span></div>
-            </div>
-            <VueSlider
-              class="slider"
-              :disabled="!synthesizerEnabled"
-              :data="rateCandidates"
-              :height="4"
-              v-model="rate"
-              tooltip="hover"
-              :lazy="true"
-            />
-          </div>
-          <div class="input-wrapper">
-            <div class="row">
-              <div class="name">音量</div>
+              <div class="name">匿名コメントを表示</div>
               <div class="value">
-                {{ volume }}<span v-if="volume == volumeDefault">（既定）</span>
+                <input type="checkbox" v-model="showAnonymous" class="toggle-button" />
               </div>
             </div>
-            <VueSlider
-              class="slider"
-              :disabled="!synthesizerEnabled"
-              :data="volumeCandidates"
-              :height="4"
-              :max="1"
-              v-model="volume"
-              tooltip="hover"
-              :lazy="true"
-            />
+          </div>
+          <div class="input-wrapper">
+            <div class="row">
+              <div class="name">なふだを表示</div>
+              <div class="value">
+                <input type="checkbox" v-model="nameplateEnabled" class="toggle-button" />
+              </div>
+            </div>
           </div>
         </div>
-        <button
-          :disabled="!synthesizerEnabled"
-          @click="resetVoice"
-          data-size="md"
-          data-radius="sm"
-          data-color="secondary"
-          data-variant="light"
-          class="basic-button"
-        >
-          設定リセット
-        </button>
       </div>
-
-      <div class="section" v-if="synthesizerEnabled">
+    </toc-section>
+    <toc-section title="読み上げ設定">
+      <div class="section">
         <div class="input-label section-heading">
-          <label>振り分け設定</label>
+          <label>読み上げ設定</label>
         </div>
         <div class="input-container">
-          <div v-if="voicevoxInformation" class="banner">
-            <div class="banner-header">N Air上でVOICEVOXの音声が選択できるようになりました</div>
+          <div class="input-wrapper">
+            <div class="row">
+              <div class="name">コメントを読み上げる</div>
+              <div class="value">
+                <input type="checkbox" v-model="synthesizerEnabled" class="toggle-button" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <toc-section title="音声設定" :visible="synthesizerEnabled">
+          <div class="section" v-if="synthesizerEnabled">
+            <div class="input-label section-heading">
+              <label>音声設定</label>
+            </div>
+            <div class="input-container">
+              <div class="input-wrapper">
+                <div class="row">
+                  <div class="name">速度</div>
+                  <div class="value">×{{ rate }}<span v-if="rate == rateDefault">（既定）</span></div>
+                </div>
+                <VueSlider
+                  class="slider"
+                  :disabled="!synthesizerEnabled"
+                  :data="rateCandidates"
+                  :height="4"
+                  v-model="rate"
+                  tooltip="hover"
+                  :lazy="true"
+                />
+              </div>
+              <div class="input-wrapper">
+                <div class="row">
+                  <div class="name">音量</div>
+                  <div class="value">
+                    {{ volume }}<span v-if="volume == volumeDefault">（既定）</span>
+                  </div>
+                </div>
+                <VueSlider
+                  class="slider"
+                  :disabled="!synthesizerEnabled"
+                  :data="volumeCandidates"
+                  :height="4"
+                  :max="1"
+                  v-model="volume"
+                  tooltip="hover"
+                  :lazy="true"
+                />
+              </div>
+            </div>
+            <button
+              :disabled="!synthesizerEnabled"
+              @click="resetVoice"
+              data-size="md"
+              data-radius="sm"
+              data-color="secondary"
+              data-variant="light"
+              class="basic-button"
+            >
+              設定リセット
+            </button>
+          </div>
+        </toc-section>
+
+        <toc-section title="振り分け設定" :visible="synthesizerEnabled">
+          <div class="section" v-if="synthesizerEnabled">
+            <div class="input-label section-heading">
+              <label>振り分け設定</label>
+            </div>
+            <div class="input-container">
+              <div v-if="voicevoxInformation" class="banner">
+                <div class="banner-header">N Air上でVOICEVOXの音声が選択できるようになりました</div>
+                <div class="banner-body">
+                  VOICEVOXを起動して、好きなキャラクターに読み上げてもらおう
+                </div>
+                <a class="banner-anchor" @click="showVoicevoxInformation()"
+                >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
+                ></a>
+                <div class="banner-close">
+                  <i class="icon-close icon-btn" @click="closeVoicevoxInformation"></i>
+                </div>
+              </div>
+
+              <div
+                v-if="isUseVoicevox && !isExistVoicevox && !isLoadingVoicevox"
+                class="banner"
+                data-type="error"
+              >
+                <div class="banner-header">VOICEVOXを起動してください</div>
+                <a class="banner-anchor" @click="showVoicevoxInformation()"
+                >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
+                ></a>
+              </div>
+
+              <!-- system -->
+              <div class="input-label">
+                <label :class="{ label_error: system.id == 'voicevox' && !isExistVoicevox }">
+                  システムメッセージ
+                </label>
+              </div>
+              <div class="select-wrapper">
+                <IconListSelect v-model="system" :options="synthesizers" data-variant="filled" />
+                <IconListSelect
+                  v-if="system.id == 'voicevox'"
+                  v-model="voicevoxSystemItem"
+                  :options="voicevoxItems"
+                  :disabled="!isExistVoicevox"
+                  data-variant="filled"
+                />
+                <button
+                  class="action-icon"
+                  data-size="lg"
+                  data-variant="light"
+                  data-radius="sm"
+                  data-color="secondary"
+                  :disabled="!isTestable(system.id)"
+                  @click="testSpeechPlay(system.id, 'system')"
+                >
+                  <i class="icon-sound-fill"></i>
+                </button>
+              </div>
+              <!--normal -->
+              <div class="input-label">
+                <label :class="{ label_error: normal.id == 'voicevox' && !isExistVoicevox }">
+                  視聴者コメント
+                </label>
+              </div>
+              <div class="select-wrapper">
+                <IconListSelect v-model="normal" :options="synthesizers" data-variant="filled" />
+                <IconListSelect
+                  v-if="normal.id == 'voicevox'"
+                  v-model="voicevoxNormalItem"
+                  :options="voicevoxItems"
+                  :disabled="!isExistVoicevox"
+                  data-variant="filled"
+                />
+                <button
+                  class="action-icon"
+                  data-size="lg"
+                  data-variant="light"
+                  data-radius="sm"
+                  data-color="secondary"
+                  :disabled="!isTestable(normal.id)"
+                  @click="testSpeechPlay(normal.id, 'normal')"
+                >
+                  <i class="icon-sound-fill"></i>
+                </button>
+              </div>
+
+              <!-- operator -->
+              <div class="input-label">
+                <label :class="{ label_error: operator.id == 'voicevox' && !isExistVoicevox }">
+                  放送者コメント
+                </label>
+              </div>
+              <div class="select-wrapper">
+                <IconListSelect v-model="operator" :options="synthesizers" data-variant="filled" />
+                <IconListSelect
+                  v-if="operator.id == 'voicevox'"
+                  v-model="voicevoxOperatorItem"
+                  :options="voicevoxItems"
+                  :disabled="!isExistVoicevox"
+                  data-variant="filled"
+                />
+                <button
+                  class="action-icon"
+                  data-size="lg"
+                  data-variant="light"
+                  data-radius="sm"
+                  data-color="secondary"
+                  :disabled="!isTestable(operator.id)"
+                  @click="testSpeechPlay(operator.id, 'operator')"
+                >
+                  <i class="icon-sound-fill"></i>
+                </button>
+              </div>
+              <!-- end -->
+              <button
+                @click="resetAssignment"
+                data-size="md"
+                data-radius="sm"
+                data-color="secondary"
+                data-variant="light"
+                class="basic-button"
+              >
+                設定リセット
+              </button>
+            </div>
+          </div>
+        </toc-section>
+      </div>
+    </toc-section>
+
+    <div class="section">
+      <sound-detector-settings />
+    </div>
+
+    <toc-section title="わんコメ連携">
+      <div class="section">
+        <div class="input-label section-heading">
+          <label>わんコメ連携</label>
+        </div>
+        <div class="input-container">
+          <div class="input-wrapper">
+            <div class="row">
+              <div class="name">わんコメに自動で番組情報を反映する</div>
+              <div class="value">
+                <input type="checkbox" v-model="useOneComme" class="toggle-button" />
+              </div>
+            </div>
+          </div>
+          <div class="input-wrapper" v-if="useOneComme">
+            <div class="row">
+              <div class="name">番組作成時にわんコメに残っているコメントをクリアする</div>
+              <div class="value">
+                <input type="checkbox" v-model="removeComment" class="toggle-button" />
+              </div>
+            </div>
+          </div>
+          <div class="banner" data-type="error" v-if="isOneCommeError">
             <div class="banner-body">
-              VOICEVOXを起動して、好きなキャラクターに読み上げてもらおう
-            </div>
-            <a class="banner-anchor" @click="showVoicevoxInformation()"
-            >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
-            ></a>
-            <div class="banner-close">
-              <i class="icon-close icon-btn" @click="closeVoicevoxInformation"></i>
+              わんコメに接続できませんでした。わんコメを起動して確認してください
             </div>
           </div>
+          <div class="onecomme-description">
+            「わんコメ」とは、映像上にリスト形式でコメントを表示したり、コメントに応じて特別な演出を表示させたりといったことができるソフトウェアです。機能利用時のイメージやできることの詳細は
+            <a @click="showOneCommeInfo()">公式ホームページ（外部サイト）</a>をご覧ください。
+          </div>
+        </div>
+      </div>
+    </toc-section>
 
+    <toc-section title="HTTP連携設定">
+      <div class="section">
+        <div class="input-label section-heading">
+          <label>HTTP連携設定</label>
+        </div>
+        <div class="input-container">
+          <div class="input-wrapper">
+            <div class="input-label">
+              <label>Method</label>
+            </div>
+            <multiselect
+              v-model="httpRelationMethod"
+              :options="httpRelationMethods"
+              label="text"
+              trackBy="value"
+              :allow-empty="false"
+              :searchable="false"
+              :placeholder="$t('settings.listPlaceholder')"
+              data-variant="filled"
+            >
+            </multiselect>
+          </div>
+
+          <div class="input-wrapper" v-if="httpRelationMethod.value !== ''">
+            <div class="input-label">
+              <label>URL</label>
+            </div>
+            <input type="text" v-model="httpRelationUrl" />
+          </div>
           <div
-            v-if="isUseVoicevox && !isExistVoicevox && !isLoadingVoicevox"
-            class="banner"
-            data-type="error"
+            class="input-wrapper"
+            v-if="httpRelationMethod.value !== '' && httpRelationMethod.value !== 'GET'"
           >
-            <div class="banner-header">VOICEVOXを起動してください</div>
-            <a class="banner-anchor" @click="showVoicevoxInformation()"
-            >VOICEVOXで音声を読み上げるには<i class="icon-open-blank"></i
-            ></a>
-          </div>
-
-          <!-- system -->
-          <div class="input-label">
-            <label :class="{ label_error: system.id == 'voicevox' && !isExistVoicevox }">
-              システムメッセージ
-            </label>
-          </div>
-          <div class="select-wrapper">
-            <IconListSelect v-model="system" :options="synthesizers" data-variant="filled" />
-            <IconListSelect
-              v-if="system.id == 'voicevox'"
-              v-model="voicevoxSystemItem"
-              :options="voicevoxItems"
-              :disabled="!isExistVoicevox"
-              data-variant="filled"
-            />
-            <button
-              class="action-icon"
-              data-size="lg"
-              data-variant="light"
-              data-radius="sm"
-              data-color="secondary"
-              :disabled="!isTestable(system.id)"
-              @click="testSpeechPlay(system.id, 'system')"
-            >
-              <i class="icon-sound-fill"></i>
-            </button>
-          </div>
-          <!--normal -->
-          <div class="input-label">
-            <label :class="{ label_error: normal.id == 'voicevox' && !isExistVoicevox }">
-              視聴者コメント
-            </label>
-          </div>
-          <div class="select-wrapper">
-            <IconListSelect v-model="normal" :options="synthesizers" data-variant="filled" />
-            <IconListSelect
-              v-if="normal.id == 'voicevox'"
-              v-model="voicevoxNormalItem"
-              :options="voicevoxItems"
-              :disabled="!isExistVoicevox"
-              data-variant="filled"
-            />
-            <button
-              class="action-icon"
-              data-size="lg"
-              data-variant="light"
-              data-radius="sm"
-              data-color="secondary"
-              :disabled="!isTestable(normal.id)"
-              @click="testSpeechPlay(normal.id, 'normal')"
-            >
-              <i class="icon-sound-fill"></i>
-            </button>
-          </div>
-
-          <!-- operator -->
-          <div class="input-label">
-            <label :class="{ label_error: operator.id == 'voicevox' && !isExistVoicevox }">
-              放送者コメント
-            </label>
-          </div>
-          <div class="select-wrapper">
-            <IconListSelect v-model="operator" :options="synthesizers" data-variant="filled" />
-            <IconListSelect
-              v-if="operator.id == 'voicevox'"
-              v-model="voicevoxOperatorItem"
-              :options="voicevoxItems"
-              :disabled="!isExistVoicevox"
-              data-variant="filled"
-            />
-            <button
-              class="action-icon"
-              data-size="lg"
-              data-variant="light"
-              data-radius="sm"
-              data-color="secondary"
-              :disabled="!isTestable(operator.id)"
-              @click="testSpeechPlay(operator.id, 'operator')"
-            >
-              <i class="icon-sound-fill"></i>
-            </button>
-          </div>
-          <!-- end -->
-          <button
-            @click="resetAssignment"
-            data-size="md"
-            data-radius="sm"
-            data-color="secondary"
-            data-variant="light"
-            class="basic-button"
-          >
-            設定リセット
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>わんコメ連携</label>
-      </div>
-      <div class="input-container">
-        <div class="input-wrapper">
-          <div class="row">
-            <div class="name">わんコメに自動で番組情報を反映する</div>
-            <div class="value">
-              <input type="checkbox" v-model="useOneComme" class="toggle-button" />
+            <div class="input-label">
+              <label>Body</label>
             </div>
+            <textarea rows="3" v-model="httpRelationBody"></textarea>
           </div>
-        </div>
-        <div class="input-wrapper" v-if="useOneComme">
-          <div class="row">
-            <div class="name">番組作成時にわんコメに残っているコメントをクリアする</div>
-            <div class="value">
-              <input type="checkbox" v-model="removeComment" class="toggle-button" />
-            </div>
+          <div class="input-wrapper" v-if="httpRelationMethod.value !== ''">
+            <button
+              data-size="md"
+              data-radius="sm"
+              data-color="secondary"
+              data-variant="light"
+              class="basic-button"
+              @click="testHttpRelation()"
+            >
+              テスト
+            </button>
           </div>
-        </div>
-        <div class="banner" data-type="error" v-if="isOneCommeError">
-          <div class="banner-body">
-            わんコメに接続できませんでした。わんコメを起動して確認してください
+          <div class="input-wrapper">
+            詳細は<a @click="showHttpRelationPage()">こちら</a>を参照してください
           </div>
-        </div>
-        <div class="onecomme-description">
-          「わんコメ」とは、映像上にリスト形式でコメントを表示したり、コメントに応じて特別な演出を表示させたりといったことができるソフトウェアです。機能利用時のイメージやできることの詳細は
-          <a @click="showOneCommeInfo()">公式ホームページ（外部サイト）</a>をご覧ください。
         </div>
       </div>
-    </div>
-
-    <div class="section">
-      <div class="input-label section-heading">
-        <label>HTTP連携設定</label>
-      </div>
-      <div class="input-container">
-        <div class="input-wrapper">
-          <div class="input-label">
-            <label>Method</label>
-          </div>
-          <multiselect
-            v-model="httpRelationMethod"
-            :options="httpRelationMethods"
-            label="text"
-            trackBy="value"
-            :allow-empty="false"
-            :searchable="false"
-            :placeholder="$t('settings.listPlaceholder')"
-            data-variant="filled"
-          >
-          </multiselect>
-        </div>
-
-        <div class="input-wrapper" v-if="httpRelationMethod.value !== ''">
-          <div class="input-label">
-            <label>URL</label>
-          </div>
-          <input type="text" v-model="httpRelationUrl" />
-        </div>
-        <div
-          class="input-wrapper"
-          v-if="httpRelationMethod.value !== '' && httpRelationMethod.value !== 'GET'"
-        >
-          <div class="input-label">
-            <label>Body</label>
-          </div>
-          <textarea rows="3" v-model="httpRelationBody"></textarea>
-        </div>
-        <div class="input-wrapper" v-if="httpRelationMethod.value !== ''">
-          <button
-            data-size="md"
-            data-radius="sm"
-            data-color="secondary"
-            data-variant="light"
-            class="basic-button"
-            @click="testHttpRelation()"
-          >
-            テスト
-          </button>
-        </div>
-        <div class="input-wrapper">
-          詳細は<a @click="showHttpRelationPage()">こちら</a>を参照してください
-        </div>
-      </div>
-    </div>
+    </toc-section>
   </div>
 </template>
 

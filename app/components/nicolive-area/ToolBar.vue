@@ -12,12 +12,9 @@
 
     <div class="side-bar">
       <popper
-        trigger="click"
-        :options="{ placement: 'bottom-end' }"
-        @show="
-          showPopupMenu = true;
-          popper1 = $event;
-        "
+        placement="bottom-end"
+        width="240px"
+        @show="showPopupMenu = true"
         @hide="showPopupMenu = false"
       >
         <div class="popper">
@@ -28,10 +25,7 @@
                 ><input
                   type="checkbox"
                   :checked="autoExtensionEnabled"
-                  @click="
-                    toggleAutoExtension();
-                    popper1.doClose();
-                  "
+                  @click="toggleAutoExtension()"
                   class="toggle-button"
                 />
               </div>
@@ -39,10 +33,7 @@
             <li class="popup-menu-item">
               <button
                 class="manual-extension link"
-                @click="
-                  extendProgram();
-                  popper1.doClose();
-                "
+                @click="extendProgram()"
                 :disabled="
                   autoExtensionEnabled ||
                     isExtending ||
@@ -94,42 +85,48 @@
         >
           番組作成
         </button>
-        <button v-else @click="startProgram" :disabled="isStarting" class="button button--action">
+        <button
+          v-else
+          @click="startProgram"
+          :disabled="isStarting"
+          class="button button--action"
+        >
           番組開始
         </button>
         <popper
-          trigger="click"
-          :options="{ placement: 'bottom-end' }"
-          @show="
-            showButtonSelector = true;
-            popper2 = $event;
-          "
+          placement="bottom-end"
+          width="240px"
+          @show="showButtonSelector = true"
           @hide="showButtonSelector = false"
         >
           <div class="popper">
             <ul class="popup-menu-list">
               <li class="item">
                 <button
-                  :class="{ 'button-selector': true, current: selectedButton === 'start' }"
-                  @click="
-                    selectButton('start');
-                    popper2.doClose();
-                  "
+                  :class="{
+                    'button-selector': true,
+                    current: selectedButton === 'start',
+                  }"
+                  @click="selectButton('start')"
                 >
                   <span class="item-name">番組開始</span>
-                  <span class="item-text">番組を開始して視聴者に公開します</span>
+                  <span class="item-text"
+                  >番組を開始して視聴者に公開します</span
+                  >
                 </button>
               </li>
               <li class="item">
                 <button
-                  :class="{ 'button-selector': true, current: selectedButton === 'end' }"
-                  @click="
-                    selectButton('end');
-                    popper2.doClose();
-                  "
+                  :class="{
+                    'button-selector': true,
+                    current: selectedButton === 'end',
+                  }"
+                  @click="selectButton('end')"
                 >
                   <span class="item-name">番組終了</span>
-                  <span class="item-text">番組を視聴者に公開せず終了します</span>
+                  <span class="item-text"
+                  >番組を視聴者に公開せず終了します</span
+                  >
                 </button>
               </li>
             </ul>
@@ -155,7 +152,7 @@
 </template>
 <script lang="ts" src="./ToolBar.vue.ts"></script>
 <style lang="less" scoped>
-@import url('../../styles/index');
+@import url("../../styles/index");
 
 .tool-bar {
   position: relative;
@@ -180,14 +177,6 @@
   display: flex;
   align-items: center;
   margin-left: auto;
-}
-
-.popper {
-  .popper-styling();
-
-  width: 240px;
-  padding: 0;
-  margin: 0 0 8px 8px;
 }
 
 .toggle-button {

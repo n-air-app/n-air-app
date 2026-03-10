@@ -1,5 +1,3 @@
-import { ISettingsSubCategory } from '../../settings';
-
 export interface ITcpServersSettings {
   token: string;
   namedPipe: {
@@ -14,7 +12,6 @@ export interface ITcpServersSettings {
 }
 
 export interface ITcpServerServiceApi {
-  getApiSettingsFormData(): ISettingsSubCategory[];
   setSettings(settings: Partial<ITcpServersSettings>): void;
   getSettings(): ITcpServersSettings;
   getDefaultSettings(): ITcpServersSettings;

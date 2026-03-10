@@ -9,15 +9,7 @@ export type SynthesizerSelector = (typeof SynthesizerSelectors)[number];
 
 type SpeechSynthesizerSettingsState = {
   enabled: boolean;
-  pitch: number;
-  rate: number;
-  volume: number;
-  maxTime?: number;
-  selector: {
-    normal: SynthesizerSelector;
-    operator: SynthesizerSelector;
-    system: SynthesizerSelector;
-  };
+  // 他の設定は nicolive-comment-synthesizer.ts の ICommentSynthesizerState で定義。重複するのでここでは省略
 };
 
 /** なふだコーチングを表示した記録。

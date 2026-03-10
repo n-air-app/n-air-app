@@ -30,7 +30,7 @@ export interface IAudioSourceApi extends IAudioSource {
   setDeflection(deflection: number): void;
   setMul(mul: number): void;
   setMuted(muted: boolean): void;
-  subscribeVolmeter(cb: (volmeter: IVolmeter) => void): Subscription;
+  getVolmeterStream(): Observable<IVolmeter>;
   getSettingsForm(): TObsFormData;
   setSettings(patch: Partial<IAudioSource>): void;
   getModel(): IAudioSource & ISource;
