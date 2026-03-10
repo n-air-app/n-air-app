@@ -61,6 +61,9 @@ export class AppService extends StatefulService<IAppState> {
   /** OBS init前にbasic.iniが存在していたか。falseの場合はOBSがデフォルト値で初期化している */
   obsConfigExisted = true;
 
+  /** シャットダウン時にシーンコレクション等の保存をスキップするフラグ（全キャッシュ削除時に使用） */
+  private skipSavingOnShutdown = false;
+
   @Inject() transitionsService: TransitionsService;
   @Inject() sourcesService: SourcesService;
   @Inject() scenesService: ScenesService;
@@ -160,10 +163,15 @@ export class AppService extends StatefulService<IAppState> {
         NicoliveClient.closeOpenWindows();
         this.ipcServerService.stopListening();
         this.stopMonitoringStudioMode();
-        await this.sceneCollectionsService.deinitialize();
+        await this.sceneCollectionsService.deinitialize({
+          // 全キャッシュ削除時はシーンコレクションを保存しない（再起動後に削除されるため）
+          saveOnExit: !this.skipSavingOnShutdown,
+        });
         this.transitionsService.shutdown();
         this.videoSettingsService.shutdown();
-        await this.fileManagerService.flushAll();
+        if (!this.skipSavingOnShutdown) {
+          await this.fileManagerService.flushAll();
+        }
         obs.NodeObs.RemoveSourceCallback();
         obs.NodeObs.OBS_service_removeCallback();
         obs.IPC.disconnect();
@@ -290,6 +298,7 @@ export class AppService extends StatefulService<IAppState> {
         // シーンコレクションを含むすべてを削除
         args.push('--clearCacheDir');
         args.push('--includeSceneCollections');
+        this.skipSavingOnShutdown = true;
         break;
     }
 
