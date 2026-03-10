@@ -152,6 +152,7 @@ module.exports = function (env, argv) {
       // We want to dynamically require native addons
       externals: {
         'font-manager': 'require("font-manager")',
+        'color-picker': 'require("color-picker")',
         'node-fontinfo': 'require("node-fontinfo")',
       },
 
