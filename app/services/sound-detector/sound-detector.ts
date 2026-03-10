@@ -347,7 +347,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   }
 
   markDeclined(): void {
-    this.setState({ declined: true });
+    this.setState({ declined: true, enabled: false });
   }
 
   updateSourceId(id: string | null): void {
