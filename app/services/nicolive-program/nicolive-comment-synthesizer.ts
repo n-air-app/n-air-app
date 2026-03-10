@@ -198,7 +198,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
   }
 
   syncSoundDetectorSubscription(): void {
-    if (this.state.enabled && this.state.soundDetectorEnabled) {
+    if (this.state.enabled && this.soundDetectorService.isEnabled()) {
       this.subscribeSoundDetector();
     } else {
       this.unsubscribeSoundDetector();
