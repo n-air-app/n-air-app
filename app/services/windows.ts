@@ -77,6 +77,7 @@ export function getComponents() {
 export interface IWindowOptions {
   componentName: keyof ReturnType<typeof getComponents> | '';
   queryParams?: Dictionary<any>;
+  anchor?: string;
   size?: {
     x?: number;
     y?: number;

@@ -58,6 +58,12 @@ export class AppService extends StatefulService<IAppState> {
 
   readonly appDataDirectory = remote.app.getPath('userData');
 
+  /** OBS init前にbasic.iniが存在していたか。falseの場合はOBSがデフォルト値で初期化している */
+  obsConfigExisted = true;
+
+  /** シャットダウン時にシーンコレクション等の保存をスキップするフラグ（全キャッシュ削除時に使用） */
+  private skipSavingOnShutdown = false;
+
   @Inject() transitionsService: TransitionsService;
   @Inject() sourcesService: SourcesService;
   @Inject() scenesService: ScenesService;
@@ -157,10 +163,15 @@ export class AppService extends StatefulService<IAppState> {
         NicoliveClient.closeOpenWindows();
         this.ipcServerService.stopListening();
         this.stopMonitoringStudioMode();
-        await this.sceneCollectionsService.deinitialize();
+        await this.sceneCollectionsService.deinitialize({
+          // 全キャッシュ削除時はシーンコレクションを保存しない（再起動後に削除されるため）
+          saveOnExit: !this.skipSavingOnShutdown,
+        });
         this.transitionsService.shutdown();
         this.videoSettingsService.shutdown();
-        await this.fileManagerService.flushAll();
+        if (!this.skipSavingOnShutdown) {
+          await this.fileManagerService.flushAll();
+        }
         obs.NodeObs.RemoveSourceCallback();
         obs.NodeObs.OBS_service_removeCallback();
         obs.IPC.disconnect();
@@ -268,17 +279,26 @@ export class AppService extends StatefulService<IAppState> {
     return returningValue;
   }
 
-  relaunch({ clearCacheDir }: { clearCacheDir?: 'all' | 'cookie' } = {}) {
+  relaunch({ clearCacheDir }: { clearCacheDir?: 'all' | 'cache' | 'cookie' } = {}) {
     const originalArgs: string[] = remote.process.argv.slice(1);
 
-    const args = originalArgs.filter(x => !['--clearCacheDir', '--clearCookies'].includes(x));
+    const args = originalArgs.filter(
+      x => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x),
+    );
     // キャッシュクリアしたいときだけつくようにする
     switch (clearCacheDir) {
       case 'cookie':
         args.push('--clearCookies');
         break;
-      case 'all':
+      case 'cache':
+        // シーンコレクションを保持してキャッシュを削除
         args.push('--clearCacheDir');
+        break;
+      case 'all':
+        // シーンコレクションを含むすべてを削除
+        args.push('--clearCacheDir');
+        args.push('--includeSceneCollections');
+        this.skipSavingOnShutdown = true;
         break;
     }
 

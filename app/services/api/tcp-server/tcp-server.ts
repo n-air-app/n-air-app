@@ -1,5 +1,4 @@
 import WritableStream = NodeJS.WritableStream;
-import { IObsInput } from 'components/obs/inputs/ObsInput';
 import crypto from 'crypto';
 import os from 'os';
 import {
@@ -11,7 +10,6 @@ import {
 } from 'services/api/jsonrpc/index';
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { SceneCollectionsService } from 'services/scene-collections';
-import { ISettingsSubCategory } from 'services/settings/index';
 import { UsageStatisticsService } from 'services/usage-statistics';
 import { InternalApiService } from '../internal-api';
 import { IIPAddressDescription, ITcpServerServiceApi, ITcpServersSettings } from './tcp-server-api';
@@ -132,69 +130,6 @@ export class TcpServerService
 
   getSettings(): ITcpServersSettings {
     return this.state;
-  }
-
-  getApiSettingsFormData(): ISettingsSubCategory[] {
-    const settings = this.state;
-    return [
-      {
-        nameSubCategory: 'Named Pipe',
-        codeSubCategory: 'namedPipe',
-        parameters: [
-          <IObsInput<boolean>>{
-            value: settings.namedPipe.enabled,
-            name: 'enabled',
-            description: 'Enabled',
-            type: 'OBS_PROPERTY_BOOL',
-            visible: true,
-            enabled: true,
-          },
-
-          <IObsInput<string>>{
-            value: settings.namedPipe.pipeName,
-            name: 'pipeName',
-            description: 'Pipe Name',
-            type: 'OBS_PROPERTY_TEXT',
-            visible: true,
-            enabled: settings.namedPipe.enabled,
-          },
-        ],
-      },
-      {
-        nameSubCategory: 'Websockets',
-        codeSubCategory: 'websockets',
-        parameters: [
-          <IObsInput<boolean>>{
-            value: settings.websockets.enabled,
-            name: 'enabled',
-            description: 'Enabled',
-            type: 'OBS_PROPERTY_BOOL',
-            visible: true,
-            enabled: true,
-          },
-
-          <IObsInput<boolean>>{
-            value: settings.websockets.allowRemote,
-            name: 'allowRemote',
-            description: 'Allow Remote Connections',
-            type: 'OBS_PROPERTY_BOOL',
-            visible: true,
-            enabled: settings.websockets.enabled,
-          },
-
-          <IObsInput<number>>{
-            value: settings.websockets.port,
-            name: 'port',
-            description: 'Port',
-            type: 'OBS_PROPERTY_INT',
-            minVal: 0,
-            maxVal: 65535,
-            visible: true,
-            enabled: settings.websockets.enabled,
-          },
-        ],
-      },
-    ];
   }
 
   getIPAddresses(): IIPAddressDescription[] {

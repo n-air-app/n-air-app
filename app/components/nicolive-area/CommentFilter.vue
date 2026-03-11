@@ -8,12 +8,9 @@
     <div class="content">
       <div class="tab-list">
         <popper
-          trigger="click"
-          :options="{ placement: 'bottom' }"
-          @show="
-            showPopupMenu = true;
-            popper = $event;
-          "
+          placement="bottom-start"
+          width="160px"
+          @show="showPopupMenu = true"
           @hide="showPopupMenu = false"
         >
           <div class="popper">
@@ -21,30 +18,21 @@
               <li
                 class="popup-menu-item"
                 :class="{ active: currentFilterBy === 'all' }"
-                @click="
-                  currentFilterBy = 'all';
-                  popper.doClose();
-                "
+                @click="currentFilterBy = 'all'"
               >
                 <span>すべて</span>
               </li>
               <li
                 class="popup-menu-item"
                 :class="{ active: currentFilterBy === 'broadcaster' }"
-                @click="
-                  currentFilterBy = 'broadcaster';
-                  popper.doClose();
-                "
+                @click="currentFilterBy = 'broadcaster'"
               >
                 <span>放送者が登録</span>
               </li>
               <li
                 class="popup-menu-item"
                 :class="{ active: currentFilterBy === 'moderator' }"
-                @click="
-                  currentFilterBy = 'moderator';
-                  popper.doClose();
-                "
+                @click="currentFilterBy = 'moderator'"
               >
                 <span>モデレーターが登録</span>
               </li>
@@ -311,7 +299,7 @@
 .item-body {
   font-size: @font-size4;
   line-height: @font-line-height-md;
-  color: var(--color-text);
+  color: var(--color-object-emphasis-high);
   word-break: break-all;
 }
 
@@ -320,7 +308,7 @@
   margin-top: 4px;
   font-size: @font-size2;
   line-height: @font-line-height-md;
-  color: var(--color-text-dark);
+  color: var(--color-object-emphasis-medium);
 
   &:empty {
     display: none;
@@ -369,9 +357,5 @@
       color: var(--color-text-active);
     }
   }
-}
-
-.popper {
-  .popper-styling();
 }
 </style>

@@ -16,12 +16,9 @@
       </h1>
     </div>
     <popper
-      trigger="click"
-      :options="{ placement: 'bottom-end' }"
-      @show="
-        showPopupMenu = true;
-        popper = $event;
-      "
+      placement="bottom-end"
+      width="260px"
+      @show="showPopupMenu = true"
       @hide="showPopupMenu = false"
     >
       <div class="popper">
@@ -29,10 +26,7 @@
         <ul class="popup-menu-list">
           <li class="popup-menu-item">
             <a
-              @click.prevent="
-                openInDefaultBrowser($event);
-                popper.doClose();
-              "
+              @click.prevent="openInDefaultBrowser($event)"
               :href="watchPageURL"
               class="link"
             ><i class="icon-browser"></i>番組ページを開く</a
@@ -40,20 +34,14 @@
           </li>
           <li class="popup-menu-item">
             <a
-              @click="
-                copyProgramURL();
-                popper.doClose();
-              "
+              @click="copyProgramURL()"
               class="link"
             ><i class="icon-clipboard-copy"></i>番組URLをコピーする</a
             >
           </li>
           <li class="popup-menu-item" v-if="existsProgramPassword">
             <a
-              @click="
-                copyProgramPassword();
-                popper.doClose();
-              "
+              @click="copyProgramPassword()"
               class="link"
             ><i class="icon-clipboard-copy"></i>番組の合い言葉をコピーする</a
             >
@@ -62,10 +50,7 @@
         <ul class="popup-menu-list">
           <li class="popup-menu-item">
             <a
-              @click="
-                editProgram();
-                popper.doClose();
-              "
+              @click="editProgram()"
               class="link"
             ><i class="icon-edit"></i>番組を編集する</a
             >
@@ -74,10 +59,7 @@
         <ul class="popup-menu-list">
           <li class="popup-menu-item">
             <a
-              @click.prevent="
-                openInDefaultBrowser($event);
-                popper.doClose();
-              "
+              @click.prevent="openInDefaultBrowser($event)"
               :href="xShareURL"
               class="link"
             ><i class="icon-x"></i>Xでポストする</a
@@ -85,10 +67,7 @@
           </li>
           <li class="popup-menu-item">
             <a
-              @click.prevent="
-                openInDefaultBrowser($event);
-                popper.doClose();
-              "
+              @click.prevent="openInDefaultBrowser($event)"
               :href="contentTreeURL"
               class="link"
             ><i class="icon-contents-tree"></i>コンテンツツリーを見る</a
@@ -96,10 +75,7 @@
           </li>
           <li class="popup-menu-item">
             <a
-              @click.prevent="
-                openInDefaultBrowser($event);
-                popper.doClose();
-              "
+              @click.prevent="openInDefaultBrowser($event)"
               :href="creatorsProgramURL"
               class="link"
             ><i class="icon-creator-promotion-program"></i>この番組で収入を得る</a
@@ -192,12 +168,6 @@
       animation-name: thumbnail-live-effect2;
     }
   }
-}
-
-.popper {
-  .popper-styling();
-
-  width: 260px;
 }
 
 .indicator {

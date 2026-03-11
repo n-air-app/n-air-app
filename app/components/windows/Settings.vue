@@ -1,16 +1,27 @@
 <template>
   <modal-layout bare-content :show-cancel="false" :done-handler="done">
     <div slot="content" class="settings" data-test="Settings">
-      <NavMenu v-model="categoryName" class="side-menu" data-test="SideMenu">
-        <NavItem
-          v-for="category in categoryNames"
-          :key="category"
-          :to="category"
-          :ico="icons.get(category)"
-          :data-test="category"
-        >
-          {{ $t(`settings.${category}.name`, { fallback: category }) }}
-        </NavItem>
+      <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
+        <template v-for="category in categoryNames">
+          <NavItem
+            :key="category"
+            :to="category"
+            :ico="icons.get(category)"
+            :data-test="category"
+            :show-arrow="hasSections(category)"
+            :is-toc-open="category === categoryName ? isTocOpen : false"
+            @click.native.prevent="handleCategoryClick(category)"
+          >
+            {{ $t(`settings.${category}.name`, { fallback: category }) }}
+          </NavItem>
+          <TableOfContents
+            v-if="category === categoryName && currentSections.length > 0 && isTocOpen"
+            :key="`${category}-toc`"
+            :sections="currentSections"
+            :activeId="currentActiveTocId"
+            @navigate="handleTocNavigate"
+          />
+        </template>
       </NavMenu>
       <div class="settings-container" ref="settingsContainer">
         <aside class="notification-root" v-if="isStreaming">
@@ -21,19 +32,21 @@
         <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <api-settings v-if="categoryName === 'API'" />
         <notifications-settings v-if="categoryName === 'Notifications'" />
-        <appearance-settings v-if="categoryName === 'Appearance'" />
-        <experimental-settings v-if="categoryName === 'Experimental'" />
         <comment-settings v-if="categoryName === 'Comment'" />
         <speech-engine-settings v-if="categoryName === 'SpeechEngine'" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
         <transcription-settings v-if="categoryName === 'Transcription'" />
         <GenericFormGroups
           v-if="
-            !['Hotkeys', 'API', 'Notifications', 'Appearance', 'Experimental'].includes(
-              categoryName,
-            )
+            ![
+              'Hotkeys',
+              'Notifications',
+              'Comment',
+              'SpeechEngine',
+              'SubStream',
+              'Transcription',
+            ].includes(categoryName)
           "
           v-model="settingsData"
           :category="categoryName"
@@ -68,6 +81,7 @@
   margin: 0;
   overflow-x: auto;
   overflow-y: scroll;
+  scroll-behavior: smooth;
 }
 </style>
 

@@ -9,7 +9,7 @@
       },
       "problemMatcher": [],
       "label": "npm: compile",
-      "detail": "yarn clear && webpack-cli --progress --mode development",
+      "detail": "pnpm run clear && webpack-cli --progress --mode development",
       "presentation": {
         "reveal": "silent",
         "revealProblems": "onProblem",

@@ -15,9 +15,11 @@ import { INVoiceTalker } from './speech/NVoiceSynthesizer';
 async function playAudio(
   buffer: Buffer,
   volume: number = 1.0,
-): Promise<{ cancel: () => void; done: Promise<void> }> {
+): Promise<{ cancel: () => void; pause: () => void; resume: () => void; done: Promise<void> }> {
   const url = URL.createObjectURL(new Blob([new Uint8Array(buffer)]));
   let cancel: () => void;
+  let pause: () => void;
+  let resume: () => void;
 
   let completed = false;
   const done = new Promise<void>((resolve, reject) => {
@@ -30,6 +32,40 @@ async function playAudio(
       resolve();
     });
     const playPromise = audio.play();
+    pause = () => {
+      if (!completed) {
+        playPromise
+          .then(() => {
+            if (!audio.paused) {
+              audio.pause();
+            }
+          })
+          .catch(err => {
+            Sentry.withScope(scope => {
+              scope.setLevel('error');
+              scope.setTag('in', 'playAudio:pause');
+              Sentry.captureException(err);
+            });
+          });
+      }
+    };
+    resume = () => {
+      if (!completed) {
+        playPromise
+          .then(() => {
+            if (audio.paused) {
+              audio.play();
+            }
+          })
+          .catch(err => {
+            Sentry.withScope(scope => {
+              scope.setLevel('error');
+              scope.setTag('in', 'playAudio:resume');
+              Sentry.captureException(err);
+            });
+          });
+      }
+    };
     cancel = () => {
       if (!completed) {
         playPromise
@@ -54,6 +90,8 @@ async function playAudio(
   });
   return {
     cancel,
+    pause,
+    resume,
     done,
   };
 }
@@ -72,8 +110,7 @@ async function showError(err: Error): Promise<void> {
 
 export class NVoiceClientService
   extends StatefulService<INVoiceClientState>
-  implements INVoiceTalker
-{
+  implements INVoiceTalker {
   static initialState: INVoiceClientState = {
     enabled: true,
   };
@@ -95,7 +132,15 @@ export class NVoiceClientService
       maxTime: number;
       phonemeCallback?: (phoneme: string) => void;
     },
-  ): Promise<null | (() => Promise<{ cancel: () => void; speaking: Promise<void> } | null>)> {
+  ): Promise<
+    | null
+    | (() => Promise<{
+      cancel: () => void;
+      pause: () => void;
+      resume: () => void;
+      speaking: Promise<void>;
+    } | null>)
+  > {
     const client = this.client;
     const tempDir = remote.app.getPath('temp');
     const wavFileName = join(tempDir, `n-voice-talk-${this.index}.wav`);
@@ -113,18 +158,28 @@ export class NVoiceClientService
       }
 
       const startTime = Date.now();
-      const { cancel, done } = await playAudio(wave, options.volume);
+      let checkPointTime = startTime;
+      let checkPointOffset = 0;
+      let paused: Promise<void> | null = null;
+      let resolvePaused: () => void = null;
+      const { cancel, pause, resume, done } = await playAudio(wave, options.volume);
       let phonemeCancel = false;
       if (options.phonemeCallback) {
         const phonemeLoop = async () => {
           for (const label of labels) {
-            const elapsed = Date.now() - startTime;
-            const start = label.start * 1000;
-            if (start > elapsed) {
-              await sleep(start - elapsed);
+            if (paused) {
+              await paused;
+              if (phonemeCancel) {
+                break;
+              }
             }
-            if (phonemeCancel) {
-              break;
+            const elapsed = Date.now() - checkPointTime + checkPointOffset;
+            const next = label.start * 1000;
+            if (next > elapsed) {
+              await sleep(next - elapsed);
+              if (phonemeCancel) {
+                break;
+              }
             }
             options.phonemeCallback(label.phoneme);
           }
@@ -136,7 +191,29 @@ export class NVoiceClientService
       return {
         cancel: () => {
           phonemeCancel = true;
+          if (resolvePaused) {
+            resolvePaused();
+          }
           cancel();
+        },
+        pause: () => {
+          if (!paused) {
+            const now = Date.now();
+            checkPointOffset += now - checkPointTime;
+            paused = new Promise(resolve => {
+              resolvePaused = resolve;
+            });
+            pause();
+          }
+        },
+        resume: () => {
+          if (resolvePaused) {
+            resolvePaused();
+            resolvePaused = null;
+            paused = null;
+            checkPointTime = Date.now();
+          }
+          resume();
         },
         speaking: done,
       };

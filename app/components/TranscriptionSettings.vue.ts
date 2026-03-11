@@ -9,6 +9,7 @@ import {
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
+import TocSection from './shared/TocSection.vue';
 import {
   COMMENT_COLORS,
   COMMENT_FONTS,
@@ -38,6 +39,7 @@ import { Component } from 'vue-property-decorator';
     ObsIntInput,
     ObsListInput,
     ObsPathInput,
+    TocSection,
   },
 })
 export default class TranscriptionSettings extends Vue {

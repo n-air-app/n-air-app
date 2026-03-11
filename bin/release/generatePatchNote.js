@@ -148,7 +148,7 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
   log(newNotes);
 
   info(`Please edit ${patchNoteFileName} if needed.`);
-  info('next step -> `yarn release`');
+  info('next step -> `pnpm release`');
 }
 
 checkEnv('NAIR_GITHUB_TOKEN');
