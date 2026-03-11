@@ -2,7 +2,7 @@ import * as remote from '@electron/remote';
 import { clipboard } from 'electron';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
-import { SubStreamService } from 'services/substream/SubStreamService';
+import { SubStreamService, SubStreamTabID } from 'services/substream/SubStreamService';
 import Vue from 'vue';
 import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
@@ -18,8 +18,10 @@ export default class SubStreamSettings extends Vue {
   collapsed: boolean = true;
 
   use: boolean = SubStreamService.defaultState.use;
-  url: string = SubStreamService.defaultState.url;
-  key: string = SubStreamService.defaultState.key;
+  selectedTab: SubStreamTabID = SubStreamService.defaultState.selectedTab;
+  readonly tabIds: SubStreamTabID[] = ['youtube', 'twitch', 'other'];
+  url: string = '';
+  key: string = '';
 
   videoBitrate: number = SubStreamService.defaultState.videoBitrate;
   videoCodec: { id: string; name: string } = { id: '', name: '' };
@@ -34,7 +36,6 @@ export default class SubStreamSettings extends Vue {
 
   status: string = '';
   showKey: boolean = false;
-  showUrlTips: boolean = false;
 
   checker?: number = undefined;
 
@@ -49,6 +50,13 @@ export default class SubStreamSettings extends Vue {
     },
   };
 
+  /** 現在のタブのタブ設定をストアに書き戻す */
+  private saveCurrentTabSettings() {
+    const tabs = { ...this.subStreamService.state.tabs };
+    tabs[this.selectedTab] = { url: this.url, key: this.key };
+    this.subStreamService.setState({ tabs });
+  }
+
   @Watch('use')
   onUseChange() {
     this.subStreamService.setState({ use: this.use });
@@ -57,14 +65,44 @@ export default class SubStreamSettings extends Vue {
     }
   }
 
+  selectTab(tab: SubStreamTabID) {
+    this.selectedTab = tab;
+  }
+
+  setDefaultUrl() {
+    this.url = this.defautServers[this.selectedTab].url;
+  }
+
+  toggleShowKey() {
+    this.showKey = !this.showKey;
+  }
+
+  toggleCollapsed() {
+    this.collapsed = !this.collapsed;
+  }
+
+  @Watch('selectedTab')
+  onSelectedTabChange() {
+    this.subStreamService.setState({ selectedTab: this.selectedTab });
+    // 新しいタブのURL/keyをローカル変数に反映
+    const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
+    // URL が空の場合は YouTube/Twitch のデフォルト値を自動セット
+    if (!tabSettings.url && this.selectedTab !== 'other') {
+      this.url = this.defautServers[this.selectedTab].url;
+    } else {
+      this.url = tabSettings.url;
+    }
+    this.key = tabSettings.key;
+  }
+
   @Watch('url')
   onUrlChange() {
-    this.subStreamService.setState({ url: this.url });
+    this.saveCurrentTabSettings();
   }
 
   @Watch('key')
   onKeyChange() {
-    this.subStreamService.setState({ key: this.key });
+    this.saveCurrentTabSettings();
   }
 
   @Watch('videoBitrate')
@@ -101,13 +139,23 @@ export default class SubStreamSettings extends Vue {
     const text = clipboard.readText();
     if (!text || /\s/.test(text)) return;
     this.key = text;
-    //this.showKey = true;
   }
 
   async mounted() {
     this.use = this.subStreamService.state.use;
-    this.url = this.subStreamService.state.url;
-    this.key = this.subStreamService.state.key;
+    this.selectedTab = this.subStreamService.state.selectedTab;
+    const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
+    // URL が空で YouTube/Twitch タブならデフォルト値をセット
+    if (!tabSettings.url && this.selectedTab !== 'other') {
+      this.url = this.defautServers[this.selectedTab].url;
+      // ストアにも保存
+      const tabs = { ...this.subStreamService.state.tabs };
+      tabs[this.selectedTab] = { url: this.url, key: tabSettings.key };
+      this.subStreamService.setState({ tabs });
+    } else {
+      this.url = tabSettings.url;
+    }
+    this.key = tabSettings.key;
     this.videoBitrate = this.subStreamService.state.videoBitrate;
     this.keyintSec = this.subStreamService.state.keyintSec;
     this.audioBitrate = this.subStreamService.state.audioBitrate;

@@ -6,11 +6,24 @@ import { NamedPipeClient } from './NamedPipeClient';
 
 type Primitive = string | number | boolean;
 
+/** タブID型 */
+export type SubStreamTabID = 'youtube' | 'twitch' | 'other';
+
+/** タブごとのURL/キー設定 */
+interface TabSettings {
+  url: string;
+  key: string;
+}
+
 /** サブストリームの設定状態を表すインターフェース */
 interface ISubStreamState {
   use: boolean;
-  url: string;
-  key: string;
+  selectedTab: SubStreamTabID;
+  tabs: {
+    youtube: TabSettings;
+    twitch: TabSettings;
+    other: TabSettings;
+  };
   videoBitrate: number;
   audioBitrate: number;
   videoCodec: string;
@@ -73,8 +86,12 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
 
   static defaultState: ISubStreamState = {
     use: false,
-    url: '',
-    key: '',
+    selectedTab: 'youtube',
+    tabs: {
+      youtube: { url: '', key: '' },
+      twitch: { url: '', key: '' },
+      other: { url: '', key: '' },
+    },
     videoBitrate: 2500,
     audioBitrate: 128,
     videoCodec: 'h264',
@@ -84,6 +101,27 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
   };
 
   isExecutingCommand = false; // コマンド実行中フラグ
+
+  init() {
+    super.init();
+    // 旧フォーマット（url/key がトップレベルにある）からのマイグレーション
+    const raw = this.state as any;
+    if (raw.url) {
+      const tabCandidates: SubStreamTabID[] = ['youtube', 'twitch'];
+      const tab: SubStreamTabID = tabCandidates.find(t => raw.url.includes(t)) ?? 'other';
+      const next: any = {
+        selectedTab: tab,
+        tabs: {
+          ...this.state.tabs,
+          [tab]: { url: raw.url, key: raw.key || '' },
+        },
+      };
+      // レガシーフィールドを削除
+      delete next.url;
+      delete next.key;
+      this.setState(next);
+    }
+  }
 
   @mutation()
   private SET_STATE(nextState: ISubStreamState) {
@@ -102,7 +140,8 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
   async start(): Promise<string | undefined> {
     if (!this.state) this.setState(SubStreamService.defaultState);
     if (!this.state.use) return;
-    if (!this.state.url.startsWith('rtmp') || !this.state.key)
+    const tabSettings = this.state.tabs[this.state.selectedTab];
+    if (!tabSettings.url.startsWith('rtmp') || !tabSettings.key)
       return $t('settings.substream.error.url_key');
 
     const bitRange = (value: any, min: number, max: number): number =>
@@ -120,9 +159,8 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
         // "pframe_drop_threshold_ms": 900
       },
       service: {
-        key: this.state.key,
-        server: this.state.url,
-        //  "use_auth": false
+        key: tabSettings.key,
+        server: tabSettings.url,
       },
       video: {
         bitrate: bitRange(this.state.videoBitrate, 200, 100000), // 2500

@@ -716,7 +716,6 @@
     "use": "Use",
     "description": "When this feature is turned ON, you can simultaneously stream\nto other platforms in addition to your main destination.",
     "url": "URL",
-    "urlTips": "Enter the URL and Stream key provided by the service.",
     "streamKey": "Stream Key",
     "syncWithMainStream": "Sync with main stream start/stop",
     "start": "Start",
@@ -732,6 +731,11 @@
     "set": "Set",
     "default": "default",
     "getStreamKey": "Get Stream Key",
+    "tabs": {
+      "youtube": "YouTube",
+      "twitch": "Twitch",
+      "other": "Other"
+    },
     "info": {
       "error": "Error",
       "status": "Status",
