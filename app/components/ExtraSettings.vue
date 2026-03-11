@@ -66,6 +66,11 @@
         <a class="button button--secondary" @click="deleteCookies">
           {{ $t('settings.deleteCookiesAndRestart') }}
         </a>
+        <div class="flex">
+          <a class="button button--secondary" @click="deleteAllCacheDir">
+            {{ $t('settings.deleteAllCacheAndRestart') }}
+          </a>
+        </div>
       </div>
     </toc-section>
 

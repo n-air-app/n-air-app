@@ -4,6 +4,33 @@ import { Component, Prop } from 'vue-property-decorator';
 import Utils from '../../../services/utils';
 import { IObsInput, ObsInput, TObsType } from './ObsInput';
 
+interface IColorPickerOptions {
+  onMouseMoveEnabled?: boolean;
+  showPreview?: boolean;
+  showText?: boolean;
+  previewSize?: number;
+}
+
+interface IColorPickerData {
+  event: 'mouseClick' | 'mouseMove';
+  hex: string;
+}
+
+interface IColorPicker {
+  startColorPicker(
+    callback: (data: IColorPickerData) => void,
+    cancelCallback: () => void,
+    options?: IColorPickerOptions
+  ): void;
+}
+
+let colorPicker: IColorPicker | undefined;
+try {
+  colorPicker = require('color-picker');
+} catch (e) {
+  // color-picker not available
+}
+
 interface IColor {
   r: number;
   g: number;
@@ -25,6 +52,44 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
 
   togglePicker() {
     this.pickerVisible = !this.pickerVisible;
+  }
+
+  handleColorChange(color: any) {
+    this.setValue(color.rgba);
+  }
+
+  startEyedropper() {
+    if (!colorPicker) return;
+
+    colorPicker.startColorPicker(
+      (data) => {
+        if (data.event === 'mouseClick') {
+          const rgb = this.hexToRGB(`#${data.hex}`);
+          this.setValue({ ...rgb, a: 1 });
+          this.pickerVisible = false;
+        }
+      },
+      () => {
+        // Cancel callback
+      },
+      {
+        onMouseMoveEnabled: true,
+        showPreview: true,
+        showText: false,
+        previewSize: 35,
+      },
+    );
+  }
+
+  private hexToRGB(hex: string): { r: number; g: number; b: number } {
+    const h = hex.replace(/^#/, '');
+    if (h.length !== 6) return { r: 0, g: 0, b: 0 };
+
+    return {
+      r: parseInt(h.substring(0, 2), 16),
+      g: parseInt(h.substring(2, 4), 16),
+      b: parseInt(h.substring(4, 6), 16),
+    };
   }
 
   private setValueImpl(rgba: IColor) {

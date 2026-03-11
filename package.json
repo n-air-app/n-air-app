@@ -95,10 +95,7 @@
   "devDependencies": {
     "@babel/core": "^7.28.6",
     "@babel/plugin-proposal-decorators": "^7.28.6",
-    "@babel/plugin-proposal-function-sent": "^7.22.5",
     "@babel/plugin-proposal-throw-expressions": "^7.22.5",
-    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
-    "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/plugin-transform-class-properties": "^7.28.6",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
     "@babel/plugin-transform-json-strings": "^7.28.6",
@@ -154,7 +151,7 @@
     "stylelint-less": "^4.0.0",
     "stylelint-order": "7.0.1",
     "tasklist": "^5.0.0",
-    "terser-webpack-plugin": "^5.3.10",
+    "terser-webpack-plugin": "^5.3.17",
     "tree-kill": "^1.2.2",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.1",
@@ -166,8 +163,7 @@
     "webdriverio": "7.30.2",
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.1.0",
-    "webpack-merge": "^6.0.1"
+    "webpack-dev-server": "^5.1.0"
   },
   "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
   "engines": {

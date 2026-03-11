@@ -422,6 +422,7 @@ export default class CommentViewer extends Vue {
         })
         .then(({ response }) => {
           if (response === 0) {
+            this.nicoliveCommentViewerService.setSoundDetectorEnabled(true);
             this.settingsService.showSoundDetectorSettings();
           } else {
             this.nicoliveCommentViewerService.markSoundDetectorDeclined();

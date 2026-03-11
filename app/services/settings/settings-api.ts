@@ -15,7 +15,6 @@ export type SettingsCategory =
   | 'Hotkeys'
   | 'Advanced'
   | 'Comment'
-  | 'SoundDetector'
   | 'SpeechEngine'
   | 'Developer'
   | 'Scene Collections'

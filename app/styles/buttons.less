@@ -425,7 +425,8 @@ button {
   }
 
   &[data-color='primary'] {
-    --color-base: var(--color-object-accent-primary);
+    --color-base: #70a0af; // MEMO: 定義するまでは既存ボタンに合わせる
+    --color-text: var(--color-object-emphasis-high);
   }
 
   &[data-color='secondary'] {
@@ -433,7 +434,6 @@ button {
   }
 
   &[data-variant='filled'] {
-    --color-text: var(--white);
     --color-border: transparent;
     --color-bg: var(--color-base);
     --color-bg-hover: color-mix(in srgb, var(--color-base) 80%, transparent);

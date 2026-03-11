@@ -278,44 +278,56 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     });
     this.audioSubscriptions = newSourcesMap;
     this.updateSourceMuted();
+    this.updateSourceAvailable();
   }
   unsubscribeAudioSource() {
     this.audioSubscriptions.forEach(sub => sub.unsubscribe());
     this.audioSubscriptions.clear();
     this.updateSourceMuted();
+    this.updateSourceAvailable();
   }
   private sourceMutedSubject: Subject<boolean> = new BehaviorSubject<boolean>(false);
   sourceMuted: Observable<boolean> = this.sourceMutedSubject.asObservable();
   updateSourceMuted() {
-    let muted = true;
-    for (const sourceId of this.audioSubscriptions.keys()) {
-      if (!this.audioService.getSource(sourceId).muted) {
-        muted = false;
-        break;
-      }
-    }
+    const candidates = this.getCandidateWatchSources(this.state.sourceId);
+    // ソースが存在し、すべてミュートされている場合のみ true
+    // ソースが存在しない（シーン切り替えで対象ソースがない場合など）は false
+    const muted = candidates.length > 0 && candidates.every(s => s.muted);
     this.sourceMutedSubject.next(muted);
+  }
+
+  private sourceAvailableSubject: Subject<boolean> = new BehaviorSubject<boolean>(true);
+  sourceAvailable: Observable<boolean> = this.sourceAvailableSubject.asObservable();
+  updateSourceAvailable() {
+    const sourceId = this.state.sourceId;
+    // 'mic'モードや未選択(null)の場合は常に利用可能
+    if (sourceId === null || sourceId === 'mic') {
+      this.sourceAvailableSubject.next(true);
+      return;
+    }
+    const candidates = this.getCandidateWatchSources(sourceId);
+    this.sourceAvailableSubject.next(candidates.length > 0);
   }
 
   getAvailableSources(): AudioSource[] {
     const sources = this.audioService.getVisibleSourcesForCurrentScene();
     return sources;
   }
-  getEffectiveWatchSources(watchSourceId: ISoundDetectorState['sourceId']): AudioSource[] {
+  private getCandidateWatchSources(watchSourceId: ISoundDetectorState['sourceId']): AudioSource[] {
     const sources = this.getAvailableSources();
     if (watchSourceId === null) {
       return [];
     }
-    let filtered: AudioSource[];
     if (watchSourceId === 'mic') {
-      filtered = sources.filter(s =>
+      return sources.filter(s =>
         ['wasapi_input_capture', 'nair-rtvc-source'].includes(s.source.type),
       );
-    } else {
-      filtered = sources.filter(s => s.sourceId === watchSourceId);
     }
+    return sources.filter(s => s.sourceId === watchSourceId);
+  }
+  getEffectiveWatchSources(watchSourceId: ISoundDetectorState['sourceId']): AudioSource[] {
     // mutedなソースは監視対象から除外
-    return filtered.filter(s => !s.muted);
+    return this.getCandidateWatchSources(watchSourceId).filter(s => !s.muted);
   }
 
   get isCalibrated(): boolean {
@@ -335,7 +347,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   }
 
   markDeclined(): void {
-    this.setState({ declined: true });
+    this.setState({ declined: true, enabled: false });
   }
 
   updateSourceId(id: string | null): void {
@@ -345,6 +357,9 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.setState({ soundThresholdDb: db, calibrated: true });
   }
   updateResumeSilenceMs(ms: number): void {
+    if (!Number.isFinite(ms) || ms <= 0) {
+      return;
+    }
     this.setState({ resumeSilenceMs: ms });
   }
   updateSpeechActionOnSoundDetected(action: SpeechActionOnSoundDetected): void {

@@ -1,16 +1,15 @@
 import { SettingsCategory } from 'services/settings/settings-api';
 
 export const CategoryIcons = new Map<SettingsCategory, string>([
-  ['General', 'icon-settings'],
-  ['Stream', 'icon-video'],
+  ['General', 'icon-setting-border'],
+  ['Stream', 'icon-broadcast-border'],
   ['Output', 'icon-output'],
-  ['Video', 'icon-video'],
-  ['Audio', 'icon-speaker'],
-  ['Hotkeys', 'icon-keyboard'],
-  ['Advanced', 'icon-details-setting'],
-  ['Comment', 'icon-comment-setting'],
-  ['SoundDetector', 'icon-sound-fill'],
-  ['SpeechEngine', 'icon-speech-engine'],
+  ['Video', 'icon-broadcast-border'],
+  ['Audio', 'icon-sound-border'],
+  ['Hotkeys', 'icon-shortcut'],
+  ['Advanced', 'icon-setting-border'],
+  ['Comment', 'icon-comment-setting-border'],
+  ['SpeechEngine', 'icon-voice-engine-border'],
   ['SubStream', 'icon-output'],
   ['Transcription', 'icon-text' /* TODO */],
 ] satisfies [SettingsCategory, string][]);

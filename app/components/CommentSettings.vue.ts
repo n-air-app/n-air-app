@@ -17,6 +17,7 @@ import { Component, Watch } from 'vue-property-decorator';
 import IconListSelect from './IconListSelect.vue';
 import Slider from './shared/Slider.vue';
 import TocSection from './shared/TocSection.vue';
+import SoundDetectorSettings from './SoundDetectorSettings.vue';
 
 type MethodObject = {
   text: string;
@@ -41,6 +42,7 @@ type SynthesizerItem = {
     Multiselect,
     Slider,
     IconListSelect,
+    SoundDetectorSettings,
     TocSection,
   },
 })

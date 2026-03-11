@@ -104,6 +104,11 @@ export default defineComponent({
       return props.data![Math.round(index)] ?? props.value;
     };
 
+    const clampValue = (value: number): number => {
+      if (Number.isNaN(value)) return props.value;
+      return Math.min(Math.max(value, actualMin.value), actualMax.value);
+    };
+
     const currentIndex = computed(() => valueToIndex(props.value));
 
     const sliderPercent = computed(() => {
@@ -139,7 +144,7 @@ export default defineComponent({
 
     const updateValue = (inputValue: number) => {
       if (isNaN(inputValue)) return;
-      const newValue = useData.value ? indexToValue(inputValue) : inputValue;
+      const newValue = useData.value ? indexToValue(inputValue) : clampValue(inputValue);
       emit('input', roundNumber(newValue));
     };
 
