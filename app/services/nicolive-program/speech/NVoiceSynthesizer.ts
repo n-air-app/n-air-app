@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/vue';
 import { Speech } from '../nicolive-comment-synthesizer';
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
+import { PrepareFunc } from 'util/QueueRunner';
 
 export interface INVoiceTalker {
   talk(
@@ -11,7 +12,14 @@ export interface INVoiceTalker {
       maxTime: number;
       phonemeCallback?: (phoneme: string) => void;
     },
-  ): Promise<() => Promise<{ cancel: () => void; speaking: Promise<void> } | null>>;
+  ): Promise<
+    () => Promise<{
+      cancel: () => void;
+      pause: () => void;
+      resume: () => void;
+      speaking: Promise<void>;
+    } | null>
+  >;
 }
 
 export class NVoiceSynthesizer implements ISpeechSynthesizer {
@@ -22,7 +30,7 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
     onstart: () => void,
     onend: () => void,
     onPhoneme?: (phoneme: string) => void,
-  ) {
+  ): PrepareFunc {
     return async () => {
       try {
         const start = await this.nVoiceTalker.talk(speech.text, {
@@ -53,6 +61,12 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
             cancel: async () => {
               r.cancel();
               await r.speaking;
+            },
+            pause: () => {
+              r.pause();
+            },
+            resume: () => {
+              r.resume();
             },
             running: r.speaking,
           };

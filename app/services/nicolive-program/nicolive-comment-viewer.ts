@@ -67,12 +67,12 @@ function makeEmulatedChat(
   };
 }
 
-// yarn dev 用: ダミーでコメントを5秒ごとに出し続ける
+// pnpm dev 用: ダミーでコメントを5秒ごとに出し続ける
 class DummyMessageServerClient implements IMessageServerClient {
   connect(): Observable<MessageResponse> {
-    return interval(5000).pipe(
+    return interval(2000).pipe(
       map(res => ({
-        chat: makeEmulatedChat(`${res}`).value,
+        chat: makeEmulatedChat(`${res}番のコメントですよ`).value,
       })),
     );
   }
@@ -142,6 +142,31 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   }
   get speakingSeqId() {
     return this.state.speakingSeqId;
+  }
+
+  get blockingNextSeqId(): number | null {
+    const queueState = this.nicoliveCommentSynthesizerService.state.queueRunnerState;
+    if (!queueState?.disabled || queueState.nextLabel === null) return null;
+    return Number(queueState.nextLabel);
+  }
+
+  enableSoundDetector(enabled: boolean) {
+    this.nicoliveCommentSynthesizerService.enableSoundDetector(enabled);
+  }
+  get isSoundDetectorSourceEnabled(): boolean {
+    return this.nicoliveCommentSynthesizerService.isSoundDetectorSourceEnabled;
+  }
+  get isSoundDetectorCalibrated(): boolean {
+    return this.nicoliveCommentSynthesizerService.isSoundDetectorCalibrated;
+  }
+  get isSoundDetectorDeclined(): boolean {
+    return this.nicoliveCommentSynthesizerService.isSoundDetectorDeclined;
+  }
+  markSoundDetectorDeclined(): void {
+    this.nicoliveCommentSynthesizerService.soundDetectorService.markDeclined();
+  }
+  setSoundDetectorEnabled(enabled: boolean): void {
+    this.nicoliveCommentSynthesizerService.soundDetectorService.setEnabled(enabled);
   }
 
   get filterFn() {
@@ -271,11 +296,12 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     // 予約番組は30分前にならないとURLが来ない
     if (!viewUri) return;
 
+    // 再接続時のみコメントリストをクリアする（番組終了で viewUri が空になる場合はクリアしない）
     this.clearList();
     this.pinComment(null);
 
     if (isFakeMode() && FakeModeConfig.dummyComment) {
-      // yarn dev 時はダミーでコメントを5秒ごとに出し続ける
+      // pnpm dev 時はダミーでコメントを5秒ごとに出し続ける
       this.client = new DummyMessageServerClient();
     } else {
       this.client = new NdgrCommentReceiver(viewUri);
@@ -525,6 +551,8 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
               });
             }
           },
+          false,
+          String(chat.seqId),
         );
       }
     }

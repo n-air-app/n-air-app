@@ -6,19 +6,18 @@ window['eval'] = global.eval = () => {
   throw new Error('window.eval() is disabled for security');
 };
 
-import 'reflect-metadata';
 import Vue from 'vue';
 
 import * as Sentry from '@sentry/electron/renderer';
 import { init as sentryVueInit } from '@sentry/vue';
 import ChildWindow from 'components/windows/ChildWindow.vue';
 import OneOffWindow from 'components/windows/OneOffWindow.vue';
+import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import path from 'path';
 import util from 'util';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
-import VTooltip from 'v-tooltip';
 import VueI18n from 'vue-i18n';
 import * as obs from '../obs-api';
 import { AppService } from './services/app';
@@ -39,11 +38,22 @@ const logFunctions = ['log', 'info', 'warn', 'error'] as const;
 function wrapLogFn(fn: (typeof logFunctions)[number]) {
   const old: Function = console[fn];
   console[fn] = (...args: any[]) => {
-    old.apply(console, args);
+    const fixedArgs = args.map(arg => {
+      try {
+        if (typeof arg === 'object' && arg !== null) {
+          // Vue のプロキシオブジェクトを通常のオブジェクトに変換してログ出力
+          return JSON.parse(JSON.stringify(arg));
+        }
+        return arg;
+      } catch (e) {
+        return `[Error: ${(e as Error).message}]`;
+      }
+    });
+    old.apply(console, fixedArgs);
 
     const level = fn === 'log' ? 'info' : fn;
 
-    sendLogMsg(level, ...args);
+    sendLogMsg(level, ...fixedArgs);
   };
 }
 
@@ -109,9 +119,8 @@ require('./app.less');
 require('./theme.less');
 require('./theme2.less');
 
-// Initiates tooltips and sets their parent wrapper
-Vue.use(VTooltip);
-VTooltip.options.defaultContainer = '#mainWrapper';
+// Initiates tooltips
+Vue.directive('tooltip', tooltipDirective);
 
 // Disable chrome default drag/drop behavior
 document.addEventListener('dragover', event => event.preventDefault());
@@ -176,6 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // await this.obsUserPluginsService.initialize();
 
       // Initialize OBS API
+      // basic.ini が存在しない場合、OBS はデフォルト値(1920x1080)で初期化するため、事前に確認する
+      const fs = remote.require('fs') as typeof import('fs');
+      appService.obsConfigExisted = fs.existsSync(
+        path.join(appService.appDataDirectory, 'basic.ini'),
+      );
+
       const apiResult = obs.NodeObs.OBS_API_initAPI(
         'en-US',
         appService.appDataDirectory,

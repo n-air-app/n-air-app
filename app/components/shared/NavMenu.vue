@@ -13,11 +13,13 @@
   display: flex;
   flex: 0 0 232px;
   flex-direction: column;
-  padding: 8px 0;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) var(--spacing-sm);
   margin: 0;
 
   i {
-    font-size: @font-size5;
+    font-size: var(--font-size-sm);
   }
 }
 </style>
+  

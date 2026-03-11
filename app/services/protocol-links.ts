@@ -7,20 +7,13 @@ import { URL, URLSearchParams } from 'url';
 import { SettingsCategory, SettingsService } from './settings';
 import Utils from './utils';
 
-function protocolHandler(base: string) {
-  return (target: any, methodName: string, descriptor: PropertyDescriptor) => {
-    target.handlers = target.handlers || {};
-    target.handlers[base] = methodName;
-    return descriptor;
-  };
-}
-
 /**
  * Describes a protocol link that was clicked
  */
 interface IProtocolLinkInfo {
   base: string;
   path: string;
+  hash: string;
   query: URLSearchParams;
 }
 
@@ -29,7 +22,9 @@ export class ProtocolLinksService extends Service {
   @Inject() settingsService: SettingsService;
 
   // Maps base URL components to handler function names
-  private handlers: Dictionary<string>;
+  private handlers: Dictionary<string> = {
+    settings: 'openSettings',
+  };
 
   start(argv: string[]) {
     // Check if this instance was started with a protocol link
@@ -48,6 +43,7 @@ export class ProtocolLinksService extends Service {
     const info: IProtocolLinkInfo = {
       base: parsed.host,
       path: parsed.pathname,
+      hash: parsed.hash,
       query: parsed.searchParams,
     };
 
@@ -66,10 +62,9 @@ export class ProtocolLinksService extends Service {
     }
   }
 
-  @protocolHandler('settings')
   private openSettings(info: IProtocolLinkInfo) {
     const category = info.path.replace('/', '') as SettingsCategory;
 
-    this.settingsService.showSettings(category);
+    this.settingsService.showSettings(category, info.hash || undefined);
   }
 }

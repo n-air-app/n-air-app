@@ -2,7 +2,6 @@
  * All services must be registered in this file
  */
 
-export { ExternalApiService } from 'services/api/external-api';
 export { InternalApiService } from 'services/api/internal-api';
 export { IpcServerService } from 'services/api/ipc-server';
 export { JsonrpcService } from 'services/api/jsonrpc';
@@ -53,6 +52,7 @@ export { OutputSettingsService, SettingsService } from 'services/settings';
 export { VideoSettingsService } from 'services/settings-v2';
 export { ShortcutsService } from 'services/shortcuts';
 export { SnackbarService } from 'services/snackbar';
+export { SoundDetectorService } from 'services/sound-detector';
 export { SourceFiltersService } from 'services/source-filters';
 export { Source, SourcesService } from 'services/sources';
 export { MonitorCaptureCroppingService } from 'services/sources/monitor-capture-cropping';
@@ -69,3 +69,4 @@ export { WindowSizeService } from 'services/window-size';
 export { WindowsService } from 'services/windows';
 export { UsageStatisticsService } from './services/usage-statistics';
 export { UserService } from './services/user';
+

@@ -24,7 +24,7 @@ const returnCode = (function main() {
 
     log('project compilation');
     try {
-      execSync('yarn compile:ci');
+      execSync('pnpm run compile:ci');
     } catch (e) {
       err('compilation failed', e);
       return 1;
@@ -33,7 +33,7 @@ const returnCode = (function main() {
     log('tests compilation');
 
     try {
-      execSync('yarn compile-tests');
+      execSync('pnpm run compile-tests');
     } catch (e) {
       err('compilation failed', e);
       return 1;
@@ -41,7 +41,7 @@ const returnCode = (function main() {
 
     log('creating screenshots');
     try {
-      execSync(`yarn ava test-dist/test/screentest/tests`);
+      execSync(`pnpm ava test-dist/test/screentest/tests`);
     } catch (e) {
       err('creating screenshots failed');
       return 1;
@@ -81,8 +81,8 @@ function checkoutBranch(branchName) {
   if (branchName !== 'current') {
     log(`checkout ${branchName}`);
     execSync(`git checkout ${branchName}`);
-    log('run yarn install');
-    execSync('yarn install');
+    log('run pnpm install');
+    execSync('pnpm install');
   }
   fs.writeFileSync(`${CONFIG.dist}/current-branch.txt`, branchName);
 }

@@ -163,3 +163,15 @@ test('service behavior', () => {
 **Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
 **Node Version:** Requires Node.js 22.x LTS
 **Important:** `.npmrc` is configured with `node-linker=hoisted` to maintain flat node_modules structure for native modules that use relative path references in electron-builder packaging
+
+**bin/ lockfile update:** `bin/` is an independent pnpm project (not part of the root workspace). The root `.npmrc` and `pnpm-workspace.yaml` interfere with `cd bin && pnpm install`, causing it to run in the root workspace context instead. To correctly update `bin/pnpm-lock.yaml`, use the `--ignore-workspace` flag from within the `bin/` directory:
+```bash
+cd bin && PNPM_HOME="" pnpm install --ignore-workspace
+# or for updating specific packages:
+cd bin && PNPM_HOME="" pnpm update <package-name> --ignore-workspace
+```
+Also ensure `bin/package.json`'s `packageManager` field matches the root `package.json` to use the same pnpm version.
+
+## Decorators
+
+**Current Status:** See [docs/decorators.md](docs/decorators.md) for decorator usage inventory and Vue 3 migration strategy

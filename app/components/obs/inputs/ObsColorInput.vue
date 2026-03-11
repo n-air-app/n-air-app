@@ -10,9 +10,12 @@
             <input class="colorpicker__input" type="text" readonly :value="hexARGB" />
             <div class="colorpicker__swatch" :style="swatchStyle" />
           </div>
+          <button class="colorpicker__eyedropper" @click="startEyedropper" title="Color picker">
+            <i class="icon-eyedropper-fill" />
+          </button>
           <color-picker
             :value="obsColor"
-            @input="value => setValue(value.rgba)"
+            @input="handleColorChange"
             v-if="pickerVisible"
             class="colorpicker-menu"
           />
@@ -51,6 +54,25 @@
   border-radius: 2px;
 }
 
+.colorpicker__eyedropper {
+  position: absolute;
+  top: 50%;
+  right: 34px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  border: none;
+  opacity: 0.7;
+  transform: translateY(-35%);
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .colorpicker-menu {
   top: 6px;
   z-index: 10;
@@ -59,10 +81,14 @@
   background: @bg-secondary !important;
   border-color: @bg-secondary !important;
   box-shadow: none !important;
-}
 
-.vue-color__editable-input__label {
-  color: @text-primary !important;
+  .vc-sketch-field .vc-input__input {
+    background-color: @bg-primary !important;
+  }
+
+  .vc-input__label {
+    color: @text-primary !important;
+  }
 }
 
 .vue-color__sketch__presets {

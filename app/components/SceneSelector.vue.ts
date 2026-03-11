@@ -14,11 +14,11 @@ import { Component } from 'vue-property-decorator';
 import { Inject } from '../services/core/injector';
 import { Menu } from '../util/menus/Menu';
 import Selector from './Selector.vue';
-import DropdownMenu from './shared/DropdownMenu.vue';
 import HelpTip from './shared/HelpTip.vue';
+import Popper from './shared/Popper.vue';
 
 @Component({
-  components: { Selector, DropdownMenu, HelpTip },
+  components: { Selector, Popper, HelpTip },
 })
 export default class SceneSelector extends Vue {
   @Inject() scenesService: ScenesService;

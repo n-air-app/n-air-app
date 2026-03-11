@@ -6,9 +6,8 @@ import {
 } from 'services/nicolive-program/NicoliveFailure';
 import { FilterRecord, FilterType } from 'services/nicolive-program/ResponseTypes';
 import Vue from 'vue';
-import Popper from 'vue-popperjs';
 import { Component, Watch } from 'vue-property-decorator';
-import Banner from '../shared/banner.vue';
+import Popper from '../shared/Popper.vue';
 
 function isHash(item: FilterRecord): boolean {
   if (item.type !== 'user') return false;
@@ -27,7 +26,6 @@ type FilterByUser = 'all' | 'broadcaster' | 'moderator';
 
 @Component({
   components: {
-    Banner,
     Popper,
   },
 })
@@ -36,7 +34,6 @@ export default class CommentFilter extends Vue {
   private nicoliveCommentFilterService: NicoliveCommentFilterService;
 
   showPopupMenu = false;
-  popper: PopperEvent;
 
   adjusterTooltip = '登録者で絞り込み';
 

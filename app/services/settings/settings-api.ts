@@ -18,10 +18,7 @@ export type SettingsCategory =
   | 'SpeechEngine'
   | 'Developer'
   | 'Scene Collections'
-  | 'API'
   | 'Notifications'
-  | 'Appearance'
-  | 'Experimental'
   | 'StreamSecond'
   | 'SubStream'
   | 'Transcription';
@@ -30,5 +27,6 @@ export interface ISettingsServiceApi {
   getCategories(): SettingsCategory[];
   getSettingsFormData(categoryName: SettingsCategory): ISettingsSubCategory[];
   setSettings(categoryName: SettingsCategory, settingsData: ISettingsSubCategory[]): void;
-  showSettings(categoryName?: SettingsCategory): void;
+  showSettings(categoryName?: SettingsCategory, anchor?: string): void;
+  showSoundDetectorSettings(): void;
 }

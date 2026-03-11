@@ -40,15 +40,12 @@ interface IResource {
 
 // list of modules without type definitions
 declare module 'raven-js/*';
-declare module 'v-tooltip';
 declare module 'traverse';
 declare module 'vue-multiselect';
-// declare module 'unzip-stream';
 declare module 'node-fontinfo';
 declare module '@xkeshi/vue-qrcode';
 declare module 'vue-color';
 
-declare module 'vue-popperjs';
 declare module 'vue-slider-component';
 declare module 'vuedraggable';
 declare module 'font-manager';
@@ -65,7 +62,3 @@ declare module 'emojione';
 // defined in webpack.config.js
 declare const SENTRY_DSN: string;
 declare const SENTRY_MINIDUMP_URL: string;
-
-interface PopperEvent {
-  doClose(): void;
-}
