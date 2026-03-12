@@ -159,7 +159,7 @@
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.1",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.51.0",
+    "typescript-eslint": "8.51.0",
     "vue-eslint-parser": "^9.0.0",
     "vue-loader": "15.11.1",
     "vue-svg-loader": "0.16.0",
