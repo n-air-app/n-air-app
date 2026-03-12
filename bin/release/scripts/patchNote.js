@@ -207,11 +207,12 @@ async function collectNonPRMerges(previousVersion) {
 
     const [, hash, subject] = match;
 
-    // Skip merges into feature branches (these are PR internal syncs)
-    // Example: "Merge branch 'n-air_development' into feature/xyz"
-    // These are already captured by the PR merge that eventually happened
-    // NOTE: This only filters top-level merge commits, not commits within the merged branch
-    if (subject.match(/\sinto\s/)) {
+    // Skip merges from n-air_development (these are already captured by collectPullRequestMerges)
+    // Examples:
+    //   "Merge branch 'n-air_development'"
+    //   "Merge branch 'n-air_development' into n-air_stable"
+    //   "Merge branch 'n-air_development' into dwango-internal-release"
+    if (subject.match(/Merge branch 'n-air_development'/)) {
       continue;
     }
 
