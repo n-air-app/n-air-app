@@ -566,4 +566,53 @@ describe('collectNonPRMerges', () => {
     expect(result).toContain('Merge branch "n-air_development" into hotfix/urgent (ghi789)');
     expect(result).toContain('追加: 新機能追加 (jkl012)');
   });
+
+  test('git logに--first-parentオプションが指定される', async () => {
+    executeCmd.mockReturnValueOnce({ stdout: '' });
+
+    await collectNonPRMerges('1.0.20190826-2');
+
+    // 最初のexecuteCmdの呼び出し引数に--first-parentが含まれることを確認
+    const firstCallArgs = executeCmd.mock.calls[0][0];
+    expect(firstCallArgs).toContain('--first-parent');
+  });
+
+  test('n-air_stableシナリオ: n-air_developmentをマージするコミットのみの場合は空を返す', async () => {
+    // n-air_stableブランチから実行した場合、--first-parentにより
+    // "Merge branch 'n-air_development' into n-air_stable"のみが見える
+    executeCmd.mockReturnValueOnce({
+      stdout: "6a8c236 Merge branch 'n-air_development' into n-air_stable",
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    // intoフィルタにより除外される
+    expect(result).toBe('');
+    // into付きなので親チェック(executeCmd)もsh.execも呼ばれない
+    expect(executeCmd).toHaveBeenCalledTimes(1); // git logのみ
+    expect(execSpy).not.toHaveBeenCalled();
+  });
+
+  test('カスタムメッセージのマージコミットは既存フィルタをすり抜けて出力される（--first-parentが必要な理由）', async () => {
+    // "into"を含まないカスタムメッセージのマージコミットは、
+    // PRマージフィルタにも"into"フィルタにもかからない。
+    // --first-parentなしで n-air_stable から実行すると、
+    // n-air_development 内部のこのようなコミットが拾われてしまっていた。
+    executeCmd
+      .mockReturnValueOnce({
+        stdout: 'abc1234 開発: n-air_developmentとのマージコンフリクトを解決',
+      })
+      .mockReturnValueOnce({
+        stdout: 'abc1234 parent1 parent2', // 2 parents
+      });
+    execSpy.mockReturnValueOnce({
+      code: 0,
+      stdout: '追加: 機能A (def456)',
+    });
+
+    const result = await collectNonPRMerges('1.0.20190826-2');
+
+    // カスタムメッセージのマージは"into"フィルタをすり抜けるため出力される
+    expect(result).toContain('開発: n-air_developmentとのマージコンフリクトを解決 (abc1234)');
+  });
 });

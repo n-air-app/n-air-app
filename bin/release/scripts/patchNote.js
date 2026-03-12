@@ -96,10 +96,12 @@ function writePatchNoteFile(patchNoteFileName, version, contents) {
 /**
  * Get merge commit log since previous version
  * @param {string} previousVersion - Previous version tag
+ * @param {{ firstParent?: boolean }} [options]
  * @returns {string} Git log output
  */
-function gitLog(previousVersion) {
-  return executeCmd(`git log --oneline --merges v${previousVersion}..`, { silent: true }).stdout;
+function gitLog(previousVersion, { firstParent = false } = {}) {
+  const flags = ['--oneline', '--merges', firstParent && '--first-parent'].filter(Boolean).join(' ');
+  return executeCmd(`git log ${flags} v${previousVersion}..`, { silent: true }).stdout;
 }
 
 /**
@@ -183,8 +185,10 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
  * @returns {Promise<string>} Formatted merge commits with their included commits
  */
 async function collectNonPRMerges(previousVersion) {
-  // Get all merge commits since previous version
-  const merges = gitLog(previousVersion);
+  // Using --first-parent avoids traversing into merged branches, which prevents
+  // merge commits internal to PRs (e.g. custom-message conflict resolutions)
+  // from appearing in the output.
+  const merges = gitLog(previousVersion, { firstParent: true });
 
   /** @type {Array<{subject: string, hash: string, includedCommits: string[]}>} */
   const nonPRMerges = [];
