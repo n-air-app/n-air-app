@@ -130,16 +130,10 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       queueRunnerState: null, // 起動時にはnull
     });
 
-    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
-      this.setState({ queueRunnerState });
-    });
-
-    this.queue.state$.pipe(debounceTime(0)).subscribe(() => {
-      if (!this.queue.isRunning) {
-        this.queueBecameIdleSubject.next();
-      }
-    });
-
+    // stateService.updated はBehaviorSubjectなので即座にemitし、
+    // this.state が正しい永続化された値に更新される。
+    // この後に queue.state$ を subscribe することで、setState() 内で
+    // this.state を参照する際に正しい値が使われるようになる。
     this.stateService.updated.subscribe({
       next: persistentState => {
         const newState = {
@@ -149,6 +143,16 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         this.SET_STATE(newState);
         this.syncSoundDetectorSubscription();
       },
+    });
+
+    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
+      this.setState({ queueRunnerState });
+    });
+
+    this.queue.state$.pipe(debounceTime(0)).subscribe(() => {
+      if (!this.queue.isRunning) {
+        this.queueBecameIdleSubject.next();
+      }
     });
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
 
