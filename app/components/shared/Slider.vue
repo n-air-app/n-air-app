@@ -50,7 +50,8 @@
 
 // 値入力欄
 .slider-value-input {
-  width: 60px;
+  width: auto;
+  min-width: 60px;
   margin-left: 10px;
 
   &:disabled {
@@ -150,7 +151,6 @@
   border: 1px solid var(--color-tooltip-border);
   border-radius: 4px;
   transform: translateX(-50%);
-  .transition();
   .shadow();
 }
 </style>
