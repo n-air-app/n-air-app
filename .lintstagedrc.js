@@ -6,7 +6,7 @@ process.env.NODE_OPTIONS = '--max-old-space-size=4096';
 
 module.exports = {
   // TypeScript, JavaScript, Vue ファイル
-  '*.{ts,vue}': ['eslint'],
+  '*.{ts,js,vue}': ['eslint'],
 
   // CSS, Less, Vue スタイル
   '*.{css,less,vue}': ['stylelint'],
