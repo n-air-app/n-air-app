@@ -35,7 +35,6 @@ export { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 export { NicoliveProgramSelectorService } from 'services/nicolive-program/nicolive-program-selector';
 export { NicoliveSupportersService } from 'services/nicolive-program/nicolive-supporters';
 export { NicoliveProgramStateService } from 'services/nicolive-program/state';
-export { NotificationsService } from 'services/notifications';
 export { NVoiceCharacterService } from 'services/nvoice-character';
 export { ObsImporterService } from 'services/obs-importer';
 export { OnboardingService } from 'services/onboarding';
@@ -62,7 +61,6 @@ export { TranscriptionService } from 'services/transcription/transcription';
 export { TranscriptionSourceService } from 'services/transcription/transcription-source';
 export { TranscriptionSourceUsageService } from 'services/transcription/transcription-source-usage';
 export { TransitionsService } from 'services/transitions';
-export { TroubleshooterService } from 'services/troubleshooter';
 export { UuidService } from 'services/uuid';
 export { VideoService } from 'services/video';
 export { WindowSizeService } from 'services/window-size';

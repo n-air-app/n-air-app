@@ -8,7 +8,6 @@ import { $t } from 'services/i18n';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { isOk, NicoliveClient } from 'services/nicolive-program/NicoliveClient';
-import { ENotificationType, INotification, NotificationsService } from 'services/notifications';
 import { SettingsService } from 'services/settings';
 import { EncoderFamily, OptimizedSettings } from 'services/settings/optimizer';
 import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
@@ -69,7 +68,6 @@ export class StreamingService
   @Inject() windowsService: WindowsService;
   @Inject() usageStatisticsService: UsageStatisticsService;
   @Inject() customizationService: CustomizationService;
-  @Inject() notificationsService: NotificationsService;
   @Inject() private nicoliveCommentSynthesizerService: NicoliveCommentSynthesizerService;
   @Inject() private nicoliveProgramService: NicoliveProgramService;
   @Inject() private videoSettingsService: VideoSettingsService;
@@ -688,28 +686,6 @@ export class StreamingService
     return DateTime.fromISO(this.state.streamingStatusTime);
   }
 
-  private sendReconnectingNotification() {
-    const msg = $t('streaming.attemptingToReconnect');
-    const existingReconnectNotif = this.notificationsService
-      .getUnread()
-      .filter((notice: INotification) => notice.message === msg);
-    if (existingReconnectNotif.length !== 0) return;
-    this.notificationsService.push({
-      type: ENotificationType.WARNING,
-      lifeTime: -1,
-      showTime: true,
-      message: $t('streaming.attemptingToReconnect'),
-    });
-  }
-
-  private clearReconnectingNotification() {
-    const notice = this.notificationsService
-      .getAll()
-      .find((notice: INotification) => notice.message === $t('streaming.attemptingToReconnect'));
-    if (!notice) return;
-    this.notificationsService.markAsRead(notice.id);
-  }
-
   private formattedDurationSince(timestamp: DateTime) {
     const duration = DateTime.now().diff(timestamp);
     return duration.shiftTo('hours', 'minutes', 'seconds').toFormat('hh:mm:ss');
@@ -870,11 +846,9 @@ export class StreamingService
       } else if (info.signal === EOBSOutputSignal.Reconnect) {
         this.SET_STREAMING_STATUS(EStreamingState.Reconnecting);
         this.streamingStatusChange.next(EStreamingState.Reconnecting);
-        this.sendReconnectingNotification();
       } else if (info.signal === EOBSOutputSignal.ReconnectSuccess) {
         this.SET_STREAMING_STATUS(EStreamingState.Live);
         this.streamingStatusChange.next(EStreamingState.Live);
-        this.clearReconnectingNotification();
       }
     } else if (info.type === EOBSOutputType.Recording) {
       const nextState = (
