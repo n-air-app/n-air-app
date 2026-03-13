@@ -14,15 +14,8 @@
         :options="value.options"
         label="description"
         track-by="value"
-        :allow-custom="getCustomResolution"
-        @search-change="onSearchChange"
         @input="onInputHandler"
       >
-        <template slot="option" slot-scope="props">
-          <span>
-            {{ props.option.description }}
-          </span>
-        </template>
         <template slot="noResult">
           {{ $t('settings.itemNotFoundMessage') }}
         </template>

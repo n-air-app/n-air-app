@@ -18,4 +18,5 @@ export default class DropdownIcon extends Vue {
   @Prop({ type: Array, required: true }) options: Item[];
   @Prop({ type: Boolean, default: false }) disabled: boolean;
   @Prop({ type: Boolean, default: false }) loading: boolean;
+  @Prop({ type: Boolean, default: false }) searchable: boolean;
 }

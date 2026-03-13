@@ -132,6 +132,7 @@
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
                   data-variant="filled"
+                  :searchable="true"
                 />
                 <button
                   class="action-icon"
@@ -159,6 +160,7 @@
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
                   data-variant="filled"
+                  :searchable="true"
                 />
                 <button
                   class="action-icon"
@@ -187,6 +189,7 @@
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
                   data-variant="filled"
+                  :searchable="true"
                 />
                 <button
                   class="action-icon"

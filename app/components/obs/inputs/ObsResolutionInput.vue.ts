@@ -16,18 +16,6 @@ class ObsResolutionInput extends ObsInput<IObsListInput<TObsValue>> {
     this.emitInput({ ...this.value, value: option.value });
   }
 
-  onSearchChange(value: string) {
-    this.$emit('search-change', value);
-  }
-
-  getCustomResolution(search: string) {
-    const match = search.match(/\d+/g) || [];
-    const width = match[0] || 400;
-    const height = match[1] || 400;
-    const value = `${width}x${height}`;
-    return { value, description: value };
-  }
-
   get currentValue() {
     let option = this.value.options.find(opt => {
       return this.value.value === opt.value;

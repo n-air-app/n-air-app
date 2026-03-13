@@ -2,9 +2,10 @@
   <div
     class="dropdown"
     :class="{ 'dropdown--disabled': disabled, 'dropdown--active': isOpen }"
-    :data-value="value ? getOptionKey(value) : ''"
-    :data-selected-option-label="selectedOption ? getOptionLabel(selectedOption) : ''"
-    @click="toggleDropdown"
+    :data-value="value != null ? getOptionKey(value) : ''"
+    :data-selected-option-label="getOptionLabel(selectedOption)"
+    @click="openDropdown"
+    @focusout="onFocusout"
     v-click-outside="closeDropdown"
   >
     <div class="dropdown__arrow"></div>
@@ -15,22 +16,31 @@
         </slot>
       </div>
       <span v-else class="dropdown__placeholder">{{ placeholder }}</span>
-      <input class="dropdown__input" type="text" readonly :placeholder="isOpen ? '' : placeholder" />
+      <input
+        ref="dropdownInputEl"
+        class="dropdown__input"
+        type="text"
+        readonly
+        :placeholder="isOpen ? '' : placeholder"
+        @focus="openDropdown"
+        @keydown="onKeydown"
+      />
     </div>
-    <div v-if="isOpen" class="dropdown__content-wrapper">
-      <div class="dropdown__menu">
-        <div v-if="searchable || allowCustom" class="dropdown__search" @click.stop>
+    <div v-if="isOpen" class="dropdown__content-wrapper" @mousedown.prevent>
+      <div class="dropdown__menu" ref="menuEl">
+        <div v-if="searchable" class="dropdown__search" @click.stop>
           <input
             ref="searchInputEl"
             type="text"
             class="dropdown__search-input"
             :value="searchQuery"
             @input="onSearchInput"
+            @keydown="onKeydown"
           />
         </div>
         <div v-if="loading" class="dropdown__loading">Loading...</div>
         <div
-          v-for="option in filteredOptions"
+          v-for="(option, index) in filteredOptions"
           :key="getOptionKey(option)"
           class="dropdown__item"
           :data-option-value="getOptionKey(option)"
@@ -38,7 +48,10 @@
         >
           <span
             class="dropdown__option"
-            :class="{ 'dropdown__option--selected': isSelected(option) }"
+            :class="{
+              'dropdown__option--selected': isSelected(option),
+              'dropdown__option--highlighted': highlightedIndex === index,
+            }"
             @click.stop="selectOption(option)"
           >
             <slot name="option" :option="option">
@@ -46,12 +59,10 @@
             </slot>
           </span>
         </div>
-        <div v-if="customOption" class="dropdown__item">
-          <span class="dropdown__option dropdown__option--custom" @click.stop="selectOption(customOption)">
-            {{ getOptionLabel(customOption) }}
-          </span>
-        </div>
-        <div v-if="filteredOptions.length === 0 && !customOption && !loading" class="dropdown__option dropdown__option--disabled">
+        <div
+          v-if="filteredOptions.length === 0 && !loading"
+          class="dropdown__option dropdown__option--disabled"
+        >
           <slot name="noResult">No results found</slot>
         </div>
       </div>
@@ -62,8 +73,8 @@
 <script lang="ts" src="./Dropdown.vue.ts"></script>
 
 <style lang="less">
-@import url('../../styles/index');
-@import url('../../styles/custom-icons');
+@import url("../../styles/index");
+@import url("../../styles/custom-icons");
 
 /* ========================================
  * Base Container & Variants
@@ -84,19 +95,20 @@
   .transition();
 
   &:not(.dropdown--disabled):hover,
-  &:not(.dropdown--disabled):focus {
+  &:not(.dropdown--disabled):focus-within,
+  &:not(.dropdown--disabled).dropdown--active {
     border-color: var(--color-border-hover);
   }
 
   // Variant: デフォルト（背景透明）
-  &[data-variant='default'] {
+  &[data-variant="default"] {
     --color-border: var(--color-border-emphasis-low);
     --color-border-hover: var(--color-border-emphasis-medium);
     --color-bg: transparent;
   }
 
   // Variant: 塗りつぶし
-  &[data-variant='filled'] {
+  &[data-variant="filled"] {
     --color-border: transparent;
     --color-border-hover: var(--color-border-emphasis-medium);
     --color-bg: var(--color-surface-secondary);
@@ -146,6 +158,7 @@
   position: static !important;
   width: 100% !important;
   color: var(--color-text);
+  outline: none !important;
   background-color: transparent !important;
   border: none !important;
 
@@ -229,6 +242,12 @@
     font-weight: @font-weight-bold;
     color: var(--color-black);
     background: var(--color-primary);
+  }
+
+  // キーボードハイライト
+  &--highlighted:not(.dropdown__option--selected) {
+    color: var(--color-text-light);
+    background: var(--color-bg-active);
   }
 
   // 無効

@@ -136,23 +136,21 @@ export default defineComponent({
             type: Boolean,
             default: false,
         },
-        // カスタム選択肢生成関数（検索テキストからオプションを生成して追加表示）
-        allowCustom: {
-            type: Function as PropType<((search: string) => any) | null>,
-            default: null,
-        },
     },
     setup(props, { emit }) {
         const isOpen = ref(false);
         const searchQuery = ref('');
         const searchInputEl = ref<HTMLInputElement | null>(null);
+        const dropdownInputEl = ref<HTMLInputElement | null>(null);
+        const menuEl = ref<HTMLElement | null>(null);
+        const highlightedIndex = ref(-1);
 
         // オプション比較ロジック
         // trackBy指定時: 指定プロパティで比較
         // trackBy未指定: 参照比較（オブジェクトの場合はtrackByの指定を推奨）
         const compareOptions = (opt1: any, opt2: any): boolean => {
             if (opt1 === opt2) return true;
-            if (!opt1 || !opt2) return false;
+            if (opt1 == null || opt2 == null) return false;
 
             if (props.trackBy && typeof opt1 === 'object' && typeof opt2 === 'object') {
                 return opt1[props.trackBy] === opt2[props.trackBy];
@@ -162,7 +160,7 @@ export default defineComponent({
 
         // 選択中のオプション
         const selectedOption = computed(() => {
-            if (!props.value) return null;
+            if (props.value == null) return null;
             return props.options.find(opt => compareOptions(opt, props.value)) || props.value;
         });
 
@@ -170,7 +168,7 @@ export default defineComponent({
         // label指定時: 指定プロパティを使用
         // label未指定: 文字列化（オブジェクトの場合はlabelの指定を推奨）
         const getOptionLabel = (option: any): string => {
-            if (!option) return '';
+            if (option == null) return '';
             if (props.label && typeof option === 'object') return option[props.label];
             return String(option);
         };
@@ -185,7 +183,7 @@ export default defineComponent({
 
         // オプションが選択されているか判定
         const isSelected = (option: any): boolean => {
-            return !!props.value && compareOptions(option, props.value);
+            return props.value != null && compareOptions(option, props.value);
         };
 
         // 検索で絞り込んだ選択肢（searchable=true のときのみフィルタリング）
@@ -195,16 +193,13 @@ export default defineComponent({
             return props.options.filter(opt => getOptionLabel(opt).toLowerCase().includes(q));
         });
 
-        // カスタム選択肢（allowCustom が指定されていて検索テキストがある場合）
-        const customOption = computed(() => {
-            if (!props.allowCustom || !searchQuery.value) return null;
-            return props.allowCustom(searchQuery.value);
-        });
+        // キーボードナビゲーション用の選択肢一覧
+        const navigableOptions = computed(() => filteredOptions.value);
 
-        // ドロップダウンの開閉
-        const toggleDropdown = () => {
+        // ドロップダウンを開く（クリック・ Tab フォーカス共通）
+        const openDropdown = () => {
             if (!props.disabled) {
-                isOpen.value = !isOpen.value;
+                isOpen.value = true;
             }
         };
 
@@ -219,13 +214,73 @@ export default defineComponent({
             emit('search-change', searchQuery.value);
         };
 
-        // ドロップダウンが開いたとき検索入力にフォーカス
+        // ドロップダウンが開いたとき入力にフォーカス、閉じたらハイライトをリセット
         watch(isOpen, async (newVal) => {
-            if (newVal && (props.searchable || props.allowCustom)) {
+            if (newVal) {
+                highlightedIndex.value = navigableOptions.value.findIndex(opt =>
+                    compareOptions(opt, props.value),
+                );
                 await nextTick();
-                searchInputEl.value?.focus();
+                if (props.searchable) {
+                    searchInputEl.value?.focus();
+                } else {
+                    dropdownInputEl.value?.focus();
+                }
+            } else {
+                highlightedIndex.value = -1;
             }
         });
+
+        // 検索でフィルタが変わったらハイライトをリセット
+        watch(filteredOptions, () => {
+            highlightedIndex.value = -1;
+        });
+
+        // ハイライトが変わったらスクロール
+        watch(highlightedIndex, async (idx) => {
+            if (idx < 0) return;
+            await nextTick();
+            if (!menuEl.value) return;
+            const items = menuEl.value.querySelectorAll<HTMLElement>('.dropdown__item');
+            items[idx]?.scrollIntoView({ block: 'nearest' });
+        });
+
+        // キーボードナビゲーション
+        const onKeydown = (e: KeyboardEvent) => {
+            if (!isOpen.value) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!props.disabled) isOpen.value = true;
+                }
+                return;
+            }
+            // 選択肢が開いているとき
+            const total = navigableOptions.value.length;
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    highlightedIndex.value = Math.min(highlightedIndex.value + 1, total - 1);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    highlightedIndex.value = Math.max(highlightedIndex.value - 1, 0);
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (highlightedIndex.value >= 0 && highlightedIndex.value < total) {
+                        selectOption(navigableOptions.value[highlightedIndex.value]);
+                    } else {
+                        closeDropdown();
+                    }
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    closeDropdown();
+                    break;
+            }
+        };
 
         // オプション選択
         const selectOption = (option: any) => {
@@ -233,20 +288,31 @@ export default defineComponent({
             closeDropdown();
         };
 
+        // コンポーネント外にフォーカスが移ったら閉じる
+        const onFocusout = (e: FocusEvent) => {
+            if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+                closeDropdown();
+            }
+        };
+
         return {
             isOpen,
             searchQuery,
             searchInputEl,
+            dropdownInputEl,
+            menuEl,
+            highlightedIndex,
             selectedOption,
             filteredOptions,
-            customOption,
             getOptionLabel,
             getOptionKey,
             isSelected,
-            toggleDropdown,
+            openDropdown,
             closeDropdown,
             selectOption,
             onSearchInput,
+            onKeydown,
+            onFocusout,
         };
     },
 });

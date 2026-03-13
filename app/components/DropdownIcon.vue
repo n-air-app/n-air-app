@@ -7,6 +7,7 @@
     track-by="id"
     :disabled="disabled"
     :loading="loading"
+    :searchable="searchable"
   >
     <template slot="singleLabel" slot-scope="p">
       <div class="voption">
