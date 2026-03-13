@@ -196,6 +196,9 @@ export default defineComponent({
         // キーボードナビゲーション用の選択肢一覧
         const navigableOptions = computed(() => filteredOptions.value);
 
+        // data-value 属性用
+        const dataValue = computed(() => (props.value != null ? String(getOptionKey(props.value)) : ''));
+
         // ドロップダウンを開く（クリック・ Tab フォーカス共通）
         const openDropdown = () => {
             if (!props.disabled) {
@@ -298,6 +301,7 @@ export default defineComponent({
         return {
             isOpen,
             searchQuery,
+            dataValue,
             searchInputEl,
             dropdownInputEl,
             menuEl,

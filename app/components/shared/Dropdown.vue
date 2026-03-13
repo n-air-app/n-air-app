@@ -2,7 +2,7 @@
   <div
     class="dropdown"
     :class="{ 'dropdown--disabled': disabled, 'dropdown--active': isOpen }"
-    :data-value="value != null ? getOptionKey(value) : ''"
+    :data-value="dataValue"
     :data-selected-option-label="getOptionLabel(selectedOption)"
     @click="openDropdown"
     @focusout="onFocusout"
