@@ -103,14 +103,12 @@
   // Variant: デフォルト（背景透明）
   &[data-variant="default"] {
     --color-border: var(--color-border-emphasis-low);
-    --color-border-hover: var(--color-border-emphasis-medium);
     --color-bg: transparent;
   }
 
   // Variant: 塗りつぶし
   &[data-variant="filled"] {
     --color-border: transparent;
-    --color-border-hover: var(--color-border-emphasis-medium);
     --color-bg: var(--color-surface-secondary);
   }
 }

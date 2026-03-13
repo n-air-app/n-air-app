@@ -28,7 +28,6 @@
 
 <style lang="less" scoped>
 @import url('../styles/index');
-@item-height: 36px;
 
 .voption {
   display: flex;
@@ -40,19 +39,10 @@
   }
 }
 
-.dropdown {
-  min-height: @item-height;
-}
-
 /deep/ .dropdown__single {
   .voption span {
     height: 100%;
     .text-ellipsis();
   }
-}
-
-/deep/ .dropdown__option {
-  height: @item-height;
-  line-height: @item-height;
 }
 </style>
