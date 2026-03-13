@@ -11,13 +11,14 @@
       <div class="spinner-spacer" />
     </div>
     <div class="child-window-content">
-      <component
-        v-for="(component, index) in components"
-        :key="`${component.name}-${index}`"
-        v-if="component.name"
-        v-show="component.isShown"
-        :is="component.name"
-      />
+      <template v-for="(component, index) in components">
+        <component
+          v-if="component.name"
+          :key="`${component.name}-${index}`"
+          v-show="component.isShown"
+          :is="component.name"
+        />
+      </template>
     </div>
   </div>
 </template>
