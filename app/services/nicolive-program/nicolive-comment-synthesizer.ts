@@ -130,16 +130,8 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       queueRunnerState: null, // 起動時にはnull
     });
 
-    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
-      this.setState({ queueRunnerState });
-    });
-
-    this.queue.state$.pipe(debounceTime(0)).subscribe(() => {
-      if (!this.queue.isRunning) {
-        this.queueBecameIdleSubject.next();
-      }
-    });
-
+    // setState() は SET_STATE() も呼ぶため this.state が即時更新される。
+    // stateService.updated は外部からの設定変更(例: 別プロセスからの同期)を反映するために subscribe する。
     this.stateService.updated.subscribe({
       next: persistentState => {
         const newState = {
@@ -149,6 +141,16 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         this.SET_STATE(newState);
         this.syncSoundDetectorSubscription();
       },
+    });
+
+    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
+      this.setState({ queueRunnerState });
+    });
+
+    this.queue.state$.pipe(debounceTime(0)).subscribe(() => {
+      if (!this.queue.isRunning) {
+        this.queueBecameIdleSubject.next();
+      }
     });
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
 
@@ -495,6 +497,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
   private setState(partialState: Partial<ICommentSynthesizerState>) {
     const nextState = { ...this.state, ...partialState };
+    this.SET_STATE(nextState);
     this.stateService.updateSpeechSynthesizerSettings(nextState);
   }
 
