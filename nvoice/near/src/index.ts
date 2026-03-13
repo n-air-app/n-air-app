@@ -41,11 +41,18 @@ addEventListener('visibilitychange', () => {
 type AvatarStyle = 'standing1' | 'standing2';
 const style: AvatarStyle = (params.get('style') as AvatarStyle) || 'standing1';
 
-interface StyleConfig {
-  useLayeredImages: boolean;
+interface SingleLayerStyleConfig {
+  useLayeredImages: false;
   imageFilenames: Record<string, string>;
-  mouthFilenames?: Record<string, string>;
-  eyesFilenames?: {
+  blinkSequence: string[];
+  defaultImages: string[];
+}
+
+interface LayeredStyleConfig {
+  useLayeredImages: true;
+  imageFilenames: Record<string, string>;
+  mouthFilenames: Record<string, string>;
+  eyesFilenames: {
     idle: string;
     read: string;
     closedIdle: string;
@@ -54,6 +61,8 @@ interface StyleConfig {
   blinkSequence: string[];
   defaultImages: string[];
 }
+
+type StyleConfig = SingleLayerStyleConfig | LayeredStyleConfig;
 
 const styleConfigs: Record<AvatarStyle, StyleConfig> = {
   standing1: {
@@ -118,7 +127,7 @@ if (config.useLayeredImages) {
   mouth.hidden = false;
   mouth.src = config.defaultImages[Math.floor(Math.random() * config.defaultImages.length)];
   eyes.hidden = false;
-  eyes.src = config.eyesFilenames!.idle;
+  eyes.src = config.eyesFilenames.idle;
 } else {
   // standing1: full-body image mode
   image.src = config.defaultImages[Math.floor(Math.random() * config.defaultImages.length)];
@@ -140,7 +149,7 @@ function timer_set() {
       const randomMouth = config.defaultImages[Math.floor(Math.random() * config.defaultImages.length)];
       mouth.src = randomMouth;
       // Update eyes to idle state
-      eyes.src = config.eyesFilenames!.idle;
+      eyes.src = config.eyesFilenames.idle;
     } else {
       // standing1: reset to random full-body image
       const randomImage = config.defaultImages[Math.floor(Math.random() * config.defaultImages.length)];
@@ -167,11 +176,11 @@ if (socket) {
     if (config.useLayeredImages) {
       // standing2: update mouth layer and set reading state
       isReading = true;
-      if (config.mouthFilenames![phoneme as keyof typeof config.mouthFilenames]) {
-        mouth.src = config.mouthFilenames![phoneme as keyof typeof config.mouthFilenames];
+      if (config.mouthFilenames[phoneme]) {
+        mouth.src = config.mouthFilenames[phoneme];
       }
       // Update eyes to reading state
-      eyes.src = config.eyesFilenames!.read;
+      eyes.src = config.eyesFilenames.read;
     } else {
       // standing1: update full-body image
       if (config.imageFilenames[phoneme as keyof typeof config.imageFilenames]) {
@@ -197,10 +206,10 @@ setInterval(() => {
           // standing2: 3-frame blink (A-B-A) with state-aware eyes
           if (config.blinkSequence[blinkIndex] === 'B') {
             // Closed eyes
-            eyes.src = isReading ? config.eyesFilenames!.closedRead : config.eyesFilenames!.closedIdle;
+            eyes.src = isReading ? config.eyesFilenames.closedRead : config.eyesFilenames.closedIdle;
           } else {
             // Open eyes
-            eyes.src = isReading ? config.eyesFilenames!.read : config.eyesFilenames!.idle;
+            eyes.src = isReading ? config.eyesFilenames.read : config.eyesFilenames.idle;
           }
         } else {
           // standing1: 5-frame blink (A-B-C-B-A) with overlay
