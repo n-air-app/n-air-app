@@ -700,8 +700,9 @@ export class StreamingService
     this.transcriptionService.startStreaming();
   }
 
-  private logStreamEnd() {
+  logStreamEnd() {
     const streamingTrackId = this.state.streamingTrackId;
+    if (!streamingTrackId) return;
     this.SET_STREAMING_TRACK_ID('');
     this.actionLog('stream_end', streamingTrackId);
     this.customcastUsageService.stopStreaming();
