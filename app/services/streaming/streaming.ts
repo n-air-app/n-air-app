@@ -700,16 +700,16 @@ export class StreamingService
     this.transcriptionService.startStreaming();
   }
 
-  logStreamEnd() {
+  async logStreamEnd(): Promise<void> {
     const streamingTrackId = this.state.streamingTrackId;
     if (!streamingTrackId) return;
     this.SET_STREAMING_TRACK_ID('');
-    this.actionLog('stream_end', streamingTrackId);
+    await this.actionLog('stream_end', streamingTrackId);
     this.customcastUsageService.stopStreaming();
     this.rtvcStateService.stopStreaming();
     this.transcriptionService.stopStreaming();
 
-    HttpRelation.sendLog(
+    await HttpRelation.sendLog(
       this.nicoliveProgramService.state.programID,
       this.usageStatisticsService.uuidService.uuid,
       this.nicoliveProgramStateService.state.httpRelation,
@@ -805,7 +805,7 @@ export class StreamingService
     }
     event.soundDetector = this.soundDetectorService.getActionLog();
 
-    this.usageStatisticsService.recordEvent(event);
+    return this.usageStatisticsService.recordEvent(event);
   }
 
   private outputErrorOpen = false;
