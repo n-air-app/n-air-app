@@ -17,6 +17,7 @@ import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import * as obs from '../../../obs-api';
 import { CustomcastUsageService } from '../custom-cast-usage';
+import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
 import { IStreamingSetting } from '../platforms';
 import { extractPlatform } from './extractPlatform';
 import {
@@ -79,6 +80,7 @@ export class StreamingService
   @Inject() private subStreamService: SubStreamService;
   @Inject() private transcriptionService: TranscriptionService;
   @Inject() private soundDetectorService: SoundDetectorService;
+  @Inject() private nVoiceCharacterUsageService: NVoiceCharacterUsageService;
 
   streamingStatusChange = new Subject<EStreamingState>();
   recordingStatusChange = new Subject<ERecordingState>();
@@ -722,6 +724,7 @@ export class StreamingService
     this.customcastUsageService.startStreaming();
     this.rtvcStateService.startStreaming();
     this.transcriptionService.startStreaming();
+    this.nVoiceCharacterUsageService.startStreaming();
   }
 
   private logStreamEnd() {
@@ -827,6 +830,13 @@ export class StreamingService
       event.transcription = this.transcriptionService.getActionLog();
     }
     event.soundDetector = this.soundDetectorService.getActionLog();
+
+    if (eventType === 'stream_end') {
+      const nvoiceLog = this.nVoiceCharacterUsageService.getActionLog();
+      if (nvoiceLog.used) {
+        event.nvoiceCharacter = nvoiceLog;
+      }
+    }
 
     this.usageStatisticsService.recordEvent(event);
   }

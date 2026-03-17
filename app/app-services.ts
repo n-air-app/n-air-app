@@ -37,6 +37,7 @@ export { NicoliveSupportersService } from 'services/nicolive-program/nicolive-su
 export { NicoliveProgramStateService } from 'services/nicolive-program/state';
 export { NotificationsService } from 'services/notifications';
 export { NVoiceCharacterService } from 'services/nvoice-character';
+export { NVoiceCharacterUsageService } from 'services/nvoice-character-usage';
 export { ObsImporterService } from 'services/obs-importer';
 export { OnboardingService } from 'services/onboarding';
 export { PatchNotesService } from 'services/patch-notes';
