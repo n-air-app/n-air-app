@@ -716,7 +716,7 @@ export class StreamingService
     );
   }
 
-  private actionLog(eventType: 'stream_start' | 'stream_end', streamingTrackId: string) {
+  private actionLog(eventType: 'stream_start' | 'stream_end', streamingTrackId: string): Promise<Response | undefined> {
     const settings = this.settingsService.getStreamEncoderSettings();
 
     const voicevoxFilter = (src: SynthesizerSelector, value: string) =>
