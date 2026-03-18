@@ -708,7 +708,9 @@ export class StreamingService
     const streamingTrackId = this.state.streamingTrackId;
     if (!streamingTrackId) return Promise.resolve();
     this.SET_STREAMING_TRACK_ID('');
-    this.logStreamEndPromise = this.sendLogStreamEnd(streamingTrackId);
+    this.logStreamEndPromise = this.sendLogStreamEnd(streamingTrackId).finally(() => {
+      this.logStreamEndPromise = null;
+    });
     return this.logStreamEndPromise;
   }
 
