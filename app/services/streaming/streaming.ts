@@ -700,10 +700,19 @@ export class StreamingService
     this.transcriptionService.startStreaming();
   }
 
-  async logStreamEnd(): Promise<void> {
+  private logStreamEndPromise: Promise<void> | null = null;
+
+  logStreamEnd(): Promise<void> {
+    // すでに実行中のPromiseがあればそれを返す（OBSシグナルとshutdownの両方から呼ばれた場合も同じPromiseを待てる）
+    if (this.logStreamEndPromise !== null) return this.logStreamEndPromise;
     const streamingTrackId = this.state.streamingTrackId;
-    if (!streamingTrackId) return;
+    if (!streamingTrackId) return Promise.resolve();
     this.SET_STREAMING_TRACK_ID('');
+    this.logStreamEndPromise = this.sendLogStreamEnd(streamingTrackId);
+    return this.logStreamEndPromise;
+  }
+
+  private async sendLogStreamEnd(streamingTrackId: string): Promise<void> {
     await this.actionLog('stream_end', streamingTrackId);
     this.customcastUsageService.stopStreaming();
     this.rtvcStateService.stopStreaming();
