@@ -45,6 +45,6 @@ export default class GenericFormGroups extends Vue {
 
   get isSimpleCategory(): boolean {
     // Categories with few settings that don't need TOC
-    return ['Stream', 'Audio', 'Video'].includes(this.category);
+    return ['Stream', 'Audio', 'Video', 'General', 'Output'].includes(this.category);
   }
 }
