@@ -691,10 +691,10 @@ export class StreamingService
     return duration.shiftTo('hours', 'minutes', 'seconds').toFormat('hh:mm:ss');
   }
 
-  private logStreamStart() {
+  private async logStreamStart() {
     const streamingTrackId = this.usageStatisticsService.generateStreamingTrackID();
     this.SET_STREAMING_TRACK_ID(streamingTrackId);
-    this.actionLog('stream_start', streamingTrackId);
+    await this.actionLog('stream_start', streamingTrackId);
     this.customcastUsageService.startStreaming();
     this.rtvcStateService.startStreaming();
     this.transcriptionService.startStreaming();
@@ -833,7 +833,7 @@ export class StreamingService
           this.startReplayBuffer();
         }
 
-        this.logStreamStart();
+        void this.logStreamStart(); // fire-and-forget: シグナルコールバックはawaitできないため
       } else if (info.signal === EOBSOutputSignal.Starting) {
         this.SET_STREAMING_STATUS(EStreamingState.Starting, time);
         this.streamingStatusChange.next(EStreamingState.Starting);
@@ -843,7 +843,7 @@ export class StreamingService
       } else if (info.signal === EOBSOutputSignal.Stopping) {
         this.SET_STREAMING_STATUS(EStreamingState.Ending, time);
         this.streamingStatusChange.next(EStreamingState.Ending);
-        this.logStreamEnd();
+        void this.logStreamEnd(); // fire-and-forget: シグナルコールバックはawaitできないため
       } else if (info.signal === EOBSOutputSignal.Reconnect) {
         this.SET_STREAMING_STATUS(EStreamingState.Reconnecting);
         this.streamingStatusChange.next(EStreamingState.Reconnecting);
