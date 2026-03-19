@@ -211,6 +211,16 @@ export default defineComponent({
             searchQuery.value = '';
         };
 
+        const toggleDropdown = () => {
+            if (!props.disabled) {
+                if (isOpen.value) {
+                    closeDropdown();
+                } else {
+                    isOpen.value = true;
+                }
+            }
+        };
+
         // 検索入力ハンドラ
         const onSearchInput = (e: Event) => {
             searchQuery.value = (e.target as HTMLInputElement).value;
@@ -313,6 +323,7 @@ export default defineComponent({
             isSelected,
             openDropdown,
             closeDropdown,
+            toggleDropdown,
             selectOption,
             onSearchInput,
             onKeydown,

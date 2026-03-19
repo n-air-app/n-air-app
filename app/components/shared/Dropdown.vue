@@ -4,12 +4,12 @@
     :class="{ 'dropdown--disabled': disabled, 'dropdown--active': isOpen }"
     :data-value="dataValue"
     :data-selected-option-label="getOptionLabel(selectedOption)"
-    @click="openDropdown"
+    @click="toggleDropdown"
     @focusout="onFocusout"
     v-click-outside="closeDropdown"
   >
     <div class="dropdown__arrow"></div>
-    <div class="dropdown__value">
+    <div class="dropdown__value" @mousedown.prevent>
       <div v-if="selectedOption" class="dropdown__single">
         <slot name="singleLabel" :option="selectedOption">
           {{ getOptionLabel(selectedOption) }}
