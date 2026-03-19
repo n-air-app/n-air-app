@@ -36,7 +36,6 @@ jest.mock('@electron/remote', () => ({
 jest.mock('services/customization', () => ({}));
 jest.mock('services/user', () => ({}));
 jest.mock('util/menus/Menu', () => ({}));
-jest.mock('services/notifications', () => ({}));
 jest.mock('services/nicolive-program/nicolive-program', () => ({}));
 jest.mock('services/nicolive-program/nicolive-comment-synthesizer', () => ({}));
 jest.mock('services/custom-cast-usage', () => ({}));
@@ -94,6 +93,7 @@ const createInjectee = ({
   UsageStatisticsService: {
     recordEvent,
     generateStreamingTrackID,
+    uuidService: { uuid: 'test-uuid' },
   },
   CustomizationService: {
     state: {
@@ -827,4 +827,76 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
 
   expect(instance.optimizeForNiconicoAndStartStreaming).not.toHaveBeenCalled();
   expect(instance.toggleStreaming).not.toHaveBeenCalled();
+});
+
+test('logStreamEndがstreamingTrackIdが設定されている場合にstream_endを送信する', () => {
+  const recordEvent = jest.fn();
+  setup({
+    injectee: createInjectee({
+      recordEvent,
+      generateStreamingTrackID: () => 'test-track-id',
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Live,
+        streamingTrackId: 'test-track-id',
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance;
+
+  instance.logStreamEnd();
+
+  expect(recordEvent).toHaveBeenCalledWith(
+    expect.objectContaining({
+      event: 'stream_end',
+      stream_track_id: 'test-track-id',
+    }),
+  );
+});
+
+test('logStreamEndがstreamingTrackIdが空の場合に何もしない', () => {
+  const recordEvent = jest.fn();
+  setup({
+    injectee: createInjectee({ recordEvent }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Starting,
+        streamingTrackId: '',
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance;
+
+  instance.logStreamEnd();
+
+  expect(recordEvent).not.toHaveBeenCalled();
+});
+
+test('logStreamEndが冪等である（2回呼んでもrecordEventは1回のみ）', () => {
+  const recordEvent = jest.fn();
+  setup({
+    injectee: createInjectee({
+      recordEvent,
+      generateStreamingTrackID: () => 'test-track-id',
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Live,
+        streamingTrackId: 'test-track-id',
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance;
+
+  instance.logStreamEnd();
+  instance.logStreamEnd();
+
+  expect(recordEvent).toHaveBeenCalledTimes(1);
 });

@@ -53,7 +53,7 @@ export async function setSliderPercent(
   index = 0,
 ) {
   const $el = t.context.app.client.$$(`label=${label}`)[index];
-  const $slider = $el.$('../..').$('.vue-slider');
+  const $slider = $el.$('../..').$('.native-slider, .slider-input-range');
 
   const width = await $slider.getCSSProperty('width');
 

@@ -32,7 +32,6 @@
         <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <notifications-settings v-if="categoryName === 'Notifications'" />
         <comment-settings v-if="categoryName === 'Comment'" />
         <speech-engine-settings v-if="categoryName === 'SpeechEngine'" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
@@ -41,7 +40,6 @@
           v-if="
             ![
               'Hotkeys',
-              'Notifications',
               'Comment',
               'SpeechEngine',
               'SubStream',

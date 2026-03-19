@@ -73,12 +73,8 @@
     text-align: right;
   }
 
-  .slider {
-    flex: 1;
-  }
-
-  &.muted .slider {
-    opacity: 0.4;
+  &.muted /deep/ .slider-input-range {
+    opacity: @opacity-disabled;
   }
 
   .controls {

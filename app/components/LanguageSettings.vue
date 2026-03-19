@@ -1,11 +1,11 @@
 <template>
-  <toc-section :title="$t('common.language')">
+  <div>
     <div class="section">
       <div class="section-content">
         <GenericForm :value="settings" @input="save"></GenericForm>
       </div>
     </div>
-  </toc-section>
+  </div>
 </template>
 
 <script lang="ts" src="./LanguageSettings.vue.ts"></script>
