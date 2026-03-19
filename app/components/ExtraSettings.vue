@@ -1,6 +1,6 @@
 <template>
   <div>
-    <toc-section v-if="isNiconicoLoggedIn()" :title="$t('settings.optimizationForNiconicoLiveService')" :visible="isNiconicoLoggedIn()">
+    <div v-if="isNiconicoLoggedIn()">
       <div class="section">
         <div class="input-label">
           <label>{{ $t('settings.optimizationForNiconicoLiveService') }}</label>
@@ -19,9 +19,9 @@
           class="optional-item"
         />
       </div>
-    </toc-section>
+    </div>
 
-    <toc-section :title="$t('settings.compactMode')">
+    <div>
       <div class="section">
         <div class="input-label">
           <label>{{ $t('settings.compactMode') }}</label>
@@ -30,9 +30,9 @@
         <ObsBoolInput :value="showAutoCompactDialogModel" @input="setShowAutoCompactDialog" />
         <ObsBoolInput :value="compactAlwaysOnTopModel" @input="setCompactAlwaysOnTop" />
       </div>
-    </toc-section>
+    </div>
 
-    <toc-section :title="$t('settings.cacheManagement')">
+    <div>
       <div class="section">
         <div class="input-label">
           <label>{{ $t('settings.cacheManagement') }}</label>
@@ -72,9 +72,9 @@
           </a>
         </div>
       </div>
-    </toc-section>
+    </div>
 
-    <toc-section :title="$t('settings.pollingPerformanceStatistics')">
+    <div>
       <div class="section">
         <ObsBoolInput
           :value="pollingPerformanceStatisticsModel"
@@ -82,7 +82,7 @@
         />
         <p>{{ $t('settings.pollingPerformanceStatisticsDescription') }}</p>
       </div>
-    </toc-section>
+    </div>
   </div>
 </template>
 

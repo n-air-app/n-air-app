@@ -1,6 +1,6 @@
 <template>
   <div class="setting-section">
-    <toc-section :title="$t('settings.transcription.enable')">
+    <div>
       <div class="section">
         <div class="input-container">
           <div class="input-wrapper">
@@ -26,8 +26,8 @@
           {{ $t('settings.transcription.help.afterLink') }}
         </p>
       </div>
-    </toc-section>
-    <toc-section :title="$t('settings.transcription.audioSettings')">
+    </div>
+    <div>
       <div class="section">
         <div class="input-label section-heading">
           <label>{{ $t('settings.transcription.audioSettings') }}</label>
@@ -87,8 +87,8 @@
           </div>
         </div>
       </div>
-    </toc-section>
-    <toc-section :title="$t('settings.transcription.displaySettings')">
+    </div>
+    <div>
       <div class="section">
         <div class="input-label section-heading">
           <label>{{ $t('settings.transcription.displaySettings') }}</label>
@@ -183,7 +183,7 @@
           </div>
         </div>
       </div>
-    </toc-section>
+    </div>
   </div>
 </template>
 

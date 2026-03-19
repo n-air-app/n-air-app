@@ -35,11 +35,8 @@ interface TocSectionData {
 
 // 目次を持っているカテゴリ
 const CATEGORIES_WITH_TOC: string[] = [
-  'General',
-  'Output',
   'Hotkeys',
   'Advanced',
-  'Transcription',
   'Comment',
 ];
 
