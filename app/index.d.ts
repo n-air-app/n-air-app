@@ -46,7 +46,6 @@ declare module 'node-fontinfo';
 declare module '@xkeshi/vue-qrcode';
 declare module 'vue-color';
 
-declare module 'vue-slider-component';
 declare module 'vuedraggable';
 declare module 'font-manager';
 declare module 'recursive-readdir';

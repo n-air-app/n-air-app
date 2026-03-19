@@ -108,9 +108,6 @@ importers:
       vue-property-decorator:
         specifier: 7.3.0
         version: 7.3.0
-      vue-slider-component:
-        specifier: 2.8.16
-        version: 2.8.16
       vuedraggable:
         specifier: 2.24.3
         version: 2.24.3
@@ -7100,9 +7097,6 @@ packages:
 
   vue-property-decorator@7.3.0:
     resolution: {integrity: sha512-HarXfTQ/Nxm4s/APpAaGIGHq5ZzslApImQy8ZrtkfGamw8rUFAVgMS5C50/AQ80+wfw3Wpnf4bNzbmj75m/k2Q==}
-
-  vue-slider-component@2.8.16:
-    resolution: {integrity: sha512-06gDoheKMU8TdqjoofIJaYfXw3uuWOXF2I14d/F5yW/8iOxnoI4Ks9WSXy8RWY+gs62GBE6tQXHDSX/H6IOaAw==}
 
   vue-style-loader@4.1.3:
     resolution: {integrity: sha512-sFuh0xfbtpRlKfm39ss/ikqs9AbKCoXZBpHeVZ8Tx650o0k0q/YCM7FRvigtxpACezfq6af+a7JeqVTWvncqDg==}
@@ -15418,8 +15412,6 @@ snapshots:
   vue-property-decorator@7.3.0:
     dependencies:
       vue-class-component: 6.3.2
-
-  vue-slider-component@2.8.16: {}
 
   vue-style-loader@4.1.3:
     dependencies:

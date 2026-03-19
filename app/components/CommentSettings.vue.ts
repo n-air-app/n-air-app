@@ -14,10 +14,10 @@ import { WrappedChat } from 'services/nicolive-program/WrappedChat';
 import Vue from 'vue';
 import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
-import VueSlider from 'vue-slider-component';
 import IconListSelect from './IconListSelect.vue';
-import SoundDetectorSettings from './SoundDetectorSettings.vue';
+import Slider from './shared/Slider.vue';
 import TocSection from './shared/TocSection.vue';
+import SoundDetectorSettings from './SoundDetectorSettings.vue';
 
 type MethodObject = {
   text: string;
@@ -40,7 +40,7 @@ type SynthesizerItem = {
 @Component({
   components: {
     Multiselect,
-    VueSlider,
+    Slider,
     IconListSelect,
     SoundDetectorSettings,
     TocSection,
