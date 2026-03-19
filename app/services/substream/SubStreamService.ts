@@ -18,6 +18,8 @@ interface TabSettings {
 /** サブストリームの設定状態を表すインターフェース */
 interface ISubStreamState {
   use: boolean;
+  url: string;
+  key: string;
   selectedTab: SubStreamTabID;
   tabs: {
     youtube: TabSettings;
@@ -86,6 +88,8 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
 
   static defaultState: ISubStreamState = {
     use: false,
+    url: '',
+    key: '',
     selectedTab: 'youtube',
     tabs: {
       youtube: { url: '', key: '' },
@@ -104,22 +108,20 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
 
   init() {
     super.init();
-    // 旧フォーマット（url/key がトップレベルにある）からのマイグレーション
+    // 旧フォーマット（selectedTab がない = url/key のみのデータ）からのマイグレーション
     const raw = this.state as any;
-    if (raw.url) {
+    if (!raw.selectedTab) {
       const tabCandidates: SubStreamTabID[] = ['youtube', 'twitch'];
-      const tab: SubStreamTabID = tabCandidates.find(t => raw.url.includes(t)) ?? 'other';
-      const next: any = {
+      const tab: SubStreamTabID = raw.url
+        ? (tabCandidates.find(t => raw.url.includes(t)) ?? 'other')
+        : 'youtube';
+      this.setState({
         selectedTab: tab,
         tabs: {
           ...this.state.tabs,
-          [tab]: { url: raw.url, key: raw.key || '' },
+          [tab]: { url: raw.url || '', key: raw.key || '' },
         },
-      };
-      // レガシーフィールドを削除
-      delete next.url;
-      delete next.key;
-      this.setState(next);
+      });
     }
   }
 
@@ -140,8 +142,7 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
   async start(): Promise<string | undefined> {
     if (!this.state) this.setState(SubStreamService.defaultState);
     if (!this.state.use) return;
-    const tabSettings = this.state.tabs[this.state.selectedTab];
-    if (!tabSettings.url.startsWith('rtmp') || !tabSettings.key)
+    if (!this.state.url.startsWith('rtmp') || !this.state.key)
       return $t('settings.substream.error.url_key');
 
     const bitRange = (value: any, min: number, max: number): number =>
@@ -159,8 +160,8 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
         // "pframe_drop_threshold_ms": 900
       },
       service: {
-        key: tabSettings.key,
-        server: tabSettings.url,
+        key: this.state.key,
+        server: this.state.url,
       },
       video: {
         bitrate: bitRange(this.state.videoBitrate, 200, 100000), // 2500

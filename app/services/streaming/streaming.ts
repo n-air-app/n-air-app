@@ -789,9 +789,8 @@ export class StreamingService
     };
 
     if (this.subStreamService.state.use) {
-      const tabSettings = this.subStreamService.state.tabs[this.subStreamService.state.selectedTab];
       event.substream = {
-        url: extractPlatform(tabSettings?.url),
+        url: extractPlatform(this.subStreamService.state.url),
         videoBitrate: this.subStreamService.state.videoBitrate,
         audioBitrate: this.subStreamService.state.audioBitrate,
         videoCodec: this.subStreamService.state.videoCodec,

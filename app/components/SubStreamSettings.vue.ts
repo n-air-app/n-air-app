@@ -52,9 +52,9 @@ export default class SubStreamSettings extends Vue {
 
   /** 現在のタブのタブ設定をストアに書き戻す */
   private saveCurrentTabSettings() {
-    const tabs = { ...this.subStreamService.state.tabs };
-    tabs[this.selectedTab] = { url: this.url, key: this.key };
-    this.subStreamService.setState({ tabs });
+    const { url, key, selectedTab } = this;
+    const tabs = { ...this.subStreamService.state.tabs, [selectedTab]: { url, key } };
+    this.subStreamService.setState({ url, key, tabs });
   }
 
   @Watch('use')
@@ -63,6 +63,17 @@ export default class SubStreamSettings extends Vue {
     if (!this.use) {
       this.subStreamService.stop();
     }
+  }
+
+  @Watch('selectedTab')
+  onSelectedTabChange() {
+    this.subStreamService.setState({ selectedTab: this.selectedTab });
+    // 新しいタブのURL/keyをローカル変数に反映
+    const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
+    this.url = tabSettings.url;
+    this.key = tabSettings.key;
+    // url/key の Watch が（非同期で）発火され、saveCurrentTabSettings により
+    // state.url / state.key / state.tabs[selectedTab] がまとめて更新される
   }
 
   selectTab(tab: SubStreamTabID) {
@@ -79,20 +90,6 @@ export default class SubStreamSettings extends Vue {
 
   toggleCollapsed() {
     this.collapsed = !this.collapsed;
-  }
-
-  @Watch('selectedTab')
-  onSelectedTabChange() {
-    this.subStreamService.setState({ selectedTab: this.selectedTab });
-    // 新しいタブのURL/keyをローカル変数に反映
-    const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
-    // URL が空の場合は YouTube/Twitch のデフォルト値を自動セット
-    if (!tabSettings.url && this.selectedTab !== 'other') {
-      this.url = this.defautServers[this.selectedTab].url;
-    } else {
-      this.url = tabSettings.url;
-    }
-    this.key = tabSettings.key;
   }
 
   @Watch('url')
@@ -144,18 +141,8 @@ export default class SubStreamSettings extends Vue {
   async mounted() {
     this.use = this.subStreamService.state.use;
     this.selectedTab = this.subStreamService.state.selectedTab;
-    const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
-    // URL が空で YouTube/Twitch タブならデフォルト値をセット
-    if (!tabSettings.url && this.selectedTab !== 'other') {
-      this.url = this.defautServers[this.selectedTab].url;
-      // ストアにも保存
-      const tabs = { ...this.subStreamService.state.tabs };
-      tabs[this.selectedTab] = { url: this.url, key: tabSettings.key };
-      this.subStreamService.setState({ tabs });
-    } else {
-      this.url = tabSettings.url;
-    }
-    this.key = tabSettings.key;
+    this.url = this.subStreamService.state.url;
+    this.key = this.subStreamService.state.key;
     this.videoBitrate = this.subStreamService.state.videoBitrate;
     this.keyintSec = this.subStreamService.state.keyintSec;
     this.audioBitrate = this.subStreamService.state.audioBitrate;
