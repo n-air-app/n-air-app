@@ -1,6 +1,7 @@
 import { ERecordingState, EStreamingState } from './streaming-api';
 
 import * as remote from '@electron/remote';
+
 import { RequestError } from 'util/RequestError';
 import { createSetupFunction } from 'util/test-setup';
 import { NicoliveProgramStateService } from '../nicolive-program/state';
@@ -38,6 +39,7 @@ jest.mock('util/menus/Menu', () => ({}));
 jest.mock('services/nicolive-program/nicolive-program', () => ({}));
 jest.mock('services/nicolive-program/nicolive-comment-synthesizer', () => ({}));
 jest.mock('services/custom-cast-usage', () => ({}));
+jest.mock('services/nvoice-character-usage', () => ({}));
 const showWindow = jest.fn();
 
 const createInjectee = ({
@@ -146,6 +148,10 @@ const createInjectee = ({
       speechActionOnSoundDetected: 'graceful',
       calibrated: false,
     }),
+  },
+  NVoiceCharacterUsageService: {
+    startStreaming: noop,
+    getActionLog: () => ({ used: false, standing1: false, standing2: false }),
   },
 });
 

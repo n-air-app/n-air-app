@@ -6,6 +6,7 @@ import { Service } from './core/service';
 import { HostsService } from './hosts';
 import { SynthesizerSelector } from './nicolive-program/state';
 import { EncoderFamily } from './settings/optimizer';
+import { NVoiceCharacterUsageLog } from './nvoice-character-usage';
 import { SpeechActionOnSoundDetected } from './sound-detector/sound-detector';
 import {
   CommentColor,
@@ -144,6 +145,7 @@ export type TUsageEvent =
       substream?: SubStreamLog;
       transcription?: TranscriptionLog;
       soundDetector?: SoundDetectorLog;
+      nvoiceCharacter?: NVoiceCharacterUsageLog;
     }
   | {
       event: 'app_start' | 'app_close';
