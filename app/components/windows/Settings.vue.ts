@@ -116,8 +116,6 @@ export default class Settings extends Vue {
     this.userSubscription = this.userService.userLoginState.subscribe(loggedIn => {
       this.isLoggedIn = !!loggedIn;
       this.categoryNames = this.settingsService.getCategories();
-      // reopen settings because new categories may not have previous category
-      this.settingsService.showSettings();
     });
     this.isLoggedIn = this.userService.isLoggedIn();
 
@@ -146,6 +144,13 @@ export default class Settings extends Vue {
 
   get isStreaming() {
     return this.streamingService.isStreaming;
+  }
+
+  get showLoginRequiredNotice(): boolean {
+    return (
+      !this.isLoggedIn &&
+      (this.categoryName === 'Comment' || this.categoryName === 'SpeechEngine')
+    );
   }
 
   getInitialCategoryName(): SettingsCategory {
