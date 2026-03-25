@@ -216,6 +216,9 @@ export default class Settings extends Vue {
   }
 
   public hasSections(category: SettingsCategory): boolean {
+    if (!this.isLoggedIn && (category === 'Comment' || category === 'SpeechEngine')) {
+      return false;
+    }
     return CATEGORIES_WITH_TOC.includes(category);
   }
 }
