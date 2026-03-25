@@ -28,20 +28,22 @@
           <i class="notification-icon icon-notification" />
           <p class="notification-message">{{ $t('settings.noticeWhileStreaming') }}</p>
         </aside>
+        <aside class="notification-root" v-if="showLoginRequiredNotice">
+          <i class="notification-icon icon-notification" />
+          <p class="notification-message">{{ $t('settings.noticeLoginRequired') }}</p>
+        </aside>
 
         <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <notifications-settings v-if="categoryName === 'Notifications'" />
-        <comment-settings v-if="categoryName === 'Comment'" />
-        <speech-engine-settings v-if="categoryName === 'SpeechEngine'" />
+        <comment-settings v-if="categoryName === 'Comment' && isLoggedIn" />
+        <speech-engine-settings v-if="categoryName === 'SpeechEngine' && isLoggedIn" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
         <transcription-settings v-if="categoryName === 'Transcription'" />
         <GenericFormGroups
           v-if="
             ![
               'Hotkeys',
-              'Notifications',
               'Comment',
               'SpeechEngine',
               'SubStream',

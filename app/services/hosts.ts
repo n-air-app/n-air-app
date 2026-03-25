@@ -72,7 +72,7 @@ export class HostsService extends Service {
   }
 
   getContentTreeURL(programID: string): string {
-    return `https://commons.nicovideo.jp/tree/${programID}`;
+    return `https://commons.nicovideo.jp/works/${programID}`;
   }
 
   getCreatorsProgramURL(programID: string): string {

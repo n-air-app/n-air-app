@@ -1,6 +1,6 @@
 import { IObsListOption, TObsFormData } from 'components/obs/inputs/ObsInput';
 import { Observable } from 'rxjs';
-import { NVoiceCharacterType } from 'services/nvoice-character';
+import { NVoiceCharacterType, NVoiceAvatarStyle } from 'services/nvoice-character';
 import { IPartialTransform } from 'services/scenes';
 import * as obs from '../../../obs-api';
 import { IAudioSource } from '../audio';
@@ -31,6 +31,7 @@ export interface ISourceComparison {
   type: TSourceType;
   propertiesManager: TPropertiesManager;
   nVoiceCharacterType?: NVoiceCharacterType;
+  nVoiceAvatarStyle?: NVoiceAvatarStyle;
 }
 
 export interface ISourceApi extends ISource {

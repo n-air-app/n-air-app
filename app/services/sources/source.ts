@@ -75,6 +75,7 @@ export class Source implements ISourceApi {
 
     if (this.getPropertiesManagerType() === 'nvoice-character') {
       details.nVoiceCharacterType = this.getPropertiesManagerSettings().nVoiceCharacterType;
+      details.nVoiceAvatarStyle = this.getPropertiesManagerSettings().nVoiceAvatarStyle;
     }
 
     return details;

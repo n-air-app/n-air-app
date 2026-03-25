@@ -183,10 +183,8 @@ export class SettingsService
 
     categories.push('Transcription');
 
-    if (this.userService.isLoggedIn()) {
-      categories.push('Comment');
-      categories.push('SpeechEngine');
-    }
+    categories.push('Comment');
+    categories.push('SpeechEngine');
 
     categories.push('SubStream');
 

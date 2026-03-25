@@ -12,6 +12,10 @@ import { VideoService } from './video';
 export const NVoiceCharacterTypes = ['near'] as const;
 export type NVoiceCharacterType = (typeof NVoiceCharacterTypes)[number];
 
+// アバタースタイルの種類を定義
+export const NVoiceAvatarStyles = ['standing1', 'standing2'] as const;
+export type NVoiceAvatarStyle = (typeof NVoiceAvatarStyles)[number];
+
 export interface ICharacterSource {
   sourceId: string;
   type: NVoiceCharacterType;
@@ -82,29 +86,44 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
     }
   }
 
-  getUrl(type: NVoiceCharacterType, port?: number): string {
+  getUrl(type: NVoiceCharacterType, port?: number, style?: NVoiceAvatarStyle): string {
     const appPath = remote.app.isPackaged
       ? dirname(remote.app.getPath('exe'))
       : remote.app.getAppPath();
+    const styleParam = style ? `&style=${style}` : '';
     const url =
-      'file://' + path.join(appPath, 'nvoice', type, `index.html?port=${port || this.state.port}`);
+      'file://' +
+      path.join(appPath, 'nvoice', type, `index.html?port=${port || this.state.port}${styleParam}`);
     return url;
   }
 
   createNVoiceCharacterSource(
     type: NVoiceCharacterType,
     name?: string,
+    style: NVoiceAvatarStyle = 'standing1',
   ): { source: ISourceApi; options: ISceneNodeAddOptions } {
     const suggestedName =
       name || this.sourcesService.suggestName($t(`source-props.nvoice_character.${type}.name`));
-    const width = 1000 / 4;
-    const height = 1800 / 4;
+
+    // スタイルに応じてサイズを設定
+    let width: number;
+    let height: number;
+    if (style === 'standing2') {
+      // standing2: 1240×3215を高さ450基準でスケール
+      height = 450;
+      width = Math.round((1240 / 3215) * height);
+    } else {
+      // standing1: 1000×1800の1/4
+      width = 1000 / 4;
+      height = 1800 / 4;
+    }
+
     return {
       source: this.sourcesService.createSource(
         suggestedName,
         'browser_source',
         {
-          url: this.getUrl(type, this.state.port),
+          url: this.getUrl(type, this.state.port, style),
           width,
           height,
         },
@@ -112,6 +131,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
           propertiesManager: 'nvoice-character',
           propertiesManagerSettings: {
             nVoiceCharacterType: type,
+            nVoiceAvatarStyle: style,
           },
         },
       ),

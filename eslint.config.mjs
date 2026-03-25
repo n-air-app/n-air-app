@@ -1,4 +1,4 @@
-import { FlatCompat } from '@eslint/eslintrc';
+﻿import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
@@ -37,8 +37,8 @@ export default [
   ...compat.extends('airbnb-base'),
   js.configs.recommended,
 
-  // Vue plugin configs
-  ...vue.configs['flat/essential'],
+  // Vue plugin configs (Vue 2)
+  ...vue.configs['flat/vue2-essential'],
 
   // Main configuration for JS/TS files
   {
@@ -86,8 +86,6 @@ export default [
       'generator-star-spacing': OFF,
       indent: OFF,
 
-      'vue/multi-word-component-names': OFF,
-
       'import-name': OFF,
       'no-increment-decrement': OFF,
       'function-name': OFF,
@@ -171,8 +169,9 @@ export default [
       'no-use-before-declare': OFF,
       'no-irregular-whitespace': OFF,
       'no-undef': OFF,
-      'vue/no-use-v-if-with-v-for': OFF,
-      'vue/require-v-for-key': OFF,
+
+      // Vue-specific rules
+      'vue/multi-word-component-names': OFF, // Many single-word component names (Login, Mixer, Tabs, etc.) exist; renaming would be a large-scale refactor
 
       // Prettier compatibility: disable style rules that Prettier handled
       quotes: OFF,
@@ -204,6 +203,7 @@ export default [
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: ['.vue'],
+        ecmaFeatures: { globalReturn: false }, // Fix: override airbnb-base's globalReturn:true that breaks vue/valid-v-for scope tracking
       },
       globals: {
         Atomics: 'readonly',
@@ -238,8 +238,6 @@ export default [
       'generator-star-spacing': OFF,
       indent: OFF,
 
-      'vue/multi-word-component-names': OFF,
-
       'import-name': OFF,
       'no-increment-decrement': OFF,
       'function-name': OFF,
@@ -323,8 +321,13 @@ export default [
       'no-use-before-declare': OFF,
       'no-irregular-whitespace': OFF,
       'no-undef': OFF,
-      'vue/no-use-v-if-with-v-for': OFF,
-      'vue/require-v-for-key': OFF,
+
+      // Vue-specific rules
+      'vue/multi-word-component-names': OFF, // Many single-word component names (Login, Mixer, Tabs, etc.) exist; renaming would be a large-scale refactor
+      // The following are already ERROR in vue2-essential preset; listed explicitly for visibility
+      'vue/no-use-v-if-with-v-for': ERROR,
+      'vue/require-v-for-key': ERROR,
+      'vue/valid-v-for': ERROR,
 
       // Prettier compatibility: disable style rules that Prettier handled
       quotes: OFF,
@@ -337,14 +340,7 @@ export default [
       'no-trailing-spaces': OFF,
       'wrap-iife': OFF,
 
-      // Temporarily disable Vue rules that flag existing code
-      // TODO: Fix these issues in a separate PR
-      'vue/valid-v-for': OFF,
-      'vue/no-deprecated-slot-attribute': OFF,
-      'vue/no-deprecated-slot-scope-attribute': OFF,
-      'vue/no-deprecated-v-on-native-modifier': OFF,
-
-      // Enable Vue template formatting
+      // Vue template formatting
       'vue/html-indent': [ERROR, 2, {
         attribute: 1,
         baseIndent: 1,

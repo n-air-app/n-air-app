@@ -15,9 +15,6 @@
   "importingStateDescription": "Importing your scenes and sources.",
   "doneStateDescription": "All scenes, sources and settings have been imported.",
 
-  "sceneCollectionsImportTitle": "Scene Collections Import",
-  "sceneCollectionsImportDescription": "The scene collection has been imported.",
-
   "updateHeader": "Update Information.",
   "updateDone": "Done"
 }

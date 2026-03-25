@@ -18,7 +18,6 @@ export type SettingsCategory =
   | 'SpeechEngine'
   | 'Developer'
   | 'Scene Collections'
-  | 'Notifications'
   | 'StreamSecond'
   | 'SubStream'
   | 'Transcription';

@@ -12,10 +12,10 @@ import {
 import { ScenesService } from 'services/scenes';
 import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
-import VueSlider from 'vue-slider-component';
 import * as obs from '../../../obs-api';
 import { AudioService } from '../../services/audio';
 import Popper from '../shared/Popper.vue';
+import Slider from '../shared/Slider.vue';
 import SourceProperties from './SourceProperties.vue';
 
 // for set param
@@ -30,9 +30,9 @@ type SetParamKey =
 
 @Component({
   components: {
-    VueSlider,
     Multiselect,
     Popper,
+    Slider,
   },
 })
 export default class RtvcSourceProperties extends SourceProperties {
