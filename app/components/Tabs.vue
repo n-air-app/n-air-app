@@ -12,7 +12,7 @@
       </button>
     </div>
     <div class="tab-content" v-if="!hideContent">
-      <slot v-for="tab in tabs" :name="tab.value" v-if="tab.value === value" />
+      <slot :name="value" />
     </div>
   </div>
 </template>

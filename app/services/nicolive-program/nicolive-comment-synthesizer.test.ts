@@ -95,6 +95,45 @@ const mockedState: ICommentSynthesizerState = {
   },
 };
 
+test('init preserves persisted speechSynthesizerSettings', () => {
+  const persistedSettings = {
+    enabled: false,
+    pitch: 0.5,
+    rate: 0.8,
+    volume: 0.3,
+    maxTime: 10,
+    selector: { normal: 'webSpeech', operator: 'nVoice', system: 'nVoice' },
+    voicevox: {
+      normal: { id: '2', name: 'test' },
+      operator: { id: '3', name: 'test2' },
+      system: { id: '4', name: 'test3' },
+    },
+  };
+
+  setup({
+    injectee: {
+      NicoliveProgramStateService: {
+        updated: { subscribe() {} },
+        state: { speechSynthesizerSettings: persistedSettings },
+        updateSpeechSynthesizerSettings: jest.fn(),
+      },
+    },
+  });
+
+  const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
+  const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+
+  expect(instance.state.pitch).toBe(persistedSettings.pitch);
+  expect(instance.state.rate).toBe(persistedSettings.rate);
+  expect(instance.state.volume).toBe(persistedSettings.volume);
+  expect(instance.state.maxTime).toBe(persistedSettings.maxTime);
+  expect(instance.state.enabled).toBe(persistedSettings.enabled);
+  expect(instance.state.selector).toEqual(persistedSettings.selector);
+  expect(instance.state.voicevox).toEqual(persistedSettings.voicevox);
+  // 起動時に常にリセットされるフィールド
+  expect(instance.state.soundDetectorEnabled).toBe(false);
+});
+
 test('makeSpeechText', async () => {
   setup();
   const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');

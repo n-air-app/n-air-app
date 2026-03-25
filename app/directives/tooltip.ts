@@ -69,8 +69,6 @@
  * [TranscriptionSettings.vue]
  *   - 文字起こし機能説明/ダウンロード/キャンセル/削除 (bottom/default)
  * 
- * [NotificationsArea.vue]
- *   - 通知/未読通知アイコン (default)
  */
 
 import { ObjectDirective } from 'vue';

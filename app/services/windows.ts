@@ -19,7 +19,6 @@ import NameFolder from 'components/windows/NameFolder.vue';
 import NameScene from 'components/windows/NameScene.vue';
 import NameSceneCollection from 'components/windows/NameSceneCollection.vue';
 import NicoliveProgramSelector from 'components/windows/NicoliveProgramSelector.vue';
-import Notifications from 'components/windows/Notifications.vue';
 import OptimizeForNiconico from 'components/windows/OptimizeForNiconico.vue';
 import Projector from 'components/windows/Projector.vue';
 import RenameSource from 'components/windows/RenameSource.vue';
@@ -29,7 +28,6 @@ import Settings from 'components/windows/Settings.vue';
 import SourceFilters from 'components/windows/SourceFilters.vue';
 import SourceProperties from 'components/windows/SourceProperties.vue';
 import SourcesShowcase from 'components/windows/SourcesShowcase.vue';
-import Troubleshooter from 'components/windows/Troubleshooter.vue';
 import UserInfo from 'components/windows/UserInfo.vue';
 import electron from 'electron';
 import { Subject } from 'rxjs';
@@ -59,8 +57,6 @@ export function getComponents() {
     AddSourceFilter,
     Blank,
     AdvancedAudio,
-    Notifications,
-    Troubleshooter,
     ManageSceneCollections,
     Projector,
     OptimizeForNiconico,

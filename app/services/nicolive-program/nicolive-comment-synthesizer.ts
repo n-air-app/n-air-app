@@ -130,10 +130,8 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       queueRunnerState: null, // 起動時にはnull
     });
 
-    // stateService.updated はBehaviorSubjectなので即座にemitし、
-    // this.state が正しい永続化された値に更新される。
-    // この後に queue.state$ を subscribe することで、setState() 内で
-    // this.state を参照する際に正しい値が使われるようになる。
+    // setState() は SET_STATE() も呼ぶため this.state が即時更新される。
+    // stateService.updated は外部からの設定変更(例: 別プロセスからの同期)を反映するために subscribe する。
     this.stateService.updated.subscribe({
       next: persistentState => {
         const newState = {
@@ -499,6 +497,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
   private setState(partialState: Partial<ICommentSynthesizerState>) {
     const nextState = { ...this.state, ...partialState };
+    this.SET_STATE(nextState);
     this.stateService.updateSpeechSynthesizerSettings(nextState);
   }
 

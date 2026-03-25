@@ -19,6 +19,7 @@ import { ScenesService } from 'services/scenes';
 import { VideoSettingsService } from 'services/settings-v2';
 import { ShortcutsService } from 'services/shortcuts';
 import { SourcesService } from 'services/sources';
+import { StreamingService } from 'services/streaming';
 import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
 import { UsageStatisticsService } from 'services/usage-statistics';
@@ -77,6 +78,7 @@ export class AppService extends StatefulService<IAppState> {
   @Inject() private crashReporterService: CrashReporterService;
   @Inject() private customizationService: CustomizationService;
   @Inject() private transcriptionService: TranscriptionService;
+  @Inject() private streamingService: StreamingService;
   private loadingPromises: Dictionary<Promise<any>> = {};
 
   readonly pid = require('process').pid;
@@ -171,6 +173,14 @@ export class AppService extends StatefulService<IAppState> {
         this.videoSettingsService.shutdown();
         if (!this.skipSavingOnShutdown) {
           await this.fileManagerService.flushAll();
+        }
+        try {
+          await Promise.race([
+            this.streamingService.logStreamEnd(),
+            new Promise<void>(resolve => { setTimeout(resolve, 5000); }),
+          ]);
+        } catch (e) {
+          console.error('[SHUTDOWN] Error sending stream_end log:', e);
         }
         obs.NodeObs.RemoveSourceCallback();
         obs.NodeObs.OBS_service_removeCallback();
