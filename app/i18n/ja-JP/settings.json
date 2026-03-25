@@ -667,6 +667,7 @@
   "cacheIdCopy": "コピーする",
   "cacheManagement": "キャッシュ管理",
   "noticeWhileStreaming": "現在配信中のため、一部の設定は変更できません。",
+  "noticeLoginRequired": "本機能はニコニコ生放送のコメント専用です。利用するにはニコニコアカウントにログインしてください。",
   "noticeForStreaming": "N Airでログイン中のニコニコアカウントに合わせて、配信開始時に自動で設定されます",
   "noticeForStreamingNotLoggedIn": "ニコニコ生放送で配信する場合、N Airでニコニコアカウントにログインすると、URL／ストリームキーの入力を省略できます。",
   "showCacheDirectory": "キャッシュディレクトリーを表示",
