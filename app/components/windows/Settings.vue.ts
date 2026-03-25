@@ -40,6 +40,9 @@ const CATEGORIES_WITH_TOC: string[] = [
   'Comment',
 ];
 
+// ニコニコログインが必要なカテゴリ
+const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'SpeechEngine'];
+
 @Component({
   components: {
     ModalLayout,
@@ -149,7 +152,7 @@ export default class Settings extends Vue {
   get showLoginRequiredNotice(): boolean {
     return (
       !this.isLoggedIn &&
-      (this.categoryName === 'Comment' || this.categoryName === 'SpeechEngine')
+      CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
     );
   }
 
@@ -216,7 +219,7 @@ export default class Settings extends Vue {
   }
 
   public hasSections(category: SettingsCategory): boolean {
-    if (!this.isLoggedIn && (category === 'Comment' || category === 'SpeechEngine')) {
+    if (!this.isLoggedIn && CATEGORIES_REQUIRING_LOGIN.includes(category)) {
       return false;
     }
     return CATEGORIES_WITH_TOC.includes(category);
