@@ -198,7 +198,7 @@
   .shadow();
 
   position: absolute;
-  top: 40px;
+  top: 100%;
   z-index: @z-index-expand-content;
   width: 100%;
   max-height: 264px;

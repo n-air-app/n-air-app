@@ -265,3 +265,32 @@ describe('Dropdown / キーボードナビゲーション (onKeydown)', () => {
         expect(emit).toHaveBeenCalledWith('input', 'b');
     });
 });
+
+describe('Dropdown / toggleDropdown', () => {
+    test('disabled=false かつ閉じているとき toggleDropdown で isOpen=true になる', () => {
+        const { toggleDropdown, isOpen } = callSetup({ disabled: false });
+        toggleDropdown();
+        expect(isOpen.value).toBe(true);
+    });
+
+    test('disabled=false かつ開いているとき toggleDropdown で isOpen=false になる', () => {
+        const { toggleDropdown, openDropdown, isOpen } = callSetup({ disabled: false });
+        openDropdown();
+        toggleDropdown();
+        expect(isOpen.value).toBe(false);
+    });
+
+    test('disabled=true のとき toggleDropdown しても isOpen は変化しない', () => {
+        const { toggleDropdown, isOpen } = callSetup({ disabled: true });
+        toggleDropdown();
+        expect(isOpen.value).toBe(false);
+    });
+
+    test('開いているとき toggleDropdown で閉じると searchQuery がリセットされる', () => {
+        const { toggleDropdown, openDropdown, searchQuery } = callSetup({ searchable: true });
+        openDropdown();
+        searchQuery.value = 'abc';
+        toggleDropdown();
+        expect(searchQuery.value).toBe('');
+    });
+});

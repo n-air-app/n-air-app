@@ -15,9 +15,6 @@ class ObsListInput extends ObsInput<IObsListInput<TObsValue>> {
   @Prop({ default: false, type: Boolean })
   allowEmpty: boolean;
 
-  @Prop({ default: true, type: Boolean })
-  internalSearch: boolean;
-
   @Prop()
   placeholder: string;
 

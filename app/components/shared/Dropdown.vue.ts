@@ -161,7 +161,8 @@ export default defineComponent({
         // 選択中のオプション
         const selectedOption = computed(() => {
             if (props.value == null) return null;
-            return props.options.find(opt => compareOptions(opt, props.value)) || props.value;
+            const found = props.options.find(opt => compareOptions(opt, props.value));
+            return found !== undefined ? found : props.value;
         });
 
         // オプションのラベルを取得
@@ -194,7 +195,7 @@ export default defineComponent({
         });
 
         // キーボードナビゲーション用の選択肢一覧
-        const navigableOptions = computed(() => filteredOptions.value);
+        const navigableOptions = filteredOptions;
 
         // data-value 属性用
         const dataValue = computed(() => (props.value != null ? String(getOptionKey(props.value)) : ''));
