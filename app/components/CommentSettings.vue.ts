@@ -13,8 +13,8 @@ import {
 import { WrappedChat } from 'services/nicolive-program/WrappedChat';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
-import Dropdown from './shared/Dropdown.vue';
 import DropdownIcon from './DropdownIcon.vue';
+import Dropdown from './shared/Dropdown.vue';
 import Slider from './shared/Slider.vue';
 import TocSection from './shared/TocSection.vue';
 import SoundDetectorSettings from './SoundDetectorSettings.vue';
