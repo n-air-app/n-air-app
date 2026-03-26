@@ -40,7 +40,7 @@ export default class SubStreamSettings extends Vue {
 
   checker?: number = undefined;
 
-  defautServers: { [key: string]: { url: string; stream_key_link: string } } = {
+  defaultServers: { [key: string]: { url: string; stream_key_link: string } } = {
     youtube: {
       url: 'rtmp://a.rtmp.youtube.com/live2',
       stream_key_link: 'https://www.youtube.com/live_dashboard',
@@ -89,7 +89,7 @@ export default class SubStreamSettings extends Vue {
 
   setDefaultUrl() {
     if (this.selectedTab === 'other') return;
-    this.url = this.defautServers[this.selectedTab].url;
+    this.url = this.defaultServers[this.selectedTab].url;
   }
 
   toggleShowKey() {

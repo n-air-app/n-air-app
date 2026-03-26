@@ -37,7 +37,7 @@
               class="label-hint label-hint--clickable"
               @click="setDefaultUrl()"
             >
-              {{ defautServers[selectedTab].url }}
+              {{ defaultServers[selectedTab].url }}
             </span>
           </div>
           <input type="text" v-model="url" />
@@ -53,7 +53,7 @@
               data-radius="sm"
               data-color="secondary"
               data-variant="light"
-              @click="openExternalLink(defautServers[selectedTab].stream_key_link)"
+              @click="openExternalLink(defaultServers[selectedTab].stream_key_link)"
             >
               {{ $t('settings.substream.getStreamKey')
               }}<i class="icon-open-blank set-url-icon"></i>
