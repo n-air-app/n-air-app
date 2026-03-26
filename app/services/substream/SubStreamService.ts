@@ -108,18 +108,18 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
 
   init() {
     super.init();
-    // 旧フォーマット（selectedTab がない = url/key のみのデータ）からのマイグレーション
-    const raw = this.state as any;
-    if (!raw.selectedTab) {
+    // 旧フォーマット（tabs に値がない = url/key のみのデータ）からのマイグレーション
+    // PersistentStatefulService は defaultState と永続化データを deep merge するため、
+    // selectedTab は常に defaultState の値が入る。代わりに全タブが空かつ url が設定済みかで判定する。
+    const allTabsEmpty = Object.values(this.state.tabs).every(t => !t.url && !t.key);
+    if (allTabsEmpty && this.state.url) {
       const tabCandidates: SubStreamTabID[] = ['youtube', 'twitch'];
-      const tab: SubStreamTabID = raw.url
-        ? (tabCandidates.find(t => raw.url.includes(t)) ?? 'other')
-        : 'youtube';
+      const tab: SubStreamTabID = tabCandidates.find(t => this.state.url.includes(t)) ?? 'other';
       this.setState({
         selectedTab: tab,
         tabs: {
           ...this.state.tabs,
-          [tab]: { url: raw.url || '', key: raw.key || '' },
+          [tab]: { url: this.state.url, key: this.state.key },
         },
       });
     }

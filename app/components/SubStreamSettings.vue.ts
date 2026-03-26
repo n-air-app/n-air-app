@@ -19,6 +19,7 @@ export default class SubStreamSettings extends Vue {
 
   use: boolean = SubStreamService.defaultState.use;
   selectedTab: SubStreamTabID = SubStreamService.defaultState.selectedTab;
+  private _tabSwitching = false;
   readonly tabIds: SubStreamTabID[] = ['youtube', 'twitch', 'other'];
   url: string = '';
   key: string = '';
@@ -67,13 +68,19 @@ export default class SubStreamSettings extends Vue {
 
   @Watch('selectedTab')
   onSelectedTabChange() {
-    this.subStreamService.setState({ selectedTab: this.selectedTab });
-    // 新しいタブのURL/keyをローカル変数に反映
     const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
+    // url/key の Watch が発火して saveCurrentTabSettings を余分に呼ばないよう抑制する
+    this._tabSwitching = true;
     this.url = tabSettings.url;
     this.key = tabSettings.key;
-    // url/key の Watch が（非同期で）発火され、saveCurrentTabSettings により
-    // state.url / state.key / state.tabs[selectedTab] がまとめて更新される
+    this.$nextTick(() => {
+      this._tabSwitching = false;
+    });
+    this.subStreamService.setState({
+      selectedTab: this.selectedTab,
+      url: tabSettings.url,
+      key: tabSettings.key,
+    });
   }
 
   selectTab(tab: SubStreamTabID) {
@@ -81,6 +88,7 @@ export default class SubStreamSettings extends Vue {
   }
 
   setDefaultUrl() {
+    if (this.selectedTab === 'other') return;
     this.url = this.defautServers[this.selectedTab].url;
   }
 
@@ -94,11 +102,13 @@ export default class SubStreamSettings extends Vue {
 
   @Watch('url')
   onUrlChange() {
+    if (this._tabSwitching) return;
     this.saveCurrentTabSettings();
   }
 
   @Watch('key')
   onKeyChange() {
+    if (this._tabSwitching) return;
     this.saveCurrentTabSettings();
   }
 
