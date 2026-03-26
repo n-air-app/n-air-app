@@ -52,14 +52,11 @@
                   <div class="name">速度</div>
                   <div class="value">×{{ rate }}<span v-if="rate == rateDefault">（既定）</span></div>
                 </div>
-                <VueSlider
-                  class="slider"
+                <slider
+                  v-model="rate"
                   :disabled="!synthesizerEnabled"
                   :data="rateCandidates"
-                  :height="4"
-                  v-model="rate"
                   tooltip="hover"
-                  :lazy="true"
                 />
               </div>
               <div class="input-wrapper">
@@ -69,15 +66,11 @@
                     {{ volume }}<span v-if="volume == volumeDefault">（既定）</span>
                   </div>
                 </div>
-                <VueSlider
-                  class="slider"
+                <slider
+                  v-model="volume"
                   :disabled="!synthesizerEnabled"
                   :data="volumeCandidates"
-                  :height="4"
-                  :max="1"
-                  v-model="volume"
                   tooltip="hover"
-                  :lazy="true"
                 />
               </div>
             </div>
@@ -346,10 +339,6 @@
   }
 }
 
-.slider-wrapper {
-  margin-bottom: 32px;
-}
-
 .name {
   flex-grow: 1;
   font-size: @font-size4;
@@ -360,10 +349,6 @@
   display: flex;
   align-items: center;
   color: var(--color-text);
-}
-
-.slider {
-  margin-top: 8px;
 }
 
 .button {

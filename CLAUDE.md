@@ -51,6 +51,8 @@ pnpm format         # Prettier + ESLint fix + Stylelint fix
 
 **Service Layer:** Singleton services with RxJS reactive state management, dependency injection pattern. Services located in `app/services/`
 
+**Service Registration:** All services must be registered in `app/app-services.ts`. Forgetting to add a new service here causes a runtime error (`Service not found: XxxService`) when the service is first accessed via `@Inject`, which can cause unexpected crash loops (e.g., OBS output signal callbacks retrying on exception).
+
 **Vue Components:** 
 - `app/components/nicolive-area/` - Niconico-specific UI
 - `app/components/obs/` - OBS integration components  

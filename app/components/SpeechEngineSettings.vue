@@ -22,14 +22,11 @@
             </div>
           </div>
           <div class="slider-wrapper">
-            <VueSlider
-              class="slider"
+            <slider
+              v-model="maxTime"
               :disabled="!enabled"
               :data="maxTimeCandidates"
-              :height="4"
-              v-model="maxTime"
               tooltip="hover"
-              :lazy="true"
             />
             <button
               class="action-icon"
@@ -77,14 +74,11 @@
             <div class="value">{{ pitch }}<span v-if="pitch == pitchDefault">（既定）</span></div>
           </div>
           <div class="slider-wrapper">
-            <VueSlider
-              class="slider"
+            <slider
+              v-model="pitch"
               :disabled="!enabled"
               :data="pitchCandidates"
-              :height="4"
-              v-model="pitch"
               tooltip="hover"
-              :lazy="true"
             />
             <button
               class="action-icon"

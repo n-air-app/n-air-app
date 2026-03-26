@@ -35,13 +35,13 @@ interface TocSectionData {
 
 // 目次を持っているカテゴリ
 const CATEGORIES_WITH_TOC: string[] = [
-  'General',
-  'Output',
   'Hotkeys',
   'Advanced',
-  'Transcription',
   'Comment',
 ];
+
+// ニコニコログインが必要なカテゴリ
+const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'SpeechEngine'];
 
 @Component({
   components: {
@@ -119,8 +119,6 @@ export default class Settings extends Vue {
     this.userSubscription = this.userService.userLoginState.subscribe(loggedIn => {
       this.isLoggedIn = !!loggedIn;
       this.categoryNames = this.settingsService.getCategories();
-      // reopen settings because new categories may not have previous category
-      this.settingsService.showSettings();
     });
     this.isLoggedIn = this.userService.isLoggedIn();
 
@@ -149,6 +147,13 @@ export default class Settings extends Vue {
 
   get isStreaming() {
     return this.streamingService.isStreaming;
+  }
+
+  get showLoginRequiredNotice(): boolean {
+    return (
+      !this.isLoggedIn &&
+      CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
+    );
   }
 
   getInitialCategoryName(): SettingsCategory {
@@ -214,6 +219,9 @@ export default class Settings extends Vue {
   }
 
   public hasSections(category: SettingsCategory): boolean {
+    if (!this.isLoggedIn && CATEGORIES_REQUIRING_LOGIN.includes(category)) {
+      return false;
+    }
     return CATEGORIES_WITH_TOC.includes(category);
   }
 }

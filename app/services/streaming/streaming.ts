@@ -16,6 +16,7 @@ import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import * as obs from '../../../obs-api';
 import { CustomcastUsageService } from '../custom-cast-usage';
+import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
 import { IStreamingSetting } from '../platforms';
 import { extractPlatform } from './extractPlatform';
 import {
@@ -76,6 +77,7 @@ export class StreamingService
   @Inject() private subStreamService: SubStreamService;
   @Inject() private transcriptionService: TranscriptionService;
   @Inject() private soundDetectorService: SoundDetectorService;
+  @Inject() private nVoiceCharacterUsageService: NVoiceCharacterUsageService;
 
   streamingStatusChange = new Subject<EStreamingState>();
   recordingStatusChange = new Subject<ERecordingState>();
@@ -690,31 +692,44 @@ export class StreamingService
     return duration.shiftTo('hours', 'minutes', 'seconds').toFormat('hh:mm:ss');
   }
 
-  private logStreamStart() {
+  private async logStreamStart() {
     const streamingTrackId = this.usageStatisticsService.generateStreamingTrackID();
     this.SET_STREAMING_TRACK_ID(streamingTrackId);
-    this.actionLog('stream_start', streamingTrackId);
+    await this.actionLog('stream_start', streamingTrackId);
     this.customcastUsageService.startStreaming();
     this.rtvcStateService.startStreaming();
     this.transcriptionService.startStreaming();
+    this.nVoiceCharacterUsageService.startStreaming();
   }
 
-  private logStreamEnd() {
+  private logStreamEndPromise: Promise<void> | null = null;
+
+  logStreamEnd(): Promise<void> {
+    // すでに実行中のPromiseがあればそれを返す（OBSシグナルとshutdownの両方から呼ばれた場合も同じPromiseを待てる）
+    if (this.logStreamEndPromise !== null) return this.logStreamEndPromise;
     const streamingTrackId = this.state.streamingTrackId;
+    if (!streamingTrackId) return Promise.resolve();
     this.SET_STREAMING_TRACK_ID('');
-    this.actionLog('stream_end', streamingTrackId);
+    this.logStreamEndPromise = this.sendLogStreamEnd(streamingTrackId).finally(() => {
+      this.logStreamEndPromise = null;
+    });
+    return this.logStreamEndPromise;
+  }
+
+  private async sendLogStreamEnd(streamingTrackId: string): Promise<void> {
+    await this.actionLog('stream_end', streamingTrackId);
     this.customcastUsageService.stopStreaming();
     this.rtvcStateService.stopStreaming();
     this.transcriptionService.stopStreaming();
 
-    HttpRelation.sendLog(
+    await HttpRelation.sendLog(
       this.nicoliveProgramService.state.programID,
       this.usageStatisticsService.uuidService.uuid,
       this.nicoliveProgramStateService.state.httpRelation,
     );
   }
 
-  private actionLog(eventType: 'stream_start' | 'stream_end', streamingTrackId: string) {
+  private actionLog(eventType: 'stream_start' | 'stream_end', streamingTrackId: string): Promise<Response | undefined> {
     const settings = this.settingsService.getStreamEncoderSettings();
 
     const voicevoxFilter = (src: SynthesizerSelector, value: string) =>
@@ -803,7 +818,14 @@ export class StreamingService
     }
     event.soundDetector = this.soundDetectorService.getActionLog();
 
-    this.usageStatisticsService.recordEvent(event);
+    if (eventType === 'stream_end') {
+      const nvoiceLog = this.nVoiceCharacterUsageService.getActionLog();
+      if (nvoiceLog.used) {
+        event.nvoiceCharacter = nvoiceLog;
+      }
+    }
+
+    return this.usageStatisticsService.recordEvent(event);
   }
 
   private outputErrorOpen = false;
@@ -831,7 +853,7 @@ export class StreamingService
           this.startReplayBuffer();
         }
 
-        this.logStreamStart();
+        void this.logStreamStart(); // fire-and-forget: シグナルコールバックはawaitできないため
       } else if (info.signal === EOBSOutputSignal.Starting) {
         this.SET_STREAMING_STATUS(EStreamingState.Starting, time);
         this.streamingStatusChange.next(EStreamingState.Starting);
@@ -841,7 +863,7 @@ export class StreamingService
       } else if (info.signal === EOBSOutputSignal.Stopping) {
         this.SET_STREAMING_STATUS(EStreamingState.Ending, time);
         this.streamingStatusChange.next(EStreamingState.Ending);
-        this.logStreamEnd();
+        void this.logStreamEnd(); // fire-and-forget: シグナルコールバックはawaitできないため
       } else if (info.signal === EOBSOutputSignal.Reconnect) {
         this.SET_STREAMING_STATUS(EStreamingState.Reconnecting);
         this.streamingStatusChange.next(EStreamingState.Reconnecting);
