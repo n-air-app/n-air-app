@@ -125,13 +125,12 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <IconListSelect v-model="system" :options="synthesizers" data-variant="filled" />
-                <IconListSelect
+                <DropdownIcon v-model="system" :options="synthesizers" />
+                <DropdownIcon
                   v-if="system.id == 'voicevox'"
                   v-model="voicevoxSystemItem"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
-                  data-variant="filled"
                   :searchable="true"
                 />
                 <button
@@ -153,13 +152,12 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <IconListSelect v-model="normal" :options="synthesizers" data-variant="filled" />
-                <IconListSelect
+                <DropdownIcon v-model="normal" :options="synthesizers" />
+                <DropdownIcon
                   v-if="normal.id == 'voicevox'"
                   v-model="voicevoxNormalItem"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
-                  data-variant="filled"
                   :searchable="true"
                 />
                 <button
@@ -182,13 +180,12 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <IconListSelect v-model="operator" :options="synthesizers" data-variant="filled" />
-                <IconListSelect
+                <DropdownIcon v-model="operator" :options="synthesizers" />
+                <DropdownIcon
                   v-if="operator.id == 'voicevox'"
                   v-model="voicevoxOperatorItem"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
-                  data-variant="filled"
                   :searchable="true"
                 />
                 <button
