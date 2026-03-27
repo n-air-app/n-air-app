@@ -9,13 +9,13 @@
     :loading="loading"
     :searchable="searchable"
   >
-    <template slot="singleLabel" slot-scope="p">
+    <template #singleLabel="p">
       <div class="voption">
         <img :src="p.option.icon" alt="" />
         <span>{{ p.option.name }}</span>
       </div>
     </template>
-    <template slot="option" slot-scope="p">
+    <template #option="p">
       <div class="voption">
         <img :src="p.option.icon" alt="" />
         <span>{{ p.option.name }}</span>
@@ -39,7 +39,7 @@
   }
 }
 
-/deep/ .dropdown__single {
+:deep(.dropdown__single) {
   .voption span {
     height: 100%;
     .text-ellipsis();

@@ -20,12 +20,12 @@
         :loading="loading"
         @input="onInputHandler"
       >
-        <template slot="option" slot-scope="props">
+        <template #option="props">
           <span :data-test="`${props.option.value}`">
             {{ props.option.description }}
           </span>
         </template>
-        <template slot="noResult">
+        <template #noResult>
           {{ $t('settings.itemNotFoundMessage') }}
         </template>
       </dropdown>

@@ -8,27 +8,11 @@ export default class ObsFontSizeSelector extends ObsInput<number> {
   value: number;
   testingAnchor = 'Form/FontSize';
 
-  setFontSizePreset(size: string) {
-    this.emitInput(Number(size));
+  setFontSizePreset(size: number) {
+    this.emitInput(size);
   }
 
   get fontSizePresets() {
-    return [
-      '9',
-      '10',
-      '11',
-      '12',
-      '13',
-      '14',
-      '18',
-      '24',
-      '36',
-      '48',
-      '64',
-      '72',
-      '96',
-      '144',
-      '288',
-    ];
+    return [9, 10, 11, 12, 13, 14, 18, 24, 36, 48, 64, 72, 96, 144, 288];
   }
 }

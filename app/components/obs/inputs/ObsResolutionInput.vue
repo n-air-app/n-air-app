@@ -16,7 +16,7 @@
         track-by="value"
         @input="onInputHandler"
       >
-        <template slot="noResult">
+        <template #noResult>
           {{ $t('settings.itemNotFoundMessage') }}
         </template>
       </dropdown>

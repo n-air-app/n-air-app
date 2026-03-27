@@ -10,12 +10,12 @@
         :options="fontSizePresets"
         @input="setFontSizePreset"
       >
-        <template slot="option" slot-scope="props">
+        <template #option="props">
           <span>
             {{ props.option }}
           </span>
         </template>
-        <template slot="noResult">
+        <template #noResult>
           {{ $t('settings.itemNotFoundMessage') }}
         </template>
       </dropdown>

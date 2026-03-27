@@ -15,12 +15,12 @@
           :searchable="true"
           @input="setFamily"
         >
-          <template slot="option" slot-scope="props">
+          <template #option="props">
             <span :style="{ fontFamily: props.option.family }">
               {{ props.option.family }}
             </span>
           </template>
-          <template slot="noResult">
+          <template #noResult>
             {{ $t('settings.itemNotFoundMessage') }}
           </template>
         </dropdown>
@@ -40,12 +40,12 @@
           label="style"
           @input="setStyle"
         >
-          <template slot="option" slot-scope="props">
+          <template #option="props">
             <span :style="styleForFont(props.option)">
               {{ props.option.style }}
             </span>
           </template>
-          <template slot="noResult">
+          <template #noResult>
             {{ $t('settings.itemNotFoundMessage') }}
           </template>
         </dropdown>
