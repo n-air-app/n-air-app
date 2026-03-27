@@ -17,70 +17,47 @@
       </div>
 
       <div class="section" v-if="use">
-        <div>{{ $t('settings.substream.urlTips') }}</div>
-        <div class="url-tips">
-          <div>
-            YouTube &nbsp;
-            {{ defautServers.youtube.url }}
-            <button
-              class="set-url-button basic-button"
-              data-size="sm"
-              data-radius="sm"
-              data-color="secondary"
-              data-variant="light"
-              @click="url = defautServers.youtube.url"
-            >
-              {{ $t('settings.substream.set') }}
-            </button>
-            <button
-              class="set-url-button basic-button"
-              data-size="sm"
-              data-radius="sm"
-              data-color="secondary"
-              data-variant="light"
-              @click="openExternalLink(defautServers.youtube.stream_key_link)"
-            >
-              {{ $t('settings.substream.getStreamKey')
-              }}<i class="icon-open-blank set-url-icon"></i>
-            </button>
-          </div>
-          <div>
-            Twitch &nbsp;
-            {{ defautServers.twitch.url }}
-            <button
-              class="set-url-button basic-button"
-              data-size="sm"
-              data-radius="sm"
-              data-color="secondary"
-              data-variant="light"
-              @click="url = defautServers.twitch.url"
-            >
-              {{ $t('settings.substream.set') }}
-            </button>
-            <button
-              class="set-url-button basic-button"
-              data-size="sm"
-              data-radius="sm"
-              data-color="secondary"
-              data-variant="light"
-              @click="openExternalLink(defautServers.twitch.stream_key_link)"
-            >
-              {{ $t('settings.substream.getStreamKey')
-              }}<i class="icon-open-blank set-url-icon"></i>
-            </button>
-          </div>
+        <div class="tab-nav">
+          <button
+            v-for="tab in tabIds"
+            :key="tab"
+            class="button--tab"
+            :class="{ active: selectedTab === tab }"
+            @click="selectTab(tab)"
+          >
+            {{ $t(`settings.substream.tabs.${tab}`) }}
+          </button>
         </div>
 
         <div class="input-wrapper">
-          <div class="input-label">
+          <div class="input-label input-label--row">
             <label>{{ $t('settings.substream.url') }}</label>
+            <span
+              v-if="selectedTab !== 'other'"
+              class="label-hint label-hint--clickable"
+              @click="setDefaultUrl()"
+            >
+              {{ defaultServers[selectedTab].url }}
+            </span>
           </div>
           <input type="text" v-model="url" />
         </div>
 
         <div class="input-wrapper">
-          <div class="input-label">
+          <div class="input-label input-label--row">
             <label>{{ $t('settings.substream.streamKey') }}</label>
+            <button
+              v-if="selectedTab !== 'other'"
+              class="get-stream-key-button basic-button"
+              data-size="sm"
+              data-radius="sm"
+              data-color="secondary"
+              data-variant="light"
+              @click="openExternalLink(defaultServers[selectedTab].stream_key_link)"
+            >
+              {{ $t('settings.substream.getStreamKey')
+              }}<i class="icon-open-blank set-url-icon"></i>
+            </button>
           </div>
           <div class="key-input-wrapper">
             <input :type="showKey ? 'text' : 'password'" v-model="key" />
@@ -91,7 +68,7 @@
               data-radius="sm"
               data-color="secondary"
               data-variant="light"
-              @click="showKey = !showKey"
+              @click="toggleShowKey()"
             >
               {{ showKey ? $t('settings.substream.display') : $t('settings.substream.show') }}
             </button>
@@ -151,7 +128,7 @@
         <div
           class="section-title section-title--dropdown"
           :class="{ 'section-title--opened': !collapsed }"
-          @click="collapsed = !collapsed"
+          @click="toggleCollapsed()"
         >
           <h4>
             <i v-if="collapsed === true" class="icon-plus section-title__icon" />
@@ -263,19 +240,29 @@
   color: var(--color-text);
 }
 
-.help-button {
-  padding: 0;
-  margin: 0 !important;
-  vertical-align: middle;
-  cursor: pointer;
-  background: none;
-  border: none;
+.input-label--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.url-tips {
-  margin-bottom: 8px;
-  margin-left: 16px;
+.label-hint {
   font-size: @font-size3;
+  color: var(--color-text-dark);
+}
+
+.label-hint--clickable {
+  text-decoration: underline dotted;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text-light);
+  }
+}
+
+.get-stream-key-button {
+  height: 20px;
+  margin: 0 !important;
 }
 
 .label-description {
@@ -284,13 +271,23 @@
   color: var(--color-text-dark);
 }
 
-.set-url-button {
-  height: 20px;
-  margin: 2px !important;
-}
-
 .set-url-icon {
   margin-left: 4px;
+}
+
+.tab-nav {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  margin: 0 -16px 8px;
+  border-bottom: 1px solid var(--color-border-light);
+
+  > button {
+    flex: 1;
+    height: 100%;
+  }
 }
 
 .key-input-wrapper {

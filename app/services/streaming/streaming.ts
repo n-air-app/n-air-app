@@ -32,8 +32,8 @@ import { HttpRelation } from 'services/nicolive-program/httpRelation';
 import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { TranscriptionService } from 'services/transcription/transcription';
-import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { RtvcStateService } from '../../services/rtvcStateService';
+import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';
 
 enum EOBSOutputType {
@@ -62,8 +62,7 @@ interface IOBSOutputSignalInfo {
 
 export class StreamingService
   extends StatefulService<IStreamingServiceState>
-  implements IStreamingServiceApi
-{
+  implements IStreamingServiceApi {
   @Inject() settingsService: SettingsService;
   @Inject() userService: UserService;
   @Inject() windowsService: WindowsService;
@@ -236,8 +235,8 @@ export class StreamingService
         // ユーザー番組については、即時番組があればそれを優先し、なければ予約番組の番組IDを採用する。
         const programId =
           opts.nicoliveProgramSelectorResult &&
-          opts.nicoliveProgramSelectorResult.providerType === 'channel' &&
-          opts.nicoliveProgramSelectorResult.channelProgramId
+            opts.nicoliveProgramSelectorResult.providerType === 'channel' &&
+            opts.nicoliveProgramSelectorResult.channelProgramId
             ? opts.nicoliveProgramSelectorResult.channelProgramId
             : broadcastableUserProgram.programId || broadcastableUserProgram.nextProgramId;
 
@@ -755,9 +754,9 @@ export class StreamingService
       advanced:
         settings.outputMode === 'Advanced'
           ? {
-              rate_control: settings.audio.rateControl,
-              profile: settings.profile,
-            }
+            rate_control: settings.audio.rateControl,
+            profile: settings.profile,
+          }
           : undefined,
       encoder: {
         encoder_type: settings.encoder as unknown as EncoderFamily,
