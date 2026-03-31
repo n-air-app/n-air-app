@@ -125,13 +125,13 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <IconListSelect v-model="system" :options="synthesizers" data-variant="filled" />
-                <IconListSelect
+                <DropdownIcon v-model="system" :options="synthesizers" />
+                <DropdownIcon
                   v-if="system.id == 'voicevox'"
                   v-model="voicevoxSystemItem"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
-                  data-variant="filled"
+                  :searchable="true"
                 />
                 <button
                   class="action-icon"
@@ -152,13 +152,13 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <IconListSelect v-model="normal" :options="synthesizers" data-variant="filled" />
-                <IconListSelect
+                <DropdownIcon v-model="normal" :options="synthesizers" />
+                <DropdownIcon
                   v-if="normal.id == 'voicevox'"
                   v-model="voicevoxNormalItem"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
-                  data-variant="filled"
+                  :searchable="true"
                 />
                 <button
                   class="action-icon"
@@ -180,13 +180,13 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <IconListSelect v-model="operator" :options="synthesizers" data-variant="filled" />
-                <IconListSelect
+                <DropdownIcon v-model="operator" :options="synthesizers" />
+                <DropdownIcon
                   v-if="operator.id == 'voicevox'"
                   v-model="voicevoxOperatorItem"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
-                  data-variant="filled"
+                  :searchable="true"
                 />
                 <button
                   class="action-icon"
@@ -266,17 +266,14 @@
             <div class="input-label">
               <label>Method</label>
             </div>
-            <multiselect
+            <dropdown
               v-model="httpRelationMethod"
               :options="httpRelationMethods"
               label="text"
-              trackBy="value"
-              :allow-empty="false"
-              :searchable="false"
-              :placeholder="$t('settings.listPlaceholder')"
+              track-by="value"
               data-variant="filled"
             >
-            </multiselect>
+            </dropdown>
           </div>
 
           <div class="input-wrapper" v-if="httpRelationMethod.value !== ''">
@@ -424,10 +421,10 @@
   width: 100%;
   margin-bottom: 16px;
 
-  .multiselect {
+  .dropdown {
     flex-grow: 1;
 
-    & + .multiselect {
+    & + .dropdown {
       flex-grow: 1.4;
     }
   }

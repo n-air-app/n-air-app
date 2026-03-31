@@ -1,15 +1,15 @@
 import * as remote from '@electron/remote';
+import Dropdown from 'components/shared/Dropdown.vue';
 import { clipboard } from 'electron';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { SubStreamService, SubStreamTabID } from 'services/substream/SubStreamService';
 import Vue from 'vue';
-import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
 
 @Component({
   components: {
-    Multiselect,
+    Dropdown,
   },
 })
 export default class SubStreamSettings extends Vue {

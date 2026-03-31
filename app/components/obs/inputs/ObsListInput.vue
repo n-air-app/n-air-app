@@ -9,30 +9,26 @@
       <label>{{ value.description }}</label>
     </div>
     <div class="input-wrapper">
-      <multiselect
+      <dropdown
+        :data-test="testingAnchor"
         :value="currentValue"
         :disabled="value.enabled === false"
         :options="value.options"
-        :internal-search="internalSearch"
+        label="description"
         track-by="value"
-        :close-on-select="true"
-        :allow-empty="allowEmpty"
         :placeholder="placeholder || $t('settings.listPlaceholder')"
         :loading="loading"
-        label="description"
         @input="onInputHandler"
-        @search-change="onSearchChange"
-        :searchable="false"
       >
-        <template slot="option" slot-scope="props">
+        <template #option="props">
           <span :data-test="`${props.option.value}`">
             {{ props.option.description }}
           </span>
         </template>
-        <template slot="noResult">
+        <template #noResult>
           {{ $t('settings.itemNotFoundMessage') }}
         </template>
-      </multiselect>
+      </dropdown>
     </div>
   </div>
 </template>

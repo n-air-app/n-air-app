@@ -1,8 +1,8 @@
+import Dropdown from 'components/shared/Dropdown.vue';
 import { defer } from 'lodash';
 import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
-import { Multiselect } from 'vue-multiselect';
 import { Component } from 'vue-property-decorator';
 import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
 import { Inject } from '../../../services/core/injector';
@@ -11,7 +11,7 @@ import { OnboardingService } from '../../../services/onboarding';
 
 @Component({
   components: {
-    Multiselect,
+    Dropdown,
     NAirObsLogo,
   },
 })

@@ -146,15 +146,13 @@
                 >
               </label>
             </div>
-            <multiselect
+            <dropdown
               v-model="videoCodec"
               :options="videoCodecs"
               label="name"
-              trackBy="id"
-              :allow-empty="false"
-              :searchable="false"
+              track-by="id"
             >
-            </multiselect>
+            </dropdown>
           </div>
 
           <div class="input-wrapper">
@@ -188,15 +186,13 @@
               >
               </label>
             </div>
-            <multiselect
+            <dropdown
               v-model="audioCodec"
               :options="audioCodecs"
               label="name"
-              trackBy="id"
-              :allow-empty="false"
-              :searchable="false"
+              track-by="id"
             >
-            </multiselect>
+            </dropdown>
           </div>
 
           <div class="input-wrapper">

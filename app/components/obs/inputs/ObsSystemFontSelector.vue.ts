@@ -1,7 +1,7 @@
+import Dropdown from 'components/shared/Dropdown.vue';
 import fontManager from 'font-manager';
 import _ from 'lodash';
 import { EFontStyle } from 'obs-studio-node';
-import { Multiselect } from 'vue-multiselect';
 import { Component, Prop } from 'vue-property-decorator';
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import { IObsFont, IObsInput, ObsInput } from './ObsInput';
@@ -26,7 +26,7 @@ interface IFontSelect extends HTMLElement {
 }
 
 @Component({
-  components: { Multiselect, FontSizeSelector: ObsFontSizeSelector },
+  components: { Dropdown, FontSizeSelector: ObsFontSizeSelector },
 })
 export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>> {
   @Prop()
