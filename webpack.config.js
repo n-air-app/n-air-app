@@ -171,7 +171,7 @@ module.exports = function (env, argv) {
           },
           {
             test: /\.ts$/,
-            loader: 'ts-loader',
+            use: ['babel-loader', 'ts-loader'],
             exclude: /node_modules|vue\/src/,
           },
           {
