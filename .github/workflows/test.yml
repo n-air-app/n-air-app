@@ -9,7 +9,7 @@ on:
 
 jobs:
   changes:
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
