@@ -7,9 +7,9 @@ replace_rules.json @Koutarou-Yamamoto
 /.github/CODEOWNERS @Koutarou-Yamamoto
 
 # designers
-*.vue @yusuke-shibakiri
-*.html @yusuke-shibakiri
-*.less @yusuke-shibakiri
-*.css @yusuke-shibakiri
-/app/styles/ @yusuke-shibakiri
-/media/images/ @yusuke-shibakiri
+*.vue @yusuke-shibakiri @sei-katsumata
+*.html @yusuke-shibakiri @sei-katsumata
+*.less @yusuke-shibakiri @sei-katsumata
+*.css @yusuke-shibakiri @sei-katsumata
+/app/styles/ @yusuke-shibakiri @sei-katsumata
+/media/images/ @yusuke-shibakiri @sei-katsumata
