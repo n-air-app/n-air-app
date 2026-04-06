@@ -109,6 +109,9 @@ async function postReleaseToSlack({ version, environment, channel, link, notes }
  * @param {string} param0.upload.githubToken
  * @param {string} param0.upload.s3BucketName
  * @param {string} param0.upload.s3KeyPrefix
+ * @param {object} param0.sentry
+ * @param {string} param0.sentry.organization
+ * @param {string} param0.sentry.project
  * @param {object} param0.patchNote
  * @param {string} param0.patchNote.version
  * @param {string} param0.patchNote.notes
@@ -122,6 +125,7 @@ async function runScript({
   releaseChannel,
   target,
   upload,
+  sentry,
   patchNote,
 
   skipLocalModificationCheck, // for DEBUG
@@ -235,6 +239,20 @@ async function runScript({
 
     info('Making the package...');
     executeCmd(`pnpm run package:${releaseEnvironment}-${releaseChannel}`);
+  }
+
+  if (!skipBuild) {
+    info('Uploading debug symbols to Sentry...');
+    // Upload PDB files for native modules so that native crash stack traces can be symbolicated.
+    // node_modules/ contains PDB files built with RelWithDebInfo from the native-deps release.
+    const sentryCliArgs = [
+      `--org ${sentry.organization}`,
+      `--project ${sentry.project}`,
+      `node_modules/node-libuiohook/node_libuiohook.pdb`,
+      `node_modules/obs-studio-node/`,
+      `node_modules/crash-handler/`,
+    ].join(' ');
+    executeCmd(`npx @sentry/cli debug-files upload ${sentryCliArgs}`);
   }
 
   info('Pushing to the repository...');

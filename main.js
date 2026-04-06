@@ -749,7 +749,9 @@ function initialize(crashHandler) {
       // Ensure splash window is closed
       closeSplashWindow();
 
-      require('node-libuiohook').stopHook();
+      const libuiohook = require('node-libuiohook');
+      libuiohook.unregisterAllCallbacks();
+      libuiohook.stopHook();
       console.log('[EXIT] Stopped libuiohook');
 
       session.defaultSession.flushStorageData();
