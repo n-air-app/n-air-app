@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/vue';
 import { IObsInput, IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { $t } from 'services/i18n';
 import { getKeys } from 'util/getKeys';
@@ -502,13 +501,7 @@ class OptKeyProperty {
   value(v: any): string {
     if (v === undefined) {
       const path = i18nPath('settings', this.category, this.subCategory, this.setting);
-      Sentry.withScope(scope => {
-        scope.setLevel('info');
-        scope.setTag('optimization.key', this.key);
-        scope.setTag('settings.path', path);
-        scope.setFingerprint(['OptKeyProperty', 'value(undefined)']);
-        Sentry.captureMessage(`OptKeyProperty: value(undefined): ${path}`);
-      });
+      console.warn(`OptKeyProperty: value(undefined): ${path}`);
       return;
     }
     if (this.lookupValueName) {
