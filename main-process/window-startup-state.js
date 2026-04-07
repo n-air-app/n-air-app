@@ -78,14 +78,17 @@ function resolveWindowBounds(rawSavedState, windowState, screen, defaults) {
   }
 
   // 通常状態で復元する場合: 保存された x/y が有効なディスプレイ上にあるか確認する
+  const hasPosition = Number.isInteger(windowState.x) && Number.isInteger(windowState.y);
   const allDisplays = screen.getAllDisplays();
-  const isVisible = allDisplays.some(
-    display =>
-      display.workArea.x < windowState.x + windowState.width &&
-      windowState.x < display.workArea.x + display.workArea.width &&
-      display.workArea.y < windowState.y &&
-      windowState.y < display.workArea.y + display.workArea.height,
-  );
+  const isVisible =
+    hasPosition &&
+    allDisplays.some(
+      display =>
+        display.workArea.x < windowState.x + windowState.width &&
+        windowState.x < display.workArea.x + display.workArea.width &&
+        display.workArea.y < windowState.y &&
+        windowState.y < display.workArea.y + display.workArea.height,
+    );
 
   return {
     ...(isVisible ? { x: windowState.x, y: windowState.y } : {}),

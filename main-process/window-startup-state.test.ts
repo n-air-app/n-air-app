@@ -176,14 +176,16 @@ describe('resolveWindowBounds', () => {
     expect(result.shouldMaximize).toBe(false);
   });
 
-  test('初回起動（空の rawSavedState）: デフォルトサイズ・shouldMaximize=false', () => {
+  test('初回起動（空の rawSavedState）: デフォルトサイズ・x/y=undefined・shouldMaximize=false', () => {
     const screen = makeScreen([displayA]);
     const result = resolveWindowBounds(
       {}, // rawSavedState が空 = window-state.json が存在しない
-      { x: 0, y: 0, width: 1600, height: 1000 },
+      { x: undefined, y: undefined, width: 1600, height: 1000 },
       screen,
     );
     expect(result.shouldMaximize).toBe(false);
+    expect(result.x).toBeUndefined();
+    expect(result.y).toBeUndefined();
     expect(result.width).toBe(1600);
     expect(result.height).toBe(1000);
   });
