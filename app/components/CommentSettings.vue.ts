@@ -78,6 +78,9 @@ export default class CommentSettings extends Vue {
   mounted() {
     this.startVoicevoxChecker();
     this.initOneComme();
+    if (this.synthesizerEnabled) {
+      this.nicoliveCommentSynthesizerService.prefetchNVoice();
+    }
   }
 
   close() {

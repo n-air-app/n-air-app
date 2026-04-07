@@ -14,6 +14,7 @@ import { ISpeechSynthesizer } from './speech/ISpeechSynthesizer';
 import { NVoiceSynthesizer } from './speech/NVoiceSynthesizer';
 import { VoicevoxSynthesizer } from './speech/VoicevoxSynthesizer';
 import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
+import { NicoliveProgramService } from './nicolive-program';
 import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
 import { WrappedChat, WrappedMessage } from './WrappedChat';
 
@@ -55,6 +56,7 @@ export interface ICommentSynthesizerState {
 @InitAfter('NicoliveProgramStateService')
 export class NicoliveCommentSynthesizerService extends StatefulService<ICommentSynthesizerState> {
   @Inject('NicoliveProgramStateService') stateService: NicoliveProgramStateService;
+  @Inject() private nicoliveProgramService: NicoliveProgramService;
   @Inject() nVoiceClientService: NVoiceClientService;
   @Inject() nVoiceCharacterService: NVoiceCharacterService;
   @Inject() private userService: UserService;
@@ -400,10 +402,26 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     this.queue.runNext();
   }
 
+  private isNVoiceConfigured(): boolean {
+    const { selector } = this.state;
+    return selector.normal === 'nVoice' || selector.operator === 'nVoice' || selector.system === 'nVoice';
+  }
+
+  prefetchNVoice(): void {
+    if (!this.state.enabled || !this.isNVoiceConfigured()) {
+      return;
+    }
+    this.nVoiceClientService.prefetch().catch(() => {
+      // already logged inside prefetch()
+    });
+  }
+
   private setEnabled(enabled: boolean) {
     this.setState({ enabled });
     if (!enabled) {
       this.queue.cancel();
+    } else if (this.nicoliveProgramService.state.viewUri) {
+      this.prefetchNVoice();
     }
   }
   get enabled(): boolean {
