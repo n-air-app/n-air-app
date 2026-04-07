@@ -6,7 +6,10 @@
 import * as Sentry from '@sentry/vue';
 
 // Mock dependencies
-jest.mock('@sentry/vue');
+jest.mock('@sentry/vue', () => ({
+  withScope: jest.fn(),
+  captureMessage: jest.fn(),
+}));
 jest.mock('services/core/stateful-service');
 jest.mock('services/core/injector');
 jest.mock('@electron/remote', () => ({
@@ -41,8 +44,8 @@ describe('SceneCollectionsService', () => {
 
     mockCaptureMessage = jest.fn();
 
-    (Sentry.withScope as jest.Mock) = mockWithScope;
-    (Sentry.captureMessage as jest.Mock) = mockCaptureMessage;
+    jest.spyOn(Sentry, 'withScope').mockImplementation(mockWithScope);
+    jest.spyOn(Sentry, 'captureMessage').mockImplementation(mockCaptureMessage);
   });
 
   describe('load with partial errors', () => {

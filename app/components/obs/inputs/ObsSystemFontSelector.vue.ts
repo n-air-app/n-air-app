@@ -1,6 +1,7 @@
 import Dropdown from 'components/shared/Dropdown.vue';
 import fontManager from 'font-manager';
-import _ from 'lodash';
+import groupBy from 'lodash/groupBy';
+import sortBy from 'lodash/sortBy';
 import { EFontStyle } from 'obs-studio-node';
 import { Component, Prop } from 'vue-property-decorator';
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
@@ -76,7 +77,7 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
 
     let selected_font: IFontDescriptor;
 
-    const regular = _.find(family.fonts, font => {
+    const regular = family.fonts.find(font => {
       return font.style === 'Regular';
     });
 
@@ -131,7 +132,7 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
   }
 
   get selectedFont() {
-    return _.find(this.selectedFamily.fonts, font => {
+    return this.selectedFamily.fonts.find(font => {
       if (this.value.value.flags !== this.getFlagsFromFont(font)) {
         return false;
       }
@@ -141,12 +142,12 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
   }
 
   get fontsByFamily() {
-    return _.groupBy(this.fonts, 'family');
+    return groupBy(this.fonts, 'family');
   }
 
   get fontFamilies() {
-    return _.sortBy(
-      _.map(this.fontsByFamily, fonts => {
+    return sortBy(
+      Object.values(this.fontsByFamily).map(fonts => {
         return this.fontsToFamily(fonts);
       }),
       'family',

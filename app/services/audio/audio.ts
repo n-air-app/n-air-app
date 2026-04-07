@@ -5,7 +5,6 @@ import {
   IObsNumberInputValue,
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
-import { omit } from 'lodash';
 import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
@@ -313,7 +312,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const obsInput = this.sourcesService.getSourceById(sourceId).getObsInput();
 
     // Fader is ignored by this method.  Use setFader instead
-    const newPatch = omit(patch, 'fader');
+    const { fader: _fader, ...newPatch } = patch;
 
     getKeys(newPatch).forEach(name => {
       if (newPatch[name] === undefined) return;

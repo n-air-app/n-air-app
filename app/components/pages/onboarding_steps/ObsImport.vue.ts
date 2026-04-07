@@ -1,5 +1,4 @@
 import Dropdown from 'components/shared/Dropdown.vue';
-import { defer } from 'lodash';
 import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
@@ -71,7 +70,7 @@ export default class ObsImport extends Vue {
 
   startImport() {
     this.status = 'importing';
-    defer(async () => {
+    setTimeout(async () => {
       try {
         await this.obsImporterService.load(this.selectedProfile);
         this.status = 'done';

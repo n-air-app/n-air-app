@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import ModalLayout from 'components/ModalLayout.vue';
-import { omit } from 'lodash';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NVoiceCharacterType, NVoiceCharacterTypes } from 'services/nvoice-character';
@@ -94,24 +93,25 @@ export default class SourcesShowcase extends Vue {
       });
     }
 
+    const { propertiesManager: optionsPropertiesManager, ...optionsWithoutManager } = options;
     if (sourceType === 'custom_cast_ndi_source') {
       const propertiesManagerSettings: Dictionary<any> = {
-        ...omit(options, 'propertiesManager'),
+        ...optionsWithoutManager,
         propertiesManager: 'custom-cast-ndi',
       };
       this.sourcesService.showAddSource('ndi_source', propertiesManagerSettings);
     } else if (NVoiceCharacterTypes.includes(sourceType as NVoiceCharacterType)) {
       const propertiesManagerSettings: Dictionary<any> = {
         NVoiceCharacterType: sourceType as NVoiceCharacterType,
-        ...omit(options, 'propertiesManager'),
+        ...optionsWithoutManager,
       };
       this.sourcesService.showAddSource('browser_source', {
         propertiesManagerSettings,
         propertiesManager: 'nvoice-character',
       });
     } else {
-      const propertiesManager = options.propertiesManager || 'default';
-      const propertiesManagerSettings: Dictionary<any> = { ...omit(options, 'propertiesManager') };
+      const propertiesManager = optionsPropertiesManager || 'default';
+      const propertiesManagerSettings: Dictionary<any> = { ...optionsWithoutManager };
 
       this.sourcesService.showAddSource(sourceType as TSelectableSourceType, {
         propertiesManagerSettings,

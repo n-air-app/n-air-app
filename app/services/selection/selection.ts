@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
-import { uniq } from 'lodash';
 import { Subject } from 'rxjs';
 import { mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
@@ -228,7 +227,7 @@ export class Selection {
 
   select(itemsList: TNodesList): Selection {
     let ids = this.resolveItemsList(itemsList);
-    ids = uniq(ids);
+    ids = [...new Set(ids)];
     const scene = this.getScene();
 
     // omit ids that are not presented on the scene
@@ -527,7 +526,7 @@ export class Selection {
 
     for (let ind = 0; ind < minPathLength; ind++) {
       const parents = paths.map(path => path[ind]);
-      if (uniq(parents).length === 1) {
+      if ([...new Set(parents)].length === 1) {
         closestParentId = parents[0];
       } else {
         return this.getScene().getFolder(closestParentId);
@@ -538,7 +537,7 @@ export class Selection {
   canGroupIntoFolder(): boolean {
     const selectedNodes = this.getRootNodes();
     const nodesFolders = selectedNodes.map(node => node.parentId || null);
-    const nodesHaveTheSameParent = uniq(nodesFolders).length === 1;
+    const nodesHaveTheSameParent = [...new Set(nodesFolders)].length === 1;
     const canGroupIntoFolder = selectedNodes.length > 1 && nodesHaveTheSameParent;
     return canGroupIntoFolder;
   }

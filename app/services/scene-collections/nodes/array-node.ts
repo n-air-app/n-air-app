@@ -1,4 +1,3 @@
-import { compact } from 'lodash';
 import { Node } from './node';
 
 interface IArraySchema<TSchema> {
@@ -22,7 +21,7 @@ export abstract class ArrayNode<TSchema, TContext, TItem> extends Node<
       }),
     );
 
-    this.data = { items: compact(values) };
+    this.data = { items: values.filter(Boolean) };
   }
 
   async load(context: TContext): Promise<void> {
