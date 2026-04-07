@@ -41,7 +41,7 @@ function findTargetDisplay(savedDisplayBounds, savedX, savedY, screen) {
  * 消してしまう。そのため windowStateKeeper() 呼び出し前に window-state.json を直接読んだ
  * rawSavedState を最大化・ディスプレイ判定に使う。
  *
- * @param {object} rawSavedState - window-state.json の生データ（{}の場合は初回起動扱い）
+ * @param {{ x?: number, y?: number, width?: number, height?: number, isMaximized?: boolean, displayBounds?: { x: number, y: number, width: number, height: number } }} rawSavedState - window-state.json の生データ（{}の場合は初回起動扱い）
  * @param {{ x: number|undefined, y: number|undefined, width: number, height: number }} windowState
  *   - windowStateKeeper が返す値（validateState() 後の値なので isMaximized/displayBounds が消える可能性あり）
  * @param {{ getAllDisplays(): Electron.Display[], getDisplayNearestPoint(point: {x:number,y:number}): Electron.Display, getPrimaryDisplay(): Electron.Display }} screen
