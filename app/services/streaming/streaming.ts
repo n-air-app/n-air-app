@@ -150,10 +150,13 @@ export class StreamingService
     this.toggleStreaming();
   }
 
-  private async showNotBroadcastingMessageBoxForNicolive() {
+  private async showNotBroadcastingMessageBoxForNicolive(
+    reason: 'no_user_program' | 'no_program_id',
+  ) {
     Sentry.addBreadcrumb({
       category: 'streaming',
       message: 'showNotBroadcastingMessageBox',
+      data: { reason },
     });
     const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
       title: $t('streaming.notBroadcasting'),
@@ -227,7 +230,7 @@ export class StreamingService
 
           // 配信可能チャンネルがなく、配信できるユーザー生放送もない場合
           if (!broadcastableUserProgram.programId && !broadcastableUserProgram.nextProgramId) {
-            return this.showNotBroadcastingMessageBoxForNicolive();
+            return this.showNotBroadcastingMessageBoxForNicolive('no_user_program');
           }
         }
 
@@ -242,13 +245,24 @@ export class StreamingService
 
         // 配信番組選択ウィンドウでユーザー番組を選んだが、配信可能なユーザー番組がない場合
         if (!programId) {
-          return this.showNotBroadcastingMessageBoxForNicolive();
+          return this.showNotBroadcastingMessageBoxForNicolive('no_program_id');
         }
 
         const setting = await this.userService.updateStreamSettings(programId);
         const streamKey = setting.key;
         if (streamKey === '') {
-          return this.showNotBroadcastingMessageBoxForNicolive();
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'streamKey is empty',
+            data: { programId },
+          });
+          await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+            title: $t('streaming.streamingError'),
+            type: 'warning',
+            message: $t('streaming.broadcastStatusFetchingError.default'),
+            buttons: ['Close'],
+          });
+          return;
         }
 
         // [番組情報を取得]してニコ生パネルを更新する
