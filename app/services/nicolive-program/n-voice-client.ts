@@ -121,6 +121,14 @@ export class NVoiceClientService
     this.client = new NVoiceClient({ baseDir: getNVoicePath(), onError: showError });
   }
 
+  async prefetch(): Promise<void> {
+    try {
+      await this.client.startNVoice();
+    } catch (e) {
+      console.warn('NVoice prefetch failed:', e);
+    }
+  }
+
   private index = 0;
   private speaking: Promise<void> | undefined;
 

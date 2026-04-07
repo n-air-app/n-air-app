@@ -255,6 +255,7 @@ class NVoiceEngineError extends Error {
 const supportedProtocolVersion = '1.0.0';
 export class NVoiceClient {
   private commandLineClient: CommandLineClient | undefined;
+  private startingPromise: Promise<void> | undefined;
 
   constructor(
     readonly options: {
@@ -266,9 +267,15 @@ export class NVoiceClient {
   }
 
   async startNVoice(): Promise<void> {
-    if (this.commandLineClient === undefined) {
-      await this._startNVoice();
+    if (this.commandLineClient !== undefined) {
+      return;
     }
+    if (this.startingPromise === undefined) {
+      this.startingPromise = this._startNVoice().finally(() => {
+        this.startingPromise = undefined;
+      });
+    }
+    await this.startingPromise;
   }
 
   async _startNVoice(): Promise<void> {
