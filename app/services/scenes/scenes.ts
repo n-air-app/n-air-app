@@ -1,4 +1,3 @@
-import { without } from 'lodash';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { Inject } from 'services/core/injector';
@@ -172,7 +171,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   private REMOVE_SCENE(id: string) {
     Vue.delete(this.state.scenes, id);
 
-    this.state.displayOrder = without(this.state.displayOrder, id);
+    this.state.displayOrder = this.state.displayOrder.filter(x => x !== id);
   }
 
   @mutation()

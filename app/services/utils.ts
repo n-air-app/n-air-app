@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
 import { randomUUID } from 'node:crypto';
 import { getKeys } from 'util/getKeys';
 

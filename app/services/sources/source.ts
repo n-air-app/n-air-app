@@ -1,5 +1,6 @@
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
-import { cloneDeep, isEqual } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import isEqual from 'lodash/isEqual';
 import { ScenesService } from 'services/scenes';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';

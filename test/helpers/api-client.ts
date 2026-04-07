@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { IJsonRpcEvent, IJsonRpcRequest } from '../../app/services/api/jsonrpc';

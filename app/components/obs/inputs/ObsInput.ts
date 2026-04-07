@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { $t } from 'services/i18n/index';
 import Vue from 'vue';
 import { Prop } from 'vue-property-decorator';
@@ -125,7 +124,7 @@ export interface IElectronOpenDialogFilter {
 }
 
 function parsePathFilters(filterStr: string): IElectronOpenDialogFilter[] {
-  const filters = _.compact(filterStr.split(';;'));
+  const filters = filterStr.split(';;').filter(Boolean);
 
   // Browser source uses *.*
   if (filterStr === '*.*') {
@@ -139,7 +138,7 @@ function parsePathFilters(filterStr: string): IElectronOpenDialogFilter[] {
 
   return filters.map(filter => {
     const match = filter.match(/^(.*)\((.*)\)$/);
-    const desc = _.trim(match[1]);
+    const desc = match[1].trim();
     let types = match[2].split(' ');
 
     types = types.map(type => {

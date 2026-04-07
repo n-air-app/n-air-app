@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "dist/tsc-out",
     "sourceMap": true,

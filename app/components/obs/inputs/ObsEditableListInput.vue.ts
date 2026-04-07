@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import _ from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import { Component, Prop } from 'vue-property-decorator';
 import { $t } from '../../../services/i18n';
 import { Menu } from '../../../util/menus/Menu';
@@ -51,7 +51,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
   }
 
   handleRemove() {
-    this.setList(_.without(this.list, this.activeItem));
+    this.setList(this.list.filter(item => item !== this.activeItem));
   }
 
   handleEdit() {
@@ -66,7 +66,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
     });
 
     if (filePaths && filePaths.length) {
-      const activeIndex = _.indexOf(this.list, this.activeItem);
+      const activeIndex = this.list.indexOf(this.activeItem);
 
       this.list[activeIndex] = filePaths[0];
 
@@ -105,7 +105,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
 
   get list(): string[] {
     const items = this.value.value || [];
-    return _.cloneDeep(items.map(item => item.value));
+    return cloneDeep(items.map(item => item.value));
   }
 }
 

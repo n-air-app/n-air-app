@@ -4,7 +4,6 @@
  */
 
 import avaTest, { TestFn } from 'ava';
-import { uniq } from 'lodash';
 import { sleep } from '../../../app/util/sleep';
 import { ITestContext } from './index';
 import { tasklist } from 'tasklist';
@@ -80,7 +79,7 @@ export function saveFailedTestsToFile(failedTests: string[]) {
     // tslint:disable-next-line:no-parameter-reassignment TODO
     failedTests = JSON.parse(fs.readFileSync(FAILED_TESTS_PATH, 'utf8')).concat(failedTests);
   }
-  fs.writeFileSync(FAILED_TESTS_PATH, JSON.stringify(uniq(failedTests)));
+  fs.writeFileSync(FAILED_TESTS_PATH, JSON.stringify([...new Set(failedTests)]));
 }
 
 export function removeFailedTestFromFile(testName: string) {

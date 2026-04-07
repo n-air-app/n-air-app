@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import fs from 'fs';
-import defaultTo from 'lodash/defaultTo';
 import path from 'path';
 import { AudioService, DEFAULT_AUDIO_MIXERS } from 'services/audio';
 import { Inject } from 'services/core/injector';
@@ -227,9 +226,9 @@ export class ObsImporterService extends Service {
               this.audioService.getSource(source.sourceId).setMuted(sourceJSON.muted);
               this.audioService.getSource(source.sourceId).setMul(sourceJSON.volume);
               this.audioService.getSource(source.sourceId).setSettings({
-                audioMixers: defaultTo(sourceJSON.mixers, DEFAULT_AUDIO_MIXERS),
-                monitoringType: defaultTo(sourceJSON.monitoring_type, defaultMonitoring),
-                syncOffset: defaultTo(sourceJSON.sync / 1000000, 0),
+                audioMixers: sourceJSON.mixers ?? DEFAULT_AUDIO_MIXERS,
+                monitoringType: sourceJSON.monitoring_type ?? defaultMonitoring,
+                syncOffset: sourceJSON.sync != null ? sourceJSON.sync / 1000000 : 0,
                 forceMono: !!(sourceJSON.flags & obs.ESourceFlags.ForceMono),
               });
             }
