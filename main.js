@@ -627,35 +627,43 @@ function initialize(crashHandler) {
       });
     }
 
+    const { resolveWindowBounds } = require('./main-process/window-startup-state');
+
+    // electron-window-state の validateState() → resetStateToDefault() は
+    // 保存された x/y がどのディスプレイにも含まれない場合に state を上書きし、
+    // isMaximized と元の displayBounds を消してしまう。
+    // そのため windowStateKeeper() を呼ぶ前に元の値を直接読み出しておく。
+    let rawSavedState = {};
+    try {
+      rawSavedState = require('jsonfile').readFileSync(
+        require('path').join(app.getPath('userData'), 'window-state.json'),
+      );
+    } catch (err) {
+      // 初回起動時などファイルが無い場合は無視
+    }
+
     const mainWindowState = windowStateKeeper({
+      defaultWidth: 1600,
+      defaultHeight: 1000,
+      maximize: false, // 正しいモニターに配置してから自前で maximize するため無効化
+    });
+
+    const windowBounds = resolveWindowBounds(rawSavedState, mainWindowState, electron.screen, {
       defaultWidth: 1600,
       defaultHeight: 1000,
     });
 
-    const mainWindowIsVisible = electron.screen
-      .getAllDisplays()
-      .some(
-        display =>
-          display.workArea.x < mainWindowState.x + mainWindowState.width &&
-          mainWindowState.x < display.workArea.x + display.workArea.width &&
-          display.workArea.y < mainWindowState.y &&
-          mainWindowState.y < display.workArea.y + display.workArea.height,
-      );
-
     mainWindow = new BrowserWindow({
       minWidth: 448,
       minHeight: 600,
-      width: mainWindowState.width,
-      height: mainWindowState.height,
+      width: windowBounds.width,
+      height: windowBounds.height,
       show: false,
       frame: false,
       backgroundColor: '#17242D',
       title: process.env.NAIR_PRODUCT_NAME,
-      ...(mainWindowIsVisible
-        ? {
-          x: mainWindowState.x,
-          y: mainWindowState.y,
-        }
+      ...(windowBounds.x !== undefined && windowBounds.y !== undefined
+        ? { x: windowBounds.x, y: windowBounds.y }
         : {}),
       webPreferences: {
         nodeIntegration: true,
@@ -665,7 +673,10 @@ function initialize(crashHandler) {
     });
 
     remote.enable(mainWindow.webContents);
-    mainWindowState.manage(mainWindow);
+    mainWindowState.manage(mainWindow); // maximize: false なのでリスナー登録のみ
+    if (windowBounds.shouldMaximize) {
+      mainWindow.maximize();
+    }
     mainWindow.removeMenu();
     mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
 
@@ -679,7 +690,7 @@ function initialize(crashHandler) {
     mainWindow.webContents.once('did-finish-load', () => {
       // Give Vue a moment to render before showing
       setTimeout(() => {
-        if (mainWindowIsVisible) mainWindow.show();
+        mainWindow.show();
         closeSplashWindow();
       }, 100);
     });
