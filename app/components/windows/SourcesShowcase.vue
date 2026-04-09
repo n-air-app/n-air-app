@@ -84,6 +84,14 @@
       </add-source-info>
 
       <add-source-info
+        v-if="inspectedSource === 'spout_capture'"
+        sourceType="spout_capture"
+        key="24"
+      >
+        <NdiSourceIcon slot="media" />
+      </add-source-info>
+
+      <add-source-info
         v-if="inspectedSource === 'decklink-input'"
         sourceType="decklink-input"
         key="14"

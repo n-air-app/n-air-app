@@ -26,6 +26,7 @@ const sourceIconMap = {
   liv_capture: 'icon-vr-google',
   ndi_source: 'icon-NDI',
   custom_cast_ndi_source: 'icon-character-source',
+  spout_capture: 'icon-display',
   near: 'icon-character-source',
   'decklink-input': 'icon-blackmagic',
   vlc_source: 'icon-play',
