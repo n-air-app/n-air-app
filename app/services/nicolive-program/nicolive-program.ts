@@ -426,6 +426,10 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     }
   }
 
+  releaseProgram(): void {
+    this.setState(NicoliveProgramService.programInitialState);
+  }
+
   toggleAutoExtension(): void {
     this.stateService.toggleAutoExtension();
   }

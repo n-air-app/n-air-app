@@ -67,11 +67,14 @@
 
       <div class="program-button">
         <button
-          v-if="
-            programStatus === 'onAir' ||
-              programStatus === 'reserved' ||
-              (programStatus === 'test' && selectedButton === 'end')
-          "
+          v-if="selectedButton === 'release'"
+          @click="releaseProgram"
+          class="button button--secondary"
+        >
+          戻る
+        </button>
+        <button
+          v-else-if="selectedButton === 'end'"
           @click="endProgram"
           :disabled="isEnding || programStatus === 'reserved'"
           class="button button--end-program button--live"
@@ -79,7 +82,7 @@
           番組終了
         </button>
         <button
-          v-else-if="programStatus === 'end'"
+          v-else-if="selectedButton === 'create'"
           @click="createProgram"
           class="button button--primary"
         >
@@ -101,32 +104,16 @@
         >
           <div class="popper">
             <ul class="popup-menu-list">
-              <li class="item">
+              <li class="item" v-for="option in dropdownOptions" :key="option.key">
                 <button
                   :class="{
                     'button-selector': true,
-                    current: selectedButton === 'start',
+                    current: selectedButton === option.key,
                   }"
-                  @click="selectButton('start')"
+                  @click="selectButton(option.key)"
                 >
-                  <span class="item-name">番組開始</span>
-                  <span class="item-text"
-                  >番組を開始して視聴者に公開します</span
-                  >
-                </button>
-              </li>
-              <li class="item">
-                <button
-                  :class="{
-                    'button-selector': true,
-                    current: selectedButton === 'end',
-                  }"
-                  @click="selectButton('end')"
-                >
-                  <span class="item-name">番組終了</span>
-                  <span class="item-text"
-                  >番組を視聴者に公開せず終了します</span
-                  >
+                  <span class="item-name">{{ option.name }}</span>
+                  <span class="item-text">{{ option.description }}</span>
                 </button>
               </li>
             </ul>
@@ -134,12 +121,14 @@
           <button
             class="button button--select-menu"
             v-tooltip.bottom="startButtonSelectorTooltip"
-            v-show="programStatus === 'test'"
+            v-show="programStatus !== 'onAir'"
             :class="{
               'is-show': showPopupMenu,
               active: showButtonSelector,
               'button--action': selectedButton === 'start',
               'button--end-program button--live': selectedButton === 'end',
+              'button--primary': selectedButton === 'create',
+              'button--secondary': selectedButton === 'release',
             }"
             slot="reference"
           >

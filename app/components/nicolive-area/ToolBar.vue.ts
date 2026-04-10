@@ -27,11 +27,45 @@ export default class ToolBar extends Vue {
   startButtonSelectorTooltip = '配信開始/終了ボタンを選択';
 
   showPopupMenu: boolean = false;
-  selectedButton: 'start' | 'end' = 'start';
+  selectedButton: 'start' | 'end' | 'create' | 'release' = 'start';
   showButtonSelector: boolean = false;
 
-  selectButton(button: 'start' | 'end') {
+  private defaultButtonForStatus(status: string): 'start' | 'end' | 'create' {
+    switch (status) {
+      case 'onAir':
+      case 'reserved':
+        return 'end';
+      case 'end':
+        return 'create';
+      default:
+        return 'start';
+    }
+  }
+
+  selectButton(button: 'start' | 'end' | 'create' | 'release') {
     this.selectedButton = button;
+  }
+
+  get dropdownOptions(): Array<{ key: 'start' | 'end' | 'create' | 'release'; name: string; description: string }> {
+    const status = this.programStatus;
+    const options: Array<{ key: 'start' | 'end' | 'create' | 'release'; name: string; description: string }> = [];
+
+    if (status === 'test') {
+      options.push(
+        { key: 'start', name: '番組開始', description: '番組を開始して視聴者に公開します' },
+        { key: 'end', name: '番組終了', description: '番組を視聴者に公開せず終了します' },
+      );
+    } else if (status === 'reserved') {
+      options.push({ key: 'end', name: '番組終了', description: '番組を終了します' });
+    } else if (status === 'end') {
+      options.push({ key: 'create', name: '番組作成', description: '新しく番組を作成します' });
+    }
+
+    if (status !== 'onAir') {
+      options.push({ key: 'release', name: '戻る', description: '番組の作成・取得画面に戻ります' });
+    }
+
+    return options;
   }
 
   get isOnAir(): boolean {
@@ -131,6 +165,7 @@ export default class ToolBar extends Vue {
 
   @Watch('programStatus')
   onStatusChange(newValue: string, oldValue: string) {
+    this.selectedButton = this.defaultButtonForStatus(newValue);
     if (newValue === 'end') {
       clearInterval(this.timeTimer);
       this.currentTime = NaN;
@@ -146,6 +181,7 @@ export default class ToolBar extends Vue {
 
   timeTimer: number = 0;
   mounted() {
+    this.selectedButton = this.defaultButtonForStatus(this.programStatus);
     if (this.programStatus !== 'end') {
       this.startTimer();
     }
@@ -218,6 +254,24 @@ export default class ToolBar extends Vue {
         throw caught;
       }
     }
+  }
+
+  async releaseProgram() {
+    const status = this.nicoliveProgramService.state.status;
+
+    if (status === 'test') {
+      const isOk = await remote.dialog
+        .showMessageBox(remote.getCurrentWindow(), {
+          type: 'warning',
+          message: 'テスト中の番組の取得を解除して最初の画面に戻りますか？',
+          buttons: ['戻る', $t('common.cancel')],
+          noLink: true,
+        })
+        .then(value => value.response === 0);
+      if (!isOk) return;
+    }
+
+    this.nicoliveProgramService.releaseProgram();
   }
 
   private async refreshProgram() {
