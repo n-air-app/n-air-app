@@ -384,7 +384,7 @@
     "name": "Spout2キャプチャ",
     "description": "Spout2対応アプリの映像をN Airに取り込みます。",
     "spoutsenders": {
-      "name": "Spoutセンダー",
+      "name": "Spout Senders",
       "usefirstavailablesender": "利用可能な最初のセンダーを使用"
     },
     "compositemode": {
