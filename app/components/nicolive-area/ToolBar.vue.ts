@@ -237,6 +237,7 @@ export default class ToolBar extends Vue {
           message: '番組を終了しますか？',
           buttons: ['終了する', $t('common.cancel')],
           noLink: true,
+          cancelId: 1,
         })
         .then(value => value.response === 0);
 
@@ -266,6 +267,7 @@ export default class ToolBar extends Vue {
           message: 'テスト中の番組の取得を解除して最初の画面に戻りますか？',
           buttons: ['戻る', $t('common.cancel')],
           noLink: true,
+          cancelId: 1,
         })
         .then(value => value.response === 0);
       if (!isOk) return;
