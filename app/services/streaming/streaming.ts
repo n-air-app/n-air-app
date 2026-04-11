@@ -163,7 +163,8 @@ export class StreamingService
       type: 'warning',
       message: $t('streaming.notBroadcastingMessage'),
       noLink: true,
-      buttons: [$t('streaming.notBroadcastingCreateProgram'), 'Close'],
+      buttons: [$t('streaming.notBroadcastingCreateProgram'), $t('common.close')],
+      cancelId: 1,
     });
     if (response === 0) {
       await this.nicoliveProgramService.createProgram(true);
