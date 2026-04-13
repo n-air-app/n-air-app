@@ -396,7 +396,7 @@
     },
     "tickspeedlimit": {
       "name": "Poll time for new senders",
-      "1": "crazy",
+      "1": "Extremely fast",
       "100": "fast",
       "500": "normal",
       "1000": "slow"

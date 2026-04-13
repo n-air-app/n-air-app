@@ -84,14 +84,6 @@
       </add-source-info>
 
       <add-source-info
-        v-if="inspectedSource === 'spout_capture'"
-        sourceType="spout_capture"
-        key="24"
-      >
-        <NdiSourceIcon slot="media" />
-      </add-source-info>
-
-      <add-source-info
         v-if="inspectedSource === 'decklink-input'"
         sourceType="decklink-input"
         key="14"
@@ -163,6 +155,14 @@
         key="23"
       >
         <FfmpegSourceIcon slot="media" />
+      </add-source-info>
+
+      <add-source-info
+        v-if="inspectedSource === 'spout_capture'"
+        sourceType="spout_capture"
+        key="24"
+      >
+        <MonitorCaptureIcon slot="media" />
       </add-source-info>
 
       <div class="source-info" v-if="inspectedSource === null">
