@@ -1,5 +1,5 @@
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
-import { merge } from 'lodash';
+import merge from 'lodash/merge';
 import { ISource, SourcesService, TSourceType } from 'services/sources';
 import { VideoService } from 'services/video';
 import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';

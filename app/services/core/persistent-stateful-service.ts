@@ -1,4 +1,4 @@
-import { merge } from 'lodash';
+import merge from 'lodash/merge';
 import cloneDeep from 'lodash/cloneDeep';
 import Utils from '../utils';
 import { StatefulService } from './stateful-service';

@@ -1,4 +1,4 @@
-import { get } from 'lodash';
+import get from 'lodash/get';
 import { I18nService } from 'services/i18n';
 
 // eslint-disable-next-line

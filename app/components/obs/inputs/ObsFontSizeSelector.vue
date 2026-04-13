@@ -4,24 +4,21 @@
       <label>{{ $t('settings.fontSize') }}</label>
     </div>
     <div class="input-wrapper">
-      <multiselect
-        class="multiselect--font"
+      <dropdown
+        class="dropdown--font"
         :value="value"
         :options="fontSizePresets"
-        :close-on-select="true"
-        :allow-empty="false"
         @input="setFontSizePreset"
-        :searchable="false"
       >
-        <template slot="option" slot-scope="props">
+        <template #option="props">
           <span>
             {{ props.option }}
           </span>
         </template>
-        <template slot="noResult">
+        <template #noResult>
           {{ $t('settings.itemNotFoundMessage') }}
         </template>
-      </multiselect>
+      </dropdown>
     </div>
   </div>
 </template>

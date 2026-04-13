@@ -1,8 +1,7 @@
-import { defer } from 'lodash';
+import Dropdown from 'components/shared/Dropdown.vue';
 import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
-import { Multiselect } from 'vue-multiselect';
 import { Component } from 'vue-property-decorator';
 import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
 import { Inject } from '../../../services/core/injector';
@@ -11,7 +10,7 @@ import { OnboardingService } from '../../../services/onboarding';
 
 @Component({
   components: {
-    Multiselect,
+    Dropdown,
     NAirObsLogo,
   },
 })
@@ -71,7 +70,7 @@ export default class ObsImport extends Vue {
 
   startImport() {
     this.status = 'importing';
-    defer(async () => {
+    setTimeout(async () => {
       try {
         await this.obsImporterService.load(this.selectedProfile);
         this.status = 'done';

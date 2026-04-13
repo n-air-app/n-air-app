@@ -5,7 +5,7 @@ export class NdgrFetchError extends Error {
     public label: string,
     public phase: 'head' | 'backwards' | 'previous' | 'segment',
   ) {
-    super(`Failed to fetch[${label}:${phase}]: ${status}`);
+    super(`Failed to fetch[${label}:${phase}]: ${status}`, status instanceof Error ? { cause: status } : undefined);
 
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);

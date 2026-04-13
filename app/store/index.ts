@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import electron from 'electron';
-import each from 'lodash/each';
 import { InternalApiService } from 'services/api/internal-api';
 import { IMutation } from 'services/api/jsonrpc';
 import Util from 'services/utils';
@@ -17,8 +16,8 @@ const debug = process.env.NODE_ENV !== 'production';
 
 const mutations = {
   BULK_LOAD_STATE(state: any, data: any) {
-    each(data.state, (value, key) => {
-      state[key] = value;
+    Object.keys(data.state).forEach(key => {
+      state[key] = data.state[key];
     });
   },
 };

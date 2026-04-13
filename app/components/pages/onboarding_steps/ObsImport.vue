@@ -17,15 +17,10 @@
       <div class="obs-import-contents" v-if="status === 'initial'">
         <div v-if="profiles.length > 1">
           <span class="profile-select__title">{{ $t('onboarding.selectObsProfile') }}</span>
-          <multiselect
-            v-if="profiles.length > 1"
+          <dropdown
             v-model="selectedProfile"
             :options="profiles"
-            :allow-empty="false"
-            :show-labels="false"
-            :searchable="false"
-          >
-          </multiselect>
+          />
         </div>
         <div class="button-wrapper">
           <button class="button button--primary" @click="startImport" data-test="Import">
@@ -41,16 +36,6 @@
 </template>
 
 <script lang="ts" src="./ObsImport.vue.ts"></script>
-
-<style lang="less">
-.onboarding-step {
-  // 3rd Party Component
-  .multiselect__content-wrapper {
-    left: -50%;
-    border-radius: 0 0 3px 3px;
-  }
-}
-</style>
 
 <style lang="less" scoped>
 label {

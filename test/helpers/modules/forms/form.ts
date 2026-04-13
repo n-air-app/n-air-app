@@ -1,5 +1,6 @@
 import { pascalize } from 'humps';
-import { difference, isEqual, keyBy, mapValues } from 'lodash';
+import isEqual from 'lodash/isEqual';
+import keyBy from 'lodash/keyBy';
 import { sleep } from '../../sleep';
 import { getClient, waitForDisplayed } from '../core';
 import { BaseInputController, TFiledSetterFn } from './base';
@@ -52,7 +53,7 @@ export function useForm(name?: string) {
   async function readFields(indexKey = 'name', valueKey = 'displayValue') {
     const fields = await readForm();
     const fieldsMap = keyBy(fields, indexKey);
-    return mapValues(fieldsMap, valueKey);
+    return Object.fromEntries(Object.entries(fieldsMap).map(([k, v]) => [k, (v as any)[valueKey]]));
   }
 
   /**
@@ -85,7 +86,8 @@ export function useForm(name?: string) {
     }, true);
 
     // check that we filled out all requested fields
-    const notFoundFields = difference(Object.keys(formData), filledFields);
+    const filledSet = new Set(filledFields);
+    const notFoundFields = Object.keys(formData).filter(k => !filledSet.has(k));
     if (notFoundFields.length) {
       throw new Error(`Inputs or controllers not found: ${notFoundFields.join(',')}`);
     }

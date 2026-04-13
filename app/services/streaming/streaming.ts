@@ -32,8 +32,8 @@ import { HttpRelation } from 'services/nicolive-program/httpRelation';
 import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { TranscriptionService } from 'services/transcription/transcription';
-import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { RtvcStateService } from '../../services/rtvcStateService';
+import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';
 
 enum EOBSOutputType {
@@ -62,8 +62,7 @@ interface IOBSOutputSignalInfo {
 
 export class StreamingService
   extends StatefulService<IStreamingServiceState>
-  implements IStreamingServiceApi
-{
+  implements IStreamingServiceApi {
   @Inject() settingsService: SettingsService;
   @Inject() userService: UserService;
   @Inject() windowsService: WindowsService;
@@ -151,17 +150,21 @@ export class StreamingService
     this.toggleStreaming();
   }
 
-  private async showNotBroadcastingMessageBoxForNicolive() {
+  private async showNotBroadcastingMessageBoxForNicolive(
+    reason: 'no_user_program' | 'no_program_id',
+  ) {
     Sentry.addBreadcrumb({
       category: 'streaming',
       message: 'showNotBroadcastingMessageBox',
+      data: { reason },
     });
     const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
       title: $t('streaming.notBroadcasting'),
       type: 'warning',
       message: $t('streaming.notBroadcastingMessage'),
       noLink: true,
-      buttons: [$t('streaming.notBroadcastingCreateProgram'), 'Close'],
+      buttons: [$t('streaming.notBroadcastingCreateProgram'), $t('common.close')],
+      cancelId: 1,
     });
     if (response === 0) {
       await this.nicoliveProgramService.createProgram(true);
@@ -228,7 +231,7 @@ export class StreamingService
 
           // 配信可能チャンネルがなく、配信できるユーザー生放送もない場合
           if (!broadcastableUserProgram.programId && !broadcastableUserProgram.nextProgramId) {
-            return this.showNotBroadcastingMessageBoxForNicolive();
+            return this.showNotBroadcastingMessageBoxForNicolive('no_user_program');
           }
         }
 
@@ -236,20 +239,31 @@ export class StreamingService
         // ユーザー番組については、即時番組があればそれを優先し、なければ予約番組の番組IDを採用する。
         const programId =
           opts.nicoliveProgramSelectorResult &&
-          opts.nicoliveProgramSelectorResult.providerType === 'channel' &&
-          opts.nicoliveProgramSelectorResult.channelProgramId
+            opts.nicoliveProgramSelectorResult.providerType === 'channel' &&
+            opts.nicoliveProgramSelectorResult.channelProgramId
             ? opts.nicoliveProgramSelectorResult.channelProgramId
             : broadcastableUserProgram.programId || broadcastableUserProgram.nextProgramId;
 
         // 配信番組選択ウィンドウでユーザー番組を選んだが、配信可能なユーザー番組がない場合
         if (!programId) {
-          return this.showNotBroadcastingMessageBoxForNicolive();
+          return this.showNotBroadcastingMessageBoxForNicolive('no_program_id');
         }
 
         const setting = await this.userService.updateStreamSettings(programId);
         const streamKey = setting.key;
         if (streamKey === '') {
-          return this.showNotBroadcastingMessageBoxForNicolive();
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'streamKey is empty',
+            data: { programId },
+          });
+          await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+            title: $t('streaming.streamingError'),
+            type: 'warning',
+            message: $t('streaming.broadcastStatusFetchingError.default'),
+            buttons: ['Close'],
+          });
+          return;
         }
 
         // [番組情報を取得]してニコ生パネルを更新する
@@ -755,9 +769,9 @@ export class StreamingService
       advanced:
         settings.outputMode === 'Advanced'
           ? {
-              rate_control: settings.audio.rateControl,
-              profile: settings.profile,
-            }
+            rate_control: settings.audio.rateControl,
+            profile: settings.profile,
+          }
           : undefined,
       encoder: {
         encoder_type: settings.encoder as unknown as EncoderFamily,

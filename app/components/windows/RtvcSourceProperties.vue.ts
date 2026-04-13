@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import { IObsListInput, IObsListOption, TObsValue } from 'components/obs/inputs/ObsInput';
+import Dropdown from 'components/shared/Dropdown.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
@@ -10,7 +11,6 @@ import {
   StateParam,
 } from 'services/rtvcStateService';
 import { ScenesService } from 'services/scenes';
-import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
 import * as obs from '../../../obs-api';
 import { AudioService } from '../../services/audio';
@@ -30,7 +30,7 @@ type SetParamKey =
 
 @Component({
   components: {
-    Multiselect,
+    Dropdown,
     Popper,
     Slider,
   },

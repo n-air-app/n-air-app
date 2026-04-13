@@ -1,5 +1,4 @@
 import Display from 'components/shared/Display.vue';
-import _ from 'lodash';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { Scene, SceneItem, ScenesService, TSceneNode } from 'services/scenes';
@@ -251,7 +250,7 @@ export default class StudioEditor extends Vue {
       this.dragHandler.move(event);
     } else if (event.buttons === 1) {
       // We might need to start dragging
-      const sourcesInPriorityOrder = _.compact(this.activeSources.concat(this.sceneItems));
+      const sourcesInPriorityOrder = this.activeSources.concat(this.sceneItems).filter(Boolean);
 
       const overSource = sourcesInPriorityOrder.find(source => {
         return this.isOverSource(event, source);
@@ -287,21 +286,21 @@ export default class StudioEditor extends Vue {
         if (options.horizontalEdge === ResizeBoxPoint.West) {
           const croppableWidth = rect.width - rect.crop.right - 2;
           const distance = croppableWidth * rect.scaleX - (rect.x - x);
-          rect.crop.left = _.clamp(distance / rect.scaleX, 0, croppableWidth);
+          rect.crop.left = Math.min(Math.max(distance / rect.scaleX, 0), croppableWidth);
         } else if (options.horizontalEdge === ResizeBoxPoint.East) {
           const croppableWidth = rect.width - rect.crop.left - 2;
           const distance = croppableWidth * rect.scaleX + (rect.x - x);
-          rect.crop.right = _.clamp(distance / rect.scaleX, 0, croppableWidth);
+          rect.crop.right = Math.min(Math.max(distance / rect.scaleX, 0), croppableWidth);
         }
 
         if (options.verticalEdge === ResizeBoxPoint.North) {
           const croppableHeight = rect.height - rect.crop.bottom - 2;
           const distance = croppableHeight * rect.scaleY - (rect.y - y);
-          rect.crop.top = _.clamp(distance / rect.scaleY, 0, croppableHeight);
+          rect.crop.top = Math.min(Math.max(distance / rect.scaleY, 0), croppableHeight);
         } else if (options.verticalEdge === ResizeBoxPoint.South) {
           const croppableHeight = rect.height - rect.crop.top - 2;
           const distance = croppableHeight * rect.scaleY + (rect.y - y);
-          rect.crop.bottom = _.clamp(distance / rect.scaleY, 0, croppableHeight);
+          rect.crop.bottom = Math.min(Math.max(distance / rect.scaleY, 0), croppableHeight);
         }
       });
     });
@@ -376,7 +375,7 @@ export default class StudioEditor extends Vue {
       if (overResize) {
         this.$refs.display.style.cursor = overResize.cursor;
       } else {
-        const overSource = _.find(this.sceneItems, source => {
+        const overSource = this.sceneItems.find(source => {
           return this.isOverSource(event, source);
         });
 
@@ -430,7 +429,7 @@ export default class StudioEditor extends Vue {
   // of the active source's resize regions.
   isOverResize(event: MouseEvent) {
     if (this.activeSources.length > 0) {
-      return _.find(this.resizeRegions, region => {
+      return this.resizeRegions.find(region => {
         return this.isOverBox(event, region.x, region.y, region.width, region.height);
       });
     }

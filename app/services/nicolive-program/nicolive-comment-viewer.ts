@@ -213,11 +213,23 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       )
       .subscribe(state => this.onNextConfig(state));
 
+    // 番組接続時にNVoiceエンジンをプリフェッチする
+    this.nicoliveProgramService.stateChange
+      .pipe(
+        map(({ viewUri }) => viewUri),
+        distinctUntilChanged(),
+        filter(viewUri => !!viewUri),
+      )
+      .subscribe(() => {
+        this.nicoliveCommentSynthesizerService.prefetchNVoice();
+      });
+
     // 番組終了時にメッセージを追加する
+    // programID が空の場合は「最初の画面に戻る」操作による状態リセットなので対象外
     this.nicoliveProgramService.stateChange
       .pipe(
         distinctUntilChanged((prev, curr) => prev.status === curr.status),
-        filter(({ status }) => status === 'end'),
+        filter(({ status, programID }) => status === 'end' && programID !== ''),
       )
       .subscribe(() => {
         this.onProgramEnd();

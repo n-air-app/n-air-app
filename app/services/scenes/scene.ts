@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { uniqBy } from 'lodash';
+import uniqBy from 'lodash/uniqBy';
 import { filter } from 'rxjs/operators';
 import { ServiceHelper, mutation } from 'services/core';
 import { Inject } from 'services/core/injector';

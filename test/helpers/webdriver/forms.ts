@@ -38,8 +38,8 @@ export async function clickFormInput(t: TExecutionContext, label: string, index 
 export async function setFormDropdown(label: string, value: string, index = 0) {
   await waitForDisplayed('label');
   const $el = getClient().$$(label)[index];
-  const $multiselect = $el.$('../..').$('.multiselect');
-  await $multiselect.click();
+  const $dropdown = $el.$('../..').$('.dropdown');
+  await $dropdown.click();
 
   const $li = $el.$('../..').$(`[data-test=${value}]`);
   await $li.click();

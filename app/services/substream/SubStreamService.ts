@@ -6,11 +6,26 @@ import { NamedPipeClient } from './NamedPipeClient';
 
 type Primitive = string | number | boolean;
 
+/** タブID型 */
+export type SubStreamTabID = 'youtube' | 'twitch' | 'other';
+
+/** タブごとのURL/キー設定 */
+interface TabSettings {
+  url: string;
+  key: string;
+}
+
 /** サブストリームの設定状態を表すインターフェース */
 interface ISubStreamState {
   use: boolean;
   url: string;
   key: string;
+  selectedTab: SubStreamTabID;
+  tabs: {
+    youtube: TabSettings;
+    twitch: TabSettings;
+    other: TabSettings;
+  };
   videoBitrate: number;
   audioBitrate: number;
   videoCodec: string;
@@ -75,6 +90,12 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
     use: false,
     url: '',
     key: '',
+    selectedTab: 'youtube',
+    tabs: {
+      youtube: { url: '', key: '' },
+      twitch: { url: '', key: '' },
+      other: { url: '', key: '' },
+    },
     videoBitrate: 2500,
     audioBitrate: 128,
     videoCodec: 'h264',
@@ -84,6 +105,25 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
   };
 
   isExecutingCommand = false; // コマンド実行中フラグ
+
+  init() {
+    super.init();
+    // 旧フォーマット（tabs に値がない = url/key のみのデータ）からのマイグレーション
+    // PersistentStatefulService は defaultState と永続化データを deep merge するため、
+    // selectedTab は常に defaultState の値が入る。代わりに全タブが空かつ url が設定済みかで判定する。
+    const allTabsEmpty = Object.values(this.state.tabs).every(t => !t.url && !t.key);
+    if (allTabsEmpty && this.state.url) {
+      const tabCandidates: SubStreamTabID[] = ['youtube', 'twitch'];
+      const tab: SubStreamTabID = tabCandidates.find(t => this.state.url.includes(t)) ?? 'other';
+      this.setState({
+        selectedTab: tab,
+        tabs: {
+          ...this.state.tabs,
+          [tab]: { url: this.state.url, key: this.state.key },
+        },
+      });
+    }
+  }
 
   @mutation()
   private SET_STATE(nextState: ISubStreamState) {
@@ -122,7 +162,6 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
       service: {
         key: this.state.key,
         server: this.state.url,
-        //  "use_auth": false
       },
       video: {
         bitrate: bitRange(this.state.videoBitrate, 200, 100000), // 2500

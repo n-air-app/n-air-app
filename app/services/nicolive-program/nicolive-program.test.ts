@@ -614,6 +614,16 @@ test('endProgram:失敗', async () => {
   expect(setState).toHaveBeenCalledTimes(2);
 });
 
+test('releaseProgram: programInitialStateでsetStateを呼ぶ', () => {
+  setup();
+  const { NicoliveProgramService, instance, setState } = setupInstance({ mockSetState: true });
+
+  instance.releaseProgram();
+
+  expect(setState).toHaveBeenCalledTimes(1);
+  expect(setState).toHaveBeenCalledWith(NicoliveProgramService.programInitialState);
+});
+
 test('extendProgram:成功', async () => {
   setup();
   const { instance, setState } = setupInstance({ mockSetState: true });

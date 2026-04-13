@@ -1,4 +1,4 @@
-import { isFunction, merge } from 'lodash';
+import merge from 'lodash/merge';
 
 interface Table {
   [serviceName: string]: any;
@@ -18,14 +18,14 @@ export function createSetupFunction({
     injectee: injecteeFactory = {},
     state: stateFactory = {},
   }: { injectee?: Table | Factory; state?: Table | Factory } = {}) {
-    const state = isFunction(stateFactory) ? stateFactory() : stateFactory;
-    const injectee = isFunction(injecteeFactory) ? injecteeFactory() : injecteeFactory;
+    const state = typeof stateFactory === 'function' ? stateFactory() : stateFactory;
+    const injectee = typeof injecteeFactory === 'function' ? injecteeFactory() : injecteeFactory;
     const mockedStatefulService = require('services/core/stateful-service');
     const mockedInjectorUtil = require('services/core/injector');
-    if (!isFunction(mockedStatefulService.__setup)) {
+    if (typeof mockedStatefulService.__setup !== 'function') {
       throw new Error("`jest.mock('services/core/stateful-service')` が必要です");
     }
-    if (!isFunction(mockedInjectorUtil.__setup)) {
+    if (typeof mockedInjectorUtil.__setup !== 'function') {
       throw new Error("`jest.mock('services/core/injector')` が必要です");
     }
     mockedStatefulService.__setup(merge({}, defaultState, state));

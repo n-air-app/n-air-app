@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
 import draggable from 'vuedraggable';
@@ -25,7 +24,7 @@ export default class Selector extends Vue {
   draggableSelector: string = this.draggable ? '.selector-item' : 'none';
 
   handleChange(change: any) {
-    const order = _.map(this.normalizedItems, item => {
+    const order = this.normalizedItems.map(item => {
       return item.value;
     });
 
@@ -61,7 +60,7 @@ export default class Selector extends Vue {
    * array of objects, so we normalize those here.
    */
   get normalizedItems(): ISelectorItem[] {
-    return _.map(this.items, item => {
+    return this.items.map(item => {
       if (typeof item === 'string') {
         return {
           name: item,
