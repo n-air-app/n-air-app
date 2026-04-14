@@ -66,3 +66,7 @@ export function getCookieDomain(): string {
 export function isDevHosts(): boolean {
   return config !== null;
 }
+
+export function getPartitionName(): string | undefined {
+  return config ? 'persist:dev-hosts' : undefined;
+}

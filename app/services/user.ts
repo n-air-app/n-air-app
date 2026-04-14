@@ -6,6 +6,7 @@ import { AppService } from 'services/app';
 import { Inject } from 'services/core/injector';
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { mutation } from 'services/core/stateful-service';
+import { getPartitionName } from 'services/dev-hosts';
 import { IncrementalRolloutService } from 'services/incremental-rollout';
 import { SceneCollectionsService } from 'services/scene-collections';
 import Utils, { uuidv4 } from 'services/utils';
@@ -205,7 +206,11 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     this.userLogout.next();
 
     this.LOGOUT();
-    remote.session.defaultSession.clearStorageData({ storages: ['cookies'] });
+    const partition = getPartitionName();
+    const appSession = partition
+      ? remote.session.fromPartition(partition)
+      : remote.session.defaultSession;
+    appSession.clearStorageData({ storages: ['cookies'] });
     this.appService.finishLoading();
     this.setSentryContext();
   }
@@ -240,6 +245,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
       webPreferences: {
         nodeIntegration: false,
         sandbox: true,
+        ...(getPartitionName() ? { partition: getPartitionName() } : {}),
       },
     });
 

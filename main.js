@@ -88,6 +88,20 @@ function loadDevHostsConfig() {
 
 global.devHostsConfig = loadDevHostsConfig();
 
+/** Electron session partition name for dev-hosts builds. undefined = use defaultSession. */
+const devHostsPartition = global.devHostsConfig ? 'persist:dev-hosts' : undefined;
+
+/**
+ * Returns the Electron session to use for cookies and webRequest.
+ * dev-hosts builds use a separate persistent partition to keep dev and production cookies independent.
+ */
+function getAppSession() {
+  if (devHostsPartition) {
+    return electron.session.fromPartition(devHostsPartition);
+  }
+  return electron.session.defaultSession;
+}
+
 /**
  * Apply dev-hosts URL transformation (mirrors app/services/dev-hosts.ts).
  * overrides take priority over domainMap.
@@ -173,14 +187,16 @@ if (process.argv.includes('--clearCacheDir')) {
 }
 
 function getCookieFiles() {
-  const basePath = path.join(app.getPath('userData'), 'Network');
+  const basePath = devHostsPartition
+    ? path.join(app.getPath('userData'), 'Partitions', 'dev-hosts', 'Network')
+    : path.join(app.getPath('userData'), 'Network');
   return [path.join(basePath, 'Cookies'), path.join(basePath, 'Cookies-journal')];
 }
 
 async function clearCookies() {
   // 読み込めている場合はファイルを消してもメモリから書き戻してしまうため、メモリ上のクッキーを先に削除する
-  await electron.session.defaultSession.clearStorageData({ storages: ['cookies'] });
-  electron.session.defaultSession.flushStorageData();
+  await getAppSession().clearStorageData({ storages: ['cookies'] });
+  getAppSession().flushStorageData();
 
   // 読み込めていない場合は上記でも消えないので、実ファイルを削除する
   const files = getCookieFiles();
@@ -229,7 +245,7 @@ async function recollectUserSessionCookie() {
   // cookieを直せば通るようなのでそのパッチ処理
   console.log('recollectUserSessionCookie');
   try {
-    const cookies = await electron.session.defaultSession.cookies.get({
+    const cookies = await getAppSession().cookies.get({
       domain: global.devHostsConfig?.cookieDomain ?? '.nicovideo.jp',
       name: 'user_session', // 他のキーまでやるとNAIR_UNSTABLE=0で問題があるかもなので一旦必須だけ、状況に応じてで
     });
@@ -249,7 +265,7 @@ async function recollectUserSessionCookie() {
       cookie.httpOnly = true;
       cookie.secure = true;
 
-      await electron.session.defaultSession.cookies.set(cookie);
+      await getAppSession().cookies.set(cookie);
       console.log(`cookie changed ${JSON.stringify(cookie)}`);
     }
   } catch (e) {
@@ -532,16 +548,16 @@ function initialize(crashHandler) {
     // ignore fs requests
     const filter = { urls: ['https://*', 'http://*'] };
 
-    session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
+    getAppSession().webRequest.onBeforeRequest(filter, (details, callback) => {
       console.log('HTTP REQUEST', details.method, details.url);
       callback(details);
     });
 
-    session.defaultSession.webRequest.onErrorOccurred(filter, details => {
+    getAppSession().webRequest.onErrorOccurred(filter, details => {
       console.log('HTTP REQUEST FAILED', details.method, details.url);
     });
 
-    session.defaultSession.webRequest.onCompleted(filter, details => {
+    getAppSession().webRequest.onCompleted(filter, details => {
       console.log('HTTP REQUEST COMPLETED', details.method, details.url, details.statusCode);
     });
   });
@@ -740,6 +756,7 @@ function initialize(crashHandler) {
         nodeIntegration: true,
         webviewTag: true,
         contextIsolation: false,
+        ...(devHostsPartition ? { partition: devHostsPartition } : {}),
       },
     });
 
@@ -836,7 +853,7 @@ function initialize(crashHandler) {
       libuiohook.stopHook();
       console.log('[EXIT] Stopped libuiohook');
 
-      session.defaultSession.flushStorageData();
+      getAppSession().flushStorageData();
       console.log('[EXIT] Storage data flushed');
 
       // Unregister from crash handler before exiting
@@ -868,6 +885,7 @@ function initialize(crashHandler) {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        ...(devHostsPartition ? { partition: devHostsPartition } : {}),
       },
     });
 

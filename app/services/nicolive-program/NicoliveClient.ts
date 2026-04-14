@@ -30,7 +30,7 @@ import {
 
 import * as remote from '@electron/remote';
 import { DateTime } from 'luxon';
-import { getCookieDomain, transformUrl } from 'services/dev-hosts';
+import { getCookieDomain, getPartitionName, transformUrl } from 'services/dev-hosts';
 
 const { BrowserWindow } = remote;
 
@@ -532,6 +532,7 @@ export class NicoliveClient {
       webPreferences: {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
+        ...(getPartitionName() ? { partition: getPartitionName() } : {}),
       },
     });
     NicoliveClient.registerWindow('createProgram', win);
@@ -607,6 +608,7 @@ export class NicoliveClient {
       webPreferences: {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
+        ...(getPartitionName() ? { partition: getPartitionName() } : {}),
       },
     });
     NicoliveClient.registerWindow('editProgram', win);
@@ -716,8 +718,11 @@ export class NicoliveClient {
   }
 
   private prepareUserFollowApi() {
-    const session = remote.session;
-    session.defaultSession.webRequest.onBeforeSendHeaders(
+    const partition = getPartitionName();
+    const appSession = partition
+      ? remote.session.fromPartition(partition)
+      : remote.session.defaultSession;
+    appSession.webRequest.onBeforeSendHeaders(
       { urls: [NicoliveClient.userFollowEndpoint('*')] },
       (details, callback) => {
         details.requestHeaders['Origin'] = null;
