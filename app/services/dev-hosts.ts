@@ -48,7 +48,9 @@ export function transformUrl(url: string): string {
       for (const [prodDomain, devDomain] of Object.entries(config.domainMap)) {
         if (hostname === prodDomain || hostname.endsWith('.' + prodDomain)) {
           urlObj.hostname = hostname.slice(0, hostname.length - prodDomain.length) + devDomain;
-          return urlObj.toString();
+          const result = urlObj.toString();
+          // URL.toString() adds a trailing slash to bare origins; preserve the original's trailing-slash status
+          return url.endsWith('/') ? result : result.replace(/\/$/, '');
         }
       }
     } catch {

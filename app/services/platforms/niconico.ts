@@ -87,12 +87,17 @@ export class NiconicoService extends Service implements IPlatformService {
     if (isFakeMode()) {
       return true;
     }
-    const url = `${this.hostsService.niconicoOAuth}/v1/user/premium.json`;
-    const headers = authorizedHeaders(token);
-    const request = new Request(this.hostsService.replaceHost(url), { headers });
-    const res = await fetch(request);
-    const { data } = await res.json();
-    return data.type === 'premium';
+    try {
+      const url = `${this.hostsService.niconicoOAuth}/v1/user/premium.json`;
+      const headers = authorizedHeaders(token);
+      const request = new Request(this.hostsService.replaceHost(url), { headers });
+      const res = await fetch(request);
+      const { data } = await res.json();
+      return data?.type === 'premium';
+    } catch (e) {
+      console.warn('[isPremium] Failed to check premium status:', e);
+      return false;
+    }
   }
 
   async logout(): Promise<void> {

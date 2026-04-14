@@ -265,9 +265,12 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
       if (parsed) {
         // OAuthの認可が確認できたとき
-        await this.login(service, parsed);
-
-        onAuthFinish();
+        try {
+          await this.login(service, parsed);
+          onAuthFinish();
+        } catch (e) {
+          console.error('login error:', e);
+        }
         authWindow.close();
       } else {
         // 未ログイン時のログイン画面、または認可画面のとき

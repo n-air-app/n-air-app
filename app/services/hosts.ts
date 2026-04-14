@@ -55,7 +55,7 @@ export class HostsService extends Service {
     );
   }
   get statistics() {
-    if (Utils.isDevMode()) {
+    if (!isDevHosts() && Utils.isDevMode()) {
       return transformUrl('https://n-air-app.dev.nicovideo.jp/statistics');
     } else {
       return transformUrl('https://n-air-app.nicovideo.jp/statistics');
