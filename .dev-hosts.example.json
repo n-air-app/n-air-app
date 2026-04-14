@@ -1,0 +1,11 @@
+{
+  "_comment": "Copy this structure to a file in your private repository. Set the path(s) in .dev-hosts-path (one path per line). Then run with NAIR_DEV_HOSTS=N (1-indexed line number) to activate.",
+  "domainMap": {
+    "nicovideo.jp": "REPLACE_WITH_DEV_DOMAIN",
+    "nimg.jp": "REPLACE_WITH_DEV_CDN_DOMAIN"
+  },
+  "overrides": {
+    "https://REPLACE_SPECIFIC_PROD_URL": "https://REPLACE_WITH_DEV_URL"
+  },
+  "cookieDomain": ".REPLACE_WITH_DEV_DOMAIN"
+}

@@ -5,8 +5,38 @@ const DefinePlugin = require('webpack').DefinePlugin;
 const { sentryWebpackPlugin } = require('@sentry/webpack-plugin');
 
 const path = require('node:path');
+const fs = require('node:fs');
 
 const package = require('./package.json');
+
+/**
+ * Load dev hosts config from .dev-hosts-path based on NAIR_DEV_HOSTS index.
+ * NAIR_DEV_HOSTS=N (1-indexed) selects the N-th path in .dev-hosts-path.
+ * Returns null if not configured or loading fails.
+ */
+function loadDevHostsConfig() {
+  const n = parseInt(process.env.NAIR_DEV_HOSTS, 10);
+  if (!n || n <= 0) return null;
+  try {
+    const devHostsPathFile = path.join(__dirname, '.dev-hosts-path');
+    const lines = fs
+      .readFileSync(devHostsPathFile, 'utf-8')
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith('#'));
+    const relPath = lines[n - 1];
+    if (!relPath) throw new Error(`.dev-hosts-path has no line ${n}`);
+    const fullPath = path.resolve(__dirname, relPath);
+    const config = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+    console.log(`[dev-hosts] Loaded config from: ${fullPath}`);
+    return config;
+  } catch (e) {
+    console.warn('[dev-hosts] Failed to load config:', e.message);
+    return null;
+  }
+}
+
+const devHostsConfig = loadDevHostsConfig();
 
 function getSentryMiniDumpURLFromDSN(dsn) {
   /*
@@ -44,6 +74,7 @@ module.exports = function (env, argv) {
   const definePlugin = new DefinePlugin({
     SENTRY_DSN: JSON.stringify(SENTRY_DSN),
     SENTRY_MINIDUMP_URL: JSON.stringify(SENTRY_MINIDUMP_URL),
+    DEV_HOSTS_CONFIG: JSON.stringify(devHostsConfig),
   });
 
   const plugins = [];

@@ -1,6 +1,7 @@
 /**
  * ニコニコ生放送のログ送信ユーティリティ
  */
+import { transformUrl } from 'services/dev-hosts';
 
 /**
  * 各ログ種別に対応する追加パラメータの型定義
@@ -56,7 +57,7 @@ export async function sendLogGif<T extends LogGifId>(
   try {
     if (!contentId) return;
 
-    const url = 'https://dcdn.cdn.nicovideo.jp/shared_httpd/log.gif';
+    const url = transformUrl('https://dcdn.cdn.nicovideo.jp/shared_httpd/log.gif');
     const params = new URLSearchParams();
     params.append('frontend_id', '134'); // N Air
     params.append('id', id);

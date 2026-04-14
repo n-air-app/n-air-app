@@ -1,5 +1,6 @@
 import Utils from 'services/utils';
 import { Service } from './core/service';
+import { isDevHosts, transformUrl } from './dev-hosts';
 
 // Hands out hostnames to the rest of the app. Eventually
 // we should allow overriding this value. But for now we
@@ -7,6 +8,8 @@ import { Service } from './core/service';
 export class HostsService extends Service {
   useDevServer: boolean = !!process.env.DEV_SERVER;
   replaceHost(url: string) {
+    // dev-hosts config takes priority over DEV_SERVER localhost proxy
+    if (isDevHosts()) return url;
     if (this.useDevServer) {
       if (url.startsWith(this.niconicoAccount)) {
         return url.replace(this.niconicoAccount, 'http://localhost:8080/account');
@@ -24,13 +27,13 @@ export class HostsService extends Service {
     return url;
   }
   get niconicoAccount() {
-    return 'https://account.nicovideo.jp';
+    return transformUrl('https://account.nicovideo.jp');
   }
   get niconicoId() {
-    return 'https://api.id.nicovideo.jp';
+    return transformUrl('https://api.id.nicovideo.jp');
   }
   get niconicoOAuth() {
-    return 'https://oauth.nicovideo.jp';
+    return transformUrl('https://oauth.nicovideo.jp');
   }
   get nAirLogin() {
     if (process.env.NAIR_LOGIN_URL) {
@@ -39,47 +42,51 @@ export class HostsService extends Service {
 
     const scopes = ['openid', 'profile', 'user.premium'];
 
-    const url = new URL('https://n-air-app.nicovideo.jp/authorize');
+    const url = new URL(transformUrl('https://n-air-app.nicovideo.jp/authorize'));
     url.searchParams.set('scope', scopes.join(' '));
     return url.toString();
   }
   get blogNicovideo() {
-    return 'https://blog.nicovideo.jp';
+    return transformUrl('https://blog.nicovideo.jp');
   }
   get niconicoNAirInformationsFeed() {
-    return this.replaceHost('https://blog.nicovideo.jp/niconews/category/se_n-air/feed/index.xml');
+    return this.replaceHost(
+      transformUrl('https://blog.nicovideo.jp/niconews/category/se_n-air/feed/index.xml'),
+    );
   }
   get statistics() {
     if (Utils.isDevMode()) {
-      return 'https://n-air-app.dev.nicovideo.jp/statistics';
+      return transformUrl('https://n-air-app.dev.nicovideo.jp/statistics');
     } else {
-      return 'https://n-air-app.nicovideo.jp/statistics';
+      return transformUrl('https://n-air-app.nicovideo.jp/statistics');
     }
   }
 
   get nicoLiveWeb() {
-    return 'https://live.nicovideo.jp';
+    return transformUrl('https://live.nicovideo.jp');
   }
 
   getWatchPageURL(programID: string): string {
     return `${this.nicoLiveWeb}/watch/${programID}`;
   }
   getMyPageURL(): string {
-    return `https://garage.nicovideo.jp/niconico-garage/live/history`;
+    return transformUrl('https://garage.nicovideo.jp/niconico-garage/live/history');
   }
   getUserPageURL(userId: string): string {
-    return `https://www.nicovideo.jp/user/${userId}`;
+    return transformUrl(`https://www.nicovideo.jp/user/${userId}`);
   }
 
   getContentTreeURL(programID: string): string {
-    return `https://commons.nicovideo.jp/works/${programID}`;
+    return transformUrl(`https://commons.nicovideo.jp/works/${programID}`);
   }
 
   getCreatorsProgramURL(programID: string): string {
-    return `https://commons.nicovideo.jp/cpp-applications/${programID}/new?site_id=nicolive`;
+    return transformUrl(
+      `https://commons.nicovideo.jp/cpp-applications/${programID}/new?site_id=nicolive`,
+    );
   }
 
   getModeratorSettingsURL(): string {
-    return 'https://www.upload.nicovideo.jp/niconico-garage/live/moderators';
+    return transformUrl('https://www.upload.nicovideo.jp/niconico-garage/live/moderators');
   }
 }

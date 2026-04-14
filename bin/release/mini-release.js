@@ -137,6 +137,11 @@ async function runScript({
   const newVersion = patchNote.version;
   const newTag = `v${newVersion}`;
 
+  const devHostsIndex = parseInt(process.env.NAIR_DEV_HOSTS, 10) || 0;
+  if (devHostsIndex > 0 && releaseEnvironment !== 'internal') {
+    throw new Error('NAIR_DEV_HOSTS can only be used with internal builds');
+  }
+
   info('Release summary:');
   log('version:', colors.cyan(patchNote.version));
   log(
@@ -144,6 +149,9 @@ async function runScript({
     (releaseEnvironment === 'public' ? colors.red : colors.cyan)(releaseEnvironment),
   );
   log('channel: ', (releaseChannel === 'stable' ? colors.red : colors.cyan)(releaseChannel));
+  if (devHostsIndex > 0) {
+    log('dev-hosts: ', colors.yellow(`NAIR_DEV_HOSTS=${devHostsIndex} (dev server build)`));
+  }
   log('---- ---- ---- ----');
   log('notes:', colors.cyan(patchNote.notes));
   log('---- ---- ---- ----');
@@ -237,8 +245,28 @@ async function runScript({
     info('Compiling assets...');
     executeCmd('pnpm run compile:production');
 
+    if (devHostsIndex > 0) {
+      info('Preparing dev-hosts config...');
+      const devHostsPathFile = path.resolve(projectRoot, '.dev-hosts-path');
+      const lines = fs
+        .readFileSync(devHostsPathFile, 'utf-8')
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith('#'));
+      const relPath = lines[devHostsIndex - 1];
+      if (!relPath) throw new Error(`.dev-hosts-path has no entry at line ${devHostsIndex}`);
+      const srcPath = path.resolve(projectRoot, relPath);
+      const dstPath = path.resolve(projectRoot, 'dev-hosts.json');
+      fs.copyFileSync(srcPath, dstPath);
+      info(`Copied ${path.relative(projectRoot, srcPath)} to dev-hosts.json`);
+    }
+
     info('Making the package...');
-    executeCmd(`pnpm run package:${releaseEnvironment}-${releaseChannel}`);
+    const packageSuffix =
+      devHostsIndex > 0
+        ? `${releaseEnvironment}-dev-${releaseChannel}`
+        : `${releaseEnvironment}-${releaseChannel}`;
+    executeCmd(`pnpm run package:${packageSuffix}`);
   }
 
   if (!skipBuild) {

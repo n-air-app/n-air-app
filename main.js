@@ -45,6 +45,77 @@ const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
 
+////////////////////////////////////////////////////////////////////////////////
+// Dev Hosts Configuration
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Load dev-hosts config from bundled dev-hosts.json (packaged builds)
+ * or from path specified in .dev-hosts-path (development).
+ * NAIR_DEV_HOSTS=N selects the N-th (1-indexed) path in .dev-hosts-path.
+ * Returns null if not configured or loading fails.
+ */
+function loadDevHostsConfig() {
+  // NAIR_DEV_HOSTS (development) or pjson.devHosts (packaged dev builds via extraMetadata)
+  const n = parseInt(process.env.NAIR_DEV_HOSTS, 10) || (pjson.devHosts ? 1 : 0);
+  if (!n || n <= 0) return null;
+  try {
+    // Packaged build: look for dev-hosts.json bundled alongside main.js
+    const bundledPath = path.join(__dirname, 'dev-hosts.json');
+    if (fs.existsSync(bundledPath)) {
+      const config = JSON.parse(fs.readFileSync(bundledPath, 'utf-8'));
+      console.log('[dev-hosts] Loaded bundled config');
+      return config;
+    }
+    // Development: read path from .dev-hosts-path
+    const devHostsPathFile = path.join(__dirname, '.dev-hosts-path');
+    const lines = fs
+      .readFileSync(devHostsPathFile, 'utf-8')
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith('#'));
+    const relPath = lines[n - 1];
+    if (!relPath) throw new Error(`.dev-hosts-path has no entry at line ${n}`);
+    const fullPath = path.resolve(__dirname, relPath);
+    const config = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+    console.log(`[dev-hosts] Loaded config from: ${fullPath}`);
+    return config;
+  } catch (e) {
+    console.warn('[dev-hosts] Failed to load config:', e.message);
+    return null;
+  }
+}
+
+global.devHostsConfig = loadDevHostsConfig();
+
+/**
+ * Apply dev-hosts URL transformation (mirrors app/services/dev-hosts.ts).
+ * overrides take priority over domainMap.
+ */
+function devHostsTransformUrl(url) {
+  const cfg = global.devHostsConfig;
+  if (!cfg) return url;
+  if (cfg.overrides) {
+    const prefixes = Object.keys(cfg.overrides).sort((a, b) => b.length - a.length);
+    for (const prefix of prefixes) {
+      if (url.startsWith(prefix)) return cfg.overrides[prefix] + url.slice(prefix.length);
+    }
+  }
+  if (cfg.domainMap) {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname;
+      for (const [prodDomain, devDomain] of Object.entries(cfg.domainMap)) {
+        if (hostname === prodDomain || hostname.endsWith('.' + prodDomain)) {
+          urlObj.hostname = hostname.slice(0, -prodDomain.length) + devDomain;
+          return urlObj.toString();
+        }
+      }
+    } catch {}
+  }
+  return url;
+}
+
 function removePathWithRetry(rmPath) {
   const MAX_RETRIES = 3;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -159,7 +230,7 @@ async function recollectUserSessionCookie() {
   console.log('recollectUserSessionCookie');
   try {
     const cookies = await electron.session.defaultSession.cookies.get({
-      domain: '.nicovideo.jp',
+      domain: global.devHostsConfig?.cookieDomain ?? '.nicovideo.jp',
       name: 'user_session', // 他のキーまでやるとNAIR_UNSTABLE=0で問題があるかもなので一旦必須だけ、状況に応じてで
     });
     if (!cookies || !cookies.length) return;
@@ -1057,9 +1128,11 @@ function initialize(crashHandler) {
 
   function preventLogout(e, url) {
     const urlObj = new URL(url);
+    const liveHostname = new URL(devHostsTransformUrl('https://live.nicovideo.jp')).hostname;
+    const live2Hostname = new URL(devHostsTransformUrl('https://live2.nicovideo.jp')).hostname;
     const isLogout =
       /^https?:$/.test(urlObj.protocol) &&
-      /^live2?\.nicovideo\.jp$/.test(urlObj.hostname) &&
+      (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname) &&
       /^\/logout$/.test(urlObj.pathname);
     if (isLogout) {
       e.preventDefault();
