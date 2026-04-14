@@ -38,6 +38,17 @@ function loadDevHostsConfig() {
 
 const devHostsConfig = loadDevHostsConfig();
 
+// Write dev-hosts.json for main process, or remove stale one.
+// This lets `pnpm start` automatically pick up the dev config compiled into the bundle.
+const devHostsJsonPath = path.join(__dirname, 'dev-hosts.json');
+if (devHostsConfig) {
+  fs.writeFileSync(devHostsJsonPath, JSON.stringify(devHostsConfig, null, 2));
+  console.log('[dev-hosts] Written dev-hosts.json for main process');
+} else if (fs.existsSync(devHostsJsonPath)) {
+  fs.unlinkSync(devHostsJsonPath);
+  console.log('[dev-hosts] Removed stale dev-hosts.json');
+}
+
 function getSentryMiniDumpURLFromDSN(dsn) {
   /*
     const sentryDsn = `https://${params.key}@${params.organization}.ingest.sentry.io/${params.project}`;

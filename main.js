@@ -56,18 +56,23 @@ const remote = require('@electron/remote/main');
  * Returns null if not configured or loading fails.
  */
 function loadDevHostsConfig() {
-  // NAIR_DEV_HOSTS (development) or pjson.devHosts (packaged dev builds via extraMetadata)
-  const n = parseInt(process.env.NAIR_DEV_HOSTS, 10) || (pjson.devHosts ? 1 : 0);
+  // webpack compile時にdev-hosts.jsonが書き出される（NAIR_DEV_HOSTS=N pnpm compile）。
+  // pnpm startでenv varなしでも自動的にdev環境として動作する。
+  // パッケージビルドでもelectron-builderがdev-hosts.jsonをバンドルするため同様に動作する。
+  const bundledPath = path.join(__dirname, 'dev-hosts.json');
+  if (fs.existsSync(bundledPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(bundledPath, 'utf-8'));
+      console.log('[dev-hosts] Loaded config from dev-hosts.json');
+      return config;
+    } catch (e) {
+      console.warn('[dev-hosts] Failed to parse dev-hosts.json:', e.message);
+    }
+  }
+  // フォールバック: NAIR_DEV_HOSTS env varで .dev-hosts-path から直接読む（compileせずにstartする場合）
+  const n = parseInt(process.env.NAIR_DEV_HOSTS, 10);
   if (!n || n <= 0) return null;
   try {
-    // Packaged build: look for dev-hosts.json bundled alongside main.js
-    const bundledPath = path.join(__dirname, 'dev-hosts.json');
-    if (fs.existsSync(bundledPath)) {
-      const config = JSON.parse(fs.readFileSync(bundledPath, 'utf-8'));
-      console.log('[dev-hosts] Loaded bundled config');
-      return config;
-    }
-    // Development: read path from .dev-hosts-path
     const devHostsPathFile = path.join(__dirname, '.dev-hosts-path');
     const lines = fs
       .readFileSync(devHostsPathFile, 'utf-8')
