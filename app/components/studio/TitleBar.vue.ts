@@ -2,6 +2,7 @@ import * as remote from '@electron/remote';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
+import { isDevHosts } from 'services/dev-hosts';
 import { $t } from 'services/i18n';
 import { StreamingService } from 'services/streaming';
 import Utils from 'services/utils';
@@ -25,6 +26,10 @@ export default class TitleBar extends Vue {
 
   get isUnstable() {
     return Utils.isMainWindow() && Utils.isUnstable();
+  }
+
+  get isDevHosts() {
+    return Utils.isMainWindow() && isDevHosts();
   }
 
   get isCompactMode() {
