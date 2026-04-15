@@ -1,5 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
-import { EBit, default as Utils } from '../../../services/utils';
+import { EBit, default as Utils } from 'services/utils';
 import { IObsBitmaskInput, ObsInput, TObsType } from './ObsInput';
 
 @Component

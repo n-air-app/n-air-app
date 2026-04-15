@@ -1,10 +1,10 @@
+import TocSection from 'components/shared/TocSection.vue';
+import { Inject } from 'services/core/injector';
+import { HotkeysService, IHotkeysSet } from 'services/hotkeys';
+import { ScenesService } from 'services/scenes';
+import { SourcesService } from 'services/sources';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { Inject } from '../../services/core/injector';
-import { HotkeysService, IHotkeysSet } from '../../services/hotkeys';
-import { ScenesService } from '../../services/scenes';
-import { SourcesService } from '../../services/sources';
-import TocSection from '../shared/TocSection.vue';
 import HotkeyGroup from './HotkeyGroup.vue';
 
 @Component({

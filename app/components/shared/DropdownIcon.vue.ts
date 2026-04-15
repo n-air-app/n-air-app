@@ -1,6 +1,6 @@
+import Dropdown from 'components/shared/Dropdown.vue';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import Dropdown from './Dropdown.vue';
 
 interface Item {
   id: string;

@@ -1,6 +1,9 @@
 import * as remote from '@electron/remote';
 import { IObsListInput, IObsListOption, TObsValue } from 'components/obs/inputs/ObsInput';
 import Dropdown from 'components/shared/Dropdown.vue';
+import Popper from 'components/shared/Popper.vue';
+import Slider from 'components/shared/Slider.vue';
+import { AudioService } from 'services/audio';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
@@ -13,9 +16,6 @@ import {
 import { ScenesService } from 'services/scenes';
 import { Component, Watch } from 'vue-property-decorator';
 import * as obs from '../../../obs-api';
-import { AudioService } from '../../services/audio';
-import Popper from '../shared/Popper.vue';
-import Slider from '../shared/Slider.vue';
 import SourceProperties from './SourceProperties.vue';
 
 // for set param

@@ -4,9 +4,9 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
-import { Inject } from '../../../services/core/injector';
-import { ObsImporterService } from '../../../services/obs-importer';
-import { OnboardingService } from '../../../services/onboarding';
+import { Inject } from 'services/core/injector';
+import { ObsImporterService } from 'services/obs-importer';
+import { OnboardingService } from 'services/onboarding';
 
 @Component({
   components: {

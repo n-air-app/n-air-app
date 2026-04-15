@@ -1,6 +1,6 @@
+import Slider from 'components/shared/Slider.vue';
 import debounce from 'lodash/debounce';
 import { Component, Prop } from 'vue-property-decorator';
-import Slider from '../../shared/Slider.vue';
 import { IObsSliderInputValue, ObsInput, TObsType } from './ObsInput';
 
 @Component({

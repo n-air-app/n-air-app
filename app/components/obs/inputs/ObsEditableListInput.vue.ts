@@ -1,9 +1,9 @@
 import * as remote from '@electron/remote';
+import Selector from 'components/shared/Selector.vue';
 import cloneDeep from 'lodash/cloneDeep';
+import { $t } from 'services/i18n';
+import { Menu } from 'util/menus/Menu';
 import { Component, Prop } from 'vue-property-decorator';
-import { $t } from '../../../services/i18n';
-import { Menu } from '../../../util/menus/Menu';
-import Selector from '../../shared/Selector.vue';
 import { IObsEditableListInputValue, ObsInput, TObsType } from './ObsInput';
 
 interface ISelectorSortEventData {

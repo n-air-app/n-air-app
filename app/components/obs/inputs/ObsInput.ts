@@ -9,7 +9,7 @@ import {
   isNumberProperty,
   isPathProperty,
   isTextProperty,
-} from '../../../util/properties-type-guards';
+} from 'util/properties-type-guards';
 
 /**
  * all possible OBS properties types

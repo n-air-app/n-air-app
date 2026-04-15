@@ -1,9 +1,9 @@
+import PerformanceMetrics from 'components/studio/PerformanceMetrics.vue';
+import StreamingController from 'components/studio/StreamingController.vue';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import PerformanceMetrics from './PerformanceMetrics.vue';
-import StreamingController from './StreamingController.vue';
 
 @Component({
   components: {

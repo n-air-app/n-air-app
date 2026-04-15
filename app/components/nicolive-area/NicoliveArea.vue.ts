@@ -3,20 +3,20 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
+import AreaSwitcher, { IArea } from 'components/nicolive-area/AreaSwitcher.vue';
+import CommentFilter from 'components/nicolive-area/CommentFilter.vue';
+import CommentViewer from 'components/nicolive-area/CommentViewer.vue';
+import ProgramDescription from 'components/nicolive-area/ProgramDescription.vue';
+import ProgramInfo from 'components/nicolive-area/ProgramInfo.vue';
+import ProgramStatistics from 'components/nicolive-area/ProgramStatistics.vue';
+import ToolBar from 'components/nicolive-area/ToolBar.vue';
+import PerformanceMetrics from 'components/studio/PerformanceMetrics.vue';
 import { CustomizationService } from 'services/customization';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 import ControlsArrow from '../../../media/images/controls-arrow-vertical.svg';
-import PerformanceMetrics from '../studio/PerformanceMetrics.vue';
-import AreaSwitcher, { IArea } from './AreaSwitcher.vue';
-import CommentFilter from './CommentFilter.vue';
-import CommentViewer from './CommentViewer.vue';
-import ProgramDescription from './ProgramDescription.vue';
-import ProgramInfo from './ProgramInfo.vue';
-import ProgramStatistics from './ProgramStatistics.vue';
-import ToolBar from './ToolBar.vue';
 
 const CREATED_NOTICE_DURATION = 5000; // 番組作成通知の表示時間(ミリ秒)
 

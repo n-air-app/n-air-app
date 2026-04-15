@@ -1,11 +1,11 @@
 import Display from 'components/shared/Display.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
 import { Inject } from 'services/core/injector';
 import { SourcesService } from 'services/sources';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import ModalLayout from '../shared/ModalLayout.vue';
 
 @Component({
   components: { ModalLayout, Display },

@@ -1,3 +1,7 @@
+import { ObsListInput, ObsSliderInput } from 'components/obs/inputs';
+import { IObsInput, IObsListInput, IObsSliderInputValue } from 'components/obs/inputs/ObsInput';
+import SoundDetectorVolmeter from 'components/settings/SoundDetectorVolmeter.vue';
+import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
 import { AudioService, AudioSource } from 'services/audio';
 import { Inject } from 'services/core/injector';
@@ -10,10 +14,6 @@ import {
 } from 'services/sound-detector';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { ObsListInput, ObsSliderInput } from '../obs/inputs';
-import { IObsInput, IObsListInput, IObsSliderInputValue } from '../obs/inputs/ObsInput';
-import TocSection from '../shared/TocSection.vue';
-import SoundDetectorVolmeter from './SoundDetectorVolmeter.vue';
 
 @Component({
   components: {

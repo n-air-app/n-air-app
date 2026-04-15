@@ -1,11 +1,11 @@
 import { propertyComponentForType } from 'components/obs/inputs/Components';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import { IAudioServiceApi, IAudioSourceApi } from 'services/audio';
+import { Inject } from 'services/core/injector';
+import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { IAudioServiceApi, IAudioSourceApi } from '../../services/audio';
-import { Inject } from '../../services/core/injector';
-import { WindowsService } from '../../services/windows';
-import ModalLayout from '../shared/ModalLayout.vue';
 
 @Component({
   components: { ModalLayout },

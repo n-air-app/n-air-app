@@ -1,3 +1,6 @@
+import Mixer from 'components/studio/Mixer.vue';
+import SceneSelector from 'components/studio/SceneSelector.vue';
+import SourceSelector from 'components/studio/SourceSelector.vue';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
@@ -5,9 +8,6 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import ControlsArrow from '../../../media/images/controls-arrow.svg';
-import Mixer from './Mixer.vue';
-import SceneSelector from './SceneSelector.vue';
-import SourceSelector from './SourceSelector.vue';
 
 @Component({
   components: {

@@ -1,3 +1,4 @@
+import HelpTip from 'components/shared/HelpTip.vue';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
 import { DismissablesService, EDismissable } from 'services/dismissables';
@@ -5,7 +6,6 @@ import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import HelpTip from './HelpTip.vue';
 
 import * as remote from '@electron/remote';
 

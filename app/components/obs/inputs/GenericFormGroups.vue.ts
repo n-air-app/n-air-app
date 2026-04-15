@@ -1,8 +1,8 @@
+import TocSection from 'components/shared/TocSection.vue';
+import { ISettingsSubCategory } from 'services/settings';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import { ISettingsSubCategory } from '../../../services/settings';
 import GenericForm from './GenericForm.vue';
-import TocSection from '../../shared/TocSection.vue';
 
 @Component({
   components: { GenericForm, TocSection },

@@ -1,5 +1,11 @@
 import * as remote from '@electron/remote';
+import CommonComment from 'components/nicolive-area/comment/CommonComment.vue';
+import EmotionComment from 'components/nicolive-area/comment/EmotionComment.vue';
+import GiftComment from 'components/nicolive-area/comment/GiftComment.vue';
+import NicoadComment from 'components/nicolive-area/comment/NicoadComment.vue';
+import SystemMessage from 'components/nicolive-area/comment/SystemMessage.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
+import Popper from 'components/shared/Popper.vue';
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core';
 import { HostsService } from 'services/hosts';
@@ -19,12 +25,6 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import CommonComment from '../nicolive-area/comment/CommonComment.vue';
-import EmotionComment from '../nicolive-area/comment/EmotionComment.vue';
-import GiftComment from '../nicolive-area/comment/GiftComment.vue';
-import NicoadComment from '../nicolive-area/comment/NicoadComment.vue';
-import SystemMessage from '../nicolive-area/comment/SystemMessage.vue';
-import Popper from '../shared/Popper.vue';
 
 const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   common: CommonComment,

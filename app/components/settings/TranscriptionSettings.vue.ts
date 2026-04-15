@@ -6,6 +6,7 @@ import {
   IObsNumberInputValue,
   IObsPathInputValue,
 } from 'components/obs/inputs/ObsInput';
+import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
@@ -31,7 +32,6 @@ import { TranscriptionSourceUsageService } from 'services/transcription/transcri
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import TocSection from '../shared/TocSection.vue';
 
 @Component({
   components: {

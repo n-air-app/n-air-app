@@ -1,12 +1,12 @@
+import Slider from 'components/shared/Slider.vue';
+import MixerVolmeter from 'components/studio/MixerVolmeter.vue';
+import { AudioSource } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
+import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
+import { EditMenu } from 'util/menus/EditMenu';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import { AudioSource } from '../../services/audio';
-import { Inject } from '../../services/core/injector';
-import { EditMenu } from '../../util/menus/EditMenu';
-import Slider from '../shared/Slider.vue';
-import MixerVolmeter from './MixerVolmeter.vue';
 
 @Component({
   components: { Slider, MixerVolmeter },

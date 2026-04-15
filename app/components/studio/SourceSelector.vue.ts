@@ -4,8 +4,8 @@ import { SelectionService } from 'services/selection/selection';
 import { SourcesService } from 'services/sources';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { Inject } from '../../services/core/injector';
-import { EditMenu } from '../../util/menus/EditMenu';
+import { Inject } from 'services/core/injector';
+import { EditMenu } from 'util/menus/EditMenu';
 import SlVueTree, { ICursorPosition, ISlTreeNode, ISlTreeNodeModel } from '../shared/sl-vue-tree';
 
 const sourceIconMap = {

@@ -1,29 +1,29 @@
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
+import CommentSettings from 'components/settings/CommentSettings.vue';
+import ExtraSettings from 'components/settings/ExtraSettings.vue';
+import Hotkeys from 'components/settings/Hotkeys.vue';
 import LanguageSettings from 'components/settings/LanguageSettings.vue';
+import SpeechEngineSettings from 'components/settings/SpeechEngineSettings.vue';
 import SubStreamSettings from 'components/settings/SubStreamSettings.vue';
+import TranscriptionSettings from 'components/settings/TranscriptionSettings.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import NavItem from 'components/shared/NavItem.vue';
+import NavMenu from 'components/shared/NavMenu.vue';
+import TableOfContents from 'components/shared/TableOfContents.vue';
+import { TocManager } from 'components/shared/TocManager';
+import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
-import { Inject } from '../../services/core/injector';
+import { Inject } from 'services/core/injector';
 import {
   ISettingsServiceApi,
   ISettingsSubCategory,
   SettingsCategory,
-} from '../../services/settings';
-import { StreamingService } from '../../services/streaming';
-import { UserService } from '../../services/user';
-import { WindowsService } from '../../services/windows';
-import CommentSettings from '../settings/CommentSettings.vue';
-import ExtraSettings from '../settings/ExtraSettings.vue';
-import Hotkeys from '../settings/Hotkeys.vue';
-import SpeechEngineSettings from '../settings/SpeechEngineSettings.vue';
-import TranscriptionSettings from '../settings/TranscriptionSettings.vue';
-import ModalLayout from '../shared/ModalLayout.vue';
-import NavItem from '../shared/NavItem.vue';
-import NavMenu from '../shared/NavMenu.vue';
-import TableOfContents from '../shared/TableOfContents.vue';
-import { TocManager } from '../shared/TocManager';
-import TocSection from '../shared/TocSection.vue';
+} from 'services/settings';
+import { StreamingService } from 'services/streaming';
+import { UserService } from 'services/user';
+import { WindowsService } from 'services/windows';
+import Vue from 'vue';
+import { Component, Watch } from 'vue-property-decorator';
 import { CategoryIcons } from './CategoryIcons';
 
 interface TocSectionData {

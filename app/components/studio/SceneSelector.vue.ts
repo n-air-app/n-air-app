@@ -1,7 +1,11 @@
 import * as remote from '@electron/remote';
+import HelpTip from 'components/shared/HelpTip.vue';
+import Popper from 'components/shared/Popper.vue';
+import Selector from 'components/shared/Selector.vue';
 import Fuse from 'fuse.js';
 import { AppService } from 'services/app';
 import { CompactModeService } from 'services/compact-mode';
+import { Inject } from 'services/core/injector';
 import { EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { ProjectorService } from 'services/projector';
@@ -9,13 +13,9 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import { ScenesService } from 'services/scenes';
 import { SourceFiltersService } from 'services/source-filters';
 import { TransitionsService } from 'services/transitions';
+import { Menu } from 'util/menus/Menu';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { Inject } from '../../services/core/injector';
-import { Menu } from '../../util/menus/Menu';
-import HelpTip from '../shared/HelpTip.vue';
-import Popper from '../shared/Popper.vue';
-import Selector from '../shared/Selector.vue';
 
 @Component({
   components: { Selector, Popper, HelpTip },

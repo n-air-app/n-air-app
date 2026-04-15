@@ -1,12 +1,12 @@
+import StartStreamingButton from 'components/studio/StartStreamingButton.vue';
+import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
 import { SettingsService } from 'services/settings';
+import { EReplayBufferState, EStreamingState, StreamingService } from 'services/streaming';
+import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import { Inject } from '../../services/core/injector';
-import { EReplayBufferState, EStreamingState, StreamingService } from '../../services/streaming';
-import { UserService } from '../../services/user';
-import StartStreamingButton from './StartStreamingButton.vue';
 
 @Component({
   components: {

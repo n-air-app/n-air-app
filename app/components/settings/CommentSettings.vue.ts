@@ -1,4 +1,9 @@
 import * as remote from '@electron/remote';
+import SoundDetectorSettings from 'components/settings/SoundDetectorSettings.vue';
+import Dropdown from 'components/shared/Dropdown.vue';
+import DropdownIcon from 'components/shared/DropdownIcon.vue';
+import Slider from 'components/shared/Slider.vue';
+import TocSection from 'components/shared/TocSection.vue';
 import { Inject } from 'services/core/injector';
 import { HttpRelation } from 'services/nicolive-program/httpRelation';
 import { NicoliveCommentLocalFilterService } from 'services/nicolive-program/nicolive-comment-local-filter';
@@ -13,11 +18,6 @@ import {
 import { WrappedChat } from 'services/nicolive-program/WrappedChat';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
-import Dropdown from '../shared/Dropdown.vue';
-import DropdownIcon from '../shared/DropdownIcon.vue';
-import Slider from '../shared/Slider.vue';
-import TocSection from '../shared/TocSection.vue';
-import SoundDetectorSettings from './SoundDetectorSettings.vue';
 
 type MethodObject = {
   text: string;

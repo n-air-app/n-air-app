@@ -1,5 +1,7 @@
 import * as remote from '@electron/remote';
+import HelpTip from 'components/shared/HelpTip.vue';
 import Login from 'components/shared/Login.vue';
+import StreamingStatus from 'components/studio/StreamingStatus.vue';
 import electron from 'electron';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
@@ -13,8 +15,6 @@ import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import HelpTip from '../shared/HelpTip.vue';
-import StreamingStatus from './StreamingStatus.vue';
 
 @Component({
   components: {

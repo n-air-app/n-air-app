@@ -1,6 +1,6 @@
+import Hotkey from 'components/shared/Hotkey.vue';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import Hotkey from '../shared/Hotkey.vue';
 
 @Component({
   props: {

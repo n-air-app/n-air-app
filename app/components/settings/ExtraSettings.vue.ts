@@ -1,6 +1,7 @@
 import * as remote from '@electron/remote';
 import ObsBoolInput from 'components/obs/inputs/ObsBoolInput.vue';
 import { IObsInput } from 'components/obs/inputs/ObsInput';
+import TocSection from 'components/shared/TocSection.vue';
 import electron from 'electron';
 import { AppService } from 'services/app';
 import { Inject } from 'services/core/injector';
@@ -14,7 +15,6 @@ import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import ClipBoardCopy from '../../../media/images/clipboard-copy.svg';
-import TocSection from '../shared/TocSection.vue';
 
 @Component({
   components: {

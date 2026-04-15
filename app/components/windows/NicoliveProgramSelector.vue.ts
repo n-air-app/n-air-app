@@ -1,3 +1,7 @@
+import Step from 'components/nicolive-program-selector/Step.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import NavItem from 'components/shared/NavItem.vue';
+import NavMenu from 'components/shared/NavMenu.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
@@ -10,13 +14,9 @@ import {
   TStep,
 } from 'services/nicolive-program/nicolive-program-selector';
 import { StreamingService } from 'services/streaming';
+import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { WindowsService } from '../../services/windows';
-import ModalLayout from '../shared/ModalLayout.vue';
-import Step from '../nicolive-program-selector/Step.vue';
-import NavItem from '../shared/NavItem.vue';
-import NavMenu from '../shared/NavMenu.vue';
 
 @Component({
   components: {

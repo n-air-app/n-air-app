@@ -1,9 +1,9 @@
+import Slider from 'components/shared/Slider.vue';
 import { Inject } from 'services/core/injector';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { SynthesizerId } from 'services/nicolive-program/state';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import Slider from '../shared/Slider.vue';
 
 @Component({
   components: { Slider },

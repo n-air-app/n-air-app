@@ -1,3 +1,4 @@
+import HelpTip from 'components/shared/HelpTip.vue';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
 import { EDismissable } from 'services/dismissables';
@@ -6,11 +7,10 @@ import { NavigationService } from 'services/navigation';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { SettingsService } from 'services/settings';
 import { EStreamingState, StreamingService } from 'services/streaming';
+import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import StartStreamingIcon from '../../../media/images/start-streaming-icon.svg';
-import { WindowsService } from '../../services/windows';
-import HelpTip from '../shared/HelpTip.vue';
 
 @Component({
   components: {
