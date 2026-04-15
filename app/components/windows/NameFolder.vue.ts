@@ -4,7 +4,7 @@ import { Component } from 'vue-property-decorator';
 import { Inject } from '../../services/core/injector';
 import { ScenesService } from '../../services/scenes';
 import { WindowsService } from '../../services/windows';
-import ModalLayout from '../ModalLayout.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 
 @Component({
   components: { ModalLayout },

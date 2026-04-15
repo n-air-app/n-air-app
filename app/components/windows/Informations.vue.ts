@@ -1,4 +1,4 @@
-import ModalLayout from 'components/ModalLayout.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
 import { shell } from 'electron';
 import { DateTime } from 'luxon';
 import { Inject } from 'services/core/injector';

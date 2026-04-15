@@ -4,7 +4,7 @@ import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 import { Inject } from '../../services/core/injector';
 import { WindowsService } from '../../services/windows';
-import ModalLayout from '../ModalLayout.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 
 interface INameSceneCollectionOptions {
   rename?: string;

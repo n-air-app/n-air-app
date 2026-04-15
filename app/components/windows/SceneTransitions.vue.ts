@@ -1,7 +1,7 @@
-import ConnectionSettings from 'components/ConnectionSettings.vue';
-import ModalLayout from 'components/ModalLayout.vue';
-import Tabs from 'components/Tabs.vue';
-import TransitionSettings from 'components/TransitionSettings.vue';
+import ConnectionSettings from 'components/settings/ConnectionSettings.vue';
+import TransitionSettings from 'components/settings/TransitionSettings.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import Tabs from 'components/shared/Tabs.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';

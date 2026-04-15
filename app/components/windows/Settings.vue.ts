@@ -1,6 +1,6 @@
-import LanguageSettings from 'components/LanguageSettings.vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
-import SubStreamSettings from 'components/SubStreamSettings.vue';
+import LanguageSettings from 'components/settings/LanguageSettings.vue';
+import SubStreamSettings from 'components/settings/SubStreamSettings.vue';
 import { Subscription } from 'rxjs';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
@@ -13,17 +13,17 @@ import {
 import { StreamingService } from '../../services/streaming';
 import { UserService } from '../../services/user';
 import { WindowsService } from '../../services/windows';
-import CommentSettings from '../CommentSettings.vue';
-import ExtraSettings from '../ExtraSettings.vue';
-import Hotkeys from '../Hotkeys.vue';
-import ModalLayout from '../ModalLayout.vue';
+import CommentSettings from '../settings/CommentSettings.vue';
+import ExtraSettings from '../settings/ExtraSettings.vue';
+import Hotkeys from '../settings/Hotkeys.vue';
+import SpeechEngineSettings from '../settings/SpeechEngineSettings.vue';
+import TranscriptionSettings from '../settings/TranscriptionSettings.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 import NavItem from '../shared/NavItem.vue';
 import NavMenu from '../shared/NavMenu.vue';
 import TableOfContents from '../shared/TableOfContents.vue';
 import { TocManager } from '../shared/TocManager';
 import TocSection from '../shared/TocSection.vue';
-import SpeechEngineSettings from '../SpeechEngineSettings.vue';
-import TranscriptionSettings from '../TranscriptionSettings.vue';
 import { CategoryIcons } from './CategoryIcons';
 
 interface TocSectionData {

@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import ModalLayout from 'components/ModalLayout.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
 import GenericForm from 'components/obs/inputs/GenericForm.vue';
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import Display from 'components/shared/Display.vue';

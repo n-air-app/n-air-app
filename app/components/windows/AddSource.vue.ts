@@ -1,6 +1,6 @@
-import ModalLayout from 'components/ModalLayout.vue';
-import Selector from 'components/Selector.vue';
 import Display from 'components/shared/Display.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import Selector from 'components/shared/Selector.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NVoiceCharacterService, NVoiceCharacterType } from 'services/nvoice-character';

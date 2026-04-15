@@ -6,7 +6,7 @@ import { WindowsService } from '../../services/windows';
 
 import * as inputComponents from 'components/obs/inputs';
 import { $t } from 'services/i18n';
-import ModalLayout from '../ModalLayout.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 
 @Component({
   components: { ModalLayout, ...inputComponents },

@@ -9,7 +9,7 @@ import {
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 import ControlsArrow from '../../../media/images/controls-arrow-vertical.svg';
-import PerformanceMetrics from '../PerformanceMetrics.vue';
+import PerformanceMetrics from '../studio/PerformanceMetrics.vue';
 import AreaSwitcher, { IArea } from './AreaSwitcher.vue';
 import CommentFilter from './CommentFilter.vue';
 import CommentViewer from './CommentViewer.vue';

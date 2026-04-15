@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import ModalLayout from 'components/ModalLayout.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NVoiceCharacterType, NVoiceCharacterTypes } from 'services/nvoice-character';

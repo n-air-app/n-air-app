@@ -5,7 +5,7 @@ import { Inject } from '../../services/core/injector';
 import { ScenesService } from '../../services/scenes';
 import { ISourcesServiceApi } from '../../services/sources';
 import { WindowsService } from '../../services/windows';
-import ModalLayout from '../ModalLayout.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 
 @Component({
   components: { ModalLayout },

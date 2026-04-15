@@ -9,7 +9,7 @@ import { $t } from '../../services/i18n';
 import { SettingsService } from '../../services/settings';
 import { StreamingService } from '../../services/streaming';
 import { WindowsService } from '../../services/windows';
-import ModalLayout from '../ModalLayout.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 import { CategoryIcons } from './CategoryIcons';
 
 @Component({

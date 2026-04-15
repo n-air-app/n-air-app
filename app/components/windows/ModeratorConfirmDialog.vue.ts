@@ -5,7 +5,7 @@ import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import ModalLayout from '../ModalLayout.vue';
+import ModalLayout from '../shared/ModalLayout.vue';
 
 @Component({
   components: {

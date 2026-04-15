@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { Component, Prop } from 'vue-property-decorator';
 import { $t } from '../../../services/i18n';
 import { Menu } from '../../../util/menus/Menu';
-import Selector from '../../Selector.vue';
+import Selector from '../../shared/Selector.vue';
 import { IObsEditableListInputValue, ObsInput, TObsType } from './ObsInput';
 
 interface ISelectorSortEventData {

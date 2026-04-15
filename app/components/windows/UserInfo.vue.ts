@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote';
-import ModalLayout from 'components/ModalLayout.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core';
 import { HostsService } from 'services/hosts';

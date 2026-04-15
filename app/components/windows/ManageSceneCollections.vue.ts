@@ -1,5 +1,5 @@
-import EditableSceneCollection from 'components/EditableSceneCollection.vue';
-import ModalLayout from 'components/ModalLayout.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import EditableSceneCollection from 'components/studio/EditableSceneCollection.vue';
 import Fuse from 'fuse.js';
 import { Inject } from 'services/core/injector';
 import { ObsImporterService } from 'services/obs-importer';
