@@ -14,12 +14,12 @@ module.exports = {
     branch: 'n-air_stable',
   },
   sentry: {
-    organization: 'n-air-app',
+    organization: 'n-air-app2',
     project: 'n-air-app',
   },
   upload: {
     githubToken: process.env.NAIR_GITHUB_TOKEN,
     s3BucketName: process.env.RELEASE_S3_BUCKET_NAME,
     s3KeyPrefix: 'download/windows',
-  }
+  },
 };
