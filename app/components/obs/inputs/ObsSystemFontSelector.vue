@@ -5,26 +5,25 @@
         <label>{{ $t('settings.fontFamily') }}</label>
       </div>
       <div class="input-wrapper">
-        <multiselect
+        <dropdown
           ref="family"
-          class="multiselect--font"
+          class="dropdown--font"
           :value="selectedFamily"
           :options="fontFamilies"
-          :allow-empty="false"
           track-by="family"
           label="family"
-          @input="setFamily"
           :searchable="true"
+          @input="setFamily"
         >
-          <template slot="option" slot-scope="props">
+          <template #option="props">
             <span :style="{ fontFamily: props.option.family }">
               {{ props.option.family }}
             </span>
           </template>
-          <template slot="noResult">
+          <template #noResult>
             {{ $t('settings.itemNotFoundMessage') }}
           </template>
-        </multiselect>
+        </dropdown>
       </div>
     </div>
     <div class="input-container">
@@ -32,26 +31,24 @@
         <label>{{ $t('settings.fontStyle') }}</label>
       </div>
       <div class="input-wrapper">
-        <multiselect
+        <dropdown
           ref="font"
-          class="multiselect--font"
+          class="dropdown--font"
           :value="selectedFont"
           :options="selectedFamily.fonts"
-          :allow-empty="false"
           track-by="style"
           label="style"
           @input="setStyle"
-          :searchable="false"
         >
-          <template slot="option" slot-scope="props">
+          <template #option="props">
             <span :style="styleForFont(props.option)">
               {{ props.option.style }}
             </span>
           </template>
-          <template slot="noResult">
+          <template #noResult>
             {{ $t('settings.itemNotFoundMessage') }}
           </template>
-        </multiselect>
+        </dropdown>
       </div>
     </div>
     <font-size-selector :value="value.value.size" @input="setSize" />
@@ -63,7 +60,7 @@
 <style lang="less" scoped>
 @import url('../../../styles/index');
 
-.multiselect--font {
+.dropdown--font {
   margin-bottom: 0;
 }
 

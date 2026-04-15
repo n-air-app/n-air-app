@@ -2,14 +2,14 @@
 * @koizuka @taroc-dw @matsuyuki-a @asaday
 
 # planners
-/app/i18n/ @takuhiro-koyama
-replace_rules.json @takuhiro-koyama
-/.github/CODEOWNERS @takuhiro-koyama
+/app/i18n/ @Koutarou-Yamamoto
+replace_rules.json @Koutarou-Yamamoto
+/.github/CODEOWNERS @Koutarou-Yamamoto
 
 # designers
-*.vue @yusuke-shibakiri @Keiichi-Ichino
-*.html @yusuke-shibakiri @Keiichi-Ichino
-*.less @yusuke-shibakiri @Keiichi-Ichino
-*.css @yusuke-shibakiri @Keiichi-Ichino
-/app/styles/ @yusuke-shibakiri @Keiichi-Ichino
-/media/images/ @yusuke-shibakiri @Keiichi-Ichino
+*.vue @yusuke-shibakiri @sei-katsumata
+*.html @yusuke-shibakiri @sei-katsumata
+*.less @yusuke-shibakiri @sei-katsumata
+*.css @yusuke-shibakiri @sei-katsumata
+/app/styles/ @yusuke-shibakiri @sei-katsumata
+/media/images/ @yusuke-shibakiri @sei-katsumata

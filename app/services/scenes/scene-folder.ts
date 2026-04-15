@@ -1,4 +1,4 @@
-import { merge } from 'lodash';
+import merge from 'lodash/merge';
 import { Inject } from 'services/core/injector';
 import { ISceneHierarchy, isFolder, isItem, SceneItem, TSceneNode } from 'services/scenes';
 import { Selection, SelectionService } from 'services/selection';

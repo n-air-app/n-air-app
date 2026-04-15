@@ -41,7 +41,6 @@ interface IResource {
 // list of modules without type definitions
 declare module 'raven-js/*';
 declare module 'traverse';
-declare module 'vue-multiselect';
 declare module 'node-fontinfo';
 declare module '@xkeshi/vue-qrcode';
 declare module 'vue-color';

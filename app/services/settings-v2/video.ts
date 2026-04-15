@@ -1,4 +1,4 @@
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { SettingsService } from 'services/settings';

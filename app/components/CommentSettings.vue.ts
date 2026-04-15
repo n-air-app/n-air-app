@@ -12,9 +12,9 @@ import {
 } from 'services/nicolive-program/state';
 import { WrappedChat } from 'services/nicolive-program/WrappedChat';
 import Vue from 'vue';
-import Multiselect from 'vue-multiselect';
 import { Component, Watch } from 'vue-property-decorator';
-import IconListSelect from './IconListSelect.vue';
+import DropdownIcon from './DropdownIcon.vue';
+import Dropdown from './shared/Dropdown.vue';
 import Slider from './shared/Slider.vue';
 import TocSection from './shared/TocSection.vue';
 import SoundDetectorSettings from './SoundDetectorSettings.vue';
@@ -39,9 +39,9 @@ type SynthesizerItem = {
 
 @Component({
   components: {
-    Multiselect,
+    Dropdown,
+    DropdownIcon,
     Slider,
-    IconListSelect,
     SoundDetectorSettings,
     TocSection,
   },
@@ -78,6 +78,9 @@ export default class CommentSettings extends Vue {
   mounted() {
     this.startVoicevoxChecker();
     this.initOneComme();
+    if (this.synthesizerEnabled) {
+      this.nicoliveCommentSynthesizerService.prefetchNVoice();
+    }
   }
 
   close() {

@@ -216,6 +216,7 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
       }
       throw new Error(
         `in file: ${require('path').resolve(lastReadFilePath)}\n${(e as Error).message}${lineInfo}`,
+        { cause: e },
       );
     }
     rawJSON = '';

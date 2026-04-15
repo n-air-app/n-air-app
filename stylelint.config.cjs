@@ -23,6 +23,7 @@ module.exports = {
     ],
     'color-function-notation': null,
     'block-no-empty': null,
+    'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['deep'] }],
 
     // v16 new rules: disable for LESS compatibility or project preferences
     'color-function-alias-notation': null, // LESS uses rgba() with variables

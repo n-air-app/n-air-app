@@ -140,7 +140,9 @@ export class TranscriptionSourceService extends Service {
    * @returns 文字起こしソースのSceneItem配列
    */
   getTranscriptionItemsInActiveScene(): SceneItem[] {
-    return this.scenesService.activeScene.getItems().filter(item => {
+    const scene = this.scenesService.activeScene;
+    if (!scene) return [];
+    return scene.getItems().filter(item => {
       const sourceDetails = this.sourcesService.getSource(item.sourceId).getComparisonDetails();
       return sourceDetails.propertiesManager === 'text_transcription';
     });

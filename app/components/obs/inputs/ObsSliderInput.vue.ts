@@ -1,5 +1,5 @@
-import { debounce } from 'lodash';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import debounce from 'lodash/debounce';
+import { Component, Prop } from 'vue-property-decorator';
 import Slider from '../../shared/Slider.vue';
 import { IObsSliderInputValue, ObsInput, TObsType } from './ObsInput';
 
@@ -16,7 +16,14 @@ class ObsSliderInput extends ObsInput<IObsSliderInputValue> {
   // moves the slider.  It makes the UI feel more responsive.
   localValue = this.value.value;
 
-  @Watch('value.value')
+  mounted() {
+    // workaround: avoid using @Watch decorator, use $watch instead
+    // see:
+    //   https://github.com/kaorun343/vue-property-decorator/issues/247,
+    //   https://github.com/kaorun343/vue-property-decorator/issues/228
+    this.$watch('value.value', this.onValueChange);
+  }
+
   onValueChange(newValue: number) {
     this.localValue = newValue;
   }

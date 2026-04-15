@@ -11,7 +11,7 @@ module.exports = {
       options: ['no-sandbox'],
     },
   },
-  testMatch: ['**/app/**/*.test.ts'],
+  testMatch: ['**/app/**/*.test.ts', '**/main-process/*.test.ts'],
   transformIgnorePatterns: [
     'node_modules/(?!(ml-kmeans|ml-distance-euclidean|ml-matrix|ml-nearest-vector|ml-random|ml-xsadd))',
   ],

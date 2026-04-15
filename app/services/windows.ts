@@ -1,8 +1,7 @@
 import * as Sentry from '@sentry/vue';
 // This singleton class provides a renderer-space API
 // for spawning various child windows.
-import { cloneDeep } from 'lodash';
-
+import cloneDeep from 'lodash/cloneDeep';
 import * as remote from '@electron/remote';
 import AddSource from 'components/windows/AddSource.vue';
 import AddSourceFilter from 'components/windows/AddSourceFilter.vue';

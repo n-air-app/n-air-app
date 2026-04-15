@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
 import { HostsService } from 'services/hosts';
@@ -174,6 +175,15 @@ export class NiconicoService extends Service implements IPlatformService {
     } catch (e) {
       // リトライは1回だけ
       console.error('NiconicoService.setupStreamSettings(2)', e);
+      Sentry.addBreadcrumb({
+        category: 'streaming',
+        message: 'setupStreamSettings failed',
+        data: {
+          programId,
+          error: e instanceof Error ? e.message : String(e),
+          isNetworkError: e instanceof TypeError,
+        },
+      });
       return NiconicoService.emptyStreamingSetting();
     }
   }

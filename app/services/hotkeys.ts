@@ -1,4 +1,3 @@
-import { defer, mapValues } from 'lodash';
 import { $t } from 'services/i18n';
 import { KeyListenerService } from 'services/key-listener';
 import { ScenesService } from 'services/scenes';
@@ -426,7 +425,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
       return hotkeys.map(h => ({ ...h.getModel(), description: h.description }));
     }
 
-    return mapValues(hotkeys, h => this.serializeHotkeys(h));
+    return Object.fromEntries(Object.entries(hotkeys).map(([k, h]) => [k, this.serializeHotkeys(h)]));
   }
 
   clearAllHotkeys() {
@@ -611,7 +610,7 @@ export class Hotkey implements IHotkey {
     if (up) {
       action.upHandler = () => {
         if (!action.isActive(entityId)) {
-          defer(() => up(entityId));
+          setTimeout(() => up(entityId), 0);
         }
       };
     }
@@ -619,7 +618,7 @@ export class Hotkey implements IHotkey {
     if (down) {
       action.downHandler = () => {
         if (!action.isActive(entityId)) {
-          defer(() => down(entityId));
+          setTimeout(() => down(entityId), 0);
         }
       };
     }

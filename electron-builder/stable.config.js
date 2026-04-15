@@ -19,6 +19,7 @@ const config = {
     'splash/splash-window.js',
     'index.html',
     'main.js',
+    'main-process/window-startup-state.js',
     'obs-api',
   ],
   extraFiles: [

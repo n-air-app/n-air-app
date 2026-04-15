@@ -1,4 +1,5 @@
-import _, { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
+import isEqual from 'lodash/isEqual';
 import VueColor from 'vue-color';
 import { Component, Prop } from 'vue-property-decorator';
 import Utils from '../../../services/utils';
@@ -93,7 +94,7 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
   }
 
   private setValueImpl(rgba: IColor) {
-    if (!_.isEqual(rgba, this.obsColor)) {
+    if (!isEqual(rgba, this.obsColor)) {
       const intColor = Utils.rgbaToInt(rgba.r, rgba.g, rgba.b, Math.round(255 * rgba.a));
       this.emitInput({ ...this.value, value: intColor });
     }
@@ -115,7 +116,7 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
 
   get hexAlpha() {
     const alpha = this.obsColor.a;
-    return _.padStart(Math.floor(alpha * 255).toString(16), 2, '0');
+    return Math.floor(alpha * 255).toString(16).padStart(2, '0');
   }
 
   get hexColor() {

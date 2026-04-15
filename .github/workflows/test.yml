@@ -9,7 +9,7 @@ on:
 
 jobs:
   changes:
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
@@ -75,7 +75,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: cache pnpm store
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
@@ -84,7 +84,7 @@ jobs:
 
       - name: cache node modules
         id: cache-node-modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
@@ -117,7 +117,7 @@ jobs:
 
       - name: cache node modules(bin)
         id: cache-node-modules-bin
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: bin/node_modules
           key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
@@ -146,7 +146,7 @@ jobs:
 
       - name: cache node modules
         id: cache-node-modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
@@ -174,14 +174,14 @@ jobs:
 
       - name: cache node modules
         id: cache-node-modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
         id: cache-node-modules-bin
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: bin/node_modules
           key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
@@ -219,7 +219,7 @@ jobs:
       - name: cache node modules
         if: ${{ needs.changes.outputs.app == 'true' }}
         id: cache-node-modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
@@ -254,7 +254,7 @@ jobs:
 
       - name: cache node modules
         id: cache-node-modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
@@ -262,7 +262,7 @@ jobs:
       - name: cache node modules(bin)
         if: ${{ needs.changes.outputs.bin == 'true' }}
         id: cache-node-modules-bin
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: bin/node_modules
           key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
@@ -274,7 +274,7 @@ jobs:
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: cache electron-builder
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: ~/AppData/Local/electron-builder/Cache
           key: ${{ runner.os }}-electron-builder-${{ steps.electron-builder-version.outputs.version }}

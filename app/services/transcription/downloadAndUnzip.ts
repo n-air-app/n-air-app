@@ -20,6 +20,7 @@ export class DownloadError extends Error {
       `Failed to download: ${
         detail.reason === 'fetch' ? detail.error.message : detail.response.statusText
       }`,
+      detail.reason === 'fetch' ? { cause: detail.error } : undefined,
     );
 
     this.name = new.target.name;
@@ -29,7 +30,7 @@ export class DownloadError extends Error {
 
 export class ExtractError extends Error {
   constructor(public baseError: Error) {
-    super(`Failed to extract: ${baseError.message}`);
+    super(`Failed to extract: ${baseError.message}`, { cause: baseError });
 
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
@@ -37,8 +38,8 @@ export class ExtractError extends Error {
 }
 
 export class CancelledError extends Error {
-  constructor() {
-    super('Download cancelled by user');
+  constructor(cause?: unknown) {
+    super('Download cancelled by user', cause !== undefined ? { cause } : undefined);
 
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
@@ -102,7 +103,7 @@ export async function downloadAndUnzip(
         console.log('Download completed:', zipPath);
       } catch (error) {
         if (signal?.aborted) {
-          throw new CancelledError();
+          throw new CancelledError(error);
         }
         throw error;
       } finally {
