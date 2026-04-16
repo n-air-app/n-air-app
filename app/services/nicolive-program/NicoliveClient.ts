@@ -141,7 +141,6 @@ export class NicoliveClient {
   static live2BaseURL = transformUrl('https://live2.nicovideo.jp');
   static liveBaseURL = transformUrl('https://live.nicovideo.jp');
   static live2ApiBaseURL = transformUrl('https://api.live2.nicovideo.jp');
-  static publicBaseURL = transformUrl('https://public.api.nicovideo.jp');
   static nicoadBaseURL = transformUrl('https://api.nicoad.nicovideo.jp');
   static userFollowBaseURL = transformUrl('https://user-follow-api.nicovideo.jp');
   static userIconBaseURL = transformUrl('https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/');
@@ -569,6 +568,7 @@ export class NicoliveClient {
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = NicoliveClient.liveBaseURL + '/create';
+      console.log('Loading URL in createProgram window:', url);
       win.loadURL(url)?.catch(error => {
         if (error instanceof Error) {
           Sentry.withScope(scope => {
