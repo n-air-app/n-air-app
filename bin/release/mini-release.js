@@ -262,11 +262,7 @@ async function runScript({
     }
 
     info('Making the package...');
-    const packageSuffix =
-      devHostsIndex > 0
-        ? `${releaseEnvironment}-dev-${releaseChannel}`
-        : `${releaseEnvironment}-${releaseChannel}`;
-    executeCmd(`pnpm run package:${packageSuffix}`);
+    executeCmd(`pnpm run package:${releaseEnvironment}-${releaseChannel}`);
   }
 
   if (!skipBuild) {
