@@ -1,9 +1,9 @@
 import * as remote from '@electron/remote';
-import ModalLayout from 'components/shared/ModalLayout.vue';
 import GenericForm from 'components/obs/inputs/GenericForm.vue';
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import Display from 'components/shared/Display.vue';
-import TextTranscriptionProperties from 'components/source_properties/TextTranscriptionProperties.vue';
+import ModalLayout from 'components/shared/ModalLayout.vue';
+import TextTranscriptionProperties from 'components/sources/TextTranscriptionProperties.vue';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subscription } from 'rxjs';
 import { AppService } from 'services/app';

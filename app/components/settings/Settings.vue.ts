@@ -1,4 +1,5 @@
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
+import { CategoryIcons } from 'components/settings/CategoryIcons';
 import CommentSettings from 'components/settings/CommentSettings.vue';
 import ExtraSettings from 'components/settings/ExtraSettings.vue';
 import Hotkeys from 'components/settings/Hotkeys.vue';
@@ -24,7 +25,6 @@ import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
-import { CategoryIcons } from './CategoryIcons';
 
 interface TocSectionData {
   id: string;

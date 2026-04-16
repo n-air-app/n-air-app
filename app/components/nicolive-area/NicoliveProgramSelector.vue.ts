@@ -1,4 +1,4 @@
-import Step from 'components/nicolive-program-selector/Step.vue';
+import Step from 'components/nicolive-area/Step.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import NavItem from 'components/shared/NavItem.vue';
 import NavMenu from 'components/shared/NavMenu.vue';
