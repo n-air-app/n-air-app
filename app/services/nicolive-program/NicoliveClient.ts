@@ -30,7 +30,7 @@ import {
 
 import * as remote from '@electron/remote';
 import { DateTime } from 'luxon';
-import { getCookieDomain, getPartitionName, transformUrl } from 'services/dev-hosts';
+import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } from 'services/dev-hosts';
 
 const { BrowserWindow } = remote;
 
@@ -531,7 +531,7 @@ export class NicoliveClient {
       webPreferences: {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
-        ...(getPartitionName() ? { partition: getPartitionName() } : {}),
+        ...getPartitionConfig(),
       },
     });
     NicoliveClient.registerWindow('createProgram', win);
@@ -608,7 +608,7 @@ export class NicoliveClient {
       webPreferences: {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
-        ...(getPartitionName() ? { partition: getPartitionName() } : {}),
+        ...getPartitionConfig(),
       },
     });
     NicoliveClient.registerWindow('editProgram', win);

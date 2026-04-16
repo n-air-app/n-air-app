@@ -31,7 +31,7 @@ import UserInfo from 'components/nicolive-area/UserInfo.vue';
 import electron from 'electron';
 import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
-import { getPartitionName } from 'services/dev-hosts';
+import { getPartitionConfig } from 'services/dev-hosts';
 import Util, { uuidv4 } from 'services/utils';
 import Vue from 'vue';
 
@@ -294,7 +294,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
         nodeIntegration: true,
         webviewTag: true,
         contextIsolation: false,
-        ...(getPartitionName() ? { partition: getPartitionName() } : {}),
+        ...getPartitionConfig(),
       },
     }));
 

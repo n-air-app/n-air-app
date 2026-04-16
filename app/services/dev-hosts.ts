@@ -72,3 +72,9 @@ export function isDevHosts(): boolean {
 export function getPartitionName(): string | undefined {
   return config ? 'persist:dev-hosts' : undefined;
 }
+
+/** Returns a webPreferences-compatible partition object, or {} if dev-hosts is not active. */
+export function getPartitionConfig(): { partition?: string } {
+  const partition = getPartitionName();
+  return partition ? { partition } : {};
+}

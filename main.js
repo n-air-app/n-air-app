@@ -59,15 +59,12 @@ function loadDevHostsConfig() {
   // webpack compile時にdev-hosts.jsonが書き出される（NAIR_DEV_HOSTS=N pnpm compile）。
   // pnpm startでenv varなしでも自動的にdev環境として動作する。
   // パッケージビルドでもelectron-builderがdev-hosts.jsonをバンドルするため同様に動作する。
-  const bundledPath = path.join(__dirname, 'dev-hosts.json');
-  if (fs.existsSync(bundledPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(bundledPath, 'utf-8'));
-      console.log('[dev-hosts] Loaded config from dev-hosts.json');
-      return config;
-    } catch (e) {
-      console.warn('[dev-hosts] Failed to parse dev-hosts.json:', e.message);
-    }
+  try {
+    const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'dev-hosts.json'), 'utf-8'));
+    console.log('[dev-hosts] Loaded config from dev-hosts.json');
+    return config;
+  } catch (e) {
+    if (e.code !== 'ENOENT') console.warn('[dev-hosts] Failed to parse dev-hosts.json:', e.message);
   }
   // フォールバック: NAIR_DEV_HOSTS env varで .dev-hosts-path から直接読む（compileせずにstartする場合）
   const n = parseInt(process.env.NAIR_DEV_HOSTS, 10);
@@ -200,8 +197,9 @@ function getCookieFiles() {
 
 async function clearCookies() {
   // 読み込めている場合はファイルを消してもメモリから書き戻してしまうため、メモリ上のクッキーを先に削除する
-  await getAppSession().clearStorageData({ storages: ['cookies'] });
-  getAppSession().flushStorageData();
+  const session = getAppSession();
+  await session.clearStorageData({ storages: ['cookies'] });
+  session.flushStorageData();
 
   // 読み込めていない場合は上記でも消えないので、実ファイルを削除する
   const files = getCookieFiles();

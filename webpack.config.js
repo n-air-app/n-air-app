@@ -44,8 +44,8 @@ const devHostsJsonPath = path.join(__dirname, 'dev-hosts.json');
 if (devHostsConfig) {
   fs.writeFileSync(devHostsJsonPath, JSON.stringify(devHostsConfig, null, 2));
   console.log('[dev-hosts] Written dev-hosts.json for main process');
-} else if (fs.existsSync(devHostsJsonPath)) {
-  fs.unlinkSync(devHostsJsonPath);
+} else {
+  fs.rmSync(devHostsJsonPath, { force: true });
   console.log('[dev-hosts] Removed stale dev-hosts.json');
 }
 
