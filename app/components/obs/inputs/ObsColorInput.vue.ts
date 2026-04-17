@@ -2,7 +2,7 @@ import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import VueColor from 'vue-color';
 import { Component, Prop } from 'vue-property-decorator';
-import Utils from '../../../services/utils';
+import Utils from 'services/utils';
 import { IObsInput, ObsInput, TObsType } from './ObsInput';
 
 interface IColorPickerOptions {

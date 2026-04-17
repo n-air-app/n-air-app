@@ -1,8 +1,8 @@
+import Popper from 'components/shared/Popper.vue';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import Popper from '../shared/Popper.vue';
 
 export interface IArea {
   name: string;

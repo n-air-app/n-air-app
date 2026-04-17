@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote';
+import Popper from 'components/shared/Popper.vue';
 import { clipboard } from 'electron';
 import { DateTime } from 'luxon';
 import { Subscription } from 'rxjs';
@@ -9,7 +10,6 @@ import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import Popper from '../shared/Popper.vue';
 
 @Component({
   components: {

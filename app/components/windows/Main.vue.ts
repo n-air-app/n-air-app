@@ -1,5 +1,13 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
+import NicoliveArea from 'components/nicolive-area/NicoliveArea.vue';
+import Onboarding from 'components/pages/Onboarding.vue';
+import PatchNotes from 'components/pages/PatchNotes.vue';
+import Studio from 'components/pages/Studio.vue';
+import CustomLoader from 'components/shared/CustomLoader.vue';
+import SideNav from 'components/studio/SideNav.vue';
+import StudioFooter from 'components/studio/StudioFooter.vue';
+import TitleBar from 'components/studio/TitleBar.vue';
 import { AppService } from 'services/app';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
@@ -10,14 +18,6 @@ import { WindowSizeService } from 'services/window-size';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import CustomLoader from '../CustomLoader.vue';
-import NicoliveArea from '../nicolive-area/NicoliveArea.vue';
-import Onboarding from '../pages/Onboarding.vue';
-import PatchNotes from '../pages/PatchNotes.vue';
-import Studio from '../pages/Studio.vue';
-import SideNav from '../SideNav.vue';
-import StudioFooter from '../StudioFooter.vue';
-import TitleBar from '../TitleBar.vue';
 
 @Component({
   components: {

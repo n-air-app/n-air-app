@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote';
+import Popper from 'components/shared/Popper.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
@@ -10,7 +11,6 @@ import {
 import { StreamingService } from 'services/streaming';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
-import Popper from '../shared/Popper.vue';
 
 @Component({
   components: { Popper },
