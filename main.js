@@ -45,6 +45,93 @@ const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
 
+////////////////////////////////////////////////////////////////////////////////
+// Dev Hosts Configuration
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Load dev-hosts config from bundled dev-hosts.json (packaged builds)
+ * or from path specified in .dev-hosts-path (development).
+ * NAIR_DEV_HOSTS=N selects the N-th (1-indexed) path in .dev-hosts-path.
+ * Returns null if not configured or loading fails.
+ */
+function loadDevHostsConfig() {
+  // webpack compile時にdev-hosts.jsonが書き出される（NAIR_DEV_HOSTS=N pnpm compile）。
+  // pnpm startでenv varなしでも自動的にdev環境として動作する。
+  // パッケージビルドでもelectron-builderがdev-hosts.jsonをバンドルするため同様に動作する。
+  try {
+    const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'dev-hosts.json'), 'utf-8'));
+    console.log('[dev-hosts] Loaded config from dev-hosts.json');
+    return config;
+  } catch (e) {
+    if (e.code !== 'ENOENT') console.warn('[dev-hosts] Failed to parse dev-hosts.json:', e.message);
+  }
+  // フォールバック: NAIR_DEV_HOSTS env varで .dev-hosts-path から直接読む（compileせずにstartする場合）
+  const n = parseInt(process.env.NAIR_DEV_HOSTS, 10);
+  if (!n || n <= 0) return null;
+  try {
+    const devHostsPathFile = path.join(__dirname, '.dev-hosts-path');
+    const lines = fs
+      .readFileSync(devHostsPathFile, 'utf-8')
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith('#'));
+    const relPath = lines[n - 1];
+    if (!relPath) throw new Error(`.dev-hosts-path has no entry at line ${n}`);
+    const fullPath = path.resolve(__dirname, relPath);
+    const config = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+    console.log(`[dev-hosts] Loaded config from: ${fullPath}`);
+    return config;
+  } catch (e) {
+    console.warn('[dev-hosts] Failed to load config:', e.message);
+    return null;
+  }
+}
+
+global.devHostsConfig = loadDevHostsConfig();
+
+/** Electron session partition name for dev-hosts builds. undefined = use defaultSession. */
+const devHostsPartition = global.devHostsConfig ? 'persist:dev-hosts' : undefined;
+
+/**
+ * Returns the Electron session to use for cookies and webRequest.
+ * dev-hosts builds use a separate persistent partition to keep dev and production cookies independent.
+ */
+function getAppSession() {
+  if (devHostsPartition) {
+    return electron.session.fromPartition(devHostsPartition);
+  }
+  return electron.session.defaultSession;
+}
+
+/**
+ * Apply dev-hosts URL transformation (mirrors app/services/dev-hosts.ts).
+ * overrides take priority over domainMap.
+ */
+function devHostsTransformUrl(url) {
+  const cfg = global.devHostsConfig;
+  if (!cfg) return url;
+  if (cfg.overrides) {
+    const prefixes = Object.keys(cfg.overrides).sort((a, b) => b.length - a.length);
+    for (const prefix of prefixes) {
+      if (url.startsWith(prefix)) return cfg.overrides[prefix] + url.slice(prefix.length);
+    }
+  }
+  if (cfg.domainMap) {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname;
+      for (const [prodDomain, devDomain] of Object.entries(cfg.domainMap)) {
+        if (hostname === prodDomain || hostname.endsWith('.' + prodDomain)) {
+          urlObj.hostname = hostname.slice(0, -prodDomain.length) + devDomain;
+          return urlObj.toString();
+        }
+      }
+    } catch {}
+  }
+  return url;
+}
+
 function removePathWithRetry(rmPath) {
   const MAX_RETRIES = 3;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -102,14 +189,17 @@ if (process.argv.includes('--clearCacheDir')) {
 }
 
 function getCookieFiles() {
-  const basePath = path.join(app.getPath('userData'), 'Network');
+  const basePath = devHostsPartition
+    ? path.join(app.getPath('userData'), 'Partitions', 'dev-hosts', 'Network')
+    : path.join(app.getPath('userData'), 'Network');
   return [path.join(basePath, 'Cookies'), path.join(basePath, 'Cookies-journal')];
 }
 
 async function clearCookies() {
   // 読み込めている場合はファイルを消してもメモリから書き戻してしまうため、メモリ上のクッキーを先に削除する
-  await electron.session.defaultSession.clearStorageData({ storages: ['cookies'] });
-  electron.session.defaultSession.flushStorageData();
+  const session = getAppSession();
+  await session.clearStorageData({ storages: ['cookies'] });
+  session.flushStorageData();
 
   // 読み込めていない場合は上記でも消えないので、実ファイルを削除する
   const files = getCookieFiles();
@@ -158,8 +248,8 @@ async function recollectUserSessionCookie() {
   // cookieを直せば通るようなのでそのパッチ処理
   console.log('recollectUserSessionCookie');
   try {
-    const cookies = await electron.session.defaultSession.cookies.get({
-      domain: '.nicovideo.jp',
+    const cookies = await getAppSession().cookies.get({
+      domain: global.devHostsConfig?.cookieDomain ?? '.nicovideo.jp',
       name: 'user_session', // 他のキーまでやるとNAIR_UNSTABLE=0で問題があるかもなので一旦必須だけ、状況に応じてで
     });
     if (!cookies || !cookies.length) return;
@@ -178,7 +268,7 @@ async function recollectUserSessionCookie() {
       cookie.httpOnly = true;
       cookie.secure = true;
 
-      await electron.session.defaultSession.cookies.set(cookie);
+      await getAppSession().cookies.set(cookie);
       console.log(`cookie changed ${JSON.stringify(cookie)}`);
     }
   } catch (e) {
@@ -461,16 +551,16 @@ function initialize(crashHandler) {
     // ignore fs requests
     const filter = { urls: ['https://*', 'http://*'] };
 
-    session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
+    getAppSession().webRequest.onBeforeRequest(filter, (details, callback) => {
       console.log('HTTP REQUEST', details.method, details.url);
       callback(details);
     });
 
-    session.defaultSession.webRequest.onErrorOccurred(filter, details => {
+    getAppSession().webRequest.onErrorOccurred(filter, details => {
       console.log('HTTP REQUEST FAILED', details.method, details.url);
     });
 
-    session.defaultSession.webRequest.onCompleted(filter, details => {
+    getAppSession().webRequest.onCompleted(filter, details => {
       console.log('HTTP REQUEST COMPLETED', details.method, details.url, details.statusCode);
     });
   });
@@ -669,6 +759,7 @@ function initialize(crashHandler) {
         nodeIntegration: true,
         webviewTag: true,
         contextIsolation: false,
+        ...(devHostsPartition ? { partition: devHostsPartition } : {}),
       },
     });
 
@@ -765,7 +856,7 @@ function initialize(crashHandler) {
       libuiohook.stopHook();
       console.log('[EXIT] Stopped libuiohook');
 
-      session.defaultSession.flushStorageData();
+      getAppSession().flushStorageData();
       console.log('[EXIT] Storage data flushed');
 
       // Unregister from crash handler before exiting
@@ -797,6 +888,7 @@ function initialize(crashHandler) {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        ...(devHostsPartition ? { partition: devHostsPartition } : {}),
       },
     });
 
@@ -1057,9 +1149,11 @@ function initialize(crashHandler) {
 
   function preventLogout(e, url) {
     const urlObj = new URL(url);
+    const liveHostname = new URL(devHostsTransformUrl('https://live.nicovideo.jp')).hostname;
+    const live2Hostname = new URL(devHostsTransformUrl('https://live2.nicovideo.jp')).hostname;
     const isLogout =
       /^https?:$/.test(urlObj.protocol) &&
-      /^live2?\.nicovideo\.jp$/.test(urlObj.hostname) &&
+      (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname) &&
       /^\/logout$/.test(urlObj.pathname);
     if (isLogout) {
       e.preventDefault();

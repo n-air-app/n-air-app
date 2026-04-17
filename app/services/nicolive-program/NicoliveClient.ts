@@ -30,6 +30,7 @@ import {
 
 import * as remote from '@electron/remote';
 import { DateTime } from 'luxon';
+import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } from 'services/dev-hosts';
 
 const { BrowserWindow } = remote;
 
@@ -137,13 +138,12 @@ export type CommentModifier = {
 };
 
 export class NicoliveClient {
-  static live2BaseURL = 'https://live2.nicovideo.jp' as const;
-  static liveBaseURL = 'https://live.nicovideo.jp' as const;
-  static live2ApiBaseURL = 'https://api.live2.nicovideo.jp' as const;
-  static publicBaseURL = 'https://public.api.nicovideo.jp' as const;
-  static nicoadBaseURL = 'https://api.nicoad.nicovideo.jp' as const;
-  static userFollowBaseURL = 'https://user-follow-api.nicovideo.jp' as const;
-  static userIconBaseURL = 'https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/' as const;
+  static live2BaseURL = transformUrl('https://live2.nicovideo.jp');
+  static liveBaseURL = transformUrl('https://live.nicovideo.jp');
+  static live2ApiBaseURL = transformUrl('https://api.live2.nicovideo.jp');
+  static nicoadBaseURL = transformUrl('https://api.nicoad.nicovideo.jp');
+  static userFollowBaseURL = transformUrl('https://user-follow-api.nicovideo.jp');
+  static userIconBaseURL = transformUrl('https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/');
 
   private static OpenWindows: { [key: string]: Electron.BrowserWindow | null } = {};
 
@@ -176,20 +176,29 @@ export class NicoliveClient {
   ) { }
 
   static isProgramPage(url: string): boolean {
-    return /^https?:\/\/live2?\.nicovideo\.jp\/watch\/lv\d+/.test(url);
+    return (
+      (url.startsWith(NicoliveClient.liveBaseURL + '/watch/lv') ||
+        url.startsWith(NicoliveClient.live2BaseURL + '/watch/lv')) &&
+      /\/watch\/lv\d+/.test(url)
+    );
   }
 
   static isMyPage(url: string): boolean {
     const urlObj = new URL(url);
+    const liveHostname = new URL(NicoliveClient.liveBaseURL).hostname;
+    const live2Hostname = new URL(NicoliveClient.live2BaseURL).hostname;
     return (
       /^https?:$/.test(urlObj.protocol) &&
-      /^live2?\.nicovideo\.jp$/.test(urlObj.hostname) &&
+      (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname) &&
       /^\/my$/.test(urlObj.pathname)
     );
   }
 
   static isAllowedURL(url: string): boolean {
-    return /^https?:\/\/live2?.nicovideo.jp\//.test(url);
+    return (
+      url.startsWith(NicoliveClient.live2BaseURL + '/') ||
+      url.startsWith(NicoliveClient.liveBaseURL + '/')
+    );
   }
 
   private static createRequest(
@@ -266,7 +275,7 @@ export class NicoliveClient {
 
     const { session } = remote.getCurrentWebContents();
     return new Promise((resolve, reject) => {
-      session.cookies.get({ url: 'https://.nicovideo.jp', name: 'user_session' }).then(cookies => {
+      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then(cookies => {
         if (cookies.length < 1) return reject(new NotLoggedInError());
         resolve(cookies[0].value);
       });
@@ -522,6 +531,7 @@ export class NicoliveClient {
       webPreferences: {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
+        ...getPartitionConfig(),
       },
     });
     NicoliveClient.registerWindow('createProgram', win);
@@ -557,7 +567,8 @@ export class NicoliveClient {
       });
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
-      const url = 'https://live.nicovideo.jp/create';
+      const url = NicoliveClient.liveBaseURL + '/create';
+      console.log('Loading URL in createProgram window:', url);
       win.loadURL(url)?.catch(error => {
         if (error instanceof Error) {
           Sentry.withScope(scope => {
@@ -597,6 +608,7 @@ export class NicoliveClient {
       webPreferences: {
         nodeIntegration: false,
         nodeIntegrationInWorker: false,
+        ...getPartitionConfig(),
       },
     });
     NicoliveClient.registerWindow('editProgram', win);
@@ -634,7 +646,7 @@ export class NicoliveClient {
       });
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
-      const url = `https://live.nicovideo.jp/edit/${programID}`;
+      const url = `${NicoliveClient.liveBaseURL}/edit/${programID}`;
       win.loadURL(url)?.catch(error => {
         if (error instanceof Error) {
           Sentry.withScope(scope => {
@@ -706,8 +718,11 @@ export class NicoliveClient {
   }
 
   private prepareUserFollowApi() {
-    const session = remote.session;
-    session.defaultSession.webRequest.onBeforeSendHeaders(
+    const partition = getPartitionName();
+    const appSession = partition
+      ? remote.session.fromPartition(partition)
+      : remote.session.defaultSession;
+    appSession.webRequest.onBeforeSendHeaders(
       { urls: [NicoliveClient.userFollowEndpoint('*')] },
       (details, callback) => {
         details.requestHeaders['Origin'] = null;

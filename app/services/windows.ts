@@ -31,6 +31,7 @@ import UserInfo from 'components/nicolive-area/UserInfo.vue';
 import electron from 'electron';
 import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
+import { getPartitionConfig } from 'services/dev-hosts';
 import Util, { uuidv4 } from 'services/utils';
 import Vue from 'vue';
 
@@ -289,7 +290,12 @@ export class WindowsService extends StatefulService<IWindowsState> {
       transparent: options.transparent,
       resizable: options.resizable,
       alwaysOnTop: options.alwaysOnTop,
-      webPreferences: { nodeIntegration: true, webviewTag: true, contextIsolation: false },
+      webPreferences: {
+        nodeIntegration: true,
+        webviewTag: true,
+        contextIsolation: false,
+        ...getPartitionConfig(),
+      },
     }));
 
     electron.ipcRenderer.sendSync('webContents-enableRemote', newWindow.webContents.id);

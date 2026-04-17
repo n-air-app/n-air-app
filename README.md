@@ -85,6 +85,10 @@ Visual Studio Code を使用している場合は、組み込みのデバッガ�
 pnpm start
 ```
 
+### 開発者向け設定
+
+環境変数、dev環境接続（dev-hosts）、npmスクリプト、設定ファイル等の詳細は [docs/development.md](docs/development.md) を参照してください。
+
 ## ライセンス
 
 N Air 本体は GPLv3 で公開しています。

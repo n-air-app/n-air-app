@@ -1,7 +1,7 @@
 <template>
-  <div class="titlebar" :class="{ isUnstable }">
+  <div class="titlebar" :class="{ isUnstable, isDevHosts }">
     <div class="titlebar-title">
-      {{ title }}
+      {{ title }}<span v-if="isDevHosts" class="dev-hosts-badge">dev環境</span>
     </div>
     <div class="titlebar-actions">
       <i v-if="isMinimizable" class="link icon-minimize titlebar-action" @click="minimize" />
@@ -98,5 +98,15 @@
   &:not(:disabled):hover {
     color: var(--color-titlebar-action-hover);
   }
+}
+
+.dev-hosts-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 8px;
+  font-size: @font-size2;
+  vertical-align: middle;
+  background: rgba(0, 0, 0, 20%);
+  border-radius: 3px;
 }
 </style>
