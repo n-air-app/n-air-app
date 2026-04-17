@@ -1,6 +1,6 @@
 import { IObsListOption, TObsFormData } from 'components/obs/inputs/ObsInput';
 import { Observable } from 'rxjs';
-import { NVoiceCharacterType, NVoiceAvatarStyle } from 'services/nvoice-character';
+import { NVoiceAvatarStyle, NVoiceCharacterType } from 'services/nvoice-character';
 import { IPartialTransform } from 'services/scenes';
 import * as obs from '../../../obs-api';
 import { IAudioSource } from '../audio';
@@ -113,7 +113,8 @@ export type TSourceType =
   | 'wasapi_process_output_capture'
   | 'custom_cast_ndi_source'
   | 'custom_cast_ndi_guide'
-  | 'nair-rtvc-source';
+  | 'nair-rtvc-source'
+  | 'spout_capture';
 
 // 仮想ソースを含むSourceType 選択時には別だが登録時にいずれかの通常SourceTypeに変換される
 export type TSelectableSourceType =
