@@ -380,6 +380,28 @@
     "name": "Blackmagic Device",
     "description": "Add video / audio from Blackmagic device."
   },
+  "spout_capture": {
+    "name": "Spout2 Capture",
+    "description": "Capture video from Spout2-compatible applications.",
+    "spoutsenders": {
+      "name": "Spout Senders",
+      "usefirstavailablesender": "Use first available sender"
+    },
+    "compositemode": {
+      "name": "Composite mode",
+      "1": "Opaque",
+      "2": "Converted Premultiplied Alpha (legacy)",
+      "3": "Default",
+      "4": "Premultiplied Alpha"
+    },
+    "tickspeedlimit": {
+      "name": "Poll time for new senders",
+      "1": "Extremely fast",
+      "100": "fast",
+      "500": "normal",
+      "1000": "slow"
+    }
+  },
   "ndi_source": {
     "name": "NDI® Source",
     "description": "Allow you to capture NDI® output streams.",

@@ -157,6 +157,14 @@
         <FfmpegSourceIcon slot="media" />
       </add-source-info>
 
+      <add-source-info
+        v-if="inspectedSource === 'spout_capture'"
+        sourceType="spout_capture"
+        key="24"
+      >
+        <MonitorCaptureIcon slot="media" />
+      </add-source-info>
+
       <div class="source-info" v-if="inspectedSource === null">
         <div class="source-info__text">
           <h3>{{ $t('sources.sourcesWelcomeMessage') }}</h3>

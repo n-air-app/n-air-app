@@ -377,6 +377,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       'vlc_source',
       'wasapi_process_output_capture',
       'nair-rtvc-source', // voice changer
+      'spout_capture',
     ];
 
     const availableWhitelistedType = whitelistedTypes.filter(type =>
