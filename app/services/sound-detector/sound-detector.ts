@@ -22,6 +22,7 @@ export interface ISoundDetectorState {
   resumeSilenceMs: number;
   speechActionOnSoundDetected: SpeechActionOnSoundDetected;
   noSignalTimeoutMs: number;
+  dialogShown: boolean; // 設定を促すダイアログを表示済みか
 }
 
 export class SoundDetectorService extends PersistentStatefulService<ISoundDetectorState> {
@@ -34,6 +35,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     resumeSilenceMs: 500,
     speechActionOnSoundDetected: 'graceful',
     noSignalTimeoutMs: 1000,
+    dialogShown: false,
   };
 
   private stateSubject: Subject<ISoundDetectorState> = new BehaviorSubject<ISoundDetectorState>(
@@ -324,6 +326,18 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   getEffectiveWatchSources(watchSourceId: ISoundDetectorState['sourceId']): AudioSource[] {
     // mutedなソースは監視対象から除外
     return this.getCandidateWatchSources(watchSourceId).filter(s => !s.muted);
+  }
+
+  get isDialogShown(): boolean {
+    return this.state.dialogShown;
+  }
+
+  markDialogShown(): void {
+    this.setState({ dialogShown: true });
+  }
+
+  resetDialogShown(): void {
+    this.setState({ dialogShown: false });
   }
 
   updateSourceId(id: string | null): void {

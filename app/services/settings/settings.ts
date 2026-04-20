@@ -853,6 +853,20 @@ export class SettingsService
           },
         ],
       },
+      {
+        nameSubCategory: 'SoundDetector',
+        codeSubCategory: 'SoundDetector',
+        parameters: [
+          <IObsInput<boolean>>{
+            value: !this.soundDetectorService.isDialogShown,
+            name: 'ResetDialogShown',
+            description: '読み上げ停止設定の案内ダイアログをリセットする',
+            type: 'OBS_PROPERTY_BOOL',
+            visible: true,
+            enabled: this.soundDetectorService.isDialogShown,
+          },
+        ],
+      },
     ];
   }
 
@@ -873,6 +887,13 @@ export class SettingsService
           for (const item of setting.parameters) {
             if (item.name === 'ResetNameplateHint' && !item.value) {
               this.nicoliveProgramStateService.updateNameplateHint(undefined);
+            }
+          }
+          break;
+        case 'SoundDetector':
+          for (const item of setting.parameters) {
+            if (item.name === 'ResetDialogShown' && item.value) {
+              this.soundDetectorService.resetDialogShown();
             }
           }
           break;

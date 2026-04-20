@@ -281,10 +281,6 @@ export default class SoundDetectorSettings extends Vue {
     );
   }
 
-  get isCalibrated(): boolean {
-    return this.soundDetectorService.isCalibrated;
-  }
-
   get soundDetectorAudioSources(): AudioSource[] {
     // audioSourcesVersionにアクセスすることで、これが変更されたときにgetterが再評価される
     this.audioSourcesVersion;
