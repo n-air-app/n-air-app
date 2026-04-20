@@ -551,7 +551,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
           if (caught instanceof NicoliveFailure) {
             console.warn('refreshProgram failed:', caught);
           } else {
-            throw caught;
+            throw new Error('refreshProgram failed unexpectedly', { cause: caught });
           }
         });
       }, waitTime);
