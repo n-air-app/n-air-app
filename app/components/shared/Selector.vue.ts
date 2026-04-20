@@ -38,17 +38,21 @@ export default class Selector extends Vue {
     //
     // Vue 3 移行時: beforeDestroy → beforeUnmount にリネーム、実行順序は同じなのでロジック流用可能。
     // sortablejs 上流でこのバグが修正されたらこの workaround は除去可能。
+    // sortablejs の型定義がないため、使用する内部プロパティの最小限の型を定義する
+    interface SortableInstance {
+      el: HTMLElement | null;
+      handleEvent(evt: Event): void;
+      _nulling?(): void;
+    }
     try {
-      const draggableVm = this.$refs.draggable as any;
+      const draggableVm = this.$refs.draggable as Vue & { _sortable?: SortableInstance };
       const sortable = draggableVm?._sortable;
       if (sortable) {
         const origHandleEvent = sortable.handleEvent.bind(sortable);
-        sortable.handleEvent = function (evt: Event) {
+        sortable.handleEvent = function (this: SortableInstance, evt: Event) {
           if (!this.el) {
             // destroy() 済み: ドラッグ結果は既に反映済みなので、グローバル変数のリセットのみ行う
-            if (typeof this._nulling === 'function') {
-              this._nulling();
-            }
+            this._nulling?.();
             Sentry.withScope(scope => {
               scope.setLevel('warning');
               scope.setTag('issue', 'N-AIR-APP-F3Z');
