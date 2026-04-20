@@ -146,7 +146,6 @@ const createInjectee = ({
       soundThresholdDb: -19,
       resumeSilenceMs: 500,
       speechActionOnSoundDetected: 'graceful',
-      calibrated: false,
     }),
   },
   NVoiceCharacterUsageService: {

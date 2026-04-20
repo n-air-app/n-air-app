@@ -83,7 +83,6 @@ export default class SoundDetectorSettings extends Vue {
     if (this.isTestPlaybackActive) return; // 連続クリック防止
 
     this.isTestPlaybackActive = true;
-    this.soundDetectorService.markCalibrated();
     this.play(); // 最初のテストメッセージを再生
   }
 

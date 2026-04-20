@@ -488,15 +488,6 @@ describe('SoundDetectorService', () => {
     });
   });
 
-  describe('markDeclined', () => {
-    test('declined=true かつ enabled=false になること', () => {
-      const { instance } = prepare();
-      instance.markDeclined();
-      expect(instance.state.declined).toBe(true);
-      expect(instance.state.enabled).toBe(false);
-    });
-  });
-
   describe('isBlockingObservable', () => {
     test('pause の場合は loud でブロックする', () => {
       const { instance, micStream } = prepare({ speechActionOnSoundDetected: 'pause' });

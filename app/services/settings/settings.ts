@@ -853,20 +853,6 @@ export class SettingsService
           },
         ],
       },
-      {
-        nameSubCategory: 'SoundDetector',
-        codeSubCategory: 'SoundDetector',
-        parameters: [
-          <IObsInput<boolean>>{
-            value: this.soundDetectorService.isCalibrated,
-            name: 'Calibrated',
-            description: '読み上げ停止の音量設定済み',
-            type: 'OBS_PROPERTY_BOOL',
-            visible: true,
-            enabled: true,
-          },
-        ],
-      },
     ];
   }
 
@@ -887,17 +873,6 @@ export class SettingsService
           for (const item of setting.parameters) {
             if (item.name === 'ResetNameplateHint' && !item.value) {
               this.nicoliveProgramStateService.updateNameplateHint(undefined);
-            }
-          }
-          break;
-        case 'SoundDetector':
-          for (const item of setting.parameters) {
-            if (item.name === 'Calibrated') {
-              if (item.value) {
-                this.soundDetectorService.markCalibrated();
-              } else {
-                this.soundDetectorService.resetCalibrated();
-              }
             }
           }
           break;

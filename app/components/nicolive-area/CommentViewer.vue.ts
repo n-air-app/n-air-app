@@ -404,31 +404,6 @@ export default class CommentViewer extends Vue {
     });
 
     this.nicoliveCommentViewerService.enableSoundDetector(true);
-    if (
-      this.speakingEnabled &&
-      this.nicoliveCommentViewerService.isSoundDetectorSourceEnabled &&
-      !this.nicoliveCommentViewerService.isSoundDetectorCalibrated &&
-      !this.nicoliveCommentViewerService.isSoundDetectorDeclined
-    ) {
-      // 放送者の声を避けたコメント読み上げ機能を提案する
-      remote.dialog
-        .showMessageBox(remote.getCurrentWindow(), {
-          type: 'question',
-          buttons: ['yes', 'no'],
-          title: 'コメント読み上げ抑制機能',
-          message: '放送者がしゃべっているときにコメント読み上げを停止する設定をしますか?',
-          defaultId: 0,
-          cancelId: 1,
-        })
-        .then(({ response }) => {
-          if (response === 0) {
-            this.nicoliveCommentViewerService.setSoundDetectorEnabled(true);
-            this.settingsService.showSoundDetectorSettings();
-          } else {
-            this.nicoliveCommentViewerService.markSoundDetectorDeclined();
-          }
-        });
-    }
   }
 
   beforeDestroy() {
