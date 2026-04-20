@@ -45,8 +45,10 @@ export default class Selector extends Vue {
       _nulling?(): void;
     }
     try {
-      const draggableVm = this.$refs.draggable as Vue & { _sortable?: SortableInstance };
-      const sortable = draggableVm?._sortable;
+      const draggableRef = this.$refs.draggable;
+      if (!(draggableRef instanceof Vue)) return;
+      const draggableVm = draggableRef as Vue & { _sortable?: SortableInstance };
+      const sortable = draggableVm._sortable;
       if (sortable) {
         const origHandleEvent = sortable.handleEvent.bind(sortable);
         sortable.handleEvent = function (this: SortableInstance, evt: Event) {
