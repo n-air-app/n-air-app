@@ -1,6 +1,6 @@
 <template>
   <ul class="selector-list" @contextmenu="handleContextMenu()" data-test="Selector">
-    <draggable :list="normalizedItems" :draggable="draggableSelector" @change="handleChange">
+    <draggable ref="draggable" :list="normalizedItems" :draggable="draggableSelector" @change="handleChange">
       <li
         v-for="(item, index) in normalizedItems"
         :key="item.value"
