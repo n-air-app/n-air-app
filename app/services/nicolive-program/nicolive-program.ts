@@ -547,7 +547,13 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
       // 次に放送状態が変化する予定の時刻（より少し後）に放送情報を更新するタイマーを仕込む
       clearTimeout(this.refreshProgramTimer);
       this.refreshProgramTimer = window.setTimeout(() => {
-        this.refreshProgram();
+        this.refreshProgram().catch(caught => {
+          if (caught instanceof NicoliveFailure) {
+            console.warn('refreshProgram failed:', caught);
+          } else {
+            throw caught;
+          }
+        });
       }, waitTime);
     } else if (prev && !next) {
       clearTimeout(this.refreshProgramTimer);
