@@ -5,7 +5,7 @@ import {
   IObsNumberInputValue,
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
-import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
+import { EMPTY, merge, Observable, Subject } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
@@ -442,26 +442,6 @@ export class AudioSource implements IAudioSourceApi {
         type: 'OBS_PROPERTY_INT',
       },
 
-      <IObsInput<boolean>>{
-        value: this.forceMono,
-        name: 'forceMono',
-        description: $t('audio.downmixToMono'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_BOOL',
-        visible: true,
-        enabled: true,
-      },
-
-      <IObsInput<number>>{
-        value: this.syncOffset,
-        name: 'syncOffset',
-        description: $t('audio.syncOffsetInMs'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_UINT',
-        visible: true,
-        enabled: true,
-      },
-
       <IObsListInput<obs.EMonitoringType>>{
         value: this.monitoringType,
         name: 'monitoringType',
@@ -480,6 +460,16 @@ export class AudioSource implements IAudioSourceApi {
         ],
       },
 
+      <IObsInput<number>>{
+        value: this.syncOffset,
+        name: 'syncOffset',
+        description: $t('audio.syncOffsetInMs'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_UINT',
+        visible: true,
+        enabled: true,
+      },
+
       <IObsBitmaskInput>{
         value: this.audioMixers,
         name: 'audioMixers',
@@ -489,6 +479,16 @@ export class AudioSource implements IAudioSourceApi {
         visible: true,
         enabled: true,
         size: 6,
+      },
+
+      <IObsInput<boolean>>{
+        value: this.forceMono,
+        name: 'forceMono',
+        description: $t('audio.downmixToMono'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_BOOL',
+        visible: true,
+        enabled: true,
       },
     ];
   }

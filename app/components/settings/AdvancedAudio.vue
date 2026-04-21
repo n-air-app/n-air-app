@@ -1,33 +1,48 @@
 <template>
   <modal-layout :show-controls="false" no-scroll>
-    <div slot="content" class="table-wrapper section">
-      <table>
-        <thead>
-          <tr>
-            <th class="device">{{ $t('common.name') }}</th>
-            <th class="volume">{{ $t('audio.volumeInPercent') }}</th>
-            <th class="downmix">{{ $t('audio.downmixToMono') }}</th>
-            <th class="syncOffset">{{ $t('audio.syncOffsetInMs') }}</th>
-            <th class="audioMonitor">{{ $t('audio.audioMonitoring') }}</th>
-            <th class="track">{{ $t('audio.tracks') }}</th>
-          </tr>
-        </thead>
-        <tr v-for="audioSource in audioSources" :key="audioSource.sourceId">
-          <td>{{ audioSource.name }}</td>
-          <td
-            v-for="formInput in audioSource.getSettingsForm()"
+    <div slot="content" class="audio-sources-list">
+      <div
+        v-for="audioSource in audioSources"
+        :key="audioSource.sourceId"
+        class="audio-source-card section"
+      >
+        <div class="source-header">
+          <div class="source-name">{{ audioSource.name }}</div>
+          <div class="source-primary-controls">
+            <div
+              v-for="formInput in getPrimaryControls(audioSource)"
+              :key="`${audioSource.name}${formInput.name}`"
+              :class="['control-item', 'control-' + formInput.name]"
+            >
+              <div class="control-label">{{ formInput.description }}</div>
+              <component
+                v-if="propertyComponentForType(formInput.type)"
+                :is="propertyComponentForType(formInput.type)"
+                :value="formInput"
+                @input="value => onInputHandler(audioSource, formInput.name, value.value)"
+              />
+            </div>
+          </div>
+          <button class="expand-toggle" @click="toggleExpand(audioSource.sourceId)">
+            <i class="icon-drop-down-arrow" :class="{ 'is-expanded': isExpanded(audioSource.sourceId) }" />
+          </button>
+        </div>
+        <div v-if="isExpanded(audioSource.sourceId)" class="source-detail-controls">
+          <div
+            v-for="formInput in getDetailControls(audioSource)"
             :key="`${audioSource.name}${formInput.name}`"
-            :class="'column-' + formInput.name"
+            :class="['control-item', 'control-' + formInput.name]"
           >
+            <div class="control-label">{{ formInput.description }}</div>
             <component
               v-if="propertyComponentForType(formInput.type)"
               :is="propertyComponentForType(formInput.type)"
               :value="formInput"
               @input="value => onInputHandler(audioSource, formInput.name, value.value)"
             />
-          </td>
-        </tr>
-      </table>
+          </div>
+        </div>
+      </div>
     </div>
   </modal-layout>
 </template>
@@ -37,80 +52,113 @@
 <style lang="less" scoped>
 @import url('../../styles/index');
 
-.table-wrapper {
-  .radius();
-
+.audio-sources-list {
   flex-grow: 1;
-  padding: 0;
-  margin: 0;
-  overflow: auto;
+  padding: 8px;
+  overflow-y: auto;
 }
 
-table {
-  min-width: 1170px;
-  margin: 0;
+.audio-source-card {
+  margin-bottom: 8px;
 
-  // reset
-  tr {
-    background-color: transparent;
-    border-color: transparent;
-    border-radius: 0;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
 
-    td {
-      padding: 16px;
-      border: none;
+.source-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
 
-      &:last-child {
-        padding-right: 16px;
-      }
+.source-name {
+  flex-shrink: 0;
+  width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bold;
+  color: var(--color-object-emphasis-high);
+  white-space: nowrap;
+}
+
+.source-primary-controls {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-items: center;
+}
+
+.expand-toggle {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  color: var(--color-object-emphasis-medium);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+
+  &:hover {
+    color: var(--color-object-emphasis-high);
+  }
+
+  i {
+    display: inline-block;
+    transition: transform 0.2s;
+
+    &.is-expanded {
+      transform: rotate(180deg);
     }
   }
 }
 
-.volume {
+.source-detail-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-items: center;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid var(--color-border-emphasis-low);
 }
 
-.device {
-  width: 150px;
+.control-item {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+
+  :deep(.input-container) {
+    display: block;
+  }
+
+  :deep(.input-label) {
+    display: none;
+  }
+
+  :deep(.input-wrapper) {
+    width: auto;
+    margin-bottom: 0;
+  }
 }
 
-.downmix {
-  width: 120px;
+.control-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-object-emphasis-medium);
+  white-space: nowrap;
 }
 
-.syncOffset {
+.control-deflection :deep(input),
+.control-syncOffset :deep(input) {
+  width: 80px;
 }
 
-.audioMonitor {
+.control-forceMono {
+  flex-direction: row-reverse;
 }
 
-.track {
-}
-
-.device,
-.volume,
-.downmix,
-.syncOffset,
-.audioMonitor,
-.track {
-  color: var(--color-text-dark);
-  text-align: center;
-}
-
-th,
-td {
-  text-align: left;
-}
-
-.column-deflection {
-  width: 104px;
-}
-
-.column-syncOffset {
-  width: 120px;
-}
-
-.column-monitoringType {
-  width: 350px;
+.control-monitoringType :deep(.dropdown) {
+  width: 300px;
 }
 </style>
