@@ -14,7 +14,6 @@ import {
   Filters,
   IngestInfoData,
   Moderator,
-  NicoadStatistics,
   OnairChannelData,
   OnairChannelProgramData,
   OnairUserProgramData,
@@ -22,7 +21,6 @@ import {
   ProgramPassword,
   ProgramSchedules,
   Segment,
-  Statistics,
   Supporters,
   UserFollow,
   UserFollowStatus,
@@ -141,7 +139,6 @@ export class NicoliveClient {
   static live2BaseURL = transformUrl('https://live2.nicovideo.jp');
   static liveBaseURL = transformUrl('https://live.nicovideo.jp');
   static live2ApiBaseURL = transformUrl('https://api.live2.nicovideo.jp');
-  static nicoadBaseURL = transformUrl('https://api.nicoad.nicovideo.jp');
   static userFollowBaseURL = transformUrl('https://user-follow-api.nicovideo.jp');
   static userIconBaseURL = transformUrl('https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/');
 
@@ -386,26 +383,6 @@ export class NicoliveClient {
       'POST',
       `${NicoliveClient.live2BaseURL}/unama/tool/v2/programs/${programID}/comments`,
       NicoliveClient.jsonBody({ text, vpos, modifier }, FrontendIdHeader),
-    );
-  }
-
-  /** 統計情報（視聴者とコメント数）を取得 */
-  async fetchStatistics(programID: string): Promise<WrappedResult<Statistics['data']>> {
-    return this.requestAPI<Statistics['data']>(
-      'GET',
-      `${NicoliveClient.live2BaseURL}/watch/${programID}/statistics`,
-    );
-  }
-
-  // 関心が別だが他の場所におく程の理由もないのでここにおく
-  /**
-   * ニコニ広告ptとギフトptを取得
-   * 放送開始前は404になる
-   **/
-  async fetchNicoadStatistics(programID: string): Promise<WrappedResult<NicoadStatistics['data']>> {
-    return this.requestAPI<NicoadStatistics['data']>(
-      'GET',
-      `${NicoliveClient.nicoadBaseURL}/v1/live/statusarea/${programID}`,
     );
   }
 
