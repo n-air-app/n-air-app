@@ -162,20 +162,6 @@ const suites: Suite[] = [
     args: [programID, { text: 'comment text', isPermanent: true }],
   },
   {
-    name: 'fetchStatistics',
-    method: 'get',
-    base: NicoliveClient.live2BaseURL,
-    path: `/watch/${programID}/statistics`,
-    args: [programID],
-  },
-  {
-    name: 'fetchNicoadStatistics',
-    method: 'get',
-    base: NicoliveClient.nicoadBaseURL,
-    path: `/v1/live/statusarea/${programID}`,
-    args: [programID],
-  },
-  {
     name: 'fetchModerators',
     method: 'get',
     base: NicoliveClient.live2BaseURL,

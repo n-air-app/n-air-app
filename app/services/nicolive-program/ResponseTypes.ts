@@ -127,31 +127,6 @@ export interface OperatorComment {
   };
 }
 
-export interface Statistics {
-  meta: {
-    status: 200;
-    errorCode: 'OK';
-  };
-  data: {
-    watchCount: number;
-    commentCount: number;
-  };
-}
-
-export interface NicoadStatistics {
-  meta: {
-    status: 200;
-  };
-  data: {
-    totalAdPoint: number;
-    totalGiftPoint: number;
-    conductors: {
-      text: string;
-      url: string;
-    }[];
-  };
-}
-
 export type FilterRecord = {
   id: number;
   type: 'word' | 'user' | 'command';
