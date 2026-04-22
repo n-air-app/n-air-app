@@ -127,7 +127,7 @@ function devHostsTransformUrl(url) {
           return urlObj.toString();
         }
       }
-    } catch {}
+    } catch { }
   }
   return url;
 }
@@ -1325,14 +1325,23 @@ function initialize(crashHandler) {
      * @returns {Promise<import('./app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
      * */
     async (_e, url, options) => {
-      const response = await fetch(url, options);
-      const text = await response.text();
-      return {
-        ok: response.ok,
-        headers: response.headers.entries(),
-        status: response.status,
-        text,
-      };
+      try {
+        const response = await fetch(url, options);
+        const text = await response.text();
+        return {
+          ok: response.ok,
+          headers: response.headers.entries(),
+          status: response.status,
+          text,
+        };
+      } catch (e) {
+        // cause チェーンとURLを文字列化してrendererに伝搬する
+        // (Electron の IPC シリアライズでは cause が失われるため)
+        const cause = e.cause
+          ? `${e.cause.name}: ${e.cause.message} (code: ${e.cause.code})`
+          : undefined;
+        throw new Error(`${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
+      }
     },
   );
 }
