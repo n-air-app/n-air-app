@@ -218,16 +218,6 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     }
     this.setState({ soundDetectorEnabled: this.soundDetectorService.isEnabled() });
   }
-  get isSoundDetectorSourceEnabled(): boolean {
-    return this.soundDetectorService.state.sourceId !== null;
-  }
-  get isSoundDetectorCalibrated(): boolean {
-    return this.soundDetectorService.isCalibrated;
-  }
-  get isSoundDetectorDeclined(): boolean {
-    return this.soundDetectorService.isDeclined;
-  }
-
   private dictionary = new ParaphraseDictionary();
 
   makeSpeechText(chat: WrappedMessage, engine: SynthesizerId): string {

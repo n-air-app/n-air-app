@@ -83,7 +83,6 @@ export default class SoundDetectorSettings extends Vue {
     if (this.isTestPlaybackActive) return; // 連続クリック防止
 
     this.isTestPlaybackActive = true;
-    this.soundDetectorService.markCalibrated();
     this.play(); // 最初のテストメッセージを再生
   }
 
@@ -280,10 +279,6 @@ export default class SoundDetectorSettings extends Vue {
     this.soundDetectorService.updateSpeechActionOnSoundDetected(
       model.value as (typeof SpeechActionsOnSoundDetected)[number],
     );
-  }
-
-  get isCalibrated(): boolean {
-    return this.soundDetectorService.isCalibrated;
   }
 
   get soundDetectorAudioSources(): AudioSource[] {

@@ -66,7 +66,6 @@ export type SoundDetectorLog = {
   soundThresholdDb: number;
   resumeSilenceMs: number;
   speechActionOnSoundDetected: SpeechActionOnSoundDetected;
-  calibrated: boolean;
 };
 
 export type TranscriptionLog = {

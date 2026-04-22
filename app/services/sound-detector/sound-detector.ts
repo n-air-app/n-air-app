@@ -22,8 +22,7 @@ export interface ISoundDetectorState {
   resumeSilenceMs: number;
   speechActionOnSoundDetected: SpeechActionOnSoundDetected;
   noSignalTimeoutMs: number;
-  calibrated: boolean; // 音声しきい値が設定されているか
-  declined: boolean; // ユーザーがダイアログで「いいえ」を選択したか
+  dialogShown: boolean; // 設定を促すダイアログを表示済みか
 }
 
 export class SoundDetectorService extends PersistentStatefulService<ISoundDetectorState> {
@@ -35,9 +34,8 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     soundThresholdDb: -19,
     resumeSilenceMs: 500,
     speechActionOnSoundDetected: 'graceful',
-    calibrated: false,
-    declined: false,
     noSignalTimeoutMs: 1000,
+    dialogShown: false,
   };
 
   private stateSubject: Subject<ISoundDetectorState> = new BehaviorSubject<ISoundDetectorState>(
@@ -330,31 +328,23 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     return this.getCandidateWatchSources(watchSourceId).filter(s => !s.muted);
   }
 
-  get isCalibrated(): boolean {
-    return this.state.calibrated;
+  get isDialogShown(): boolean {
+    return this.state.dialogShown;
   }
 
-  markCalibrated(): void {
-    this.setState({ calibrated: true });
+  markDialogShown(): void {
+    this.setState({ dialogShown: true });
   }
 
-  resetCalibrated(): void {
-    this.setState({ calibrated: false });
-  }
-
-  get isDeclined(): boolean {
-    return this.state.declined;
-  }
-
-  markDeclined(): void {
-    this.setState({ declined: true, enabled: false });
+  resetDialogShown(): void {
+    this.setState({ dialogShown: false });
   }
 
   updateSourceId(id: string | null): void {
     this.setState({ sourceId: id });
   }
   updateSoundThresholdDb(db: number): void {
-    this.setState({ soundThresholdDb: db, calibrated: true });
+    this.setState({ soundThresholdDb: db });
   }
   updateResumeSilenceMs(ms: number): void {
     if (!Number.isFinite(ms) || ms <= 0) {
@@ -373,16 +363,11 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
       soundThresholdDb: this.state.soundThresholdDb,
       resumeSilenceMs: this.state.resumeSilenceMs,
       speechActionOnSoundDetected: this.state.speechActionOnSoundDetected,
-      calibrated: this.state.calibrated,
     };
   }
 
   private setState(nextState: Partial<ISoundDetectorState>): void {
     const newState = { ...this.state, ...nextState };
-    if (this.state.sourceId !== newState.sourceId) {
-      newState.calibrated = false;
-      newState.declined = false;
-    }
     this.stateSubject.next(newState);
     this.SET_STATE(newState);
   }
