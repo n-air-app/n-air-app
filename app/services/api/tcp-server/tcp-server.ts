@@ -163,7 +163,11 @@ export class TcpServerService
 
     server.nativeServer.on('connection', socket => this.onConnectionHandler(socket, server));
 
-    server.nativeServer.on('error', error => {
+    server.nativeServer.on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code === 'EADDRINUSE') {
+        console.warn(`TcpServerService: ${server.type} server failed to listen: ${error.message}`);
+        return;
+      }
       throw error;
     });
   }
