@@ -16,18 +16,18 @@ import { FrontendIdHeader } from './niconicoDefs';
 // /v1/sessions/me のレスポンス型
 type NiconicoSessionsMeResponse =
   | {
-      user: {
-        id: number;
-      };
-    }
-  | {
-      error: {
-        status: number;
-        code: string;
-        message?: string;
-        debug?: string;
-      };
+    user: {
+      id: number;
     };
+  }
+  | {
+    error: {
+      status: number;
+      code: string;
+      message?: string;
+      debug?: string;
+    };
+  };
 
 function isSessionsMeResponse(obj: any): obj is NiconicoSessionsMeResponse {
   if ('user' in obj) {
@@ -169,7 +169,7 @@ export class NiconicoService extends Service implements IPlatformService {
       const result = await this._setupStreamSettings(programId);
       return result;
     } catch (e) {
-      console.error('NiconicoService.setupStreamSettings(1)', e);
+      console.error('NiconicoService.setupStreamSettings(1)', e.toString());
       // APIのレスポンスに番組状態が反映されるのが遅れる場合があるので、少し待ってリトライ
       await sleep(3000);
     }
@@ -179,7 +179,7 @@ export class NiconicoService extends Service implements IPlatformService {
       return result;
     } catch (e) {
       // リトライは1回だけ
-      console.error('NiconicoService.setupStreamSettings(2)', e);
+      console.error('NiconicoService.setupStreamSettings(2)', e.toString());
       Sentry.addBreadcrumb({
         category: 'streaming',
         message: 'setupStreamSettings failed',
@@ -237,10 +237,10 @@ export class NiconicoService extends Service implements IPlatformService {
     key: string,
     quality?:
       | {
-          bitrate: number;
-          height: number;
-          fps: number;
-        }
+        bitrate: number;
+        height: number;
+        fps: number;
+      }
       | undefined,
   ): IStreamingSetting {
     return { url, key, quality };
