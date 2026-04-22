@@ -107,10 +107,14 @@ export class AppService extends StatefulService<IAppState> {
       // the apps to already be in place when their sources are created.
       // await this.platformAppsService.initialize();
 
+      // パッチノートはOBS/シーンに依存しないため、シーン初期化前に表示判定する
+      const willOnboard = this.onboardingService.willOnboardOnStartup();
+      this.patchNotesService.showPatchNotesIfRequired(willOnboard);
+
       await this.sceneCollectionsService.initialize();
 
       this.startMonitoringStudioMode();
-      const onboarded = this.onboardingService.startOnboardingIfRequired();
+      this.onboardingService.startOnboardingIfRequired();
 
       electron.ipcRenderer.on('shutdown', () => {
         electron.ipcRenderer.send('acknowledgeShutdown');
@@ -122,8 +126,6 @@ export class AppService extends StatefulService<IAppState> {
 
       this.ipcServerService.listen();
       this.tcpServerService.listen();
-
-      this.patchNotesService.showPatchNotesIfRequired(onboarded);
 
       this.informationsService;
 
