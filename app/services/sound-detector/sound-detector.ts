@@ -23,6 +23,8 @@ export interface ISoundDetectorState {
   speechActionOnSoundDetected: SpeechActionOnSoundDetected;
   noSignalTimeoutMs: number;
   dialogShown: boolean; // 設定を促すダイアログを表示済みか
+  calibrated: boolean; // レガシー: dialogShown へのマイグレーション元
+  declined: boolean; // レガシー: dialogShown へのマイグレーション元
 }
 
 export class SoundDetectorService extends PersistentStatefulService<ISoundDetectorState> {
@@ -36,6 +38,8 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     speechActionOnSoundDetected: 'graceful',
     noSignalTimeoutMs: 1000,
     dialogShown: false,
+    calibrated: false,
+    declined: false,
   };
 
   private stateSubject: Subject<ISoundDetectorState> = new BehaviorSubject<ISoundDetectorState>(
@@ -71,6 +75,11 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     // noSignalTimeoutMs の不正値補正（NaN/Infinity/0以下 → デフォルト値に戻す）
     if (!Number.isFinite(this.state.noSignalTimeoutMs) || this.state.noSignalTimeoutMs <= 0) {
       this.setState({ noSignalTimeoutMs: SoundDetectorService.defaultState.noSignalTimeoutMs });
+    }
+
+    // Migration: calibrated/declined が true のユーザーには初回ダイアログを表示しない
+    if (this.state.calibrated || this.state.declined) {
+      this.setState({ dialogShown: true, calibrated: false, declined: false });
     }
 
     this.stateSubject = new BehaviorSubject<ISoundDetectorState>(this.state);
