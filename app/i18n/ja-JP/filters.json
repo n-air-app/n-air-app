@@ -15,7 +15,7 @@
   "noiseGate": "ノイズゲート",
   "compressor": "コンプレッサー",
   "limiter": "リミッター",
-  "expander": "エキスパンダー/ゲート",
+  "expander": "エキスパンダー",
   "invertPolarity": "位相反転",
   "vst": "VST 2.x プラグイン",
   "filterType": "フィルターの種類",
