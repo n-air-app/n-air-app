@@ -100,6 +100,7 @@ export type TSourceType =
   | 'monitor_capture'
   | 'window_capture'
   | 'game_capture'
+  | 'screen_capture'
   | 'dshow_input'
   | 'wasapi_input_capture'
   | 'wasapi_output_capture'
