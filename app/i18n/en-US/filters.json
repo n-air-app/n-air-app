@@ -15,7 +15,7 @@
   "noiseGate": "Noise Gate",
   "compressor": "Compressor",
   "limiter": "Limiter",
-  "expander": "Expander/Gate",
+  "expander": "Expander",
   "invertPolarity": "Invert Polarity",
   "vst": "VST 2.x Plugin",
   "filterType": "Filter type",
