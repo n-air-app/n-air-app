@@ -196,7 +196,11 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     this.appService.startLoading();
 
     // TODO niconico専用なので抽象化する
-    getPlatformService('niconico').logout();
+    try {
+      await getPlatformService('niconico').logout();
+    } catch (e) {
+      console.warn('NiconicoService.logout failed:', e);
+    }
 
     await this.sceneCollectionsService.save();
 

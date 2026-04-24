@@ -1,6 +1,8 @@
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
+import { getCookieDomain, transformUrl } from 'services/dev-hosts';
 import { HostsService } from 'services/hosts';
 import { isOk, NicoliveClient } from 'services/nicolive-program/NicoliveClient';
 import { SettingsService } from 'services/settings';
@@ -8,7 +10,9 @@ import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
+import { fetchViaMainProcess } from 'util/fetchViaMainProcess';
 import { authorizedHeaders, handleErrors } from 'util/requests';
+import { RequestError } from 'util/RequestError';
 import { sleep } from 'util/sleep';
 import { IPlatformService, IStreamingSetting } from '.';
 import { FrontendIdHeader } from './niconicoDefs';
@@ -52,17 +56,27 @@ export class NiconicoService extends Service implements IPlatformService {
 
   client: NicoliveClient = new NicoliveClient();
 
+  private sessionsMeParams(
+    method: string = 'GET',
+    extraHeaders?: Record<string, string>,
+  ): { url: string; init: RequestInit } {
+    const url = this.hostsService.replaceHost(`${this.hostsService.niconicoId}/v1/sessions/me`);
+    return {
+      url,
+      init: {
+        method,
+        credentials: 'same-origin',
+        headers: { ...FrontendIdHeader, ...extraHeaders },
+      },
+    };
+  }
+
   async getUserId(): Promise<string> {
     if (isFakeMode()) {
       return FakeUserAuth.platform.id; // dummy user ID
     }
-    const url = `${this.hostsService.niconicoId}/v1/sessions/me`;
-    const request = new Request(this.hostsService.replaceHost(url), {
-      credentials: 'same-origin',
-      headers: FrontendIdHeader,
-    });
-
-    const response = await fetch(request);
+    const { url, init } = this.sessionsMeParams();
+    const response = await fetch(url, init);
     if (response.status === 400 || response.status === 401) {
       return '';
     }
@@ -104,10 +118,26 @@ export class NiconicoService extends Service implements IPlatformService {
     if (isFakeMode()) {
       return;
     }
-    const url = `${this.hostsService.niconicoAccount}/logout`;
-    const request = new Request(this.hostsService.replaceHost(url), { credentials: 'same-origin' });
-    const response = await fetch(request);
-    await handleErrors(response);
+    const { session } = remote.getCurrentWebContents();
+    const cookies = await session.cookies.get({
+      url: `https://${getCookieDomain()}`,
+      name: 'user_session',
+    });
+    if (cookies.length < 1) {
+      return; // セッションクッキーがない場合はすでにログアウト済
+    }
+    const { url, init } = this.sessionsMeParams('DELETE', {
+      Origin: transformUrl('https://n-air-app.nicovideo.jp'),
+      Cookie: `user_session=${cookies[0].value}`,
+    });
+    const response = await fetchViaMainProcess(url, init);
+    Sentry.addBreadcrumb({
+      category: 'niconico',
+      message: `logout: ${response.status}`,
+    });
+    if (!response.ok) {
+      throw new RequestError(response.status, url, 'DELETE');
+    }
   }
 
   get authUrl() {

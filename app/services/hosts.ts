@@ -11,9 +11,6 @@ export class HostsService extends Service {
     // dev-hosts config takes priority over DEV_SERVER localhost proxy
     if (isDevHosts()) return url;
     if (this.useDevServer) {
-      if (url.startsWith(this.niconicoAccount)) {
-        return url.replace(this.niconicoAccount, 'http://localhost:8080/account');
-      }
       if (url.startsWith(this.niconicoId)) {
         return url.replace(this.niconicoId, 'http://localhost:8080/id');
       }
@@ -25,9 +22,6 @@ export class HostsService extends Service {
       }
     }
     return url;
-  }
-  get niconicoAccount() {
-    return transformUrl('https://account.nicovideo.jp');
   }
   get niconicoId() {
     return transformUrl('https://api.id.nicovideo.jp');
