@@ -547,5 +547,9 @@
   "ffmpeg_source_replay": {
     "name": "Replay playback",
     "description": "Add a replay playback source to your scene."
+  },
+  "motion_transition": {
+    "bezier_x": { "name": "Acceleration (x-axis)" },
+    "bezier_y": { "name": "Acceleration (y-axis)" }
   }
 }

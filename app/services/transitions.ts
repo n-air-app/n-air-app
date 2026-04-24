@@ -19,6 +19,7 @@ export enum ETransitionType {
   FadeToColor = 'fade_to_color_transition',
   LumaWipe = 'wipe_transition',
   Stinger = 'obs_stinger_transition',
+  Motion = 'motion_transition',
 }
 
 interface ITransitionsState {
@@ -98,7 +99,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getTypes(): IObsListOption<ETransitionType>[] {
-    return [
+    const allTypes: IObsListOption<ETransitionType>[] = [
       { description: $t('transitions.cut_transition'), value: ETransitionType.Cut },
       { description: $t('transitions.fade_transition'), value: ETransitionType.Fade },
       { description: $t('transitions.swipe_transition'), value: ETransitionType.Swipe },
@@ -109,7 +110,10 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
       },
       { description: $t('transitions.wipe_transition'), value: ETransitionType.LumaWipe },
       { description: $t('transitions.obs_stinger_transition'), value: ETransitionType.Stinger },
+      { description: $t('transitions.motion_transition'), value: ETransitionType.Motion },
     ];
+    const obsAvailableTypes = obs.TransitionFactory.types();
+    return allTypes.filter(t => obsAvailableTypes.includes(t.value));
   }
 
   enableStudioMode() {
@@ -281,6 +285,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   createTransition(type: ETransitionType, name: string, options: ITransitionCreateOptions = {}) {
+    if (!this.getTypes().find(t => t.value === type)) {
+      type = ETransitionType.Cut;
+    }
     const id = options.id || uuidv4();
     const transition = obs.TransitionFactory.create(type, id, options.settings || {});
     const manager = new DefaultManager(transition, options.propertiesManagerSettings || {});
