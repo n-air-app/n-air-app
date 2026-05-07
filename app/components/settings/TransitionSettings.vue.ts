@@ -18,20 +18,22 @@ export default class SceneTransitions extends Vue {
 
   @Prop() transitionId: string;
 
-  // child window の Vuex sync が非同期のため、選択直後の表示ずれを防ぐ local state
-  pendingTypeValue: ETransitionType | null = null;
+  // child window の Vuex sync が非同期で typeModel computed が再評価されないため、
+  // local state で表示と双方向 bind し、setter で即座に更新する (properties と同じパターン)
+  // @ts-expect-error: ts2729: use before initialization
+  localType: ETransitionType = this.transition.type;
 
   get typeModel(): IObsListInput<ETransitionType> {
     return {
       description: $t('transitions.transitionType'),
       name: 'type',
-      value: this.pendingTypeValue ?? this.transition.type,
+      value: this.localType,
       options: this.transitionsService.getTypes(),
     };
   }
 
   set typeModel(model: IObsListInput<ETransitionType>) {
-    this.pendingTypeValue = model.value;
+    this.localType = model.value;
     this.transitionsService.changeTransitionType(this.transitionId, model.value);
     this.properties = this.transitionsService.getPropertiesFormData(this.transitionId);
   }
