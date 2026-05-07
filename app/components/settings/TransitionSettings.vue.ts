@@ -20,7 +20,6 @@ export default class SceneTransitions extends Vue {
 
   // child window の Vuex sync が非同期で typeModel computed が再評価されないため、
   // local state で表示と双方向 bind し、setter で即座に更新する (properties と同じパターン)
-  // @ts-expect-error: ts2729: use before initialization
   localType: ETransitionType = this.transition.type;
 
   get typeModel(): IObsListInput<ETransitionType> {
