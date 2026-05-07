@@ -1,16 +1,12 @@
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
-import draggable from 'vuedraggable';
-import * as Sentry from '@sentry/vue';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 
 interface ISelectorItem {
   name: string;
   value: string;
 }
 
-@Component({
-  components: { draggable },
-})
+@Component({})
 export default class Selector extends Vue {
   @Prop()
   items: ISelectorItem[];
@@ -21,74 +17,93 @@ export default class Selector extends Vue {
   @Prop({ default: true, type: Boolean })
   draggable: boolean;
 
-  // @ts-expect-error: ts2729: use before initialization
-  draggableSelector: string = this.draggable ? '.selector-item' : 'none';
+  /**
+   * 表示用のローカルコピー。ドラッグ中に即座に並び替えを反映するために使用。
+   * props の items が変化したときは watch で同期する。
+   */
+  localItems: ISelectorItem[] = [];
 
-  beforeDestroy() {
-    // sortablejs 1.10.2 (および最新 1.15.7 でも未修正) のバグ回避:
-    // destroy() が this._onDrop() を引数なしで呼ぶため、dragEl からの dragend リスナー解除
-    // コード (if (evt) ブロック内) に到達しない。その後 this.el = null が設定されるが、
-    // ブラウザの dragend イベントが非同期で発火し handleEvent → _onDrop(evt) が呼ばれ、
-    // this.el が null のため TypeError: Cannot read properties of null (reading 'removeEventListener')
-    // が発生する。(Sentry: N-AIR-APP-F3Z, GitHub: #1230)
-    //
-    // Vue 2 では親の beforeDestroy が子より先に実行されるため、ここで sortable の
-    // handleEvent をラップすることで、vuedraggable の beforeDestroy → sortable.destroy()
-    // の後に来る dragend イベントを安全に処理できる。
-    //
-    // Vue 3 移行時: beforeDestroy → beforeUnmount にリネーム、実行順序は同じなのでロジック流用可能。
-    // sortablejs 上流でこのバグが修正されたらこの workaround は除去可能。
-    // sortablejs の型定義がないため、使用する内部プロパティの最小限の型を定義する
-    interface SortableInstance {
-      el: HTMLElement | null;
-      handleEvent(evt: Event): void;
-      _nulling?(): void;
-    }
-    try {
-      const draggableRef = this.$refs.draggable;
-      if (!(draggableRef instanceof Vue)) return;
-      const draggableVm = draggableRef as Vue & { _sortable?: SortableInstance };
-      const sortable = draggableVm._sortable;
-      if (sortable) {
-        const origHandleEvent = sortable.handleEvent.bind(sortable);
-        sortable.handleEvent = function (this: SortableInstance, evt: Event) {
-          if (!this.el) {
-            // destroy() 済み: ドラッグ結果は既に反映済みなので、グローバル変数のリセットのみ行う
-            this._nulling?.();
-            Sentry.withScope(scope => {
-              scope.setLevel('warning');
-              scope.setTag('issue', 'N-AIR-APP-F3Z');
-              Sentry.captureMessage(`sortablejs: ${evt.type} event after destroy() suppressed`);
-            });
-            return;
-          }
-          origHandleEvent(evt);
-        };
-      }
-    } catch {
-      // best-effort: コンポーネント破棄をブロックしない
+  created() {
+    this.localItems = this.normalizeItems(this.items);
+  }
+
+  @Watch('items', { deep: true })
+  onItemsChanged(newItems: ISelectorItem[]) {
+    // ドラッグ中でなければ props の変化を反映する
+    if (this.dragFromIndex === null) {
+      this.localItems = this.normalizeItems(newItems);
     }
   }
 
-  handleChange(change: any) {
-    const order = this.normalizedItems.map(item => {
-      return item.value;
-    });
+  /** ドラッグ中のアイテムのインデックス */
+  private dragFromIndex: number | null = null;
 
+  /** ドロップ先のアイテムのインデックス（ハイライト用） */
+  dragOverIndex: number | null = null;
+
+  /** ドラッグ中かどうか（chosen クラス用） */
+  draggingIndex: number | null = null;
+
+  onDragStart(ev: DragEvent, index: number) {
+    if (!this.draggable) return;
+    this.dragFromIndex = index;
+    this.draggingIndex = index;
+    if (ev.dataTransfer) {
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  onDragOver(ev: DragEvent, index: number) {
+    if (!this.draggable || this.dragFromIndex === null) return;
+    ev.preventDefault();
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+    this.dragOverIndex = index;
+  }
+
+  onDragLeave(index: number) {
+    if (this.dragOverIndex === index) {
+      this.dragOverIndex = null;
+    }
+  }
+
+  onDrop(ev: DragEvent, toIndex: number) {
+    ev.preventDefault();
+    if (!this.draggable || this.dragFromIndex === null) return;
+    const fromIndex = this.dragFromIndex;
+    this.dragFromIndex = null;
+    this.dragOverIndex = null;
+    this.draggingIndex = null;
+
+    if (fromIndex === toIndex) return;
+
+    // localItems を直接並び替えて即座に表示を更新する
+    const newItems = [...this.localItems];
+    const [moved] = newItems.splice(fromIndex, 1);
+    newItems.splice(toIndex, 0, moved);
+    this.localItems = newItems;
+
+    const order = newItems.map(item => item.value);
     this.$emit('sort', {
-      change,
+      change: { moved: { element: moved, oldIndex: fromIndex, newIndex: toIndex } },
       order,
     });
   }
 
+  onDragEnd() {
+    this.dragFromIndex = null;
+    this.dragOverIndex = null;
+    this.draggingIndex = null;
+  }
+
   handleSelect(ev: MouseEvent, index: number) {
-    const value = this.normalizedItems[index].value;
+    const value = this.localItems[index].value;
     this.$emit('select', value, ev);
   }
 
   handleContextMenu(ev: MouseEvent, index?: number) {
     if (index !== undefined) {
-      const value = this.normalizedItems[index].value;
+      const value = this.localItems[index].value;
       this.handleSelect(ev, index);
       this.$emit('contextmenu', value);
       return;
@@ -97,7 +112,7 @@ export default class Selector extends Vue {
   }
 
   handleDoubleClick(ev: MouseEvent, index: number) {
-    const value = this.normalizedItems[index].value;
+    const value = this.localItems[index].value;
     this.handleSelect(ev, index);
     this.$emit('dblclick', value);
   }
@@ -106,16 +121,12 @@ export default class Selector extends Vue {
    * Items can be either an array of strings, or an
    * array of objects, so we normalize those here.
    */
-  get normalizedItems(): ISelectorItem[] {
-    return this.items.map(item => {
+  private normalizeItems(items: ISelectorItem[]): ISelectorItem[] {
+    return (items || []).map(item => {
       if (typeof item === 'string') {
-        return {
-          name: item,
-          value: item,
-        };
-      } else {
-        return item;
+        return { name: item, value: item };
       }
+      return item;
     });
   }
 }
