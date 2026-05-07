@@ -156,12 +156,6 @@ module.exports = function (env, argv) {
         },
         proxy: [
           {
-            context: ['/account'],
-            target: 'https://account.nicovideo.jp',
-            changeOrigin: true,
-            pathRewrite: { '^/account': '' },
-          },
-          {
             context: ['/id'],
             target: 'https://api.id.nicovideo.jp',
             changeOrigin: true,
