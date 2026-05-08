@@ -7,6 +7,7 @@
   "fade_to_color_transition": "カラーフェード",
   "wipe_transition": "ルミナンスワイプ",
   "obs_stinger_transition": "スティンガー",
+  "motion_transition": "モーション",
   "transitionName": "名前",
   "transitionType": "種類",
   "duration": "時間（ミリ秒）",

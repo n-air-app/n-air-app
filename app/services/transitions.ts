@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { IObsListOption, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
@@ -19,6 +20,7 @@ export enum ETransitionType {
   FadeToColor = 'fade_to_color_transition',
   LumaWipe = 'wipe_transition',
   Stinger = 'obs_stinger_transition',
+  Motion = 'motion_transition',
 }
 
 interface ITransitionsState {
@@ -98,7 +100,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getTypes(): IObsListOption<ETransitionType>[] {
-    return [
+    const allTypes: IObsListOption<ETransitionType>[] = [
       { description: $t('transitions.cut_transition'), value: ETransitionType.Cut },
       { description: $t('transitions.fade_transition'), value: ETransitionType.Fade },
       { description: $t('transitions.swipe_transition'), value: ETransitionType.Swipe },
@@ -109,7 +111,10 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
       },
       { description: $t('transitions.wipe_transition'), value: ETransitionType.LumaWipe },
       { description: $t('transitions.obs_stinger_transition'), value: ETransitionType.Stinger },
+      { description: $t('transitions.motion_transition'), value: ETransitionType.Motion },
     ];
+    const obsAvailableTypes = obs.TransitionFactory.types();
+    return allTypes.filter(t => obsAvailableTypes.includes(t.value));
   }
 
   enableStudioMode() {
@@ -281,6 +286,20 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   createTransition(type: ETransitionType, name: string, options: ITransitionCreateOptions = {}) {
+    // 旧バージョンで開いた際に未知の transition type が保存されているケースのフォールバック。
+    // 静的 enum でチェックする (動的な obs.TransitionFactory.types() だと init timing で空を返し、
+    // 既知 type まで Cut に誤変換される問題があるため)。
+    const knownTypes: string[] = Object.values(ETransitionType);
+    if (!knownTypes.includes(type)) {
+      console.warn(`Unknown transition type "${type}", falling back to Cut`);
+      Sentry.withScope(scope => {
+        scope.setLevel('warning');
+        scope.setExtra('unknownType', type);
+        scope.setExtra('name', name);
+        Sentry.captureMessage('Unknown transition type, falling back to Cut');
+      });
+      type = ETransitionType.Cut;
+    }
     const id = options.id || uuidv4();
     const transition = obs.TransitionFactory.create(type, id, options.settings || {});
     const manager = new DefaultManager(transition, options.propertiesManagerSettings || {});
