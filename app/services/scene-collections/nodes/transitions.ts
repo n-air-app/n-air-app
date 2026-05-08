@@ -21,7 +21,7 @@ interface ITransition {
   // 旧バージョン互換フィールド: 常にレガシー互換型(cut 等)を入れる。新型は typeV2 を使う。
   type: ETransitionType;
   // 新型(motion 等)を保存するフィールド。旧バージョンは無視するため破壊的変更なし。
-  typeV2?: string;
+  typeV2?: ETransitionType;
   duration: number;
   settings: Dictionary<TObsValue>;
   propertiesManagerSettings?: Dictionary<any>;
@@ -80,7 +80,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
     // Double check we are starting from a blank state
     this.transitionsService.deleteAllTransitions();
     this.data.transitions.forEach(transition => {
-      const type = (transition.typeV2 ?? transition.type) as ETransitionType;
+      const type = transition.typeV2 ?? transition.type;
       this.transitionsService.createTransition(type, transition.name, {
         id: transition.id,
         duration: transition.duration,
