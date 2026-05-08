@@ -1,8 +1,14 @@
 <template>
-  <ul class="selector-list" @contextmenu="handleContextMenu()" data-test="Selector">
+  <ul
+    class="selector-list"
+    @contextmenu="handleContextMenu()"
+    @dragover.self="ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move'; }"
+    @drop.self="onDropAtEnd"
+    data-test="Selector"
+  >
     <li
       v-for="(item, index) in localItems"
-      :key="item.value"
+      :key="index"
       class="selector-item"
       :class="{
         'selector-item--active': activeItems.includes(item.value),
@@ -11,7 +17,7 @@
       :draggable="draggable"
       @dragstart="ev => onDragStart(ev, index)"
       @dragover="ev => onDragOver(ev, index)"
-      @drop="onDrop"
+      @drop="ev => onDropAtIndex(ev, draggingIndex)"
       @dragend="onDragEnd"
       @contextmenu.stop="ev => handleContextMenu(ev, index)"
       @click="ev => handleSelect(ev, index)"

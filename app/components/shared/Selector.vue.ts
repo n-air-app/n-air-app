@@ -31,62 +31,76 @@ export default class Selector extends Vue {
   @Watch('items', { deep: true })
   onItemsChanged(newItems: ISelectorItem[]) {
     // ドラッグ中でなければ props の変化を反映する
-    if (this.draggingValue === null) {
+    if (this.draggingIndex === null) {
       this.localItems = this.normalizeItems(newItems);
     }
   }
 
-  /** ドラッグ中のアイテムの value（localItems が動くためインデックスではなく value で追跡） */
-  private draggingValue: string | null = null;
+  /**
+   * ドラッグ中のアイテムの現在のインデックス。
+   * value ではなくインデックスで追跡することで、同一 value を持つ重複アイテムがあっても
+   * 正しいアイテムを操作できる。
+   */
+  draggingIndex: number | null = null;
 
   /** ドラッグ開始時点の元の順序（キャンセル時の復元用） */
   private itemsBeforeDrag: ISelectorItem[] = [];
 
-  /** ドラッグ中かどうか（chosen クラス用） */
-  get draggingIndex(): number | null {
-    if (this.draggingValue === null) return null;
-    const idx = this.localItems.findIndex(i => i.value === this.draggingValue);
-    return idx === -1 ? null : idx;
-  }
+  /** ドラッグ開始時の元インデックス（emit する oldIndex 用） */
+  private dragStartIndex: number | null = null;
 
   onDragStart(ev: DragEvent, index: number) {
     if (!this.draggable) return;
-    this.draggingValue = this.localItems[index].value;
+    this.draggingIndex = index;
+    this.dragStartIndex = index;
     this.itemsBeforeDrag = [...this.localItems];
     if (ev.dataTransfer) {
       ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('text/plain', this.draggingValue);
+      ev.dataTransfer.setData('text/plain', String(index));
     }
   }
 
   onDragOver(ev: DragEvent, index: number) {
-    if (!this.draggable || this.draggingValue === null) return;
+    if (!this.draggable || this.draggingIndex === null) return;
     ev.preventDefault();
     if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
 
-    const fromIndex = this.localItems.findIndex(i => i.value === this.draggingValue);
-    if (fromIndex === -1 || fromIndex === index) return;
+    const fromIndex = this.draggingIndex;
+    if (fromIndex === index) return;
 
     // ドラッグ中にリアルタイムで並び替えを反映する
     const newItems = [...this.localItems];
     const [moved] = newItems.splice(fromIndex, 1);
     newItems.splice(index, 0, moved);
     this.localItems = newItems;
+    this.draggingIndex = index;
   }
 
-  onDrop(ev: DragEvent) {
-    ev.preventDefault();
-    if (!this.draggable || this.draggingValue === null) return;
+  private commitDrop(appendToEnd: boolean) {
+    if (!this.draggable || this.draggingIndex === null) return;
 
-    const draggedValue = this.draggingValue;
+    const fromIndex = this.draggingIndex;
     const itemsBeforeDrag = this.itemsBeforeDrag;
-    this.draggingValue = null;
+    const dragStartIndex = this.dragStartIndex!;
+    this.draggingIndex = null;
+    this.dragStartIndex = null;
     this.itemsBeforeDrag = [];
 
-    // onDragOver で既に localItems は最終状態になっている
+    // 末尾ドロップ時は onDragOver が呼ばれていないため、ここで並び替えを実行する
+    if (appendToEnd) {
+      const lastIndex = this.localItems.length - 1;
+      if (fromIndex !== lastIndex) {
+        const newItems = [...this.localItems];
+        const [moved] = newItems.splice(fromIndex, 1);
+        newItems.push(moved);
+        this.localItems = newItems;
+      }
+    }
+
+    // onDragOver（または上記の末尾移動）で localItems は最終状態になっている
     const newItems = this.localItems;
-    const oldIndex = itemsBeforeDrag.findIndex(i => i.value === draggedValue);
-    const newIndex = newItems.findIndex(i => i.value === draggedValue);
+    const oldIndex = dragStartIndex;
+    const newIndex = newItems.indexOf(itemsBeforeDrag[dragStartIndex]);
 
     if (oldIndex === newIndex) return;
 
@@ -97,13 +111,24 @@ export default class Selector extends Vue {
     });
   }
 
+  onDropAtIndex(ev: DragEvent, _index: number | null) {
+    ev.preventDefault();
+    this.commitDrop(false);
+  }
+
+  onDropAtEnd(ev: DragEvent) {
+    ev.preventDefault();
+    this.commitDrop(true);
+  }
+
   onDragEnd() {
-    // drop → dragend の順で両方発火するため、onDrop 済みの場合は draggingValue が null になっている。
-    // draggingValue が残っている場合はドロップなしキャンセルなので元の順序に戻す。
-    if (this.draggingValue !== null) {
+    // drop → dragend の順で両方発火するため、onDrop 済みの場合は draggingIndex が null になっている。
+    // draggingIndex が残っている場合はドロップなしキャンセルなので元の順序に戻す。
+    if (this.draggingIndex !== null) {
       this.localItems = this.itemsBeforeDrag;
     }
-    this.draggingValue = null;
+    this.draggingIndex = null;
+    this.dragStartIndex = null;
     this.itemsBeforeDrag = [];
   }
 
