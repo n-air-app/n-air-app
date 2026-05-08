@@ -11,8 +11,7 @@
       :draggable="draggable"
       @dragstart="ev => onDragStart(ev, index)"
       @dragover="ev => onDragOver(ev, index)"
-      @dragleave="onDragLeave(index)"
-      @drop="ev => onDrop(ev, index)"
+      @drop="onDrop"
       @dragend="onDragEnd"
       @contextmenu.stop="ev => handleContextMenu(ev, index)"
       @click="ev => handleSelect(ev, index)"
@@ -34,21 +33,10 @@
 <style lang="less" scoped>
 @import url('../../styles/index');
 
-.sortable-ghost {
-  background-color: var(--color-bg-active);
-  background-image: none;
-  opacity: 0.7;
-}
-
 .sortable-chosen {
   background-color: var(--color-bg-active);
   background-image: none;
   opacity: 0.7;
-}
-
-.sortable-drag {
-  background-color: var(--color-bg-active);
-  border: 1px solid var(--color-border-light);
 }
 
 .selector-list {

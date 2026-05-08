@@ -18,8 +18,9 @@ export default class Selector extends Vue {
   draggable: boolean;
 
   /**
-   * 表示用のローカルコピー。ドラッグ中に即座に並び替えを反映するために使用。
+   * 表示用のローカルコピー。ドラッグ中にリアルタイムで並び替えを反映するために使用。
    * props の items が変化したときは watch で同期する。
+   * テンプレートから参照するため public だが、外部から直接変更しないこと。
    */
   localItems: ISelectorItem[] = [];
 
@@ -73,7 +74,7 @@ export default class Selector extends Vue {
     this.localItems = newItems;
   }
 
-  onDrop(ev: DragEvent, _toIndex: number) {
+  onDrop(ev: DragEvent) {
     ev.preventDefault();
     if (!this.draggable || this.draggingValue === null) return;
 
@@ -97,7 +98,8 @@ export default class Selector extends Vue {
   }
 
   onDragEnd() {
-    // ドロップされずにキャンセルされた場合は元の順序に戻す
+    // drop → dragend の順で両方発火するため、onDrop 済みの場合は draggingValue が null になっている。
+    // draggingValue が残っている場合はドロップなしキャンセルなので元の順序に戻す。
     if (this.draggingValue !== null) {
       this.localItems = this.itemsBeforeDrag;
     }
