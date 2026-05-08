@@ -7,7 +7,6 @@
       :class="{
         'selector-item--active': activeItems.includes(item.value),
         'sortable-chosen': draggable && draggingIndex === index,
-        'sortable-ghost': draggable && dragOverIndex === index && draggingIndex !== index,
       }"
       :draggable="draggable"
       @dragstart="ev => onDragStart(ev, index)"

@@ -30,70 +30,79 @@ export default class Selector extends Vue {
   @Watch('items', { deep: true })
   onItemsChanged(newItems: ISelectorItem[]) {
     // ドラッグ中でなければ props の変化を反映する
-    if (this.dragFromIndex === null) {
+    if (this.draggingValue === null) {
       this.localItems = this.normalizeItems(newItems);
     }
   }
 
-  /** ドラッグ中のアイテムのインデックス */
-  private dragFromIndex: number | null = null;
+  /** ドラッグ中のアイテムの value（localItems が動くためインデックスではなく value で追跡） */
+  private draggingValue: string | null = null;
 
-  /** ドロップ先のアイテムのインデックス（ハイライト用） */
-  dragOverIndex: number | null = null;
+  /** ドラッグ開始時点の元の順序（キャンセル時の復元用） */
+  private itemsBeforeDrag: ISelectorItem[] = [];
 
   /** ドラッグ中かどうか（chosen クラス用） */
-  draggingIndex: number | null = null;
+  get draggingIndex(): number | null {
+    if (this.draggingValue === null) return null;
+    const idx = this.localItems.findIndex(i => i.value === this.draggingValue);
+    return idx === -1 ? null : idx;
+  }
 
   onDragStart(ev: DragEvent, index: number) {
     if (!this.draggable) return;
-    this.dragFromIndex = index;
-    this.draggingIndex = index;
+    this.draggingValue = this.localItems[index].value;
+    this.itemsBeforeDrag = [...this.localItems];
     if (ev.dataTransfer) {
       ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('text/plain', String(index));
+      ev.dataTransfer.setData('text/plain', this.draggingValue);
     }
   }
 
   onDragOver(ev: DragEvent, index: number) {
-    if (!this.draggable || this.dragFromIndex === null) return;
+    if (!this.draggable || this.draggingValue === null) return;
     ev.preventDefault();
     if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
-    this.dragOverIndex = index;
-  }
 
-  onDragLeave(index: number) {
-    if (this.dragOverIndex === index) {
-      this.dragOverIndex = null;
-    }
-  }
+    const fromIndex = this.localItems.findIndex(i => i.value === this.draggingValue);
+    if (fromIndex === -1 || fromIndex === index) return;
 
-  onDrop(ev: DragEvent, toIndex: number) {
-    ev.preventDefault();
-    if (!this.draggable || this.dragFromIndex === null) return;
-    const fromIndex = this.dragFromIndex;
-    this.dragFromIndex = null;
-    this.dragOverIndex = null;
-    this.draggingIndex = null;
-
-    if (fromIndex === toIndex) return;
-
-    // localItems を直接並び替えて即座に表示を更新する
+    // ドラッグ中にリアルタイムで並び替えを反映する
     const newItems = [...this.localItems];
     const [moved] = newItems.splice(fromIndex, 1);
-    newItems.splice(toIndex, 0, moved);
+    newItems.splice(index, 0, moved);
     this.localItems = newItems;
+  }
+
+  onDrop(ev: DragEvent, _toIndex: number) {
+    ev.preventDefault();
+    if (!this.draggable || this.draggingValue === null) return;
+
+    const draggedValue = this.draggingValue;
+    const itemsBeforeDrag = this.itemsBeforeDrag;
+    this.draggingValue = null;
+    this.itemsBeforeDrag = [];
+
+    // onDragOver で既に localItems は最終状態になっている
+    const newItems = this.localItems;
+    const oldIndex = itemsBeforeDrag.findIndex(i => i.value === draggedValue);
+    const newIndex = newItems.findIndex(i => i.value === draggedValue);
+
+    if (oldIndex === newIndex) return;
 
     const order = newItems.map(item => item.value);
     this.$emit('sort', {
-      change: { moved: { element: moved, oldIndex: fromIndex, newIndex: toIndex } },
+      change: { moved: { element: newItems[newIndex], oldIndex, newIndex } },
       order,
     });
   }
 
   onDragEnd() {
-    this.dragFromIndex = null;
-    this.dragOverIndex = null;
-    this.draggingIndex = null;
+    // ドロップされずにキャンセルされた場合は元の順序に戻す
+    if (this.draggingValue !== null) {
+      this.localItems = this.itemsBeforeDrag;
+    }
+    this.draggingValue = null;
+    this.itemsBeforeDrag = [];
   }
 
   handleSelect(ev: MouseEvent, index: number) {
