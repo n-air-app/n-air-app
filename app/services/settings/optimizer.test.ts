@@ -1,12 +1,12 @@
 import {
-  AllKeyDescriptions,
-  EncoderFamily,
-  filterKeyDescriptions,
-  iterateKeyDescriptions,
-  OptimizationKey,
-  Optimizer,
-  OptimizeSettings,
-  SettingsKeyAccessor,
+    AllKeyDescriptions,
+    EncoderFamily,
+    filterKeyDescriptions,
+    iterateKeyDescriptions,
+    OptimizationKey,
+    Optimizer,
+    OptimizeSettings,
+    SettingsKeyAccessor,
 } from './optimizer';
 type ISettingsSubCategory = import('./settings-api').ISettingsSubCategory;
 jest.mock('./settings-api');
@@ -135,6 +135,33 @@ test('iterateKeyDescriptions', () => {
     [OptimizationKey.encoder, 'StreamEncoder'],
     [OptimizationKey.simpleUseAdvanced, 'UseAdvanced'],
     [OptimizationKey.encoderPreset, 'Preset'],
+    [OptimizationKey.audioBitrate, 'ABitrate'],
+    [OptimizationKey.quality, 'Output'],
+    [OptimizationKey.fpsType, 'FPSType'],
+    [OptimizationKey.fpsCommon, 'FPSCommon'],
+  ]);
+});
+
+test('iterateKeyDescriptions: AMD encoder', () => {
+  const best: OptimizeSettings = {
+    outputMode: 'Simple',
+    videoBitrate: 5808,
+    audioBitrate: '192',
+    quality: '1280x720',
+    fpsType: 'Common FPS Values',
+    fpsCommon: '30',
+    encoder: EncoderFamily.amd,
+    simpleUseAdvanced: false,
+  };
+  const pairs = [...iterateKeyDescriptions(best, AllKeyDescriptions)].map(desc => [
+    desc.key,
+    desc.setting,
+  ]);
+  expect(pairs).toEqual([
+    [OptimizationKey.outputMode, 'Mode'],
+    [OptimizationKey.videoBitrate, 'VBitrate'],
+    [OptimizationKey.encoder, 'StreamEncoder'],
+    [OptimizationKey.simpleUseAdvanced, 'UseAdvanced'],
     [OptimizationKey.audioBitrate, 'ABitrate'],
     [OptimizationKey.quality, 'Output'],
     [OptimizationKey.fpsType, 'FPSType'],
