@@ -1,11 +1,11 @@
 import { TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { getBestSettingsForNiconico } from './niconico-optimization';
 import {
-    EncoderFamily,
-    ISettingsAccessor,
-    OptimizationKey,
-    OptimizeSettings,
-    SettingsKeyAccessor,
+  EncoderFamily,
+  ISettingsAccessor,
+  OptimizationKey,
+  OptimizeSettings,
+  SettingsKeyAccessor,
 } from './optimizer';
 import { ISettingsSubCategory } from './settings-api';
 
@@ -188,4 +188,5 @@ describe('getBestSettingsForNiconico', () => {
       audioBitrate: '192',
       videoBitrate: 6000 - 192,
     });
-  }); });
+  });
+});
