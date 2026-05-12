@@ -1,24 +1,36 @@
 <template>
-  <ul class="selector-list" @contextmenu="handleContextMenu()" data-test="Selector">
-    <draggable ref="draggable" :list="normalizedItems" :draggable="draggableSelector" @change="handleChange">
-      <li
-        v-for="(item, index) in normalizedItems"
-        :key="item.value"
-        class="selector-item"
-        :class="{ 'selector-item--active': activeItems.includes(item.value) }"
-        @contextmenu.stop="ev => handleContextMenu(ev, index)"
-        @click="ev => handleSelect(ev, index)"
-        @dblclick="ev => handleDoubleClick(ev, index)"
-      >
-        <div class="selector-item-text" :data-test="item.name">
-          <span class="layer-icon"><i class="icon-studio-mode" /></span>
-          <span class="item-title">{{ item.name }}</span>
-        </div>
-        <div class="selector-actions">
-          <slot name="actions" :item="item" />
-        </div>
-      </li>
-    </draggable>
+  <ul
+    class="selector-list"
+    @contextmenu="handleContextMenu()"
+    @dragover.self="ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move'; }"
+    @drop.self="onDropAtEnd"
+    data-test="Selector"
+  >
+    <li
+      v-for="(item, index) in localItems"
+      :key="index"
+      class="selector-item"
+      :class="{
+        'selector-item--active': activeItems.includes(item.value),
+        'sortable-chosen': draggable && draggingIndex === index,
+      }"
+      :draggable="draggable"
+      @dragstart="ev => onDragStart(ev, index)"
+      @dragover="ev => onDragOver(ev, index)"
+      @drop="ev => onDropAtIndex(ev, draggingIndex)"
+      @dragend="onDragEnd"
+      @contextmenu.stop="ev => handleContextMenu(ev, index)"
+      @click="ev => handleSelect(ev, index)"
+      @dblclick="ev => handleDoubleClick(ev, index)"
+    >
+      <div class="selector-item-text" :data-test="item.name">
+        <span class="layer-icon"><i class="icon-studio-mode" /></span>
+        <span class="item-title">{{ item.name }}</span>
+      </div>
+      <div class="selector-actions">
+        <slot name="actions" :item="item" />
+      </div>
+    </li>
   </ul>
 </template>
 
@@ -27,21 +39,10 @@
 <style lang="less" scoped>
 @import url('../../styles/index');
 
-.sortable-ghost {
-  background-color: var(--color-bg-active);
-  background-image: none;
-  opacity: 0.7;
-}
-
 .sortable-chosen {
   background-color: var(--color-bg-active);
   background-image: none;
   opacity: 0.7;
-}
-
-.sortable-drag {
-  background-color: var(--color-bg-active);
-  border: 1px solid var(--color-border-light);
 }
 
 .selector-list {

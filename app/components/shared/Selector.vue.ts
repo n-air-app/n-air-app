@@ -1,16 +1,12 @@
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
-import draggable from 'vuedraggable';
-import * as Sentry from '@sentry/vue';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 
 interface ISelectorItem {
   name: string;
   value: string;
 }
 
-@Component({
-  components: { draggable },
-})
+@Component({})
 export default class Selector extends Vue {
   @Prop()
   items: ISelectorItem[];
@@ -21,74 +17,129 @@ export default class Selector extends Vue {
   @Prop({ default: true, type: Boolean })
   draggable: boolean;
 
-  // @ts-expect-error: ts2729: use before initialization
-  draggableSelector: string = this.draggable ? '.selector-item' : 'none';
+  /**
+   * 表示用のローカルコピー。ドラッグ中にリアルタイムで並び替えを反映するために使用。
+   * props の items が変化したときは watch で同期する。
+   * テンプレートから参照するため public だが、外部から直接変更しないこと。
+   */
+  localItems: ISelectorItem[] = [];
 
-  beforeDestroy() {
-    // sortablejs 1.10.2 (および最新 1.15.7 でも未修正) のバグ回避:
-    // destroy() が this._onDrop() を引数なしで呼ぶため、dragEl からの dragend リスナー解除
-    // コード (if (evt) ブロック内) に到達しない。その後 this.el = null が設定されるが、
-    // ブラウザの dragend イベントが非同期で発火し handleEvent → _onDrop(evt) が呼ばれ、
-    // this.el が null のため TypeError: Cannot read properties of null (reading 'removeEventListener')
-    // が発生する。(Sentry: N-AIR-APP-F3Z, GitHub: #1230)
-    //
-    // Vue 2 では親の beforeDestroy が子より先に実行されるため、ここで sortable の
-    // handleEvent をラップすることで、vuedraggable の beforeDestroy → sortable.destroy()
-    // の後に来る dragend イベントを安全に処理できる。
-    //
-    // Vue 3 移行時: beforeDestroy → beforeUnmount にリネーム、実行順序は同じなのでロジック流用可能。
-    // sortablejs 上流でこのバグが修正されたらこの workaround は除去可能。
-    // sortablejs の型定義がないため、使用する内部プロパティの最小限の型を定義する
-    interface SortableInstance {
-      el: HTMLElement | null;
-      handleEvent(evt: Event): void;
-      _nulling?(): void;
-    }
-    try {
-      const draggableRef = this.$refs.draggable;
-      if (!(draggableRef instanceof Vue)) return;
-      const draggableVm = draggableRef as Vue & { _sortable?: SortableInstance };
-      const sortable = draggableVm._sortable;
-      if (sortable) {
-        const origHandleEvent = sortable.handleEvent.bind(sortable);
-        sortable.handleEvent = function (this: SortableInstance, evt: Event) {
-          if (!this.el) {
-            // destroy() 済み: ドラッグ結果は既に反映済みなので、グローバル変数のリセットのみ行う
-            this._nulling?.();
-            Sentry.withScope(scope => {
-              scope.setLevel('warning');
-              scope.setTag('issue', 'N-AIR-APP-F3Z');
-              Sentry.captureMessage(`sortablejs: ${evt.type} event after destroy() suppressed`);
-            });
-            return;
-          }
-          origHandleEvent(evt);
-        };
-      }
-    } catch {
-      // best-effort: コンポーネント破棄をブロックしない
+  created() {
+    this.localItems = this.normalizeItems(this.items);
+  }
+
+  @Watch('items', { deep: true })
+  onItemsChanged(newItems: ISelectorItem[]) {
+    // ドラッグ中でなければ props の変化を反映する
+    if (this.draggingIndex === null) {
+      this.localItems = this.normalizeItems(newItems);
     }
   }
 
-  handleChange(change: any) {
-    const order = this.normalizedItems.map(item => {
-      return item.value;
-    });
+  /**
+   * ドラッグ中のアイテムの現在のインデックス。
+   * value ではなくインデックスで追跡することで、同一 value を持つ重複アイテムがあっても
+   * 正しいアイテムを操作できる。
+   */
+  draggingIndex: number | null = null;
 
+  /** ドラッグ開始時点の元の順序（キャンセル時の復元用） */
+  private itemsBeforeDrag: ISelectorItem[] = [];
+
+  /** ドラッグ開始時の元インデックス（emit する oldIndex 用） */
+  private dragStartIndex: number | null = null;
+
+  onDragStart(ev: DragEvent, index: number) {
+    if (!this.draggable) return;
+    this.draggingIndex = index;
+    this.dragStartIndex = index;
+    this.itemsBeforeDrag = [...this.localItems];
+    if (ev.dataTransfer) {
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  onDragOver(ev: DragEvent, index: number) {
+    if (!this.draggable || this.draggingIndex === null) return;
+    ev.preventDefault();
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+
+    const fromIndex = this.draggingIndex;
+    if (fromIndex === index) return;
+
+    // ドラッグ中にリアルタイムで並び替えを反映する
+    const newItems = [...this.localItems];
+    const [moved] = newItems.splice(fromIndex, 1);
+    newItems.splice(index, 0, moved);
+    this.localItems = newItems;
+    this.draggingIndex = index;
+  }
+
+  private commitDrop(appendToEnd: boolean) {
+    if (!this.draggable || this.draggingIndex === null) return;
+
+    const fromIndex = this.draggingIndex;
+    const itemsBeforeDrag = this.itemsBeforeDrag;
+    const dragStartIndex = this.dragStartIndex!;
+    this.draggingIndex = null;
+    this.dragStartIndex = null;
+    this.itemsBeforeDrag = [];
+
+    // 末尾ドロップ時は onDragOver が呼ばれていないため、ここで並び替えを実行する
+    if (appendToEnd) {
+      const lastIndex = this.localItems.length - 1;
+      if (fromIndex !== lastIndex) {
+        const newItems = [...this.localItems];
+        const [moved] = newItems.splice(fromIndex, 1);
+        newItems.push(moved);
+        this.localItems = newItems;
+      }
+    }
+
+    // onDragOver（または上記の末尾移動）で localItems は最終状態になっている
+    const newItems = this.localItems;
+    const oldIndex = dragStartIndex;
+    const newIndex = newItems.indexOf(itemsBeforeDrag[dragStartIndex]);
+
+    if (oldIndex === newIndex) return;
+
+    const order = newItems.map(item => item.value);
     this.$emit('sort', {
-      change,
+      change: { moved: { element: newItems[newIndex], oldIndex, newIndex } },
       order,
     });
   }
 
+  onDropAtIndex(ev: DragEvent, _index: number | null) {
+    ev.preventDefault();
+    this.commitDrop(false);
+  }
+
+  onDropAtEnd(ev: DragEvent) {
+    ev.preventDefault();
+    this.commitDrop(true);
+  }
+
+  onDragEnd() {
+    // drop → dragend の順で両方発火するため、onDrop 済みの場合は draggingIndex が null になっている。
+    // draggingIndex が残っている場合はドロップなしキャンセルなので元の順序に戻す。
+    if (this.draggingIndex !== null) {
+      this.localItems = this.itemsBeforeDrag;
+    }
+    this.draggingIndex = null;
+    this.dragStartIndex = null;
+    this.itemsBeforeDrag = [];
+  }
+
   handleSelect(ev: MouseEvent, index: number) {
-    const value = this.normalizedItems[index].value;
+    const value = this.localItems[index].value;
     this.$emit('select', value, ev);
   }
 
   handleContextMenu(ev: MouseEvent, index?: number) {
     if (index !== undefined) {
-      const value = this.normalizedItems[index].value;
+      const value = this.localItems[index].value;
       this.handleSelect(ev, index);
       this.$emit('contextmenu', value);
       return;
@@ -97,7 +148,7 @@ export default class Selector extends Vue {
   }
 
   handleDoubleClick(ev: MouseEvent, index: number) {
-    const value = this.normalizedItems[index].value;
+    const value = this.localItems[index].value;
     this.handleSelect(ev, index);
     this.$emit('dblclick', value);
   }
@@ -106,16 +157,12 @@ export default class Selector extends Vue {
    * Items can be either an array of strings, or an
    * array of objects, so we normalize those here.
    */
-  get normalizedItems(): ISelectorItem[] {
-    return this.items.map(item => {
+  private normalizeItems(items: ISelectorItem[]): ISelectorItem[] {
+    return (items || []).map(item => {
       if (typeof item === 'string') {
-        return {
-          name: item,
-          value: item,
-        };
-      } else {
-        return item;
+        return { name: item, value: item };
       }
+      return item;
     });
   }
 }
