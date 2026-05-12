@@ -33,13 +33,11 @@ export class NVoiceCharacterManager extends PropertiesManager {
   settings: INVoiceCharacterSettings;
 
   applySettings(settings: Dictionary<any>) {
-    this.settings.nVoiceCharacterType =
-      (NVoiceCharacterTypes.includes(settings.nVoiceCharacterType) &&
-        settings.nVoiceCharacterType) ||
-      'near';
-    this.settings.nVoiceAvatarStyle =
-      (NVoiceAvatarStyles.includes(settings.nVoiceAvatarStyle) && settings.nVoiceAvatarStyle) ||
-      'standing1';
+    this.settings.nVoiceCharacterType = (NVoiceCharacterTypes.includes(settings.nVoiceCharacterType)
+        && settings.nVoiceCharacterType)
+      || 'near';
+    this.settings.nVoiceAvatarStyle = (NVoiceAvatarStyles.includes(settings.nVoiceAvatarStyle) && settings.nVoiceAvatarStyle)
+      || 'standing1';
     this.setNVoiceCharacterType(this.settings.nVoiceCharacterType);
   }
 
@@ -68,7 +66,7 @@ export class NVoiceCharacterManager extends PropertiesManager {
 
   setPropertiesFormData(properties: TObsFormData) {
     // nVoiceAvatarStyleの変更を処理
-    const styleProperty = properties.find(prop => prop.name === 'nVoiceAvatarStyle');
+    const styleProperty = properties.find((prop) => prop.name === 'nVoiceAvatarStyle');
     if (styleProperty && NVoiceAvatarStyles.includes(styleProperty.value as NVoiceAvatarStyle)) {
       const newStyle = styleProperty.value as NVoiceAvatarStyle;
       if (this.settings.nVoiceAvatarStyle !== newStyle) {
@@ -78,7 +76,7 @@ export class NVoiceCharacterManager extends PropertiesManager {
     }
 
     // nVoiceAvatarStyleはOBSプロパティではないので、formDataから除外
-    const filteredProperties = properties.filter(prop => prop.name !== 'nVoiceAvatarStyle');
+    const filteredProperties = properties.filter((prop) => prop.name !== 'nVoiceAvatarStyle');
     super.setPropertiesFormData(filteredProperties);
   }
 

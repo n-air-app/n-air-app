@@ -86,7 +86,7 @@ export class NdgrClient {
       next = null;
       for await (const entry of this.retrieve(
         fetchUri,
-        reader => dwango.nicolive.chat.service.edge.ChunkedEntry.decodeDelimited(reader),
+        (reader) => dwango.nicolive.chat.service.edge.ChunkedEntry.decodeDelimited(reader),
         'head',
       )) {
         if (entry.backward != null) {
@@ -172,7 +172,7 @@ export class NdgrClient {
   private async retrieveMessages(uri: string, phase: 'previous' | 'segment'): Promise<void> {
     for await (const msg of this.retrieve(
       uri,
-      reader => dwango.nicolive.chat.service.edge.ChunkedMessage.decodeDelimited(reader),
+      (reader) => dwango.nicolive.chat.service.edge.ChunkedMessage.decodeDelimited(reader),
       phase,
     )) {
       if (this.isDisposed) return;

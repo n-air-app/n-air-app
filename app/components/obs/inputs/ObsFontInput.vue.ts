@@ -10,7 +10,7 @@ class ObsFontInput extends ObsInput<IObsInput<IObsFont>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsInput<IObsFont>;
+    value: IObsInput<IObsFont>;
   testingAnchor = `Form/Font/${this.value.name}`;
 
   isGoogleFont = !!this.value.value.path;

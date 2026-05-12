@@ -84,10 +84,10 @@ export class QueueRunner {
       .pipe(
         distinctUntilChanged(
           (a, b) =>
-            a.length === b.length &&
-            a.state === b.state &&
-            a.disabled === b.disabled &&
-            a.nextLabel === b.nextLabel,
+            a.length === b.length
+            && a.state === b.state
+            && a.disabled === b.disabled
+            && a.nextLabel === b.nextLabel,
         ),
       );
   }
@@ -107,7 +107,7 @@ export class QueueRunner {
       this.notifyStateChange();
       if (next) {
         const { prepare, label } = next;
-        const preparing = prepare().then(async start => {
+        const preparing = prepare().then(async (start) => {
           if (this.preparing?.cancel) {
             this.log('prepare canceled', label);
             if (start) {
@@ -131,7 +131,7 @@ export class QueueRunner {
           cancel: false,
         };
         this.notifyStateChange();
-        preparing.then(start => {
+        preparing.then((start) => {
           if (!start) {
             this._run();
           } else {
@@ -153,7 +153,7 @@ export class QueueRunner {
       this.notifyStateChange();
       let earlyCancel = cancelPreparing;
       let resolveRunning2: () => void = () => {};
-      const running2 = new Promise<void>(resolve => {
+      const running2 = new Promise<void>((resolve) => {
         resolveRunning2 = resolve;
       });
       running2.then(() => {
@@ -178,10 +178,10 @@ export class QueueRunner {
       this.notifyStateChange();
       this.log('preparing', label);
       preparing
-        .then(start => {
+        .then((start) => {
           return start ? start() : null;
         })
-        .then(r => {
+        .then((r) => {
           if (!r) {
             this.log('not started', label);
             resolveRunning2();

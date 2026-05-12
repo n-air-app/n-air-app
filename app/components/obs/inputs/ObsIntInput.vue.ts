@@ -6,7 +6,7 @@ class ObsIntInput extends ObsInput<IObsNumberInputValue> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsNumberInputValue;
+    value: IObsNumberInputValue;
   testingAnchor = `Form/Int/${this.value.name}`;
 
   $refs: {
@@ -43,8 +43,7 @@ class ObsIntInput extends ObsInput<IObsNumberInputValue> {
   }
 
   onMouseWheelHandler(event: WheelEvent) {
-    const canChange =
-      event.target !== this.$refs.input || this.$refs.input === document.activeElement;
+    const canChange = event.target !== this.$refs.input || this.$refs.input === document.activeElement;
     if (!canChange) return;
     if (event.deltaY > 0) this.decrement();
     else this.increment();

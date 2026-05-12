@@ -7,7 +7,7 @@ class ObsBitMaskInput extends ObsInput<IObsBitmaskInput> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsBitmaskInput;
+    value: IObsBitmaskInput;
   testingAnchor = `Form/BitMask/${this.value.name}`;
 
   flags: EBit[] = [];

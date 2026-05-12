@@ -64,13 +64,13 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     (() => {
       // Debug logging: log audio devices 1 second after audio source changes
       const audioSourceAdded = this.sourcesService.sourceAdded.pipe(
-        filter(sourceModel => {
+        filter((sourceModel) => {
           const source = this.sourcesService.getSource(sourceModel.sourceId);
           return source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
         }),
       );
       const audioSourceRemoved = this.sourcesService.sourceRemoved.pipe(
-        filter(source => source.audio),
+        filter((source) => source.audio),
       );
 
       merge(audioSourceAdded, this.audioSourceUpdated, audioSourceRemoved)
@@ -80,21 +80,20 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
         });
     })(); // DEBUG
 
-    this.sourcesService.sourceAdded.subscribe(sourceModel => {
+    this.sourcesService.sourceAdded.subscribe((sourceModel) => {
       const source = this.sourcesService.getSource(sourceModel.sourceId);
-      const useAudio =
-        source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
+      const useAudio = source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
       if (!useAudio) return;
       this.createAudioSource(source);
     });
 
-    this.sourcesService.sourceUpdated.subscribe(source => {
+    this.sourcesService.sourceUpdated.subscribe((source) => {
       const audioSource = this.getSource(source.sourceId);
 
       const obsSource = this.sourcesService.getSource(source.sourceId);
       const formData = obsSource
         .getPropertiesFormData()
-        .find(data => data.name === 'reroute_audio');
+        .find((data) => data.name === 'reroute_audio');
       if (formData) {
         this.UPDATE_AUDIO_SOURCE(source.sourceId, {
           isControlledViaObs: !!formData.value,
@@ -102,8 +101,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
         this.audioSourcesChanged.next();
       }
 
-      const useAudio =
-        source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
+      const useAudio = source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
 
       if (!audioSource && useAudio) {
         this.createAudioSource(this.sourcesService.getSource(source.sourceId));
@@ -122,7 +120,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       }
     });
 
-    this.sourcesService.sourceRemoved.subscribe(source => {
+    this.sourcesService.sourceRemoved.subscribe((source) => {
       if (source.audio) this.removeAudioSource(source.sourceId);
     });
     this.scenesService.sceneSwitched.subscribe(() => {
@@ -133,7 +131,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   private handleVolmeterCallback(objs: obs.IObsVolmeterCallbackInfo[]) {
     // 約50msec毎にやってくる
-    objs.forEach(info => {
+    objs.forEach((info) => {
       if (!info.peak.length) return; // 不要なコールバックを無視
       const source = this.getSource(info.sourceName);
       if (!source) return;
@@ -168,7 +166,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   getSources(): AudioSource[] {
-    return Object.keys(this.state.audioSources).map(sourceId => this.getSource(sourceId));
+    return Object.keys(this.state.audioSources).map((sourceId) => this.getSource(sourceId));
   }
 
   /**
@@ -208,7 +206,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   getVisibleSourcesForCurrentScene(): AudioSource[] {
     const audioSources = this.getSourcesForCurrentScene().filter(
-      source => !source.mixerHidden && source.isControlledViaObs,
+      (source) => !source.mixerHidden && source.isControlledViaObs,
     );
     return audioSources;
   }
@@ -220,19 +218,19 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     }
     const sceneSources = scene
       .getNestedSources({ excludeScenes: true })
-      .filter(sceneItem => sceneItem.audio);
+      .filter((sceneItem) => sceneItem.audio);
 
     const globalSources = this.sourcesService
       .getSources()
-      .filter(source => source.channel !== undefined);
+      .filter((source) => source.channel !== undefined);
     return globalSources
       .concat(sceneSources)
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
-      .filter(item => item);
+      .filter((item) => item);
   }
 
   unhideAllSourcesForCurrentScene() {
-    this.getSourcesForCurrentScene().forEach(source => {
+    this.getSourcesForCurrentScene().forEach((source) => {
       source.setHidden(false);
     });
   }
@@ -274,7 +272,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const obsAudioInput = obs.InputFactory.create('wasapi_input_capture', uuidv4());
     const obsAudioOutput = obs.InputFactory.create('wasapi_output_capture', uuidv4());
 
-    (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach(item => {
+    (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach((item) => {
       devices.push({
         id: item.value as string,
         description: item.name,
@@ -283,7 +281,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     });
 
     (obsAudioOutput.properties.get('device_id') as obs.IListProperty).details.items.forEach(
-      item => {
+      (item) => {
         devices.push({
           id: item.value as string,
           description: item.name,
@@ -314,7 +312,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     // Fader is ignored by this method.  Use setFader instead
     const { fader: _fader, ...newPatch } = patch;
 
-    getKeys(newPatch).forEach(name => {
+    getKeys(newPatch).forEach((name) => {
       if (newPatch[name] === undefined) return;
 
       if (name === 'syncOffset') {

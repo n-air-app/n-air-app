@@ -69,8 +69,7 @@ interface IClipboardState {
 
 export class ClipboardService
   extends StatefulService<IClipboardState>
-  implements IClipboardServiceApi
-{
+  implements IClipboardServiceApi {
   static initialState: IClipboardState = {
     itemsSceneId: '',
     sceneNodesIds: [],
@@ -145,7 +144,7 @@ export class ClipboardService
       this.pasteFiltersFromUnloadedClipboard();
       return;
     }
-    this.state.filterIds.forEach(fromSourceId => {
+    this.state.filterIds.forEach((fromSourceId) => {
       const fromSource = this.sourcesService.getSource(fromSourceId);
       if (!fromSource) return;
       this.sourceFiltersService.copyFilters(fromSource.sourceId, source.sourceId);
@@ -189,7 +188,7 @@ export class ClipboardService
     const scene = this.scenesService.activeScene;
 
     // create sources
-    Object.keys(sources).forEach(sourceId => {
+    Object.keys(sources).forEach((sourceId) => {
       const sourceInfo = sources[sourceId];
       const sourceModel = sourceInfo.source;
       let createdSource: Source;
@@ -217,7 +216,7 @@ export class ClipboardService
       }
 
       // add filters
-      sourceInfo.filters.forEach(filter => {
+      sourceInfo.filters.forEach((filter) => {
         this.sourceFiltersService.add(
           createdSource.sourceId,
           filter.type,
@@ -245,10 +244,9 @@ export class ClipboardService
     scenesNodes: Dictionary<ISceneNodeInfo[]>,
     sourceIdMap: Dictionary<string>,
   ): string[] {
-    const scene =
-      sceneId === 'current'
-        ? this.scenesService.activeScene
-        : this.scenesService.getScene(sourceIdMap[sceneId]);
+    const scene = sceneId === 'current'
+      ? this.scenesService.activeScene
+      : this.scenesService.getScene(sourceIdMap[sceneId]);
 
     const insertedNodesIds: string[] = [];
     const folderIdMap: Dictionary<string> = {};
@@ -256,8 +254,8 @@ export class ClipboardService
 
     // create folders
     nodes
-      .filter(node => node.folder)
-      .forEach(node => {
+      .filter((node) => node.folder)
+      .forEach((node) => {
         const folderModel = node.folder as ISceneItemFolder;
         const folder = scene.createFolder(folderModel.name);
         folderIdMap[folderModel.id] = folder.id;
@@ -265,7 +263,7 @@ export class ClipboardService
       });
 
     // create sceneItems and set parent nodes for folders and items
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       // set parent for folders
       if (node.folder) {
         const folderModel = node.folder as ISceneItemFolder;
@@ -294,11 +292,10 @@ export class ClipboardService
     const clipboard = this.state.systemClipboard;
     const scene = this.scenesService.activeScene;
     if (clipboard.files.length) {
-      clipboard.files.forEach(filePath => scene.addFile(filePath));
+      clipboard.files.forEach((filePath) => scene.addFile(filePath));
       return;
     }
-    const urlRegex =
-      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
     const text = clipboard.text;
 
     if (text.match(urlRegex)) {
@@ -313,7 +310,7 @@ export class ClipboardService
 
   private pasteFiltersFromUnloadedClipboard() {
     const source = this.selectionService.getItems()[0];
-    this.state.unloadedCollectionClipboard.filters.forEach(filter => {
+    this.state.unloadedCollectionClipboard.filters.forEach((filter) => {
       this.sourceFiltersService.add(source.sourceId, filter.type, filter.name, filter.settings);
     });
   }
@@ -325,7 +322,7 @@ export class ClipboardService
       const scenes = this.scenesService.activeScene.getNestedScenes();
       const scenesNodes: IScenesNodes = { current: [] };
 
-      scenes.forEach(scene => {
+      scenes.forEach((scene) => {
         const sceneInfo = this.getSceneInfo(scene, sourcesInfo);
         scenesNodes[scene.id] = sceneInfo.sceneNodes;
         sourcesInfo = sceneInfo.sources;
@@ -365,7 +362,7 @@ export class ClipboardService
 
     const nodes = selection.getNodes();
 
-    const nodesInfo: ISceneNodeInfo[] = nodes.map(node => {
+    const nodesInfo: ISceneNodeInfo[] = nodes.map((node) => {
       if (node.isFolder()) {
         return { folder: (node as SceneItemFolder).getModel() };
       }
@@ -398,18 +395,18 @@ export class ClipboardService
   private hasItemsInUnloadedClipboard(): boolean {
     const clipboard = this.state.unloadedCollectionClipboard;
     return !!(
-      clipboard &&
-      clipboard.scenesNodes &&
-      clipboard.scenesNodes.current &&
-      clipboard.scenesNodes.current.length
+      clipboard
+      && clipboard.scenesNodes
+      && clipboard.scenesNodes.current
+      && clipboard.scenesNodes.current.length
     );
   }
 
   private hasFiltersInUnloadedClipboard(): boolean {
     return !!(
-      this.state.unloadedCollectionClipboard &&
-      this.state.unloadedCollectionClipboard.filters &&
-      this.state.unloadedCollectionClipboard.filters.length
+      this.state.unloadedCollectionClipboard
+      && this.state.unloadedCollectionClipboard.filters
+      && this.state.unloadedCollectionClipboard.filters.length
     );
   }
 
@@ -417,13 +414,13 @@ export class ClipboardService
     // electron clipboard doesn't support file system
     // use .NET API instead
     return execSync(
-      'Powershell -command Add-Type -AssemblyName System.Windows.Forms;' +
-        '[System.Windows.Forms.Clipboard]::GetFileDropList()',
+      'Powershell -command Add-Type -AssemblyName System.Windows.Forms;'
+        + '[System.Windows.Forms.Clipboard]::GetFileDropList()',
     )
       .toString()
       .split('\n')
-      .filter(fineName => fineName)
-      .map(fileName => fileName.trim());
+      .filter((fineName) => fineName)
+      .map((fileName) => fileName.trim());
   }
 
   @mutation()

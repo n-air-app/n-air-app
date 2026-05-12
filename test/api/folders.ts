@@ -10,15 +10,15 @@ let scene: Scene;
 let getNode: (name: string) => SceneItemNode;
 let getNodeId: (name: string) => string;
 
-afterAppStart(async t => {
+afterAppStart(async (t) => {
   const client = await getApiClient();
   sceneBuilder = new SceneBuilder(client);
   scene = sceneBuilder.scene;
-  getNode = name => scene.getNodeByName(name);
-  getNodeId = name => scene.getNodeByName(name).id;
+  getNode = (name) => scene.getNodeByName(name);
+  getNodeId = (name) => scene.getNodeByName(name).id;
 });
 
-test('Place after and place before', async t => {
+test('Place after and place before', async (t) => {
   sceneBuilder.build(`
     Folder1
     Item1:
@@ -39,7 +39,7 @@ test('Place after and place before', async t => {
   );
 });
 
-test('Place item after non-empty folder', async t => {
+test('Place item after non-empty folder', async (t) => {
   sceneBuilder.build(`
     Item1:
     Item2:
@@ -65,7 +65,7 @@ test('Place item after non-empty folder', async t => {
   );
 });
 
-test('Move a folder with deep nesting', async t => {
+test('Move a folder with deep nesting', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1
@@ -91,7 +91,7 @@ test('Move a folder with deep nesting', async t => {
   );
 });
 
-test('Remove non-empty folder', async t => {
+test('Remove non-empty folder', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1
@@ -111,7 +111,7 @@ test('Remove non-empty folder', async t => {
   );
 });
 
-test('Try to insert a folder inside itself', async t => {
+test('Try to insert a folder inside itself', async (t) => {
   sceneBuilder.build(`
     Folder1
       Folder2
@@ -127,7 +127,7 @@ test('Try to insert a folder inside itself', async t => {
   );
 });
 
-test('Move multiple items', async t => {
+test('Move multiple items', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1

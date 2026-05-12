@@ -13,10 +13,10 @@ import { $t } from 'services/i18n';
 })
 export default class AddSourceFilter extends Vue {
   @Inject()
-  windowsService: WindowsService;
+    windowsService: WindowsService;
 
   @Inject('SourceFiltersService')
-  filtersService: SourceFiltersService;
+    filtersService: SourceFiltersService;
 
   // @ts-expect-error: ts2729: use before initialization
   sourceId: string = this.windowsService.getChildWindowQueryParams().sourceId;
@@ -46,7 +46,7 @@ export default class AddSourceFilter extends Vue {
 
   validateName(name: string) {
     if (!name) return $t('common.nameIsRequiredMessage');
-    if (this.filtersService.getFilters(this.sourceId).find(filter => filter.name === name)) {
+    if (this.filtersService.getFilters(this.sourceId).find((filter) => filter.name === name)) {
       return $t('common.alreadyTakenNameMessage');
     }
     return '';

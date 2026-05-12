@@ -213,7 +213,7 @@ test.each([
   const { instance } = setupInstance();
 
   let resolved: (value: string) => void;
-  const promise = new Promise<string>(r => {
+  const promise = new Promise<string>((r) => {
     resolved = r;
   });
   instance.client.createProgram = jest

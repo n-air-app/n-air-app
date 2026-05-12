@@ -18,7 +18,7 @@ export class GroupMenu extends Menu {
     const selectionSize = this.selectionService.getSize();
     const selectedItem = this.selectionService.getItems()[0];
     const selectedNodes = this.selectionService.getNodes();
-    const nodesFolders = selectedNodes.map(node => node.parentId || null);
+    const nodesFolders = selectedNodes.map((node) => node.parentId || null);
 
     this.append({
       label: $t('sources.groupIntoFolder'),

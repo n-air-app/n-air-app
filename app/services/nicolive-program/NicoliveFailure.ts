@@ -44,7 +44,7 @@ async function openErrorDialog({
   title: string;
   message: string;
 }): Promise<void> {
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve) => {
     remote.dialog
       .showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
@@ -65,7 +65,7 @@ function fallbackToX00(reason: string): string {
 }
 
 export async function openErrorDialogFromFailure(failure: NicoliveFailure): Promise<void> {
-  Sentry.withScope(scope => {
+  Sentry.withScope((scope) => {
     scope.setLevel('warning');
     scope.setExtra('failure', failure);
     scope.setTag('module', 'nicolive-program');
@@ -74,7 +74,7 @@ export async function openErrorDialogFromFailure(failure: NicoliveFailure): Prom
     scope.setTag('failure.method', failure.method);
     scope.setTag('failure.reason', failure.reason);
     scope.setFingerprint(['openErrorDialogFromFailure']);
-    Sentry.captureMessage(`openErrorDialogFromFailure`);
+    Sentry.captureMessage('openErrorDialogFromFailure');
   });
 
   if (failure.type === 'logic') {

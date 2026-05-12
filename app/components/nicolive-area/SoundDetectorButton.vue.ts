@@ -71,7 +71,7 @@ export default class SoundDetectorButton extends Vue {
   mounted() {
     // SoundDetectorの状態を購読
     this.soundDetectSubscription = this.soundDetectorService.soundDetectedObservable.subscribe({
-      next: detected => {
+      next: (detected) => {
         this.soundDetected = detected.soundDetected;
       },
     });

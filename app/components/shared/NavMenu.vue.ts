@@ -5,7 +5,7 @@ import NavItem from './NavItem.vue';
 @Component({})
 export default class NavMenu extends Vue {
   @Prop()
-  value: string;
+    value: string;
 
   get isChild() {
     return this.$parent instanceof NavItem;

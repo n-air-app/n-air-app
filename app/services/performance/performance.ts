@@ -35,7 +35,7 @@ const STATS_UPDATE_INTERVAL = 2 * 1000;
 // Keeps a store of up-to-date performance metrics
 export class PerformanceService extends StatefulService<IPerformanceState> {
   @Inject()
-  customizationService: CustomizationService;
+    customizationService: CustomizationService;
   @Inject()
   private videoSettingsService: VideoSettingsService;
   @Inject()
@@ -67,7 +67,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   @mutation()
   SET_PERFORMANCE_STATS(stats: Partial<IPerformanceState>) {
-    getKeys(stats).forEach(stat => {
+    getKeys(stats).forEach((stat) => {
       Vue.set(this.state, stat, stats[stat]);
     });
   }
@@ -76,7 +76,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     this.intervalId = window.setInterval(() => this.update(), STATS_UPDATE_INTERVAL);
 
     // 配信状態の変化を監視して履歴をリセット
-    this.streamingService.streamingStatusChange.subscribe(status => {
+    this.streamingService.streamingStatusChange.subscribe((status) => {
       if (status === EStreamingState.Live) {
         this.historicalDroppedFrames = [];
         this.historicalLaggedFrames = [];
@@ -147,7 +147,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     // CPU 計算（既存）
     const am = remote.app.getAppMetrics();
     stats.CPU += am
-      .map(proc => {
+      .map((proc) => {
         return proc.cpu.percentCPUUsage;
       })
       .reduce((sum, usage) => sum + usage);

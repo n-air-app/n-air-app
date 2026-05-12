@@ -18,7 +18,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsEditableListInputValue;
+    value: IObsEditableListInputValue;
   testingAnchor = `Form/EditableList/${this.value.name}`;
 
   activeItem = '';
@@ -51,7 +51,7 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
   }
 
   handleRemove() {
-    this.setList(this.list.filter(item => item !== this.activeItem));
+    this.setList(this.list.filter((item) => item !== this.activeItem));
   }
 
   handleEdit() {
@@ -100,12 +100,12 @@ class ObsEditableListProperty extends ObsInput<IObsEditableListInputValue> {
   }
 
   setList(list: string[]) {
-    this.emitInput({ ...this.value, value: list.map(item => ({ value: item })) });
+    this.emitInput({ ...this.value, value: list.map((item) => ({ value: item })) });
   }
 
   get list(): string[] {
     const items = this.value.value || [];
-    return cloneDeep(items.map(item => item.value));
+    return cloneDeep(items.map((item) => item.value));
   }
 }
 

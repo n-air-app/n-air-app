@@ -6,7 +6,7 @@ import { test, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver({ skipOnboarding: false });
 
-test('Startup first time / login', async t => {
+test('Startup first time / login', async (t) => {
   const client = t.context.app.client;
   await focusMain();
 
@@ -36,7 +36,7 @@ test('Startup first time / login', async t => {
   t.true(await client.$('[data-test="Studio"]').isExisting());
 });
 
-test('Startup first time / skip', async t => {
+test('Startup first time / skip', async (t) => {
   const client = t.context.app.client;
   await focusMain();
 

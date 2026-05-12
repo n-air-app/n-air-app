@@ -114,7 +114,7 @@ export class StreamingService
         this.handleOBSOutputSignal(info);
       });
     } catch (e) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('error');
         scope.setTag('service', 'StreamingService');
         scope.setTag('method', 'init');
@@ -237,12 +237,11 @@ export class StreamingService
 
         // 配信番組選択ウィンドウでチャンネル番組が選ばれた時はそのチャンネル番組を, それ以外の場合は放送中のユーザー番組のIDを代入
         // ユーザー番組については、即時番組があればそれを優先し、なければ予約番組の番組IDを採用する。
-        const programId =
-          opts.nicoliveProgramSelectorResult &&
-            opts.nicoliveProgramSelectorResult.providerType === 'channel' &&
-            opts.nicoliveProgramSelectorResult.channelProgramId
-            ? opts.nicoliveProgramSelectorResult.channelProgramId
-            : broadcastableUserProgram.programId || broadcastableUserProgram.nextProgramId;
+        const programId = opts.nicoliveProgramSelectorResult
+            && opts.nicoliveProgramSelectorResult.providerType === 'channel'
+            && opts.nicoliveProgramSelectorResult.channelProgramId
+          ? opts.nicoliveProgramSelectorResult.channelProgramId
+          : broadcastableUserProgram.programId || broadcastableUserProgram.nextProgramId;
 
         // 配信番組選択ウィンドウでユーザー番組を選んだが、配信可能なユーザー番組がない場合
         if (!programId) {
@@ -274,7 +273,7 @@ export class StreamingService
         } catch (e) {
           // 例外が発生するのはチャンネル配信をしようとしてユーザー生番組が見つからないケースであり
           // チャンネルのためにそのまま配信開始を続行する
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('info');
             scope.setTag('service', 'StreamingService');
             scope.setTag('method', 'fetchProgram');
@@ -290,7 +289,7 @@ export class StreamingService
           );
         }
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'toggleStreamingAsync');
@@ -316,7 +315,7 @@ export class StreamingService
           message = $t('streaming.broadcastStatusFetchingError.default');
         }
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           remote.dialog
             .showMessageBox(remote.getCurrentWindow(), {
               type: 'warning',
@@ -350,7 +349,7 @@ export class StreamingService
         obs.NodeObs.OBS_service_startStreaming();
         this.subStreamService.syncStart();
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'toggleStreaming');
@@ -362,9 +361,9 @@ export class StreamingService
     }
 
     if (
-      this.state.streamingStatus === EStreamingState.Starting ||
-      this.state.streamingStatus === EStreamingState.Live ||
-      this.state.streamingStatus === EStreamingState.Reconnecting
+      this.state.streamingStatus === EStreamingState.Starting
+      || this.state.streamingStatus === EStreamingState.Live
+      || this.state.streamingStatus === EStreamingState.Reconnecting
     ) {
       const shouldConfirm = this.settingsService.state.General.WarnBeforeStoppingStream;
       const confirmText = $t('streaming.stopStreamingConfirm');
@@ -383,7 +382,7 @@ export class StreamingService
         obs.NodeObs.OBS_service_stopStreaming(false);
         this.subStreamService.syncStop();
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'toggleStreaming');
@@ -413,7 +412,7 @@ export class StreamingService
         });
         obs.NodeObs.OBS_service_stopStreaming(true);
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'toggleStreaming');
@@ -437,13 +436,12 @@ export class StreamingService
     const categoryOverhead = 22.4 + 4 + 8 + 8 + 12;
     const lineHeight = 20.8;
 
-    const overhead =
-      windowHeader +
-      descriptionLabel +
-      useHardwareCheck +
-      doNotShowCheck +
-      contentOverhead +
-      modalControls;
+    const overhead = windowHeader
+      + descriptionLabel
+      + useHardwareCheck
+      + doNotShowCheck
+      + contentOverhead
+      + modalControls;
 
     const numCategories = settings.info.length;
     const numLines = settings.info.reduce((sum, tuple) => sum + tuple[1].length, 0);
@@ -461,7 +459,7 @@ export class StreamingService
     mustShowDialog: boolean,
   ) {
     if (streamingSetting.quality === undefined) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('error');
         scope.setTag('service', 'StreamingService');
         scope.setTag('method', 'optimizeForNiconicoAndStartStreaming');
@@ -473,7 +471,7 @@ export class StreamingService
         ]);
         Sentry.captureException(new Error('StreamingSetting.quality is undefined'));
       });
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         remote.dialog
           .showMessageBox(remote.getCurrentWindow(), {
             title: $t('streaming.bitrateFetchingError.title'),
@@ -533,7 +531,7 @@ export class StreamingService
         });
         obs.NodeObs.OBS_service_stopRecording();
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'toggleRecording');
@@ -549,7 +547,7 @@ export class StreamingService
         const recordingSettings = this.settingsService.getRecordingSettings();
         if (recordingSettings) {
           // send Recording type to Sentry (どれぐらいURL出力が使われているかの比率を調査する)
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('info');
             scope.setTag('recType', recordingSettings.recType);
             scope.setExtra('path', recordingSettings.path);
@@ -566,7 +564,7 @@ export class StreamingService
         });
         obs.NodeObs.OBS_service_startRecording();
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'toggleRecording');
@@ -590,7 +588,7 @@ export class StreamingService
       });
       obs.NodeObs.OBS_service_startReplayBuffer();
     } catch (e) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('error');
         scope.setTag('service', 'StreamingService');
         scope.setTag('method', 'startReplayBuffer');
@@ -609,7 +607,7 @@ export class StreamingService
         });
         obs.NodeObs.OBS_service_stopReplayBuffer(false);
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'stopReplayBuffer');
@@ -630,7 +628,7 @@ export class StreamingService
         });
         obs.NodeObs.OBS_service_stopReplayBuffer(true);
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'stopReplayBuffer');
@@ -657,7 +655,7 @@ export class StreamingService
         });
         obs.NodeObs.OBS_service_processReplayBufferHotkey();
       } catch (e) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'StreamingService');
           scope.setTag('method', 'saveReplay');
@@ -680,8 +678,8 @@ export class StreamingService
     if (!this.delayEnabled) return 0;
 
     if (
-      this.state.streamingStatus === EStreamingState.Starting ||
-      this.state.streamingStatus === EStreamingState.Ending
+      this.state.streamingStatus === EStreamingState.Starting
+      || this.state.streamingStatus === EStreamingState.Ending
     ) {
       const elapsedTime = DateTime.now().toSeconds() - this.streamingStateChangeTime.toSeconds();
       return Math.max(this.delaySeconds - elapsedTime, 0);

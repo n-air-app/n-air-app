@@ -12,16 +12,16 @@ let getNode: (name: string) => SceneItemNode;
 let getNodeId: (name: string) => string;
 let selectionService: SelectionService;
 
-afterAppStart(async t => {
+afterAppStart(async (t) => {
   const client = await getApiClient();
   selectionService = client.getResource('SelectionService');
   sceneBuilder = new SceneBuilder(client);
   scene = sceneBuilder.scene;
-  getNode = name => scene.getNodeByName(name);
-  getNodeId = name => scene.getNodeByName(name).id;
+  getNode = (name) => scene.getNodeByName(name);
+  getNodeId = (name) => scene.getNodeByName(name).id;
 });
 
-test('Selection', async t => {
+test('Selection', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const selection = client.getResource<SelectionService>('SelectionService');
@@ -67,7 +67,7 @@ test('Selection', async t => {
   t.is(selection.getSize(), numPresetItems + 3);
 });
 
-test('Selection actions', async t => {
+test('Selection actions', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const selection = client.getResource<SelectionService>('SelectionService');
@@ -86,7 +86,7 @@ test('Selection actions', async t => {
   t.is(color3.visible, true);
 });
 
-test('Invalid selection', async t => {
+test('Invalid selection', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const selection = client.getResource<SelectionService>('SelectionService');
@@ -103,7 +103,7 @@ test('Invalid selection', async t => {
   t.deepEqual(selection.getIds(), [colorSource.sceneItemId]);
 });
 
-test('Place after', async t => {
+test('Place after', async (t) => {
   sceneBuilder.build(`
     Item1:
     Folder1
@@ -126,7 +126,7 @@ test('Place after', async t => {
   );
 });
 
-test('Place after folder with deep nesting', async t => {
+test('Place after folder with deep nesting', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1:
@@ -149,7 +149,7 @@ test('Place after folder with deep nesting', async t => {
   );
 });
 
-test('Place before', async t => {
+test('Place before', async (t) => {
   sceneBuilder.build(`
     Item1:
     Item2:
@@ -172,7 +172,7 @@ test('Place before', async t => {
   );
 });
 
-test('Set parent', async t => {
+test('Set parent', async (t) => {
   sceneBuilder.build(`
     Folder1
     Folder2

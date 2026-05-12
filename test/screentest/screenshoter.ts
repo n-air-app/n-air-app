@@ -35,7 +35,7 @@ export async function makeScreenshots(t: any, options: IScreentestOptions) {
   // PerformanceService causes different cpu usage
   performanceService.stop();
   // AudioSources causes a different volmeter level
-  audioService.getSources().forEach(audioSource => audioSource.setMuted(true));
+  audioService.getSources().forEach((audioSource) => audioSource.setMuted(true));
   // main window title may contain different project version
   windowService.updateMainWindowOptions({ title: 'N Air - screentest' });
 
@@ -50,8 +50,7 @@ export async function makeScreenshots(t: any, options: IScreentestOptions) {
     const config = configs[configInd];
 
     for (const paramName in config) {
-      if (CONFIG.configs[paramName].window && CONFIG.configs[paramName].window !== options.window)
-        delete config[paramName];
+      if (CONFIG.configs[paramName].window && CONFIG.configs[paramName].window !== options.window) delete config[paramName];
     }
 
     const configStr = JSON.stringify(config);
@@ -84,7 +83,7 @@ export function useScreentest(options: IScreentestOptions = { window: 'main' }) 
   if (!fs.existsSync(CONFIG.dist)) fs.mkdirSync(CONFIG.dist);
   if (!fs.existsSync(`${CONFIG.dist}/${branchName}`)) fs.mkdirSync(`${CONFIG.dist}/${branchName}/`);
 
-  test.afterEach(async t => {
+  test.afterEach(async (t) => {
     await makeScreenshots(t, options);
   });
 }

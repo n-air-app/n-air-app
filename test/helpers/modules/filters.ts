@@ -26,9 +26,9 @@ export async function closeFilterProperties() {
 export async function addFilter(sourceName: string, filterType: string, filterName: string) {
   await openFiltersWindow(sourceName);
   await click('[data-test="Add"]');
-  await setFormDropdown(`[data-test='Form/List/type']`, filterType);
+  await setFormDropdown('[data-test=\'Form/List/type\']', filterType);
   if (filterType !== filterName) {
-    await setFormInput(`[data-test='Form/Text/name']`, filterName);
+    await setFormInput('[data-test=\'Form/Text/name\']', filterName);
   }
   await click('[data-test="Done"]');
   await click('[data-test="Done"]');

@@ -236,9 +236,9 @@ export class NiconicoService extends Service implements IPlatformService {
     const key = stream.value.rtmp.streamName;
 
     const settings = this.settingsService.getSettingsFormData('Stream');
-    settings.forEach(subCategory => {
+    settings.forEach((subCategory) => {
       if (subCategory.nameSubCategory !== 'Untitled') return;
-      subCategory.parameters.forEach(parameter => {
+      subCategory.parameters.forEach((parameter) => {
         switch (parameter.name) {
           case 'service':
             parameter.value = 'niconico ニコニコ生放送';

@@ -57,10 +57,10 @@ export class EditMenu extends Menu {
     const isMultipleSelection = this.selectionService.getSize() > 1;
 
     if (
-      this.scene &&
-      !isMultipleSelection &&
-      this.source &&
-      this.source.type === 'monitor_capture'
+      this.scene
+      && !isMultipleSelection
+      && this.source
+      && this.source.type === 'monitor_capture'
     ) {
       this.append({
         id: 'Interactive Crop',
@@ -204,8 +204,8 @@ export class EditMenu extends Menu {
 
     if (this.source) {
       if (
-        this.source.type === 'browser_source' &&
-        this.source.propertiesManagerType === 'default'
+        this.source.type === 'browser_source'
+        && this.source.propertiesManagerType === 'default'
       ) {
         this.append({
           label: $t('common.Interact'),

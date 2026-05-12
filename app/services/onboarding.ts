@@ -37,7 +37,7 @@ const ONBOARDING_STEPS: Dictionary<IOnboardingStep> = {
   },
 
   ObsImport: {
-    isEligible: service => {
+    isEligible: (service) => {
       if (service.options.skipImport) return false;
       return true;
     },

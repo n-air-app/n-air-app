@@ -333,7 +333,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始と同時に録�
 });
 
 [EStreamingState.Starting, EStreamingState.Live, EStreamingState.Reconnecting].forEach(
-  streamingStatus => {
+  (streamingStatus) => {
     test(`toggleStreamingでstreamingStatusが${streamingStatus}の場合`, () => {
       const OBS_service_startStreaming = jest.fn();
       const OBS_service_stopStreaming = jest.fn();

@@ -95,7 +95,7 @@ describe('SceneCollectionsService', () => {
         return acc;
       }, {});
 
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('warning');
         scope.setTag('service', 'SceneCollectionsService');
         scope.setTag('method', 'load');
@@ -202,7 +202,7 @@ describe('SceneCollectionsService', () => {
         },
       ];
 
-      const items = mockLoadErrors.map(err => ({
+      const items = mockLoadErrors.map((err) => ({
         type: err.type,
         id: err.id,
         name: err.name,

@@ -4,8 +4,8 @@ import { Component, Prop } from 'vue-property-decorator';
 @Component({})
 export default class Step extends Vue {
   @Prop()
-  title: string;
+    title: string;
 
   @Prop()
-  description: string;
+    description: string;
 }

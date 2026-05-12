@@ -16,13 +16,13 @@ import { OnboardingService } from 'services/onboarding';
 })
 export default class ObsImport extends Vue {
   @Inject()
-  onboardingService: OnboardingService;
+    onboardingService: OnboardingService;
 
   @Inject()
-  obsImporterService: ObsImporterService;
+    obsImporterService: ObsImporterService;
 
   @Inject()
-  sceneCollectionsService: SceneCollectionsService;
+    sceneCollectionsService: SceneCollectionsService;
 
   status: 'initial' | 'importing' | 'done' = 'initial';
 

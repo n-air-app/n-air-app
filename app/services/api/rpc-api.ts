@@ -76,7 +76,7 @@ export abstract class RpcApi extends Service {
     return this.jsonrpc.createError(request, {
       code: E_JSON_RPC_ERROR.INTERNAL_SERVER_ERROR,
       message: errors
-        .map(e => {
+        .map((e) => {
           // errors with stack are uncaught errors
           // send the error's stack as a response
           return e instanceof Error ? `${e.message} ${e.stack.toString()}` : e;
@@ -177,7 +177,7 @@ export abstract class RpcApi extends Service {
             )}`,
           ); // DEBUG
         } catch (e) {
-          debugLog.push(`this.subscriptions[subscriptionId]=[Subscription]`); // DEBUG
+          debugLog.push('this.subscriptions[subscriptionId]=[Subscription]'); // DEBUG
         }
 
         // create the subscription if it doesn't exist
@@ -223,8 +223,8 @@ export abstract class RpcApi extends Service {
       const promise = responsePayload as PromiseLike<any>;
 
       promise.then(
-        data => this.sendPromiseMessage({ data, promiseId, isRejected: false }),
-        data => this.sendPromiseMessage({ data, promiseId, isRejected: true }),
+        (data) => this.sendPromiseMessage({ data, promiseId, isRejected: false }),
+        (data) => this.sendPromiseMessage({ data, promiseId, isRejected: true }),
       );
 
       // notify the API client that the Promise is created
@@ -298,7 +298,7 @@ export abstract class RpcApi extends Service {
       proto = Object.getPrototypeOf(proto);
     } while (proto.constructor.name !== 'Object');
 
-    keys.forEach(key => {
+    keys.forEach((key) => {
       resourceScheme[key] = typeof resource[key];
     });
 

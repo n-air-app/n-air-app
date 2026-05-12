@@ -80,7 +80,7 @@ export default class UserInfo extends Vue {
     this.isFollowing = false;
 
     const sentinelEl = this.$refs.sentinel as HTMLElement;
-    const ioCallback: IntersectionObserverCallback = entries => {
+    const ioCallback: IntersectionObserverCallback = (entries) => {
       this.isLatestVisible = entries[entries.length - 1].isIntersecting;
     };
     const ioOptions = {
@@ -94,7 +94,7 @@ export default class UserInfo extends Vue {
     };
 
     this.konomiTagsSubscription = this.konomiTagsService.stateChange.subscribe({
-      next: state => {
+      next: (state) => {
         this.myKonomiTags = state.loggedIn ? state.loggedIn.konomiTags : [];
         this.updateKonomiTags();
       },
@@ -102,18 +102,18 @@ export default class UserInfo extends Vue {
     // ユーザー情報ウィンドウを開く度に自分の好みタグも更新する(自分の好みタグが変わっている可能性があるため)
     this.konomiTagsService.fetch();
 
-    this.nicoliveProgramService.client.fetchKonomiTags(this.userId).then(tags => {
+    this.nicoliveProgramService.client.fetchKonomiTags(this.userId).then((tags) => {
       this.rawKonomiTags = tags;
       this.updateKonomiTags();
     });
 
-    this.nicoliveProgramService.client.fetchUserFollow(this.userId).then(following => {
+    this.nicoliveProgramService.client.fetchUserFollow(this.userId).then((following) => {
       this.isFollowing = following;
     });
 
     this.isModerator = this.nicoliveModeratorsService.isModerator(this.userId);
     this.moderatorSubscription = this.nicoliveModeratorsService.stateChange.subscribe({
-      next: state => {
+      next: (state) => {
         const isModerator = state.moderatorsCache.includes(this.userId);
         this.isModerator = isModerator;
       },
@@ -122,11 +122,11 @@ export default class UserInfo extends Vue {
     this.isBroadcaster = this.nicoliveProgramService.isBroadcaster(this.userId);
 
     const isBlocked = (filters: { type: string; body: string }[]) =>
-      filters.some(filter => filter.type === 'user' && filter.body === this.userId);
+      filters.some((filter) => filter.type === 'user' && filter.body === this.userId);
 
     this.isBlockedUser = isBlocked(this.nicoliveCommentFilterService.state.filters);
     this.isBlockedSubscription = this.nicoliveCommentFilterService.stateChange.subscribe({
-      next: state => {
+      next: (state) => {
         this.isBlockedUser = isBlocked(state.filters);
       },
     });
@@ -186,7 +186,7 @@ export default class UserInfo extends Vue {
         type: 'user',
         body: this.userId,
       })
-      .catch(e => {
+      .catch((e) => {
         if (e instanceof NicoliveFailure) {
           openErrorDialogFromFailure(e);
         }
@@ -194,14 +194,14 @@ export default class UserInfo extends Vue {
   }
   async unBlockUser() {
     const filterRecord = this.nicoliveCommentFilterService.state.filters.find(
-      filter => filter.type === 'user' && filter.body === this.userId,
+      (filter) => filter.type === 'user' && filter.body === this.userId,
     );
     if (!filterRecord) {
       console.warn('unBlockUser: block user filter not found', this.userId);
       return;
     }
 
-    await this.nicoliveCommentFilterService.deleteFilters([filterRecord.id]).catch(e => {
+    await this.nicoliveCommentFilterService.deleteFilters([filterRecord.id]).catch((e) => {
       if (e instanceof NicoliveFailure) {
         openErrorDialogFromFailure(e);
       }
@@ -230,7 +230,7 @@ export default class UserInfo extends Vue {
   private updateKonomiTags() {
     const [same, other] = this.rawKonomiTags.reduce(
       (acc, tag) => {
-        if (this.myKonomiTags.some(myTag => myTag.tag_id.value === tag.tag_id.value)) {
+        if (this.myKonomiTags.some((myTag) => myTag.tag_id.value === tag.tag_id.value)) {
           acc[0].push(tag.name);
         } else {
           acc[1].push(tag.name);
@@ -241,15 +241,15 @@ export default class UserInfo extends Vue {
     );
 
     this.konomiTags = [
-      ...same.map(name => ({ name, common: true })),
-      ...other.map(name => ({ name, common: false })),
+      ...same.map((name) => ({ name, common: true })),
+      ...other.map((name) => ({ name, common: false })),
     ];
   }
 
   componentMap = componentMap;
 
   get comments(): WrappedChatWithComponent[] {
-    const comments = this.nicoliveCommentViewerService.items.filter(item => {
+    const comments = this.nicoliveCommentViewerService.items.filter((item) => {
       return isWrappedChat(item) && item.value.user_id === this.userId;
     }) as WrappedChatWithComponent[];
     return comments;

@@ -174,9 +174,9 @@ export class NicoliveClient {
 
   static isProgramPage(url: string): boolean {
     return (
-      (url.startsWith(NicoliveClient.liveBaseURL + '/watch/lv') ||
-        url.startsWith(NicoliveClient.live2BaseURL + '/watch/lv')) &&
-      /\/watch\/lv\d+/.test(url)
+      (url.startsWith(NicoliveClient.liveBaseURL + '/watch/lv')
+        || url.startsWith(NicoliveClient.live2BaseURL + '/watch/lv'))
+      && /\/watch\/lv\d+/.test(url)
     );
   }
 
@@ -185,16 +185,16 @@ export class NicoliveClient {
     const liveHostname = new URL(NicoliveClient.liveBaseURL).hostname;
     const live2Hostname = new URL(NicoliveClient.live2BaseURL).hostname;
     return (
-      /^https?:$/.test(urlObj.protocol) &&
-      (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname) &&
-      /^\/my$/.test(urlObj.pathname)
+      /^https?:$/.test(urlObj.protocol)
+      && (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname)
+      && /^\/my$/.test(urlObj.pathname)
     );
   }
 
   static isAllowedURL(url: string): boolean {
     return (
-      url.startsWith(NicoliveClient.live2BaseURL + '/') ||
-      url.startsWith(NicoliveClient.liveBaseURL + '/')
+      url.startsWith(NicoliveClient.live2BaseURL + '/')
+      || url.startsWith(NicoliveClient.liveBaseURL + '/')
     );
   }
 
@@ -272,7 +272,7 @@ export class NicoliveClient {
 
     const { session } = remote.getCurrentWebContents();
     return new Promise((resolve, reject) => {
-      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then(cookies => {
+      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then((cookies) => {
         if (cookies.length < 1) return reject(new NotLoggedInError());
         resolve(cookies[0].value);
       });
@@ -441,8 +441,8 @@ export class NicoliveClient {
     const request = new Request(url, { headers });
     return await fetch(request)
       .then(handleErrors)
-      .then(response => response.json())
-      .then(json => json.data);
+      .then((response) => response.json())
+      .then((json) => json.data);
   }
 
   /**
@@ -531,7 +531,7 @@ export class NicoliveClient {
           resolve(CreateResult.RESERVED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('warning');
             scope.setTag('url', url);
             scope.setFingerprint(['createProgram', 'did-navigate', url]);
@@ -546,9 +546,9 @@ export class NicoliveClient {
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = NicoliveClient.liveBaseURL + '/create';
       console.log('Loading URL in createProgram window:', url);
-      win.loadURL(url)?.catch(error => {
+      win.loadURL(url)?.catch((error) => {
         if (error instanceof Error) {
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('warning');
             scope.setExtra('url', url);
             scope.setFingerprint(['createProgram', 'loadURL', url]);
@@ -556,7 +556,7 @@ export class NicoliveClient {
           });
         }
       });
-    }).then(result => {
+    }).then((result) => {
       Sentry.addBreadcrumb({
         category: 'createProgram.close',
         message: result,
@@ -609,7 +609,7 @@ export class NicoliveClient {
           resolve(EditResult.EDITED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('warning');
             scope.setTag('url', url);
             scope.setTag('programID', programID);
@@ -624,9 +624,9 @@ export class NicoliveClient {
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = `${NicoliveClient.liveBaseURL}/edit/${programID}`;
-      win.loadURL(url)?.catch(error => {
+      win.loadURL(url)?.catch((error) => {
         if (error instanceof Error) {
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('warning');
             scope.setExtra('url', url);
             scope.setTag('programID', programID);
@@ -635,7 +635,7 @@ export class NicoliveClient {
           });
         }
       });
-    }).then(result => {
+    }).then((result) => {
       Sentry.addBreadcrumb({
         category: 'editProgram.close',
         message: result,

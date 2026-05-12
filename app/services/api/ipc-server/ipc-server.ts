@@ -24,7 +24,7 @@ export class IpcServerService extends Service {
     ipcRenderer.on('services-request', this.requestHandler);
     ipcRenderer.send('services-ready');
 
-    this.servicesEventsSubscription = this.internalApiService.serviceEvent.subscribe(event =>
+    this.servicesEventsSubscription = this.internalApiService.serviceEvent.subscribe((event) =>
       this.sendEvent(event),
     );
   }

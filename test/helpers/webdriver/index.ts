@@ -299,7 +299,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   };
 
-  test.beforeEach(async t => {
+  test.beforeEach(async (t) => {
     testPassed = false;
 
     t.context.app = app;
@@ -312,11 +312,11 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   });
 
-  test.afterEach(async t => {
+  test.afterEach(async (t) => {
     testPassed = true;
   });
 
-  test.afterEach.always(async t => {
+  test.afterEach.always(async (t) => {
     // wrap in try/catch for the situation when we have a crash
     // so we still can read the logs after the crash
     try {
@@ -339,7 +339,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   });
 
-  test.after.always(async t => {
+  test.after.always(async (t) => {
     if (appIsRunning) await stopAppFn(t);
   });
 

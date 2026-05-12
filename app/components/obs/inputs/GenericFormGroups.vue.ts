@@ -9,13 +9,13 @@ import GenericForm from './GenericForm.vue';
 })
 export default class GenericFormGroups extends Vue {
   @Prop()
-  value: ISettingsSubCategory[];
+    value: ISettingsSubCategory[];
 
   @Prop()
-  category: string;
+    category: string;
 
   @Prop()
-  isLoggedIn: boolean;
+    isLoggedIn: boolean;
 
   collapsedGroups: Dictionary<boolean> = {};
 
@@ -28,14 +28,14 @@ export default class GenericFormGroups extends Vue {
   }
 
   hasAnyVisibleSettings(category: ISettingsSubCategory) {
-    return !!category.parameters.find(setting => {
+    return !!category.parameters.find((setting) => {
       return setting.visible;
     });
   }
 
   getUntitledSectionTitle(formGroup: ISettingsSubCategory): string {
     // For Untitled groups, use the first visible parameter's description as the title
-    const firstVisibleParam = formGroup.parameters.find(p => p.visible);
+    const firstVisibleParam = formGroup.parameters.find((p) => p.visible);
     if (firstVisibleParam && firstVisibleParam.description) {
       return firstVisibleParam.description;
     }

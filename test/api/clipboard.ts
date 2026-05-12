@@ -20,7 +20,7 @@ let sceneCollectionsService: ISceneCollectionsServiceApi;
 let sourcesService: ISourcesServiceApi;
 let scenesService: ScenesService;
 
-afterAppStart(async t => {
+afterAppStart(async (t) => {
   const client = await getApiClient();
   scenesService = client.getResource('ScenesService');
   sourcesService = client.getResource('SourcesService');
@@ -29,11 +29,11 @@ afterAppStart(async t => {
   sceneCollectionsService = client.getResource('SceneCollectionsService');
   sourceFiltersService = client.getResource('SourceFiltersService');
   sceneBuilder = new SceneBuilder(client);
-  getNode = name => sceneBuilder.scene.getNodeByName(name);
-  getNodeId = name => sceneBuilder.scene.getNodeByName(name).id;
+  getNode = (name) => sceneBuilder.scene.getNodeByName(name);
+  getNodeId = (name) => sceneBuilder.scene.getNodeByName(name).id;
 });
 
-test('Simple copy/paste', async t => {
+test('Simple copy/paste', async (t) => {
   sceneBuilder.build(`
     Folder1
     Item1: color_source
@@ -55,7 +55,7 @@ test('Simple copy/paste', async t => {
   );
 });
 
-test('Copy/paste folder with items', async t => {
+test('Copy/paste folder with items', async (t) => {
   sceneBuilder.build(`
     Folder1
     Folder2
@@ -83,7 +83,7 @@ test('Copy/paste folder with items', async t => {
   );
 });
 
-test('Copy/paste nodes between scene collections', async t => {
+test('Copy/paste nodes between scene collections', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1: color_source
@@ -124,7 +124,7 @@ test('Copy/paste nodes between scene collections', async t => {
   t.is(sourcesService.getSources().length, sourcesCount);
 });
 
-test('Copy/paste filters between scene collections', async t => {
+test('Copy/paste filters between scene collections', async (t) => {
   sceneBuilder.build(`
       Item1: image_source
   `);
@@ -159,7 +159,7 @@ test('Copy/paste filters between scene collections', async t => {
   t.is(filter.type, 'chroma_key_filter');
 });
 
-test('Copy/paste scenes between scene collections', async t => {
+test('Copy/paste scenes between scene collections', async (t) => {
   // create a scene with nested scene
 
   await sceneCollectionsService.create({ name: 'Collection1' });
@@ -201,7 +201,7 @@ test('Copy/paste scenes between scene collections', async t => {
 
   scenesService
     .getScenes()
-    .find(scene => scene.name === 'Scene2')
+    .find((scene) => scene.name === 'Scene2')
     .makeActive();
 
   t.true(
@@ -213,7 +213,7 @@ test('Copy/paste scenes between scene collections', async t => {
   );
 });
 
-test('Copy/paste duplicate sources', async t => {
+test('Copy/paste duplicate sources', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1: color_source

@@ -7,7 +7,7 @@ const path = require('path');
 
 useWebdriver({ restartAppAfterEachTest: false });
 
-test('The default scene exists', async t => {
+test('The default scene exists', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const scenes = scenesService.getScenes();
@@ -15,11 +15,11 @@ test('The default scene exists', async t => {
   t.true(scenes.length === 2);
 });
 
-test('Creating, fetching and removing scenes', async t => {
+test('Creating, fetching and removing scenes', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   t.is(scenesService.getScenes().length, 2);
-  const scenesBefore = scenesService.getScenes().map(s => s.name);
+  const scenesBefore = scenesService.getScenes().map((s) => s.name);
 
   const scene2 = scenesService.createScene('Scene2');
 
@@ -27,21 +27,21 @@ test('Creating, fetching and removing scenes', async t => {
 
   let scenes = scenesService
     .getScenes()
-    .filter(scene => [...scenesBefore, 'Scene2'].includes(scene.name));
-  let scenesNames = scenes.map(scene => scene.name);
+    .filter((scene) => [...scenesBefore, 'Scene2'].includes(scene.name));
+  let scenesNames = scenes.map((scene) => scene.name);
 
   t.deepEqual(scenesNames, [...scenesBefore, 'Scene2']);
 
   scenesService.removeScene(scenes[scenes.length - 1].id);
   scenes = scenesService
     .getScenes()
-    .filter(scene => [...scenesBefore, 'Scene2'].includes(scene.name));
-  scenesNames = scenes.map(scene => scene.name);
+    .filter((scene) => [...scenesBefore, 'Scene2'].includes(scene.name));
+  scenesNames = scenes.map((scene) => scene.name);
 
   t.deepEqual(scenesNames, scenesBefore);
 });
 
-test('Switching between scenes', async t => {
+test('Switching between scenes', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   t.is(scenesService.getScenes().length, 2);
@@ -61,27 +61,27 @@ test('Switching between scenes', async t => {
   t.is(beforeActiveSceneId, scenesService.activeSceneId);
 });
 
-test('Creating, fetching and removing scene-items', async t => {
+test('Creating, fetching and removing scene-items', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
 
   const scene = scenesService.getSceneByName(DefaultSceneName);
-  const presetItemIds = scene.getItems().map(item => item.id);
+  const presetItemIds = scene.getItems().map((item) => item.id);
   const image1 = scene.createAndAddSource('Image1', 'image_source');
   const image2 = scene.createAndAddSource('Image2', 'image_source');
   t.is(image1['name'], 'Image1');
 
-  let items = scene.getItems().filter(i => !presetItemIds.includes(i.id));
-  let itemsNames = items.map(item => item['name']);
+  let items = scene.getItems().filter((i) => !presetItemIds.includes(i.id));
+  let itemsNames = items.map((item) => item['name']);
   t.deepEqual(itemsNames, ['Image2', 'Image1']);
 
   scene.removeItem(image2.sceneItemId);
-  items = scene.getItems().filter(i => !presetItemIds.includes(i.id));
-  itemsNames = items.map(item => item['name']);
+  items = scene.getItems().filter((i) => !presetItemIds.includes(i.id));
+  itemsNames = items.map((item) => item['name']);
   t.deepEqual(itemsNames, ['Image1']);
 });
 
-test('Scenes events', async t => {
+test('Scenes events', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   let event: Dictionary<any>;
@@ -126,7 +126,7 @@ test('Scenes events', async t => {
   t.is(event.data.sceneItemId, image.sceneItemId);
 });
 
-test('Creating nested scenes', async t => {
+test('Creating nested scenes', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
 
@@ -136,25 +136,25 @@ test('Creating nested scenes', async t => {
 
   sceneA.addSource(sceneB.id);
   let sceneAItems = sceneA.getItems();
-  let itemsANames = sceneAItems.map(item => item['name']);
+  let itemsANames = sceneAItems.map((item) => item['name']);
 
   t.deepEqual(itemsANames, ['SceneB']);
 
   sceneC.addSource(sceneA.id);
   const sceneCItems = sceneC.getItems();
-  const itemsCNames = sceneCItems.map(item => item['name']);
+  const itemsCNames = sceneCItems.map((item) => item['name']);
 
   t.deepEqual(itemsCNames, ['SceneA']);
 
   // Unable to add a source when the scene you are trying to add already contains your current scene
   sceneA.addSource(sceneC.id);
   sceneAItems = sceneA.getItems();
-  itemsANames = sceneAItems.map(item => item['name']);
+  itemsANames = sceneAItems.map((item) => item['name']);
 
   t.deepEqual(itemsANames, ['SceneB']);
 });
 
-test('SceneItem.setSettings()', async t => {
+test('SceneItem.setSettings()', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const scene = scenesService.activeScene;
@@ -187,7 +187,7 @@ test('SceneItem.setSettings()', async t => {
   });
 });
 
-test('SceneItem.resetTransform()', async t => {
+test('SceneItem.resetTransform()', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const scene = scenesService.activeScene;
@@ -211,7 +211,7 @@ test('SceneItem.resetTransform()', async t => {
   });
 });
 
-test('SceneItem.addFile()', async t => {
+test('SceneItem.addFile()', async (t) => {
   const dataDir = path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'sources-files');
 
   const client = await getApiClient();

@@ -7,7 +7,7 @@ class ObsButtonInput extends ObsInput<IObsButtonInputValue> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsButtonInputValue;
+    value: IObsButtonInputValue;
   testingAnchor = `Form/Button/${this.value.name}`;
 
   handleClick() {

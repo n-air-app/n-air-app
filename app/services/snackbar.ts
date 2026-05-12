@@ -36,12 +36,12 @@ export class SnackbarService extends StatefulService<SnackbarState> {
         message,
         action: action
           ? {
-              label: action.label,
-              onClick: () => {
-                action.onClick();
-                this.hide(); // Hide snackbar after action is clicked
-              },
-            }
+            label: action.label,
+            onClick: () => {
+              action.onClick();
+              this.hide(); // Hide snackbar after action is clicked
+            },
+          }
           : null,
         hideDelay: hideDelay || DEFAULT_HIDE_DELAY,
       },

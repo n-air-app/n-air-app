@@ -21,7 +21,7 @@ function randomCharacters(len: number): string {
   const buf = randomBytes(len);
   const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   return Array.from(buf)
-    .map(b => characters[Math.floor((b / 256) * characters.length)])
+    .map((b) => characters[Math.floor((b / 256) * characters.length)])
     .join('');
 }
 

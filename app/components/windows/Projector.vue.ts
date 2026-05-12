@@ -33,7 +33,7 @@ export default class Projector extends Vue {
   }
 
   mounted() {
-    this.sourcesSubscription = this.sourcesService.sourceRemoved.subscribe(source => {
+    this.sourcesSubscription = this.sourcesService.sourceRemoved.subscribe((source) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }

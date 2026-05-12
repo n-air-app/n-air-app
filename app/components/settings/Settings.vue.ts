@@ -116,7 +116,7 @@ export default class Settings extends Vue {
   mounted() {
     // Categories depend on whether the user is logged in or not.
     // When they depend another state, it's time to refine this implementation.
-    this.userSubscription = this.userService.userLoginState.subscribe(loggedIn => {
+    this.userSubscription = this.userService.userLoginState.subscribe((loggedIn) => {
       this.isLoggedIn = !!loggedIn;
       this.categoryNames = this.settingsService.getCategories();
     });
@@ -151,8 +151,8 @@ export default class Settings extends Vue {
 
   get showLoginRequiredNotice(): boolean {
     return (
-      !this.isLoggedIn &&
-      CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
+      !this.isLoggedIn
+      && CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
     );
   }
 

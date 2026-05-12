@@ -130,7 +130,6 @@
   color: var(--color-text);
 }
 
-
 .sound-detector-volmeter-container {
   width: 100%;
   margin-bottom: var(--spacing-lg);

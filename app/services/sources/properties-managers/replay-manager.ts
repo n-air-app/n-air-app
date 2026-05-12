@@ -11,7 +11,7 @@ export class ReplayManager extends PropertiesManager {
     super.init();
     this.obsSource.update({ local_file: '' });
 
-    this.streamingService.replayBufferFileWrite.subscribe(filePath => {
+    this.streamingService.replayBufferFileWrite.subscribe((filePath) => {
       this.obsSource.update({ local_file: filePath });
     });
   }

@@ -48,7 +48,7 @@ export class KonomiTagsService extends StatefulService<IKonomiTagsState> {
 
   fetch() {
     if (this.state.loggedIn) {
-      this.nicoliveProgramService.client.fetchKonomiTags(this.state.loggedIn.userId).then(tags => {
+      this.nicoliveProgramService.client.fetchKonomiTags(this.state.loggedIn.userId).then((tags) => {
         this.setState({
           loggedIn: {
             userId: this.state.loggedIn!.userId,

@@ -56,7 +56,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
         })),
         distinctUntilChanged((prev, curr) => prev.viewUri === curr.viewUri),
       )
-      .subscribe(state => {
+      .subscribe((state) => {
         if (state.viewUri !== this.state.viewUri) {
           this.setState({ viewUri: state.viewUri, moderatorsCache: [] });
           if (state.viewUri) {
@@ -69,7 +69,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
                   console.warn('NDGR URL not found');
                 }
               })
-              .catch(caught => {
+              .catch((caught) => {
                 if (caught instanceof NicoliveFailure) {
                   openErrorDialogFromFailure(caught);
                 }
@@ -97,7 +97,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
   async connectModeratorStream(ndgrURL: string) {
     this.ndgrClient = new NdgrClient(ndgrURL, 'moderator');
     this.ndgrSubscription = this.ndgrClient.messages.subscribe({
-      next: msg => {
+      next: (msg) => {
         if (!msg.message) {
           return;
         }
@@ -133,7 +133,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
                     // 未対応のタイプが増えたときに毎回送信すると送信数が無駄に増えるので、一回だけ送信する
                     if (this.registerUnknownSSNGType(type)) {
                       console.warn(`Unknown SSNG Type: ${type}`);
-                      Sentry.withScope(scope => {
+                      Sentry.withScope((scope) => {
                         scope.setFingerprint([
                           'NicoliveModeratorsService',
                           'unknownSSNGType',
@@ -166,9 +166,8 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
                 const userId = ssngUpdated.operator?.userId
                   ? toNumber(ssngUpdated.operator.userId)
                   : undefined;
-                const byModerator =
-                  ssngUpdated.operatorType ===
-                  dwango.nicolive.chat.data.atoms.SSNGUpdated.SSNGOperatorType.MODERATOR;
+                const byModerator = ssngUpdated.operatorType
+                  === dwango.nicolive.chat.data.atoms.SSNGUpdated.SSNGOperatorType.MODERATOR;
                 if (ssngId) {
                   this.refreshSubject.next({
                     event: 'removeSSNG',
@@ -182,7 +181,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
             default:
               if (this.registerUnknownSSNGOperation(ssngUpdated.operation)) {
                 console.warn('Unknown SSNG operation:', ssngUpdated.operation, ssngUpdated);
-                Sentry.withScope(scope => {
+                Sentry.withScope((scope) => {
                   scope.setFingerprint([
                     'NicoliveModeratorsService',
                     'unknownSSNGOperation',
@@ -198,10 +197,10 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
           // 未知のmessageは単に無視する
         }
       },
-      error: err => {
+      error: (err) => {
         console.error('Moderator message stream error:', err);
         const error: Error = err instanceof Error ? err : new Error(err);
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setFingerprint(['NicoliveModeratorsService', 'NdgrClient', 'messageStreamError']);
           scope.setTag('ndgr.type', 'moderator');
           scope.captureException(error);
@@ -209,9 +208,9 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
       },
       complete: () => console.log('Message stream completed'),
     });
-    await this.ndgrClient.connect().catch(err => {
+    await this.ndgrClient.connect().catch((err) => {
       console.info('Failed to connect moderator stream:', err);
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setFingerprint(['NicoliveModeratorsService', 'NdgrClient', 'connectError']);
         if (isNdgrFetchError(err)) {
           scope.setTags(err.getTagsForSentry());
@@ -238,7 +237,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     if (!isOk(result)) {
       throw NicoliveFailure.fromClientError('fetchModerators', result);
     }
-    this.setModeratorsCache(result.value.map(moderator => moderator.userId).map(String));
+    this.setModeratorsCache(result.value.map((moderator) => moderator.userId).map(String));
   }
 
   isModerator(userId: string): boolean {
@@ -301,7 +300,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     // すでに確認ウィンドウが開いている場合は閉じる
     this.closeConfirmWindow(false);
 
-    return new Promise<{ confirmWindowId: string; result: boolean }>(resolve => {
+    return new Promise<{ confirmWindowId: string; result: boolean }>((resolve) => {
       const confirmWindowId = this.windowsService.createOneOffWindow({
         componentName: 'ModeratorConfirmDialog',
         isFullScreen: true, // hide title bar

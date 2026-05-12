@@ -35,7 +35,7 @@ const CREATED_NOTICE_DURATION = 5000; // 番組作成通知の表示時間(ミ�
 })
 export default class NicolivePanelRoot extends Vue {
   @Inject()
-  nicoliveProgramService: NicoliveProgramService;
+    nicoliveProgramService: NicoliveProgramService;
   @Inject() private customizationService: CustomizationService;
 
   destroyed() {

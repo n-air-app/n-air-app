@@ -19,6 +19,6 @@ describe('NVoiceClient', () => {
   test('"テスト"', async () => {
     const { wave, labels } = await client.talk(1.0, 'テスト', filename);
     expect(wave).not.toBeNull();
-    expect(labels.map(l => l.phoneme)).toEqual(['silB', 't', 'e', 's', 'U', 't', 'o', 'silE']);
+    expect(labels.map((l) => l.phoneme)).toEqual(['silB', 't', 'e', 's', 'U', 't', 'o', 'silE']);
   }, 20000 /* longer timeout */);
 });

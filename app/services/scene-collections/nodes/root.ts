@@ -52,7 +52,7 @@ export class RootNode extends Node<ISchema, {}> {
       await this.data.transitions.load();
       // Collect errors from transitions
       const transitionErrors = this.data.transitions.getLoadErrors();
-      transitionErrors.forEach(err => this.addLoadError(err));
+      transitionErrors.forEach((err) => this.addLoadError(err));
     } catch (e) {
       console.error('Failed to load transitions:', e);
       this.addLoadError({
@@ -67,7 +67,7 @@ export class RootNode extends Node<ISchema, {}> {
       await this.data.sources.load({});
       // Collect errors from sources
       const sourceErrors = this.data.sources.getLoadErrors();
-      sourceErrors.forEach(err => this.addLoadError(err));
+      sourceErrors.forEach((err) => this.addLoadError(err));
     } catch (e) {
       console.error('Failed to load sources:', e);
       this.addLoadError({
@@ -82,7 +82,7 @@ export class RootNode extends Node<ISchema, {}> {
       await this.data.scenes.load({});
       // Collect errors from scenes
       const sceneErrors = this.data.scenes.getLoadErrors();
-      sceneErrors.forEach(err => this.addLoadError(err));
+      sceneErrors.forEach((err) => this.addLoadError(err));
     } catch (e) {
       console.error('Failed to load scenes:', e);
       this.addLoadError({
@@ -98,7 +98,7 @@ export class RootNode extends Node<ISchema, {}> {
         await this.data.hotkeys.load({});
         // Collect errors from hotkeys
         const hotkeyErrors = this.data.hotkeys.getLoadErrors();
-        hotkeyErrors.forEach(err => this.addLoadError(err));
+        hotkeyErrors.forEach((err) => this.addLoadError(err));
       } catch (e) {
         console.error('Failed to load hotkeys:', e);
         this.addLoadError({

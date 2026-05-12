@@ -37,7 +37,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
   @Inject() videoService: VideoService;
 
   init() {
-    this.sourcesService.sourceAdded.subscribe(sourceModel => {
+    this.sourcesService.sourceAdded.subscribe((sourceModel) => {
       if (sourceModel.propertiesManagerType === 'nvoice-character') {
         const source = this.sourcesService.getSource(sourceModel.sourceId);
 
@@ -47,7 +47,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
         });
       }
     });
-    this.sourcesService.sourceUpdated.subscribe(sourceModel => {
+    this.sourcesService.sourceUpdated.subscribe((sourceModel) => {
       if (sourceModel.propertiesManagerType === 'nvoice-character') {
         if (sourceModel.propertiesManagerType === 'nvoice-character') {
           if (!this.state.characterSources[sourceModel.sourceId]) {
@@ -64,7 +64,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
         }
       }
     });
-    this.sourcesService.sourceRemoved.subscribe(sourceModel => {
+    this.sourcesService.sourceRemoved.subscribe((sourceModel) => {
       if (sourceModel.propertiesManagerType === 'nvoice-character') {
         this.REMOVE_CHARACTER_SOURCE(sourceModel.sourceId);
       }
@@ -91,9 +91,8 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
       ? dirname(remote.app.getPath('exe'))
       : remote.app.getAppPath();
     const styleParam = style ? `&style=${style}` : '';
-    const url =
-      'file://' +
-      path.join(appPath, 'nvoice', type, `index.html?port=${port || this.state.port}${styleParam}`);
+    const url = 'file://'
+      + path.join(appPath, 'nvoice', type, `index.html?port=${port || this.state.port}${styleParam}`);
     return url;
   }
 
@@ -102,8 +101,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
     name?: string,
     style: NVoiceAvatarStyle = 'standing1',
   ): { source: ISourceApi; options: ISceneNodeAddOptions } {
-    const suggestedName =
-      name || this.sourcesService.suggestName($t(`source-props.nvoice_character.${type}.name`));
+    const suggestedName = name || this.sourcesService.suggestName($t(`source-props.nvoice_character.${type}.name`));
 
     // スタイルに応じてサイズを設定
     let width: number;

@@ -30,7 +30,7 @@ export class CustomcastUsageService extends StatefulService<ICustomcastUsageStat
       }
     });
 
-    this.scenesService.itemAdded.subscribe(item => {
+    this.scenesService.itemAdded.subscribe((item) => {
       if (this.isCustomcastSourceId(item.sourceId)) {
         this.markCustomcastUsed();
       }

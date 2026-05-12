@@ -135,7 +135,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     // setState() は SET_STATE() も呼ぶため this.state が即時更新される。
     // stateService.updated は外部からの設定変更(例: 別プロセスからの同期)を反映するために subscribe する。
     this.stateService.updated.subscribe({
-      next: persistentState => {
+      next: (persistentState) => {
         const newState = {
           ...NicoliveCommentSynthesizerService.initialState,
           ...persistentState.speechSynthesizerSettings,
@@ -145,7 +145,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       },
     });
 
-    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
+    this.queueStateSubscription = this.queue.state$.subscribe((queueRunnerState) => {
       this.setState({ queueRunnerState });
     });
 
@@ -157,7 +157,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
 
     this.phonemeServer = new PhonemeServer({
-      onPortAssigned: port => {
+      onPortAssigned: (port) => {
         this.nVoiceCharacterService.updateSocketIoPort(port);
       },
     });
@@ -170,7 +170,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       return;
     }
     this.soundDetectorSubscription = this.soundDetectorService.speechActionObservable.subscribe({
-      next: action => {
+      next: (action) => {
         switch (action) {
           case 'pause':
             this.queue.disable({ interruptAction: 'pause' });
@@ -383,7 +383,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         () => {
           onend();
         },
-        phoneme => {
+        (phoneme) => {
           this.phonemeServer?.emitPhoneme(phoneme);
         },
       ),

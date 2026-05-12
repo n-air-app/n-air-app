@@ -9,24 +9,24 @@ class ObsListInput extends ObsInput<IObsListInput<TObsValue>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsListInput<TObsValue>;
+    value: IObsListInput<TObsValue>;
   testingAnchor = `Form/List/${this.value.name}`;
 
   @Prop({ default: false, type: Boolean })
-  allowEmpty: boolean;
+    allowEmpty: boolean;
 
   @Prop()
-  placeholder: string;
+    placeholder: string;
 
   @Prop({ default: false, type: Boolean })
-  loading: boolean;
+    loading: boolean;
 
   onInputHandler(option: IObsListOption<string>) {
     this.emitInput({ ...this.value, value: option ? option.value : null });
   }
 
   get currentValue() {
-    const option = this.value.options.find(opt => {
+    const option = this.value.options.find((opt) => {
       return this.value.value === opt.value;
     });
 

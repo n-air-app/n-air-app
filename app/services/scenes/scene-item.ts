@@ -86,7 +86,7 @@ export class SceneItem extends SceneItemNode {
 
   constructor(sceneId: string, sceneItemId: string, sourceId: string) {
     super();
-    const sceneItemState = this.scenesService.state.scenes[sceneId].nodes.find(item => {
+    const sceneItemState = this.scenesService.state.scenes[sceneId].nodes.find((item) => {
       return item.id === sceneItemId;
     }) as ISceneItem;
     assertIsDefined(sceneItemState);
@@ -240,8 +240,7 @@ export class SceneItem extends SceneItemNode {
   }
 
   loadAttributes() {
-    const { position, scale, visible, crop, rotation, scaleFilter, blendingMode, blendingMethod } =
-      this.getObsSceneItem();
+    const { position, scale, visible, crop, rotation, scaleFilter, blendingMode, blendingMethod } = this.getObsSceneItem();
     this.UPDATE({
       sceneItemId: this.sceneItemId,
       transform: {
@@ -353,7 +352,7 @@ export class SceneItem extends SceneItemNode {
   getItemIndex(): number {
     return this.getScene()
       .getItems()
-      .findIndex(sceneItemModel => sceneItemModel.id === this.id);
+      .findIndex((sceneItemModel) => sceneItemModel.id === this.id);
   }
 
   setScaleFilter(scaleFilter: obs.EScaleType): void {

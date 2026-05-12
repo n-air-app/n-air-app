@@ -93,13 +93,13 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
 
     // load dictionary if not loaded
     if (!this.loadedDictionaries[locale]) {
-      await this.loadDictionary(locale).catch(e => {
+      await this.loadDictionary(locale).catch((e) => {
         console.error(e);
         remote.dialog.showErrorBox(
           'N Air - Error',
-          `${locale}向けの辞書ファイル読み込みに失敗しました。\n` +
-            `Failed to read the dictionary file for ${locale}.\n` +
-            e.message,
+          `${locale}向けの辞書ファイル読み込みに失敗しました。\n`
+            + `Failed to read the dictionary file for ${locale}.\n`
+            + e.message,
         );
       });
     }
@@ -107,13 +107,13 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
     // load fallback dictionary
     const fallbackLocale = this.getFallbackLocale();
     if (!this.loadedDictionaries[fallbackLocale]) {
-      await this.loadDictionary(fallbackLocale).catch(e => {
+      await this.loadDictionary(fallbackLocale).catch((e) => {
         console.error(e);
         remote.dialog.showErrorBox(
           'N Air - Error',
-          `${fallbackLocale}向けの辞書ファイル読み込みに失敗しました。\n` +
-            `Failed to read the dictionary file for ${fallbackLocale}.\n` +
-            e.message,
+          `${fallbackLocale}向けの辞書ファイル読み込みに失敗しました。\n`
+            + `Failed to read the dictionary file for ${fallbackLocale}.\n`
+            + e.message,
         );
       });
     }
@@ -153,7 +153,7 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
   }
 
   getLocaleFormData(): TObsFormData {
-    const options = Object.keys(this.availableLocales).map(locale => {
+    const options = Object.keys(this.availableLocales).map((locale) => {
       return {
         value: locale,
         description: this.availableLocales[locale],
@@ -186,8 +186,8 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
     });
 
     const dictionaryFiles = files
-      .filter(fileName => fileName.endsWith('.json'))
-      .map(fileName => fileName.replace(/\.json$/, ''));
+      .filter((fileName) => fileName.endsWith('.json'))
+      .map((fileName) => fileName.replace(/\.json$/, ''));
 
     const dictionary: Dictionary<string> = {};
     let lastReadFilePath = '';

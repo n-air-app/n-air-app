@@ -161,23 +161,23 @@ export default class SubStreamSettings extends Vue {
     const r = await this.subStreamService.enumEncoderTypes();
     if (r.encoders) {
       this.videoCodecs = r.encoders.video
-        .filter(v => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
-        .map(v => ({
+        .filter((v) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
+        .map((v) => ({
           id: v.id,
           name: `${v.name}`,
         }));
 
       this.videoCodec = this.videoCodecs.find(
-        v => v.id === this.subStreamService.state.videoCodec,
+        (v) => v.id === this.subStreamService.state.videoCodec,
       ) ?? { id: 'obs_x264', name: 'obs_x264' };
 
-      this.audioCodecs = r.encoders.audio.map(v => ({
+      this.audioCodecs = r.encoders.audio.map((v) => ({
         id: v.id,
         name: `${v.name}`,
       }));
 
       this.audioCodec = this.audioCodecs.find(
-        v => v.id === this.subStreamService.state.audioCodec,
+        (v) => v.id === this.subStreamService.state.audioCodec,
       ) ?? { id: 'ffmpeg_aac', name: 'ffmpeg_aac' };
 
       this.startChecker();
@@ -200,8 +200,7 @@ export default class SubStreamSettings extends Vue {
     if (r.frames) statusParts.push(`${$t('settings.substream.info.frames')}: ${r.frames}`);
     if (r.dropped) statusParts.push(`${$t('settings.substream.info.dropped')}: ${r.dropped}`);
 
-    this.status =
-      statusParts.length > 0 ? statusParts.join('\n') : $t('settings.substream.info.stopped');
+    this.status = statusParts.length > 0 ? statusParts.join('\n') : $t('settings.substream.info.stopped');
   }
 
   startChecker() {

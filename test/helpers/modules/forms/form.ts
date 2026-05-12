@@ -39,8 +39,8 @@ export function useForm(name?: string) {
       value: any;
       displayValue: boolean | number | string | string[];
     }[]
-  > {
-    return traverseForm(async input => ({
+    > {
+    return traverseForm(async (input) => ({
       name: input.name,
       value: await input.getValue(),
       displayValue: await input.getDisplayValue(),
@@ -87,7 +87,7 @@ export function useForm(name?: string) {
 
     // check that we filled out all requested fields
     const filledSet = new Set(filledFields);
-    const notFoundFields = Object.keys(formData).filter(k => !filledSet.has(k));
+    const notFoundFields = Object.keys(formData).filter((k) => !filledSet.has(k));
     if (notFoundFields.length) {
       throw new Error(`Inputs or controllers not found: ${notFoundFields.join(',')}`);
     }
@@ -154,7 +154,7 @@ export function useForm(name?: string) {
 
   async function getInput<T extends BaseInputController<unknown>>(name: string) {
     const inputs = await getInputControllers();
-    const input = inputs.find(input => input.name === name) as T;
+    const input = inputs.find((input) => input.name === name) as T;
     return input;
   }
 
@@ -192,7 +192,7 @@ export function useForm(name?: string) {
 
   function stringifyValue(value: unknown) {
     if (Array.isArray(value)) {
-      return value.map(val => String(val));
+      return value.map((val) => String(val));
     }
     return String(value);
   }
@@ -283,7 +283,7 @@ export async function assertFormContains(...args: any[]): Promise<unknown> {
  * Returns an input controller for a specific type
  */
 function getInputControllerForType<
-  TReturnType extends new (...args: any) => BaseInputController<any>,
+  TReturnType extends new(...args: any) => BaseInputController<any>,
 >(type: string): TReturnType {
   const controllerName = pascalize(type) + 'InputController';
   // @ts-expect-error ts7053

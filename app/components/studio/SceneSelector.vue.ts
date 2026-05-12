@@ -105,7 +105,7 @@ export default class SceneSelector extends Vue {
   }
 
   get scenes() {
-    return this.scenesService.scenes.map(scene => {
+    return this.scenesService.scenes.map((scene) => {
       return {
         name: scene.name,
         value: scene.id,
@@ -122,7 +122,7 @@ export default class SceneSelector extends Vue {
         keys: ['name'],
       });
 
-      return fuse.search(this.searchQuery).map(result => result.item);
+      return fuse.search(this.searchQuery).map((result) => result.item);
     }
 
     return list;

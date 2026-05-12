@@ -165,7 +165,7 @@ describe('connectModeratorStream', () => {
       ['123'],
       [],
     ],
-  ])(`should update moderatorsCache on %s`, async (_, moderatorUpdated, initial, expected) => {
+  ])('should update moderatorsCache on %s', async (_, moderatorUpdated, initial, expected) => {
     const { instance, messages } = prepare();
 
     await instance.connectModeratorStream('https://example.com');
@@ -232,7 +232,7 @@ describe('connectModeratorStream', () => {
         byModerator: false,
       },
     ],
-  ])(`should notify on refreshObserver on %s`, async (_, ssngUpdated, event) => {
+  ])('should notify on refreshObserver on %s', async (_, ssngUpdated, event) => {
     const { instance, messages, refreshObserver } = prepare();
 
     await instance.connectModeratorStream('https://example.com');
@@ -277,7 +277,7 @@ describe('isModerator', () => {
   test.each([
     ['123', true],
     ['456', false],
-  ])(`isModerator(%s) should return %s`, (userId, expected) => {
+  ])('isModerator(%s) should return %s', (userId, expected) => {
     const { instance } = prepare();
     instance.state.moderatorsCache = moderators;
     expect(instance.isModerator(userId)).toBe(expected);

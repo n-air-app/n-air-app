@@ -39,8 +39,7 @@ export default class SourceFilters extends Vue {
   sourceId = this.windowOptions.sourceId;
   // @ts-expect-error: ts2729: use before initialization
   filters = this.sourceFiltersService.getFilters(this.sourceId);
-  selectedFilterName =
-    this.windowOptions.selectedFilterName || (this.filters[0] && this.filters[0].name) || null;
+  selectedFilterName = this.windowOptions.selectedFilterName || (this.filters[0] && this.filters[0].name) || null;
   // @ts-expect-error: ts2729: use before initialization
   properties = this.sourceFiltersService.getPropertiesFormData(
     this.sourceId,
@@ -77,7 +76,7 @@ export default class SourceFilters extends Vue {
   }
 
   get nodes() {
-    return this.filters.map(filter => {
+    return this.filters.map((filter) => {
       return {
         title: filter.name,
         isSelected: filter.name === this.selectedFilterName,
@@ -96,7 +95,7 @@ export default class SourceFilters extends Vue {
   }
 
   toggleVisibility(filterName: string) {
-    const sourceFilter = this.filters.find(filter => filter.name === filterName);
+    const sourceFilter = this.filters.find((filter) => filter.name === filterName);
     this.sourceFiltersService.setVisibility(
       this.sourceId,
       sourceFilter.name,
@@ -114,8 +113,8 @@ export default class SourceFilters extends Vue {
     position: ICursorPosition<IFilterNodeData>,
   ) {
     const sourceNode = nodes[0];
-    const sourceInd = this.filters.findIndex(filter => filter.name === sourceNode.title);
-    let targetInd = this.filters.findIndex(filter => filter.name === position.node.title);
+    const sourceInd = this.filters.findIndex((filter) => filter.name === sourceNode.title);
+    let targetInd = this.filters.findIndex((filter) => filter.name === position.node.title);
 
     if (sourceInd < targetInd) {
       targetInd = position.placement === 'before' ? targetInd - 1 : targetInd;

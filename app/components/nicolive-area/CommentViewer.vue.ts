@@ -244,7 +244,7 @@ export default class CommentViewer extends Vue {
             id: 'Undo delete a comment',
             label: 'コメント削除を取り消す',
             click: () => {
-              this.nicoliveCommentViewerService.undoDeleteComment(item.value.id).catch(e => {
+              this.nicoliveCommentViewerService.undoDeleteComment(item.value.id).catch((e) => {
                 if (e instanceof NicoliveFailure) {
                   openErrorDialogFromFailure(e);
                 }
@@ -268,7 +268,7 @@ export default class CommentViewer extends Vue {
                       onClick: () => {
                         this.nicoliveCommentViewerService
                           .undoDeleteComment(item.value.id)
-                          .catch(e => {
+                          .catch((e) => {
                             if (e instanceof NicoliveFailure) {
                               openErrorDialogFromFailure(e);
                             }
@@ -277,7 +277,7 @@ export default class CommentViewer extends Vue {
                     },
                   });
                 })
-                .catch(e => {
+                .catch((e) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
@@ -300,7 +300,7 @@ export default class CommentViewer extends Vue {
                   messageId: `${item.value.id}`,
                   memo: item.value.content,
                 })
-                .catch(e => {
+                .catch((e) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
@@ -383,7 +383,7 @@ export default class CommentViewer extends Vue {
 
   mounted() {
     const sentinelEl = this.$refs.sentinel as HTMLElement;
-    const ioCallback: IntersectionObserverCallback = entries => {
+    const ioCallback: IntersectionObserverCallback = (entries) => {
       this.isLatestVisible = entries[entries.length - 1].isIntersecting;
     };
     const ioOptions = {
@@ -398,7 +398,7 @@ export default class CommentViewer extends Vue {
     this.scrollToLatest();
 
     this.blockingSubscription = this.soundDetectorService.isBlockingObservable.subscribe({
-      next: isBlocking => {
+      next: (isBlocking) => {
         this.isBlocking = isBlocking;
       },
     });

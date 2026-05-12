@@ -60,7 +60,7 @@ export default class SourceSelector extends Vue {
   get nodes(): ISlTreeNodeModel<ISceneItemNode>[] {
     // recursive function for transform SceneNode[] to ISlTreeNodeModel[]
     const getSlVueTreeNodes = (sceneNodes: TSceneNode[]): ISlTreeNodeModel<ISceneItemNode>[] => {
-      return sceneNodes.map(sceneNode => {
+      return sceneNodes.map((sceneNode) => {
         return {
           title: sceneNode.name,
           isSelected: sceneNode.isSelected(),
@@ -145,7 +145,7 @@ export default class SourceSelector extends Vue {
     treeNodesToMove: ISlTreeNode<ISceneItemNode>[],
     position: ICursorPosition<TSceneNode>,
   ) {
-    const nodesToMove = this.scene.getSelection(treeNodesToMove.map(node => node.data.id));
+    const nodesToMove = this.scene.getSelection(treeNodesToMove.map((node) => node.data.id));
 
     const destNode = this.scene.getNode(position.node.data.id);
 
@@ -160,7 +160,7 @@ export default class SourceSelector extends Vue {
   }
 
   makeActive(treeNodes: ISlTreeNode<ISceneItemNode>[], ev: MouseEvent) {
-    const ids = treeNodes.map(treeNode => treeNode.data.id);
+    const ids = treeNodes.map((treeNode) => treeNode.data.id);
     this.selectionService.select(ids);
   }
 

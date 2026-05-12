@@ -6,13 +6,13 @@ import { IObsInput, TObsValue } from './ObsInput';
 @Component({})
 export default class GenericForm extends Vue {
   @Prop()
-  value: IObsInput<TObsValue>[];
+    value: IObsInput<TObsValue>[];
 
   @Prop()
-  category: string;
+    category: string;
 
   @Prop()
-  subCategory: string;
+    subCategory: string;
 
   propertyComponentForType = propertyComponentForType;
 

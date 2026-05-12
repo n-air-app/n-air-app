@@ -22,7 +22,7 @@ export async function logIn(t: TExecutionContext, isOnboardingTest = false): Pro
   };
 
   let canAuth = true;
-  getKeys(authInfo).forEach(key => {
+  getKeys(authInfo).forEach((key) => {
     authInfo[key] = env[key];
     if (!authInfo[key]) {
       console.warn(`Setup env.${key} to run this test`);

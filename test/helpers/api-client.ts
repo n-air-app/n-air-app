@@ -194,7 +194,7 @@ export class ApiClient {
     data
       .toString()
       .split('\n')
-      .forEach(rawMessage => {
+      .forEach((rawMessage) => {
         if (!rawMessage) return;
         const message = JSON.parse(rawMessage);
         const request = this.requests[message.id];
@@ -238,7 +238,7 @@ export class ApiClient {
 
   unsubscribeAll(): Promise<any> {
     return Promise.all(
-      Object.keys(this.subscriptions).map(subscriptionId => this.unsubscribe(subscriptionId)),
+      Object.keys(this.subscriptions).map((subscriptionId) => this.unsubscribe(subscriptionId)),
     );
   }
 
@@ -298,7 +298,7 @@ export class ApiClient {
 
   fetchNextEvent(): Promise<IJsonRpcEvent> {
     return new Promise((resolve, reject) => {
-      this.eventReceived.pipe(first()).subscribe(event => resolve(event));
+      this.eventReceived.pipe(first()).subscribe((event) => resolve(event));
       setTimeout(() => reject('Promise timeout'), PROMISE_TIMEOUT);
     });
   }
@@ -347,13 +347,13 @@ class ApiEventWatcher {
 
   constructor(private apiClient: ApiClient, private eventNames: string[]) {
     // start watching for events
-    this.subscriptions = this.eventNames.map(eventName => {
+    this.subscriptions = this.eventNames.map((eventName) => {
       const [resourceId, prop] = eventName.split('.');
       const observable = this.apiClient.getResource<Dictionary<Observable<any>>>(resourceId)[prop];
       return observable.subscribe(() => undefined);
     });
 
-    this.apiClient.eventReceived.subscribe(event => this.onEventHandler(event));
+    this.apiClient.eventReceived.subscribe((event) => this.onEventHandler(event));
   }
 
   /**
@@ -386,7 +386,7 @@ class ApiEventWatcher {
   }
 
   private getReceivedEventNames(): string[] {
-    return this.receivedEvents.map(ev => ev.resourceId);
+    return this.receivedEvents.map((ev) => ev.resourceId);
   }
 
   private onEventHandler(event: IJsonRpcEvent) {

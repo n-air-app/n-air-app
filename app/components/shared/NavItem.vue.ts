@@ -11,19 +11,19 @@ interface INavMenu {
 @Component({})
 export default class NavItem extends Vue {
   @Prop()
-  to: string;
+    to: string;
 
   @Prop()
-  ico: string;
+    ico: string;
 
   @Prop({ default: true, type: Boolean })
-  enabled: boolean;
+    enabled: boolean;
 
   @Prop({ default: false, type: Boolean })
-  showArrow: boolean;
+    showArrow: boolean;
 
   @Prop({ default: true, type: Boolean })
-  isTocOpen: boolean;
+    isTocOpen: boolean;
 
   expanded = false;
 

@@ -72,7 +72,7 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
           };
         };
       } catch (error) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('in', 'NVoiceSynthesizer:speakText');
           scope.setExtra('speech', speech);

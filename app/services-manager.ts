@@ -45,13 +45,13 @@ export class ServicesManager extends Service {
     if (!Utils.isMainWindow()) {
       this.internalApiClient = new InternalApiClient();
       // redirect all services methods calls to the main window's services
-      Service.setupProxy(service => this.internalApiClient.applyIpcProxy(service));
+      Service.setupProxy((service) => this.internalApiClient.applyIpcProxy(service));
       // don't call the init method for all services
-      Service.setupInitFunction(service => null);
+      Service.setupInitFunction((service) => null);
     } else {
       // if it's a main window, subscribe to serviceAfterInit event
       // to initialize services with `InitAfter()` decorator
-      Service.serviceAfterInit.subscribe(service => this.initObservers(service));
+      Service.serviceAfterInit.subscribe((service) => this.initObservers(service));
     }
   }
 
@@ -60,10 +60,10 @@ export class ServicesManager extends Service {
    */
   private initObservers(observableService: Service): Service[] {
     const observeList: ObserveList = ObserveList.instance;
-    const items = observeList.observations.filter(item => {
+    const items = observeList.observations.filter((item) => {
       return item.observableServiceName === observableService.serviceName;
     });
-    return items.map(item => this.getService(item.observerServiceName).instance);
+    return items.map((item) => this.getService(item.observerServiceName).instance);
   }
 
   getService(serviceName: string) {
@@ -72,7 +72,7 @@ export class ServicesManager extends Service {
 
   getStatefulServicesAndMutators(): Dictionary<typeof StatefulService> {
     const statefulServices: Dictionary<any> = {};
-    Object.keys(this.services).forEach(serviceName => {
+    Object.keys(this.services).forEach((serviceName) => {
       const ServiceClass = this.services[serviceName];
       const isStatefulService = ServiceClass['initialState'];
       const isMutator = ServiceClass.prototype.mutations;

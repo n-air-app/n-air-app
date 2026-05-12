@@ -142,7 +142,7 @@ export class TranscriptionSourceService extends Service {
   getTranscriptionItemsInActiveScene(): SceneItem[] {
     const scene = this.scenesService.activeScene;
     if (!scene) return [];
-    return scene.getItems().filter(item => {
+    return scene.getItems().filter((item) => {
       const sourceDetails = this.sourcesService.getSource(item.sourceId).getComparisonDetails();
       return sourceDetails.propertiesManager === 'text_transcription';
     });

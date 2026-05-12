@@ -58,10 +58,10 @@ export class DefaultManager extends PropertiesManager {
     // TODO: ホットキーのフォームが未実装
     if (this.obsSource.id === 'game_capture') {
       const captureModeProp = propArray.find(
-        prop => prop.name === 'capture_mode',
+        (prop) => prop.name === 'capture_mode',
       ) as IObsListInput<TObsValue>;
       if (captureModeProp) {
-        captureModeProp.options = captureModeProp.options.filter(option => {
+        captureModeProp.options = captureModeProp.options.filter((option) => {
           return option.value !== 'hotkey';
         });
       }
@@ -103,8 +103,7 @@ export class DefaultManager extends PropertiesManager {
     newSettings['font'] = { ...settings['font'] };
     newSettings['font'] = newSettings['font'] || {};
     newSettings['font']['face'] = fontInfo.family_name;
-    newSettings['font']['flags'] =
-      (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
+    newSettings['font']['flags'] = (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
 
     this.obsSource.update(newSettings);
   }

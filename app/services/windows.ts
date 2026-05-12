@@ -152,7 +152,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
       const bounds = window.getBounds();
       const currentDisplay = remote.screen.getDisplayMatching(bounds);
       if (!currentDisplay) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setExtra('windowId', windowId);
           scope.setExtra('bounds', bounds);
           scope.setTag('module', 'windows');
@@ -327,8 +327,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     // サイズ指定をコンストラクタで行うと、メインモニタより大きなウィンドウを作れない
     // enableLargerThanScreenを指定しても効かなかったので後から明示的に与える
     const width = options.size && typeof options.size.width === 'number' ? options.size.width : 400;
-    const height =
-      options.size && typeof options.size.height === 'number' ? options.size.height : 400;
+    const height = options.size && typeof options.size.height === 'number' ? options.size.height : 400;
     newWindow.setSize(width, height);
     if (options.limitMinimumSize) {
       newWindow.setMinimumSize(width, height);
@@ -356,7 +355,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
    */
   closeAllOneOffs(): Promise<any> {
     const closingPromises: Promise<void>[] = [];
-    Object.keys(this.windows).forEach(windowId => {
+    Object.keys(this.windows).forEach((windowId) => {
       if (windowId === 'main') return;
       if (windowId === 'child') return;
       this.closeOneOffWindow(windowId);
@@ -367,7 +366,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   async closeOneOffWindow(windowId: string): Promise<void> {
     if (!this.windows[windowId] || this.windows[windowId].isDestroyed()) return;
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       this.windows[windowId].on('closed', resolve);
       this.windows[windowId].close();
       await this.waitWindowCleanup(windowId);

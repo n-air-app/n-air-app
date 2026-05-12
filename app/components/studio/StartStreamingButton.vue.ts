@@ -91,12 +91,12 @@ export default class StartStreamingButton extends Vue {
 
   get isDisabled() {
     return (
-      this.disabled ||
-      this.programFetching ||
-      (this.streamingStatus === EStreamingState.Starting &&
-        this.streamingService.delaySecondsRemaining === 0) ||
-      (this.streamingStatus === EStreamingState.Ending &&
-        this.streamingService.delaySecondsRemaining === 0)
+      this.disabled
+      || this.programFetching
+      || (this.streamingStatus === EStreamingState.Starting
+        && this.streamingService.delaySecondsRemaining === 0)
+      || (this.streamingStatus === EStreamingState.Ending
+        && this.streamingService.delaySecondsRemaining === 0)
     );
   }
 

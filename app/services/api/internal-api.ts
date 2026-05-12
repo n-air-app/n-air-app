@@ -22,8 +22,8 @@ export class InternalApiService extends RpcApi {
     // the errors for the child-window API are anomaly
     // re-raise error for Raven to log these errors
     errors
-      .filter(e => e instanceof Error)
-      .forEach(e => {
+      .filter((e) => e instanceof Error)
+      .forEach((e) => {
         const isChildWindowRequest = request.params && request.params.fetchMutations;
         if (isChildWindowRequest) {
           setTimeout(() => {

@@ -34,7 +34,7 @@ export default class EditableSceneCollection extends Vue {
   }
 
   get collection() {
-    return this.sceneCollectionsService.collections.find(coll => coll.id === this.collectionId);
+    return this.sceneCollectionsService.collections.find((coll) => coll.id === this.collectionId);
   }
 
   get modified() {

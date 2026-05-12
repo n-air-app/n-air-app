@@ -68,7 +68,7 @@ export class ListInputController<TValue> extends BaseInputController<TValue> {
 
   async hasOption(label: string): Promise<boolean> {
     const options = await this.getOptions();
-    const option = options.find(opt => opt.label === label);
+    const option = options.find((opt) => opt.label === label);
     return !!option;
   }
 
@@ -87,7 +87,7 @@ export class ListInputController<TValue> extends BaseInputController<TValue> {
    */
   async selectMatch(condition: string | RegExp) {
     const options = await this.getOptions(true);
-    const opt = options.find(opt => opt.label.match(condition));
+    const opt = options.find((opt) => opt.label.match(condition));
     if (!opt) {
       throw new Error(`Can not find matching option: ${condition}`);
     }
@@ -98,9 +98,9 @@ export class ListInputController<TValue> extends BaseInputController<TValue> {
 // DEFINE SETTERS FOR the `fillForm()` method
 
 export function selectFirst(): TFiledSetterFn<ListInputController<unknown>> {
-  return listInput => listInput.selectFirst();
+  return (listInput) => listInput.selectFirst();
 }
 
 export function selectMatch(condition: string): TFiledSetterFn<ListInputController<unknown>> {
-  return listInput => listInput.selectMatch(condition);
+  return (listInput) => listInput.selectMatch(condition);
 }

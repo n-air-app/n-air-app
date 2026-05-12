@@ -28,7 +28,7 @@ export class ProtocolLinksService extends Service {
 
   start(argv: string[]) {
     // Check if this instance was started with a protocol link
-    argv.forEach(arg => {
+    argv.forEach((arg) => {
       if (arg.match(/^n-air-app:\/\//)) this.handleLink(arg);
     });
 

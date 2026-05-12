@@ -58,7 +58,7 @@ export default class SoundDetectorSettings extends Vue {
     this.speakingSubscription = new Subscription();
     this.speakingSubscription.add(
       this.nicoliveCommentSynthesizerService.speaking.subscribe({
-        next: speaking => {
+        next: (speaking) => {
           this.speaking = speaking;
           this.triggerNextTestPlaybackIfNeeded();
         },
@@ -99,7 +99,7 @@ export default class SoundDetectorSettings extends Vue {
   sourceMutedSubscription: Subscription;
   subscribeMuted() {
     this.sourceMutedSubscription = this.soundDetectorService.sourceMuted.subscribe({
-      next: muted => {
+      next: (muted) => {
         this.sourceMuted = muted;
       },
     });
@@ -112,7 +112,7 @@ export default class SoundDetectorSettings extends Vue {
   sourceAvailableSubscription: Subscription;
   subscribeSourceAvailable() {
     this.sourceAvailableSubscription = this.soundDetectorService.sourceAvailable.subscribe({
-      next: available => {
+      next: (available) => {
         this.sourceAvailable = available;
       },
     });
@@ -166,7 +166,7 @@ export default class SoundDetectorSettings extends Vue {
   startSoundDetection() {
     this.nicoliveCommentSynthesizerService.enableSoundDetector(true);
     this.soundDetectSubscription = this.soundDetectorService.soundDetectedObservable.subscribe({
-      next: detected => {
+      next: (detected) => {
         this.soundDetected = detected.soundDetected;
       },
     });
@@ -200,13 +200,13 @@ export default class SoundDetectorSettings extends Vue {
         description: 'マイクまたはボイスチェンジャー(自動)',
         value: 'mic',
       },
-      ...sources.map(source => ({
+      ...sources.map((source) => ({
         description: source.name,
         value: source.sourceId,
       })),
     ];
     // 選択中のソースがオプションに存在しない場合、不在表示を追加
-    if (sourceId !== null && sourceId !== 'mic' && !options.some(o => o.value === sourceId)) {
+    if (sourceId !== null && sourceId !== 'mic' && !options.some((o) => o.value === sourceId)) {
       options.push({ description: '(このシーンにありません)', value: sourceId });
     }
     return {
@@ -286,6 +286,6 @@ export default class SoundDetectorSettings extends Vue {
     this.audioSourcesVersion;
     return this.soundDetectorService
       .getEffectiveWatchSources(this.soundDetectorService.state.sourceId)
-      .filter(source => !source.muted);
+      .filter((source) => !source.muted);
   }
 }

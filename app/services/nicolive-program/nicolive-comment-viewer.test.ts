@@ -91,8 +91,7 @@ jest.mock('services/nicolive-program/state', () => ({
   NicoliveProgramStateService: {},
 }));
 
-const sendChatMock = jest_fn<
-  (chat: WrappedMessageWithComponent, state: HttpRelationState) => Promise<Object>
+const sendChatMock = jest_fn<(chat: WrappedMessageWithComponent, state: HttpRelationState) => Promise<Object>
 >()
   .mockName('HttpRelation.sendChat')
   .mockResolvedValue({ result: '' });
@@ -167,7 +166,7 @@ test('status=endedが流れてきたらunsubscribeし、refreshProgramも呼ぶ'
       },
     };
   });
-  jest.spyOn(window, 'setTimeout').mockImplementation(callback => callback() as any);
+  jest.spyOn(window, 'setTimeout').mockImplementation((callback) => callback() as any);
   const refreshProgram = jest.fn().mockName('refreshProgram');
   setup({ injectee: { NicoliveProgramService: { stateChange, refreshProgram } } });
 
@@ -638,7 +637,7 @@ test('NGにかかるコメントは読み上げない', async () => {
   const NOW_SEC = 600;
   jest.spyOn(Date, 'now').mockImplementation(() => NOW_SEC * 1000);
 
-  ['OK', 'NG'].forEach(content => {
+  ['OK', 'NG'].forEach((content) => {
     clientSubject.next({
       chat: {
         content,
@@ -696,7 +695,7 @@ test('HTTP連携: コメント送信', async () => {
     { date: NOW_SEC - DROP_THRESHOLD_SEC, comment: 'old' },
     { date: NOW_SEC - DROP_THRESHOLD_SEC + 1, comment: 'new' },
   ].forEach(({ date, comment }) =>
-    [comment, 'NG', NG_WORD].forEach(content => {
+    [comment, 'NG', NG_WORD].forEach((content) => {
       clientSubject.next({
         chat: {
           content,

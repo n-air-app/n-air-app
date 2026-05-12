@@ -70,8 +70,7 @@ test('Scene switching with sources', async (t: TExecutionContext) => {
 test('Restarting the app preserves the default sources', async (t: TExecutionContext) => {
   const client = await getApiClient();
   const sceneName = 'Coolest Scene Ever';
-  const sceneCollectionsService =
-    client.getResource<SceneCollectionsService>('SceneCollectionsService');
+  const sceneCollectionsService = client.getResource<SceneCollectionsService>('SceneCollectionsService');
 
   await addScene(sceneName);
 
@@ -87,7 +86,7 @@ test('Restarting the app preserves the default sources', async (t: TExecutionCon
   t.pass();
 });
 
-test('Rename scene', async t => {
+test('Rename scene', async (t) => {
   const newSceneName = 'Scene2';
 
   await openRenameWindow(DefaultSceneName);
@@ -100,7 +99,7 @@ test('Rename scene', async t => {
   t.pass();
 });
 
-test('Duplicate scene', async t => {
+test('Duplicate scene', async (t) => {
   const sceneName = 'My Scene';
   await addScene(sceneName);
   await focusMain();

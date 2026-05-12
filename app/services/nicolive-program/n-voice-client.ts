@@ -40,8 +40,8 @@ async function playAudio(
               audio.pause();
             }
           })
-          .catch(err => {
-            Sentry.withScope(scope => {
+          .catch((err) => {
+            Sentry.withScope((scope) => {
               scope.setLevel('error');
               scope.setTag('in', 'playAudio:pause');
               Sentry.captureException(err);
@@ -57,8 +57,8 @@ async function playAudio(
               audio.play();
             }
           })
-          .catch(err => {
-            Sentry.withScope(scope => {
+          .catch((err) => {
+            Sentry.withScope((scope) => {
               scope.setLevel('error');
               scope.setTag('in', 'playAudio:resume');
               Sentry.captureException(err);
@@ -72,8 +72,8 @@ async function playAudio(
           .then(() => {
             audio.pause();
           })
-          .catch(err => {
-            Sentry.withScope(scope => {
+          .catch((err) => {
+            Sentry.withScope((scope) => {
               scope.setLevel('error');
               scope.setTag('in', 'playAudio:cancel');
               Sentry.captureException(err);
@@ -208,7 +208,7 @@ export class NVoiceClientService
           if (!paused) {
             const now = Date.now();
             checkPointOffset += now - checkPointTime;
-            paused = new Promise(resolve => {
+            paused = new Promise((resolve) => {
               resolvePaused = resolve;
             });
             pause();

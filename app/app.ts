@@ -38,7 +38,7 @@ const logFunctions = ['log', 'info', 'warn', 'error'] as const;
 function wrapLogFn(fn: (typeof logFunctions)[number]) {
   const old: Function = console[fn];
   console[fn] = (...args: any[]) => {
-    const fixedArgs = args.map(arg => {
+    const fixedArgs = args.map((arg) => {
       try {
         if (typeof arg === 'object' && arg !== null) {
           // Vue のプロキシオブジェクトを通常のオブジェクトに変換してログ出力
@@ -59,7 +59,7 @@ function wrapLogFn(fn: (typeof logFunctions)[number]) {
 
 function sendLogMsg(level: string, ...args: any[]) {
   const serialized = args
-    .map(arg => {
+    .map((arg) => {
       if (typeof arg === 'string') return arg;
 
       return util.inspect(arg);
@@ -71,11 +71,11 @@ function sendLogMsg(level: string, ...args: any[]) {
 
 logFunctions.forEach(wrapLogFn);
 
-window.addEventListener('error', e => {
+window.addEventListener('error', (e) => {
   sendLogMsg('error', e.error);
 });
 
-window.addEventListener('unhandledrejection', e => {
+window.addEventListener('unhandledrejection', (e) => {
   sendLogMsg('error', e.reason);
 });
 
@@ -104,7 +104,7 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
   console.error = (msg: string, ...params: any[]) => {
     oldConsoleError(msg, ...params);
 
-    Sentry.withScope(scope => {
+    Sentry.withScope((scope) => {
       if (params[0] instanceof Error) {
         scope.setExtra('exception', params[0].stack);
       }
@@ -123,10 +123,10 @@ require('./theme2.less');
 Vue.directive('tooltip', tooltipDirective);
 
 // Disable chrome default drag/drop behavior
-document.addEventListener('dragover', event => event.preventDefault());
-document.addEventListener('dragenter', event => event.preventDefault());
-document.addEventListener('drop', event => event.preventDefault());
-document.addEventListener('auxclick', event => event.preventDefault());
+document.addEventListener('dragover', (event) => event.preventDefault());
+document.addEventListener('dragenter', (event) => event.preventDefault());
+document.addEventListener('drop', (event) => event.preventDefault());
+document.addEventListener('auxclick', (event) => event.preventDefault());
 
 const locale = remote.app.getLocale();
 
@@ -158,7 +158,7 @@ const showDialog = (message: string): void => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  createStore().then(async store => {
+  createStore().then(async (store) => {
     const windowsService: WindowsService = WindowsService.instance;
 
     if (Utils.isMainWindow()) {
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // load notFoundKeys from file
     if (!isProduction) {
       const keys: string[] = await ipcRenderer.invoke('loadI18nNotFoundKeys');
-      keys.forEach(key => notFoundKeys.add(key));
+      keys.forEach((key) => notFoundKeys.add(key));
     }
 
     const i18n = new VueI18n({
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
       el: '#app',
       i18n,
       store,
-      render: h => {
+      render: (h) => {
         if (windowId === 'child') return h(ChildWindow);
         if (windowId === 'main') {
           const componentName = windowsService.state[windowId].componentName;
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 if (Utils.isDevMode()) {
   window.addEventListener('error', () => ipcRenderer.send('showErrorAlert'));
-  window.addEventListener('keyup', ev => {
+  window.addEventListener('keyup', (ev) => {
     if (ev.key === 'F12') electron.ipcRenderer.send('openDevTools');
   });
 }

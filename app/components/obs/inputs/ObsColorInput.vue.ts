@@ -46,7 +46,7 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsInput<number>;
+    value: IObsInput<number>;
   testingAnchor = `Form/Color/${this.value.name}`;
 
   pickerVisible = false;

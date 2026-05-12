@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
   new Vue({
     el: '#app',
     i18n,
-    render: createEl => {
+    render: (createEl) => {
       return createEl(UpdaterWindow);
     },
   });

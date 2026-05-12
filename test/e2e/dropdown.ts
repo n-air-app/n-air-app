@@ -3,7 +3,7 @@ import { test, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver();
 
-test('Dropdown interaction in output settings', async t => {
+test('Dropdown interaction in output settings', async (t) => {
   const client = t.context.app.client;
 
   await focusMain();

@@ -18,7 +18,7 @@ describe('WebSpeechSynthesizer', () => {
     ['test', 1, 0],
     ['', 0, 0],
   ])(
-    `speakText(%s speak:%i cancel:%i)`,
+    'speakText(%s speak:%i cancel:%i)',
     async (text: string, numSpeak: number, numCancel: number) => {
       const speakMock = jest.fn();
       const cancelMock = jest.fn();

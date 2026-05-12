@@ -10,7 +10,7 @@ let showSourceProps: (name: string) => void;
 
 useWebdriver({ restartAppAfterEachTest: false });
 useScreentest();
-afterAppStart(async t => {
+afterAppStart(async (t) => {
   const types: TSourceType[] = [
     'image_source',
     'color_source',
@@ -32,7 +32,7 @@ afterAppStart(async t => {
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const sourcesService = client.getResource<ISourcesServiceApi>('SourcesService');
 
-  types.forEach(type => {
+  types.forEach((type) => {
     scenesService.activeScene.createAndAddSource(type, type);
   });
 
@@ -43,69 +43,69 @@ afterAppStart(async t => {
   };
 });
 
-test('image_source', async t => {
+test('image_source', async (t) => {
   await showSourceProps('image_source');
   t.pass();
 });
 
-test('color_source', async t => {
+test('color_source', async (t) => {
   await showSourceProps('color_source');
   t.pass();
 });
 
-test('browser_source', async t => {
+test('browser_source', async (t) => {
   await showSourceProps('browser_source');
   t.pass();
 });
 
-test('slideshow', async t => {
+test('slideshow', async (t) => {
   await showSourceProps('slideshow');
   t.pass();
 });
 
-test('ffmpeg_source', async t => {
+test('ffmpeg_source', async (t) => {
   await showSourceProps('ffmpeg_source');
   t.pass();
 });
 
-test('text_gdiplus', async t => {
+test('text_gdiplus', async (t) => {
   await showSourceProps('text_gdiplus');
   await sleep(1500); // the font selector rendering is very slow
   t.pass();
 });
 
-test('text_ft2_source', async t => {
+test('text_ft2_source', async (t) => {
   await showSourceProps('text_ft2_source');
   await sleep(1500); // the font selector rendering is very slow
   t.pass();
 });
 
-test('monitor_capture', async t => {
+test('monitor_capture', async (t) => {
   await showSourceProps('monitor_capture');
   t.pass();
 });
 
-test('game_capture', async t => {
+test('game_capture', async (t) => {
   await showSourceProps('game_capture');
   t.pass();
 });
 
-test('dshow_input', async t => {
+test('dshow_input', async (t) => {
   await showSourceProps('dshow_input');
   t.pass();
 });
 
-test('wasapi_input_capture', async t => {
+test('wasapi_input_capture', async (t) => {
   await showSourceProps('wasapi_input_capture');
   t.pass();
 });
 
-test('wasapi_output_capture', async t => {
+test('wasapi_output_capture', async (t) => {
   await showSourceProps('wasapi_output_capture');
   t.pass();
 });
 
-test('ndi_source', async t => {
+test('ndi_source', async (t) => {
   await showSourceProps('ndi_source');
   t.pass();
 });

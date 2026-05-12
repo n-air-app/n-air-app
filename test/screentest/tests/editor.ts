@@ -8,12 +8,12 @@ import { useScreentest } from '../screenshoter';
 useWebdriver({ restartAppAfterEachTest: false });
 useScreentest();
 
-test('Editor without sources', async t => {
+test('Editor without sources', async (t) => {
   const client = await getApiClient();
   t.pass();
 });
 
-test('Editor with sources', async t => {
+test('Editor with sources', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const sourcesService = client.getResource<ISourcesServiceApi>('SourcesService');
@@ -25,7 +25,7 @@ test('Editor with sources', async t => {
   t.pass();
 });
 
-test('Editor with the big amount of sources and scenes', async t => {
+test('Editor with the big amount of sources and scenes', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
 

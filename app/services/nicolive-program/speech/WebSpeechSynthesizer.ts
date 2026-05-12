@@ -19,7 +19,7 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
         return null;
       }
       if (!this.speakingPromise) {
-        this.speakingPromise = new Promise(resolve => {
+        this.speakingPromise = new Promise((resolve) => {
           this.speakingResolve = resolve;
         });
       }
@@ -37,7 +37,7 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
         }
         onend();
       };
-      uttr.onerror = e => {
+      uttr.onerror = (e) => {
         Sentry.captureEvent({
           message: 'speechSynthesis.onerror',
           level: ['interrupted', 'canceled'].includes(e.error) ? 'info' : 'warning',

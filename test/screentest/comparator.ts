@@ -55,7 +55,7 @@ const parsedImages: { [imageName: string]: IParsedImage } = {};
 
   console.log('read images...');
 
-  await new Promise<void>(resolve => {
+  await new Promise<void>((resolve) => {
     let parsedImagesCount = 0;
 
     const doneReading = (count: number) => {

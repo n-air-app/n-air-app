@@ -59,9 +59,9 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
 
     // soundThresholdDb の不正値補正（NaN/Infinity/範囲外 → デフォルト値に戻す）
     if (
-      !Number.isFinite(this.state.soundThresholdDb) ||
-      this.state.soundThresholdDb < -96 ||
-      this.state.soundThresholdDb > 0
+      !Number.isFinite(this.state.soundThresholdDb)
+      || this.state.soundThresholdDb < -96
+      || this.state.soundThresholdDb > 0
     ) {
       this.setState({ soundThresholdDb: SoundDetectorService.defaultState.soundThresholdDb });
     }
@@ -111,7 +111,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.internalSubscriptions = new Subscription();
     this.internalSubscriptions.add(
       this.stateUpdated.subscribe({
-        next: state => {
+        next: (state) => {
           if (state.sourceId !== this.state.sourceId) {
             this.endSoundDetected();
             this.subscribeAudioSource(this.getEffectiveWatchSources(state.sourceId));
@@ -168,17 +168,16 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     return this.soundDetectedSubject.getValue().soundDetected;
   }
 
-  speechActionObservable: Observable<'pause' | 'cancel' | 'graceful' | 'resume'> =
-    this.soundDetectedObservable.pipe(
-      map(({ soundDetected }) => soundDetected === 'loud'),
-      distinctUntilChanged(),
-      map((soundDetected: boolean) => {
-        if (soundDetected) {
-          return this.state.speechActionOnSoundDetected;
-        }
-        return 'resume';
-      }),
-    );
+  speechActionObservable: Observable<'pause' | 'cancel' | 'graceful' | 'resume'> = this.soundDetectedObservable.pipe(
+    map(({ soundDetected }) => soundDetected === 'loud'),
+    distinctUntilChanged(),
+    map((soundDetected: boolean) => {
+      if (soundDetected) {
+        return this.state.speechActionOnSoundDetected;
+      }
+      return 'resume';
+    }),
+  );
 
   /**
    * 現在の音声再生を実際にブロックしているかどうか
@@ -256,13 +255,13 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   ) {
     this.audioSourcesSubject.next(audioSources);
     const newSourcesMap = new Map<string, Subscription>(
-      audioSources.map(source => {
+      audioSources.map((source) => {
         const id = source.sourceId;
         return [
           id,
-          this.audioSubscriptions.get(id) ??
-          (() => {
-            return source.getVolmeterStream().subscribe(volmeter => {
+          this.audioSubscriptions.get(id)
+          ?? (() => {
+            return source.getVolmeterStream().subscribe((volmeter) => {
               if (volmeter.peak.some((p: number) => isFinite(p))) {
                 if (volmeter.peak.some((p: number) => p > this.state.soundThresholdDb)) {
                   this.startSoundDetected();
@@ -288,7 +287,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.updateSourceAvailable();
   }
   unsubscribeAudioSource() {
-    this.audioSubscriptions.forEach(sub => sub.unsubscribe());
+    this.audioSubscriptions.forEach((sub) => sub.unsubscribe());
     this.audioSubscriptions.clear();
     this.updateSourceMuted();
     this.updateSourceAvailable();
@@ -299,7 +298,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     const candidates = this.getCandidateWatchSources(this.state.sourceId);
     // ソースが存在し、すべてミュートされている場合のみ true
     // ソースが存在しない（シーン切り替えで対象ソースがない場合など）は false
-    const muted = candidates.length > 0 && candidates.every(s => s.muted);
+    const muted = candidates.length > 0 && candidates.every((s) => s.muted);
     this.sourceMutedSubject.next(muted);
   }
 
@@ -326,15 +325,15 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
       return [];
     }
     if (watchSourceId === 'mic') {
-      return sources.filter(s =>
+      return sources.filter((s) =>
         ['wasapi_input_capture', 'nair-rtvc-source'].includes(s.source.type),
       );
     }
-    return sources.filter(s => s.sourceId === watchSourceId);
+    return sources.filter((s) => s.sourceId === watchSourceId);
   }
   getEffectiveWatchSources(watchSourceId: ISoundDetectorState['sourceId']): AudioSource[] {
     // mutedなソースは監視対象から除外
-    return this.getCandidateWatchSources(watchSourceId).filter(s => !s.muted);
+    return this.getCandidateWatchSources(watchSourceId).filter((s) => !s.muted);
   }
 
   get isDialogShown(): boolean {

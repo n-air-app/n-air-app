@@ -9,7 +9,7 @@ class ObsPathInput extends ObsInput<IObsPathInputValue> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsPathInputValue;
+    value: IObsPathInputValue;
   testingAnchor = `Form/Path/${this.value.name}`;
 
   $refs: {

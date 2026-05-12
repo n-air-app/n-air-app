@@ -33,11 +33,11 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
   };
 
   get collections() {
-    return this.state.collections.filter(coll => !coll.deleted);
+    return this.state.collections.filter((coll) => !coll.deleted);
   }
 
   get activeCollection() {
-    return this.collections.find(coll => coll.id === this.state.activeId);
+    return this.collections.find((coll) => coll.id === this.state.activeId);
   }
 
   /**
@@ -103,7 +103,7 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
     if (!Array.isArray(obj.collections)) return;
 
     // Filter out collections we can't recover, and fix ones we can
-    const filtered = obj.collections.filter(coll => {
+    const filtered = obj.collections.filter((coll) => {
       // If there is no id, this is unrecoverable
       if (coll.id == null) return false;
 
@@ -180,13 +180,13 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
    * Creates the scene collections directory if it doesn't exist
    */
   async ensureDirectory() {
-    const exists = await new Promise(resolve => {
-      fs.exists(this.collectionsDirectory, exists => resolve(exists));
+    const exists = await new Promise((resolve) => {
+      fs.exists(this.collectionsDirectory, (exists) => resolve(exists));
     });
 
     if (!exists) {
       await new Promise<void>((resolve, reject) => {
-        fs.mkdir(this.collectionsDirectory, err => {
+        fs.mkdir(this.collectionsDirectory, (err) => {
           if (err) {
             reject(err);
             return;
@@ -227,22 +227,22 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
 
   @mutation()
   SET_NEEDS_RENAME(id: string) {
-    this.state.collections.find(coll => coll.id === id).needsRename = true;
+    this.state.collections.find((coll) => coll.id === id).needsRename = true;
   }
 
   @mutation()
   SET_MODIFIED(id: string, modified: string) {
-    this.state.collections.find(coll => coll.id === id).modified = modified;
+    this.state.collections.find((coll) => coll.id === id).modified = modified;
   }
 
   @mutation()
   SET_SERVER_ID(id: string, serverId: number) {
-    this.state.collections.find(coll => coll.id === id).serverId = serverId;
+    this.state.collections.find((coll) => coll.id === id).serverId = serverId;
   }
 
   @mutation()
   RENAME_COLLECTION(id: string, name: string, modified: string) {
-    const coll = this.state.collections.find(coll => coll.id === id);
+    const coll = this.state.collections.find((coll) => coll.id === id);
     coll.name = name;
     coll.modified = modified;
     coll.needsRename = false;
@@ -250,17 +250,17 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
 
   @mutation()
   DELETE_COLLECTION(id: string) {
-    this.state.collections.find(coll => coll.id === id).deleted = true;
+    this.state.collections.find((coll) => coll.id === id).deleted = true;
   }
 
   @mutation()
   HARD_DELETE_COLLECTION(id: string) {
-    this.state.collections = this.state.collections.filter(coll => coll.id !== id);
+    this.state.collections = this.state.collections.filter((coll) => coll.id !== id);
   }
 
   @mutation()
   LOAD_STATE(state: ISceneCollectionsManifest) {
-    getKeys(state).forEach(key => {
+    getKeys(state).forEach((key) => {
       Vue.set(this.state, key, state[key]);
     });
   }

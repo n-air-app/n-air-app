@@ -73,7 +73,7 @@
             </span>
 
             <slot name="title" :node="node">{{ node.title }}</slot>
-            
+
             <slot name="empty-node" :node="node" v-if="!node.isLeaf && node.children.length == 0 && node.isExpanded">
             </slot>
 
@@ -111,7 +111,7 @@
           <template slot="sidebar" slot-scope="{ node }">
             <slot name="sidebar" :node="node"></slot>
           </template>
-          
+
           <template slot="empty-node" slot-scope="{ node }">
             <slot name="empty-node" :node="node" v-if="!node.isLeaf && node.children.length == 0 && node.isExpanded">
             </slot>
@@ -148,5 +148,4 @@
 </template>
 
 <script lang="ts" src="./sl-vue-tree.vue.ts"></script>
-
 

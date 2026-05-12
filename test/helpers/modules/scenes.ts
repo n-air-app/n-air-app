@@ -60,5 +60,5 @@ export async function openDuplicateWindow(sourceName: string) {
 }
 
 export async function sceneExisting(name: string) {
-  return getClient().$(`[data-test="SceneSelector"]`).$(`[data-test="${name}"]`).isExisting();
+  return getClient().$('[data-test="SceneSelector"]').$(`[data-test="${name}"]`).isExisting();
 }

@@ -65,7 +65,7 @@ interface ISceneCollectionInternalCreateOptions extends ISceneCollectionCreateOp
  */
 export class SceneCollectionsService extends Service implements ISceneCollectionsServiceApi {
   @Inject('SceneCollectionsStateService')
-  stateService: SceneCollectionsStateService;
+    stateService: SceneCollectionsStateService;
   @Inject() scenesService: ScenesService;
   @Inject() sourcesService: SourcesService;
   @Inject() appService: AppService;
@@ -107,7 +107,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       let latestId = this.collections[0].id;
       let latestModified = this.collections[0].modified;
 
-      this.collections.forEach(collection => {
+      this.collections.forEach((collection) => {
         if (collection.modified > latestModified) {
           latestModified = collection.modified;
           latestId = collection.id;
@@ -246,7 +246,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       await this.setActiveCollection(id);
       loadErrors = await this.readCollectionDataAndLoadIntoApplicationState(id);
     } catch (e) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('error');
         scope.setTag('service', 'SceneCollectionsService');
         scope.setTag('method', 'load');
@@ -292,7 +292,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
       // Note: err.name already includes the type for sources (e.g., "Source Name [source_type]")
       // So we don't append (${err.type}) to avoid duplication
-      const itemList = sortedLoadErrors.map(err => `- ${err.name}`).join('\n');
+      const itemList = sortedLoadErrors.map((err) => `- ${err.name}`).join('\n');
       console.warn('Partial load errors:', loadErrors);
 
       // Get collection name for better context
@@ -317,7 +317,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         return acc;
       }, {});
 
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('warning');
         scope.setTag('service', 'SceneCollectionsService');
         scope.setTag('method', 'load');
@@ -354,9 +354,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.startLoadingOperation();
     await this.deloadCurrentApplicationState();
 
-    const name =
-      options.name ||
-      this.suggestName(
+    const name = options.name
+      || this.suggestName(
         $t('scenes.sceneCollectionDefaultName', { fallback: DEFAULT_COLLECTION_NAME }),
       );
     const id: string = uuidv4();
@@ -427,7 +426,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.enableAutoSave();
   }
 
-
   /**
    * Based on the provided name, suggest a new name that does
    * not conflict with any current name.
@@ -439,7 +437,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    */
   suggestName(name: string) {
     return namingHelpers.suggestName(name, (name: string) => {
-      return !!this.collections.find(collection => {
+      return !!this.collections.find((collection) => {
         return collection.name === name;
       });
     });
@@ -483,7 +481,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * @param id the id of the collection
    */
   getCollection(id: string): ISceneCollectionsManifestEntry {
-    return this.collections.find(coll => coll.id === id);
+    return this.collections.find((coll) => coll.id === id);
   }
 
   /**
@@ -493,11 +491,11 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   fetchSceneCollectionsSchema(): Promise<ISceneCollectionSchema[]> {
     const promises: Promise<ISceneCollectionSchema>[] = [];
 
-    this.collections.forEach(collection => {
+    this.collections.forEach((collection) => {
       const data = this.stateService.readCollectionFile(collection.id);
 
       promises.push(
-        new Promise<ISceneCollectionSchema>(resolve => {
+        new Promise<ISceneCollectionSchema>((resolve) => {
           const root = parse(data, NODE_TYPES);
           const collectionSchema: ISceneCollectionSchema = {
             id: collection.id,
@@ -507,7 +505,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
               return {
                 id: sceneData.id,
                 name: sceneData.name,
-                sceneItems: sceneData.sceneItems.data.items.map(sceneItemData => {
+                sceneItems: sceneData.sceneItems.data.items.map((sceneItemData) => {
                   return {
                     sceneItemId: sceneItemData.id,
                     sourceId: (sceneItemData as ISceneItemInfo).sourceId,
@@ -625,7 +623,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
     // we should remove inactive scenes first to avoid the switching between scenes
     try {
-      this.scenesService.scenes.forEach(scene => {
+      this.scenesService.scenes.forEach((scene) => {
         if (scene.id === this.scenesService.activeSceneId) return;
         scene.remove(true);
       });
@@ -634,7 +632,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         this.scenesService.activeScene.remove(true);
       }
 
-      this.sourcesService.sources.forEach(source => {
+      this.sourcesService.sources.forEach((source) => {
         if (source.type !== 'scene') source.remove();
       });
 
@@ -714,14 +712,14 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   private async insertCollection(id: string, name: string) {
     await this.saveCurrentApplicationStateAs(id);
     this.stateService.ADD_COLLECTION(id, name, new Date().toISOString());
-    this.collectionAdded.next(this.collections.find(coll => coll.id === id));
+    this.collectionAdded.next(this.collections.find((coll) => coll.id === id));
   }
 
   /**
    * Deletes on the server and removes from the store
    */
   private async removeCollection(id: string) {
-    this.collectionRemoved.next(this.collections.find(coll => coll.id === id));
+    this.collectionRemoved.next(this.collections.find((coll) => coll.id === id));
     this.stateService.DELETE_COLLECTION(id);
 
     // Currently we don't remove files on disk in case we need to recover them
@@ -745,7 +743,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   }
 
   private async setActiveCollection(id: string) {
-    const collection = this.collections.find(coll => coll.id === id);
+    const collection = this.collections.find((coll) => coll.id === id);
 
     if (collection) {
       this.stateService.SET_ACTIVE_COLLECTION(id);
@@ -761,12 +759,12 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * Migrates to V2 scene collections if needed.
    */
   private async migrate() {
-    const legacyExists = await new Promise<boolean>(resolve => {
-      fs.exists(this.legacyDirectory, exists => resolve(exists));
+    const legacyExists = await new Promise<boolean>((resolve) => {
+      fs.exists(this.legacyDirectory, (exists) => resolve(exists));
     });
 
-    const newExists = await new Promise<boolean>(resolve => {
-      fs.exists(this.stateService.collectionsDirectory, exists => resolve(exists));
+    const newExists = await new Promise<boolean>((resolve) => {
+      fs.exists(this.stateService.collectionsDirectory, (exists) => resolve(exists));
     });
 
     if (legacyExists && !newExists) {
@@ -781,7 +779,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         });
       });
 
-      const filtered = files.filter(file => {
+      const filtered = files.filter((file) => {
         if (file.match(/\.bak$/)) return false;
         const name = file.replace(/\.[^/.]+$/, '');
         if (!name) return false;
@@ -820,7 +818,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
         if (parsed['activeCollection']) {
           const name = parsed['activeCollection'];
-          const collection = this.collections.find(coll => coll.name === name);
+          const collection = this.collections.find((coll) => coll.name === name);
 
           if (collection) await this.setActiveCollection(collection.id);
         }

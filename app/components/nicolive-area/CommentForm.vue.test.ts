@@ -119,8 +119,7 @@ describe('CommentForm', () => {
       sendOperatorComment: jest_fn<(text: string, isPermanent: boolean) => Promise<void>>()
         .mockName('sendOperatorComment')
         .mockResolvedValue(undefined),
-      sendNormalComment: jest_fn<
-        (text: string, vpos: number, modifier: CommentModifier) => Promise<void>
+      sendNormalComment: jest_fn<(text: string, vpos: number, modifier: CommentModifier) => Promise<void>
       >()
         .mockName('sendNormalComment')
         .mockResolvedValue(undefined),

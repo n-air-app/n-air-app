@@ -6,7 +6,7 @@ class ObsNumberInput extends ObsInput<IObsInput<number>> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsInput<number>;
+    value: IObsInput<number>;
   testingAnchor = `Form/Number/${this.value.name}`;
 
   $refs: {

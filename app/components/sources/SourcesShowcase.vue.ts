@@ -81,8 +81,8 @@ export default class SourcesShowcase extends Vue {
 
     // 自動文字起こしソースを追加する際に自動文字起こしが有効になっていない場合は迷わないように案内を表示する
     if (
-      this.inspectedSource === 'text_transcription' &&
-      this.transcriptionService.activeStatus() !== 'active'
+      this.inspectedSource === 'text_transcription'
+      && this.transcriptionService.activeStatus() !== 'active'
     ) {
       remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
         type: 'info',
@@ -140,7 +140,7 @@ export default class SourcesShowcase extends Vue {
   }
 
   get availableSources() {
-    return this.sourcesService.getAvailableSourcesTypesList().filter(type => {
+    return this.sourcesService.getAvailableSourcesTypesList().filter((type) => {
       if (type.value === 'text_ft2_source') return false;
       if (type.value === 'scene' && this.scenesService.scenes.length <= 1) return false;
       return true;

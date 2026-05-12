@@ -91,7 +91,7 @@ test('SettingsKeyAccessor#traverseKeyDescriptions', () => {
 
   // 分岐の選択されている側のみの値が得られること
   outputMode = 'Simple';
-  const simpleResult = [...a.traverseKeyDescriptions(simpleDescriptions, d => [d.key, d.setting])];
+  const simpleResult = [...a.traverseKeyDescriptions(simpleDescriptions, (d) => [d.key, d.setting])];
 
   expect(accessor.findSettingValue).toHaveBeenCalledTimes(1);
   expect(accessor.findSettingValue).toHaveBeenLastCalledWith(undefined, 'Untitled', 'Mode');
@@ -103,7 +103,7 @@ test('SettingsKeyAccessor#traverseKeyDescriptions', () => {
 
   outputMode = 'Advanced';
   const advancedResult = [
-    ...a.traverseKeyDescriptions(advancedDescriptions, d => [d.key, d.setting]),
+    ...a.traverseKeyDescriptions(advancedDescriptions, (d) => [d.key, d.setting]),
   ];
   expect(advancedResult).toEqual([
     [OptimizationKey.outputMode, 'Mode'],
@@ -125,7 +125,7 @@ test('iterateKeyDescriptions', () => {
     simpleUseAdvanced: true,
     encoderPreset: 'ultrafast',
   };
-  const pairs = [...iterateKeyDescriptions(best, AllKeyDescriptions)].map(desc => [
+  const pairs = [...iterateKeyDescriptions(best, AllKeyDescriptions)].map((desc) => [
     desc.key,
     desc.setting,
   ]);
@@ -153,7 +153,7 @@ test('iterateKeyDescriptions: AMD encoder', () => {
     encoder: EncoderFamily.amd,
     simpleUseAdvanced: false,
   };
-  const pairs = [...iterateKeyDescriptions(best, AllKeyDescriptions)].map(desc => [
+  const pairs = [...iterateKeyDescriptions(best, AllKeyDescriptions)].map((desc) => [
     desc.key,
     desc.setting,
   ]);

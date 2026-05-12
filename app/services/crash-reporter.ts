@@ -56,7 +56,7 @@ export class CrashReporterService extends Service {
   endStartup() {
     this.setState(EAppState.Idle);
 
-    this.streamingSubscription = this.streamingService.streamingStatusChange.subscribe(status => {
+    this.streamingSubscription = this.streamingService.streamingStatusChange.subscribe((status) => {
       if (status === EStreamingState.Live) {
         this.setState(EAppState.Streaming);
       }

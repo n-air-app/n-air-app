@@ -8,7 +8,7 @@ describe('extractPlatform', () => {
     ['rtmps://1.2.3.4/', '1.2'], // first 2 numbers
     ['invalid', 'invalid'], // invalid URL: return original string
     ['invalid', 'invalid'], // invalid URL: return original string
-  ])(`%s -> %s`, (url, expected) => {
+  ])('%s -> %s', (url, expected) => {
     expect(extractPlatform(url)).toBe(expected);
   });
 });

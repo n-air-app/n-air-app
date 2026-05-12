@@ -6,7 +6,7 @@ class ObsBoolInput extends ObsInput<IObsInput<boolean>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsInput<boolean>;
+    value: IObsInput<boolean>;
   testingAnchor = `Form/Bool/${this.value.name}`;
 
   handleClick() {

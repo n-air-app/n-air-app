@@ -71,7 +71,7 @@ function makeEmulatedChat(
 class DummyMessageServerClient implements IMessageServerClient {
   connect(): Observable<MessageResponse> {
     return interval(2000).pipe(
-      map(res => ({
+      map((res) => ({
         chat: makeEmulatedChat(`${res}番のコメントですよ`).value,
       })),
     );
@@ -165,7 +165,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   // なふだがoff なら名前を消す
   get filterNameplate(): (chat: WrappedMessageWithComponent) => WrappedMessageWithComponent {
     if (!this.nicoliveProgramStateService.state.nameplateEnabled) {
-      return chat => {
+      return (chat) => {
         if (!isWrappedChat(chat)) {
           return chat;
         }
@@ -179,7 +179,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
         };
       };
     } else {
-      return chat => chat;
+      return (chat) => chat;
     }
   }
 
@@ -199,14 +199,14 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
         })),
         distinctUntilChanged((prev, curr) => prev.viewUri === curr.viewUri),
       )
-      .subscribe(state => this.onNextConfig(state));
+      .subscribe((state) => this.onNextConfig(state));
 
     // 番組接続時にNVoiceエンジンをプリフェッチする
     this.nicoliveProgramService.stateChange
       .pipe(
         map(({ viewUri }) => viewUri),
         distinctUntilChanged(),
-        filter(viewUri => !!viewUri),
+        filter((viewUri) => !!viewUri),
       )
       .subscribe(() => {
         this.nicoliveCommentSynthesizerService.prefetchNVoice();
@@ -226,7 +226,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     this.nicoliveCommentFilterService.stateChange.subscribe(() => {
       // updateMessagesはPinまで更新してしまうが、ここではpinは更新しない
       this.SET_STATE({
-        messages: this.state.messages.map(chat =>
+        messages: this.state.messages.map((chat) =>
           this.nicoliveCommentFilterService.applyFilter(chat),
         ),
       });
@@ -235,7 +235,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     // モデレーターが変化したらコメントを更新する
     this.nicoliveModeratorsService.stateChange.subscribe({
       next: () => {
-        this.updateMessages(chat => ({
+        this.updateMessages((chat) => ({
           ...chat,
           isModerator: this.nicoliveModeratorsService.isModerator(chat.value.user_id),
         }));
@@ -243,7 +243,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     });
 
     this.nicoliveModeratorsService.refreshObserver.subscribe({
-      next: event => {
+      next: (event) => {
         switch (event.event) {
           case 'addSSNG':
             {
@@ -257,8 +257,8 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
           case 'removeSSNG':
             // 放送者自身が削除したときはすでにキャッシュも更新されているし通知も不要
             if (
-              event.byModerator ||
-              !this.nicoliveCommentFilterService.isBroadcastersFilter(event.record)
+              event.byModerator
+              || !this.nicoliveCommentFilterService.isBroadcastersFilter(event.record)
             ) {
               const { ssngId, userName, userId } = event.record;
               const record = this.nicoliveCommentFilterService.findFilterCache(ssngId);
@@ -325,7 +325,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
 
   private updateMessages(updater: (chat: WrappedChatWithComponent) => WrappedChatWithComponent) {
     this.SET_STATE({
-      messages: this.state.messages.map(chat => {
+      messages: this.state.messages.map((chat) => {
         if (isWrappedChat(chat)) {
           return updater(chat);
         }
@@ -351,7 +351,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
 
         // サポーター情報が更新されたら既存コメントのサポーター情報も更新する
         if (this.state.messages.length > 0) {
-          this.updateMessages(chat => ({
+          this.updateMessages((chat) => ({
             ...chat,
             isSupporter: isSupporter(chat.value.user_id),
           }));
@@ -371,7 +371,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
 
     this.lastSubscription = merge(
       clientSubject.pipe(
-        groupBy(msg => Object.keys(msg)[0]),
+        groupBy((msg) => Object.keys(msg)[0]),
         mergeMap((group$): Observable<Pick<WrappedMessage, 'type' | 'value'>> => {
           switch (group$.key) {
             case 'chat':
@@ -468,10 +468,10 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
               return EMPTY;
           }
         }),
-        catchError(err => {
+        catchError((err) => {
           console.info('Failed to connect comment stream', err);
           if (isNdgrFetchError(err)) {
-            Sentry.withScope(scope => {
+            Sentry.withScope((scope) => {
               scope.setTags(err.getTagsForSentry());
               scope.setFingerprint([
                 'NicoliveCommentViewerService.connect',
@@ -482,7 +482,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
             });
             return of(makeEmulatedChat('コメントの取得に失敗しました'));
           } else {
-            Sentry.withScope(scope => {
+            Sentry.withScope((scope) => {
               scope.setFingerprint(['NicoliveCommentViewerService.connect', err.message]);
               Sentry.captureException(err);
             });
@@ -501,9 +501,9 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       .pipe(
         map(({ type, value }, seqId) => ({ type, value, seqId })),
         bufferTime(1000),
-        filter(arr => arr.length > 0),
-        map(arr =>
-          arr.map(m => {
+        filter((arr) => arr.length > 0),
+        map((arr) =>
+          arr.map((m) => {
             if (isWrappedChat(m) && m.type === 'normal' && m.value.user_id) {
               return this.nicoliveCommentFilterService.applyFilter({
                 ...m,
@@ -515,7 +515,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
           }),
         ),
       )
-      .subscribe(values => this.onMessage(values.map(c => AddComponent(c as WrappedMessage))));
+      .subscribe((values) => this.onMessage(values.map((c) => AddComponent(c as WrappedMessage))));
   }
 
   showUserInfo(userId: string, userName: string, isPremium: boolean, isSupporter: boolean) {
@@ -565,7 +565,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
 
       const nowSeconds = Date.now() / 1000;
 
-      const valuesForSpeech = values.filter(c => {
+      const valuesForSpeech = values.filter((c) => {
         if (!c.value || !c.value.date) {
           return false;
         }
@@ -581,7 +581,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       // send to http relation
       const httpRelation = this.nicoliveProgramStateService.state.httpRelation;
       if (httpRelation && httpRelation.method) {
-        valuesForSpeech.forEach(a => {
+        valuesForSpeech.forEach((a) => {
           HttpRelation.sendChat(a, httpRelation);
         });
       }
@@ -589,11 +589,11 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       if (this.nicoliveProgramStateService.state.nameplateHint === undefined) {
         // なふだヒントをまだ表示したことがない場合、最初のなふだ付きコメントにヒントをつける
         const firstCommentWithName = values.find(
-          c =>
-            isWrappedChat(c) &&
-            !!c.value.name &&
-            c.value.no &&
-            !(c.value.user_id && this.nicoliveProgramService.isBroadcaster(c.value.user_id)), // 放送者の通常コメントは除外
+          (c) =>
+            isWrappedChat(c)
+            && !!c.value.name
+            && c.value.no
+            && !(c.value.user_id && this.nicoliveProgramService.isBroadcaster(c.value.user_id)), // 放送者の通常コメントは除外
         );
         if (firstCommentWithName && isWrappedChat(firstCommentWithName)) {
           this.nicoliveProgramService.checkNameplateHint(firstCommentWithName.value.no);
@@ -627,7 +627,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
           error: 'Unhandled exception in onMessage',
         },
         extra: {
-          values: values.map(v => {
+          values: values.map((v) => {
             try {
               return getDisplayText(v);
             } catch (e) {
@@ -655,7 +655,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     await this.nicoliveProgramService.deleteCommentRaw(commentId);
 
     // コメント一覧のコメントを削除に変更する
-    this.updateMessages(chat => {
+    this.updateMessages((chat) => {
       if (isWrappedChat(chat) && chat.value.id === commentId) {
         return {
           ...chat,
@@ -674,7 +674,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     await this.nicoliveProgramService.undoDeleteCommentRaw(commentId);
 
     // コメント一覧のコメントの削除を解除する
-    this.updateMessages(chat => {
+    this.updateMessages((chat) => {
       if (isWrappedChat(chat) && chat.value.id === commentId) {
         return {
           ...chat,

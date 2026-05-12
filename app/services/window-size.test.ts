@@ -200,8 +200,7 @@ describe('refreshWindowSize', () => {
       });
 
       const { WindowSizeService } = target();
-      const updateWindowSize =
-        jest_fn<(typeof WindowSizeService)['updateWindowSize']>().mockName('updateWindowSize');
+      const updateWindowSize = jest_fn<(typeof WindowSizeService)['updateWindowSize']>().mockName('updateWindowSize');
       // inject spy
       WindowSizeService.updateWindowSize = updateWindowSize;
 
@@ -430,10 +429,10 @@ describe('isAlwaysOnTop', () => {
   // 初期化時と、変化時のパターンをテストする
 
   type InputTuple = [null | boolean, boolean, boolean, boolean];
-  const inputPatterns = [null, true].flatMap(panelOpened =>
-    [false, true].flatMap(compactMode =>
+  const inputPatterns = [null, true].flatMap((panelOpened) =>
+    [false, true].flatMap((compactMode) =>
       [false, true].map(
-        compactAlwaysOnTop =>
+        (compactAlwaysOnTop) =>
           [
             panelOpened,
             compactMode,
@@ -445,15 +444,15 @@ describe('isAlwaysOnTop', () => {
   );
 
   type CombinationTuple = [...InputTuple, ...InputTuple];
-  const combinations: CombinationTuple[] = inputPatterns.flatMap(inits => {
+  const combinations: CombinationTuple[] = inputPatterns.flatMap((inits) => {
     const [panelOpened, compactMode, compactAlwaysOnTop, expected] = inits;
     // init と next で一致しないものについてテストする
     return inputPatterns
       .filter(([nextPanelOpened, nextCompactMode, nextCompactAlwaysOnTop]) => {
         return (
-          nextPanelOpened !== panelOpened ||
-          nextCompactMode !== compactMode ||
-          nextCompactAlwaysOnTop !== compactAlwaysOnTop
+          nextPanelOpened !== panelOpened
+          || nextCompactMode !== compactMode
+          || nextCompactAlwaysOnTop !== compactAlwaysOnTop
         );
       })
       .map(

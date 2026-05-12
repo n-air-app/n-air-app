@@ -6,40 +6,40 @@ import { useWebdriver } from '../helpers/webdriver';
 
 useWebdriver({ restartAppAfterEachTest: false });
 
-test('Creating, fetching and removing sources', async t => {
+test('Creating, fetching and removing sources', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const sourcesService = client.getResource<ISourcesServiceApi>('SourcesService');
   const scene = scenesService.activeScene;
-  const presetSceneItemNames = scene.getItems().map(item => item['name']);
+  const presetSceneItemNames = scene.getItems().map((item) => item['name']);
 
   const colorSource1 = sourcesService.createSource('MyColorSource1', 'color_source');
   const colorItem2 = scene.createAndAddSource('MyColorSource2', 'color_source');
 
   const sources = sourcesService.getSources();
 
-  t.truthy(sources.find(source => source.name === 'MyColorSource1'));
-  t.truthy(sources.find(source => source.name === 'MyColorSource2'));
+  t.truthy(sources.find((source) => source.name === 'MyColorSource1'));
+  t.truthy(sources.find((source) => source.name === 'MyColorSource2'));
 
   const colorItem1 = scene.addSource(colorSource1.sourceId);
   let sceneItemNames = scene
     .getItems()
-    .map(item => item['name'])
-    .filter(i => !presetSceneItemNames.includes(i));
+    .map((item) => item['name'])
+    .filter((i) => !presetSceneItemNames.includes(i));
 
   t.deepEqual(sceneItemNames, ['MyColorSource1', 'MyColorSource2']);
 
   scene.removeItem(colorItem1.sceneItemId);
   colorItem2.remove();
-  sceneItemNames = scene.getItems().map(item => item['name']);
+  sceneItemNames = scene.getItems().map((item) => item['name']);
 
   t.deepEqual(
-    sceneItemNames.filter(i => !presetSceneItemNames.includes(i)),
+    sceneItemNames.filter((i) => !presetSceneItemNames.includes(i)),
     [],
   );
 });
 
-test('Source events', async t => {
+test('Source events', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const sourcesService = client.getResource<ISourcesServiceApi>('SourcesService');

@@ -9,7 +9,7 @@ class ObsResolutionInput extends ObsInput<IObsListInput<TObsValue>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsListInput<TObsValue>;
+    value: IObsListInput<TObsValue>;
   testingAnchor = `Form/Resolution/${this.value.name}`;
 
   onInputHandler(option: IObsListOption<string>) {
@@ -17,7 +17,7 @@ class ObsResolutionInput extends ObsInput<IObsListInput<TObsValue>> {
   }
 
   get currentValue() {
-    let option = this.value.options.find(opt => {
+    let option = this.value.options.find((opt) => {
       return this.value.value === opt.value;
     });
 

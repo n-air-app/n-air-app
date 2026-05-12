@@ -15,7 +15,7 @@ import SuccessfullyImported from './onboarding_steps/SuccessfullyImported.vue';
 })
 export default class Onboarding extends Vue {
   @Inject()
-  onboardingService: OnboardingService;
+    onboardingService: OnboardingService;
 
   get currentView() {
     return this.onboardingService.currentStep;

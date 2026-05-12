@@ -41,7 +41,7 @@ export class KeyListenerService extends Service {
   }
 
   unregisterAll(namespace = 'global') {
-    Object.keys(this.bindings).forEach(keystr => {
+    Object.keys(this.bindings).forEach((keystr) => {
       if (this.bindings[keystr][namespace]) {
         this.unregister(this.bindings[keystr][namespace], namespace);
       }
@@ -59,7 +59,7 @@ export class KeyListenerService extends Service {
       const success = this.libuiohook.registerCallback({
         ...binding,
         callback: () => {
-          Object.keys(this.bindings[keystr]).forEach(namespace => {
+          Object.keys(this.bindings[keystr]).forEach((namespace) => {
             this.bindings[keystr][namespace].callback();
           });
         },
@@ -91,8 +91,8 @@ export class KeyListenerService extends Service {
   // Returns a string used for fast lookup of this keybinding
   private getKeyString(binding: IKeyBinding) {
     return (
-      `${binding.key}-${binding.eventType}-${!!binding.modifiers.alt}-` +
-      `${!!binding.modifiers.ctrl}-${!!binding.modifiers.shift}-${!!binding.modifiers.meta}`
+      `${binding.key}-${binding.eventType}-${!!binding.modifiers.alt}-`
+      + `${!!binding.modifiers.ctrl}-${!!binding.modifiers.shift}-${!!binding.modifiers.meta}`
     );
   }
 }

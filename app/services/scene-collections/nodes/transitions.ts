@@ -50,7 +50,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
 
   async save() {
     this.data = {
-      transitions: this.transitionsService.state.transitions.map(transition => {
+      transitions: this.transitionsService.state.transitions.map((transition) => {
         const actualType = transition.type;
         const isLegacy = LEGACY_COMPATIBLE_TYPES.has(actualType);
         return {
@@ -65,7 +65,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
           ),
         };
       }),
-      connections: this.transitionsService.state.connections.map(connection => {
+      connections: this.transitionsService.state.connections.map((connection) => {
         return {
           fromSceneId: connection.fromSceneId,
           toSceneId: connection.toSceneId,
@@ -79,7 +79,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
   async load() {
     // Double check we are starting from a blank state
     this.transitionsService.deleteAllTransitions();
-    this.data.transitions.forEach(transition => {
+    this.data.transitions.forEach((transition) => {
       const type = transition.typeV2 ?? transition.type;
       this.transitionsService.createTransition(type, transition.name, {
         id: transition.id,
@@ -91,7 +91,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
 
     // Double check we are starting from a blank state
     this.transitionsService.deleteAllConnections();
-    this.data.connections.forEach(connection => {
+    this.data.connections.forEach((connection) => {
       this.transitionsService.addConnection(
         connection.fromSceneId,
         connection.toSceneId,

@@ -4,8 +4,8 @@ import { Component, Prop } from 'vue-property-decorator';
 @Component({})
 export default class AddSourceInfo extends Vue {
   @Prop()
-  sourceType: string;
+    sourceType: string;
 
   @Prop({ default: true, type: Boolean })
-  showAttention: boolean;
+    showAttention: boolean;
 }

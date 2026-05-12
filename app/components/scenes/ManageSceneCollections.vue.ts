@@ -41,7 +41,7 @@ export default class ManageSceneCollections extends Vue {
         keys: ['name'],
       });
 
-      return fuse.search(this.searchQuery).map(result => result.item);
+      return fuse.search(this.searchQuery).map((result) => result.item);
     }
 
     return list;
