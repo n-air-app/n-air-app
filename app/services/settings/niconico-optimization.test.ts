@@ -38,6 +38,30 @@ const outputSettings: ISettingsSubCategory[] = [
   },
 ];
 
+const outputSettingsAmd: ISettingsSubCategory[] = [
+  {
+    nameSubCategory: 'Untitled',
+    parameters: [
+      {
+        name: 'Mode',
+        description: 'outputMode',
+        value: 'Simple',
+      },
+    ],
+  },
+  {
+    nameSubCategory: 'Streaming',
+    parameters: [
+      {
+        name: 'StreamEncoder',
+        description: 'StreamEncoder',
+        value: 'amd',
+        options: [{ value: 'amd', description: 'amd' }],
+      },
+    ],
+  },
+];
+
 class MockSettingAccessor implements ISettingsAccessor {
   getSettingsFormData(categoryName: string): ISettingsSubCategory[] {
     if (categoryName === 'Output') {
@@ -74,7 +98,17 @@ test('mock outputSettings', () => {
 });
 
 describe('getBestSettingsForNiconico', () => {
+  class MockSettingAccessorAmd extends MockSettingAccessor {
+    getSettingsFormData(categoryName: string): ISettingsSubCategory[] {
+      if (categoryName === 'Output') {
+        return outputSettingsAmd;
+      }
+      return [];
+    }
+  }
+
   const accessor = new SettingsKeyAccessor(new MockSettingAccessor());
+  const accessorAmd = new SettingsKeyAccessor(new MockSettingAccessorAmd());
   const commonSettings: Partial<OptimizeSettings> = {
     simpleUseAdvanced: true,
     audioSampleRate: 48000,
@@ -91,6 +125,11 @@ describe('getBestSettingsForNiconico', () => {
     ...commonSettings,
     encoder: EncoderFamily.qsv,
     targetUsage: 'speed',
+  };
+  const amdSettings: Partial<OptimizeSettings> = {
+    ...commonSettings,
+    simpleUseAdvanced: false,
+    encoder: EncoderFamily.amd,
   };
 
   test.each([
@@ -138,4 +177,16 @@ describe('getBestSettingsForNiconico', () => {
       expect(settings).toEqual(shouldBe);
     },
   );
+  test('AMD encoder is selected when available', () => {
+    const settings = getBestSettingsForNiconico(
+      { bitrate: 6000, height: 1080, fps: 30 },
+      accessorAmd,
+    );
+    expect(settings).toEqual({
+      ...amdSettings,
+      quality: '1920x1080',
+      audioBitrate: '192',
+      videoBitrate: 6000 - 192,
+    });
+  });
 });
