@@ -1,7 +1,7 @@
 import Display from 'components/shared/Display.vue';
-import StudioControls from 'components/StudioControls.vue';
-import StudioEditor from 'components/StudioEditor.vue';
-import StudioModeControls from 'components/StudioModeControls.vue';
+import StudioControls from 'components/studio/StudioControls.vue';
+import StudioEditor from 'components/studio/StudioEditor.vue';
+import StudioModeControls from 'components/studio/StudioModeControls.vue';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';

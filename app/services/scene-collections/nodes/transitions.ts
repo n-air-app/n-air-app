@@ -3,10 +3,25 @@ import { Inject } from 'services/core/injector';
 import { ETransitionType, TransitionsService } from 'services/transitions';
 import { Node } from './node';
 
+// motion_transition 追加前から存在していた型。旧フィールド(type)に書いても旧バージョンが安全に読める。
+// 新しい型を追加する際はここに追加しないこと — 旧版互換 fallback の意味が失われる。
+const LEGACY_COMPATIBLE_TYPES = new Set<string>([
+  'cut_transition',
+  'fade_transition',
+  'swipe_transition',
+  'slide_transition',
+  'fade_to_color_transition',
+  'wipe_transition',
+  'obs_stinger_transition',
+]);
+
 interface ITransition {
   id: string;
   name: string;
+  // 旧バージョン互換フィールド: 常にレガシー互換型(cut 等)を入れる。新型は typeV2 を使う。
   type: ETransitionType;
+  // 新型(motion 等)を保存するフィールド。旧バージョンは無視するため破壊的変更なし。
+  typeV2?: ETransitionType;
   duration: number;
   settings: Dictionary<TObsValue>;
   propertiesManagerSettings?: Dictionary<any>;
@@ -36,10 +51,13 @@ export class TransitionsNode extends Node<ISchema, {}> {
   async save() {
     this.data = {
       transitions: this.transitionsService.state.transitions.map(transition => {
+        const actualType = transition.type;
+        const isLegacy = LEGACY_COMPATIBLE_TYPES.has(actualType);
         return {
           id: transition.id,
           name: transition.name,
-          type: transition.type,
+          type: isLegacy ? actualType : ETransitionType.Cut,
+          ...(isLegacy ? {} : { typeV2: actualType }),
           duration: transition.duration,
           settings: this.transitionsService.getSettings(transition.id),
           propertiesManagerSettings: this.transitionsService.getPropertiesManagerSettings(
@@ -62,7 +80,8 @@ export class TransitionsNode extends Node<ISchema, {}> {
     // Double check we are starting from a blank state
     this.transitionsService.deleteAllTransitions();
     this.data.transitions.forEach(transition => {
-      this.transitionsService.createTransition(transition.type, transition.name, {
+      const type = transition.typeV2 ?? transition.type;
+      this.transitionsService.createTransition(type, transition.name, {
         id: transition.id,
         duration: transition.duration,
         settings: transition.settings,

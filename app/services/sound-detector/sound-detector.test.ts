@@ -65,6 +65,9 @@ function prepare(
     soundThresholdDb?: number;
     resumeSilenceMs?: number;
     noSignalTimeoutMs?: number;
+    calibrated?: boolean;
+    declined?: boolean;
+    dialogShown?: boolean;
   } = {},
 ) {
   // AudioService
@@ -101,7 +104,10 @@ function prepare(
     options.speechActionOnSoundDetected !== undefined ||
     options.soundThresholdDb !== undefined ||
     options.resumeSilenceMs !== undefined ||
-    options.noSignalTimeoutMs !== undefined
+    options.noSignalTimeoutMs !== undefined ||
+    options.calibrated !== undefined ||
+    options.declined !== undefined ||
+    options.dialogShown !== undefined
   ) {
     stateOverride.SoundDetectorService = {};
     if (options.speechActionOnSoundDetected !== undefined) {
@@ -116,6 +122,15 @@ function prepare(
     }
     if (options.noSignalTimeoutMs !== undefined) {
       stateOverride.SoundDetectorService.noSignalTimeoutMs = options.noSignalTimeoutMs;
+    }
+    if (options.calibrated !== undefined) {
+      stateOverride.SoundDetectorService.calibrated = options.calibrated;
+    }
+    if (options.declined !== undefined) {
+      stateOverride.SoundDetectorService.declined = options.declined;
+    }
+    if (options.dialogShown !== undefined) {
+      stateOverride.SoundDetectorService.dialogShown = options.dialogShown;
     }
   }
 
@@ -488,15 +503,6 @@ describe('SoundDetectorService', () => {
     });
   });
 
-  describe('markDeclined', () => {
-    test('declined=true かつ enabled=false になること', () => {
-      const { instance } = prepare();
-      instance.markDeclined();
-      expect(instance.state.declined).toBe(true);
-      expect(instance.state.enabled).toBe(false);
-    });
-  });
-
   describe('isBlockingObservable', () => {
     test('pause の場合は loud でブロックする', () => {
       const { instance, micStream } = prepare({ speechActionOnSoundDetected: 'pause' });
@@ -598,6 +604,36 @@ describe('SoundDetectorService', () => {
       });
       cancelTest.micStream.next({ peak: [cancelTest.instance.state.soundThresholdDb + 1] } as IVolmeter);
       expect(cancelBlocking).toBe(true);
+    });
+  });
+
+  describe('calibrated/declined → dialogShown マイグレーション', () => {
+    test('calibrated=true のユーザーは dialogShown=true になり calibrated はクリアされる', () => {
+      const { instance } = prepare({ calibrated: true });
+      expect(instance.state.dialogShown).toBe(true);
+      expect(instance.state.calibrated).toBe(false);
+    });
+
+    test('declined=true のユーザーは dialogShown=true になり declined はクリアされる', () => {
+      const { instance } = prepare({ declined: true });
+      expect(instance.state.dialogShown).toBe(true);
+      expect(instance.state.declined).toBe(false);
+    });
+
+    test('calibrated=true かつ既に dialogShown=true の場合も calibrated はクリアされる', () => {
+      const { instance } = prepare({ calibrated: true, dialogShown: true });
+      expect(instance.state.dialogShown).toBe(true);
+      expect(instance.state.calibrated).toBe(false);
+    });
+
+    test('calibrated=false, declined=false の場合は dialogShown に影響しない', () => {
+      const { instance } = prepare({ calibrated: false, declined: false });
+      expect(instance.state.dialogShown).toBe(false);
+    });
+
+    test('calibrated/declined 未設定（新規ユーザー）は dialogShown=false のまま', () => {
+      const { instance } = prepare();
+      expect(instance.state.dialogShown).toBe(false);
     });
   });
 });

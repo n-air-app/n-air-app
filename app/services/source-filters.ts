@@ -34,6 +34,9 @@ export type TSourceFilterType =
   | 'noise_suppress_filter'
   | 'noise_gate_filter'
   | 'compressor_filter'
+  | 'limiter_filter'
+  | 'expander_filter'
+  | 'invert_polarity_filter'
   | 'vst_filter';
 
 interface ISourceFilterType {
@@ -76,6 +79,9 @@ export class SourceFiltersService extends Service {
       { description: $t('filters.noiseSuppression'), value: 'noise_suppress_filter' },
       { description: $t('filters.noiseGate'), value: 'noise_gate_filter' },
       { description: $t('filters.compressor'), value: 'compressor_filter' },
+      { description: $t('filters.limiter'), value: 'limiter_filter' },
+      { description: $t('filters.expander'), value: 'expander_filter' },
+      { description: $t('filters.invertPolarity'), value: 'invert_polarity_filter' },
       { description: $t('filters.vst'), value: 'vst_filter' },
     ];
 

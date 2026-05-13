@@ -153,18 +153,6 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
   enableSoundDetector(enabled: boolean) {
     this.nicoliveCommentSynthesizerService.enableSoundDetector(enabled);
   }
-  get isSoundDetectorSourceEnabled(): boolean {
-    return this.nicoliveCommentSynthesizerService.isSoundDetectorSourceEnabled;
-  }
-  get isSoundDetectorCalibrated(): boolean {
-    return this.nicoliveCommentSynthesizerService.isSoundDetectorCalibrated;
-  }
-  get isSoundDetectorDeclined(): boolean {
-    return this.nicoliveCommentSynthesizerService.isSoundDetectorDeclined;
-  }
-  markSoundDetectorDeclined(): void {
-    this.nicoliveCommentSynthesizerService.soundDetectorService.markDeclined();
-  }
   setSoundDetectorEnabled(enabled: boolean): void {
     this.nicoliveCommentSynthesizerService.soundDetectorService.setEnabled(enabled);
   }

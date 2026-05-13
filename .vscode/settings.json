@@ -176,6 +176,14 @@
     "editor.defaultFormatter": "vscode.typescript-language-features",
     "editor.formatOnSave": true
   },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "files.insertFinalNewline": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "files.insertFinalNewline": true
+  },
   "[vue]": {
     "editor.formatOnSave": false,
     "editor.codeActionsOnSave": {

@@ -117,6 +117,20 @@ exports[`filterKeyDescriptions 1`] = `
                   "jim_nvenc",
                 ],
               },
+              {
+                "params": [
+                  {
+                    "category": "Output",
+                    "key": "simpleUseAdvanced",
+                    "lookupValueName": true,
+                    "setting": "UseAdvanced",
+                    "subCategory": "Streaming",
+                  },
+                ],
+                "values": [
+                  "amd",
+                ],
+              },
             ],
             "key": "encoder",
             "lookupValueName": true,

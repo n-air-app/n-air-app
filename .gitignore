@@ -22,6 +22,8 @@ nair-rtvc.tar.gz
 chromedriver.log
 *.tar.gz
 .claude/settings.local.json
+.dev-hosts-path
+dev-hosts.json
 
 additional/.cache
 

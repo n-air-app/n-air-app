@@ -1,3 +1,4 @@
+import Popper from 'components/shared/Popper.vue';
 import { Inject } from 'services/core/injector';
 import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
 import {
@@ -7,7 +8,6 @@ import {
 import { FilterRecord, FilterType } from 'services/nicolive-program/ResponseTypes';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
-import Popper from '../shared/Popper.vue';
 
 function isHash(item: FilterRecord): boolean {
   if (item.type !== 'user') return false;

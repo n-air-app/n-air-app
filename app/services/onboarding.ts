@@ -148,17 +148,32 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
     }
   }
 
-  startOnboardingIfRequired(): boolean {
-    if (localStorage.getItem(this.localStorageKey)) {
-      const started = this.forceLoginForSecurityUpgradeIfRequired();
-      if (!started) {
-        this.completed.next();
-      }
+  /**
+   * 起動時にオンボーディングが必要かどうかを副作用なしで判定する。
+   * パッチノートの早期表示判定に使用。
+   */
+  willOnboardOnStartup(): boolean {
+    if (!localStorage.getItem(this.localStorageKey)) {
+      return true;
+    }
+    // forceLoginForSecurityUpgradeIfRequired と同じ条件（副作用なし）
+    if (this.userService.isLoggedIn() && !this.userService.apiToken) {
+      return true;
+    }
+    return false;
+  }
 
-      return started;
+  startOnboardingIfRequired(): boolean {
+    if (!this.willOnboardOnStartup()) {
+      this.completed.next();
+      return false;
     }
 
-    this.start();
+    if (localStorage.getItem(this.localStorageKey)) {
+      this.forceLoginForSecurityUpgradeIfRequired();
+    } else {
+      this.start();
+    }
     return true;
   }
 

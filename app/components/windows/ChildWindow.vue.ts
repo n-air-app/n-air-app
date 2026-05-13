@@ -1,9 +1,9 @@
 import * as remote from '@electron/remote';
+import TitleBar from 'components/studio/TitleBar.vue';
 import { Inject } from 'services/core/injector';
 import { getComponents, IWindowOptions, WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import TitleBar from '../TitleBar.vue';
 
 @Component({
   components: {
