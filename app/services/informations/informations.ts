@@ -23,7 +23,9 @@ function parseXml(xml: String): Promise<object> {
 }
 
 function pluckItems(feedResult: any) {
-  return feedResult.rss.channel[0].item.map((i: any) => ({
+  const items = feedResult?.rss?.channel?.[0]?.item;
+  if (!items) return [];
+  return items.map((i: any) => ({
     title: i.title[0],
     url: i.link[0],
     date: Date.parse(i.pubDate[0]),
