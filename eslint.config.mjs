@@ -73,7 +73,7 @@ const COMMON_RULES = {
   'no-plusplus': OFF,
   'class-methods-use-this': OFF,
   'no-lonely-if': OFF,
-  'import/order': OFF,
+  'import/order': ERROR,
   'no-console': OFF,
   'operator-linebreak': OFF,
   'max-classes-per-file': OFF,
