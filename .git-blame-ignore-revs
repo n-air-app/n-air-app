@@ -2,3 +2,4 @@
 # git blame --ignore-revs-file .git-blame-ignore-revs
 # または git config blame.ignoreRevsFile .git-blame-ignore-revs で常時有効化
 92abf23484776f1be2fa93bdece95ccf70d7ce86
+f36fa0feebf9c0b3461ffca050a619400685cbcc
