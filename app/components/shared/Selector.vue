@@ -1,0 +1,107 @@
+<template>
+  <ul
+    class="selector-list"
+    @contextmenu="handleContextMenu()"
+    @dragover.self="ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move'; }"
+    @drop.self="onDropAtEnd"
+    data-test="Selector"
+  >
+    <li
+      v-for="(item, index) in localItems"
+      :key="index"
+      class="selector-item"
+      :class="{
+        'selector-item--active': activeItems.includes(item.value),
+        'sortable-chosen': draggable && draggingIndex === index,
+      }"
+      :draggable="draggable"
+      @dragstart="ev => onDragStart(ev, index)"
+      @dragover="ev => onDragOver(ev, index)"
+      @drop="ev => onDropAtIndex(ev, draggingIndex)"
+      @dragend="onDragEnd"
+      @contextmenu.stop="ev => handleContextMenu(ev, index)"
+      @click="ev => handleSelect(ev, index)"
+      @dblclick="ev => handleDoubleClick(ev, index)"
+    >
+      <div class="selector-item-text" :data-test="item.name">
+        <span class="layer-icon"><i class="icon-studio-mode" /></span>
+        <span class="item-title">{{ item.name }}</span>
+      </div>
+      <div class="selector-actions">
+        <slot name="actions" :item="item" />
+      </div>
+    </li>
+  </ul>
+</template>
+
+<script lang="ts" src="./Selector.vue.ts"></script>
+
+<style lang="less" scoped>
+@import url('../../styles/index');
+
+.sortable-chosen {
+  background-color: var(--color-bg-active);
+  background-image: none;
+  opacity: 0.7;
+}
+
+.selector-list {
+  margin: 0;
+  overflow: auto;
+  list-style-type: none;
+}
+
+.selector-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: @item-generic-size;
+  padding: 0 12px;
+  cursor: pointer;
+
+  .text-ellipsis();
+  .transition();
+
+  &.selector-item--active {
+    color: var(--color-text-light);
+    background-color: var(--color-bg-active);
+  }
+
+  &:hover {
+    color: var(--color-text-light);
+
+    .selector-actions {
+      opacity: 1;
+    }
+  }
+}
+
+.layer-icon {
+  display: inline-block;
+  text-align: left;
+
+  i {
+    font-size: @font-size2;
+  }
+}
+
+.selector-item-text {
+  .text-ellipsis();
+
+  display: flex;
+  align-items: center;
+}
+
+.selector-actions {
+  display: flex;
+  flex-direction: row;
+  font-size: 13px;
+  opacity: 0.2;
+}
+
+.selector-drag-handle {
+  cursor: move;
+  .icon-hover();
+}
+</style>

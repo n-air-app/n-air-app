@@ -858,12 +858,12 @@ export class SettingsService
         codeSubCategory: 'SoundDetector',
         parameters: [
           <IObsInput<boolean>>{
-            value: this.soundDetectorService.isCalibrated,
-            name: 'Calibrated',
-            description: '読み上げ停止の音量設定済み',
+            value: !this.soundDetectorService.isDialogShown,
+            name: 'ResetDialogShown',
+            description: '読み上げ停止設定の案内ダイアログをリセットする',
             type: 'OBS_PROPERTY_BOOL',
             visible: true,
-            enabled: true,
+            enabled: this.soundDetectorService.isDialogShown,
           },
         ],
       },
@@ -892,12 +892,8 @@ export class SettingsService
           break;
         case 'SoundDetector':
           for (const item of setting.parameters) {
-            if (item.name === 'Calibrated') {
-              if (item.value) {
-                this.soundDetectorService.markCalibrated();
-              } else {
-                this.soundDetectorService.resetCalibrated();
-              }
+            if (item.name === 'ResetDialogShown' && item.value) {
+              this.soundDetectorService.resetDialogShown();
             }
           }
           break;

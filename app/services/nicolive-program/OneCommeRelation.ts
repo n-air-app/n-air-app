@@ -1,6 +1,7 @@
 import { Inject } from 'services/core/injector';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
+import { transformUrl } from 'services/dev-hosts';
 
 /**
  * OneCommeサービスとのやり取りに使用するデータ構造
@@ -14,7 +15,7 @@ interface OneCommeServiceData {
 
 // APIエンドポイント関連の定数
 const OneCommeAPIURL = 'http://localhost:11180/api/';
-const NicoLiveBaseURL = 'https://live.nicovideo.jp/watch/';
+const NicoLiveBaseURL = transformUrl('https://live.nicovideo.jp/watch/');
 const OneCommeServiceFixID = '25252525-N-AIR-FIXED';
 
 /**

@@ -374,6 +374,18 @@ export const AllKeyDescriptions: KeyDescription[] = [
                   },
                 ],
               },
+              {
+                values: ['amd'],
+                params: [
+                  {
+                    key: OptimizationKey.simpleUseAdvanced,
+                    category: 'Output',
+                    subCategory: 'Streaming',
+                    setting: 'UseAdvanced',
+                    lookupValueName: true,
+                  },
+                ],
+              },
             ],
           },
           {

@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { Inject } from 'services/core/injector';
 import { StatefulService, mutation } from 'services/core/stateful-service';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
@@ -58,6 +58,7 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
       .pipe(
         map(({ programID }) => programID),
         distinctUntilChanged(),
+        filter(programID => programID !== ''),
       )
       .subscribe(() => {
         this.fetchFilters().catch(caught => {
