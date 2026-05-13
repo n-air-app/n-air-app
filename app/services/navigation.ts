@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
-import { StatefulService, mutation } from './core/stateful-service';
 import * as Sentry from '@sentry/vue';
+import { StatefulService, mutation } from './core/stateful-service';
 import Utils from './utils';
 
 type TAppPage = 'Studio' | 'Onboarding' | 'PatchNotes';

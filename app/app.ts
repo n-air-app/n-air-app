@@ -27,6 +27,7 @@ import { createStore } from './store';
 
 const { ipcRenderer } = electron;
 
+// eslint-disable-next-line import/order
 import * as remote from '@electron/remote';
 
 const isProduction = process.env.NODE_ENV === 'production';

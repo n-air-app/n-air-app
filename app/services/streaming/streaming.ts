@@ -14,6 +14,11 @@ import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
+import * as remote from '@electron/remote';
+import { HttpRelation } from 'services/nicolive-program/httpRelation';
+import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
+import { VideoSettingsService } from 'services/settings-v2/video';
+import { TranscriptionService } from 'services/transcription/transcription';
 import * as obs from '../../../obs-api';
 import { CustomcastUsageService } from '../custom-cast-usage';
 import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
@@ -27,11 +32,6 @@ import {
   IStreamingServiceState,
 } from './streaming-api';
 
-import * as remote from '@electron/remote';
-import { HttpRelation } from 'services/nicolive-program/httpRelation';
-import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
-import { VideoSettingsService } from 'services/settings-v2/video';
-import { TranscriptionService } from 'services/transcription/transcription';
 import { RtvcStateService } from '../../services/rtvcStateService';
 import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';

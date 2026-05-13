@@ -7,10 +7,10 @@ import {
   getPropertiesFormData,
   setPropertiesFormData,
 } from 'components/obs/inputs/ObsInput';
-import { Service } from './core/service';
 
 import { EOrderMovement } from 'obs-studio-node';
 import { $t } from 'services/i18n';
+import { Service } from './core/service';
 import * as obs from '../../obs-api';
 import namingHelpers from '../util/NamingHelpers';
 import { InitAfter } from './core';

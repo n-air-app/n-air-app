@@ -1,8 +1,8 @@
 import { Subject } from 'rxjs';
 import { StatefulService, mutation } from 'services/core';
+import { isFakeMode } from 'util/fakeMode';
 import { NicoliveClient, isOk } from './NicoliveClient';
 import { NicoliveFailure, openErrorDialogFromFailure } from './NicoliveFailure';
-import { isFakeMode } from 'util/fakeMode';
 
 interface INicoliveSupportersService {
   // supporter の userId 集合

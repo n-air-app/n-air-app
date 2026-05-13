@@ -3,12 +3,12 @@ import merge from 'lodash/merge';
 import { ISource, SourcesService, TSourceType } from 'services/sources';
 import { VideoService } from 'services/video';
 import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';
+import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
+import { assertIsDefined } from 'util/properties-type-guards';
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
 import Utils from '../utils';
 
-import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
-import { assertIsDefined } from 'util/properties-type-guards';
 import {
   IPartialSettings,
   IPartialTransform,

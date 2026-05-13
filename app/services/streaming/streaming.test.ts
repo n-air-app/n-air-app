@@ -1,9 +1,8 @@
-import { ERecordingState, EStreamingState } from './streaming-api';
-
 import * as remote from '@electron/remote';
 
 import { RequestError } from 'util/RequestError';
 import { createSetupFunction } from 'util/test-setup';
+import { ERecordingState, EStreamingState } from './streaming-api';
 import { NicoliveProgramStateService } from '../nicolive-program/state';
 
 function noop(..._args: any[]) {}

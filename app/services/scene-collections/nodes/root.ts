@@ -1,12 +1,11 @@
 import { Inject } from 'services/core';
 import { VideoService } from 'services/video';
+import { VideoSettingsService } from 'services/settings-v2/video';
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { ScenesNode } from './scenes';
 import { SourcesNode } from './sources';
 import { TransitionsNode } from './transitions';
-
-import { VideoSettingsService } from 'services/settings-v2/video';
 
 interface ISchema {
   sources: SourcesNode;

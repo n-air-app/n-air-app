@@ -2,13 +2,13 @@ import merge from 'lodash/merge';
 import { Inject } from 'services/core/injector';
 import { ISceneHierarchy, isFolder, isItem, SceneItem, TSceneNode } from 'services/scenes';
 import { Selection, SelectionService } from 'services/selection';
+import { TDisplayType } from 'services/settings-v2';
+import { assertIsDefined } from 'util/properties-type-guards';
 import { mutation, ServiceHelper } from '../core';
 import Utils from '../utils';
 import { Scene, ScenesService } from './index';
 import { TSceneNodeType } from './scenes';
 
-import { TDisplayType } from 'services/settings-v2';
-import { assertIsDefined } from 'util/properties-type-guards';
 import { ISceneItemFolder } from '.';
 import { SceneItemNode } from './scene-node';
 

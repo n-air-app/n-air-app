@@ -1,5 +1,6 @@
-import WritableStream = NodeJS.WritableStream;
 import crypto from 'crypto';
+
+type WritableStream = NodeJS.WritableStream;
 import os from 'os';
 import {
   E_JSON_RPC_ERROR,

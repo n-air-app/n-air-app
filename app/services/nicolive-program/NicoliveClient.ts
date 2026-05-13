@@ -4,6 +4,10 @@ import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 import { handleErrors } from 'util/requests';
+
+import * as remote from '@electron/remote';
+import { DateTime } from 'luxon';
+import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } from 'services/dev-hosts';
 import {
   AddFilterRecord,
   AddFilterResult,
@@ -25,10 +29,6 @@ import {
   UserFollow,
   UserFollowStatus,
 } from './ResponseTypes';
-
-import * as remote from '@electron/remote';
-import { DateTime } from 'luxon';
-import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } from 'services/dev-hosts';
 
 const { BrowserWindow } = remote;
 
