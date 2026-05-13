@@ -109,7 +109,7 @@
     "yomiage"
   ],
   "files.eol": "\n",
-  "typescript.format.enable": true,
+  "js/ts.format.enabled": false,
   "json.schemas": [
     {
       "fileMatch": ["**/replace_rules.json"],
@@ -207,9 +207,9 @@
     }
   },
 
-  "typescript.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "js/ts.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
 
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {
