@@ -1,5 +1,3 @@
-import { jest_fn } from 'util/jest_fn';
-
 // Mock Vue
 jest.mock('vue', () => ({
   __esModule: true,

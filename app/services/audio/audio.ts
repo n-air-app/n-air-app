@@ -5,7 +5,7 @@ import {
   IObsNumberInputValue,
   TObsFormData,
 } from 'components/obs/inputs/ObsInput';
-import { EMPTY, merge, Observable, Subject, Subscription } from 'rxjs';
+import { EMPTY, merge, Observable, Subject } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';

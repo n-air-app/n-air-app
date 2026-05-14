@@ -12,10 +12,8 @@ import {
   CommentModifier,
   CreateResult,
   EditResult,
-  FailedResult,
   isOk,
   NicoliveClient,
-  WrappedResult,
 } from './NicoliveClient';
 import { NicoliveFailure, openErrorDialogFromFailure } from './NicoliveFailure';
 import { OneCommeRelation } from './OneCommeRelation';
