@@ -340,3 +340,4 @@ jobs:
             exit 1
           fi
     runs-on: ubuntu-latest
+# CI permissions ハードニング動作確認用（このPRはmergeせずclose）
