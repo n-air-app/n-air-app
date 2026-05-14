@@ -1,9 +1,10 @@
 import fetchMock from '@fetch-mock/jest';
+
 import { NicoadMessage } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
-import { WrappedChatWithComponent, WrappedMessageWithComponent } from './WrappedChat';
 import { HttpRelation } from './httpRelation';
 import { HttpRelationState } from './state';
+import { WrappedChatWithComponent, WrappedMessageWithComponent } from './WrappedChat';
 
 describe('HttpRelation', () => {
   beforeEach(() => {

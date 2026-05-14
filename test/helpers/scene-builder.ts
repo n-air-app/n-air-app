@@ -1,5 +1,7 @@
 import { Scene, SceneItem, SceneItemNode, ScenesService, TSceneNodeType } from 'services/scenes';
+
 import { TSourceType } from '../../app/services/sources';
+
 import { ApiClient } from './api-client';
 
 interface ISceneBuilderNode {

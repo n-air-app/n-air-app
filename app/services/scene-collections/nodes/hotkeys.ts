@@ -1,6 +1,8 @@
 import { getKeys } from 'util/getKeys';
+
 import { Inject } from '../../core/injector';
 import { Hotkey, HotkeysService, IHotkey } from '../../hotkeys';
+
 import { ArrayNode } from './array-node';
 
 interface IContext {

@@ -4,13 +4,14 @@ import { ISceneHierarchy, isFolder, isItem, SceneItem, TSceneNode } from 'servic
 import { Selection, SelectionService } from 'services/selection';
 import { TDisplayType } from 'services/settings-v2';
 import { assertIsDefined } from 'util/properties-type-guards';
+
 import { mutation, ServiceHelper } from '../core';
 import Utils from '../utils';
-import { Scene, ScenesService } from './index';
-import { TSceneNodeType } from './scenes';
 
 import { ISceneItemFolder } from '.';
+import { Scene, ScenesService } from './index';
 import { SceneItemNode } from './scene-node';
+import { TSceneNodeType } from './scenes';
 
 @ServiceHelper()
 export class SceneItemFolder extends SceneItemNode {

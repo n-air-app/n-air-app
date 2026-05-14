@@ -1,14 +1,14 @@
 import { CompactModeService } from 'services/compact-mode';
+import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
-import { Inject } from 'services/core/injector';
 import { PerformanceService } from 'services/performance';
 import { SettingsService } from 'services/settings';
 import { StreamingService } from 'services/streaming';
 import { SubStreamService } from 'services/substream/SubStreamService';
 import { UserService } from 'services/user';
+import Vue from 'vue';
+import { Component } from 'vue-property-decorator';
 
 @Component({})
 export default class PerformanceMetrics extends Vue {

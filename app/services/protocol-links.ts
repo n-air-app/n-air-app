@@ -1,9 +1,11 @@
+import { URL, URLSearchParams } from 'url';
+
 import * as Sentry from '@sentry/electron/renderer';
 import electron from 'electron';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
 import { NavigationService } from 'services/navigation';
-import { URL, URLSearchParams } from 'url';
+
 import { SettingsCategory, SettingsService } from './settings';
 import Utils from './utils';
 

@@ -1,12 +1,13 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Subject } from 'rxjs';
-import { ObserveType, jest_fn } from 'util/jest_fn';
+import { jest_fn, ObserveType } from 'util/jest_fn';
 import { sleep } from 'util/sleep';
 import { createSetupFunction } from 'util/test-setup';
+
 import { NdgrClient } from './NdgrClient';
+import { NicoliveProgramService } from './nicolive-program';
 import type { NicoliveClient } from './NicoliveClient';
 import { Moderator } from './ResponseTypes';
-import { NicoliveProgramService } from './nicolive-program';
 
 type NicoliveModeratorsService = import('./nicolive-moderators').NicoliveModeratorsService;
 

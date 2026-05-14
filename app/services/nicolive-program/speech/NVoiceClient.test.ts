@@ -1,5 +1,7 @@
-import { getNVoicePath } from '@n-air-app/n-voice-package';
 import { join } from 'path';
+
+import { getNVoicePath } from '@n-air-app/n-voice-package';
+
 import { NVoiceClient } from './NVoiceClient';
 
 describe('NVoiceClient', () => {

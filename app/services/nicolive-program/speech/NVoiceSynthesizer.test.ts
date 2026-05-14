@@ -1,5 +1,7 @@
 import { sleep } from 'util/sleep';
+
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { NVoiceSynthesizer } from './NVoiceSynthesizer';
 
 describe('NVoiceSynthesizer', () => {

@@ -1,4 +1,5 @@
 import * as input from 'components/obs/inputs/ObsInput';
+
 import * as obs from '../../../../obs-api';
 
 /**

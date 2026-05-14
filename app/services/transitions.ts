@@ -10,6 +10,7 @@ import { DefaultManager } from 'services/sources/properties-managers/default-man
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
+
 import * as obs from '../../obs-api';
 
 export enum ETransitionType {

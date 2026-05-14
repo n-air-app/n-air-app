@@ -1,6 +1,7 @@
-import * as remote from '@electron/remote';
 import fs from 'fs';
 import path from 'path';
+
+import * as remote from '@electron/remote';
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';

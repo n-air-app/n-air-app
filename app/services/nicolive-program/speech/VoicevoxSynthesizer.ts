@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/vue';
+
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
 export const VoicevoxURL = 'http://localhost:50021';

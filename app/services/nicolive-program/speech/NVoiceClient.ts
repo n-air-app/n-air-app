@@ -1,8 +1,9 @@
-import * as Sentry from '@sentry/vue';
 import { ChildProcess, spawn } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
+
+import * as Sentry from '@sentry/vue';
 
 export function getNVoicePath(): string {
   // import/require構文を使うとビルド時に展開してしまうが、
@@ -193,6 +194,7 @@ async function StartNVoice(
 }
 
 const iconv = require('iconv-lite');
+
 function toShiftJisBase64(text: string): string {
   return Buffer.from(iconv.encode(text, 'Shift_JIS')).toString('base64');
 }

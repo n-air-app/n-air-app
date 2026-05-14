@@ -1,8 +1,10 @@
 import { pascalize } from 'humps';
 import isEqual from 'lodash/isEqual';
 import keyBy from 'lodash/keyBy';
+
 import { sleep } from '../../sleep';
 import { getClient, waitForDisplayed } from '../core';
+
 import { BaseInputController, TFiledSetterFn } from './base';
 import * as inputControllers from './inputs';
 

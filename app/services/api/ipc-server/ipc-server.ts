@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { InternalApiService } from 'services/api/internal-api';
 import { IJsonRpcEvent, IJsonRpcRequest, IJsonRpcResponse } from 'services/api/jsonrpc';
 import { Inject } from 'services/core/injector';
+
 import { Service } from '../../core/service';
 
 const { ipcRenderer } = electron;

@@ -1,6 +1,8 @@
 import fetchMock from '@fetch-mock/jest';
 import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
+import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
+
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
 }));
@@ -14,8 +16,6 @@ const fetchViaMainProcess = jest
 jest.mock('util/fetchViaMainProcess', () => ({
   fetchViaMainProcess,
 }));
-
-import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
 
 beforeEach(() => {
   fetchMock.mockGlobal();

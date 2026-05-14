@@ -1,5 +1,6 @@
 import test from 'ava';
 import { ScenesService } from 'services/scenes';
+
 import { ISettingsServiceApi } from '../../../app/services/settings';
 import { ISourcesServiceApi } from '../../../app/services/sources/sources-api';
 import { getApiClient } from '../../helpers/api-client';

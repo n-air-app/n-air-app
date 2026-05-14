@@ -1,4 +1,5 @@
 import { TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
+
 import { getBestSettingsForNiconico } from './niconico-optimization';
 import {
   EncoderFamily,

@@ -1,7 +1,7 @@
 import { InitAfter, Inject } from './core';
-import { StatefulService, mutation } from './core/stateful-service';
-import { NicoliveProgramService } from './nicolive-program/nicolive-program';
+import { mutation, StatefulService } from './core/stateful-service';
 import { sendLogGif } from './nicolive-program/nicolive-logger';
+import { NicoliveProgramService } from './nicolive-program/nicolive-program';
 import { ScenesService } from './scenes';
 import { SourcesService } from './sources';
 

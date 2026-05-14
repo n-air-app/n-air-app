@@ -1,11 +1,12 @@
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { isFakeMode } from 'util/fakeMode';
-import { NicoliveClient, isOk } from './NicoliveClient';
+
+import { isOk, NicoliveClient } from './NicoliveClient';
 import { NicoliveFailure } from './NicoliveFailure';
 import { AddFilterRecord, FilterRecord } from './ResponseTypes';
 import { WrappedMessage } from './WrappedChat';

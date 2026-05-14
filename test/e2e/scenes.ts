@@ -1,19 +1,20 @@
 import { SceneCollectionsService } from 'services/scene-collections';
+
 import { sleep } from '../../app/util/sleep';
 import { getApiClient } from '../helpers/api-client';
 import { click, focusMain, waitForDisplayed } from '../helpers/modules/core';
 import { setInputValue } from '../helpers/modules/forms/form';
 import {
-  DefaultSceneName,
   addScene,
   clickRemoveScene,
+  DefaultSceneName,
   openDuplicateWindow,
   openRenameWindow,
   sceneIsExisting,
   selectScene,
 } from '../helpers/modules/scenes';
 import { addSource, sourceIsExisting } from '../helpers/modules/sources';
-import { TExecutionContext, test, useWebdriver } from '../helpers/webdriver/index';
+import { test, TExecutionContext, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver();
 

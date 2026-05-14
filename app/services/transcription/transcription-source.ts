@@ -3,6 +3,7 @@ import { $t } from '../i18n';
 import { SceneItem, ScenesService } from '../scenes';
 import { ISourceAddOptions, ISourceApi, SourcesService } from '../sources';
 import { VideoService } from '../video';
+
 import { TranscriptionService } from './transcription';
 
 @InitAfter('SourcesService')

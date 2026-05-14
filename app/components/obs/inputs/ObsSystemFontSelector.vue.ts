@@ -4,6 +4,7 @@ import groupBy from 'lodash/groupBy';
 import sortBy from 'lodash/sortBy';
 import { EFontStyle } from 'obs-studio-node';
 import { Component, Prop } from 'vue-property-decorator';
+
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import { IObsFont, IObsInput, ObsInput } from './ObsInput';
 

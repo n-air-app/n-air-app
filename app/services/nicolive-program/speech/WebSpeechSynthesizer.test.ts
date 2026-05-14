@@ -1,4 +1,5 @@
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { WebSpeechSynthesizer } from './WebSpeechSynthesizer';
 
 describe('WebSpeechSynthesizer', () => {

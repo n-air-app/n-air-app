@@ -2,6 +2,7 @@ import { sleep } from '../../util/sleep';
 import { PersistentStatefulService } from '../core/persistent-stateful-service';
 import { mutation } from '../core/stateful-service';
 import { $t } from '../i18n';
+
 import { NamedPipeClient } from './NamedPipeClient';
 
 type Primitive = string | number | boolean;

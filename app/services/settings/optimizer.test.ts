@@ -8,6 +8,7 @@ import {
   OptimizeSettings,
   SettingsKeyAccessor,
 } from './optimizer';
+
 type ISettingsSubCategory = import('./settings-api').ISettingsSubCategory;
 jest.mock('./settings-api');
 jest.mock('services/i18n', () => ({

@@ -1,13 +1,14 @@
+import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { Inject } from 'services/core/injector';
+import { $t } from 'services/i18n';
 import {
+  NVoiceAvatarStyle,
+  NVoiceAvatarStyles,
   NVoiceCharacterService,
   NVoiceCharacterType,
   NVoiceCharacterTypes,
-  NVoiceAvatarStyle,
-  NVoiceAvatarStyles,
 } from 'services/nvoice-character';
-import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
-import { $t } from 'services/i18n';
+
 import { PropertiesManager } from './properties-manager';
 
 export interface INVoiceCharacterSettings {

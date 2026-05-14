@@ -1,7 +1,6 @@
 import crypto from 'crypto';
-
-type WritableStream = NodeJS.WritableStream;
 import os from 'os';
+
 import {
   E_JSON_RPC_ERROR,
   IJsonRpcEvent,
@@ -12,8 +11,12 @@ import {
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { UsageStatisticsService } from 'services/usage-statistics';
+
 import { InternalApiService } from '../internal-api';
+
 import { IIPAddressDescription, ITcpServerServiceApi, ITcpServersSettings } from './tcp-server-api';
+
+type WritableStream = NodeJS.WritableStream;
 
 const net = require('net');
 

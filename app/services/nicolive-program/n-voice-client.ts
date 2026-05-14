@@ -1,10 +1,12 @@
 // N Voice Client Service
 
+import { join } from 'path';
+
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
-import { join } from 'path';
 import { StatefulService } from 'services/core/stateful-service';
 import { sleep } from 'util/sleep';
+
 import { getNVoicePath, NVoiceClient } from './speech/NVoiceClient';
 import { INVoiceTalker } from './speech/NVoiceSynthesizer';
 

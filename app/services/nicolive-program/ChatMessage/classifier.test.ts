@@ -1,4 +1,5 @@
 import { NotificationType } from '../ChatMessage';
+
 import { classify } from './classifier';
 
 test('通常コメント', () => {

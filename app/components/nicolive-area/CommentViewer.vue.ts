@@ -7,38 +7,40 @@ import { HostsService } from 'services/hosts';
 import { ChatMessage } from 'services/nicolive-program/ChatMessage';
 import { ChatComponentType } from 'services/nicolive-program/ChatMessage/ChatComponentType';
 import { getDisplayName } from 'services/nicolive-program/ChatMessage/getDisplayName';
+import { getContentWithFilter } from 'services/nicolive-program/getContentWithFilter';
+import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
+import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
+import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-moderators';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
+import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import {
   isWrappedChat,
   WrappedChatWithComponent,
   WrappedMessage,
   WrappedMessageWithComponent,
 } from 'services/nicolive-program/WrappedChat';
-import { getContentWithFilter } from 'services/nicolive-program/getContentWithFilter';
-import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
-import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
-import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-moderators';
-import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { ISettingsServiceApi } from 'services/settings';
 import { SnackbarService } from 'services/snackbar';
 import { SoundDetectorService } from 'services/sound-detector';
 import { Menu } from 'util/menus/Menu';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+
 import NAirLogo from '../../../media/images/n-air-logo.svg';
-import CommentFilter from './CommentFilter.vue';
-import CommentForm from './CommentForm.vue';
-import SoundDetectorButton from './SoundDetectorButton.vue';
+
 import CommonComment from './comment/CommonComment.vue';
 import EmotionComment from './comment/EmotionComment.vue';
 import GiftComment from './comment/GiftComment.vue';
 import NicoadComment from './comment/NicoadComment.vue';
 import { SpeakingType } from './comment/SpeakingType';
 import SystemMessage from './comment/SystemMessage.vue';
+import CommentFilter from './CommentFilter.vue';
+import CommentForm from './CommentForm.vue';
+import SoundDetectorButton from './SoundDetectorButton.vue';
 
 const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   common: CommonComment,

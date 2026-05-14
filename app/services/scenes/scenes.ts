@@ -10,9 +10,11 @@ import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
 import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
 import { IVideo } from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
+
 import { EBlendingMethod, EBlendingMode, EScaleType, Scene, SceneItem } from './index';
 
 export type TSceneNodeModel = ISceneItem | ISceneItemFolder;

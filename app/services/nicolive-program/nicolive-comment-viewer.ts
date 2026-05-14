@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/vue';
-import { EMPTY, Observable, Subject, Subscription, interval, merge, of } from 'rxjs';
+import { EMPTY, interval, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import {
   bufferTime,
   catchError,
@@ -16,13 +16,14 @@ import {
   tap,
 } from 'rxjs/operators';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
 import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { FakeModeConfig, isFakeMode } from 'util/fakeMode';
+
 import { MessageResponse, StatisticsMessage } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { classify } from './ChatMessage/classifier';
@@ -47,11 +48,11 @@ import { NicoliveSupportersService } from './nicolive-supporters';
 import { FilterRecord } from './ResponseTypes';
 import { NicoliveProgramStateService } from './state';
 import {
+  isWrappedChat,
   WrappedChat,
   WrappedChatWithComponent,
   WrappedMessage,
   WrappedMessageWithComponent,
-  isWrappedChat,
 } from './WrappedChat';
 
 function makeEmulatedChat(

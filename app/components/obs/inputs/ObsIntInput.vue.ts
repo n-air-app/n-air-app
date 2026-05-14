@@ -1,4 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
+
 import { IObsNumberInputValue, ObsInput, TObsType } from './ObsInput';
 
 @Component

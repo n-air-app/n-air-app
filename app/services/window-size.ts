@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { BehaviorSubject, filter, take } from 'rxjs';
+
 import { Inject } from './core/injector';
 import { mutation, StatefulService } from './core/stateful-service';
 import { CustomizationService } from './customization/customization';

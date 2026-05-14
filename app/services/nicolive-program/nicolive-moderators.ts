@@ -3,15 +3,16 @@ import * as Sentry from '@sentry/vue';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { WindowsService } from 'services/windows';
 import { isFakeMode } from 'util/fakeMode';
-import { NdgrClient, convertSSNGType, toISO8601, toNumber } from './NdgrClient';
+
+import { convertSSNGType, NdgrClient, toISO8601, toNumber } from './NdgrClient';
 import { isNdgrFetchError } from './NdgrFetchError';
-import { NicoliveClient, isOk } from './NicoliveClient';
+import { NicoliveProgramService } from './nicolive-program';
+import { isOk, NicoliveClient } from './NicoliveClient';
 import { NicoliveFailure, openErrorDialogFromFailure } from './NicoliveFailure';
 import { FilterRecord } from './ResponseTypes';
-import { NicoliveProgramService } from './nicolive-program';
 
 interface INicoliveModeratorsService {
   // moderator の userId 集合

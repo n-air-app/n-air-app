@@ -3,21 +3,22 @@ import { Subject } from 'rxjs';
 import { jest_fn, type ObserveType } from 'util/jest_fn';
 import { sleep } from 'util/sleep';
 import { createSetupFunction } from 'util/test-setup';
+
 import { MessageResponse } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
 import type { IMessageServerClient } from './MessageServerClient';
 import { NdgrFetchError } from './NdgrFetchError';
+import { Speech } from './nicolive-comment-synthesizer';
+import { NicoliveModeratorsService } from './nicolive-moderators';
 import { FilterRecord } from './ResponseTypes';
+import type { HttpRelationState, NicoliveProgramStateService } from './state';
 import {
   isWrappedChat,
   WrappedChatWithComponent,
   WrappedMessage,
   WrappedMessageWithComponent,
 } from './WrappedChat';
-import { Speech } from './nicolive-comment-synthesizer';
-import { NicoliveModeratorsService } from './nicolive-moderators';
-import type { HttpRelationState, NicoliveProgramStateService } from './state';
 
 type NicoliveCommentViewerService =
   import('./nicolive-comment-viewer').NicoliveCommentViewerService;

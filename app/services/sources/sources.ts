@@ -1,11 +1,12 @@
+import * as fs from 'fs';
+
 import * as Sentry from '@sentry/vue';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
-import * as fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { $t } from 'services/i18n';
 import { IPCWrapper } from 'services/ipc-wrapper';
 import { NVoiceCharacterTypes } from 'services/nvoice-character';
@@ -16,9 +17,11 @@ import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
 import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
 import { AudioService } from '../audio';
+
 import {
   IActivePropertyManager,
   ISource,

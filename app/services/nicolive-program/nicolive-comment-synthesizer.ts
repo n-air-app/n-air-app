@@ -1,20 +1,21 @@
-import { Subject, Subscription, debounceTime } from 'rxjs';
+import { debounceTime, Subject, Subscription } from 'rxjs';
 import { InitAfter, Inject } from 'services/core';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NVoiceCharacterService } from 'services/nvoice-character';
 import { SoundDetectorService } from 'services/sound-detector';
 import { UserService } from 'services/user';
 import { QueueRunner, QueueRunnerState } from 'util/QueueRunner';
+
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { NVoiceClientService } from './n-voice-client';
+import { NicoliveProgramService } from './nicolive-program';
 import { ParaphraseDictionary } from './ParaphraseDictionary';
 import { PhonemeServer } from './PhonemeServer';
 import { ISpeechSynthesizer } from './speech/ISpeechSynthesizer';
 import { NVoiceSynthesizer } from './speech/NVoiceSynthesizer';
 import { VoicevoxSynthesizer } from './speech/VoicevoxSynthesizer';
 import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
-import { NicoliveProgramService } from './nicolive-program';
 import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
 import { WrappedChat, WrappedMessage } from './WrappedChat';
 

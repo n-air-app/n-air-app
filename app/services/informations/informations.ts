@@ -1,11 +1,12 @@
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { HostsService } from 'services/hosts';
 import { $t } from 'services/i18n';
 import { WindowsService } from 'services/windows';
 import { isFakeMode } from 'util/fakeMode';
 import { handleErrors } from 'util/requests';
 import { parseString } from 'xml2js';
+
 import { InformationsStateService } from './state';
 
 function parseXml(xml: String): Promise<object> {

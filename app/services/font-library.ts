@@ -1,7 +1,9 @@
-import * as remote from '@electron/remote';
 import fs from 'fs';
 import https from 'https';
 import path from 'path';
+
+import * as remote from '@electron/remote';
+
 import { Service } from './core/service';
 
 export interface IFamilyWithStyle {

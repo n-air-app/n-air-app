@@ -13,6 +13,7 @@ import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import Vue from 'vue';
+
 import { OnboardingService } from './onboarding';
 import {
   getPlatformService,

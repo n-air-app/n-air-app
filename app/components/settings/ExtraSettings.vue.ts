@@ -14,6 +14,7 @@ import { UuidService } from 'services/uuid';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import ClipBoardCopy from '../../../media/images/clipboard-copy.svg';
 
 @Component({

@@ -3,6 +3,7 @@
  */
 
 import { ClickOptions, WaitForOptions } from 'webdriverio';
+
 import { WindowsService } from '../../../app/services/windows';
 import { sleep } from '../../../app/util/sleep';
 import { getApiClient } from '../api-client';

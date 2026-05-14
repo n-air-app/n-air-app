@@ -4,6 +4,7 @@ import Long from 'long';
 import { Reader } from 'protobufjs/minimal';
 import { Subject } from 'rxjs';
 import { sleep } from 'util/sleep';
+
 import { NdgrFetchError } from './NdgrFetchError';
 import { FilterType } from './ResponseTypes';
 

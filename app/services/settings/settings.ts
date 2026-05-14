@@ -1,17 +1,18 @@
+import fs from 'fs';
+
 import * as Sentry from '@sentry/vue';
 import {
+  inputValuesToObsValues,
   IObsInput,
   IObsListInput,
+  obsValuesToInputValues,
   TObsFormData,
   TObsValue,
-  inputValuesToObsValues,
-  obsValuesToInputValues,
 } from 'components/obs/inputs/ObsInput';
-import fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { AppService } from 'services/app';
 import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
@@ -20,17 +21,19 @@ import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
 import { VideoSettingsService } from '../settings-v2';
 import Utils from '../utils';
+
 import { getBestSettingsForNiconico } from './niconico-optimization';
 import {
   ISettingsAccessor,
   OptimizationKey,
-  OptimizeSettings,
   OptimizedSettings,
   Optimizer,
+  OptimizeSettings,
   SettingsKeyAccessor,
 } from './optimizer';
 import { ISettingsServiceApi, ISettingsSubCategory, SettingsCategory } from './settings-api';

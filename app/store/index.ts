@@ -5,8 +5,9 @@ import { IMutation } from 'services/api/jsonrpc';
 import Util from 'services/utils';
 import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
-import { ServicesManager } from '../services-manager';
+
 import { getModule, StatefulService } from '../services/core/stateful-service';
+import { ServicesManager } from '../services-manager';
 
 Vue.use(Vuex);
 

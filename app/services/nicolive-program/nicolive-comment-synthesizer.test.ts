@@ -1,6 +1,7 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 import { QueueRunner, QueueRunnerState } from 'util/QueueRunner';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { ICommentSynthesizerState, Speech } from './nicolive-comment-synthesizer';
 import { isWrappedChat, WrappedChat, WrappedMessage } from './WrappedChat';
 

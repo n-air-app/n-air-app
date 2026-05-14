@@ -1,5 +1,6 @@
-import { TExecutionContext } from '.';
 import { sleep } from '../sleep';
+
+import { TExecutionContext } from '.';
 
 export async function dismissModal(t: TExecutionContext) {
   // await t.context.app.client.leftClick('.v--modal-background-click', 1, 1);

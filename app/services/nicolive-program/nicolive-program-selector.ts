@@ -1,5 +1,6 @@
-import { StatefulService, mutation } from 'services/core/stateful-service';
-import { FailedResult, NicoliveClient, isOk } from './NicoliveClient';
+import { mutation, StatefulService } from 'services/core/stateful-service';
+
+import { FailedResult, isOk, NicoliveClient } from './NicoliveClient';
 import { NicoliveFailure, openErrorDialogFromFailure } from './NicoliveFailure';
 import { OnairChannelData } from './ResponseTypes';
 

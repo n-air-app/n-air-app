@@ -1,6 +1,8 @@
 import * as Sentry from '@sentry/vue';
 import { PrepareFunc } from 'util/QueueRunner';
+
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
 export interface INVoiceTalker {

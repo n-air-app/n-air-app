@@ -5,6 +5,7 @@
 // a typed interface around it.
 
 import * as remote from '@electron/remote';
+
 import { Service } from './core/service';
 
 export type TKeyEventType = 'registerKeydown' | 'registerKeyup';

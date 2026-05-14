@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
+
 import { WaitNotify } from './WaitNotify';
 
 type StartRecordCommon = {

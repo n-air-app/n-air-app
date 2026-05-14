@@ -15,7 +15,9 @@ import Utils, { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
+
 import {
   IAudioDevice,
   IAudioServiceApi,

@@ -5,8 +5,11 @@
 
 import avaTest, { TestFn } from 'ava';
 import { tasklist } from 'tasklist';
+
 import { sleep } from '../../../app/util/sleep';
+
 import { ITestContext } from './index';
+
 const fs = require('fs');
 const kill = require('tree-kill');
 

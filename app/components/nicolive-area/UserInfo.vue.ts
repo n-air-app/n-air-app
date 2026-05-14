@@ -11,17 +11,17 @@ import { Inject } from 'services/core';
 import { HostsService } from 'services/hosts';
 import { ChatMessage } from 'services/nicolive-program/ChatMessage';
 import { ChatComponentType } from 'services/nicolive-program/ChatMessage/ChatComponentType';
+import { KonomiTagsService } from 'services/nicolive-program/konomi-tags';
+import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
+import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
+import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-moderators';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { KonomiTag, NicoliveClient } from 'services/nicolive-program/NicoliveClient';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 import { isWrappedChat, WrappedChatWithComponent } from 'services/nicolive-program/WrappedChat';
-import { KonomiTagsService } from 'services/nicolive-program/konomi-tags';
-import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
-import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
-import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-moderators';
-import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';

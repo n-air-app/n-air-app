@@ -5,14 +5,16 @@ import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
 import {
+  isNoAudioPropertiesManagerType,
   SourcesService,
   TPropertiesManager,
   TSourceType,
-  isNoAudioPropertiesManagerType,
 } from 'services/sources';
 import Utils from 'services/utils';
+
 import * as obs from '../../../../obs-api';
 import { Inject } from '../../core/injector';
+
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { applyPathConvertForPreset, unapplyPathConvertForPreset } from './sources-util';

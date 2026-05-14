@@ -1,13 +1,13 @@
-import Vue from 'vue';
-
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
+import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
 
 export type StreamQuality = 'GOOD' | 'FAIR' | 'POOR';

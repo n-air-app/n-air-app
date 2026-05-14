@@ -1,10 +1,11 @@
 import Dropdown from 'components/shared/Dropdown.vue';
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
-import { Component, Prop } from 'vue-property-decorator';
 import { Inject } from 'services/core/injector';
 import { FontLibraryService } from 'services/font-library';
 import { SourcesService } from 'services/sources/index';
+import { Component, Prop } from 'vue-property-decorator';
+
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import { IGoogleFont, ObsInput } from './ObsInput';
 

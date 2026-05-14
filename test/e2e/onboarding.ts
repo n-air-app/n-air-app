@@ -1,5 +1,6 @@
 import { IPlatformAuth } from 'services/platforms';
 import type { UserService } from 'services/user';
+
 import { getApiClient } from '../helpers/api-client';
 import { click, focusMain } from '../helpers/modules/core';
 import { test, useWebdriver } from '../helpers/webdriver/index';

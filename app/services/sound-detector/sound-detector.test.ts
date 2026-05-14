@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import type { AudioSource, IVolmeter } from 'services/audio';
 import type { Source, TSourceType } from 'services/sources';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { SoundDetectorService } from './sound-detector';
 
 const setup = createSetupFunction({

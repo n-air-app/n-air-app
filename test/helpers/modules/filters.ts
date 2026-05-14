@@ -1,6 +1,7 @@
 // Source helper functions
 import { contextMenuClick } from '../webdriver/context-menu';
 import { setFormDropdown, setFormInput } from '../webdriver/forms';
+
 import { click, focusChild, focusMain } from './core';
 import { rightClickSource } from './sources';
 

@@ -1,7 +1,9 @@
-import * as remote from '@electron/remote';
 import path, { dirname } from 'path';
+
+import * as remote from '@electron/remote';
 import { $t } from 'services/i18n';
 import Vue from 'vue';
+
 import { InitAfter, Inject, mutation, StatefulService } from './core';
 import { ISceneNodeAddOptions } from './scenes';
 import { ISourceApi, SourcesService } from './sources';

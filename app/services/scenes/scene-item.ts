@@ -1,10 +1,11 @@
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import merge from 'lodash/merge';
+import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { ISource, SourcesService, TSourceType } from 'services/sources';
 import { VideoService } from 'services/video';
-import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';
-import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { assertIsDefined } from 'util/properties-type-guards';
+import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';
+
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
 import Utils from '../utils';

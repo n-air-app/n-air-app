@@ -1,4 +1,5 @@
 import { IJsonRpcRequest, IJsonRpcResponse } from 'services/api/jsonrpc';
+
 import { RpcApi } from './rpc-api';
 
 /**

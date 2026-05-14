@@ -2,8 +2,10 @@ import * as remote from '@electron/remote';
 import { Subscription } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { SelectionService } from 'services/selection';
+
 import * as obs from '../../obs-api';
 import { ScalableRectangle } from '../util/ScalableRectangle';
+
 import { Inject } from './core/injector';
 import { Service } from './core/service';
 import { SettingsService } from './settings';

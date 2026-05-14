@@ -1,6 +1,4 @@
 import { $t } from 'services/i18n/index';
-import Vue from 'vue';
-import { Prop } from 'vue-property-decorator';
 import {
   isEditableListProperty,
   isFontProperty,
@@ -9,6 +7,9 @@ import {
   isPathProperty,
   isTextProperty,
 } from 'util/properties-type-guards';
+import Vue from 'vue';
+import { Prop } from 'vue-property-decorator';
+
 import * as obs from '../../../../obs-api';
 
 /**

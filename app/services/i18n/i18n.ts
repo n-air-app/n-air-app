@@ -1,14 +1,17 @@
-import * as remote from '@electron/remote';
-import { IObsListInput, TObsFormData } from 'components/obs/inputs/ObsInput';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import * as remote from '@electron/remote';
+import { IObsListInput, TObsFormData } from 'components/obs/inputs/ObsInput';
 import { AppService } from 'services/app';
 import { Inject } from 'services/core/injector';
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { mutation } from 'services/core/stateful-service';
 import { FileManagerService } from 'services/file-manager';
 import VueI18n from 'vue-i18n';
+
 import * as obs from '../../../obs-api';
+
 import { I18nServiceApi } from './i18n-api';
 
 interface II18nState {

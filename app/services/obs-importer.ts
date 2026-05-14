@@ -1,6 +1,7 @@
-import * as remote from '@electron/remote';
 import fs from 'fs';
 import path from 'path';
+
+import * as remote from '@electron/remote';
 import { AudioService, DEFAULT_AUDIO_MIXERS } from 'services/audio';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
@@ -11,6 +12,7 @@ import { SourceFiltersService, TSourceFilterType } from 'services/source-filters
 import { SourcesService } from 'services/sources';
 import { TPropertiesManager, TSourceType } from 'services/sources/sources-api';
 import { ETransitionType, TransitionsService } from 'services/transitions';
+
 import * as obs from '../../obs-api';
 
 interface Source {

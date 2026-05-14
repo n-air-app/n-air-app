@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import { Module, Store } from 'vuex';
+
 import Utils from '../utils';
+
 import { Service } from './service';
 
 export function mutation(options = { unsafe: false }) {

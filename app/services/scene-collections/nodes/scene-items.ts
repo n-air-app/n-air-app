@@ -2,6 +2,7 @@ import { Inject } from '../../core/injector';
 import { EBlendingMethod, EBlendingMode, EScaleType, ScenesService } from '../../scenes';
 import { Scene } from '../../scenes/scene';
 import { SourcesService } from '../../sources';
+
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 

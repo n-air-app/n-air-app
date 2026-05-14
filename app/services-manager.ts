@@ -1,8 +1,8 @@
+import { InternalApiClient } from 'services/api/internal-api-client';
 import { ObserveList, StatefulService } from 'services/core';
 import { Service } from 'services/core/service';
 import Utils from 'services/utils';
 
-import { InternalApiClient } from 'services/api/internal-api-client';
 import * as appServices from './app-services';
 
 /**

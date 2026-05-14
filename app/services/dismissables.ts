@@ -1,6 +1,7 @@
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { getKeys } from 'util/getKeys';
 import Vue from 'vue';
+
 import { mutation } from './core/stateful-service';
 
 export enum EDismissable {

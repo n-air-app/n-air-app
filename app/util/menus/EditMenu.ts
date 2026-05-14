@@ -4,19 +4,20 @@ import { $t } from 'services/i18n';
 import { ProjectorService } from 'services/projector';
 import { SelectionService } from 'services/selection/selection';
 import { MonitorCaptureCroppingService } from 'services/sources/monitor-capture-cropping';
+
 import { ClipboardService } from '../../services/clipboard';
 import { Inject } from '../../services/core/injector';
 import { ScenesService } from '../../services/scenes';
 import { SourceFiltersService } from '../../services/source-filters';
 import { Source, SourcesService } from '../../services/sources';
-import { DeinterlaceMenu } from './DeinterlaceMenu';
-import { GroupMenu } from './GroupMenu';
-import { Menu } from './Menu';
-import { SourceTransformMenu } from './SourceTransformMenu';
 
 import { BlendingMethodMenu } from './BlendingMethodMenu';
 import { BlendingModeMenu } from './BlendingModeMenu';
+import { DeinterlaceMenu } from './DeinterlaceMenu';
+import { GroupMenu } from './GroupMenu';
+import { Menu } from './Menu';
 import { ScaleFilteringMenu } from './ScaleFilteringMenu';
+import { SourceTransformMenu } from './SourceTransformMenu';
 
 interface IEditMenuOptions {
   selectedSourceId?: string;

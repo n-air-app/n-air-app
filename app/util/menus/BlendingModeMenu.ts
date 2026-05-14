@@ -2,6 +2,7 @@ import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { EBlendingMode } from 'services/scenes';
 import { SelectionService } from 'services/selection';
+
 import { Menu } from './Menu';
 
 export class BlendingModeMenu extends Menu {

@@ -1,6 +1,7 @@
 // Helper methods for making HTTP requests
 
 import fs from 'fs';
+
 import { RequestError } from './RequestError';
 
 /**

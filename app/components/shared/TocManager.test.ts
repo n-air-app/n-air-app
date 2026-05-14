@@ -1,4 +1,5 @@
 import Vue from 'vue';
+
 import { TocManager } from './TocManager';
 
 // Mock Vue.observable, Vue.set, Vue.delete

@@ -1,7 +1,9 @@
 import * as Sentry from '@sentry/vue';
 import Utils from 'services/utils';
 import { PrepareFunc } from 'util/QueueRunner';
+
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
 export class WebSpeechSynthesizer implements ISpeechSynthesizer {

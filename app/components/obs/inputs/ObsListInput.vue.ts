@@ -1,5 +1,6 @@
 import Dropdown from 'components/shared/Dropdown.vue';
 import { Component, Prop } from 'vue-property-decorator';
+
 import { IObsListInput, IObsListOption, ObsInput, TObsType, TObsValue } from './ObsInput';
 
 @Component({

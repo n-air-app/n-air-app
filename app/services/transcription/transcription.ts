@@ -1,8 +1,9 @@
-import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { existsSync, promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import {
   BehaviorSubject,
   distinctUntilChanged,
@@ -20,7 +21,9 @@ import { $t } from 'services/i18n';
 import { sendLogGif } from 'services/nicolive-program/nicolive-logger';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { TranscriptionLog } from 'services/usage-statistics';
+
 import { Inject, mutation, PersistentStatefulService } from '../core';
+
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
 import { CancelledError, downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
@@ -39,6 +42,7 @@ import {
   VoskClient,
 } from './VoskClient';
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
+
 export { CancelledError, VOSK_MODEL_NAMES, VoskModelStatus };
 
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;

@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+
 import electron from 'electron';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { SceneCollectionsService } from 'services/scene-collections';
@@ -15,8 +16,11 @@ import { SelectionService } from 'services/selection';
 import { shortcut } from 'services/shortcuts';
 import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { ISource, Source, SourcesService, TPropertiesManager } from 'services/sources';
+
 import { Inject } from '../core/injector';
+
 import { IClipboardServiceApi } from './clipboard-api';
+
 const { clipboard } = electron;
 
 interface ISceneNodeInfo {

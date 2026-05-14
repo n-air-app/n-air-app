@@ -1,12 +1,14 @@
-import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import fs from 'fs';
 import path from 'path';
+
+import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { FileManagerService } from 'services/file-manager';
 import { getKeys } from 'util/getKeys';
 import Vue from 'vue';
+
 import { ISceneCollectionsManifestEntry } from '.';
 
 interface ISceneCollectionsManifest {

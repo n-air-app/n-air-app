@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+
 import { createSetupFunction } from 'util/test-setup';
 
 jest.mock('@electron/remote', () => ({

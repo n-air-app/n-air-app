@@ -19,10 +19,12 @@ import {
   TSceneNodeModel,
 } from 'services/scenes';
 import { CenteringAxis } from 'util/ScalableRectangle';
+
 import { Inject } from '../core/injector';
 import { shortcut } from '../shortcuts';
 import { Source } from '../sources';
 import Utils from '../utils';
+
 import { ISelectionState, TNodesList } from './index';
 
 /**

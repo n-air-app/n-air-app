@@ -5,10 +5,10 @@ import NavMenu from 'components/shared/NavMenu.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
+  NicoliveProgramSelectorService,
   providerTypes as _providerTypes,
   selectionSteps as _selectionSteps,
   steps as _steps,
-  NicoliveProgramSelectorService,
   TProviderType,
   TSelectionStep,
   TStep,

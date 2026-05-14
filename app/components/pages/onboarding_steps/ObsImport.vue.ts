@@ -1,11 +1,12 @@
 import Dropdown from 'components/shared/Dropdown.vue';
+import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
+import { ObsImporterService } from 'services/obs-importer';
+import { OnboardingService } from 'services/onboarding';
 import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-import { Inject } from 'services/core/injector';
-import { ObsImporterService } from 'services/obs-importer';
-import { OnboardingService } from 'services/onboarding';
+
 import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
 
 @Component({

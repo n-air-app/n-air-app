@@ -1,4 +1,5 @@
 import test from 'ava';
+
 import { IAudioServiceApi } from '../../app/services/audio/audio-api';
 import { CustomizationService } from '../../app/services/customization';
 import { PerformanceService } from '../../app/services/performance';
@@ -6,9 +7,11 @@ import { WindowsService } from '../../app/services/windows';
 import { getApiClient } from '../helpers/api-client';
 import { focusChild } from '../helpers/modules/core';
 import { sleep } from '../helpers/sleep';
+
 import { getConfig, getConfigsVariations } from './utils';
 
 const fs = require('fs');
+
 const CONFIG = getConfig();
 let configs: Dictionary<any>[];
 

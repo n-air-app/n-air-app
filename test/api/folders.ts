@@ -1,4 +1,5 @@
 import { Scene, SceneItemNode } from 'services/scenes';
+
 import { getApiClient } from '../helpers/api-client';
 import { SceneBuilder } from '../helpers/scene-builder';
 import { afterAppStart, test, useWebdriver } from '../helpers/webdriver';

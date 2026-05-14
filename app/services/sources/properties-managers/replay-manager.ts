@@ -1,5 +1,6 @@
 import { Inject } from 'services/core/injector';
 import { StreamingService } from 'services/streaming';
+
 import { PropertiesManager } from './properties-manager';
 
 export class ReplayManager extends PropertiesManager {

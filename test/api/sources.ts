@@ -1,5 +1,6 @@
 import test from 'ava';
 import { ScenesService } from 'services/scenes';
+
 import { ISourcesServiceApi } from '../../app/services/sources/sources-api';
 import { getApiClient } from '../helpers/api-client';
 import { useWebdriver } from '../helpers/webdriver';

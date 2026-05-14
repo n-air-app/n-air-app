@@ -6,6 +6,7 @@ import {
   TObsValue,
 } from 'components/obs/inputs/ObsInput';
 import { $t } from 'services/i18n';
+
 import { PropertiesManager } from './properties-manager';
 
 export class CustomCastNdiManager extends PropertiesManager {

@@ -1,6 +1,7 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
-import { Reader, Writer, util } from 'protobufjs/minimal';
+import { Reader, util, Writer } from 'protobufjs/minimal';
 import { jest_fn } from 'util/jest_fn';
+
 import { NdgrClient } from './NdgrClient';
 
 const ENTRY_URL = 'http://example.com/entry';

@@ -28,6 +28,7 @@ import Utils, { uuidv4 } from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
+
 import * as obs from '../../../obs-api';
 
 interface IAppState {

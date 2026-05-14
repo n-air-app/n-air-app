@@ -1,9 +1,11 @@
 import { IPlatformAuth } from 'services/platforms';
 import { UserService } from 'services/user';
 import { getKeys } from 'util/getKeys';
+
 import { getApiClient } from '../api-client';
 import { focusMain } from '../modules/core';
 import { clickRemoveSource, selectTestSource, testSourceExists } from '../modules/sources';
+
 import { TExecutionContext } from './index';
 
 export async function logOut(t: TExecutionContext) {

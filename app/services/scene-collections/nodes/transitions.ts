@@ -1,6 +1,7 @@
 import { TObsValue } from 'components/obs/inputs/ObsInput';
 import { Inject } from 'services/core/injector';
 import { ETransitionType, TransitionsService } from 'services/transitions';
+
 import { Node } from './node';
 
 // motion_transition 追加前から存在していた型。旧フィールド(type)に書いても旧バージョンが安全に読める。

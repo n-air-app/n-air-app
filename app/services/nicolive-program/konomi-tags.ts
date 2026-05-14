@@ -1,9 +1,10 @@
 import { BehaviorSubject } from 'rxjs';
-import { Inject, StatefulService, mutation } from 'services/core';
+import { Inject, mutation, StatefulService } from 'services/core';
 import { IPlatformAuth } from 'services/platforms';
 import { UserService } from 'services/user';
-import { KonomiTag } from './NicoliveClient';
+
 import { NicoliveProgramService } from './nicolive-program';
+import { KonomiTag } from './NicoliveClient';
 
 interface IKonomiTagsState {
   loggedIn: {

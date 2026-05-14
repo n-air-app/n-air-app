@@ -2,6 +2,7 @@ import TocSection from 'components/shared/TocSection.vue';
 import { ISettingsSubCategory } from 'services/settings';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
+
 import GenericForm from './GenericForm.vue';
 
 @Component({

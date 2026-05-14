@@ -1,11 +1,12 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Subject } from 'rxjs';
+
 import { MessageResponse } from './ChatMessage';
 import { isChatMessage } from './ChatMessage/util';
 import {
-  NdgrCommentReceiver,
   convertChunkedResponseToMessageResponse,
   convertModifierToMail,
+  NdgrCommentReceiver,
 } from './NdgrCommentReceiver';
 
 describe('NdgrCommentReceiver', () => {

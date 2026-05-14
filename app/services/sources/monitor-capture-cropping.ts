@@ -5,7 +5,8 @@ import { Inject } from 'services/core/injector';
 import { ISourceApi, ISourcesServiceApi } from 'services/sources';
 import { WindowsService } from 'services/windows';
 import { ResizeBoxPoint, ScalableRectangle } from 'util/ScalableRectangle';
-import { StatefulService, mutation } from '../core/stateful-service';
+
+import { mutation, StatefulService } from '../core/stateful-service';
 import { SceneItem } from '../scenes';
 
 interface IMonitorCaptureCroppingServiceState {

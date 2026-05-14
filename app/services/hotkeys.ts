@@ -4,6 +4,7 @@ import { ScenesService } from 'services/scenes';
 import { isNoAudioPropertiesManagerType, SourcesService } from 'services/sources';
 import { StreamingService } from 'services/streaming';
 import { TransitionsService } from 'services/transitions';
+
 import { Inject, mutation, ServiceHelper, StatefulService } from './core';
 import { CustomizationService } from './customization';
 import { NicoliveProgramService } from './nicolive-program/nicolive-program';

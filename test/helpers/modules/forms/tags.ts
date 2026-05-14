@@ -1,5 +1,6 @@
 import { sleep } from '../../sleep';
 import { clickIfDisplayed, select } from '../core';
+
 import { BaseInputController } from './base';
 
 export class TagsInputController extends BaseInputController<(string | number)[]> {

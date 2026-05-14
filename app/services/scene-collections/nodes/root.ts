@@ -1,6 +1,7 @@
 import { Inject } from 'services/core';
-import { VideoService } from 'services/video';
 import { VideoSettingsService } from 'services/settings-v2/video';
+import { VideoService } from 'services/video';
+
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { ScenesNode } from './scenes';

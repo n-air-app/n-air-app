@@ -1,7 +1,9 @@
-import fetchMock from '@fetch-mock/jest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+
+import fetchMock from '@fetch-mock/jest';
 import { createSetupFunction } from 'util/test-setup';
+
 const xmlFeed = readFileSync(resolve(__dirname, './__fixtures__/feed.xml'), 'utf8');
 const parsedFeed = require('./__fixtures__/parsedFeed.json');
 

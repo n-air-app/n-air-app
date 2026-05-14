@@ -1,4 +1,5 @@
 import { Component } from 'vue';
+
 import * as comps from './index';
 import { TObsType } from './ObsInput';
 

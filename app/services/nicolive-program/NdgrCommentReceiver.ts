@@ -1,6 +1,7 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { getKeys } from 'util/getKeys';
+
 import { MessageResponse, NotificationType, NotificationTypeTable } from './ChatMessage';
 import { IMessageServerClient } from './MessageServerClient';
 import { NdgrClient, toNumber } from './NdgrClient';

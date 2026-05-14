@@ -1,6 +1,6 @@
+import { Hotkey, IBinding } from 'services/hotkeys';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import { Hotkey, IBinding } from 'services/hotkeys';
 
 /**
  * Represents a binding that has a unique key for CSS animations

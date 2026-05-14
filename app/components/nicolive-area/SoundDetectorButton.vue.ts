@@ -1,8 +1,8 @@
-import { Component, Vue } from 'vue-property-decorator';
+import { Subscription } from 'rxjs';
 import { Inject } from 'services/core';
 import { SettingsService } from 'services/settings';
-import { SoundDetectorService, SoundDetectedState } from 'services/sound-detector';
-import { Subscription } from 'rxjs';
+import { SoundDetectedState, SoundDetectorService } from 'services/sound-detector';
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component({})
 export default class SoundDetectorButton extends Vue {

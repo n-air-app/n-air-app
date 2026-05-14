@@ -1,14 +1,16 @@
+import fs from 'fs';
+import path from 'path';
+
 import * as remote from '@electron/remote';
 import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
-import fs from 'fs';
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
-import path from 'path';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
+
 import { PropertiesManager } from './properties-manager';
 
 export interface IDefaultManagerSettings {

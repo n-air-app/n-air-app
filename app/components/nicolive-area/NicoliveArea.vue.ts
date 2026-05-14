@@ -1,8 +1,3 @@
-import { Inject } from 'services/core/injector';
-import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
-
 import AreaSwitcher, { IArea } from 'components/nicolive-area/AreaSwitcher.vue';
 import CommentFilter from 'components/nicolive-area/CommentFilter.vue';
 import CommentViewer from 'components/nicolive-area/CommentViewer.vue';
@@ -11,11 +6,16 @@ import ProgramInfo from 'components/nicolive-area/ProgramInfo.vue';
 import ProgramStatistics from 'components/nicolive-area/ProgramStatistics.vue';
 import ToolBar from 'components/nicolive-area/ToolBar.vue';
 import PerformanceMetrics from 'components/studio/PerformanceMetrics.vue';
+import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
+import Vue from 'vue';
+import { Component } from 'vue-property-decorator';
+
 import ControlsArrow from '../../../media/images/controls-arrow-vertical.svg';
 
 const CREATED_NOTICE_DURATION = 5000; // 番組作成通知の表示時間(ミリ秒)

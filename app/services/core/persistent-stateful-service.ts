@@ -1,6 +1,8 @@
-import merge from 'lodash/merge';
 import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
+
 import Utils from '../utils';
+
 import { StatefulService } from './stateful-service';
 
 // Extends StatefulService with code that will persist the

@@ -1,6 +1,7 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { $t } from 'services/i18n';
+
 import { FailedResult, NotLoggedInError } from './NicoliveClient';
 
 export class NicoliveFailure {

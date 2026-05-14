@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
+
 import { propertyComponentForType } from './Components';
 import { IObsInput, TObsValue } from './ObsInput';
 

@@ -4,8 +4,10 @@ import isEqual from 'lodash/isEqual';
 import { ScenesService } from 'services/scenes';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
+
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
+
 import {
   ISource,
   ISourceApi,

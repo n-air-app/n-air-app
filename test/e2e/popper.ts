@@ -1,9 +1,10 @@
 import { CompactModeService } from 'services/compact-mode';
 import { SceneCollectionsService } from 'services/scene-collections';
+
 import { sleep } from '../../app/util/sleep';
 import { getApiClient } from '../helpers/api-client';
 import { click, focusMain, isDisplayed, waitForDisplayed } from '../helpers/modules/core';
-import { TExecutionContext, test, useWebdriver } from '../helpers/webdriver/index';
+import { test, TExecutionContext, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver();
 

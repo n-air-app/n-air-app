@@ -10,6 +10,7 @@ import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import AddFileIcon from '../../../media/images/add-file-icon.svg';
 import AddSceneIcon from '../../../media/images/add-scene-icon.svg';
 import AppAudioCaptureSourceIcon from '../../../media/images/app-speaker.svg';
@@ -32,6 +33,7 @@ import TextGdiplusIcon from '../../../media/images/text-gdiplus-icon.svg';
 import WasapiInputCaptureIcon from '../../../media/images/wasapi-input-icon.svg';
 import WasapiOutputIcon from '../../../media/images/wasapi-output-icon.svg';
 import WindowCaptureIcon from '../../../media/images/window-capture-icon.svg';
+
 import AddSourceInfo from './AddSourceInfo.vue';
 
 type TInspectableSource = TSelectableSourceType;

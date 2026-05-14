@@ -1,20 +1,21 @@
 import * as Sentry from '@sentry/vue';
 import {
+  getPropertiesFormData,
   IObsListInput,
   IObsListOption,
+  setPropertiesFormData,
   TObsFormData,
   TObsValue,
-  getPropertiesFormData,
-  setPropertiesFormData,
 } from 'components/obs/inputs/ObsInput';
-
 import { EOrderMovement } from 'obs-studio-node';
 import { $t } from 'services/i18n';
-import { Service } from './core/service';
+
 import * as obs from '../../obs-api';
 import namingHelpers from '../util/NamingHelpers';
+
 import { InitAfter } from './core';
 import { Inject } from './core/injector';
+import { Service } from './core/service';
 import { SourcesService } from './sources';
 import { WindowsService } from './windows';
 

@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { DateTime } from 'luxon';
 import { Subject } from 'rxjs';
@@ -5,24 +6,28 @@ import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
+import { HttpRelation } from 'services/nicolive-program/httpRelation';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { isOk, NicoliveClient } from 'services/nicolive-program/NicoliveClient';
+import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
 import { SettingsService } from 'services/settings';
 import { EncoderFamily, OptimizedSettings } from 'services/settings/optimizer';
+import { VideoSettingsService } from 'services/settings-v2/video';
+import { TranscriptionService } from 'services/transcription/transcription';
 import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
-import * as remote from '@electron/remote';
-import { HttpRelation } from 'services/nicolive-program/httpRelation';
-import { NicoliveProgramStateService, SynthesizerSelector } from 'services/nicolive-program/state';
-import { VideoSettingsService } from 'services/settings-v2/video';
-import { TranscriptionService } from 'services/transcription/transcription';
+
 import * as obs from '../../../obs-api';
+import { RtvcStateService } from '../../services/rtvcStateService';
 import { CustomcastUsageService } from '../custom-cast-usage';
 import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
 import { IStreamingSetting } from '../platforms';
+import { SoundDetectorService } from '../sound-detector/sound-detector';
+import { SubStreamService } from '../substream/SubStreamService';
+
 import { extractPlatform } from './extractPlatform';
 import {
   ERecordingState,
@@ -31,10 +36,6 @@ import {
   IStreamingServiceApi,
   IStreamingServiceState,
 } from './streaming-api';
-
-import { RtvcStateService } from '../../services/rtvcStateService';
-import { SoundDetectorService } from '../sound-detector/sound-detector';
-import { SubStreamService } from '../substream/SubStreamService';
 
 enum EOBSOutputType {
   Streaming = 'streaming',

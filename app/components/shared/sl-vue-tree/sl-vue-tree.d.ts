@@ -1,4 +1,5 @@
 import Vue from 'vue';
+
 export interface ISlTreeNodeModel<TDataType> {
     title: string;
     isLeaf?: boolean;

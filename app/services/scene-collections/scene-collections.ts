@@ -1,7 +1,8 @@
-import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import fs from 'fs';
 import path from 'path';
+
+import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import { Subject } from 'rxjs';
 import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
@@ -18,13 +19,15 @@ import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
+
+import namingHelpers from '../../util/NamingHelpers';
+
 import {
   ISceneCollectionCreateOptions,
   ISceneCollectionSchema,
   ISceneCollectionsManifestEntry,
   ISceneCollectionsServiceApi,
 } from '.';
-import namingHelpers from '../../util/NamingHelpers';
 import { HotkeysNode } from './nodes/hotkeys';
 import { ILoadError } from './nodes/node';
 import { RootNode } from './nodes/root';

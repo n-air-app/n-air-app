@@ -10,6 +10,7 @@ import { EStreamingState, StreamingService } from 'services/streaming';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+
 import StartStreamingIcon from '../../../media/images/start-streaming-icon.svg';
 
 @Component({
