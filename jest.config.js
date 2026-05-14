@@ -11,6 +11,7 @@ module.exports = {
       options: ['no-sandbox'],
     },
   },
+  setupFiles: ['<rootDir>/app/test-setup/electron-watchdog.ts'],
   roots: ['<rootDir>/app', '<rootDir>/main-process'],
   testMatch: ['**/app/**/*.test.ts', '**/main-process/*.test.ts'],
   transformIgnorePatterns: [
