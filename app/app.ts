@@ -1,12 +1,15 @@
+/* eslint-disable import/first */
+// window.eval override must execute before other imports to prevent eval usage in any imported module
 import get from 'lodash/get';
 import { I18nService } from 'services/i18n';
 
-// eslint-disable-next-line
+// eslint-disable-next-line no-eval
 window['eval'] = global.eval = () => {
   throw new Error('window.eval() is disabled for security');
 };
 
-import Vue from 'vue';
+import path from 'path';
+import util from 'util';
 
 import * as Sentry from '@sentry/electron/renderer';
 import { init as sentryVueInit } from '@sentry/vue';
@@ -15,11 +18,12 @@ import OneOffWindow from 'components/windows/OneOffWindow.vue';
 import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
-import path from 'path';
-import util from 'util';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
+import Vue from 'vue';
 import VueI18n from 'vue-i18n';
+
 import * as obs from '../obs-api';
+
 import { AppService } from './services/app';
 import Utils from './services/utils';
 import { WindowsService } from './services/windows';
@@ -27,7 +31,6 @@ import { createStore } from './store';
 
 const { ipcRenderer } = electron;
 
-// eslint-disable-next-line import/order
 import * as remote from '@electron/remote';
 
 const isProduction = process.env.NODE_ENV === 'production';

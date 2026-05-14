@@ -2,6 +2,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import vue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
 import path from 'path';
@@ -60,7 +61,7 @@ const COMMON_RULES = {
   'import/extensions': OFF,
   'import/no-unresolved': OFF,
   'import/no-extraneous-dependencies': OFF,
-  'import/newline-after-import': OFF,
+  'import/newline-after-import': ERROR,
   'import/no-dynamic-require': OFF,
   'no-use-before-define': OFF,
   'global-require': OFF,
@@ -73,7 +74,7 @@ const COMMON_RULES = {
   'no-plusplus': OFF,
   'class-methods-use-this': OFF,
   'no-lonely-if': OFF,
-  'import/order': ERROR,
+  'import/order': OFF,
   'no-console': OFF,
   'operator-linebreak': OFF,
   'max-classes-per-file': OFF,
@@ -115,13 +116,30 @@ const COMMON_RULES = {
   'no-confusing-arrow': OFF,
   'no-async-promise-executor': OFF,
   'prefer-promise-reject-errors': OFF,
-  'import/first': OFF,
+  'import/first': ERROR,
+  'import/no-duplicates': ERROR,
   'no-script-url': OFF,
   'import/no-named-default': OFF,
 
   'no-use-before-declare': OFF,
   'no-irregular-whitespace': OFF,
   'no-undef': OFF,
+
+  'simple-import-sort/imports': [ERROR, {
+    groups: [
+      // Side-effect imports
+      ['^\\u0000'],
+      // Node.js builtins: exact module names (to avoid matching internal paths like util/)
+      ['^node:', '^(crypto|fs|path|os|http|https|util|stream|url|child_process|events|net)$'],
+      // External npm packages and internal absolute imports (both are bare module specifiers)
+      ['^@?[^.]'],
+      // Parent relative imports
+      ['^\\.\\./'],
+      // Sibling relative imports
+      ['^\\.'],
+    ],
+  }],
+  'simple-import-sort/exports': ERROR,
 
   // Vue-specific rules
   'vue/multi-word-component-names': OFF, // Many single-word component names (Login, Mixer, Tabs, etc.) exist; renaming would be a large-scale refactor
@@ -157,6 +175,7 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint.plugin,
       jest,
+      'simple-import-sort': simpleImportSort,
     },
 
     languageOptions: {
@@ -203,6 +222,7 @@ export default [
       vue,
       '@typescript-eslint': tseslint.plugin,
       jest,
+      'simple-import-sort': simpleImportSort,
     },
 
     languageOptions: {
