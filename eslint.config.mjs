@@ -3,6 +3,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import unusedImports from 'eslint-plugin-unused-imports';
 import vue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
 import path from 'path';
@@ -140,6 +141,7 @@ const COMMON_RULES = {
     ],
   }],
   'simple-import-sort/exports': ERROR,
+  'unused-imports/no-unused-imports': ERROR,
 
   // Vue-specific rules
   'vue/multi-word-component-names': OFF, // Many single-word component names (Login, Mixer, Tabs, etc.) exist; renaming would be a large-scale refactor
@@ -176,6 +178,7 @@ export default [
       '@typescript-eslint': tseslint.plugin,
       jest,
       'simple-import-sort': simpleImportSort,
+      'unused-imports': unusedImports,
     },
 
     languageOptions: {
@@ -223,6 +226,7 @@ export default [
       '@typescript-eslint': tseslint.plugin,
       jest,
       'simple-import-sort': simpleImportSort,
+      'unused-imports': unusedImports,
     },
 
     languageOptions: {
