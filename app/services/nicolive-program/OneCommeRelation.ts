@@ -3,6 +3,10 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { transformUrl } from 'services/dev-hosts';
 
+function isLocalServiceUnavailableError(e: unknown): e is TypeError {
+  return e instanceof TypeError && /Failed to fetch/.test(e.message);
+}
+
 /**
  * OneCommeサービスとのやり取りに使用するデータ構造
  */
@@ -86,6 +90,10 @@ export class OneCommeRelation {
       const result = await fetchJSON<OneCommeServiceData>(url, makeRequest('PUT', data));
       return !!result;
     } catch (e) {
+      if (isLocalServiceUnavailableError(e)) {
+        console.warn('[OneCommeRelation] OneComme server unavailable:', e.message);
+        return false;
+      }
       console.error('OneCommeRelation sendService error', e);
       return false;
     }
