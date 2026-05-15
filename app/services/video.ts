@@ -103,6 +103,8 @@ export class Display {
     if (this.trackingInterval) clearInterval(this.trackingInterval);
 
     const trackingFun = () => {
+      if (this.displayDestroyed) return;
+
       const rect = this.getScaledRectangle(element.getBoundingClientRect());
 
       if (
@@ -148,14 +150,20 @@ export class Display {
   }
 
   remoteClose() {
+    if (this.displayDestroyed) return;
+    this.displayDestroyed = true;
+
     this.outputRegionCallbacks = [];
-    if (this.trackingInitialTimeout) clearTimeout(this.trackingInitialTimeout);
-    if (this.trackingInterval) clearInterval(this.trackingInterval);
-    if (this.selectionSubscription) this.selectionSubscription.unsubscribe();
-    if (!this.displayDestroyed) {
-      this.videoService.destroyOBSDisplay(this.name);
-      this.displayDestroyed = true;
+    if (this.trackingInitialTimeout) {
+      clearTimeout(this.trackingInitialTimeout);
+      this.trackingInitialTimeout = null;
     }
+    if (this.trackingInterval) {
+      clearInterval(this.trackingInterval);
+      this.trackingInterval = null;
+    }
+    if (this.selectionSubscription) this.selectionSubscription.unsubscribe();
+    this.videoService.destroyOBSDisplay(this.name);
   }
 
   destroy() {
@@ -169,6 +177,8 @@ export class Display {
   }
 
   async refreshOutputRegion() {
+    if (this.displayDestroyed) return;
+
     const position = this.videoService.getOBSDisplayPreviewOffset(this.name);
 
     // This can happen while we were async fetching the offset
@@ -290,23 +300,63 @@ export class VideoService extends Service {
   }
 
   moveOBSDisplay(name: string, x: number, y: number) {
-    obs.NodeObs.OBS_content_moveDisplay(name, x, y);
+    try {
+      obs.NodeObs.OBS_content_moveDisplay(name, x, y);
+    } catch (e) {
+      if (isKnownDisplayRaceError(e)) {
+        console.warn('[VideoService] moveOBSDisplay:', e.message);
+        return;
+      }
+      throw e;
+    }
   }
 
   resizeOBSDisplay(name: string, width: number, height: number) {
-    obs.NodeObs.OBS_content_resizeDisplay(name, width, height);
+    try {
+      obs.NodeObs.OBS_content_resizeDisplay(name, width, height);
+    } catch (e) {
+      if (isKnownDisplayRaceError(e)) {
+        console.warn('[VideoService] resizeOBSDisplay:', e.message);
+        return;
+      }
+      throw e;
+    }
   }
 
   destroyOBSDisplay(name: string) {
-    obs.NodeObs.OBS_content_destroyDisplay(name);
+    try {
+      obs.NodeObs.OBS_content_destroyDisplay(name);
+    } catch (e) {
+      if (isKnownDisplayRaceError(e)) {
+        console.warn('[VideoService] destroyOBSDisplay:', e.message);
+        return;
+      }
+      throw e;
+    }
   }
 
   getOBSDisplayPreviewOffset(name: string): IVec2 {
-    return obs.NodeObs.OBS_content_getDisplayPreviewOffset(name);
+    try {
+      return obs.NodeObs.OBS_content_getDisplayPreviewOffset(name);
+    } catch (e) {
+      if (isKnownDisplayRaceError(e)) {
+        console.warn('[VideoService] getOBSDisplayPreviewOffset:', e.message);
+        return { x: 0, y: 0 };
+      }
+      throw e;
+    }
   }
 
   getOBSDisplayPreviewSize(name: string): { width: number; height: number } {
-    return obs.NodeObs.OBS_content_getDisplayPreviewSize(name);
+    try {
+      return obs.NodeObs.OBS_content_getDisplayPreviewSize(name);
+    } catch (e) {
+      if (isKnownDisplayRaceError(e)) {
+        console.warn('[VideoService] getOBSDisplayPreviewSize:', e.message);
+        return { width: 0, height: 0 };
+      }
+      throw e;
+    }
   }
 
   setOBSDisplayShouldDrawUI(name: string, drawUI: boolean) {
@@ -316,4 +366,16 @@ export class VideoService extends Service {
   setOBSDisplayDrawGuideLines(name: string, drawGuideLines: boolean) {
     obs.NodeObs.OBS_content_setDrawGuideLines(name, drawGuideLines);
   }
+}
+
+/**
+ * obs-studio-node が display map にキーが無いときに投げる既知のレースエラーを判定する。
+ * これらは操作の前後でウィンドウが閉じられた際に発生する競合状態であり、致命的エラーではない。
+ */
+function isKnownDisplayRaceError(e: unknown): e is Error {
+  if (!(e instanceof Error)) return false;
+  return (
+    e.message.startsWith('Invalid key provided to moveDisplay:') ||
+    e.message.startsWith('Failed to find key for destruction:')
+  );
 }
