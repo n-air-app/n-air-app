@@ -2,10 +2,6 @@ import * as Sentry from '@sentry/vue';
 import { Speech } from '../nicolive-comment-synthesizer';
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
-function isLocalServiceUnavailableError(e: unknown): e is TypeError {
-  return e instanceof TypeError && /Failed to fetch/.test(e.message);
-}
-
 export const VoicevoxURL = `http://localhost:50021`;
 
 export class VoicevoxSynthesizer implements ISpeechSynthesizer {
@@ -78,10 +74,8 @@ export class VoicevoxSynthesizer implements ISpeechSynthesizer {
       onstart();
       this.output(speech)
         .catch(error => {
-          if (isLocalServiceUnavailableError(error)) {
-            console.warn(
-              `[VoicevoxSynthesizer] VOICEVOX server unavailable - text:${speech.text}`,
-            );
+          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            console.warn(`[VoicevoxSynthesizer] VOICEVOX server unavailable - text:${speech.text}`);
             return;
           }
           Sentry.withScope(scope => {
