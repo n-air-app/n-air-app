@@ -30,11 +30,11 @@ const config = {
     'assets',
   ],
   detectUpdateChannel: false,
-  afterPack: async context => {
+  afterPack: async (context) => {
     const localesDir = path.join(context.appOutDir, 'locales');
     if (fs.existsSync(localesDir)) {
       const files = fs.readdirSync(localesDir);
-      files.forEach(file => {
+      files.forEach((file) => {
         if (file !== 'en-US.pak' && file !== 'ja.pak') {
           fs.unlinkSync(path.join(localesDir, file));
         }
