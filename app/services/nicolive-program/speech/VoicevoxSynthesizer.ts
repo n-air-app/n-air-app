@@ -74,6 +74,10 @@ export class VoicevoxSynthesizer implements ISpeechSynthesizer {
       onstart();
       this.output(speech)
         .catch(error => {
+          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            console.warn(`[VoicevoxSynthesizer] VOICEVOX server unavailable - text:${speech.text}`);
+            return;
+          }
           Sentry.withScope(scope => {
             scope.setLevel('error');
             scope.setTag('in', 'VoicevoxSynthesizer:speakText');

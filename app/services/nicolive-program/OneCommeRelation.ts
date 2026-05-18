@@ -86,6 +86,10 @@ export class OneCommeRelation {
       const result = await fetchJSON<OneCommeServiceData>(url, makeRequest('PUT', data));
       return !!result;
     } catch (e) {
+      if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
+        console.warn('[OneCommeRelation] OneComme server unavailable');
+        return false;
+      }
       console.error('OneCommeRelation sendService error', e);
       return false;
     }
