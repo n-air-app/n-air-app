@@ -2,6 +2,8 @@ import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
+import jsoncPlugin from 'eslint-plugin-jsonc';
+import * as jsoncParser from 'jsonc-eslint-parser';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
 import vue from 'eslint-plugin-vue';
@@ -161,6 +163,59 @@ export default [
       'bin/node_modules/**',
       'nvoice/near/bundle.js*',
     ],
+  },
+
+  // JSON / JSONC formatting (Prettier 廃止に伴い ESLint で format 管理)
+  {
+    files: ['**/*.json', '**/*.jsonc', '**/*.json5'],
+    languageOptions: { parser: jsoncParser },
+    plugins: { jsonc: jsoncPlugin },
+    rules: {
+      // JSON の strict な構文チェック
+      'jsonc/no-bigint-literals': ERROR,
+      'jsonc/no-binary-expression': ERROR,
+      'jsonc/no-binary-numeric-literals': ERROR,
+      'jsonc/no-escape-sequence-in-identifier': ERROR,
+      'jsonc/no-hexadecimal-numeric-literals': ERROR,
+      'jsonc/no-infinity': ERROR,
+      'jsonc/no-multi-str': ERROR,
+      'jsonc/no-nan': ERROR,
+      'jsonc/no-number-props': ERROR,
+      'jsonc/no-numeric-separators': ERROR,
+      'jsonc/no-octal-numeric-literals': ERROR,
+      'jsonc/no-parenthesized': ERROR,
+      'jsonc/no-plus-sign': ERROR,
+      'jsonc/no-regexp-literals': ERROR,
+      'jsonc/no-template-literals': ERROR,
+      'jsonc/no-undefined-value': ERROR,
+      'jsonc/no-unicode-codepoint-escapes': ERROR,
+      'jsonc/valid-json-number': ERROR,
+      'jsonc/vue-custom-block/no-parsing-error': ERROR,
+      'jsonc/no-dupe-keys': ERROR,
+
+      // フォーマット（2スペース・ダブルクォート・末尾カンマなし）
+      'jsonc/indent': [ERROR, 2],
+      'jsonc/key-spacing': [ERROR, { beforeColon: false, afterColon: true }],
+      'jsonc/comma-style': [ERROR, 'last'],
+      'jsonc/comma-dangle': [ERROR, 'never'],
+      'jsonc/quotes': [ERROR, 'double'],
+      'jsonc/quote-props': [ERROR, 'always'],
+      'jsonc/array-bracket-spacing': [ERROR, 'never'],
+      'jsonc/object-curly-spacing': [ERROR, 'always'],
+      'jsonc/object-curly-newline': [ERROR, { multiline: true, consistent: true }],
+      'jsonc/object-property-newline': [ERROR, { allowAllPropertiesOnSameLine: true }],
+      'jsonc/no-irregular-whitespace': ERROR,
+      'jsonc/no-useless-escape': ERROR,
+      'jsonc/no-floating-decimal': ERROR,
+    },
+  },
+
+  // tsconfig.json はコメントを許可（JSONC として扱う）
+  {
+    files: ['**/tsconfig.json', '**/tsconfig.*.json'],
+    rules: {
+      'jsonc/no-comments': OFF,
+    },
   },
 
   // Base config for all JS/TS files

@@ -5,3 +5,5 @@
 f36fa0feebf9c0b3461ffca050a619400685cbcc
 # simple-import-sort導入に伴うimport順一括整形
 22e88c0b26fee14c96bd702fa4e9bfc78a556b6d
+# eslint-plugin-jsonc導入に伴うJSONフォーマット一括整形
+77775f7b8d4870513a3120cf5eec6612cf87e7ef
