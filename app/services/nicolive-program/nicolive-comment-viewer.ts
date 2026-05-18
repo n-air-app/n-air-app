@@ -45,6 +45,7 @@ import { NicoliveCommentLocalFilterService } from './nicolive-comment-local-filt
 import { NicoliveCommentSynthesizerService } from './nicolive-comment-synthesizer';
 import { NicoliveModeratorsService } from './nicolive-moderators';
 import { NicoliveSupportersService } from './nicolive-supporters';
+import { NicoliveFailure } from './NicoliveFailure';
 import { FilterRecord } from './ResponseTypes';
 import { NicoliveProgramStateService } from './state';
 import {
@@ -442,7 +443,13 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
                     // `/disconnect` の代わりのメッセージは出さない仕様なので問題ない
                     this.unsubscribe();
                     // 番組情報を更新する
-                    this.nicoliveProgramService.refreshProgram();
+                    this.nicoliveProgramService.refreshProgram().catch((caught) => {
+                      if (caught instanceof NicoliveFailure) {
+                        console.warn('refreshProgram failed:', caught);
+                      } else {
+                        throw new Error('refreshProgram failed unexpectedly', { cause: caught });
+                      }
+                    });
                   }
                 }),
                 ignoreElements(),

@@ -191,6 +191,40 @@ test('status=endedが流れてきたらunsubscribeし、refreshProgramも呼ぶ'
   expect(refreshProgram).toHaveBeenCalledTimes(1);
 });
 
+test('status=endedでrefreshProgramがNicoliveFailureを投げてもunhandledにならない', async () => {
+  const stateChange = new Subject();
+  const clientSubject = new Subject<MessageResponse>();
+  jest.doMock('./NdgrCommentReceiver', () => {
+    return {
+      ...(jest.requireActual('./NdgrCommentReceiver') as {}),
+      NdgrCommentReceiver: class NdgrCommentReceiver {
+        connect() {
+          return clientSubject;
+        }
+      },
+    };
+  });
+  jest.spyOn(window, 'setTimeout').mockImplementation((callback) => callback() as any);
+  const { NicoliveFailure } = require('./NicoliveFailure');
+  const failure = new NicoliveFailure('network_error', 'fetchProgram', 'network_error');
+  const refreshProgram = jest.fn().mockRejectedValue(failure);
+  const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  setup({ injectee: { NicoliveProgramService: { stateChange, refreshProgram } } });
+
+  const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
+  const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+  (instance as any).unsubscribe = jest.fn();
+
+  stateChange.next({ viewUri: 'https://example.com' });
+  clientSubject.next({ state: { state: 'ended' } });
+
+  // .catch() の非同期処理が完了するまで待つ
+  await Promise.resolve();
+
+  expect(warnSpy).toHaveBeenCalledWith('refreshProgram failed:', failure);
+  warnSpy.mockRestore();
+});
+
 const MODERATOR_ID = '123';
 const NOT_MODERATOR_ID = '456';
 
