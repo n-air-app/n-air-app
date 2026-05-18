@@ -243,9 +243,9 @@ export class TcpServerService
       this.onDisconnectHandler(client);
     });
 
-    socket.on('error', e => {
-      if (e.code === 'EPIPE') {
-        // Client has silently disconnected
+    socket.on('error', (e: NodeJS.ErrnoException) => {
+      if (e.code === 'EPIPE' || e.code === 'ERR_STREAM_WRITE_AFTER_END') {
+        // Expected errors from closed/ended connections
         console.debug('TCP Server: Socket was disconnected', e);
         this.onDisconnectHandler(client);
       } else {
@@ -430,6 +430,9 @@ export class TcpServerService
     if (this.isRequestsHandlingStopped && !force) return;
 
     this.log('send response', response);
+
+    // ERR_STREAM_WRITE_AFTER_END is emitted asynchronously and bypasses the try/catch below.
+    if (!client.socket.writable) return;
 
     // unhandled exceptions completely destroy Rx.Observable subscription
     try {
