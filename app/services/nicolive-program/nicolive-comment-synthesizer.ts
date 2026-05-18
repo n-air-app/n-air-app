@@ -1,20 +1,21 @@
-import { Subject, Subscription, debounceTime } from 'rxjs';
+import { debounceTime, Subject, Subscription } from 'rxjs';
 import { InitAfter, Inject } from 'services/core';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NVoiceCharacterService } from 'services/nvoice-character';
 import { SoundDetectorService } from 'services/sound-detector';
 import { UserService } from 'services/user';
 import { QueueRunner, QueueRunnerState } from 'util/QueueRunner';
+
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
 import { NVoiceClientService } from './n-voice-client';
+import { NicoliveProgramService } from './nicolive-program';
 import { ParaphraseDictionary } from './ParaphraseDictionary';
 import { PhonemeServer } from './PhonemeServer';
 import { ISpeechSynthesizer } from './speech/ISpeechSynthesizer';
 import { NVoiceSynthesizer } from './speech/NVoiceSynthesizer';
 import { VoicevoxSynthesizer } from './speech/VoicevoxSynthesizer';
 import { WebSpeechSynthesizer } from './speech/WebSpeechSynthesizer';
-import { NicoliveProgramService } from './nicolive-program';
 import { NicoliveProgramStateService, SynthesizerId, SynthesizerSelector } from './state';
 import { WrappedChat, WrappedMessage } from './WrappedChat';
 
@@ -135,7 +136,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     // setState() は SET_STATE() も呼ぶため this.state が即時更新される。
     // stateService.updated は外部からの設定変更(例: 別プロセスからの同期)を反映するために subscribe する。
     this.stateService.updated.subscribe({
-      next: persistentState => {
+      next: (persistentState) => {
         const newState = {
           ...NicoliveCommentSynthesizerService.initialState,
           ...persistentState.speechSynthesizerSettings,
@@ -145,7 +146,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       },
     });
 
-    this.queueStateSubscription = this.queue.state$.subscribe(queueRunnerState => {
+    this.queueStateSubscription = this.queue.state$.subscribe((queueRunnerState) => {
       this.setState({ queueRunnerState });
     });
 
@@ -157,7 +158,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     this.nVoice = new NVoiceSynthesizer(this.nVoiceClientService);
 
     this.phonemeServer = new PhonemeServer({
-      onPortAssigned: port => {
+      onPortAssigned: (port) => {
         this.nVoiceCharacterService.updateSocketIoPort(port);
       },
     });
@@ -170,7 +171,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
       return;
     }
     this.soundDetectorSubscription = this.soundDetectorService.speechActionObservable.subscribe({
-      next: action => {
+      next: (action) => {
         switch (action) {
           case 'pause':
             this.queue.disable({ interruptAction: 'pause' });
@@ -383,7 +384,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
         () => {
           onend();
         },
-        phoneme => {
+        (phoneme) => {
           this.phonemeServer?.emitPhoneme(phoneme);
         },
       ),

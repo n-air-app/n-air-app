@@ -16,7 +16,7 @@ import { Component, Watch } from 'vue-property-decorator';
 @Component({})
 export default class CommentForm extends Vue {
   @Inject()
-  nicoliveProgramService: NicoliveProgramService;
+    nicoliveProgramService: NicoliveProgramService;
   @Inject()
   private transcriptionService: TranscriptionService;
   @Inject()

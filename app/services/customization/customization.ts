@@ -1,7 +1,9 @@
 import { Subject } from 'rxjs';
 import Utils from 'services/utils';
+
 import { PersistentStatefulService } from '../core/persistent-stateful-service';
 import { mutation } from '../core/stateful-service';
+
 import {
   ICustomizationServiceApi,
   ICustomizationServiceState,
@@ -16,8 +18,7 @@ import {
  */
 export class CustomizationService
   extends PersistentStatefulService<ICustomizationServiceState>
-  implements ICustomizationServiceApi
-{
+  implements ICustomizationServiceApi {
   static defaultState: ICustomizationServiceState = {
     performanceMode: false,
     studioMode: false,

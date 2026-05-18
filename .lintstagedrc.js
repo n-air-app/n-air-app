@@ -6,10 +6,10 @@ process.env.NODE_OPTIONS = '--max-old-space-size=4096';
 
 module.exports = {
   // TypeScript, JavaScript, Vue ファイル
-  '*.{ts,js,vue}': ['eslint'],
+  '*.{ts,js,vue}': ['eslint --fix'],
 
   // CSS, Less, Vue スタイル
-  '*.{css,less,vue}': ['stylelint'],
+  '*.{css,less,vue}': ['stylelint --fix'],
 
   // 国際化ファイル
   'app/i18n/*/*.json': ['node ./bin/i18n-early-check.js'],

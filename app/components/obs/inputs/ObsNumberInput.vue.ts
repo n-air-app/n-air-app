@@ -1,4 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
+
 import { IObsInput, ObsInput, TObsType } from './ObsInput';
 
 @Component
@@ -6,7 +7,7 @@ class ObsNumberInput extends ObsInput<IObsInput<number>> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsInput<number>;
+    value: IObsInput<number>;
   testingAnchor = `Form/Number/${this.value.name}`;
 
   $refs: {

@@ -8,7 +8,7 @@ import { Component } from 'vue-property-decorator';
 @Component({})
 export default class ProgramDescription extends Vue {
   @Inject()
-  nicoliveProgramService: NicoliveProgramService;
+    nicoliveProgramService: NicoliveProgramService;
 
   get programDescription(): string {
     return applyAutoLink(this.nicoliveProgramService.state.description);

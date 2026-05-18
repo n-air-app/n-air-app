@@ -1,4 +1,5 @@
 import { createSetupFunction } from 'util/test-setup';
+
 const setup = createSetupFunction({
   injectee: {
     CustomizationService: {

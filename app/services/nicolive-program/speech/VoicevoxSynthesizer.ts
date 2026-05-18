@@ -1,8 +1,10 @@
 import * as Sentry from '@sentry/vue';
+
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
-export const VoicevoxURL = `http://localhost:50021`;
+export const VoicevoxURL = 'http://localhost:50021';
 
 export class VoicevoxSynthesizer implements ISpeechSynthesizer {
   private speakingPromise: Promise<void> | null = null;
@@ -30,7 +32,7 @@ export class VoicevoxSynthesizer implements ISpeechSynthesizer {
       audio.addEventListener('pause', done, { once: true });
       audio.addEventListener('ended', done, { once: true });
 
-      audio.play().catch(error => reject(error));
+      audio.play().catch((error) => reject(error));
     });
   }
 
@@ -66,19 +68,19 @@ export class VoicevoxSynthesizer implements ISpeechSynthesizer {
         return null;
       }
       if (!this.speakingPromise) {
-        this.speakingPromise = new Promise(resolve => {
+        this.speakingPromise = new Promise((resolve) => {
           this.speakingResolve = resolve;
         });
       }
 
       onstart();
       this.output(speech)
-        .catch(error => {
+        .catch((error) => {
           if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
             console.warn(`[VoicevoxSynthesizer] VOICEVOX server unavailable - text:${speech.text}`);
             return;
           }
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('error');
             scope.setTag('in', 'VoicevoxSynthesizer:speakText');
             scope.setExtra('speech', speech);

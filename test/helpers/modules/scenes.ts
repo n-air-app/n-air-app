@@ -1,6 +1,7 @@
 // Scene helper functions
 import { contextMenuClick } from '../webdriver/context-menu';
 import { dialogDismiss } from '../webdriver/dialog';
+
 import { click, focusChild, focusMain, getClient } from './core';
 
 export const DefaultSceneName = 'シーン';
@@ -60,5 +61,5 @@ export async function openDuplicateWindow(sourceName: string) {
 }
 
 export async function sceneExisting(name: string) {
-  return getClient().$(`[data-test="SceneSelector"]`).$(`[data-test="${name}"]`).isExisting();
+  return getClient().$('[data-test="SceneSelector"]').$(`[data-test="${name}"]`).isExisting();
 }

@@ -1,5 +1,6 @@
 import { Scene, ScenesService } from '../../scenes';
 import { SourcesService } from '../../sources';
+
 import { ArrayNode } from './array-node';
 import { HotkeysNode } from './hotkeys';
 import { SceneFiltersNode } from './scene-filters';
@@ -25,7 +26,7 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
   }
 
   saveItem(scene: Scene): Promise<ISceneSchema> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const sceneItems = new SceneItemsNode();
       const hotkeys = new HotkeysNode();
       const filters = new SceneFiltersNode();
@@ -58,7 +59,7 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
     // Look for duplicate ids
     const ids: Dictionary<boolean> = {};
 
-    this.data.items = this.data.items.filter(item => {
+    this.data.items = this.data.items.filter((item) => {
       if (ids[item.id]) return false;
 
       ids[item.id] = true;
@@ -67,13 +68,13 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
   }
 
   loadItem(obj: ISceneSchema): Promise<() => Promise<void>> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const scene = this.scenesService.createScene(obj.name, { sceneId: obj.id });
 
       if (obj.filters) obj.filters.load({ sceneId: scene.id });
 
       resolve(() => {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           obj.sceneItems.load({ scene }).then(() => {
             if (obj.active) this.scenesService.makeSceneActive(scene.id);
 

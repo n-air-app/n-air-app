@@ -13,6 +13,7 @@ import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import Vue from 'vue';
+
 import { OnboardingService } from './onboarding';
 import {
   getPlatformService,
@@ -88,13 +89,13 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     if (service && service.isLoggedIn) {
       return service
         .isLoggedIn()
-        .then(valid => {
+        .then((valid) => {
           if (!valid) {
             this.LOGOUT();
             this.userLogout.next();
           }
         })
-        .catch(e => {
+        .catch((e) => {
           // offline や Internal Server Error などのときなので記録するだけ
           console.warn('validateLogin: error=' + JSON.stringify(e));
         });
@@ -183,7 +184,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }
 
   private async login(service: IPlatformService, rawAuth: IPlatformAuth) {
-    await ipcRenderer.invoke(`recollectUserSessionCookie`);
+    await ipcRenderer.invoke('recollectUserSessionCookie');
     const isPremium = await service.isPremium(rawAuth.platform.token);
     const auth = { ...rawAuth, platform: { ...rawAuth.platform, isPremium } };
     this.LOGIN(auth);
@@ -293,9 +294,9 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     addClipboardMenu(authWindow);
 
     authWindow.setMenu(null);
-    authWindow.loadURL(service.authUrl).catch(error => {
+    authWindow.loadURL(service.authUrl).catch((error) => {
       if (error instanceof Error) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('warning');
           scope.setExtra('url', service.authUrl);
           scope.setFingerprint(['startAuth', 'loadURL', service.authUrl]);
@@ -334,11 +335,11 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     const query = Utils.getUrlParams(url);
 
     if (
-      query.token &&
-      query.platform_username &&
-      query.platform_token &&
-      query.platform_id &&
-      query.oauth_token
+      query.token
+      && query.platform_username
+      && query.platform_token
+      && query.platform_id
+      && query.oauth_token
     ) {
       return {
         apiToken: query.oauth_token,
@@ -379,5 +380,4 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     return this.isLoggedIn() && this.platform && this.platform.type === 'niconico';
   }
 }
-
 

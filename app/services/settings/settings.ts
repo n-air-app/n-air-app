@@ -1,17 +1,18 @@
+import fs from 'fs';
+
 import * as Sentry from '@sentry/vue';
 import {
+  inputValuesToObsValues,
   IObsInput,
   IObsListInput,
+  obsValuesToInputValues,
   TObsFormData,
   TObsValue,
-  inputValuesToObsValues,
-  obsValuesToInputValues,
 } from 'components/obs/inputs/ObsInput';
-import fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { AppService } from 'services/app';
 import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
@@ -20,17 +21,19 @@ import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
 import { VideoSettingsService } from '../settings-v2';
 import Utils from '../utils';
+
 import { getBestSettingsForNiconico } from './niconico-optimization';
 import {
   ISettingsAccessor,
   OptimizationKey,
-  OptimizeSettings,
   OptimizedSettings,
   Optimizer,
+  OptimizeSettings,
   SettingsKeyAccessor,
 } from './optimizer';
 import { ISettingsServiceApi, ISettingsSubCategory, SettingsCategory } from './settings-api';
@@ -75,17 +78,17 @@ declare type TSettingsFormData = Dictionary<ISettingsSubCategory[]>;
 
 const niconicoResolutions = ['1280x720', '800x450', '512x288', '640x360'];
 
-const niconicoResolutionValues = niconicoResolutions.map(res => ({
+const niconicoResolutionValues = niconicoResolutions.map((res) => ({
   [res]: res,
 }));
 
 const niconicoAudioBitrates = ['48', '96', '192'];
 
-const niconicoAudioBitrateValues = niconicoAudioBitrates.map(res => ({
+const niconicoAudioBitrateValues = niconicoAudioBitrates.map((res) => ({
   [res]: res,
 }));
 
-const niconicoAudioBitrateOptions = niconicoAudioBitrates.map(res => ({
+const niconicoAudioBitrateOptions = niconicoAudioBitrates.map((res) => ({
   value: res,
   description: res,
 }));
@@ -103,8 +106,8 @@ export class SettingsService
   static convertFormDataToState(settingsFormData: TSettingsFormData): ISettingsState {
     const settingsState: Partial<ISettingsState> = {};
     for (const groupName in settingsFormData) {
-      settingsFormData[groupName].forEach(subGroup => {
-        subGroup.parameters.forEach(parameter => {
+      settingsFormData[groupName].forEach((subGroup) => {
+        subGroup.parameters.forEach((parameter) => {
           // @ts-expect-error ts7053
           settingsState[groupName] = settingsState[groupName] || {};
           // @ts-expect-error ts7053
@@ -135,7 +138,7 @@ export class SettingsService
   loadSettingsIntoStore() {
     // load configuration from nodeObs to state
     const settingsFormData: Dictionary<any> = {};
-    this.getCategories().forEach(categoryName => {
+    this.getCategories().forEach((categoryName) => {
       settingsFormData[categoryName] = this.getSettingsFormData(categoryName);
     });
     this.SET_SETTINGS(SettingsService.convertFormDataToState(settingsFormData));
@@ -179,7 +182,7 @@ export class SettingsService
   getCategories(): SettingsCategory[] {
     const categories: SettingsCategory[] = (
       obs.NodeObs.OBS_settings_getListCategories() as SettingsCategory[]
-    ).filter(a => a !== 'StreamSecond'); // obs-studio-node 0.23.74で追加された分の非表示
+    ).filter((a) => a !== 'StreamSecond'); // obs-studio-node 0.23.74で追加された分の非表示
 
     categories.push('Transcription');
 
@@ -235,9 +238,9 @@ export class SettingsService
       if (outputSettings) {
         // filter resolutions if duplicated in the meaning of value
         const output = outputSettings as unknown as { values: { [key: string]: string }[] };
-        output.values = output.values.filter(x => {
+        output.values = output.values.filter((x) => {
           // one item has only one key-value pair
-          return !Object.keys(x).some(y => niconicoResolutions.includes(x[y]));
+          return !Object.keys(x).some((y) => niconicoResolutions.includes(x[y]));
         });
         output.values.unshift(...niconicoResolutionValues);
       }
@@ -261,7 +264,7 @@ export class SettingsService
       // ニコニコログイン中は Stream(配信) タブの項目は無効にする
       if (this.userService.isNiconicoLoggedIn()) {
         for (const untitled of this.findSubCategory(settings, 'Untitled')) {
-          untitled.parameters.forEach(setting => {
+          untitled.parameters.forEach((setting) => {
             setting.enabled = false;
           });
         }
@@ -296,7 +299,7 @@ export class SettingsService
       }) as any;
       if (aBitrate) {
         aBitrate.values = aBitrate.values.filter((x: { [key: string]: string }) => {
-          return !Object.keys(x).some(y => niconicoAudioBitrates.includes(x[y]));
+          return !Object.keys(x).some((y) => niconicoAudioBitrates.includes(x[y]));
         });
         aBitrate.values.unshift(...niconicoAudioBitrateValues);
         aBitrate.options = aBitrate.options.filter((x: { value: string; description: string }) => {
@@ -416,14 +419,13 @@ export class SettingsService
     const encoder = isSimple
       ? (this.findSettingValue(output, 'Streaming', 'StreamEncoder') as string)
       : (this.findSettingValue(output, 'Streaming', 'Encoder') as string);
-    const preset =
-      (this.findSettingValue(output, 'Streaming', 'preset') as string) ||
-      (this.findSettingValue(output, 'Streaming', 'Preset') as string) ||
-      (this.findSettingValue(output, 'Streaming', 'NVENCPreset') as string) ||
-      (this.findSettingValue(output, 'Streaming', 'QSVPreset') as string) ||
-      (this.findSettingValue(output, 'Streaming', 'target_usage') as string) ||
-      (this.findSettingValue(output, 'Streaming', 'QualityPreset') as string) ||
-      (this.findSettingValue(output, 'Streaming', 'AMDPreset') as string);
+    const preset = (this.findSettingValue(output, 'Streaming', 'preset') as string)
+      || (this.findSettingValue(output, 'Streaming', 'Preset') as string)
+      || (this.findSettingValue(output, 'Streaming', 'NVENCPreset') as string)
+      || (this.findSettingValue(output, 'Streaming', 'QSVPreset') as string)
+      || (this.findSettingValue(output, 'Streaming', 'target_usage') as string)
+      || (this.findSettingValue(output, 'Streaming', 'QualityPreset') as string)
+      || (this.findSettingValue(output, 'Streaming', 'AMDPreset') as string);
     const bitrate = isSimple
       ? (this.findSettingValue(output, 'Streaming', 'VBitrate') as number)
       : (this.findSettingValue(output, 'Streaming', 'bitrate') as number);
@@ -572,7 +574,7 @@ export class SettingsService
       if (delta.length === 0) {
         // send to Sentry
         if (retry > 0) {
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('info');
             scope.setTag('optimizeForNiconico', 'retry');
             scope.setTag('retry', `${retry}`);
@@ -580,7 +582,7 @@ export class SettingsService
             Sentry.captureMessage('optimizeForNiconico: リトライで成功');
           });
         } else {
-          Sentry.withScope(scope => {
+          Sentry.withScope((scope) => {
             scope.setLevel('info');
             scope.setTag('optimizeForNiconico', 'success');
             scope.setFingerprint(['optimizeForNiconico', 'success']);
@@ -591,7 +593,7 @@ export class SettingsService
       }
 
       const encoder = accessor.getSetting(OptimizationKey.encoder);
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('warning');
         scope.setTag('optimizeForNiconico', 'partial');
         scope.setTag('retry', `${retry}`);
@@ -600,12 +602,12 @@ export class SettingsService
         if (encoder && encoder.options) {
           scope.setExtra('encoder.options', encoder.options);
         }
-        Sentry.captureMessage(`optimizeForNiconico: optimization setting is not set perfectly`);
+        Sentry.captureMessage('optimizeForNiconico: optimization setting is not set perfectly');
       });
     }
 
     // send to Sentry
-    Sentry.withScope(scope => {
+    Sentry.withScope((scope) => {
       scope.setLevel('error');
       scope.setTag('optimizeForNiconico', 'failed');
       scope.setExtra('best', best);
@@ -619,7 +621,7 @@ export class SettingsService
     category: string,
   ): ISettingsSubCategory[] {
     // there are one or more subCategory objects whitch have the same name!
-    return settings.filter(subCategory => subCategory.nameSubCategory === category);
+    return settings.filter((subCategory) => subCategory.nameSubCategory === category);
   }
 
   findSetting(
@@ -628,7 +630,7 @@ export class SettingsService
     setting: string,
   ): TObsFormData[number] | undefined {
     for (const subCategory of this.findSubCategory(settings, category)) {
-      const found = subCategory.parameters.find(param => param.name === setting) as any;
+      const found = subCategory.parameters.find((param) => param.name === setting) as any;
       if (found) {
         return found;
       }
@@ -654,7 +656,7 @@ export class SettingsService
     const formModel = this.findSetting(settings, category, setting);
     if (!formModel) return;
     const options = (formModel as IObsListInput<string>).options;
-    const option = options.find(option => option.value === formModel.value);
+    const option = options.find((option) => option.value === formModel.value);
     return option ? option.value : options[0].value;
   }
 
@@ -681,12 +683,12 @@ export class SettingsService
   private getAudioSettingsFormData(OBSsettings: ISettingsSubCategory): ISettingsSubCategory[] {
     {
       // filter unsupported values of niconico
-      const channelSetup = OBSsettings.parameters.find(i => i.name === 'ChannelSetup');
+      const channelSetup = OBSsettings.parameters.find((i) => i.name === 'ChannelSetup');
       if (channelSetup) {
         type withOptions = {
           options: { value: string; description: string }[];
         };
-        (channelSetup as withOptions).options = (channelSetup as withOptions).options.filter(o =>
+        (channelSetup as withOptions).options = (channelSetup as withOptions).options.filter((o) =>
           ['Mono', 'Stereo'].includes(o.value),
         );
       }
@@ -695,13 +697,13 @@ export class SettingsService
     const audioDevices = this.audioService.getDevices();
     const sourcesInChannels = this.sourcesService
       .getSources()
-      .filter(source => source.channel !== undefined);
+      .filter((source) => source.channel !== undefined);
 
     const parameters: TObsFormData = [];
 
     // collect output channels info
     for (let channel = E_AUDIO_CHANNELS.OUTPUT_1; channel <= E_AUDIO_CHANNELS.OUTPUT_2; channel++) {
-      const source = sourcesInChannels.find(source => source.channel === channel);
+      const source = sourcesInChannels.find((source) => source.channel === channel);
       const deviceInd = channel;
 
       parameters.push({
@@ -714,8 +716,8 @@ export class SettingsService
         visible: true,
         options: [{ description: $t('settings.disabled'), value: null }].concat(
           audioDevices
-            .filter(device => device.type === 'output')
-            .map(device => {
+            .filter((device) => device.type === 'output')
+            .map((device) => {
               if (device.id === 'default') {
                 return { description: $t('settings.default'), value: device.id };
               }
@@ -727,7 +729,7 @@ export class SettingsService
 
     // collect input channels info
     for (let channel = E_AUDIO_CHANNELS.INPUT_1; channel <= E_AUDIO_CHANNELS.INPUT_3; channel++) {
-      const source = sourcesInChannels.find(source => source.channel === channel);
+      const source = sourcesInChannels.find((source) => source.channel === channel);
       const deviceInd = channel - 2;
 
       parameters.push({
@@ -740,8 +742,8 @@ export class SettingsService
         visible: true,
         options: [{ description: $t('settings.disabled'), value: null }].concat(
           audioDevices
-            .filter(device => device.type === 'input')
-            .map(device => {
+            .filter((device) => device.type === 'input')
+            .map((device) => {
               if (device.id === 'default') {
                 return { description: $t('settings.default'), value: device.id };
               }
@@ -798,8 +800,8 @@ export class SettingsService
     settingsData[0].parameters.forEach((deviceForm, ind) => {
       const channel = ind + 1;
       const isOutput = [E_AUDIO_CHANNELS.OUTPUT_1, E_AUDIO_CHANNELS.OUTPUT_2].includes(channel);
-      const device = audioDevices.find(device => device.id === deviceForm.value);
-      const source = this.sourcesService.getSources().find(source => source.channel === channel);
+      const device = audioDevices.find((device) => device.id === deviceForm.value);
+      const source = this.sourcesService.getSources().find((source) => source.channel === channel);
 
       if (source && deviceForm.value === null) {
         this.sourcesService.removeSource(source.sourceId);
@@ -828,7 +830,7 @@ export class SettingsService
         nameSubCategory: 'Dismissables',
         codeSubCategory: 'Dismissables',
         parameters: Object.values(EDismissable).map(
-          key =>
+          (key) =>
             <IObsInput<boolean>>{
               value: this.dismissablesService.shouldShow(key),
               name: key,

@@ -10,7 +10,7 @@ import { test, useWebdriver } from '../helpers/webdriver';
 
 useWebdriver();
 
-test('Adding and removing a AudioSource', async t => {
+test('Adding and removing a AudioSource', async (t) => {
   const client = t.context.app.client;
 
   await addSource('ffmpeg_source', 'Source With Audio');
@@ -29,7 +29,7 @@ test('Adding and removing a AudioSource', async t => {
     .waitForExist({ timeout: 5000, reverse: true });
 });
 
-test('Nested scenes should provide audio sources to mixer', async t => {
+test('Nested scenes should provide audio sources to mixer', async (t) => {
   const client = t.context.app.client;
 
   await addScene('1st Scene');
@@ -45,7 +45,7 @@ test('Nested scenes should provide audio sources to mixer', async t => {
   t.true(await client.$('.mixer-panel').$('div=Nested Media Source').isExisting());
 });
 
-test('Mixer volume slider and mute functionality', async t => {
+test('Mixer volume slider and mute functionality', async (t) => {
   const client = t.context.app.client;
 
   await addSource('ffmpeg_source', 'Audio Test Source');

@@ -9,13 +9,13 @@ interface ISelectorItem {
 @Component({})
 export default class Selector extends Vue {
   @Prop()
-  items: ISelectorItem[];
+    items: ISelectorItem[];
 
   @Prop()
-  activeItems: string[];
+    activeItems: string[];
 
   @Prop({ default: true, type: Boolean })
-  draggable: boolean;
+    draggable: boolean;
 
   /**
    * 表示用のローカルコピー。ドラッグ中にリアルタイムで並び替えを反映するために使用。
@@ -104,7 +104,7 @@ export default class Selector extends Vue {
 
     if (oldIndex === newIndex) return;
 
-    const order = newItems.map(item => item.value);
+    const order = newItems.map((item) => item.value);
     this.$emit('sort', {
       change: { moved: { element: newItems[newIndex], oldIndex, newIndex } },
       order,
@@ -158,7 +158,7 @@ export default class Selector extends Vue {
    * array of objects, so we normalize those here.
    */
   private normalizeItems(items: ISelectorItem[]): ISelectorItem[] {
-    return (items || []).map(item => {
+    return (items || []).map((item) => {
       if (typeof item === 'string') {
         return { name: item, value: item };
       }

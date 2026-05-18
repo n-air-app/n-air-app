@@ -39,7 +39,7 @@ export default class Display extends Vue {
     });
     this.display.setShoulddrawUI(this.drawUI);
 
-    this.display.onOutputResize(region => {
+    this.display.onOutputResize((region) => {
       this.$emit('outputResize', region);
     });
 

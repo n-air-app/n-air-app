@@ -8,7 +8,7 @@ export function shortcut(key: string) {
   return function (target: any, methodName: string, descriptor: PropertyDescriptor) {
     const shortcutsService: ShortcutsService = ShortcutsService.instance;
 
-    shortcutsService.registerShortcut(key, e => target.constructor.instance[methodName](e));
+    shortcutsService.registerShortcut(key, (e) => target.constructor.instance[methodName](e));
   };
 }
 
@@ -16,7 +16,7 @@ export class ShortcutsService extends Service {
   shortcuts: Map<string, TShortcutHandler> = new Map();
 
   init() {
-    document.addEventListener('keydown', e => {
+    document.addEventListener('keydown', (e) => {
       // ignore key events from webview
       if ((e.target as HTMLElement).tagName === 'WEBVIEW') return;
 

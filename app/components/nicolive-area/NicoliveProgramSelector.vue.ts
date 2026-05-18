@@ -5,10 +5,10 @@ import NavMenu from 'components/shared/NavMenu.vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
+  NicoliveProgramSelectorService,
   providerTypes as _providerTypes,
   selectionSteps as _selectionSteps,
   steps as _steps,
-  NicoliveProgramSelectorService,
   TProviderType,
   TSelectionStep,
   TStep,
@@ -81,14 +81,13 @@ export default class NicoliveProgramSelector extends Vue {
 
   shouldEnableNavItem(step: TStep): boolean {
     return (
-      !this.nicoliveProgramSelectorService.state.isLoading &&
-      this.nicoliveProgramSelectorService.isCompletedOrCurrentStep(step)
+      !this.nicoliveProgramSelectorService.state.isLoading
+      && this.nicoliveProgramSelectorService.isCompletedOrCurrentStep(step)
     );
   }
 
   getSelectedValueForDisplay(navItemStep: TSelectionStep): string {
-    const { selectedProviderType, selectedChannel, selectedChannelProgram } =
-      this.nicoliveProgramSelectorService.state;
+    const { selectedProviderType, selectedChannel, selectedChannelProgram } = this.nicoliveProgramSelectorService.state;
     switch (navItemStep) {
       case 'providerTypeSelect':
         return this.getProviderTypeProgramText(selectedProviderType) || this.BLANK;
@@ -101,8 +100,8 @@ export default class NicoliveProgramSelector extends Vue {
 
   canShowNoProgramsSection(): boolean {
     return (
-      !this.nicoliveProgramSelectorService.state.isLoading &&
-      this.nicoliveProgramSelectorService.state.candidatePrograms.length <= 0
+      !this.nicoliveProgramSelectorService.state.isLoading
+      && this.nicoliveProgramSelectorService.state.candidatePrograms.length <= 0
     );
   }
 

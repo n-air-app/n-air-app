@@ -1,9 +1,10 @@
 import { CompactModeService } from 'services/compact-mode';
 import { SceneCollectionsService } from 'services/scene-collections';
+
 import { sleep } from '../../app/util/sleep';
 import { getApiClient } from '../helpers/api-client';
 import { click, focusMain, isDisplayed, waitForDisplayed } from '../helpers/modules/core';
-import { TExecutionContext, test, useWebdriver } from '../helpers/webdriver/index';
+import { test, TExecutionContext, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver();
 
@@ -11,8 +12,7 @@ useWebdriver();
 
 test('Popper basic functionality', async (t: TExecutionContext) => {
   const client = await getApiClient();
-  const sceneCollectionsService =
-    client.getResource<SceneCollectionsService>('SceneCollectionsService');
+  const sceneCollectionsService = client.getResource<SceneCollectionsService>('SceneCollectionsService');
   const compactModeService = client.getResource<CompactModeService>('CompactModeService');
 
   // コンパクトモードを無効にする（シーンコレクションドロップダウンを表示するため）
@@ -27,7 +27,7 @@ test('Popper basic functionality', async (t: TExecutionContext) => {
   await focusMain();
 
   // シーンコレクション切り替えボタンが表示されてクリック可能になるまで待つ
-  const webdriverClient = await import('../helpers/modules/core').then(m => m.getClient());
+  const webdriverClient = await import('../helpers/modules/core').then((m) => m.getClient());
   const toggleButton = await webdriverClient.$('.scene-collections__toggle');
   await toggleButton.waitForDisplayed({ timeout: 10000 });
   await toggleButton.waitForClickable({ timeout: 10000 });
@@ -71,7 +71,7 @@ test('Popper basic functionality', async (t: TExecutionContext) => {
   await sleep(300);
   await waitForDisplayed('.scene-collections-menu');
 
-  const webdriver = await import('../helpers/modules/core').then(m => m.getClient());
+  const webdriver = await import('../helpers/modules/core').then((m) => m.getClient());
   const button = await webdriver.$('.scene-collections__toggle');
   const dropdown = await webdriver.$('.scene-collections-menu');
 

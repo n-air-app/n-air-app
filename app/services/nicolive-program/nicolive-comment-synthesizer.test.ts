@@ -1,6 +1,7 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 import { QueueRunner, QueueRunnerState } from 'util/QueueRunner';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { ICommentSynthesizerState, Speech } from './nicolive-comment-synthesizer';
 import { isWrappedChat, WrappedChat, WrappedMessage } from './WrappedChat';
 
@@ -214,8 +215,7 @@ test.each([
   ) => {
     setup();
     const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
-    const instance =
-      NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+    const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
     jest.spyOn(instance, 'state', 'get').mockReturnValue(mockedState);
 
     (instance.getSynthesizer('nVoice').speakText as jest.Mock).mockImplementation(

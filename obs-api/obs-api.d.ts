@@ -1,4 +1,6 @@
 // export * from 'obs-studio-node/module'
+import { EOutputCode, EVideoCodes, IVideo } from 'obs-studio-node/module';
+
 export {
   addItems,
   createSources,
@@ -62,7 +64,6 @@ export {
   VideoFactory,
   VolmeterFactory,
 } from 'obs-studio-node/module';
-import { EOutputCode, EVideoCodes, IVideo } from 'obs-studio-node/module';
 
 export interface IGetSettingsData {
   nameSubCategory: string;

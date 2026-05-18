@@ -1,12 +1,14 @@
-import * as remote from '@electron/remote';
 import { randomBytes } from 'crypto';
+
+import * as remote from '@electron/remote';
 import { isFakeMode } from 'util/fakeMode';
+
 import { Inject } from './core/injector';
 import { Service } from './core/service';
 import { HostsService } from './hosts';
 import { SynthesizerSelector } from './nicolive-program/state';
-import { EncoderFamily } from './settings/optimizer';
 import { NVoiceCharacterUsageLog } from './nvoice-character-usage';
+import { EncoderFamily } from './settings/optimizer';
 import { SpeechActionOnSoundDetected } from './sound-detector/sound-detector';
 import {
   CommentColor,
@@ -21,7 +23,7 @@ function randomCharacters(len: number): string {
   const buf = randomBytes(len);
   const characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   return Array.from(buf)
-    .map(b => characters[Math.floor((b / 256) * characters.length)])
+    .map((b) => characters[Math.floor((b / 256) * characters.length)])
     .join('');
 }
 

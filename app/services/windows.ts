@@ -1,34 +1,34 @@
-import * as Sentry from '@sentry/vue';
-// This singleton class provides a renderer-space API
-// for spawning various child windows.
-import cloneDeep from 'lodash/cloneDeep';
 import * as remote from '@electron/remote';
-import AddSource from 'components/sources/AddSource.vue';
-import AddSourceFilter from 'components/sources/AddSourceFilter.vue';
-import AdvancedAudio from 'components/settings/AdvancedAudio.vue';
-import AutoCompactConfirmDialog from 'components/sources/AutoCompactConfirmDialog.vue';
-import Blank from 'components/windows/Blank.vue';
-import BrowserSourceInteraction from 'components/sources/BrowserSourceInteraction.vue';
-import CroppingOverlay from 'components/windows/CroppingOverlay.vue';
-import Informations from 'components/settings/Informations.vue';
-import Main from 'components/windows/Main.vue';
-import ManageSceneCollections from 'components/scenes/ManageSceneCollections.vue';
+import * as Sentry from '@sentry/vue';
 import ModeratorConfirmDialog from 'components/nicolive-area/ModeratorConfirmDialog.vue';
+import NicoliveProgramSelector from 'components/nicolive-area/NicoliveProgramSelector.vue';
+import UserInfo from 'components/nicolive-area/UserInfo.vue';
+import ManageSceneCollections from 'components/scenes/ManageSceneCollections.vue';
 import NameFolder from 'components/scenes/NameFolder.vue';
 import NameScene from 'components/scenes/NameScene.vue';
 import NameSceneCollection from 'components/scenes/NameSceneCollection.vue';
-import NicoliveProgramSelector from 'components/nicolive-area/NicoliveProgramSelector.vue';
+import AdvancedAudio from 'components/settings/AdvancedAudio.vue';
+import Informations from 'components/settings/Informations.vue';
 import OptimizeForNiconico from 'components/settings/OptimizeForNiconico.vue';
-import Projector from 'components/windows/Projector.vue';
-import RenameSource from 'components/sources/RenameSource.vue';
-import RtvcSourceProperties from 'components/sources/RtvcSourceProperties.vue';
 import SceneTransitions from 'components/settings/SceneTransitions.vue';
 import Settings from 'components/settings/Settings.vue';
+import AddSource from 'components/sources/AddSource.vue';
+import AddSourceFilter from 'components/sources/AddSourceFilter.vue';
+import AutoCompactConfirmDialog from 'components/sources/AutoCompactConfirmDialog.vue';
+import BrowserSourceInteraction from 'components/sources/BrowserSourceInteraction.vue';
+import RenameSource from 'components/sources/RenameSource.vue';
+import RtvcSourceProperties from 'components/sources/RtvcSourceProperties.vue';
 import SourceFilters from 'components/sources/SourceFilters.vue';
 import SourceProperties from 'components/sources/SourceProperties.vue';
 import SourcesShowcase from 'components/sources/SourcesShowcase.vue';
-import UserInfo from 'components/nicolive-area/UserInfo.vue';
+import Blank from 'components/windows/Blank.vue';
+import CroppingOverlay from 'components/windows/CroppingOverlay.vue';
+import Main from 'components/windows/Main.vue';
+import Projector from 'components/windows/Projector.vue';
 import electron from 'electron';
+// This singleton class provides a renderer-space API
+// for spawning various child windows.
+import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { getPartitionConfig } from 'services/dev-hosts';
@@ -152,7 +152,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
       const bounds = window.getBounds();
       const currentDisplay = remote.screen.getDisplayMatching(bounds);
       if (!currentDisplay) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setExtra('windowId', windowId);
           scope.setExtra('bounds', bounds);
           scope.setTag('module', 'windows');
@@ -327,8 +327,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
     // サイズ指定をコンストラクタで行うと、メインモニタより大きなウィンドウを作れない
     // enableLargerThanScreenを指定しても効かなかったので後から明示的に与える
     const width = options.size && typeof options.size.width === 'number' ? options.size.width : 400;
-    const height =
-      options.size && typeof options.size.height === 'number' ? options.size.height : 400;
+    const height = options.size && typeof options.size.height === 'number' ? options.size.height : 400;
     newWindow.setSize(width, height);
     if (options.limitMinimumSize) {
       newWindow.setMinimumSize(width, height);
@@ -356,7 +355,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
    */
   closeAllOneOffs(): Promise<any> {
     const closingPromises: Promise<void>[] = [];
-    Object.keys(this.windows).forEach(windowId => {
+    Object.keys(this.windows).forEach((windowId) => {
       if (windowId === 'main') return;
       if (windowId === 'child') return;
       this.closeOneOffWindow(windowId);
@@ -367,7 +366,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   async closeOneOffWindow(windowId: string): Promise<void> {
     if (!this.windows[windowId] || this.windows[windowId].isDestroyed()) return;
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
       this.windows[windowId].on('closed', resolve);
       this.windows[windowId].close();
       await this.waitWindowCleanup(windowId);

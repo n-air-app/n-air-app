@@ -1,6 +1,8 @@
 import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { NicoliveClient } from './NicoliveClient';
+
 type NicoliveSupportersService = import('./nicolive-supporters').NicoliveSupportersService;
 
 const setup = createSetupFunction({

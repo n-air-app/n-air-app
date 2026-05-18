@@ -13,7 +13,7 @@ const returnCode = (function main() {
 
   // create dir
   let currentPath = '';
-  dir.split('/').forEach(dirName => {
+  dir.split('/').forEach((dirName) => {
     currentPath += dirName;
     if (!fs.existsSync(currentPath)) fs.mkdirSync(currentPath);
     currentPath += '/';
@@ -41,7 +41,7 @@ const returnCode = (function main() {
 
     log('creating screenshots');
     try {
-      execSync(`pnpm ava test-dist/test/screentest/tests`);
+      execSync('pnpm ava test-dist/test/screentest/tests');
     } catch (e) {
       err('creating screenshots failed');
       return 1;

@@ -16,16 +16,16 @@ export default class NameScene extends Vue {
   error = '';
 
   @Inject()
-  scenesService: ScenesService;
+    scenesService: ScenesService;
 
   @Inject()
-  sourcesService: ISourcesServiceApi;
+    sourcesService: ISourcesServiceApi;
 
   @Inject()
-  windowsService: WindowsService;
+    windowsService: WindowsService;
 
   @Inject()
-  selectionService: SelectionService;
+    selectionService: SelectionService;
 
   options: {
     sceneToDuplicate?: string; // id of scene

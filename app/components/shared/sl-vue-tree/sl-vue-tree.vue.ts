@@ -65,7 +65,7 @@ export default Vue.extend({
       validator(value: string | string[]): boolean {
         const allowedKeys = ['ctrlKey', 'metaKey', 'altKey'];
         let multiselectKeys = Array.isArray(value) ? value : [value];
-        multiselectKeys = multiselectKeys.filter(keyName => allowedKeys.indexOf(keyName) !== -1);
+        multiselectKeys = multiselectKeys.filter((keyName) => allowedKeys.indexOf(keyName) !== -1);
         return !!multiselectKeys.length;
       },
     },
@@ -285,10 +285,10 @@ export default Vue.extend({
     },
 
     select(path: number[], addToSelection = false, event: MouseEvent | null = null): ISlTreeNode | null {
-      const multiselectKeys = Array.isArray(this.multiselectKey) ?
-        this.multiselectKey :
-        [this.multiselectKey];
-      const multiselectKeyIsPressed = event && !!multiselectKeys.find(key => (event as any)[key]);
+      const multiselectKeys = Array.isArray(this.multiselectKey)
+        ? this.multiselectKey
+        : [this.multiselectKey];
+      const multiselectKeyIsPressed = event && !!multiselectKeys.find((key) => (event as any)[key]);
       addToSelection = (multiselectKeyIsPressed || addToSelection) && this.allowMultiselect;
 
       const selectedNode = this.getNode(path);
@@ -314,7 +314,6 @@ export default Vue.extend({
         if (nodeModel.isSelected) selectedNodes.push(node);
       }, newNodes);
 
-
       this.lastSelectedNode = selectedNode;
       this.emitInput(newNodes);
       this.emitSelect(selectedNodes, event);
@@ -330,11 +329,10 @@ export default Vue.extend({
       if (this.preventDrag) return;
 
       const initialDraggingState = this.isDragging;
-      const isDragging =
-        this.isDragging || (
-          this.mouseIsDown &&
-          (this.lastMousePos.x !== event.clientX || this.lastMousePos.y !== event.clientY)
-        );
+      const isDragging = this.isDragging || (
+        this.mouseIsDown
+          && (this.lastMousePos.x !== event.clientX || this.lastMousePos.y !== event.clientY)
+      );
 
       const isDragStarted = initialDraggingState === false && isDragging === true;
 
@@ -400,7 +398,6 @@ export default Vue.extend({
         const nodeHeight = ($nodeItem as HTMLElement).offsetHeight;
         const edgeSize = this.edgeSize;
         const offsetY = y - $nodeItem.getBoundingClientRect().top;
-
 
         if (destNode.isLeaf) {
           placement = offsetY >= nodeHeight / 2 ? 'after' : 'before';
@@ -529,7 +526,6 @@ export default Vue.extend({
       this.mouseIsDown = true;
     },
 
-
     startScroll(speed: number): void {
       const $root = this.getRoot().$el;
       if (this.scrollSpeed === speed) {
@@ -581,7 +577,6 @@ export default Vue.extend({
         return;
       }
 
-
       const draggingNodes = this.getDraggable();
 
       // check that nodes is possible to insert
@@ -627,20 +622,17 @@ export default Vue.extend({
       // insert dragging nodes to the new place
       this.insertModels(this.cursorPosition, nodeModelsToInsert, newNodes);
 
-
       // delete dragging node from the old place
       this.traverseModels((nodeModel, siblings, ind) => {
         if (!(nodeModel as any)._markToDelete) return;
         siblings.splice(ind, 1);
       }, newNodes);
 
-
       this.lastSelectedNode = null;
       this.emitInput(newNodes);
       this.emitDrop(draggingNodes, this.cursorPosition, event);
       this.stopDrag();
     },
-
 
     onToggleHandler(event: MouseEvent, node: ISlTreeNode): void {
       if (!this.allowToggleBranch) return;
@@ -657,7 +649,6 @@ export default Vue.extend({
       this.stopScroll();
     },
 
-
     getParent(): any {
       return this.$parent;
     },
@@ -671,7 +662,6 @@ export default Vue.extend({
       if (path.length === 1) return nodes;
       return this.getNodeSiblings(nodes[path[0]].children!, path.slice(1));
     },
-
 
     updateNode(path: number[], patch: Partial<ISlTreeNodeModel>): void {
       if (!this.isRoot) {
@@ -704,7 +694,6 @@ export default Vue.extend({
       });
       return selectedNodes;
     },
-
 
     traverse(
       cb: (node: ISlTreeNode, nodeModel: ISlTreeNodeModel, siblings: ISlTreeNodeModel[]) => boolean | void,
@@ -746,7 +735,7 @@ export default Vue.extend({
     },
 
     remove(paths: number[][]): void {
-      const pathsStr = paths.map(path => JSON.stringify(path));
+      const pathsStr = paths.map((path) => JSON.stringify(path));
       const newNodes = this.copy(this.currentValue);
       this.traverse((node, nodeModel, siblings) => {
         for (const pathStr of pathsStr) {
@@ -771,9 +760,9 @@ export default Vue.extend({
         destNodeModel.children = destNodeModel.children || [];
         destNodeModel.children.unshift(...nodeModels);
       } else {
-        const insertInd = cursorPosition.placement === 'before' ?
-          destNode.ind :
-          destNode.ind + 1;
+        const insertInd = cursorPosition.placement === 'before'
+          ? destNode.ind
+          : destNode.ind + 1;
 
         destSiblings.splice(insertInd, 0, ...nodeModels);
       }

@@ -4,6 +4,7 @@ import { PersistentStatefulService } from 'services/core/persistent-stateful-ser
 import { mutation } from 'services/core/stateful-service';
 import { NavigationService } from 'services/navigation';
 import Util from 'services/utils';
+
 import { notes } from './notes';
 
 interface IPatchNotesState {

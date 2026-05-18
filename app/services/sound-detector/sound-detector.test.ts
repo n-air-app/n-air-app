@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import type { AudioSource, IVolmeter } from 'services/audio';
 import type { Source, TSourceType } from 'services/sources';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { SoundDetectorService } from './sound-detector';
 
 const setup = createSetupFunction({
@@ -101,18 +102,17 @@ function prepare(
 
   const stateOverride: Record<string, Record<string, unknown>> = {};
   if (
-    options.speechActionOnSoundDetected !== undefined ||
-    options.soundThresholdDb !== undefined ||
-    options.resumeSilenceMs !== undefined ||
-    options.noSignalTimeoutMs !== undefined ||
-    options.calibrated !== undefined ||
-    options.declined !== undefined ||
-    options.dialogShown !== undefined
+    options.speechActionOnSoundDetected !== undefined
+    || options.soundThresholdDb !== undefined
+    || options.resumeSilenceMs !== undefined
+    || options.noSignalTimeoutMs !== undefined
+    || options.calibrated !== undefined
+    || options.declined !== undefined
+    || options.dialogShown !== undefined
   ) {
     stateOverride.SoundDetectorService = {};
     if (options.speechActionOnSoundDetected !== undefined) {
-      stateOverride.SoundDetectorService.speechActionOnSoundDetected =
-        options.speechActionOnSoundDetected;
+      stateOverride.SoundDetectorService.speechActionOnSoundDetected = options.speechActionOnSoundDetected;
     }
     if (options.soundThresholdDb !== undefined) {
       stateOverride.SoundDetectorService.soundThresholdDb = options.soundThresholdDb;
@@ -181,7 +181,7 @@ describe('SoundDetectorService', () => {
     const { instance } = prepare();
     const sources = instance.getAvailableSources();
     expect(sources).toHaveLength(2);
-    expect(sources.map(s => s.name)).toEqual(['マイク', 'RTVC']);
+    expect(sources.map((s) => s.name)).toEqual(['マイク', 'RTVC']);
   });
 
   test('soundDetectedSubject', () => {
@@ -236,7 +236,7 @@ describe('SoundDetectorService', () => {
     expect(isMuted('rtvc')).toBe(false);
 
     let sourceMuted = false;
-    instance.sourceMuted.subscribe(muted => {
+    instance.sourceMuted.subscribe((muted) => {
       sourceMuted = muted;
     });
     expect(sourceMuted).toBe(false);
@@ -256,7 +256,7 @@ describe('SoundDetectorService', () => {
     const { instance } = prepare();
 
     let sourceMuted: boolean;
-    instance.sourceMuted.subscribe(muted => {
+    instance.sourceMuted.subscribe((muted) => {
       sourceMuted = muted;
     });
 
@@ -271,7 +271,7 @@ describe('SoundDetectorService', () => {
       const { instance } = prepare();
 
       let sourceAvailable: boolean;
-      instance.sourceAvailable.subscribe(available => {
+      instance.sourceAvailable.subscribe((available) => {
         sourceAvailable = available;
       });
 
@@ -308,7 +308,7 @@ describe('SoundDetectorService', () => {
       instance.enable();
 
       let sourceAvailable: boolean;
-      instance.sourceAvailable.subscribe(available => {
+      instance.sourceAvailable.subscribe((available) => {
         sourceAvailable = available;
       });
 
@@ -347,7 +347,7 @@ describe('SoundDetectorService', () => {
       instance.enable();
 
       let sourceAvailable: boolean;
-      instance.sourceAvailable.subscribe(available => {
+      instance.sourceAvailable.subscribe((available) => {
         sourceAvailable = available;
       });
 
@@ -508,7 +508,7 @@ describe('SoundDetectorService', () => {
       const { instance, micStream } = prepare({ speechActionOnSoundDetected: 'pause' });
 
       let isBlocking = false;
-      instance.isBlockingObservable.subscribe(blocking => {
+      instance.isBlockingObservable.subscribe((blocking) => {
         isBlocking = blocking;
       });
 
@@ -536,7 +536,7 @@ describe('SoundDetectorService', () => {
       const { instance, micStream } = prepare({ speechActionOnSoundDetected: 'cancel' });
 
       let isBlocking = false;
-      instance.isBlockingObservable.subscribe(blocking => {
+      instance.isBlockingObservable.subscribe((blocking) => {
         isBlocking = blocking;
       });
 
@@ -552,7 +552,7 @@ describe('SoundDetectorService', () => {
       const { instance, micStream } = prepare({ speechActionOnSoundDetected: 'graceful' });
 
       let isBlocking = false;
-      instance.isBlockingObservable.subscribe(blocking => {
+      instance.isBlockingObservable.subscribe((blocking) => {
         isBlocking = blocking;
       });
 
@@ -577,7 +577,7 @@ describe('SoundDetectorService', () => {
       // pause の場合
       const pauseTest = prepare({ speechActionOnSoundDetected: 'pause' });
       let pauseBlocking = false;
-      pauseTest.instance.isBlockingObservable.subscribe(blocking => {
+      pauseTest.instance.isBlockingObservable.subscribe((blocking) => {
         pauseBlocking = blocking;
       });
       pauseTest.micStream.next({ peak: [pauseTest.instance.state.soundThresholdDb + 1] } as IVolmeter);
@@ -588,7 +588,7 @@ describe('SoundDetectorService', () => {
       // graceful の場合
       const gracefulTest = prepare({ speechActionOnSoundDetected: 'graceful' });
       let gracefulBlocking = false;
-      gracefulTest.instance.isBlockingObservable.subscribe(blocking => {
+      gracefulTest.instance.isBlockingObservable.subscribe((blocking) => {
         gracefulBlocking = blocking;
       });
       gracefulTest.micStream.next({ peak: [gracefulTest.instance.state.soundThresholdDb + 1] } as IVolmeter);
@@ -599,7 +599,7 @@ describe('SoundDetectorService', () => {
       // cancel の場合
       const cancelTest = prepare({ speechActionOnSoundDetected: 'cancel' });
       let cancelBlocking = false;
-      cancelTest.instance.isBlockingObservable.subscribe(blocking => {
+      cancelTest.instance.isBlockingObservable.subscribe((blocking) => {
         cancelBlocking = blocking;
       });
       cancelTest.micStream.next({ peak: [cancelTest.instance.state.soundThresholdDb + 1] } as IVolmeter);

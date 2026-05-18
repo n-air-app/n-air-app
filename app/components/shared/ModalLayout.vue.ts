@@ -38,15 +38,15 @@ export default class ModalLayout extends Vue {
    * Custom controls go in the "controls" slot.
    */
   @Prop({ default: false, type: Boolean })
-  customControls: boolean;
+    customControls: boolean;
 
   /** Contentにpaddingを持たせない場合 */
   @Prop({ default: false, type: Boolean })
-  bareContent: boolean;
+    bareContent: boolean;
 
   /* Contentをスクロールさせない場合 */
   @Prop({ default: false, type: Boolean })
-  noScroll: boolean;
+    noScroll: boolean;
 
   created() {
     const fixedStyle = {

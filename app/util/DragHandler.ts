@@ -101,8 +101,7 @@ export class DragHandler {
     this.displaySize = options.displaySize;
     this.displayOffset = options.displayOffset;
     this.scaleFactor = this.windowsService.state.main.scaleFactor;
-    this.snapDistance =
-      (this.renderedSnapDistance * this.scaleFactor * this.baseWidth) / this.displaySize.x;
+    this.snapDistance = (this.renderedSnapDistance * this.scaleFactor * this.baseWidth) / this.displaySize.x;
 
     // Load some attributes about sources
     this.draggedSource = this.selectionService.getLastSelected();
@@ -110,7 +109,7 @@ export class DragHandler {
       .clone()
       .invert()
       .getItems()
-      .filter(item => item.isVisualSource);
+      .filter((item) => item.isVisualSource);
 
     const rect = this.draggedSource.getRectangle();
     rect.normalize();
@@ -174,7 +173,7 @@ export class DragHandler {
     const deltaX = rect.x - this.draggedSource.transform.position.x;
     const deltaY = rect.y - this.draggedSource.transform.position.y;
 
-    this.selectionService.getItems().forEach(item => {
+    this.selectionService.getItems().forEach((item) => {
       const pos = item.transform.position;
       item.setTransform({ position: { x: pos.x + deltaX, y: pos.y + deltaY } });
     });
@@ -214,7 +213,7 @@ export class DragHandler {
   private getNearestEdgeDistance(sourceEdge: IEdge, targetEdges: IEdge[]) {
     let minDistance = Infinity;
 
-    targetEdges.forEach(targetEdge => {
+    targetEdges.forEach((targetEdge) => {
       if (!this.edgesOverlap(targetEdge, sourceEdge)) return;
 
       const distance = targetEdge.depth - sourceEdge.depth;
@@ -273,7 +272,7 @@ export class DragHandler {
 
     // Source edge snapping:
     if (this.sourceSnapping) {
-      this.otherSources.forEach(source => {
+      this.otherSources.forEach((source) => {
         const edges = this.generateSourceEdges(source.getRectangle());
 
         // The dragged source snaps to the adjacent edge

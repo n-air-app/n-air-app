@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/vue';
+
 import { Speech } from '../nicolive-comment-synthesizer';
+
 import { VoicevoxSynthesizer } from './VoicevoxSynthesizer';
 
 jest.mock('@sentry/vue', () => ({

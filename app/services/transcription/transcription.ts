@@ -1,8 +1,9 @@
-import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { existsSync, promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import {
   BehaviorSubject,
   distinctUntilChanged,
@@ -20,7 +21,9 @@ import { $t } from 'services/i18n';
 import { sendLogGif } from 'services/nicolive-program/nicolive-logger';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { TranscriptionLog } from 'services/usage-statistics';
+
 import { Inject, mutation, PersistentStatefulService } from '../core';
+
 import { CommentColor, CommentFont, CommentPosition, CommentSize } from './CommentModifier';
 import { CancelledError, downloadAndUnzip, DownloadError, ExtractError } from './downloadAndUnzip';
 import { filterNoiseText } from './filterNoiseText';
@@ -39,6 +42,7 @@ import {
   VoskClient,
 } from './VoskClient';
 import { VOSK_MODEL_NAMES, VoskModelsManager, VoskModelStatus } from './VoskModelsManager';
+
 export { CancelledError, VOSK_MODEL_NAMES, VoskModelStatus };
 
 // original site: https://alphacephei.com/vosk/models -> `https://alphacephei.com/vosk/models/${name}.zip`;
@@ -171,13 +175,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   isVoskModelReady(): boolean {
     const state = this.state;
     return (
-      state.voskModelName &&
-      this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded'
+      state.voskModelName
+      && this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded'
     );
   }
 
   hasAnyDownloadedModel(): boolean {
-    return this.getVoskModels().some(model => model.status.state === 'downloaded');
+    return this.getVoskModels().some((model) => model.status.state === 'downloaded');
   }
 
   init() {
@@ -197,8 +201,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // partial が連続している場合は、最初の partial の時刻を記憶する
     // text が連続している場合は、それぞれ個別の text として扱う
     merge(
-      this.rawTextSubject$.pipe(map(text => ({ type: 'text' as const, payload: text }))),
-      this.partialSubject$.pipe(map(partial => ({ type: 'partial' as const, payload: partial }))),
+      this.rawTextSubject$.pipe(map((text) => ({ type: 'text' as const, payload: text }))),
+      this.partialSubject$.pipe(map((partial) => ({ type: 'partial' as const, payload: partial }))),
     )
       .pipe(
         scan(
@@ -221,8 +225,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           },
           { partialTimestamp: null, text: null },
         ),
-        filter(acc => acc.text !== null),
-        map(acc => acc.text),
+        filter((acc) => acc.text !== null),
+        map((acc) => acc.text),
       )
       .subscribe(this.textSubject$);
 
@@ -256,7 +260,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
           return 'active';
         }),
-        tap(status => {
+        tap((status) => {
           console.log('TranscriptionService activeStatus:', status);
         }),
       )
@@ -264,14 +268,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     this.activeStatusSubject$
       .pipe(
-        map(status => {
+        map((status) => {
           const actual = !!this.client;
           const next = status === 'active';
           return actual !== next ? next : null;
         }),
-        filter(next => next !== null),
+        filter((next) => next !== null),
       )
-      .subscribe(enabled => {
+      .subscribe((enabled) => {
         Sentry.addBreadcrumb({
           category: 'transcription',
           message: `TranscriptionService ${
@@ -288,10 +292,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // audioDeviceId 状態を監視して、状態が変わったら audioDeviceIndex を更新する
     this.state$
       .pipe(
-        map(state => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId ?? null),
         distinctUntilChanged(),
       )
-      .subscribe(audioDeviceId => {
+      .subscribe((audioDeviceId) => {
         if (this.client) {
           this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
         }
@@ -307,7 +311,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private createAudioDeviceMutedStream() {
     merge(
       this.state$.pipe(
-        map(state => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId ?? null),
         distinctUntilChanged(),
       ),
       this.audioService.audioSourceUpdated,
@@ -391,7 +395,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
    * すべてのタイマーをクリーンアップする
    */
   private clearAllTimers() {
-    this.timerSubscriptions.forEach(sub => {
+    this.timerSubscriptions.forEach((sub) => {
       if (!sub.closed) {
         sub.unsubscribe();
       }
@@ -407,8 +411,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     // linesSubject$ を更新するストリーム
     merge(
-      this.partialSubject$.pipe(map(partial => ({ type: 'partial' as const, payload: partial }))),
-      this.textSubject$.pipe(map(text => ({ type: 'text' as const, payload: text.text }))),
+      this.partialSubject$.pipe(map((partial) => ({ type: 'partial' as const, payload: partial }))),
+      this.textSubject$.pipe(map((text) => ({ type: 'text' as const, payload: text.text }))),
       this.removeLineSubject$.pipe(map(() => ({ type: 'remove_line' as const }))),
       this.initializeTextSubject$.pipe(map(() => ({ type: 'initialize' as const }))),
     )
@@ -442,14 +446,14 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
             }
           }
         }, this.linesSubject$.getValue()),
-        tap(lines => {
+        tap((lines) => {
           if (this.state.textFileEnabled && this.getTextFilePath()) {
             const allLines = [...lines.texts];
             if (lines.partial) {
               allLines.push(lines.partial);
             }
             const content = allLines.slice(-this.state.textFileMaxLine).join('\n');
-            fs.writeFile(this.getTextFilePath(), content, 'utf-8').catch(err => {
+            fs.writeFile(this.getTextFilePath(), content, 'utf-8').catch((err) => {
               console.error('Failed to write transcription file:', err);
               this.setTextFileEnabled(false);
             });
@@ -461,7 +465,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // ストリームが閉じたとき（非アクティブになったとき）にテキストファイルを空にする
     this.activeStatus$
       .pipe(
-        filter(isActive => !isActive), // 非アクティブになったときのみ
+        filter((isActive) => !isActive), // 非アクティブになったときのみ
       )
       .subscribe(async () => {
         if (this.getTextFilePath()) {
@@ -505,7 +509,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       });
       this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
     } catch (err) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setTags({
           service: 'transcription',
           voskModelName: this.state.voskModelName,
@@ -521,7 +525,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
 
     this.subscription = this.client.startTranscription().subscribe({
-      next: message => {
+      next: (message) => {
         console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
           const text = filterNoiseText(message.text);
@@ -557,8 +561,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           console.warn('Unknown transcription message:', message);
         }
       },
-      error: err => {
-        Sentry.withScope(scope => {
+      error: (err) => {
+        Sentry.withScope((scope) => {
           scope.setTags({
             service: 'transcription',
             voskModelName: this.state.voskModelName,
@@ -608,7 +612,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       const audioDevices = VoskClient.listAudioDevices(this.voskCliPath);
       console.log('Vosk-cli: Available audio devices:', audioDevices.devices); // DEBUG
       this.audioDevices$.next(
-        audioDevices.devices.map(device => ({
+        audioDevices.devices.map((device) => ({
           id: device.id,
           name: device.name,
         })),
@@ -633,7 +637,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     if (!id) {
       return notFoundValue;
     }
-    const index = this.audioDevices$.value.findIndex(device => device.id === id);
+    const index = this.audioDevices$.value.findIndex((device) => device.id === id);
     if (index === -1) {
       return notFoundValue;
     }
@@ -650,8 +654,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   setAudioDeviceId(audioDeviceId: string | null) {
     const index = this.getAudioDeviceIndex(audioDeviceId, 0);
-    const actualDeviceId =
-      this.audioDevices$.value.length > 0 ? this.audioDevices$.value[index].id : null;
+    const actualDeviceId = this.audioDevices$.value.length > 0 ? this.audioDevices$.value[index].id : null;
     if (audioDeviceId !== actualDeviceId) {
       console.warn(
         `Audio device with id ${audioDeviceId} not found. Using ${actualDeviceId} instead.`,
@@ -760,7 +763,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           error_message = $t(
             `settings.transcription.download_error.http.${err.detail.response.status}`,
             {
-              fallback: $t(`settings.transcription.download_error.http.x00`, {
+              fallback: $t('settings.transcription.download_error.http.x00', {
                 status: err.detail.response.status,
               }),
             },
@@ -887,7 +890,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.deactivate();
     if (modelName === null) {
       modelName = this.modelsManager.getVoskModels()[0]?.name || null; // Default to the first model if none is set
-    } else if (!this.modelsManager.getVoskModels().some(model => model.name === modelName)) {
+    } else if (!this.modelsManager.getVoskModels().some((model) => model.name === modelName)) {
       throw new Error(`Vosk model ${modelName} not found.`);
     }
 

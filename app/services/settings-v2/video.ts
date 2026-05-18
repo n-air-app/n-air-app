@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { SettingsService } from 'services/settings';
 import { getKeys } from 'util/getKeys';
+
 import { EFPSType, EScaleType, IVideo, IVideoInfo, Video, VideoFactory } from '../../../obs-api';
 import { mutation, StatefulService } from '../core/stateful-service';
 

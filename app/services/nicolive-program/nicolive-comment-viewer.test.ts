@@ -3,21 +3,22 @@ import { Subject } from 'rxjs';
 import { jest_fn, type ObserveType } from 'util/jest_fn';
 import { sleep } from 'util/sleep';
 import { createSetupFunction } from 'util/test-setup';
+
 import { MessageResponse } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
 import { getDisplayText } from './ChatMessage/displaytext';
 import type { IMessageServerClient } from './MessageServerClient';
 import { NdgrFetchError } from './NdgrFetchError';
+import { Speech } from './nicolive-comment-synthesizer';
+import { NicoliveModeratorsService } from './nicolive-moderators';
 import { FilterRecord } from './ResponseTypes';
+import type { HttpRelationState, NicoliveProgramStateService } from './state';
 import {
   isWrappedChat,
   WrappedChatWithComponent,
   WrappedMessage,
   WrappedMessageWithComponent,
 } from './WrappedChat';
-import { Speech } from './nicolive-comment-synthesizer';
-import { NicoliveModeratorsService } from './nicolive-moderators';
-import type { HttpRelationState, NicoliveProgramStateService } from './state';
 
 type NicoliveCommentViewerService =
   import('./nicolive-comment-viewer').NicoliveCommentViewerService;
@@ -91,8 +92,7 @@ jest.mock('services/nicolive-program/state', () => ({
   NicoliveProgramStateService: {},
 }));
 
-const sendChatMock = jest_fn<
-  (chat: WrappedMessageWithComponent, state: HttpRelationState) => Promise<Object>
+const sendChatMock = jest_fn<(chat: WrappedMessageWithComponent, state: HttpRelationState) => Promise<Object>
 >()
   .mockName('HttpRelation.sendChat')
   .mockResolvedValue({ result: '' });
@@ -167,7 +167,7 @@ test('status=endedが流れてきたらunsubscribeし、refreshProgramも呼ぶ'
       },
     };
   });
-  jest.spyOn(window, 'setTimeout').mockImplementation(callback => callback() as any);
+  jest.spyOn(window, 'setTimeout').mockImplementation((callback) => callback() as any);
   const refreshProgram = jest.fn().mockName('refreshProgram');
   setup({ injectee: { NicoliveProgramService: { stateChange, refreshProgram } } });
 
@@ -638,7 +638,7 @@ test('NGにかかるコメントは読み上げない', async () => {
   const NOW_SEC = 600;
   jest.spyOn(Date, 'now').mockImplementation(() => NOW_SEC * 1000);
 
-  ['OK', 'NG'].forEach(content => {
+  ['OK', 'NG'].forEach((content) => {
     clientSubject.next({
       chat: {
         content,
@@ -696,7 +696,7 @@ test('HTTP連携: コメント送信', async () => {
     { date: NOW_SEC - DROP_THRESHOLD_SEC, comment: 'old' },
     { date: NOW_SEC - DROP_THRESHOLD_SEC + 1, comment: 'new' },
   ].forEach(({ date, comment }) =>
-    [comment, 'NG', NG_WORD].forEach(content => {
+    [comment, 'NG', NG_WORD].forEach((content) => {
       clientSubject.next({
         chat: {
           content,

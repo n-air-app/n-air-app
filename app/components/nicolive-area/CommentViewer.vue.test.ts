@@ -1,4 +1,5 @@
 import type { WrappedMessageWithComponent } from 'services/nicolive-program/WrappedChat';
+
 import { SpeakingType } from './comment/SpeakingType';
 
 describe('CommentViewer.getSpeakingType', () => {

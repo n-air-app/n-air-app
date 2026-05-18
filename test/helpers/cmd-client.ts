@@ -27,7 +27,7 @@ console.log = () => {};
   const client = await getApiClient();
   client
     .request(resource, method, ...args)
-    .then(response => {
+    .then((response) => {
       let responseStr = '';
       if (response === undefined) {
         responseStr = 'true';
@@ -36,7 +36,7 @@ console.log = () => {};
       }
       process.stdout.write(responseStr);
     })
-    .catch(error => {
+    .catch((error) => {
       process.stderr.write(JSON.stringify(error));
     })
     .then(() => {

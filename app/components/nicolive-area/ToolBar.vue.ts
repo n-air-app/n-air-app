@@ -17,7 +17,7 @@ import { Component, Watch } from 'vue-property-decorator';
 })
 export default class ToolBar extends Vue {
   @Inject()
-  nicoliveProgramService: NicoliveProgramService;
+    nicoliveProgramService: NicoliveProgramService;
   @Inject() nicoliveCommentViewerService: NicoliveCommentViewerService;
   @Inject() streamingService: StreamingService;
 
@@ -205,7 +205,7 @@ export default class ToolBar extends Vue {
             noLink: true,
             cancelId: 2,
           })
-          .then(value => value.response);
+          .then((value) => value.response);
         if (selectedId === 2) {
           return;
         }
@@ -239,7 +239,7 @@ export default class ToolBar extends Vue {
           noLink: true,
           cancelId: 1,
         })
-        .then(value => value.response === 0);
+        .then((value) => value.response === 0);
 
       if (isOk) {
         return await this.nicoliveProgramService.endProgram();
@@ -269,7 +269,7 @@ export default class ToolBar extends Vue {
           noLink: true,
           cancelId: 1,
         })
-        .then(value => value.response === 0);
+        .then((value) => value.response === 0);
       if (!isOk) return;
     }
 

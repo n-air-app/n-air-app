@@ -37,11 +37,11 @@ export default class BrowserSourceInteraction extends Vue {
     const factor = this.windowsService.state.child.scaleFactor;
     return {
       x:
-        ((e.offsetX * factor - this.currentRegion.x) / this.currentRegion.width) *
-        this.source.width,
+        ((e.offsetX * factor - this.currentRegion.x) / this.currentRegion.width)
+        * this.source.width,
       y:
-        ((e.offsetY * factor - this.currentRegion.y) / this.currentRegion.height) *
-        this.source.height,
+        ((e.offsetY * factor - this.currentRegion.y) / this.currentRegion.height)
+        * this.source.height,
     };
   }
 
@@ -80,10 +80,10 @@ export default class BrowserSourceInteraction extends Vue {
 
   isModifierPress(event: KeyboardEvent) {
     return (
-      event.key === 'Control' ||
-      event.key === 'Alt' ||
-      event.key === 'Meta' ||
-      event.key === 'Shift'
+      event.key === 'Control'
+      || event.key === 'Alt'
+      || event.key === 'Meta'
+      || event.key === 'Shift'
     );
   }
 

@@ -31,7 +31,7 @@ class Updater {
 
     autoUpdater
       .checkForUpdates()
-      .then(result => {
+      .then((result) => {
         // Store cancellationToken from checkForUpdates result
         if (result && result.cancellationToken) {
           this.cancellationToken = result.cancellationToken;
@@ -46,7 +46,7 @@ class Updater {
 
   async skipUpdateAndContinue() {
     // Closing the only window would normally quit the app, so ensure it doesn't.
-    electron.app.once('will-quit', e => e.preventDefault());
+    electron.app.once('will-quit', (e) => e.preventDefault());
     this.finished = true;
     this.browserWindow.close();
     await this.startApp();
@@ -74,7 +74,7 @@ class Updater {
   }
 
   bindListeners() {
-    autoUpdater.on('update-available', info => {
+    autoUpdater.on('update-available', (info) => {
       this.updateState.asking = true;
       this.updateState.releaseNotes = this.textToLines(info.releaseNotes);
       this.updateState.releaseDate = info.releaseDate;
@@ -102,7 +102,7 @@ isUnskippable: ${this.updateState.isUnskippable}`);
       this.skipUpdateAndContinue();
     });
 
-    autoUpdater.on('download-progress', progress => {
+    autoUpdater.on('download-progress', (progress) => {
       this.updateState.percent = progress.percent;
       this.updateState.bytesPerSecond = progress.percent;
 

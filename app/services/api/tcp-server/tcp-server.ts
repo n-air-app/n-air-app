@@ -1,6 +1,7 @@
 import WritableStream = NodeJS.WritableStream;
 import crypto from 'crypto';
 import os from 'os';
+
 import {
   E_JSON_RPC_ERROR,
   IJsonRpcEvent,
@@ -11,7 +12,9 @@ import {
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { UsageStatisticsService } from 'services/usage-statistics';
+
 import { InternalApiService } from '../internal-api';
+
 import { IIPAddressDescription, ITcpServerServiceApi, ITcpServersSettings } from './tcp-server-api';
 
 const net = require('net');
@@ -74,7 +77,7 @@ export class TcpServerService
 
   init() {
     super.init();
-    this.internalApiService.serviceEvent.subscribe(event => this.onServiceEventHandler(event));
+    this.internalApiService.serviceEvent.subscribe((event) => this.onServiceEventHandler(event));
   }
 
   listen() {
@@ -97,8 +100,8 @@ export class TcpServerService
   }
 
   stopListening() {
-    this.servers.forEach(server => server.close());
-    Object.keys(this.clients).forEach(clientId => this.disconnectClient(Number(clientId)));
+    this.servers.forEach((server) => server.close());
+    Object.keys(this.clients).forEach((clientId) => this.disconnectClient(Number(clientId)));
   }
 
   enableWebsoketsRemoteConnections() {
@@ -135,9 +138,9 @@ export class TcpServerService
   getIPAddresses(): IIPAddressDescription[] {
     const ifaces = os.networkInterfaces();
     const addresses: IIPAddressDescription[] = [];
-    Object.keys(ifaces).forEach(ifaceName => {
+    Object.keys(ifaces).forEach((ifaceName) => {
       const iface = ifaces[ifaceName];
-      iface.forEach(interfaceInfo => {
+      iface.forEach((interfaceInfo) => {
         addresses.push({
           interface: ifaceName,
           address: interfaceInfo.address,
@@ -153,7 +156,7 @@ export class TcpServerService
     const buf = new Uint8Array(20);
     crypto.randomFillSync(buf);
     let token = '';
-    buf.forEach(val => (token += val.toString(16)));
+    buf.forEach((val) => (token += val.toString(16)));
     this.setSettings({ token });
     return token;
   }
@@ -161,7 +164,7 @@ export class TcpServerService
   private listenConnections(server: IServer) {
     this.servers.push(server);
 
-    server.nativeServer.on('connection', socket => this.onConnectionHandler(socket, server));
+    server.nativeServer.on('connection', (socket) => this.onConnectionHandler(socket, server));
 
     server.nativeServer.on('error', (error: NodeJS.ErrnoException) => {
       if (error.code === 'EADDRINUSE') {
@@ -260,8 +263,8 @@ export class TcpServerService
 
   private isLocalClient(client: IClient) {
     const localAddresses = this.getIPAddresses()
-      .filter(addressDescr => addressDescr.internal)
-      .map(addressDescr => addressDescr.address);
+      .filter((addressDescr) => addressDescr.internal)
+      .map((addressDescr) => addressDescr.address);
     return localAddresses.includes((client.socket as any).remoteAddress);
   }
 
@@ -281,7 +284,7 @@ export class TcpServerService
     }
 
     const requests = data.split('\n');
-    requests.forEach(requestString => {
+    requests.forEach((requestString) => {
       if (!requestString) return;
       try {
         const request: IJsonRpcRequest = JSON.parse(requestString);
@@ -328,7 +331,7 @@ export class TcpServerService
 
   private onServiceEventHandler(event: IJsonRpcResponse<IJsonRpcEvent>) {
     // send event to subscribed clients
-    Object.keys(this.clients).forEach(clientId => {
+    Object.keys(this.clients).forEach((clientId) => {
       const client = this.clients[clientId];
       const eventName = event.result.resourceId.split('.')[1];
 

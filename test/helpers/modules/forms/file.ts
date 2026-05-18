@@ -1,5 +1,6 @@
 import { dialogSelectPath } from '../../webdriver/dialog';
 import { click } from '../core';
+
 import { BaseInputController } from './base';
 
 export class FileInputController extends BaseInputController<string> {

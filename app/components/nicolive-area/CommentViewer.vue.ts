@@ -7,38 +7,40 @@ import { HostsService } from 'services/hosts';
 import { ChatMessage } from 'services/nicolive-program/ChatMessage';
 import { ChatComponentType } from 'services/nicolive-program/ChatMessage/ChatComponentType';
 import { getDisplayName } from 'services/nicolive-program/ChatMessage/getDisplayName';
+import { getContentWithFilter } from 'services/nicolive-program/getContentWithFilter';
+import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
+import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
+import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-moderators';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
+import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import {
   isWrappedChat,
   WrappedChatWithComponent,
   WrappedMessage,
   WrappedMessageWithComponent,
 } from 'services/nicolive-program/WrappedChat';
-import { getContentWithFilter } from 'services/nicolive-program/getContentWithFilter';
-import { NicoliveCommentFilterService } from 'services/nicolive-program/nicolive-comment-filter';
-import { NicoliveCommentViewerService } from 'services/nicolive-program/nicolive-comment-viewer';
-import { NicoliveModeratorsService } from 'services/nicolive-program/nicolive-moderators';
-import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { ISettingsServiceApi } from 'services/settings';
 import { SnackbarService } from 'services/snackbar';
 import { SoundDetectorService } from 'services/sound-detector';
 import { Menu } from 'util/menus/Menu';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+
 import NAirLogo from '../../../media/images/n-air-logo.svg';
-import CommentFilter from './CommentFilter.vue';
-import CommentForm from './CommentForm.vue';
-import SoundDetectorButton from './SoundDetectorButton.vue';
+
 import CommonComment from './comment/CommonComment.vue';
 import EmotionComment from './comment/EmotionComment.vue';
 import GiftComment from './comment/GiftComment.vue';
 import NicoadComment from './comment/NicoadComment.vue';
 import { SpeakingType } from './comment/SpeakingType';
 import SystemMessage from './comment/SystemMessage.vue';
+import CommentFilter from './CommentFilter.vue';
+import CommentForm from './CommentForm.vue';
+import SoundDetectorButton from './SoundDetectorButton.vue';
 
 const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   common: CommonComment,
@@ -244,7 +246,7 @@ export default class CommentViewer extends Vue {
             id: 'Undo delete a comment',
             label: 'コメント削除を取り消す',
             click: () => {
-              this.nicoliveCommentViewerService.undoDeleteComment(item.value.id).catch(e => {
+              this.nicoliveCommentViewerService.undoDeleteComment(item.value.id).catch((e) => {
                 if (e instanceof NicoliveFailure) {
                   openErrorDialogFromFailure(e);
                 }
@@ -268,7 +270,7 @@ export default class CommentViewer extends Vue {
                       onClick: () => {
                         this.nicoliveCommentViewerService
                           .undoDeleteComment(item.value.id)
-                          .catch(e => {
+                          .catch((e) => {
                             if (e instanceof NicoliveFailure) {
                               openErrorDialogFromFailure(e);
                             }
@@ -277,7 +279,7 @@ export default class CommentViewer extends Vue {
                     },
                   });
                 })
-                .catch(e => {
+                .catch((e) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
@@ -300,7 +302,7 @@ export default class CommentViewer extends Vue {
                   messageId: `${item.value.id}`,
                   memo: item.value.content,
                 })
-                .catch(e => {
+                .catch((e) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
@@ -383,7 +385,7 @@ export default class CommentViewer extends Vue {
 
   mounted() {
     const sentinelEl = this.$refs.sentinel as HTMLElement;
-    const ioCallback: IntersectionObserverCallback = entries => {
+    const ioCallback: IntersectionObserverCallback = (entries) => {
       this.isLatestVisible = entries[entries.length - 1].isIntersecting;
     };
     const ioOptions = {
@@ -398,7 +400,7 @@ export default class CommentViewer extends Vue {
     this.scrollToLatest();
 
     this.blockingSubscription = this.soundDetectorService.isBlockingObservable.subscribe({
-      next: isBlocking => {
+      next: (isBlocking) => {
         this.isBlocking = isBlocking;
       },
     });

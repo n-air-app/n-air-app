@@ -44,7 +44,7 @@ export default class AddSource extends Vue {
   }
 
   // @ts-expect-error: ts2729: use before initialization
-  sources = this.sourcesService.getSources().filter(source => {
+  sources = this.sourcesService.getSources().filter((source) => {
     const comparison = {
       type: this.sourceType as TSourceType,
       propertiesManager: this.sourceAddOptions.propertiesManager,
@@ -58,7 +58,7 @@ export default class AddSource extends Vue {
     );
   });
 
-  existingSources = this.sources.map(source => {
+  existingSources = this.sources.map((source) => {
     return { name: source.name, value: source.sourceId };
   });
 
@@ -71,19 +71,17 @@ export default class AddSource extends Vue {
       const type = this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
       this.name = this.sourcesService.suggestName($t(`source-props.${type}.name`));
     } else {
-      const sourceType =
-        this.sourceType &&
-        this.sourcesService
+      const sourceType = this.sourceType
+        && this.sourcesService
           .getAvailableSourcesTypesList()
-          .find(sourceTypeDef => sourceTypeDef.value === this.sourceType);
+          .find((sourceTypeDef) => sourceTypeDef.value === this.sourceType);
 
       this.name = this.sourcesService.suggestName(this.sourceType && sourceType.description);
     }
 
     if (this.sourceType === 'scene') this.canAddNew = false;
     // ソースとしては1つだけ登録可能とする
-    if (this.sources.length > 0 && this.sources[0].type === 'nair-rtvc-source')
-      this.canAddNew = false;
+    if (this.sources.length > 0 && this.sources[0].type === 'nair-rtvc-source') this.canAddNew = false;
   }
 
   addExisting() {
@@ -115,11 +113,10 @@ export default class AddSource extends Vue {
     };
 
     if (
-      this.sourceType === 'near' ||
-      this.sourceAddOptions.propertiesManager === 'nvoice-character'
+      this.sourceType === 'near'
+      || this.sourceAddOptions.propertiesManager === 'nvoice-character'
     ) {
-      const type: NVoiceCharacterType =
-        this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+      const type: NVoiceCharacterType = this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
       s = this.nVoiceCharacterService.createNVoiceCharacterSource(type, this.name);
     } else if (this.sourceType === 'text_transcription') {
       s = this.transcriptionSourceService.createTextTranscriptionSourceAndOption(

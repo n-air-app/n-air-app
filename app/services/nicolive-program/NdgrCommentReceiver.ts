@@ -1,6 +1,7 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { getKeys } from 'util/getKeys';
+
 import { MessageResponse, NotificationType, NotificationTypeTable } from './ChatMessage';
 import { IMessageServerClient } from './MessageServerClient';
 import { NdgrClient, toNumber } from './NdgrClient';
@@ -213,7 +214,7 @@ function convertNicoadToMessageResponse(
             ...(latest.point ? { point: latest.point } : {}),
             ...(latest.message ? { message: latest.message } : {}),
           },
-          ranking: ranking.map(r => ({
+          ranking: ranking.map((r) => ({
             ...(r.advertiser ? { advertiser: r.advertiser } : {}),
             ...(r.rank ? { rank: r.rank } : {}),
             ...(r.message ? { message: r.message } : {}),
@@ -375,7 +376,7 @@ export class NdgrCommentReceiver implements IMessageServerClient {
     this.messageSubject = new Subject<MessageResponse>();
     this.ndgrClient = new NdgrClient(this.uri, this.label);
     this.ndgrSubscription = this.ndgrClient.messages.subscribe({
-      next: msg => {
+      next: (msg) => {
         const now = Date.now(); // in milliseconds
         const result = convertChunkedResponseToMessageResponse(msg, now);
         if (result) {
@@ -383,7 +384,7 @@ export class NdgrCommentReceiver implements IMessageServerClient {
         }
       },
     });
-    this.ndgrClient.connect('now', NUM_BACKWARD_COMMENTS).catch(err => {
+    this.ndgrClient.connect('now', NUM_BACKWARD_COMMENTS).catch((err) => {
       this.messageSubject.error(err);
     });
     return this.messageSubject.asObservable();

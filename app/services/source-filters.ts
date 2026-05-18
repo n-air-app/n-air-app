@@ -1,20 +1,21 @@
 import * as Sentry from '@sentry/vue';
 import {
+  getPropertiesFormData,
   IObsListInput,
   IObsListOption,
+  setPropertiesFormData,
   TObsFormData,
   TObsValue,
-  getPropertiesFormData,
-  setPropertiesFormData,
 } from 'components/obs/inputs/ObsInput';
-import { Service } from './core/service';
-
 import { EOrderMovement } from 'obs-studio-node';
 import { $t } from 'services/i18n';
+
 import * as obs from '../../obs-api';
 import namingHelpers from '../util/NamingHelpers';
+
 import { InitAfter } from './core';
 import { Inject } from './core/injector';
+import { Service } from './core/service';
 import { SourcesService } from './sources';
 import { WindowsService } from './windows';
 
@@ -56,10 +57,10 @@ export interface ISourceFilter {
 @InitAfter('SourcesService')
 export class SourceFiltersService extends Service {
   @Inject()
-  sourcesService: SourcesService;
+    sourcesService: SourcesService;
 
   @Inject()
-  windowsService: WindowsService;
+    windowsService: WindowsService;
 
   getTypesList(): IObsListOption<TSourceFilterType>[] {
     const obsAvailableTypes = obs.FilterFactory.types();
@@ -85,15 +86,15 @@ export class SourceFiltersService extends Service {
       { description: $t('filters.vst'), value: 'vst_filter' },
     ];
 
-    return whitelistedTypes.filter(type => obsAvailableTypes.includes(type.value));
+    return whitelistedTypes.filter((type) => obsAvailableTypes.includes(type.value));
   }
 
   getTypes(): ISourceFilterType[] {
     const typesList = this.getTypesList();
     const types: ISourceFilterType[] = [];
 
-    obs.FilterFactory.types().forEach(type => {
-      const listItem = typesList.find(item => item.value === type);
+    obs.FilterFactory.types().forEach((type) => {
+      const listItem = typesList.find((item) => item.value === type);
       if (!listItem) {
         console.warn(`filter ${type} is not found in available types`);
         return;
@@ -114,7 +115,7 @@ export class SourceFiltersService extends Service {
 
   getTypesForSource(sourceId: string): ISourceFilterType[] {
     const source = this.sourcesService.getSource(sourceId);
-    return this.getTypes().filter(filterType => {
+    return this.getTypes().filter((filterType) => {
       /* Audio filters can be applied to audio sources. */
       if (source.audio && filterType.audio) {
         return true;
@@ -156,7 +157,7 @@ export class SourceFiltersService extends Service {
   }
 
   copyFilters(fromSourceId: string, toSourceId: string) {
-    this.getFilters(fromSourceId).forEach(filter => {
+    this.getFilters(fromSourceId).forEach((filter) => {
       this.add(toSourceId, filter.type, this.suggestName(toSourceId, filter.name), filter.settings);
     });
   }
@@ -183,7 +184,7 @@ export class SourceFiltersService extends Service {
       this.sourcesService
         .getSource(sourceId)
         ?.getObsInput()
-        .filters.map(obsFilter => ({
+        .filters.map((obsFilter) => ({
           visible: obsFilter.enabled,
           name: obsFilter.name,
           type: obsFilter.id as TSourceFilterType,
@@ -197,7 +198,7 @@ export class SourceFiltersService extends Service {
   }
 
   getAddNewFormData(sourceId: string) {
-    const availableTypesList = this.getTypesForSource(sourceId).map(filterType => {
+    const availableTypesList = this.getTypesForSource(sourceId).map((filterType) => {
       return { description: filterType.description, value: filterType.type };
     });
 
@@ -220,7 +221,7 @@ export class SourceFiltersService extends Service {
     if (!filterName) return [];
     const filter = this.getObsFilter(sourceId, filterName);
     if (!filter) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('error');
         scope.setExtra('sourceId', sourceId);
         scope.setExtra('filterName', filterName);
@@ -233,7 +234,7 @@ export class SourceFiltersService extends Service {
     // サイドチェーンのトリガーにする音声ソースがIDしかもらえないので、名前に変換する
     formData?.forEach((input: any) => {
       if (input.name === 'sidechain_source') {
-        (input as IObsListInput<string>).options.forEach(option => {
+        (input as IObsListInput<string>).options.forEach((option) => {
           if (option.value === 'none') return;
 
           const source = this.sourcesService.getSourceById(option.value);

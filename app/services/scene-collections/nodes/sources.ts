@@ -5,14 +5,16 @@ import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
 import {
+  isNoAudioPropertiesManagerType,
   SourcesService,
   TPropertiesManager,
   TSourceType,
-  isNoAudioPropertiesManagerType,
 } from 'services/sources';
 import Utils from 'services/utils';
+
 import * as obs from '../../../../obs-api';
 import { Inject } from '../../core/injector';
+
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 import { applyPathConvertForPreset, unapplyPathConvertForPreset } from './sources-util';
@@ -66,9 +68,9 @@ export class SourcesNode extends Node<ISchema, {}> {
   getItems() {
     const linkedSourcesIds = this.scenesService
       .getSceneItems()
-      .map(sceneItem => sceneItem.sourceId);
+      .map((sceneItem) => sceneItem.sourceId);
 
-    return this.sourcesService.sources.filter(source => {
+    return this.sourcesService.sources.filter((source) => {
       // we store scenes in separated config
       if (source.type === 'scene') return false;
 
@@ -82,8 +84,8 @@ export class SourcesNode extends Node<ISchema, {}> {
   }
 
   save(context: {}): Promise<void> {
-    const promises: Promise<ISourceInfo>[] = this.getItems().map(source => {
-      return new Promise(resolve => {
+    const promises: Promise<ISourceInfo>[] = this.getItems().map((source) => {
+      return new Promise((resolve) => {
         const hotkeys = new HotkeysNode();
 
         hotkeys.save({ sourceId: source.sourceId }).then(() => {
@@ -108,7 +110,7 @@ export class SourcesNode extends Node<ISchema, {}> {
             hotkeys,
             muted: obsInput.muted,
             filters: {
-              items: obsInput.filters.map(filter => {
+              items: obsInput.filters.map((filter) => {
                 /* Remember that filters are also sources.
                  * We should eventually do this for transitions
                  * as well. Scenes can be ignored. */
@@ -150,8 +152,8 @@ export class SourcesNode extends Node<ISchema, {}> {
       });
     });
 
-    return new Promise(resolve => {
-      Promise.all(promises).then(items => {
+    return new Promise((resolve) => {
+      Promise.all(promises).then((items) => {
         this.data = { items };
         resolve();
       });
@@ -190,8 +192,7 @@ export class SourcesNode extends Node<ISchema, {}> {
 
     settings['font']['face'] = fontInfo.family_name;
 
-    settings['font']['flags'] =
-      (fontInfo.italic ? obs.EFontStyle.Italic : 0) | (fontInfo.bold ? obs.EFontStyle.Bold : 0);
+    settings['font']['flags'] = (fontInfo.italic ? obs.EFontStyle.Italic : 0) | (fontInfo.bold ? obs.EFontStyle.Bold : 0);
 
     const source = this.sourcesService.getSource(item.id);
     source.updateSettings({ font: settings.font });
@@ -205,7 +206,7 @@ export class SourcesNode extends Node<ISchema, {}> {
     const ids: Set<string> = new Set();
     const channels: Set<number> = new Set();
 
-    this.data.items = this.data.items.filter(item => {
+    this.data.items = this.data.items.filter((item) => {
       if (ids.has(item.id)) return false;
       ids.add(item.id);
 
@@ -247,12 +248,11 @@ export class SourcesNode extends Node<ISchema, {}> {
         }
 
         obsInput.deinterlaceMode = sourceInfo.deinterlaceMode || obs.EDeinterlaceMode.Disable;
-        obsInput.deinterlaceFieldOrder =
-          sourceInfo.deinterlaceFieldOrder || obs.EDeinterlaceFieldOrder.Top;
+        obsInput.deinterlaceFieldOrder = sourceInfo.deinterlaceFieldOrder || obs.EDeinterlaceFieldOrder.Top;
 
         // Create and add filters (equivalent to createSources lines 1573-1589)
         if (sourceInfo.filters && Array.isArray(sourceInfo.filters.items)) {
-          sourceInfo.filters.items.forEach(filterInfo => {
+          sourceInfo.filters.items.forEach((filterInfo) => {
             try {
               const obsFilter = obs.FilterFactory.create(
                 filterInfo.type,
@@ -315,7 +315,7 @@ export class SourcesNode extends Node<ISchema, {}> {
                 console.warn(`Audio source ${sourceInfo.id} not found in AudioService. ignore.`);
               }
               Sentry.captureEvent({
-                message: `Audio source not found in AudioService`,
+                message: 'Audio source not found in AudioService',
                 level: 'warning',
                 tags: {
                   sourceId: sourceInfo.id,
@@ -391,7 +391,7 @@ export class SourcesNode extends Node<ISchema, {}> {
       }
     });
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       Promise.all(promises).then(() => resolve());
     });
   }
@@ -399,7 +399,7 @@ export class SourcesNode extends Node<ISchema, {}> {
   migrate(version: number) {
     // migrate audio sources names
     if (version < 3) {
-      this.data.items.forEach(source => {
+      this.data.items.forEach((source) => {
         const desktopDeviceMatch = /^DesktopAudioDevice(\d)$/.exec(source.name);
         if (desktopDeviceMatch) {
           const index = parseInt(desktopDeviceMatch[1], 10);

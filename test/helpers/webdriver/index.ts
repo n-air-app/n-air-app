@@ -1,11 +1,14 @@
 /// <reference path="../../../app/index.d.ts" />
-import { ExecutionContext } from 'ava';
 import * as ChildProcess from 'child_process';
+
+import { ExecutionContext } from 'ava';
 import { DismissablesService } from 'services/dismissables';
 import { remote, RemoteOptions } from 'webdriverio';
+
 import { getApiClient } from '../api-client';
 import { closeWindow, focusChild, focusMain, waitForLoader } from '../modules/core';
 import { sleep } from '../sleep';
+
 import {
   initializeTasks,
   killElectronInstances,
@@ -13,6 +16,7 @@ import {
   waitForCrashHandlerExit,
   waitForElectronInstancesExist,
 } from './runner-utils';
+
 export const test = testFn; // the overridden "test" function
 
 const CHROMEDRIVER_PORT = 4444;
@@ -299,7 +303,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   };
 
-  test.beforeEach(async t => {
+  test.beforeEach(async (t) => {
     testPassed = false;
 
     t.context.app = app;
@@ -312,11 +316,11 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   });
 
-  test.afterEach(async t => {
+  test.afterEach(async (t) => {
     testPassed = true;
   });
 
-  test.afterEach.always(async t => {
+  test.afterEach.always(async (t) => {
     // wrap in try/catch for the situation when we have a crash
     // so we still can read the logs after the crash
     try {
@@ -339,7 +343,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   });
 
-  test.after.always(async t => {
+  test.after.always(async (t) => {
     if (appIsRunning) await stopAppFn(t);
   });
 

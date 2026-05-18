@@ -1,6 +1,7 @@
-import * as remote from '@electron/remote';
 import fs from 'fs';
 import path from 'path';
+
+import * as remote from '@electron/remote';
 import { AudioService, DEFAULT_AUDIO_MIXERS } from 'services/audio';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
@@ -11,6 +12,7 @@ import { SourceFiltersService, TSourceFilterType } from 'services/source-filters
 import { SourcesService } from 'services/sources';
 import { TPropertiesManager, TSourceType } from 'services/sources/sources-api';
 import { ETransitionType, TransitionsService } from 'services/transitions';
+
 import * as obs from '../../obs-api';
 
 interface Source {
@@ -122,7 +124,7 @@ export class ObsImporterService extends Service {
     if (data) {
       const match = data.match(/^SceneCollection\=(.*)$/m);
       if (match && match[1]) {
-        const coll = this.sceneCollectionsService.collections.find(co => co.name === match[1]);
+        const coll = this.sceneCollectionsService.collections.find((co) => co.name === match[1]);
         if (coll) this.sceneCollectionsService.load(coll.id);
       }
     }
@@ -158,8 +160,8 @@ export class ObsImporterService extends Service {
 
   importFilters(filtersJSON: IOBSConfigFilter[], source: Source) {
     if (Array.isArray(filtersJSON)) {
-      filtersJSON.forEach(filterJSON => {
-        const isFilterAvailable = this.filtersService.getTypes().find(availableFilter => {
+      filtersJSON.forEach((filterJSON) => {
+        const isFilterAvailable = this.filtersService.getTypes().find((availableFilter) => {
           return availableFilter.type === filterJSON.id;
         });
 
@@ -174,7 +176,7 @@ export class ObsImporterService extends Service {
 
           if (properties) {
             if (Array.isArray(properties)) {
-              properties.forEach(property => {
+              properties.forEach((property) => {
                 if (filterJSON.settings[property.name]) {
                   property.value = filterJSON.settings[property.name];
                 }
@@ -194,7 +196,7 @@ export class ObsImporterService extends Service {
     const sourcesJSON = configJSON.sources;
 
     if (Array.isArray(sourcesJSON)) {
-      sourcesJSON.forEach(sourceJSON => {
+      sourcesJSON.forEach((sourceJSON) => {
         const isSourceAvailable = this.sourcesService
           .getAvailableSourcesTypes()
           .includes(sourceJSON.id);
@@ -218,10 +220,9 @@ export class ObsImporterService extends Service {
             );
 
             if (source.audio) {
-              const defaultMonitoring =
-                source.type === 'browser_source'
-                  ? obs.EMonitoringType.MonitoringOnly
-                  : obs.EMonitoringType.None;
+              const defaultMonitoring = source.type === 'browser_source'
+                ? obs.EMonitoringType.MonitoringOnly
+                : obs.EMonitoringType.None;
 
               this.audioService.getSource(source.sourceId).setMuted(sourceJSON.muted);
               this.audioService.getSource(source.sourceId).setMul(sourceJSON.volume);
@@ -254,7 +255,7 @@ export class ObsImporterService extends Service {
 
     if (Array.isArray(sourcesJSON)) {
       // Create all the scenes
-      sourcesJSON.forEach(sourceJSON => {
+      sourcesJSON.forEach((sourceJSON) => {
         if (sourceJSON.id === 'scene') {
           const scene = this.scenesService.createScene(sourceJSON.name, {
             makeActive: sourceJSON.name === currentScene,
@@ -264,7 +265,7 @@ export class ObsImporterService extends Service {
       });
 
       // Add all the sceneItems to every scene
-      sourcesJSON.forEach(sourceJSON => {
+      sourcesJSON.forEach((sourceJSON) => {
         if (sourceJSON.id === 'scene') {
           const scene = this.scenesService.getScene(nameToIdMap[sourceJSON.name]);
           if (!scene) return;
@@ -272,8 +273,8 @@ export class ObsImporterService extends Service {
           const sceneItems = sourceJSON.settings.items;
           if (Array.isArray(sceneItems)) {
             // Looking for the source to add to the scene
-            sceneItems.forEach(item => {
-              const sourceToAdd = this.sourcesService.getSources().find(source => {
+            sceneItems.forEach((item) => {
+              const sourceToAdd = this.sourcesService.getSources().find((source) => {
                 return source.name === item.name;
               });
               if (sourceToAdd) {
@@ -290,11 +291,11 @@ export class ObsImporterService extends Service {
                 const rot = item.rot;
 
                 if (
-                  item.bounds &&
-                  item.bounds.x &&
-                  item.bounds.y &&
-                  item.bounds_align === 0 &&
-                  [1, 2].includes(item.bounds_type)
+                  item.bounds
+                  && item.bounds.x
+                  && item.bounds.y
+                  && item.bounds_align === 0
+                  && [1, 2].includes(item.bounds_type)
                 ) {
                   scene.fixupSceneItemWhenReady(sourceToAdd.sourceId, () => {
                     switch (item.bounds_type) {
@@ -419,9 +420,9 @@ export class ObsImporterService extends Service {
     const listScene = this.scenesService.scenes;
 
     if (Array.isArray(sceneOrderJSON)) {
-      sceneOrderJSON.forEach(obsScene => {
+      sceneOrderJSON.forEach((obsScene) => {
         sceneNames.push(
-          listScene.find(scene => {
+          listScene.find((scene) => {
             return scene.name === obsScene.name;
           }).id,
         );
@@ -472,7 +473,7 @@ export class ObsImporterService extends Service {
     const profileDirectory = path.join(this.profilesDirectory, profile);
     const files = fs.readdirSync(profileDirectory);
 
-    files.forEach(file => {
+    files.forEach((file) => {
       if (file === 'basic.ini' || file === 'streamEncoder.json' || file === 'recordEncoder.json') {
         const obsFilePath = path.join(profileDirectory, file);
 
@@ -491,8 +492,8 @@ export class ObsImporterService extends Service {
 
     let files = fs.readdirSync(this.sceneCollectionsDirectory);
 
-    files = files.filter(file => !file.match(/\.bak$/));
-    return files.map(file => {
+    files = files.filter((file) => !file.match(/\.bak$/));
+    return files.map((file) => {
       return {
         filename: file,
         name: file.replace('_', ' ').replace('.json', ''),
@@ -504,7 +505,7 @@ export class ObsImporterService extends Service {
     if (!this.isOBSinstalled()) return [];
 
     let profiles = fs.readdirSync(this.profilesDirectory);
-    profiles = profiles.filter(profile => !profile.match(/\./));
+    profiles = profiles.filter((profile) => !profile.match(/\./));
     return profiles;
   }
 

@@ -1,4 +1,5 @@
 import { ChatMessage } from '../ChatMessage';
+
 import { getScore, isAnonymous, isPremium } from './util';
 
 const mockBase = {

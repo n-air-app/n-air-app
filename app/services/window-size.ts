@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { BehaviorSubject, filter, take } from 'rxjs';
+
 import { Inject } from './core/injector';
 import { mutation, StatefulService } from './core/stateful-service';
 import { CustomizationService } from './customization/customization';
@@ -81,7 +82,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     // 起動時は、autoCompactModeのロジックでコンパクトモードを解除するのを延期して、1回コンパクトモードでウィンドウを開いたあとに、コンパクトモードを解除するようにしたい
 
     this.nicoliveProgramStateService.updated.subscribe({
-      next: persistentState => {
+      next: (persistentState) => {
         if ('panelOpened' in persistentState) {
           this.setState({ panelOpened: persistentState.panelOpened });
         }
@@ -89,13 +90,13 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     });
 
     this.userService.userLoginState.subscribe({
-      next: user => {
+      next: (user) => {
         this.setState({ isLoggedIn: Boolean(user) });
       },
     });
 
     this.customizationService.settingsChanged.subscribe({
-      next: compact => {
+      next: (compact) => {
         if ('compactMode' in compact) {
           this.setState({ isCompact: compact.compactMode });
         }
@@ -105,7 +106,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
       },
     });
 
-    this.navigationService.navigated.subscribe(state => {
+    this.navigationService.navigated.subscribe((state) => {
       this.setState({ isNavigating: state.currentPage !== 'Studio' });
     });
 
@@ -118,10 +119,10 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
   }
 
   waitReady(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.stateChange
         .pipe(
-          filter(state => state.isReady),
+          filter((state) => state.isReady),
           take(1),
         )
         .subscribe(() => {
@@ -132,8 +133,8 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
 
   private getAlwaysOnTop(nextState: IWindowSizeState): boolean {
     return (
-      WindowSizeService.getPanelState(nextState) === PanelState.COMPACT &&
-      this.customizationService.state.compactAlwaysOnTop
+      WindowSizeService.getPanelState(nextState) === PanelState.COMPACT
+      && this.customizationService.state.compactAlwaysOnTop
     );
   }
 
@@ -145,7 +146,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     const nextState = { ...this.state, ...partialState };
     if (!nextState.isReady) {
       nextState.isReady = [nextState.panelOpened, nextState.isLoggedIn, nextState.isCompact].every(
-        v => v !== null,
+        (v) => v !== null,
       );
     }
     nextState.isAlwaysOnTop = this.getAlwaysOnTop(nextState);
@@ -295,8 +296,8 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     }
 
     if (
-      prevState !== null &&
-      (prevState === PanelState.COMPACT) !== (nextState === PanelState.COMPACT)
+      prevState !== null
+      && (prevState === PanelState.COMPACT) !== (nextState === PanelState.COMPACT)
     ) {
       const [x, y] = win.getPosition();
       if (nextBackupSize.backupX !== undefined && nextBackupSize.backupY !== undefined) {

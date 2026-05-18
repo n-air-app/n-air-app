@@ -1,3 +1,5 @@
+import { TransitionsNode } from './transitions';
+
 jest.mock('electron', () => ({}));
 jest.mock('@electron/remote', () => ({}));
 jest.mock('services/core/injector', () => ({
@@ -20,8 +22,6 @@ jest.mock('components/obs/inputs/ObsInput', () => ({}));
 jest.mock('@sentry/vue', () => ({
   withScope: jest.fn(),
 }));
-
-import { TransitionsNode } from './transitions';
 
 function createMockService(transitionOverrides: any[] = []) {
   return {

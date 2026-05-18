@@ -18,7 +18,7 @@ function copyFile(src: string, dest: string) {
 }
 
 useWebdriver({
-  beforeAppStartCb: async t => {
+  beforeAppStartCb: async (t) => {
     const dataDir = path.resolve(__dirname, '..', '..', '..', 'test', 'data');
 
     fs.mkdirSync(path.join(t.context.cacheDir, 'nair-client'));
@@ -42,7 +42,7 @@ useWebdriver({
  * with old scene collection formats.  This current snapshot of
  * a valid scene collection schema was taken on 5/22/18.
  */
-test('Loading an old scene collection', async t => {
+test('Loading an old scene collection', async (t) => {
   // Make sure we loaded the scenes
   t.true(await sceneExisting('Stream Starting Soon'));
   t.true(await sceneExisting('Live Screen'));

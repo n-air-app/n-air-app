@@ -164,7 +164,7 @@ export default class CommentSettings extends Vue {
   }
 
   getSynthesizerItem(id: string): SynthesizerItem {
-    return this.synthesizers.find(a => a.id === id) ?? this.synthesizers[0];
+    return this.synthesizers.find((a) => a.id === id) ?? this.synthesizers[0];
   }
 
   get synthIds(): readonly SynthesizerSelector[] {
@@ -267,7 +267,7 @@ export default class CommentSettings extends Vue {
 
   get httpRelationMethod(): MethodObject {
     const value = this.nicoliveProgramStateService.state.httpRelation.method;
-    const obj = this.httpRelationMethods.find(a => a.value === value);
+    const obj = this.httpRelationMethods.find((a) => a.value === value);
     return obj ?? this.httpRelationMethods[0];
   }
   set httpRelationMethod(method: MethodObject) {
@@ -308,9 +308,9 @@ export default class CommentSettings extends Vue {
 
   get isUseVoicevox(): boolean {
     return (
-      this.nicoliveCommentSynthesizerService.normal === 'voicevox' ||
-      this.nicoliveCommentSynthesizerService.operator === 'voicevox' ||
-      this.nicoliveCommentSynthesizerService.system === 'voicevox'
+      this.nicoliveCommentSynthesizerService.normal === 'voicevox'
+      || this.nicoliveCommentSynthesizerService.operator === 'voicevox'
+      || this.nicoliveCommentSynthesizerService.system === 'voicevox'
     );
   }
 
@@ -370,7 +370,7 @@ export default class CommentSettings extends Vue {
   }
 
   getVoicevoxItem(id: string): VoicevoxItem {
-    return this.voicevoxItems.find(a => a.id === id) ?? { id: '', name: '' };
+    return this.voicevoxItems.find((a) => a.id === id) ?? { id: '', name: '' };
   }
 
   async getVoicevoxIcon(id: string, uuid?: string) {

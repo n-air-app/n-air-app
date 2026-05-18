@@ -2,8 +2,10 @@ import * as remote from '@electron/remote';
 import { Subscription } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { SelectionService } from 'services/selection';
+
 import * as obs from '../../obs-api';
 import { ScalableRectangle } from '../util/ScalableRectangle';
+
 import { Inject } from './core/injector';
 import { Service } from './core/service';
 import { SettingsService } from './settings';
@@ -71,7 +73,7 @@ export class Display {
 
     this.displayDestroyed = false;
 
-    this.selectionSubscription = this.selectionService.updated.subscribe(state => {
+    this.selectionSubscription = this.selectionService.updated.subscribe((state) => {
       this.switchGridlines(state.selectedIds.length <= 1);
     });
 
@@ -108,10 +110,10 @@ export class Display {
       const rect = this.getScaledRectangle(element.getBoundingClientRect());
 
       if (
-        rect.x !== this.currentPosition.x ||
-        rect.y !== this.currentPosition.y ||
-        rect.width !== this.currentPosition.width ||
-        rect.height !== this.currentPosition.height
+        rect.x !== this.currentPosition.x
+        || rect.y !== this.currentPosition.y
+        || rect.width !== this.currentPosition.width
+        || rect.height !== this.currentPosition.height
       ) {
         this.move(rect.x, rect.y);
         this.resize(rect.width, rect.height);
@@ -191,7 +193,7 @@ export class Display {
       ...size,
     };
 
-    this.outputRegionCallbacks.forEach(cb => {
+    this.outputRegionCallbacks.forEach((cb) => {
       cb(this.outputRegion);
     });
   }

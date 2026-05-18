@@ -1,7 +1,9 @@
 import * as Sentry from '@sentry/vue';
-import { Speech } from '../nicolive-comment-synthesizer';
-import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 import { PrepareFunc } from 'util/QueueRunner';
+
+import { Speech } from '../nicolive-comment-synthesizer';
+
+import { ISpeechSynthesizer } from './ISpeechSynthesizer';
 
 export interface INVoiceTalker {
   talk(
@@ -72,7 +74,7 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
           };
         };
       } catch (error) {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('in', 'NVoiceSynthesizer:speakText');
           scope.setExtra('speech', speech);

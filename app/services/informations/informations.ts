@@ -1,11 +1,12 @@
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { HostsService } from 'services/hosts';
 import { $t } from 'services/i18n';
 import { WindowsService } from 'services/windows';
 import { isFakeMode } from 'util/fakeMode';
 import { handleErrors } from 'util/requests';
 import { parseString } from 'xml2js';
+
 import { InformationsStateService } from './state';
 
 function parseXml(xml: String): Promise<object> {
@@ -85,7 +86,7 @@ export class InformationsService extends StatefulService<IInformationsState> {
     try {
       return await fetch(this.hostsService.niconicoNAirInformationsFeed, { headers })
         .then(handleErrors)
-        .then(response => response.text())
+        .then((response) => response.text())
         .then(InformationsService.parseXml);
     } finally {
       this.SET_FETCHING(false);
@@ -107,7 +108,7 @@ export class InformationsService extends StatefulService<IInformationsState> {
 
   get hasUnseenItem() {
     if (this.state.fetching) return false;
-    return this.state.informations.some(item => item.date > this.stateService.lastOpen);
+    return this.state.informations.some((item) => item.date > this.stateService.lastOpen);
   }
 
   updateLastOpen(now: number) {

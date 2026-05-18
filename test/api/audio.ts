@@ -1,23 +1,24 @@
 import { IAudioServiceApi } from 'services/audio';
 import { ISceneCollectionsServiceApi } from 'services/scene-collections';
 import { ScenesService } from 'services/scenes';
+
 import { getApiClient } from '../helpers/api-client';
 import { test, useWebdriver } from '../helpers/webdriver';
 
 useWebdriver({ restartAppAfterEachTest: false });
 
-test('The default sources exists', async t => {
+test('The default sources exists', async (t) => {
   const client = await getApiClient();
   const audioService = client.getResource<IAudioServiceApi>('AudioService');
   const audioSources = audioService.getSourcesForCurrentScene();
 
   t.deepEqual(
-    audioSources.map(i => i.getModel().name),
+    audioSources.map((i) => i.getModel().name),
     ['デスクトップ音声', 'マイク'],
   );
 });
 
-test('The sources with audio have to be appeared in AudioService', async t => {
+test('The sources with audio have to be appeared in AudioService', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const audioService = client.getResource<IAudioServiceApi>('AudioService');
@@ -27,17 +28,16 @@ test('The sources with audio have to be appeared in AudioService', async t => {
   const audioSources = audioService.getSourcesForCurrentScene();
 
   t.deepEqual(
-    audioSources.map(i => i.getModel().name),
+    audioSources.map((i) => i.getModel().name),
     ['デスクトップ音声', 'マイク', 'MyAudio'],
   );
 });
 
-test('The audio sources have to keep settings after application restart', async t => {
+test('The audio sources have to keep settings after application restart', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const audioService = client.getResource<IAudioServiceApi>('AudioService');
-  const sceneCollectionsService =
-    client.getResource<ISceneCollectionsServiceApi>('SceneCollectionsService');
+  const sceneCollectionsService = client.getResource<ISceneCollectionsServiceApi>('SceneCollectionsService');
 
   const scene = scenesService.activeScene;
   const source = scene.createAndAddSource('MyMic', 'wasapi_input_capture');
@@ -61,7 +61,7 @@ test('The audio sources have to keep settings after application restart', async 
   t.deepEqual(audioSourceModel, loadedAudioSourceModel);
 });
 
-test('Events are emitted when the audio source is updated', async t => {
+test('Events are emitted when the audio source is updated', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const audioService = client.getResource<IAudioServiceApi>('AudioService');

@@ -1,5 +1,6 @@
-export * from './selection';
 import { ISceneItemNode } from 'services/scenes';
+
+export * from './selection';
 
 export interface ISelectionState {
   selectedIds: string[];

@@ -1,6 +1,7 @@
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
 import { WindowsService } from 'services/windows';
+
 import { $t } from './i18n';
 import { SourcesService } from './sources';
 

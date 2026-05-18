@@ -1,6 +1,7 @@
 import * as remote from '@electron/remote';
 import { NicoliveClient } from 'services/nicolive-program/NicoliveClient';
 import { Component, Prop } from 'vue-property-decorator';
+
 import { CommentBase } from './CommentBase';
 import { SpeakingType } from './SpeakingType';
 

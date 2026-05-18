@@ -4,6 +4,7 @@ import groupBy from 'lodash/groupBy';
 import sortBy from 'lodash/sortBy';
 import { EFontStyle } from 'obs-studio-node';
 import { Component, Prop } from 'vue-property-decorator';
+
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import { IObsFont, IObsInput, ObsInput } from './ObsInput';
 
@@ -31,7 +32,7 @@ interface IFontSelect extends HTMLElement {
 })
 export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>> {
   @Prop()
-  value: IObsInput<IObsFont>;
+    value: IObsInput<IObsFont>;
   testingAnchor = `Form/SystemFont/${this.value.name}`;
 
   fonts: IFontDescriptor[] = fontManager.getAvailableFontsSync();
@@ -77,7 +78,7 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
 
     let selected_font: IFontDescriptor;
 
-    const regular = family.fonts.find(font => {
+    const regular = family.fonts.find((font) => {
       return font.style === 'Regular';
     });
 
@@ -94,10 +95,9 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
   }
 
   getFlagsFromFont(font: IFontDescriptor) {
-    const flags =
-      (font.italic ? EFontStyle.Italic : 0) |
-      (font.oblique ? EFontStyle.Italic : 0) |
-      (font.weight > 400 ? EFontStyle.Bold : 0);
+    const flags = (font.italic ? EFontStyle.Italic : 0)
+      | (font.oblique ? EFontStyle.Italic : 0)
+      | (font.weight > 400 ? EFontStyle.Bold : 0);
 
     return flags;
   }
@@ -132,7 +132,7 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
   }
 
   get selectedFont() {
-    return this.selectedFamily.fonts.find(font => {
+    return this.selectedFamily.fonts.find((font) => {
       if (this.value.value.flags !== this.getFlagsFromFont(font)) {
         return false;
       }
@@ -147,7 +147,7 @@ export default class ObsSystemFontSelector extends ObsInput<IObsInput<IObsFont>>
 
   get fontFamilies() {
     return sortBy(
-      Object.values(this.fontsByFamily).map(fonts => {
+      Object.values(this.fontsByFamily).map((fonts) => {
         return this.fontsToFamily(fonts);
       }),
       'family',

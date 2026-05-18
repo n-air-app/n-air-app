@@ -1,4 +1,5 @@
 import { NotificationType } from '../ChatMessage';
+
 import { classify } from './classifier';
 
 test('通常コメント', () => {
@@ -28,12 +29,12 @@ test('エモーション', () => {
 
 test.each<NotificationType>(['programExtended', 'rankingIn', 'rankingUpdated', 'visited'])(
   'info: %s',
-  type => {
+  (type) => {
     expect(classify({ notification: { type, message: '' } })).toBe('info');
   },
 );
 
-test.each<NotificationType>(['ichiba', 'quote', 'cruise'])(`system: %s`, type => {
+test.each<NotificationType>(['ichiba', 'quote', 'cruise'])('system: %s', (type) => {
   expect(classify({ notification: { type, message: '' } })).toBe('system');
 });
 

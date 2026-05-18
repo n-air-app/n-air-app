@@ -1,6 +1,7 @@
 // Source helper functions
 import { contextMenuClick } from '../webdriver/context-menu';
 import { dialogDismiss } from '../webdriver/dialog';
+
 import { click, focusChild, focusMain, getClient, isDisplayed, select } from './core';
 import { setInputValue } from './forms/form';
 

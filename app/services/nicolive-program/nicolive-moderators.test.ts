@@ -1,12 +1,13 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Subject } from 'rxjs';
-import { ObserveType, jest_fn } from 'util/jest_fn';
+import { jest_fn, ObserveType } from 'util/jest_fn';
 import { sleep } from 'util/sleep';
 import { createSetupFunction } from 'util/test-setup';
+
 import { NdgrClient } from './NdgrClient';
+import { NicoliveProgramService } from './nicolive-program';
 import type { NicoliveClient } from './NicoliveClient';
 import { Moderator } from './ResponseTypes';
-import { NicoliveProgramService } from './nicolive-program';
 
 type NicoliveModeratorsService = import('./nicolive-moderators').NicoliveModeratorsService;
 
@@ -165,7 +166,7 @@ describe('connectModeratorStream', () => {
       ['123'],
       [],
     ],
-  ])(`should update moderatorsCache on %s`, async (_, moderatorUpdated, initial, expected) => {
+  ])('should update moderatorsCache on %s', async (_, moderatorUpdated, initial, expected) => {
     const { instance, messages } = prepare();
 
     await instance.connectModeratorStream('https://example.com');
@@ -232,7 +233,7 @@ describe('connectModeratorStream', () => {
         byModerator: false,
       },
     ],
-  ])(`should notify on refreshObserver on %s`, async (_, ssngUpdated, event) => {
+  ])('should notify on refreshObserver on %s', async (_, ssngUpdated, event) => {
     const { instance, messages, refreshObserver } = prepare();
 
     await instance.connectModeratorStream('https://example.com');
@@ -277,7 +278,7 @@ describe('isModerator', () => {
   test.each([
     ['123', true],
     ['456', false],
-  ])(`isModerator(%s) should return %s`, (userId, expected) => {
+  ])('isModerator(%s) should return %s', (userId, expected) => {
     const { instance } = prepare();
     instance.state.moderatorsCache = moderators;
     expect(instance.isModerator(userId)).toBe(expected);

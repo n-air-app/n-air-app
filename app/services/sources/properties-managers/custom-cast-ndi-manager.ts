@@ -6,13 +6,14 @@ import {
   TObsValue,
 } from 'components/obs/inputs/ObsInput';
 import { $t } from 'services/i18n';
+
 import { PropertiesManager } from './properties-manager';
 
 export class CustomCastNdiManager extends PropertiesManager {
   getPropertiesFormData(): TObsFormData {
     const propArray = super.getPropertiesFormData();
     const ndiSourceNameProp = propArray.find(
-      prop => prop.name === 'ndi_source_name',
+      (prop) => prop.name === 'ndi_source_name',
     ) as IObsListInput<TObsValue>;
 
     if (ndiSourceNameProp !== undefined) {
@@ -20,7 +21,7 @@ export class CustomCastNdiManager extends PropertiesManager {
       ndiSourceNameProp.enabled = false;
 
       const re = /.* \(CUSTOMCAST\)/;
-      const customCastNdi = ndiSourceNameProp.options.find(option => {
+      const customCastNdi = ndiSourceNameProp.options.find((option) => {
         return typeof option.value === 'string' && option.value.match(re);
       });
 

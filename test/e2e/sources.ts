@@ -27,7 +27,7 @@ const sourceTypes = [
   'browser_source',
 ];
 
-test('Adding and removing some sources', async t => {
+test('Adding and removing some sources', async (t) => {
   for (const sourceType of sourceTypes) {
     const sourceName = `Example ${sourceType}`;
 
@@ -43,7 +43,7 @@ test('Adding and removing some sources', async t => {
   }
 });
 
-test('Viewing source properties', async t => {
+test('Viewing source properties', async (t) => {
   const client = t.context.app.client;
   const sourceName = 'Cool Color Source';
 
@@ -57,7 +57,7 @@ test('Viewing source properties', async t => {
   t.true(await client.$('[data-test="Form/Color/color"]').isExisting());
 });
 
-test('Rename source', async t => {
+test('Rename source', async (t) => {
   const client = t.context.app.client;
   const sourceName = 'MyColorSource1';
   const newSourceName = 'MyColorSource2';

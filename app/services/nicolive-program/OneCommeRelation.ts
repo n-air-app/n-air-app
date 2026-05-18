@@ -1,7 +1,7 @@
 import { Inject } from 'services/core/injector';
+import { transformUrl } from 'services/dev-hosts';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
-import { transformUrl } from 'services/dev-hosts';
 
 /**
  * OneCommeサービスとのやり取りに使用するデータ構造

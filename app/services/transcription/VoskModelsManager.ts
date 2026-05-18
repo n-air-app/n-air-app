@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+
 import { $t } from 'services/i18n';
 
 export const VOSK_MODEL_NAMES = ['vosk-model-small-ja-0.22', 'vosk-model-ja-0.22'] as const;
@@ -15,14 +16,14 @@ export class VoskModelsManager {
     name: string;
     description: string;
     status: VoskModelStatus;
-  }[] = VOSK_MODEL_NAMES.map(name => ({
-    name,
-    description: $t(`settings.transcription.voskModels['${name}']`),
-    status: { state: 'not_downloaded' },
-  }));
+  }[] = VOSK_MODEL_NAMES.map((name) => ({
+      name,
+      description: $t(`settings.transcription.voskModels['${name}']`),
+      status: { state: 'not_downloaded' },
+    }));
 
   constructor(private modelBasePath: string) {
-    this.models = this.models.map(model => {
+    this.models = this.models.map((model) => {
       const modelPath = this.getModelPath(model.name);
       if (existsSync(modelPath)) {
         model.status = { state: 'downloaded' };
@@ -44,13 +45,13 @@ export class VoskModelsManager {
   }
 
   setVoskModelStatus(modelName: string, status: VoskModelStatus) {
-    const model = this.models.find(m => m.name === modelName);
+    const model = this.models.find((m) => m.name === modelName);
     if (model) {
       model.status = status;
     }
   }
   getVoskModelStatus(modelName: string): VoskModelStatus {
-    const model = this.models.find(m => m.name === modelName);
+    const model = this.models.find((m) => m.name === modelName);
     return model ? model.status : { state: 'not_downloaded' };
   }
 }

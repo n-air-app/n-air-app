@@ -55,8 +55,8 @@ export function getBestSettingsForNiconico(
         NVENCPreset2: 'p3',
       };
     } else if (
-      settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.nvenc) ||
-      settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.advancedNvenc)
+      settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.nvenc)
+      || settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.advancedNvenc)
     ) {
       encoderSettings = {
         encoder: EncoderFamily.nvenc,
@@ -69,8 +69,8 @@ export function getBestSettingsForNiconico(
         simpleUseAdvanced: false,
       };
     } else if (
-      settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.qsv) ||
-      settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.advancedQsv)
+      settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.qsv)
+      || settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.advancedQsv)
     ) {
       encoderSettings = {
         encoder: EncoderFamily.qsv,

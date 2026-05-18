@@ -9,15 +9,15 @@ import { test, TExecutionContext, useWebdriver } from '../helpers/webdriver';
 
 useWebdriver({ restartAppAfterEachTest: true });
 
-test('Streaming to server via API', async t => {
+test('Streaming to server via API', async (t) => {
   const streamingServerURL = process.env.NAIR_TEST_STREAM_SERVER;
   const streamingKey = process.env.NAIR_TEST_STREAM_KEY;
 
   if (!(streamingServerURL && streamingKey)) {
     console.warn(
-      'テスト用配信情報が不足しています。配信テストをスキップします。\n' +
-        `NAIR_TEST_STREAM_SERVER: ${process.env.NAIR_TEST_STREAM_SERVER}\n` +
-        `NAIR_TEST_STREAM_KEY   : ${process.env.NAIR_TEST_STREAM_KEY}`,
+      'テスト用配信情報が不足しています。配信テストをスキップします。\n'
+        + `NAIR_TEST_STREAM_SERVER: ${process.env.NAIR_TEST_STREAM_SERVER}\n`
+        + `NAIR_TEST_STREAM_KEY   : ${process.env.NAIR_TEST_STREAM_KEY}`,
     );
     t.pass();
     return;
@@ -28,8 +28,8 @@ test('Streaming to server via API', async t => {
   const settingsService = client.getResource<ISettingsServiceApi>('SettingsService');
 
   const streamSettings = settingsService.getSettingsFormData('Stream');
-  streamSettings.forEach(subcategory => {
-    subcategory.parameters.forEach(setting => {
+  streamSettings.forEach((subcategory) => {
+    subcategory.parameters.forEach((setting) => {
       if (setting.name === 'server') setting.value = streamingServerURL;
       if (setting.name === 'key') setting.value = streamingKey;
     });
@@ -65,8 +65,8 @@ test('Recording via API', async (t: TExecutionContext) => {
   const settingsService = client.getResource<ISettingsServiceApi>('SettingsService');
 
   const outputSettings = settingsService.getSettingsFormData('Output');
-  outputSettings.forEach(subcategory => {
-    subcategory.parameters.forEach(setting => {
+  outputSettings.forEach((subcategory) => {
+    subcategory.parameters.forEach((setting) => {
       if (setting.name === 'FilePath') setting.value = t.context.cacheDir;
     });
   });

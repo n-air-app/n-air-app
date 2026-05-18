@@ -1,4 +1,5 @@
 import { createSetupFunction } from 'util/test-setup';
+
 type NicoliveCommentLocalFilterService =
   import('./nicolive-comment-local-filter').NicoliveCommentLocalFilterService;
 

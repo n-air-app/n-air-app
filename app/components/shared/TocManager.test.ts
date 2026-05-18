@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { TocManager } from './TocManager';
 
 // Mock Vue.observable, Vue.set, Vue.delete
@@ -433,7 +432,7 @@ describe('TocManager', () => {
 
       const sections = manager.getSections('Comment');
       expect(sections).toHaveLength(4);
-      expect(sections.map(s => s.level)).toEqual([1, 1, 2, 2]);
+      expect(sections.map((s) => s.level)).toEqual([1, 1, 2, 2]);
     });
 
     it('カテゴリ切り替えシナリオ', () => {

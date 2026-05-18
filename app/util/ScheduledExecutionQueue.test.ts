@@ -1,4 +1,5 @@
 import * as FakeTimers from '@sinonjs/fake-timers';
+
 import { ScheduledExecutionQueue } from './ScheduledExecutionQueue';
 
 describe('ScheduledExecutionQueue', () => {

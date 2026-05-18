@@ -1,6 +1,7 @@
-import * as Sentry from '@sentry/vue';
 import fs from 'fs';
 import path from 'path';
+
+import * as Sentry from '@sentry/vue';
 import { Service } from 'services/core/service';
 
 interface IFile {
@@ -121,10 +122,10 @@ export class FileManagerService extends Service {
    */
   async flushAll() {
     const promises = Object.keys(this.files)
-      .filter(filePath => {
+      .filter((filePath) => {
         return this.files[filePath].dirty;
       })
-      .map(filePath => {
+      .map((filePath) => {
         return this.flush(filePath);
       });
 
@@ -160,7 +161,7 @@ export class FileManagerService extends Service {
         file.locked = false;
         await this.flush(filePath, tries - 1);
       } else {
-        Sentry.withScope(scope => {
+        Sentry.withScope((scope) => {
           scope.setLevel('error');
           scope.setTag('service', 'FileManagerService');
           scope.setTag('method', 'flush');
@@ -179,8 +180,8 @@ export class FileManagerService extends Service {
    * @param string a path to the file
    */
   private fileExists(filePath: string): Promise<boolean> {
-    return new Promise(resolve => {
-      fs.exists(filePath, exists => resolve(exists));
+    return new Promise((resolve) => {
+      fs.exists(filePath, (exists) => resolve(exists));
     });
   }
 
@@ -193,14 +194,14 @@ export class FileManagerService extends Service {
     return new Promise((resolve, reject) => {
       const tmpPath = `${filePath}.tmp`;
 
-      fs.writeFile(tmpPath, data, err => {
+      fs.writeFile(tmpPath, data, (err) => {
         if (err) {
           console.error(err);
           reject(err);
           return;
         }
 
-        fs.rename(tmpPath, filePath, err => {
+        fs.rename(tmpPath, filePath, (err) => {
           if (err) {
             console.error(err);
             reject(err);
