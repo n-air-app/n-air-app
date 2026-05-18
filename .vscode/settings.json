@@ -162,7 +162,7 @@
     "source.fixAll.stylelint": "always"
   },
   "eslint.useFlatConfig": true,
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "json", "jsonc"],
   "css.validate": false,
   "less.validate": false,
   "stylelint.validate": ["css", "less", "vue"],
@@ -181,11 +181,19 @@
     }
   },
   "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
     "files.insertFinalNewline": true
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
     "files.insertFinalNewline": true
   },
   "[vue]": {
