@@ -7,6 +7,8 @@ on:
     types: [opened]
     branches: ['n-air_development']
 
+permissions: {}
+
 jobs:
   add-to-project:
     runs-on: ubuntu-latest
@@ -38,6 +40,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT }}
           ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
+          PROJECT_ID: ${{ steps.get_project.outputs.project_id }}
         run: |
           ORG_NAME="n-air-app"
           PROJECT_NUMBER=3
@@ -48,7 +51,7 @@ jobs:
             CONTENT_ID="$PR_NODE_ID"
           fi
 
-          echo "Adding content ID: $CONTENT_ID to project ID: ${{ steps.get_project.outputs.project_id }}"
+          echo "Adding content ID: $CONTENT_ID to project ID: $PROJECT_ID"
 
           MUTATION='mutation($projectId: ID!, $contentId: ID!) {
             addProjectV2ItemById(input: {
@@ -65,6 +68,6 @@ jobs:
             -H "Authorization: Bearer $GH_PAT" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
-              --arg pid "${{ steps.get_project.outputs.project_id }}" \
+              --arg pid "$PROJECT_ID" \
               --arg cid "$CONTENT_ID" \
               '{ query: "'"${MUTATION//[$'\n']}"'", variables: { projectId: $pid, contentId: $cid } }')"

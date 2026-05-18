@@ -1,3 +1,4 @@
+import WritableStream = NodeJS.WritableStream;
 import crypto from 'crypto';
 import os from 'os';
 
@@ -15,8 +16,6 @@ import { UsageStatisticsService } from 'services/usage-statistics';
 import { InternalApiService } from '../internal-api';
 
 import { IIPAddressDescription, ITcpServerServiceApi, ITcpServersSettings } from './tcp-server-api';
-
-type WritableStream = NodeJS.WritableStream;
 
 const net = require('net');
 
@@ -126,7 +125,8 @@ export class TcpServerService
   }
 
   setSettings(settings: Partial<ITcpServersSettings>) {
-    const needToGenerateToken = settings.websockets && settings.websockets.allowRemote && !this.state.token;
+    const needToGenerateToken =
+      settings.websockets && settings.websockets.allowRemote && !this.state.token;
     if (needToGenerateToken) this.generateToken();
     this.SET_SETTINGS(settings);
   }
@@ -246,9 +246,9 @@ export class TcpServerService
       this.onDisconnectHandler(client);
     });
 
-    socket.on('error', (e) => {
-      if (e.code === 'EPIPE') {
-        // Client has silently disconnected
+    socket.on('error', (e: NodeJS.ErrnoException) => {
+      if (e.code === 'EPIPE' || e.code === 'ERR_STREAM_WRITE_AFTER_END') {
+        // Expected errors from closed/ended connections
         console.debug('TCP Server: Socket was disconnected', e);
         this.onDisconnectHandler(client);
       } else {
@@ -320,9 +320,9 @@ export class TcpServerService
           this.jsonrpcService.createError(null, {
             code: E_JSON_RPC_ERROR.INVALID_REQUEST,
             message:
-              'Make sure that the request is valid json. '
-              + 'If request string contains multiple requests, ensure requests are separated '
-              + 'by a single newline character LF ( ASCII code 10)',
+              'Make sure that the request is valid json. ' +
+              'If request string contains multiple requests, ensure requests are separated ' +
+              'by a single newline character LF ( ASCII code 10)',
           }),
         );
       }
@@ -346,7 +346,8 @@ export class TcpServerService
       ];
       const force = (whitelistedEvents as string[]).includes(eventName);
 
-      const needToSendEvent = client.listenAllSubscriptions || client.subscriptions.includes(event.result.resourceId);
+      const needToSendEvent =
+        client.listenAllSubscriptions || client.subscriptions.includes(event.result.resourceId);
       if (needToSendEvent) this.sendResponse(client, event, force);
     });
   }
@@ -395,8 +396,8 @@ export class TcpServerService
 
     // handle unsubscribing by clearing client subscriptions
     if (
-      request.method === 'unsubscribe'
-      && this.internalApiService.subscriptions[request.params.resource]
+      request.method === 'unsubscribe' &&
+      this.internalApiService.subscriptions[request.params.resource]
     ) {
       const subscriptionInd = client.subscriptions.indexOf(request.params.resource);
       if (subscriptionInd !== -1) client.subscriptions.splice(subscriptionInd, 1);
@@ -410,8 +411,8 @@ export class TcpServerService
 
     // handle `listenAllSubscriptions` directive
     if (
-      request.method === 'listenAllSubscriptions'
-      && request.params.resource === 'TcpServerService'
+      request.method === 'listenAllSubscriptions' &&
+      request.params.resource === 'TcpServerService'
     ) {
       client.listenAllSubscriptions = true;
       this.sendResponse(client, {
@@ -432,6 +433,9 @@ export class TcpServerService
     if (this.isRequestsHandlingStopped && !force) return;
 
     this.log('send response', response);
+
+    // ERR_STREAM_WRITE_AFTER_END is emitted asynchronously and bypasses the try/catch below.
+    if (!client.socket.writable) return;
 
     // unhandled exceptions completely destroy Rx.Observable subscription
     try {
