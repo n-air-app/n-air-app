@@ -24,6 +24,7 @@ import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
 import { CustomcastUsageService } from '../custom-cast-usage';
 import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
+import { PerformanceService } from '../performance';
 import { IStreamingSetting } from '../platforms';
 import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';
@@ -860,6 +861,11 @@ export class StreamingService
       if (info.signal === EOBSOutputSignal.Start) {
         this.reconnectCount = 0;
         this.reconnectStartedAt = null;
+        Sentry.addBreadcrumb({
+          category: 'streaming.signal',
+          message: 'start',
+          level: 'info',
+        });
         this.SET_STREAMING_STATUS(EStreamingState.Live, time);
         this.streamingStatusChange.next(EStreamingState.Live);
 
@@ -876,12 +882,28 @@ export class StreamingService
 
         void this.logStreamStart(); // fire-and-forget: シグナルコールバックはawaitできないため
       } else if (info.signal === EOBSOutputSignal.Starting) {
+        Sentry.addBreadcrumb({
+          category: 'streaming.signal',
+          message: 'starting',
+          level: 'info',
+        });
         this.SET_STREAMING_STATUS(EStreamingState.Starting, time);
         this.streamingStatusChange.next(EStreamingState.Starting);
       } else if (info.signal === EOBSOutputSignal.Stop) {
+        Sentry.addBreadcrumb({
+          category: 'streaming.signal',
+          message: 'stop',
+          level: 'info',
+          data: { code: info.code, error: info.error },
+        });
         this.SET_STREAMING_STATUS(EStreamingState.Offline, time);
         this.streamingStatusChange.next(EStreamingState.Offline);
       } else if (info.signal === EOBSOutputSignal.Stopping) {
+        Sentry.addBreadcrumb({
+          category: 'streaming.signal',
+          message: 'stopping',
+          level: 'info',
+        });
         this.SET_STREAMING_STATUS(EStreamingState.Ending, time);
         this.streamingStatusChange.next(EStreamingState.Ending);
         void this.logStreamEnd(); // fire-and-forget: シグナルコールバックはawaitできないため
@@ -903,6 +925,7 @@ export class StreamingService
               (Date.now() - new Date(this.state.streamingStatusTime).getTime()) / 1000,
             )
             : -1;
+          const perfState = PerformanceService.instance.state;
           Sentry.withScope((scope) => {
             scope.setLevel('warning');
             scope.setTag('service', 'StreamingService');
@@ -912,6 +935,9 @@ export class StreamingService
             scope.setExtra('info', info);
             scope.setExtra('streamElapsedSec', streamElapsedSec);
             scope.setExtra('reconnectCount', this.reconnectCount);
+            scope.setExtra('CPU', perfState.CPU);
+            scope.setExtra('streamingBandwidth', perfState.streamingBandwidth);
+            scope.setExtra('percentageDroppedFrames', perfState.percentageDroppedFrames);
             Sentry.captureMessage('streaming reconnect started');
           });
         }

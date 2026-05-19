@@ -205,6 +205,16 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
       if (stats.streamingBandwidth === 0) {
         if (this.zeroBandwidthSamples === 0) {
           this.zeroBandwidthStartedAt = Date.now();
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'bandwidth dropped to 0',
+            level: 'warning',
+            data: {
+              CPU: stats.CPU,
+              droppedFrames: stats.numberDroppedFrames,
+              percentageDroppedFrames: stats.percentageDroppedFrames,
+            },
+          });
         }
         this.zeroBandwidthSamples++;
         if (
