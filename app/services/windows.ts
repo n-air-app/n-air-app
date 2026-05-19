@@ -369,17 +369,6 @@ export class WindowsService extends StatefulService<IWindowsState> {
       this.windows[windowId].on('closed', resolve);
       this.windows[windowId].close();
       await this.waitWindowCleanup(windowId);
-      // 念のため destroy も残す
-      if (this.windows[windowId]) {
-        this.windows[windowId].destroy();
-      } else {
-        // closed イベントハンドラが先に delete this.windows[windowId] を実行したケース
-        Sentry.captureMessage('closeOneOffWindow: window already deleted before destroy()', {
-          level: 'warning',
-          extra: { windowId },
-          tags: { module: 'windows', function: 'closeOneOffWindow' },
-        });
-      }
     });
   }
 
