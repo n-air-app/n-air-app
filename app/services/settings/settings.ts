@@ -172,7 +172,7 @@ export class SettingsService
   }
 
   showSoundDetectorSettings() {
-    this.showSettings('Comment', '#sound-detector-settings');
+    this.showSettings('CommentSpeech', '#sound-detector-settings');
   }
 
   advancedSettingEnabled(): boolean {
@@ -187,7 +187,7 @@ export class SettingsService
     categories.push('Transcription');
 
     categories.push('Comment');
-    categories.push('SpeechEngine');
+    categories.push('CommentSpeech');
 
     categories.push('SubStream');
 

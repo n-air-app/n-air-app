@@ -65,7 +65,11 @@ export class ProtocolLinksService extends Service {
   }
 
   private openSettings(info: IProtocolLinkInfo) {
-    const category = info.path.replace('/', '') as SettingsCategory;
+    const RENAMED_CATEGORIES: Record<string, SettingsCategory> = {
+      SpeechEngine: 'CommentSpeech',
+    };
+    const rawCategory = info.path.replace('/', '');
+    const category = (RENAMED_CATEGORIES[rawCategory] ?? rawCategory) as SettingsCategory;
 
     this.settingsService.showSettings(category, info.hash || undefined);
   }

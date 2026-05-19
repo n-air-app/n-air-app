@@ -37,7 +37,7 @@
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
         <comment-settings v-if="categoryName === 'Comment' && isLoggedIn" />
-        <speech-engine-settings v-if="categoryName === 'SpeechEngine' && isLoggedIn" />
+        <comment-speech-settings v-if="categoryName === 'CommentSpeech' && isLoggedIn" />
         <sub-stream-settings v-if="categoryName === 'SubStream'" />
         <transcription-settings v-if="categoryName === 'Transcription'" />
         <GenericFormGroups
@@ -45,7 +45,7 @@
             ![
               'Hotkeys',
               'Comment',
-              'SpeechEngine',
+              'CommentSpeech',
               'SubStream',
               'Transcription',
             ].includes(categoryName)
