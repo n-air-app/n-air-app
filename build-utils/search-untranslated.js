@@ -5,14 +5,12 @@ const searchExp = /\$t\(\'([ a-zA-Z\d\-_`@%;:,'’=&!~#\\\+\*\?\.\}\{\(\)\[\]\$/
 const fs = require('fs');
 const recursive = require('recursive-readdir');
 
-
 (async function main() {
-
   const dictionary = {};
 
   // load dictionary
   const dictionaryFiles = await recursive('./app/i18n/en-US', ['*.txt']);
-  dictionaryFiles.forEach(filePath => {
+  dictionaryFiles.forEach((filePath) => {
     let fileDictionary;
     try {
       fileDictionary = JSON.parse(fs.readFileSync(filePath).toString());
@@ -27,7 +25,7 @@ const recursive = require('recursive-readdir');
   const sourceFiles = await recursive('./app', ['*.txt']);
 
   // check missed strings in the sources files
-  sourceFiles.forEach(filePath => {
+  sourceFiles.forEach((filePath) => {
     const foundStrings = [];
     const missedStrings = [];
 
@@ -39,29 +37,21 @@ const recursive = require('recursive-readdir');
       if (!foundStrings.includes(string)) foundStrings.push(string);
     }
 
-    foundStrings.forEach(str => {
+    foundStrings.forEach((str) => {
       if (dictionary[str] || missedStrings.includes(str)) return;
       missedStrings.push(str);
     });
-
 
     if (!missedStrings.length) return;
 
     console.log(`missed strings found in ${filePath}`);
 
     const missedStringsMap = {};
-    missedStrings.forEach(missedString => {
+    missedStrings.forEach((missedString) => {
       missedStringsMap[missedString] = missedString;
-    })
+    });
 
     console.log(JSON.stringify(missedStringsMap, null, 4));
   });
-
-
-
 })();
-
-
-
-
 

@@ -1,8 +1,8 @@
-
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Environment Variables
 ////////////////////////////////////////////////////////////////////////////////
 const pjson = require('./package.json');
+
 if (pjson.env === 'production') {
   process.env.NODE_ENV = 'production';
 }
@@ -39,6 +39,7 @@ const osnVersion = getObsStudioNodeVersion();
 // Modules and other Requires
 ////////////////////////////////////////////////////////////////////////////////
 const electron = require('electron');
+
 const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter } =
   electron;
 const path = require('node:path');
@@ -74,8 +75,8 @@ function loadDevHostsConfig() {
     const lines = fs
       .readFileSync(devHostsPathFile, 'utf-8')
       .split('\n')
-      .map(l => l.trim())
-      .filter(l => l && !l.startsWith('#'));
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'));
     const relPath = lines[n - 1];
     if (!relPath) throw new Error(`.dev-hosts-path has no entry at line ${n}`);
     const fullPath = path.resolve(__dirname, relPath);
@@ -152,7 +153,7 @@ function removePathWithRetry(rmPath) {
 }
 
 function clearCacheDirSelectively(userDataPath, preserveDirs) {
-  const preserveSet = new Set(preserveDirs.map(d => d.toLowerCase()));
+  const preserveSet = new Set(preserveDirs.map((d) => d.toLowerCase()));
   let entries;
   try {
     entries = fs.readdirSync(userDataPath, { withFileTypes: true });
@@ -296,7 +297,7 @@ class WindowCleanupWaiter {
     } else {
       if (!this._waitCleanupWindows.has(windowId)) {
         let resolve;
-        const promise = new Promise(resolve_ => {
+        const promise = new Promise((resolve_) => {
           resolve = resolve_;
         });
         this._waitCleanupWindows.set(windowId, { resolve, promise });
@@ -315,7 +316,7 @@ class WindowCleanupWaiter {
       const CLEANUP_TIMEOUT = 3000;
       await Promise.race([
         this._waitCleanupWindows.get(windowId).promise,
-        new Promise(resolve => {
+        new Promise((resolve) => {
           setTimeout(resolve, CLEANUP_TIMEOUT);
         }),
       ]);
@@ -384,14 +385,13 @@ function initialize(crashHandler) {
     logFromRemote(msg.level, msg.sender, msg.message);
   });
 
-
   function logFromRemote(level, sender, msg) {
-    msg.split('\n').forEach(line => {
+    msg.split('\n').forEach((line) => {
       writeLogLine(`[${new Date().toISOString()}] [${level}] [${sender}] - ${line}`);
     });
   }
 
-  ipcMain.on('get-latest-obs-log', e => {
+  ipcMain.on('get-latest-obs-log', (e) => {
     const logDir = path.join(app.getPath('userData'), 'node-obs', 'logs');
 
     // get the latest log file pattern: 'yyyy-mm-dd hh-mm-ss.txt'; sort by name
@@ -419,7 +419,7 @@ function initialize(crashHandler) {
 
   function getFileListRecursive(dir, prefix = '') {
     const files = fs.readdirSync(path.join(dir, prefix));
-    return files.flatMap(file => {
+    return files.flatMap((file) => {
       const pathname = path.join(dir, prefix, file);
       const stat = fs.statSync(pathname);
       if (stat.isDirectory()) {
@@ -430,7 +430,7 @@ function initialize(crashHandler) {
     });
   }
 
-  ipcMain.on('get-obs-plugin-files-list', e => {
+  ipcMain.on('get-obs-plugin-files-list', (e) => {
     const pluginDir = path.join(
       app.getAppPath().replace('app.asar', 'app.asar.unpacked'),
       'node_modules',
@@ -448,7 +448,7 @@ function initialize(crashHandler) {
   console.log = (...args) => {
     if (!process.env.NAIR_DISABLE_MAIN_LOGGING) {
       const serialized = args
-        .map(arg => {
+        .map((arg) => {
           if (typeof arg === 'string') return arg;
 
           return util.inspect(arg);
@@ -460,7 +460,6 @@ function initialize(crashHandler) {
   };
 
   const lineBuffer = [];
-
 
   function writeLogLine(line) {
     // Also print to stdout
@@ -485,7 +484,6 @@ function initialize(crashHandler) {
 
   let writeInProgress = false;
 
-
   function flushNextLine() {
     if (lineBuffer.length === 0) return;
     if (writeInProgress) return;
@@ -494,7 +492,7 @@ function initialize(crashHandler) {
 
     writeInProgress = true;
 
-    fs.writeFile(logFile, nextLine, { flag: 'a' }, e => {
+    fs.writeFile(logFile, nextLine, { flag: 'a' }, (e) => {
       writeInProgress = false;
 
       if (e) {
@@ -509,7 +507,7 @@ function initialize(crashHandler) {
   const os = require('node:os');
   const cpus = os.cpus();
 
-  ipcMain.on('get-cpu-model', e => {
+  ipcMain.on('get-cpu-model', (e) => {
     e.returnValue = cpus[0].model;
   });
 
@@ -556,11 +554,11 @@ function initialize(crashHandler) {
       callback(details);
     });
 
-    getAppSession().webRequest.onErrorOccurred(filter, details => {
+    getAppSession().webRequest.onErrorOccurred(filter, (details) => {
       console.log('HTTP REQUEST FAILED', details.method, details.url);
     });
 
-    getAppSession().webRequest.onCompleted(filter, details => {
+    getAppSession().webRequest.onCompleted(filter, (details) => {
       console.log('HTTP REQUEST COMPLETED', details.method, details.url, details.statusCode);
     });
   });
@@ -593,7 +591,6 @@ function initialize(crashHandler) {
     };
   }
 
-
   function openDevTools() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.openDevTools({ mode: 'undocked' });
@@ -607,7 +604,7 @@ function initialize(crashHandler) {
 
   function handleFinishedReport() {
     // 先にsentryへの送信flushを開始する
-    const flush = SentryElectron.flush(3000).catch(error => {
+    const flush = SentryElectron.flush(3000).catch((error) => {
       console.error(error);
     });
 
@@ -626,7 +623,7 @@ function initialize(crashHandler) {
   const sentryDefs = require('./bundles/sentry-defs');
 
   if (pjson.env === 'production' || process.env.NAIR_REPORT_TO_SENTRY) {
-    process.on('uncaughtException', error => {
+    process.on('uncaughtException', (error) => {
       console.log('uncaughtException', error);
       handleFinishedReport();
     });
@@ -673,7 +670,6 @@ function initialize(crashHandler) {
       throw e;
     }
   }
-
 
   async function startApp() {
     if (process.argv.includes('--clearCookies')) {
@@ -791,7 +787,7 @@ function initialize(crashHandler) {
       closeSplashWindow();
     });
 
-    mainWindow.on('close', e => {
+    mainWindow.on('close', (e) => {
       console.log('[EXIT] mainWindow.on(close) event, allowMainWindowClose=', allowMainWindowClose);
 
       if (!shutdownStarted) {
@@ -898,7 +894,7 @@ function initialize(crashHandler) {
 
     // The child window is never closed, it just hides in the
     // background until it is needed.
-    childWindow.on('close', e => {
+    childWindow.on('close', (e) => {
       if (!shutdownStarted) {
         safeSend(childWindow, 'closeWindow');
 
@@ -957,7 +953,7 @@ function initialize(crashHandler) {
 
     ipcMain.on('services-message', (event, payload) => {
       const windows = BrowserWindow.getAllWindows();
-      windows.forEach(window => {
+      windows.forEach((window) => {
         if (window.id === mainWindow.id || window.isDestroyed()) return;
         safeSend(window, 'services-message', payload);
       });
@@ -992,7 +988,7 @@ function initialize(crashHandler) {
       },
     });
     // Check for protocol links in the argv of the other process
-    argv.forEach(arg => {
+    argv.forEach((arg) => {
       if (arg.match(/^n-air-app:\/\//)) {
         safeSend(mainWindow, 'protocolLink', arg);
       }
@@ -1109,7 +1105,7 @@ function initialize(crashHandler) {
     await windowCleanupWaiter.wait(windowId);
   });
 
-  ipcMain.on('window-closeChildWindow', event => {
+  ipcMain.on('window-closeChildWindow', (event) => {
     // never close the child window, hide it instead
     if (childWindow.isDestroyed()) return;
 
@@ -1123,7 +1119,6 @@ function initialize(crashHandler) {
   ipcMain.on('window-focusMain', () => {
     mainWindow.focus();
   });
-
 
   function preventClose(e) {
     if (!shutdownStarted) {
@@ -1185,7 +1180,7 @@ function initialize(crashHandler) {
   // syncing their vuex stores.
   const registeredStores = {};
 
-  ipcMain.on('vuex-register', event => {
+  ipcMain.on('vuex-register', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     const windowId = win.id;
 
@@ -1218,8 +1213,8 @@ function initialize(crashHandler) {
       const windowId = senderWindow.id;
 
       Object.keys(registeredStores)
-        .filter(id => id !== windowId.toString())
-        .forEach(id => {
+        .filter((id) => id !== windowId.toString())
+        .forEach((id) => {
           const win = registeredStores[id];
           safeSend(win, 'vuex-mutation', mutation);
         });
@@ -1230,7 +1225,7 @@ function initialize(crashHandler) {
     // prevent unexpected cache clear
     const args = process.argv
       .slice(1)
-      .filter(x => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x));
+      .filter((x) => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x));
 
     app.relaunch({ args });
     // Closing the main window starts the shut down sequence
@@ -1243,22 +1238,22 @@ function initialize(crashHandler) {
      executed synchronously and therefore default actions
      cannot be prevented. */
   ipcMain.on('webContents-preventNavigation', (e, id) => {
-    webContents.fromId(id).on('will-navigate', e => {
+    webContents.fromId(id).on('will-navigate', (e) => {
       e.preventDefault();
     });
   });
 
   ipcMain.on('webContents-preventPopup', (e, id) => {
-    webContents.fromId(id).on('new-window', e => {
+    webContents.fromId(id).on('new-window', (e) => {
       e.preventDefault();
     });
   });
 
-  ipcMain.on('getMainWindowWebContentsId', e => {
+  ipcMain.on('getMainWindowWebContentsId', (e) => {
     e.returnValue = mainWindow.webContents.id;
   });
 
-  ipcMain.on('requestPerformanceStats', e => {
+  ipcMain.on('requestPerformanceStats', (e) => {
     const stats = app.getAppMetrics();
     safeSend(e.sender, 'performanceStatsResponse', stats);
   });
@@ -1282,7 +1277,7 @@ function initialize(crashHandler) {
     await recollectUserSessionCookie();
   });
 
-  ipcMain.on('getWindowIds', e => {
+  ipcMain.on('getWindowIds', (e) => {
     e.returnValue = {
       main: mainWindow.id,
       child: childWindow.id,
@@ -1297,7 +1292,7 @@ function initialize(crashHandler) {
         const keys = fs
           .readFileSync(I18N_NOT_FOUND_KEYS_FILE, 'utf-8')
           .split('\n')
-          .map(l => l.trimEnd())
+          .map((l) => l.trimEnd())
           .filter(Boolean);
         console.log(`file ${I18N_NOT_FOUND_KEYS_FILE} loaded: ${keys.length} keys`);
         return keys;
@@ -1312,7 +1307,7 @@ function initialize(crashHandler) {
       if (!Array.isArray(keys)) {
         keys = [keys];
       }
-      fs.appendFileSync(I18N_NOT_FOUND_KEYS_FILE, keys.flatMap(line => [line, '\n']).join(''));
+      fs.appendFileSync(I18N_NOT_FOUND_KEYS_FILE, keys.flatMap((line) => [line, '\n']).join(''));
     }
   });
 

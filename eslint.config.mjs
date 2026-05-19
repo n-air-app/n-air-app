@@ -1,15 +1,16 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
 import jsoncPlugin from 'eslint-plugin-jsonc';
-import * as jsoncParser from 'jsonc-eslint-parser';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
 import vue from 'eslint-plugin-vue';
+import * as jsoncParser from 'jsonc-eslint-parser';
+import tseslint from 'typescript-eslint';
 import vueParser from 'vue-eslint-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -161,6 +162,7 @@ export default [
       'test-dist/**',
       'plugins/**',
       'bin/node_modules/**',
+      'docs/**',
       'nvoice/near/bundle.js*',
     ],
   },
@@ -227,7 +229,7 @@ export default [
 
   // Main configuration for JS/TS files
   {
-    files: ['**/*.{js,ts}'],
+    files: ['**/*.{js,mjs,cjs,ts}'],
 
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -238,7 +240,7 @@ export default [
 
     languageOptions: {
       parser: tseslint.parser,
-      ecmaVersion: 2018,
+      ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
         Atomics: 'readonly',
@@ -286,7 +288,7 @@ export default [
 
     languageOptions: {
       parser: vueParser,
-      ecmaVersion: 2018,
+      ecmaVersion: 2022,
       sourceType: 'module',
       parserOptions: {
         parser: tseslint.parser,

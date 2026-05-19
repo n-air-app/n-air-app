@@ -141,7 +141,7 @@ test('バージョンがパースできる(internal unstable)', () => {
   `);
 });
 
-const versionContexts = [...channelEnvironmentSets()].map(o => ({
+const versionContexts = [...channelEnvironmentSets()].map((o) => ({
   channel: o.releaseChannel,
   environment: o.releaseEnvironment,
 }));
@@ -161,43 +161,43 @@ test('ふたつのVersionContextが同じか否か判定できる', () => {
 test('次のバージョンを生成する(当日、publicでstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.public.stable, now: TODAY }),
-  ).toMatchInlineSnapshot(`"1.0.20190826-3"`);
+  ).toMatchInlineSnapshot('"1.0.20190826-3"');
 });
 test('次のバージョンを生成する(当日、publicでunstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.public.unstable, now: TODAY }),
-  ).toMatchInlineSnapshot(`"1.0.20190826-unstable.3"`);
+  ).toMatchInlineSnapshot('"1.0.20190826-unstable.3"');
 });
 test('次のバージョンを生成する(当日、internalでstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.internal.stable, now: TODAY }),
-  ).toMatchInlineSnapshot(`"1.0.20190826-3d"`);
+  ).toMatchInlineSnapshot('"1.0.20190826-3d"');
 });
 test('次のバージョンを生成する(当日、internalでunstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.internal.unstable, now: TODAY }),
-  ).toMatchInlineSnapshot(`"1.0.20190826-unstable.3d"`);
+  ).toMatchInlineSnapshot('"1.0.20190826-unstable.3d"');
 });
 
 test('次のバージョンを生成する(別日、publicでstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.public.stable, now: TOMORROW }),
-  ).toMatchInlineSnapshot(`"1.0.20190827-1"`);
+  ).toMatchInlineSnapshot('"1.0.20190827-1"');
 });
 test('次のバージョンを生成する(別日、publicでunstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.public.unstable, now: TOMORROW }),
-  ).toMatchInlineSnapshot(`"1.0.20190827-unstable.1"`);
+  ).toMatchInlineSnapshot('"1.0.20190827-unstable.1"');
 });
 test('次のバージョンを生成する(別日、internalでstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.internal.stable, now: TOMORROW }),
-  ).toMatchInlineSnapshot(`"1.0.20190827-1d"`);
+  ).toMatchInlineSnapshot('"1.0.20190827-1d"');
 });
 test('次のバージョンを生成する(別日、internalでunstable)', () => {
   expect(
     generateNewVersion({ previousVersion: fixtures.internal.unstable, now: TOMORROW }),
-  ).toMatchInlineSnapshot(`"1.0.20190827-unstable.1d"`);
+  ).toMatchInlineSnapshot('"1.0.20190827-unstable.1d"');
 });
 
 test('patch-noteに引用符があったらエスケープされる', () => {
@@ -262,8 +262,8 @@ describe('collectNonPRMerges', () => {
     expect(result).toContain('  - 修正: バグを修正 (def456)');
     // Verify the order
     const lines = result.split('\n');
-    const addIndex = lines.findIndex(l => l.includes('追加: 新機能'));
-    const fixIndex = lines.findIndex(l => l.includes('修正: バグを修正'));
+    const addIndex = lines.findIndex((l) => l.includes('追加: 新機能'));
+    const fixIndex = lines.findIndex((l) => l.includes('修正: バグを修正'));
     expect(addIndex).toBeLessThan(fixIndex); // 追加 comes before 修正
   });
 
@@ -420,8 +420,8 @@ describe('collectNonPRMerges', () => {
     expect(result).toContain('  - Commit B1 (b1)');
     // Verify order for feature/A
     const lines = result.split('\n');
-    const a2Index = lines.findIndex(l => l.includes('Commit A2'));
-    const a1Index = lines.findIndex(l => l.includes('Commit A1'));
+    const a2Index = lines.findIndex((l) => l.includes('Commit A2'));
+    const a1Index = lines.findIndex((l) => l.includes('Commit A1'));
     expect(a2Index).toBeLessThan(a1Index); // A2 (older) comes before A1 (newer)
   });
 
@@ -455,7 +455,7 @@ describe('collectNonPRMerges', () => {
     expect(result).toBe('');
   });
 
-  test("n-air_development からのマージは除外される", async () => {
+  test('n-air_development からのマージは除外される', async () => {
     executeCmd.mockReturnValueOnce({
       stdout: "abc1234 Merge branch 'n-air_development' into feature/test",
     });
@@ -487,7 +487,7 @@ describe('collectNonPRMerges', () => {
     expect(result).toContain('修正: 緊急パッチ (def456)');
   });
 
-  test("混在シナリオ: n-air_development からのマージは除外、それ以外は含む", async () => {
+  test('混在シナリオ: n-air_development からのマージは除外、それ以外は含む', async () => {
     executeCmd
       .mockReturnValueOnce({
         // 3つのマージコミット: 1つ目はn-air_development(除外)、2つ目と3つ目は含む
@@ -515,7 +515,7 @@ describe('collectNonPRMerges', () => {
     expect(result).not.toContain('n-air_development');
   });
 
-  test("内部テストリリースブランチ: feature ブランチの直接マージ (into 付き) は含まれる", async () => {
+  test('内部テストリリースブランチ: feature ブランチの直接マージ (into 付き) は含まれる', async () => {
     // internal-release のような内部テストリリースブランチでは
     // "Merge branch 'feature/xxx' into internal-release" の形式で
     // feature ブランチが直接マージされる。これは残すべきエントリ。

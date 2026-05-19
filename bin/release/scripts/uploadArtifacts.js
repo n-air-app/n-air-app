@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { S3, S3Client } = require('@aws-sdk/client-s3');
+const { S3 } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
 const sh = require('shelljs');
 const ProgressBar = require('progress');
@@ -21,7 +21,7 @@ async function uploadS3File({ name, bucketName, filePath, keyPrefix }) {
 
   const stream = fs.createReadStream(filePath);
   const upload = new Upload({
-    client: new S3({}) || new S3Client({}),
+    client: new S3({}),
     params: {
       Bucket: bucketName,
       Key: `${keyPrefix}/${name}`,
@@ -35,7 +35,7 @@ async function uploadS3File({ name, bucketName, filePath, keyPrefix }) {
     clear: true,
   });
 
-  upload.on('httpUploadProgress', progress => {
+  upload.on('httpUploadProgress', (progress) => {
     if (progress.loaded !== undefined && progress.total !== undefined) {
       bar.update(progress.loaded / progress.total);
     }

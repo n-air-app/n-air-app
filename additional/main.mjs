@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
+
 import unzip from 'unzip-stream'; // この時点で各種modulesはインストールされている前提
 
 import additionalFiles from './additional.json' with { type: 'json' };
@@ -25,28 +26,27 @@ async function download(url) {
   const extension = path.extname(new URL(url).pathname) || '';
   const cacheFileName = `${hash}${extension}`;
   const cachePath = path.join(cacheDir, cacheFileName);
-  
+
   // キャッシュファイルが存在する場合はそのパスを返す
   if (fs.existsSync(cachePath)) {
     return cachePath;
   }
-  
+
   try {
     console.log(`downloading: ${url}`);
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const buffer = await response.arrayBuffer();
     const bufferData = Buffer.from(buffer);
-    
+
     fs.mkdirSync(cacheDir, { recursive: true });
     fs.writeFileSync(cachePath, bufferData);
-    
+
     return cachePath;
-   
   } catch (error) {
     throw new Error(`Failed to download: ${error.message}`);
   }
@@ -56,18 +56,17 @@ async function download(url) {
 async function extract(sourcePath, destinationPath, url) {
   const cacheDirName = crypto.createHash('md5').update(url).digest('hex');
   const extractCachePath = path.join(cacheDir, 'extracted', cacheDirName);
-  
+
   // 展開キャッシュが存在する場合はそれを使用
   if (fs.existsSync(extractCachePath)) {
     copyDirectory(extractCachePath, destinationPath);
     return;
   }
-  
+
   return new Promise((resolve, reject) => {
-    
     // 展開キャッシュディレクトリを作成
     fs.mkdirSync(extractCachePath, { recursive: true });
-    
+
     fs.createReadStream(sourcePath)
       .pipe(unzip.Extract({ path: extractCachePath }))
       .on('close', () => {
@@ -84,25 +83,25 @@ function copyFileWithSkip(sourcePath, destPath) {
   if (fs.existsSync(destPath)) {
     const sourceStats = fs.statSync(sourcePath);
     const destStats = fs.statSync(destPath);
-    if (sourceStats.size === destStats.size && 
+    if (sourceStats.size === destStats.size &&
         sourceStats.mtime.getTime() <= destStats.mtime.getTime()) {
       return false;
     }
   }
-  
+
   fs.copyFileSync(sourcePath, destPath);
-  return true; 
+  return true;
 }
 
 // ディレクトリを再帰的にコピーする
 function copyDirectory(sourceDir, destDir) {
   fs.mkdirSync(destDir, { recursive: true });
   const files = fs.readdirSync(sourceDir);
-  
+
   for (const file of files) {
     const sourcePath = path.join(sourceDir, file);
     const destPath = path.join(destDir, file);
-    
+
     const stat = fs.statSync(sourcePath);
     if (stat.isDirectory()) {
       fs.mkdirSync(destPath, { recursive: true });
@@ -114,8 +113,8 @@ function copyDirectory(sourceDir, destDir) {
 }
 
 async function main() {
- if ((process.argv.includes('clean') || process.argv.includes('--clean')) && fs.existsSync(cacheDir)) {
-     console.log(`remove cache dir: ${cacheDir}`);
+  if ((process.argv.includes('clean') || process.argv.includes('--clean')) && fs.existsSync(cacheDir)) {
+    console.log(`remove cache dir: ${cacheDir}`);
     fs.rmSync(cacheDir, { recursive: true, force: true });
   }
 
@@ -147,7 +146,7 @@ main()
   .then(() => {
     process.exit(0);
   })
-  .catch(error => {
+  .catch((error) => {
     console.log(error);
     process.exit(1);
   });
