@@ -189,19 +189,19 @@
             </div>
           </div>
         </toc-section>
+
+        <toc-section title="音声エンジン">
+          <div class="section">
+            <div class="input-label section-heading">
+              <label>音声エンジン</label>
+            </div>
+            <speech-engine-settings />
+          </div>
+        </toc-section>
       </div>
     </toc-section>
 
     <sound-detector-settings />
-
-    <toc-section title="音声エンジン">
-      <div class="section">
-        <div class="input-label section-heading">
-          <label>音声エンジン</label>
-        </div>
-        <speech-engine-settings />
-      </div>
-    </toc-section>
   </div>
 </template>
 
