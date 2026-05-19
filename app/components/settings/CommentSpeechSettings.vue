@@ -190,8 +190,8 @@
           </div>
         </toc-section>
 
-        <toc-section title="音声エンジン" id="speech-engine-settings">
-          <div class="section">
+        <toc-section title="音声エンジン" id="speech-engine-settings" :visible="synthesizerEnabled">
+          <div class="section" v-if="synthesizerEnabled">
             <div class="input-label section-heading">
               <label>音声エンジン</label>
             </div>
@@ -201,7 +201,7 @@
       </div>
     </toc-section>
 
-    <sound-detector-settings />
+    <sound-detector-settings v-if="synthesizerEnabled" />
   </div>
 </template>
 
