@@ -358,7 +358,6 @@ export class WindowsService extends StatefulService<IWindowsState> {
     Object.keys(this.windows).forEach((windowId) => {
       if (windowId === 'main') return;
       if (windowId === 'child') return;
-      this.closeOneOffWindow(windowId);
       closingPromises.push(this.closeOneOffWindow(windowId));
     });
     return Promise.all(closingPromises);
@@ -370,8 +369,6 @@ export class WindowsService extends StatefulService<IWindowsState> {
       this.windows[windowId].on('closed', resolve);
       this.windows[windowId].close();
       await this.waitWindowCleanup(windowId);
-      // 念のため destroy も残す
-      this.windows[windowId].destroy();
     });
   }
 
