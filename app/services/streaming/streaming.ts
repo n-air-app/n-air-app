@@ -844,6 +844,11 @@ export class StreamingService
 
   private outputErrorOpen = false;
 
+  private reconnectStartedAt: number | null = null;
+  private reconnectCount = 0;
+  private lastReconnectSentAt = 0;
+  private readonly RECONNECT_RATE_LIMIT_MS = 30_000;
+
   private handleOBSOutputSignal(info: IOBSOutputSignalInfo) {
     console.debug('OBS Output signal: ', info);
 
@@ -853,6 +858,8 @@ export class StreamingService
       const time = new Date().toISOString();
 
       if (info.signal === EOBSOutputSignal.Start) {
+        this.reconnectCount = 0;
+        this.reconnectStartedAt = null;
         this.SET_STREAMING_STATUS(EStreamingState.Live, time);
         this.streamingStatusChange.next(EStreamingState.Live);
 
@@ -879,11 +886,57 @@ export class StreamingService
         this.streamingStatusChange.next(EStreamingState.Ending);
         void this.logStreamEnd(); // fire-and-forget: シグナルコールバックはawaitできないため
       } else if (info.signal === EOBSOutputSignal.Reconnect) {
+        this.reconnectStartedAt = Date.now();
+        this.reconnectCount++;
         this.SET_STREAMING_STATUS(EStreamingState.Reconnecting);
         this.streamingStatusChange.next(EStreamingState.Reconnecting);
+        Sentry.addBreadcrumb({
+          category: 'streaming.signal',
+          message: 'reconnect',
+          level: 'warning',
+          data: { code: info.code, error: info.error, reconnectCount: this.reconnectCount },
+        });
+        if (Date.now() - this.lastReconnectSentAt >= this.RECONNECT_RATE_LIMIT_MS) {
+          this.lastReconnectSentAt = Date.now();
+          const streamElapsedSec = this.state.streamingStatusTime
+            ? Math.round(
+              (Date.now() - new Date(this.state.streamingStatusTime).getTime()) / 1000,
+            )
+            : -1;
+          Sentry.withScope((scope) => {
+            scope.setLevel('warning');
+            scope.setTag('service', 'StreamingService');
+            scope.setTag('method', 'handleOBSOutputSignal');
+            scope.setTag('signal', 'Reconnect');
+            scope.setFingerprint(['StreamingService', 'reconnect', String(info.code ?? 0)]);
+            scope.setExtra('info', info);
+            scope.setExtra('streamElapsedSec', streamElapsedSec);
+            scope.setExtra('reconnectCount', this.reconnectCount);
+            Sentry.captureMessage('streaming reconnect started');
+          });
+        }
       } else if (info.signal === EOBSOutputSignal.ReconnectSuccess) {
+        const durationMs =
+          this.reconnectStartedAt != null ? Date.now() - this.reconnectStartedAt : -1;
+        this.reconnectStartedAt = null;
         this.SET_STREAMING_STATUS(EStreamingState.Live);
         this.streamingStatusChange.next(EStreamingState.Live);
+        Sentry.addBreadcrumb({
+          category: 'streaming.signal',
+          message: 'reconnect_success',
+          level: 'info',
+          data: { durationMs, reconnectCount: this.reconnectCount },
+        });
+        Sentry.withScope((scope) => {
+          scope.setLevel('info');
+          scope.setTag('service', 'StreamingService');
+          scope.setTag('method', 'handleOBSOutputSignal');
+          scope.setTag('signal', 'ReconnectSuccess');
+          scope.setFingerprint(['StreamingService', 'reconnectSuccess']);
+          scope.setExtra('durationMs', durationMs);
+          scope.setExtra('reconnectCount', this.reconnectCount);
+          Sentry.captureMessage('streaming reconnect succeeded');
+        });
       }
     } else if (info.type === EOBSOutputType.Recording) {
       const nextState = (
@@ -923,6 +976,22 @@ export class StreamingService
     }
 
     if (info.code) {
+      if (
+        info.signal !== EOBSOutputSignal.Reconnect &&
+        info.signal !== EOBSOutputSignal.ReconnectSuccess
+      ) {
+        Sentry.withScope((scope) => {
+          scope.setLevel('error');
+          scope.setTag('service', 'StreamingService');
+          scope.setTag('method', 'handleOBSOutputSignal');
+          scope.setTag('signal', info.signal);
+          scope.setTag('outputType', info.type);
+          scope.setFingerprint(['StreamingService', 'outputCode', String(info.code)]);
+          scope.setExtra('info', info);
+          scope.setExtra('reconnectCount', this.reconnectCount);
+          Sentry.captureMessage(`OBS output error code: ${info.code}`);
+        });
+      }
       if (this.outputErrorOpen) {
         console.warn('Not showing error message because existing window is open.', info);
         return;
