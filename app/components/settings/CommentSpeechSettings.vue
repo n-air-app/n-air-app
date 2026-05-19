@@ -190,7 +190,7 @@
           </div>
         </toc-section>
 
-        <toc-section title="音声エンジン">
+        <toc-section title="音声エンジン" id="speech-engine-settings">
           <div class="section">
             <div class="input-label section-heading">
               <label>音声エンジン</label>
