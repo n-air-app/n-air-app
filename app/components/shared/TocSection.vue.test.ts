@@ -22,6 +22,7 @@ jest.mock('vue-property-decorator', () => ({
     return target;
   },
   Prop: (options?: any) => (target: any, propertyKey: string) => {},
+  Watch: (propName: string) => (target: any, propertyKey: string) => {},
 }));
 
 describe('TocSection', () => {
