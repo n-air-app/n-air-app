@@ -33,7 +33,6 @@
           <p class="notification-message">{{ $t('settings.noticeLoginRequired') }}</p>
         </aside>
 
-        <extra-settings v-if="categoryName === 'General'" />
         <language-settings v-if="categoryName === 'General'" />
         <hotkeys v-if="categoryName === 'Hotkeys'" />
         <comment-settings v-if="categoryName === 'Comment' && isLoggedIn" />
@@ -55,6 +54,7 @@
           :isLoggedIn="isLoggedIn"
           @input="save"
         />
+        <extra-settings v-if="categoryName === 'General'" />
       </div>
     </div>
   </modal-layout>
