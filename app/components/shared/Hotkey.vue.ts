@@ -20,6 +20,7 @@ export default class HotkeyComponent extends Vue {
   // @ts-expect-error: ts2729: use before initialization
   description = this.hotkey.description;
   bindings: IKeyedBinding[] = [];
+  focusedIndex: number | null = null;
 
   created() {
     if (this.hotkey.bindings.length === 0) {
@@ -29,6 +30,14 @@ export default class HotkeyComponent extends Vue {
         return this.createBindingWithKey(binding);
       });
     }
+  }
+
+  handleFocus(index: number) {
+    this.focusedIndex = index;
+  }
+
+  handleBlur(index: number) {
+    if (this.focusedIndex === index) this.focusedIndex = null;
   }
 
   handleKeydown(event: KeyboardEvent, index: number) {

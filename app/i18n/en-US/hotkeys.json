@@ -19,5 +19,7 @@
   "togglePerformanceMode": "Toggle Performance Mode",
   "toggleCompactMode": "Toggle Compact Mode",
   "pushToSourceShow": "Show %{sourcename} (while key held)",
-  "pushToSourceHide": "Hide %{sourcename} (while key held)"
+  "pushToSourceHide": "Hide %{sourcename} (while key held)",
+  "inputPlaceholder": "Click to bind",
+  "inputPlaceholderFocused": "Press any key"
 }
