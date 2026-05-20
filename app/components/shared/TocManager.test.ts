@@ -407,25 +407,25 @@ describe('TocManager', () => {
     it('複雑な階層構造を正しく管理できる', () => {
       manager.register('Comment', {
         id: 'display',
-        title: '表示設定',
+        title: '表示',
         order: 0,
         level: 1,
       });
       manager.register('Comment', {
         id: 'speech',
-        title: '読み上げ設定',
+        title: '読み上げ',
         order: 0,
         level: 1,
       });
       manager.register('Comment', {
         id: 'audio',
-        title: '音声設定',
+        title: '音声',
         order: 0,
         level: 2,
       });
       manager.register('Comment', {
         id: 'distribution',
-        title: '振り分け設定',
+        title: '振り分け',
         order: 0,
         level: 2,
       });

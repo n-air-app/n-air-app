@@ -114,10 +114,10 @@ describe('TocSection', () => {
 
     it('同じタイトルでも異なるIDが生成される', () => {
       const instance1 = createInstance({
-        title: '表示設定',
+        title: '表示',
       });
       const instance2 = createInstance({
-        title: '表示設定',
+        title: '表示',
       });
 
       expect(instance1.sectionId).toBe('toc-section-0');

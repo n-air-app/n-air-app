@@ -1,9 +1,9 @@
 <template>
   <div class="setting-section">
-    <toc-section title="読み上げ設定">
+    <toc-section title="読み上げ">
       <div class="section">
         <div class="input-label section-heading">
-          <label>読み上げ設定</label>
+          <label>読み上げ</label>
         </div>
         <div class="input-container">
           <div class="input-wrapper">
@@ -16,10 +16,10 @@
           </div>
         </div>
 
-        <toc-section title="音声設定" :visible="synthesizerEnabled">
+        <toc-section title="音声" :visible="synthesizerEnabled">
           <div class="section" v-if="synthesizerEnabled">
             <div class="input-label section-heading">
-              <label>音声設定</label>
+              <label>音声</label>
             </div>
             <div class="input-container">
               <div class="input-wrapper">
@@ -63,10 +63,10 @@
           </div>
         </toc-section>
 
-        <toc-section title="振り分け設定" :visible="synthesizerEnabled">
+        <toc-section title="振り分け" :visible="synthesizerEnabled">
           <div class="section" v-if="synthesizerEnabled">
             <div class="input-label section-heading">
-              <label>振り分け設定</label>
+              <label>振り分け</label>
             </div>
             <div class="input-container">
               <div v-if="voicevoxInformation" class="banner">

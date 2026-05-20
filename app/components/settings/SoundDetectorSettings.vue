@@ -1,9 +1,9 @@
 <template>
   <div class="setting-section">
-    <toc-section title="読み上げ停止設定" id="sound-detector-settings">
+    <toc-section title="読み上げ停止" id="sound-detector-settings">
       <div class="section">
         <div class="input-label section-heading">
-          <label>読み上げ停止設定</label>
+          <label>読み上げ停止</label>
         </div>
         <p class="section-notice-text">放送者の発声中にコメント読み上げを一時停止する設定です</p>
         <div class="input-container">
@@ -17,10 +17,10 @@
           </div>
         </div>
 
-        <toc-section title="基本設定">
+        <toc-section title="基本">
           <div class="section">
             <div class="input-label section-heading">
-              <label>基本設定</label>
+              <label>基本</label>
             </div>
             <ObsListInput v-model="soundDetectorSourceModel" />
             <p v-if="!sourceAvailable" class="source-unavailable-warning">
@@ -87,10 +87,10 @@
           </div>
         </toc-section>
 
-        <toc-section title="詳細設定">
+        <toc-section title="詳細">
           <div class="section">
             <div class="input-label section-heading--dropdown" :class="{ 'is-collapsed': collapsed }" @click="collapsed = !collapsed">
-              <label>詳細設定</label>
+              <label>詳細</label>
               <i :class="collapsed ? 'icon-arrow-bottom-fill' : 'icon-arrow-top-fill'" />
             </div>
             <div v-if="!collapsed">

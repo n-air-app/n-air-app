@@ -1,9 +1,9 @@
 <template>
   <div class="setting-section">
-    <toc-section title="表示設定">
+    <toc-section title="表示">
       <div class="section">
         <div class="input-label section-heading">
-          <label>表示設定</label>
+          <label>表示</label>
         </div>
         <div class="input-container">
           <div class="input-wrapper">
@@ -60,10 +60,10 @@
       </div>
     </toc-section>
 
-    <toc-section title="HTTP連携設定">
+    <toc-section title="HTTP連携">
       <div class="section">
         <div class="input-label section-heading">
-          <label>HTTP連携設定</label>
+          <label>HTTP連携</label>
         </div>
         <div class="input-container">
           <div class="input-wrapper">
