@@ -59,6 +59,11 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
   private intervalId: number;
   private statsFailed: boolean = false;
 
+  private zeroBandwidthSamples = 0;
+  private zeroBandwidthAlertSent = false;
+  private zeroBandwidthStartedAt: number | null = null;
+  private readonly ZERO_BANDWIDTH_THRESHOLD = 8; // 8 × 2s = 16s
+
   // 移動平均用の履歴配列
   private historicalDroppedFrames: number[] = [];
   private historicalSkippedFrames: number[] = [];
@@ -81,6 +86,13 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
         this.historicalDroppedFrames = [];
         this.historicalLaggedFrames = [];
         this.historicalSkippedFrames = [];
+        this.zeroBandwidthSamples = 0;
+        this.zeroBandwidthAlertSent = false;
+        this.zeroBandwidthStartedAt = null;
+      } else if (status === EStreamingState.Offline) {
+        this.zeroBandwidthSamples = 0;
+        this.zeroBandwidthAlertSent = false;
+        this.zeroBandwidthStartedAt = null;
       }
     });
   }
@@ -188,6 +200,69 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
       percentageSkippedFrames: skippedFactor * 100,
       streamQuality,
     });
+
+    if (this.streamingService.state.streamingStatus === EStreamingState.Live) {
+      if (stats.streamingBandwidth === 0) {
+        if (this.zeroBandwidthSamples === 0) {
+          this.zeroBandwidthStartedAt = Date.now();
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'bandwidth dropped to 0',
+            level: 'warning',
+            data: {
+              CPU: stats.CPU,
+              droppedFrames: stats.numberDroppedFrames,
+              percentageDroppedFrames: stats.percentageDroppedFrames,
+            },
+          });
+        }
+        this.zeroBandwidthSamples++;
+        if (
+          this.zeroBandwidthSamples === this.ZERO_BANDWIDTH_THRESHOLD &&
+          !this.zeroBandwidthAlertSent
+        ) {
+          const streamElapsedSec = this.streamingService.state.streamingStatusTime
+            ? Math.round(
+              (Date.now() -
+                  new Date(this.streamingService.state.streamingStatusTime).getTime()) /
+                  1000,
+            )
+            : -1;
+          Sentry.withScope((scope) => {
+            scope.setLevel('warning');
+            scope.setTag('service', 'PerformanceService');
+            scope.setTag('method', 'update');
+            scope.setTag('condition', 'bandwidthZero');
+            scope.setFingerprint(['PerformanceService', 'bandwidthZero']);
+            scope.setExtra(
+              'zeroDurationSec',
+              this.zeroBandwidthSamples * (STATS_UPDATE_INTERVAL / 1000),
+            );
+            scope.setExtra('CPU', stats.CPU);
+            scope.setExtra('droppedFrames', stats.numberDroppedFrames);
+            scope.setExtra('percentageDroppedFrames', stats.percentageDroppedFrames);
+            scope.setExtra('streamElapsedSec', streamElapsedSec);
+            Sentry.captureMessage('streaming bandwidth stuck at 0kbps');
+          });
+          this.zeroBandwidthAlertSent = true;
+        }
+      } else {
+        if (this.zeroBandwidthAlertSent) {
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'bandwidth recovered',
+            data: {
+              recoveryDurationSec: this.zeroBandwidthStartedAt
+                ? Math.round((Date.now() - this.zeroBandwidthStartedAt) / 1000)
+                : -1,
+            },
+          });
+        }
+        this.zeroBandwidthSamples = 0;
+        this.zeroBandwidthAlertSent = false;
+        this.zeroBandwidthStartedAt = null;
+      }
+    }
   }
 
   stop() {
