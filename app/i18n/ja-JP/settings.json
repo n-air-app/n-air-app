@@ -647,8 +647,8 @@
   "Comment": {
     "name": "コメント設定"
   },
-  "SpeechEngine": {
-    "name": "音声エンジン"
+  "CommentSpeech": {
+    "name": "コメント読み上げ"
   },
   "SubStream": {
     "name": "サブ配信"

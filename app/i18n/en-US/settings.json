@@ -647,8 +647,8 @@
   "Comment": {
     "name": "Comment Settings"
   },
-  "SpeechEngine": {
-    "name": "Speech Engine"
+  "CommentSpeech": {
+    "name": "Comment Speech"
   },
   "SubStream": {
     "name": "Sub Stream"
