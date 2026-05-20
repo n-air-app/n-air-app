@@ -21,6 +21,10 @@ export default class SubStreamSettings extends Vue {
   selectedTab: SubStreamTabID = SubStreamService.defaultState.selectedTab;
   private _tabSwitching = false;
   readonly tabIds: SubStreamTabID[] = ['youtube', 'twitch', 'other'];
+
+  get tabOptions(): { id: SubStreamTabID; name: string }[] {
+    return this.tabIds.map((id) => ({ id, name: $t(`settings.substream.tabs.${id}`) }));
+  }
   url: string = '';
   key: string = '';
 
