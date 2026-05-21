@@ -1,33 +1,29 @@
 <template>
   <modal-layout :show-controls="false" no-scroll>
-    <div slot="content" class="table-wrapper section">
-      <table>
-        <thead>
-          <tr>
-            <th class="device">{{ $t('common.name') }}</th>
-            <th class="volume">{{ $t('audio.volumeInPercent') }}</th>
-            <th class="downmix">{{ $t('audio.downmixToMono') }}</th>
-            <th class="syncOffset">{{ $t('audio.syncOffsetInMs') }}</th>
-            <th class="audioMonitor">{{ $t('audio.audioMonitoring') }}</th>
-            <th class="track">{{ $t('audio.tracks') }}</th>
-          </tr>
-        </thead>
-        <tr v-for="audioSource in audioSources" :key="audioSource.sourceId">
-          <td>{{ audioSource.name }}</td>
-          <td
-            v-for="formInput in audioSource.getSettingsForm()"
-            :key="`${audioSource.name}${formInput.name}`"
-            :class="'column-' + formInput.name"
-          >
-            <component
-              v-if="propertyComponentForType(formInput.type)"
-              :is="propertyComponentForType(formInput.type)"
-              :value="formInput"
-              @input="value => onInputHandler(audioSource, formInput.name, value.value)"
-            />
-          </td>
-        </tr>
-      </table>
+    <div slot="content" class="content">
+      <div
+        v-for="(audioSource, index) in audioSources"
+        :key="audioSource.sourceId"
+      >
+        <div v-if="index > 0" class="divider" />
+        <div class="source-row">
+          <div class="source-name">{{ sourceName(audioSource) }}</div>
+          <div class="controls">
+            <div
+              v-for="formInput in audioSource.getSettingsForm()"
+              :key="`${audioSource.sourceId}${formInput.name}`"
+              :class="['field', 'column-' + formInput.name]"
+            >
+              <component
+                v-if="propertyComponentForType(formInput.type)"
+                :is="propertyComponentForType(formInput.type)"
+                :value="{ ...formInput, showDescription: true, label: $t('audio.enable') }"
+                @input="onInputHandler(audioSource, formInput.name, $event.value)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </modal-layout>
 </template>
@@ -37,80 +33,87 @@
 <style lang="less" scoped>
 @import url('../../styles/index');
 
-.table-wrapper {
-  .radius();
-
-  flex-grow: 1;
-  padding: 0;
-  margin: 0;
-  overflow: auto;
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--color-background);
 }
 
-table {
-  min-width: 1170px;
-  margin: 0;
-
-  // reset
-  tr {
-    background-color: transparent;
-    border-color: transparent;
-    border-radius: 0;
-
-    td {
-      padding: 16px;
-      border: none;
-
-      &:last-child {
-        padding-right: 16px;
-      }
-    }
-  }
+.divider {
+  height: 1px;
+  background-color: var(--color-border-emphasis-low);
 }
 
-.volume {
+.source-row {
+  display: flex;
+  gap: var(--spacing-2xl);
+  align-items: center;
+  padding: var(--spacing-lg);
 }
 
-.device {
-  width: 150px;
+.source-name {
+  flex-shrink: 0;
+  width: 200px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-object-emphasis-high);
+  overflow-wrap: break-word;
 }
 
-.downmix {
-  width: 120px;
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+  align-items: flex-start;
+  min-width: 0;
 }
 
-.syncOffset {
-}
-
-.audioMonitor {
-}
-
-.track {
-}
-
-.device,
-.volume,
-.downmix,
-.syncOffset,
-.audioMonitor,
-.track {
-  color: var(--color-text-dark);
-  text-align: center;
-}
-
-th,
-td {
-  text-align: left;
-}
-
-.column-deflection {
-  width: 104px;
-}
-
-.column-syncOffset {
-  width: 120px;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
 .column-monitoringType {
-  width: 350px;
+  width: 300px;
+}
+
+.column-deflection {
+  width: 134px;
+}
+
+.column-syncOffset {
+  width: 126px;
+}
+
+.column-audioMixers,
+.column-forceMono {
+  /* stylelint-disable-next-line selector-pseudo-element-no-unknown */
+  ::v-deep .input-wrapper {
+    display: flex;
+    align-items: center;
+    height: @item-generic-size;
+  }
+}
+
+/* stylelint-disable-next-line selector-pseudo-element-no-unknown */
+::v-deep .input-container {
+  flex-direction: column;
+
+  .input-label,
+  .input-wrapper {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .input-label {
+    margin-bottom: 0;
+
+    label {
+      margin-bottom: var(--spacing-sm);
+    }
+  }
 }
 </style>

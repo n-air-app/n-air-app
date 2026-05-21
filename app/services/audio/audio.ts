@@ -302,7 +302,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       componentName: 'AdvancedAudio',
       title: $t('audio.advancedAudioSettings'),
       size: {
-        width: 840,
+        width: 800,
         height: 500,
       },
     });
@@ -430,38 +430,6 @@ export class AudioSource implements IAudioSourceApi {
 
   getSettingsForm(): TObsFormData {
     return [
-      <IObsNumberInputValue>{
-        name: 'deflection',
-        value: Math.round(this.fader.deflection * 100),
-        description: $t('audio.volumeInPercent'),
-        showDescription: false,
-        visible: true,
-        enabled: true,
-        minVal: 0,
-        maxVal: 100,
-        type: 'OBS_PROPERTY_INT',
-      },
-
-      <IObsInput<boolean>>{
-        value: this.forceMono,
-        name: 'forceMono',
-        description: $t('audio.downmixToMono'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_BOOL',
-        visible: true,
-        enabled: true,
-      },
-
-      <IObsInput<number>>{
-        value: this.syncOffset,
-        name: 'syncOffset',
-        description: $t('audio.syncOffsetInMs'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_UINT',
-        visible: true,
-        enabled: true,
-      },
-
       <IObsListInput<obs.EMonitoringType>>{
         value: this.monitoringType,
         name: 'monitoringType',
@@ -480,6 +448,28 @@ export class AudioSource implements IAudioSourceApi {
         ],
       },
 
+      <IObsNumberInputValue>{
+        name: 'deflection',
+        value: Math.round(this.fader.deflection * 100),
+        description: $t('audio.volumeInPercent'),
+        showDescription: false,
+        visible: true,
+        enabled: true,
+        minVal: 0,
+        maxVal: 100,
+        type: 'OBS_PROPERTY_INT',
+      },
+
+      <IObsInput<number>>{
+        value: this.syncOffset,
+        name: 'syncOffset',
+        description: $t('audio.syncOffsetInMs'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_UINT',
+        visible: true,
+        enabled: true,
+      },
+
       <IObsBitmaskInput>{
         value: this.audioMixers,
         name: 'audioMixers',
@@ -489,6 +479,16 @@ export class AudioSource implements IAudioSourceApi {
         visible: true,
         enabled: true,
         size: 6,
+      },
+
+      <IObsInput<boolean>>{
+        value: this.forceMono,
+        name: 'forceMono',
+        description: $t('audio.downmixToMono'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_BOOL',
+        visible: true,
+        enabled: true,
       },
     ];
   }
