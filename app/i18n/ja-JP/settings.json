@@ -523,7 +523,7 @@
     "name": "ショートカットキー"
   },
   "Advanced": {
-    "name": "詳細設定",
+    "name": "詳細",
     "General": {
       "name": "一般",
       "ProcessPriority": {
@@ -645,7 +645,7 @@
     }
   },
   "Comment": {
-    "name": "コメント設定"
+    "name": "コメント"
   },
   "CommentSpeech": {
     "name": "コメント読み上げ"
@@ -699,7 +699,7 @@
   "pollingPerformanceStatisticsDescription": "配信が不安定な場合は無効にしてみてください。",
   "compactMode": "コンパクトモード",
   "autoCompact": {
-    "title": "コンパクトモード自動化設定",
+    "title": "コンパクトモード自動化",
     "message": "番組開始時に自動的にコンパクトモードになり、番組終了時に自動で解除されるように設定できます。\n※設定をOFFにしたい場合は[設定]>[一般]から変更できます",
     "doNotShowAgain": "今後、このダイアログを表示しない",
     "later": "今はONにしない",
@@ -788,20 +788,20 @@
     "downloadVoskModel": "モデルをダウンロードする",
     "cancelVoskModel": "ダウンロードをキャンセルする",
     "deleteVoskModel": "ダウンロードしたモデルを削除する",
-    "audioSettings": "音声設定",
+    "audioSettings": "音声",
     "audioSource": "音声ソース",
     "noAudioSourceFound": "音声ソースが見つかりません",
     "preview": "プレビュー",
-    "displaySettings": "表示設定",
+    "displaySettings": "表示",
     "textFile": {
-      "sectionTitle": "自動文字起こしソース出力設定",
+      "sectionTitle": "自動文字起こしソース出力",
       "enable": "自動文字起こしソース出力を有効にする",
       "path": "テキストファイルパス",
       "maxLine": "テキストの最大行数",
       "lineTimeToLive": "テキスト行の最大表示時間 (ミリ秒)"
     },
     "comment": {
-      "sectionTitle": "ニコニコ生放送コメント設定",
+      "sectionTitle": "ニコニコ生放送コメント",
       "notice1": "ONにすると、AIが発言をリアルタイムで文字起こしし、視聴者のプレーヤーやコメントリストに表示します。",
       "notice2": "プレーヤーに自動的に文字起こし結果のテキストを表示します。",
       "notice3": "ニコニコ生放送の番組放送中に自動的に文字起こし結果をコメントとして投稿します。",
