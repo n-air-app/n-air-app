@@ -103,6 +103,17 @@ function encodeMessages<T>(encoder: (message: T) => Writer, messages: T[]): Uint
     .reduce((a, b) => new Uint8Array([...a, ...b]), new Uint8Array([]));
 }
 
+// proto3 ではデフォルト値 (enum 0 等) が wire format に乗らないため、
+// 期待値も同じ encode/decode を経由させて正規化してから比較する
+function normalizeChunkedMessage(
+  msg: dwango.nicolive.chat.service.edge.IChunkedMessage,
+): dwango.nicolive.chat.service.edge.IChunkedMessage {
+  const ChunkedMessage = dwango.nicolive.chat.service.edge.ChunkedMessage;
+  return ChunkedMessage.decode(
+    ChunkedMessage.encode(ChunkedMessage.fromObject(msg)).finish(),
+  ).toJSON();
+}
+
 describe('ChunkedEntry', () => {
   test('EncodeDelimited して DecodeDelimited すると元のオブジェクトに戻る', () => {
     const buf = encodeMessages(
@@ -232,7 +243,10 @@ describe('NdgrClient', () => {
     const expectedMessages = [...prevMessages, ...messages];
     expect(onReceived).toHaveBeenCalledTimes(expectedMessages.length);
     for (let i = 0; i < expectedMessages.length; i++) {
-      expect(onReceived).toHaveBeenNthCalledWith(i + 1, { message: expectedMessages[i] });
+      expect(onReceived).toHaveBeenNthCalledWith(
+        i + 1,
+        normalizeChunkedMessage({ message: expectedMessages[i] }),
+      );
     }
     target.dispose();
     expect(onCompleted).toHaveBeenCalledTimes(1);
@@ -263,7 +277,10 @@ describe('NdgrClient', () => {
     const expectedMessages = [...backwards, ...prevMessages, ...messages];
     expect(onReceived).toHaveBeenCalledTimes(expectedMessages.length);
     for (let i = 0; i < expectedMessages.length; i++) {
-      expect(onReceived).toHaveBeenNthCalledWith(i + 1, { message: expectedMessages[i] });
+      expect(onReceived).toHaveBeenNthCalledWith(
+        i + 1,
+        normalizeChunkedMessage({ message: expectedMessages[i] }),
+      );
     }
     target.dispose();
     expect(onCompleted).toHaveBeenCalledTimes(1);

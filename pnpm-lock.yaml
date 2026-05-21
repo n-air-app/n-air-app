@@ -19,8 +19,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.28.6)(@types/babel__core@7.20.5)
       '@n-air-app/nicolive-comment-protobuf':
-        specifier: 2025.1117.170000
-        version: 2025.1117.170000
+        specifier: 2026.116.121242
+        version: 2026.116.121242
       '@sentry/electron':
         specifier: 7.4.0
         version: 7.4.0
@@ -67,8 +67,8 @@ importers:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz
         version: '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz'
       protobufjs:
-        specifier: ^7.5.3
-        version: 7.5.5
+        specifier: ^8.4.0
+        version: 8.4.0
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
@@ -1352,8 +1352,8 @@ packages:
   '@n-air-app/n-voice-package@1.0.2':
     resolution: {integrity: sha512-E9TsrIhqoX8p6ZGeg9j0s3+fIZMoQONxlPt2nw1ctZGpMnK4O5IO6hug9wWg5oLG4C3gYV763Yem7p8NIb2EqQ==, tarball: https://npm.pkg.github.com/download/@n-air-app/n-voice-package/1.0.2/3ad9bb4da017848de7a399c171bb971a5f987e52}
 
-  '@n-air-app/nicolive-comment-protobuf@2025.1117.170000':
-    resolution: {integrity: sha512-DYhbJ8n1LoyCBDbt7ZKGzBl0qBmNZDFkprLmnq7GsYOH2W5SfNe7hQhHs6ys9rTj1HjSHiGWDaahLRSlVVwOgA==, tarball: https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2025.1117.170000/73b1c2f30f2df49ea6912dda6775236d059304da}
+  '@n-air-app/nicolive-comment-protobuf@2026.116.121242':
+    resolution: {integrity: sha512-KF8t1jNeETZOSpp50UhHkdAcq2LNgOWtqIyW9mKT2HnIKdN/Sw/EHEqI9csGK1/pbtPHjjt2MosunUvteUO5PA==, tarball: https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2026.116.121242/36407e5ae0a52bebe93c8f581aa46c886054721f}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -1576,36 +1576,6 @@ packages:
     resolution: {integrity: sha512-QcuYy25pkXM8BJ37wVFBO7Zh34nyRV1GOb2n3lPkkbRYfl4hWl3PTcImP41P0KrzVXfa/45p6eVCos27x3exIg==}
     peerDependencies:
       '@opentelemetry/api': ^1.8
-
-  '@protobufjs/aspromise@1.1.2':
-    resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
-
-  '@protobufjs/base64@1.1.2':
-    resolution: {integrity: sha512-AZkcAA5vnN/v4PDqKyMR5lx7hZttPDgClv83E//FMNhR2TMcLUhfRUBHCmSl0oi9zMgDDqRUJkSxO3wm85+XLg==}
-
-  '@protobufjs/codegen@2.0.4':
-    resolution: {integrity: sha512-YyFaikqM5sH0ziFZCN3xDC7zeGaB/d0IUb9CATugHWbd1FRFwWwt4ld4OYMPWu5a3Xe01mGAULCdqhMlPl29Jg==}
-
-  '@protobufjs/eventemitter@1.1.0':
-    resolution: {integrity: sha512-j9ednRT81vYJ9OfVuXG6ERSTdEL1xVsNgqpkxMsbIabzSo3goCjDIveeGv5d03om39ML71RdmrGNjG5SReBP/Q==}
-
-  '@protobufjs/fetch@1.1.0':
-    resolution: {integrity: sha512-lljVXpqXebpsijW71PZaCYeIcE5on1w5DlQy5WH6GLbFryLUrBD4932W/E2BSpfRJWseIL4v/KPgBFxDOIdKpQ==}
-
-  '@protobufjs/float@1.0.2':
-    resolution: {integrity: sha512-Ddb+kVXlXst9d+R9PfTIxh1EdNkgoRe5tOX6t01f1lYWOvJnSPDBlG241QLzcyPdoNTsblLUdujGSE4RzrTZGQ==}
-
-  '@protobufjs/inquire@1.1.0':
-    resolution: {integrity: sha512-kdSefcPdruJiFMVSbn801t4vFK7KB/5gd2fYvrxhuJYg8ILrmn9SKSX2tZdV6V+ksulWqS7aXjBcRXl3wHoD9Q==}
-
-  '@protobufjs/path@1.1.2':
-    resolution: {integrity: sha512-6JOcJ5Tm08dOHAbdR3GrvP+yUUfkjG5ePsHYczMFLq3ZmMkAD98cDgcT2iA1lJ9NVwFd4tH/iSSoe44YWkltEA==}
-
-  '@protobufjs/pool@1.1.0':
-    resolution: {integrity: sha512-0kELaGSIDBKvcgS4zkjz1PeddatrjYcmMWOlAuAPwAeccUrPHdUqo/J6LiymHHEiJT5NrF1UVwxY14f+fy4WQw==}
-
-  '@protobufjs/utf8@1.1.0':
-    resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
   '@rollup/plugin-babel@6.1.0':
     resolution: {integrity: sha512-dFZNuFD2YRcoomP4oYf+DvQNSUA9ih+A3vUqopQx5EdtPGo3WBnQcI/S8pwpz91UsGfL0HsMSOlaMld8HrbubA==}
@@ -5970,8 +5940,8 @@ packages:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
 
-  protobufjs@7.5.5:
-    resolution: {integrity: sha512-3wY1AxV+VBNW8Yypfd1yQY9pXnqTAN+KwQxL8iYm3/BjKYMNg4i0owhEe26PWDOMaIrzeeF98Lqd5NGz4omiIg==}
+  protobufjs@8.4.0:
+    resolution: {integrity: sha512-iriNhQ57SYA5Jbdi+41AyPdx6jPPkFO7DODzkOBmqFhgYn/JzX2HxgxYPY18eQAs3CP/AWqtPvkWn8rclRAxdQ==}
     engines: {node: '>=12.0.0'}
 
   proxy-addr@2.0.7:
@@ -8854,9 +8824,9 @@ snapshots:
       - '@types/babel__core'
       - supports-color
 
-  '@n-air-app/nicolive-comment-protobuf@2025.1117.170000':
+  '@n-air-app/nicolive-comment-protobuf@2026.116.121242':
     dependencies:
-      protobufjs: 7.5.5
+      protobufjs: 8.4.0
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -9124,29 +9094,6 @@ snapshots:
       '@opentelemetry/instrumentation': 0.208.0(@opentelemetry/api@1.9.0)
     transitivePeerDependencies:
       - supports-color
-
-  '@protobufjs/aspromise@1.1.2': {}
-
-  '@protobufjs/base64@1.1.2': {}
-
-  '@protobufjs/codegen@2.0.4': {}
-
-  '@protobufjs/eventemitter@1.1.0': {}
-
-  '@protobufjs/fetch@1.1.0':
-    dependencies:
-      '@protobufjs/aspromise': 1.1.2
-      '@protobufjs/inquire': 1.1.0
-
-  '@protobufjs/float@1.0.2': {}
-
-  '@protobufjs/inquire@1.1.0': {}
-
-  '@protobufjs/path@1.1.2': {}
-
-  '@protobufjs/pool@1.1.0': {}
-
-  '@protobufjs/utf8@1.1.0': {}
 
   '@rollup/plugin-babel@6.1.0(@babel/core@7.28.6)(@types/babel__core@7.20.5)(rollup@3.29.5)':
     dependencies:
@@ -14115,19 +14062,8 @@ snapshots:
       kleur: 3.0.3
       sisteransi: 1.0.5
 
-  protobufjs@7.5.5:
+  protobufjs@8.4.0:
     dependencies:
-      '@protobufjs/aspromise': 1.1.2
-      '@protobufjs/base64': 1.1.2
-      '@protobufjs/codegen': 2.0.4
-      '@protobufjs/eventemitter': 1.1.0
-      '@protobufjs/fetch': 1.1.0
-      '@protobufjs/float': 1.0.2
-      '@protobufjs/inquire': 1.1.0
-      '@protobufjs/path': 1.1.2
-      '@protobufjs/pool': 1.1.0
-      '@protobufjs/utf8': 1.1.0
-      '@types/node': 20.19.27
       long: 5.3.2
 
   proxy-addr@2.0.7:
