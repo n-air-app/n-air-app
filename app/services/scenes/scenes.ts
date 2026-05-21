@@ -9,7 +9,6 @@ import { TransitionsService } from 'services/transitions';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
-import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
 import { IVideo } from '../../../obs-api';
@@ -160,18 +159,18 @@ export class ScenesService extends StatefulService<IScenesState> {
 
   @mutation()
   private ADD_SCENE(id: string, name: string) {
-    Vue.set<IScene>(this.state.scenes, id, {
+    this.state.scenes[id] = {
       id,
       name,
       resourceId: 'Scene' + JSON.stringify([id]),
       nodes: [],
-    });
+    };
     this.state.displayOrder.push(id);
   }
 
   @mutation()
   private REMOVE_SCENE(id: string) {
-    Vue.delete(this.state.scenes, id);
+    delete this.state.scenes[id];
 
     this.state.displayOrder = this.state.displayOrder.filter((x) => x !== id);
   }

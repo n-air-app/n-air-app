@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { Module, Store } from 'vuex';
 
 import Utils from '../utils';
@@ -58,7 +57,7 @@ function registerMutation(
           },
           set(_, key, val) {
             if (key === 'state') {
-              Vue.set(context, 'state', val);
+              context.state = val;
               return true;
             }
 
@@ -127,7 +126,7 @@ export abstract class StatefulService<TState extends object> extends Service {
   }
 
   set state(newState: TState) {
-    Vue.set(this.store.state, this.serviceName, newState);
+    this.store.state[this.serviceName] = newState;
   }
 }
 

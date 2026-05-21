@@ -2,7 +2,6 @@ import path, { dirname } from 'path';
 
 import * as remote from '@electron/remote';
 import { $t } from 'services/i18n';
-import Vue from 'vue';
 
 import { InitAfter, Inject, mutation, StatefulService } from './core';
 import { ISceneNodeAddOptions } from './scenes';
@@ -154,11 +153,11 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
 
   @mutation()
   private ADD_CHARACTER_SOURCE(widgetSource: ICharacterSource) {
-    Vue.set(this.state.characterSources, widgetSource.sourceId, widgetSource);
+    this.state.characterSources[widgetSource.sourceId] = widgetSource;
   }
 
   @mutation()
   private REMOVE_CHARACTER_SOURCE(sourceId: string) {
-    Vue.delete(this.state.characterSources, sourceId);
+    delete this.state.characterSources[sourceId];
   }
 }

@@ -441,17 +441,17 @@ export class WindowsService extends StatefulService<IWindowsState> {
       ...options,
     };
 
-    Vue.set(this.state, windowId, opts);
+    this.state[windowId] = opts as IWindowOptions;
   }
 
   @mutation()
   private UPDATE_ONE_OFF_WINDOW(windowId: string, options: Partial<IWindowOptions>) {
     const oldOpts = this.state[windowId];
-    Vue.set(this.state, windowId, { ...oldOpts, ...options });
+    this.state[windowId] = { ...oldOpts, ...options };
   }
 
   @mutation()
   private DELETE_ONE_OFF_WINDOW(windowId: string) {
-    Vue.delete(this.state, windowId);
+    delete this.state[windowId];
   }
 }

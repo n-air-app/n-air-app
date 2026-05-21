@@ -1,6 +1,6 @@
 import { TocManager } from './TocManager';
 
-// Mock Vue.observable, Vue.set, Vue.delete
+// Mock Vue.observable
 jest.mock('vue', () => {
   const actualVue = jest.requireActual('vue');
   return {
@@ -8,12 +8,6 @@ jest.mock('vue', () => {
     default: {
       ...actualVue.default,
       observable: (obj: any) => obj,
-      set: (target: any, key: string, value: any) => {
-        target[key] = value;
-      },
-      delete: (target: any, key: string) => {
-        delete target[key];
-      },
     },
   };
 });

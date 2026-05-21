@@ -6,8 +6,6 @@ import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { FileManagerService } from 'services/file-manager';
-import { getKeys } from 'util/getKeys';
-import Vue from 'vue';
 
 import { ISceneCollectionsManifestEntry } from '.';
 
@@ -262,8 +260,6 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
 
   @mutation()
   LOAD_STATE(state: ISceneCollectionsManifest) {
-    getKeys(state).forEach((key) => {
-      Vue.set(this.state, key, state[key]);
-    });
+    Object.assign(this.state, state);
   }
 }

@@ -105,8 +105,8 @@ export class TocManager {
     // Update order based on array index
     sections.forEach((s, index) => (s.order = index));
 
-    // Store updated sections (use Vue.set for reactivity)
-    Vue.set(this.sections, categoryName, sections);
+    // Store updated sections
+    this.sections[categoryName] = sections;
   }
 
   /**
@@ -117,7 +117,7 @@ export class TocManager {
   unregister(categoryName: string, sectionId: string): void {
     const sections = this.sections[categoryName] || [];
     const filtered = sections.filter((s) => s.id !== sectionId);
-    Vue.set(this.sections, categoryName, filtered);
+    this.sections[categoryName] = filtered;
   }
 
   /**
@@ -134,7 +134,7 @@ export class TocManager {
    * @param categoryName - The category to clear
    */
   clear(categoryName: string): void {
-    Vue.delete(this.sections, categoryName);
+    delete this.sections[categoryName];
   }
 
   /**
@@ -142,7 +142,7 @@ export class TocManager {
    */
   clearAll(): void {
     Object.keys(this.sections).forEach((key) => {
-      Vue.delete(this.sections, key);
+      delete this.sections[key];
     });
   }
 }

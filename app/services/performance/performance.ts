@@ -5,8 +5,6 @@ import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { EStreamingState, StreamingService } from 'services/streaming';
-import { getKeys } from 'util/getKeys';
-import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
 
@@ -72,9 +70,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   @mutation()
   SET_PERFORMANCE_STATS(stats: Partial<IPerformanceState>) {
-    getKeys(stats).forEach((stat) => {
-      Vue.set(this.state, stat, stats[stat]);
-    });
+    Object.assign(this.state, stats);
   }
 
   init() {

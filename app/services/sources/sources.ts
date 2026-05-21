@@ -16,7 +16,6 @@ import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
-import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -134,18 +133,18 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     };
 
     if (addOptions.isTemporary) {
-      Vue.set(this.state.temporarySources, id, sourceModel);
+      this.state.temporarySources[id] = sourceModel;
     } else {
-      Vue.set(this.state.sources, id, sourceModel);
+      this.state.sources[id] = sourceModel;
     }
   }
 
   @mutation()
   private REMOVE_SOURCE(id: string) {
     if (this.state.sources[id]) {
-      Vue.delete(this.state.sources, id);
+      delete this.state.sources[id];
     } else {
-      Vue.delete(this.state.temporarySources, id);
+      delete this.state.temporarySources[id];
     }
   }
 
