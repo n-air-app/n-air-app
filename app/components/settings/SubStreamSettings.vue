@@ -22,8 +22,8 @@
             <label>{{ $t('settings.substream.service') }}</label>
           </div>
           <dropdown
-            :value="tabOptions.find(o => o.id === selectedTab)"
-            :options="tabOptions"
+            :value="serviceOptions.find(o => o.id === selectedTab)"
+            :options="serviceOptions"
             label="name"
             track-by="id"
             @input="selectedTab = $event.id"
