@@ -1,13 +1,13 @@
 import * as remote from '@electron/remote';
+import { ipcRenderer } from 'electron';
 import { debounceTime, merge, Subject, Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
-import { InitAfter } from 'services/core/service-initialization-observer';
 import { Service } from 'services/core/service';
+import { InitAfter } from 'services/core/service-initialization-observer';
 import { ScenesService } from 'services/scenes';
 import { SettingsService } from 'services/settings';
 import { SourcesService } from 'services/sources';
 import { StreamingService } from 'services/streaming';
-import { ipcRenderer } from 'electron';
 
 const DEBOUNCE_MS = 300;
 
