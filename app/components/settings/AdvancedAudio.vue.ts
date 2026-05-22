@@ -6,8 +6,6 @@ import { Inject } from 'services/core/injector';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
-const PRIMARY_CONTROLS = ['deflection', 'monitoringType'];
-
 @Component({
   components: { ModalLayout },
 })
@@ -16,26 +14,22 @@ export default class AdvancedAudio extends Vue {
 
   propertyComponentForType = propertyComponentForType;
 
-  expandedSources: Record<string, boolean> = {};
-
   get audioSources() {
     return this.audioService.getSourcesForCurrentScene();
   }
 
-  getPrimaryControls(audioSource: IAudioSourceApi) {
-    return audioSource.getSettingsForm().filter(f => PRIMARY_CONTROLS.includes(f.name));
+  getRow1Controls(audioSource: IAudioSourceApi) {
+    const form = audioSource.getSettingsForm();
+    return ['monitoringType', 'deflection'].flatMap(name => form.filter(f => f.name === name));
   }
 
-  getDetailControls(audioSource: IAudioSourceApi) {
-    return audioSource.getSettingsForm().filter(f => !PRIMARY_CONTROLS.includes(f.name));
+  getRow2Controls(audioSource: IAudioSourceApi) {
+    const form = audioSource.getSettingsForm();
+    return ['syncOffset', 'forceMono'].flatMap(name => form.filter(f => f.name === name));
   }
 
-  isExpanded(sourceId: string) {
-    return !!this.expandedSources[sourceId];
-  }
-
-  toggleExpand(sourceId: string) {
-    this.$set(this.expandedSources, sourceId, !this.expandedSources[sourceId]);
+  getRow3Controls(audioSource: IAudioSourceApi) {
+    return audioSource.getSettingsForm().filter(f => f.name === 'audioMixers');
   }
 
   onInputHandler(audioSource: IAudioSourceApi, name: string, value: TObsValue) {
