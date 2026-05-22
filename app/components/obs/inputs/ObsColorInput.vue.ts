@@ -1,9 +1,9 @@
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import Utils from 'services/utils';
-import VueColor from 'vue-color';
 import { Component, Prop } from 'vue-property-decorator';
 
+import ColorPicker from './ColorPicker.vue';
 import { IObsInput, ObsInput, TObsType } from './ObsInput';
 
 interface IColorPickerOptions {
@@ -41,7 +41,7 @@ interface IColor {
 }
 
 @Component({
-  components: { ColorPicker: VueColor.Sketch },
+  components: { ColorPicker },
 })
 class ObsColorInput extends ObsInput<IObsInput<number>> {
   static obsType: TObsType;
@@ -56,8 +56,12 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
     this.pickerVisible = !this.pickerVisible;
   }
 
-  handleColorChange(color: any) {
-    this.setValue(color.rgba);
+  closePicker() {
+    this.pickerVisible = false;
+  }
+
+  handleColorChange(color: IColor) {
+    this.setValue(color);
   }
 
   startEyedropper() {

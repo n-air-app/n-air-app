@@ -13,12 +13,14 @@
           <button class="colorpicker__eyedropper" @click="startEyedropper" title="Color picker">
             <i class="icon-eyedropper-fill" />
           </button>
-          <color-picker
-            :value="obsColor"
-            @input="handleColorChange"
-            v-if="pickerVisible"
-            class="colorpicker-menu"
-          />
+          <template v-if="pickerVisible">
+            <div class="colorpicker-overlay" @mousedown="closePicker" />
+            <color-picker
+              :value="obsColor"
+              @input="handleColorChange"
+              class="colorpicker-menu"
+            />
+          </template>
         </div>
       </div>
     </div>
@@ -73,25 +75,15 @@
   }
 }
 
-.colorpicker-menu {
-  top: 6px;
-  z-index: 10;
-  .radius() !important;
-
-  background: @bg-secondary !important;
-  border-color: @bg-secondary !important;
-  box-shadow: none !important;
-
-  .vc-sketch-field .vc-input__input {
-    background-color: @bg-primary !important;
-  }
-
-  .vc-input__label {
-    color: @text-primary !important;
-  }
+.colorpicker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
 }
 
-.vue-color__sketch__presets {
-  border-color: @border;
+.colorpicker-menu {
+  position: absolute;
+  top: @item-generic-size + 4px;
+  z-index: 10;
 }
 </style>
