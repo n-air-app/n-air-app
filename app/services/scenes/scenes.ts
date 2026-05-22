@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { Inject } from 'services/core/injector';
@@ -270,6 +271,12 @@ export class ScenesService extends StatefulService<IScenesState> {
     if (!scene) return false;
 
     const activeScene = this.activeScene;
+
+    Sentry.addBreadcrumb({
+      category: 'scenes',
+      message: `makeSceneActive: ${activeScene?.name ?? '(none)'} → ${scene.name}`,
+      level: 'info',
+    });
 
     this.transitionsService.transition(activeScene && activeScene.id, scene.id);
 
