@@ -19,6 +19,7 @@ import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -340,6 +341,7 @@ export class StreamingService
 
       if (shouldConfirm && !confirm(confirmText)) return;
 
+      markObsOp('StreamingService', 'toggleStreaming', { action: 'start' });
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
       try {
         Sentry.addBreadcrumb({
@@ -372,6 +374,7 @@ export class StreamingService
 
       if (shouldConfirm && !confirm(confirmText)) return;
 
+      markObsOp('StreamingService', 'toggleStreaming', { action: 'stop' });
       if (this.powerSaveId) {
         remote.powerSaveBlocker.stop(this.powerSaveId);
       }
@@ -525,6 +528,7 @@ export class StreamingService
   }
 
   toggleRecording() {
+    markObsOp('StreamingService', 'toggleRecording');
     if (this.state.recordingStatus === ERecordingState.Recording) {
       try {
         Sentry.addBreadcrumb({

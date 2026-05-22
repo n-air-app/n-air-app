@@ -16,6 +16,7 @@ import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
@@ -164,6 +165,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     settings: Dictionary<any> = {},
     options: ISourceAddOptions = {},
   ): Source {
+    markObsOp('SourcesService', 'createSource', { type });
     const id: string = options.sourceId || `${type}_${uuidv4()}`;
     const obsInputSettings = this.getObsSourceCreateSettings(type, settings);
     const obsInput = obs.InputFactory.create(type, id, obsInputSettings);
@@ -215,6 +217,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   removeSource(id: string) {
+    markObsOp('SourcesService', 'removeSource');
     const source = this.getSource(id);
 
     if (!source) throw new Error(`Source ${id} not found`);
