@@ -55,7 +55,7 @@
 
 .source-name {
   flex-shrink: 0;
-  width: 200px;
+  width: 160px;
   font-size: var(--font-size-sm);
   font-weight: 700;
   color: var(--color-object-emphasis-high);
@@ -81,7 +81,7 @@
 }
 
 .column-deflection {
-  width: 134px;
+  width: 90px;
 }
 
 .column-syncOffset {
