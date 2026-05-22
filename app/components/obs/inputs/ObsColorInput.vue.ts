@@ -60,8 +60,18 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
     this.pickerVisible = false;
   }
 
+  isDragging = false;
+
+  handleDraggingChange(dragging: boolean) {
+    this.isDragging = dragging;
+  }
+
   handleColorChange(color: IColor) {
-    this.setValue(color);
+    if (this.isDragging) {
+      this.setValueImpl(color);
+    } else {
+      this.setValue(color);
+    }
   }
 
   startEyedropper() {

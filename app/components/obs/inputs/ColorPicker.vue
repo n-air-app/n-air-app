@@ -56,54 +56,31 @@
           class="color-picker__input"
           :value="hexInput"
           @change="onHexChange"
-          @keydown.enter="onHexChange"
           maxlength="7"
           spellcheck="false"
         />
         <label class="color-picker__label">HEX</label>
       </div>
-      <div class="color-picker__field">
+      <div
+        v-for="ch in rgbChannels"
+        :key="ch.key"
+        class="color-picker__field"
+      >
         <input
           class="color-picker__input"
-          :value="rgba.r"
-          @change="onRgbChange('r', $event)"
-          @keydown.enter="onRgbChange('r', $event)"
+          :value="rgba[ch.key]"
+          @change="onRgbChange(ch.key, $event)"
           type="number"
           min="0"
           max="255"
         />
-        <label class="color-picker__label">R</label>
-      </div>
-      <div class="color-picker__field">
-        <input
-          class="color-picker__input"
-          :value="rgba.g"
-          @change="onRgbChange('g', $event)"
-          @keydown.enter="onRgbChange('g', $event)"
-          type="number"
-          min="0"
-          max="255"
-        />
-        <label class="color-picker__label">G</label>
-      </div>
-      <div class="color-picker__field">
-        <input
-          class="color-picker__input"
-          :value="rgba.b"
-          @change="onRgbChange('b', $event)"
-          @keydown.enter="onRgbChange('b', $event)"
-          type="number"
-          min="0"
-          max="255"
-        />
-        <label class="color-picker__label">B</label>
+        <label class="color-picker__label">{{ ch.label }}</label>
       </div>
       <div class="color-picker__field">
         <input
           class="color-picker__input"
           :value="alphaPercent"
           @change="onAlphaChange"
-          @keydown.enter="onAlphaChange"
           type="number"
           min="0"
           max="100"

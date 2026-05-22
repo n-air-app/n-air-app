@@ -18,6 +18,7 @@
             <color-picker
               :value="obsColor"
               @input="handleColorChange"
+              @dragging-change="handleDraggingChange"
               class="colorpicker-menu"
             />
           </template>
