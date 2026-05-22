@@ -646,6 +646,10 @@ function initialize(crashHandler) {
         processType: 'main',
       },
     });
+
+    ipcMain.on('crash-context-update', (_event, key, value) => {
+      crashReporter.addExtraParameter(key, value);
+    });
   } else {
     console.log('Sentry disabled, SENTRY_DSN = ', sentryDefs.DSN);
   }
