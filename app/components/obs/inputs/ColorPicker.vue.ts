@@ -56,6 +56,25 @@ function clamp(v: number, min: number, max: number) {
   return Math.min(Math.max(v, min), max);
 }
 
+interface IDragContext {
+  dragging: boolean;
+  $emit(event: string, ...args: unknown[]): void;
+}
+
+function startDrag(ctx: IDragContext, e: MouseEvent, onMove: (e: MouseEvent) => void) {
+  ctx.dragging = true;
+  ctx.$emit('dragging-change', true);
+  onMove(e);
+  const onMouseUp = () => {
+    ctx.dragging = false;
+    ctx.$emit('dragging-change', false);
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  };
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onMouseUp);
+}
+
 export default defineComponent({
   name: 'ColorPicker',
 
@@ -116,22 +135,8 @@ export default defineComponent({
   },
 
   methods: {
-    startDrag(e: MouseEvent, onMove: (e: MouseEvent) => void) {
-      this.dragging = true;
-      this.$emit('dragging-change', true);
-      onMove(e);
-      const onMouseUp = () => {
-        this.dragging = false;
-        this.$emit('dragging-change', false);
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onMouseUp);
-      };
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onMouseUp);
-    },
-
     onSaturationMouseDown(e: MouseEvent) {
-      this.startDrag(e, (ev) => {
+      startDrag(this, e, (ev: MouseEvent) => {
         const el = this.$refs.saturation as HTMLElement;
         const rect = el.getBoundingClientRect();
         this.hsv = {
@@ -144,7 +149,7 @@ export default defineComponent({
     },
 
     onHueMouseDown(e: MouseEvent) {
-      this.startDrag(e, (ev) => {
+      startDrag(this, e, (ev: MouseEvent) => {
         const el = this.$refs.hue as HTMLElement;
         const rect = el.getBoundingClientRect();
         this.hsv = { ...this.hsv, h: clamp((ev.clientX - rect.left) / rect.width, 0, 1) * 360 };
@@ -153,7 +158,7 @@ export default defineComponent({
     },
 
     onAlphaMouseDown(e: MouseEvent) {
-      this.startDrag(e, (ev) => {
+      startDrag(this, e, (ev: MouseEvent) => {
         const el = this.$refs.alpha as HTMLElement;
         const rect = el.getBoundingClientRect();
         this.internalAlpha = clamp((ev.clientX - rect.left) / rect.width, 0, 1);
