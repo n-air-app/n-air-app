@@ -65,8 +65,15 @@ export class ProtocolLinksService extends Service {
   }
 
   private openSettings(info: IProtocolLinkInfo) {
-    const category = info.path.replace('/', '') as SettingsCategory;
+    type CategoryRedirect = { category: SettingsCategory; defaultHash?: string };
+    const RENAMED_CATEGORIES: Record<string, CategoryRedirect> = {
+      SpeechEngine: { category: 'CommentSpeech', defaultHash: '#speech-engine-settings' },
+    };
+    const rawCategory = info.path.replace('/', '');
+    const redirect = RENAMED_CATEGORIES[rawCategory];
+    const category = (redirect?.category ?? rawCategory) as SettingsCategory;
+    const hash = info.hash || redirect?.defaultHash || undefined;
 
-    this.settingsService.showSettings(category, info.hash || undefined);
+    this.settingsService.showSettings(category, hash);
   }
 }

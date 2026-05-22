@@ -15,7 +15,7 @@ export type SettingsCategory =
   | 'Hotkeys'
   | 'Advanced'
   | 'Comment'
-  | 'SpeechEngine'
+  | 'CommentSpeech'
   | 'Developer'
   | 'Scene Collections'
   | 'StreamSecond'

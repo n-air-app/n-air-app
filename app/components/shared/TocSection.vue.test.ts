@@ -22,6 +22,7 @@ jest.mock('vue-property-decorator', () => ({
     return target;
   },
   Prop: (options?: any) => (target: any, propertyKey: string) => {},
+  Watch: (propName: string) => (target: any, propertyKey: string) => {},
 }));
 
 describe('TocSection', () => {
@@ -113,10 +114,10 @@ describe('TocSection', () => {
 
     it('同じタイトルでも異なるIDが生成される', () => {
       const instance1 = createInstance({
-        title: '表示設定',
+        title: '表示',
       });
       const instance2 = createInstance({
-        title: '表示設定',
+        title: '表示',
       });
 
       expect(instance1.sectionId).toBe('toc-section-0');

@@ -1,6 +1,5 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { getKeys } from 'util/getKeys';
 
 import { MessageResponse, NotificationType, NotificationTypeTable } from './ChatMessage';
 import { IMessageServerClient } from './MessageServerClient';
@@ -132,16 +131,22 @@ function convertSimpleNotificationToMessageResponse(
   common: CommonComponent,
   notification: dwango.nicolive.chat.data.ISimpleNotification,
 ): MessageResponse | undefined {
-  const key = getKeys(notification)[0];
-  let type = key as NotificationType;
-  if (!NotificationTypeTable.includes(key)) {
-    type = 'unknown';
-  }
+  // protobufjs 8 のデコード結果では `message` が oneof の discriminator として設定される。
+  // プレーンオブジェクトとして渡された場合はフォールバックとして Object.keys で探す。
+  const key = notification.message
+    ?? (Object.keys(notification).find((k) => k !== '$unknowns' && k !== 'message') as
+        typeof notification.message | string | undefined);
+  const type: NotificationType =
+    key != null && (NotificationTypeTable as readonly string[]).includes(key)
+      ? (key as NotificationType)
+      : 'unknown';
   return {
     notification: {
       ...common,
       type,
-      message: notification[key],
+      message: key != null
+        ? ((notification[key as keyof typeof notification] as string) ?? '')
+        : '',
     },
   };
 }
