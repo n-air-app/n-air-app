@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { ISceneItemNode, ScenesService, TSceneNode } from 'services/scenes';
@@ -111,6 +112,15 @@ export default class SourceSelector extends Vue {
   }
 
   showContextMenu(sceneNodeId?: string, event?: MouseEvent) {
+    if (!this.scene) {
+      Sentry.addBreadcrumb({
+        category: 'SourceSelector',
+        message: 'showContextMenu called with null active scene',
+        level: 'warning',
+      });
+      event && event.stopPropagation();
+      return;
+    }
     const sceneNode = this.scene.getNode(sceneNodeId);
     const menuOptions = sceneNode
       ? {
