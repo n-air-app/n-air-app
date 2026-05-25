@@ -127,10 +127,13 @@ export default defineComponent({
     },
     hexInput(): string {
       const { r, g, b } = this.rgba;
-      return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+      const rgbHex = [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+      const alphaInt = Math.round(this.internalAlpha * 255);
+      if (alphaInt === 255) return rgbHex;
+      return rgbHex + alphaInt.toString(16).padStart(2, '0');
     },
-    alphaPercent(): number {
-      return Math.round(this.internalAlpha * 100);
+    alphaInput(): string {
+      return Number(this.internalAlpha.toFixed(2)).toString();
     },
   },
 
@@ -166,10 +169,20 @@ export default defineComponent({
       });
     },
 
-    onHexChange(e: Event) {
+    onHexInput(e: Event) {
       const input = e.target as HTMLInputElement;
       const hex = input.value.trim().replace(/^#/, '');
-      if (!/^[0-9a-fA-F]{6}$/.test(hex)) { input.value = this.hexInput; return; }
+      if (!/^[0-9a-fA-F]{0,8}$/.test(hex)) {
+        input.value = this.hexInput;
+        return;
+      }
+
+      if (hex.length !== 6 && hex.length !== 8) {
+        return;
+      }
+
+      this.internalAlpha = hex.length === 8 ? parseInt(hex.substring(6, 8), 16) / 255 : 1;
+
       this.hsv = rgbToHsv(
         parseInt(hex.substring(0, 2), 16),
         parseInt(hex.substring(2, 4), 16),
@@ -186,7 +199,14 @@ export default defineComponent({
     },
 
     onAlphaChange(e: Event) {
-      this.internalAlpha = clamp(parseInt((e.target as HTMLInputElement).value, 10) || 0, 0, 100) / 100;
+      const input = e.target as HTMLInputElement;
+      const parsed = parseFloat(input.value);
+      if (Number.isNaN(parsed)) {
+        input.value = this.alphaInput;
+        return;
+      }
+
+      this.internalAlpha = clamp(parsed, 0, 1);
       this.$emit('input', { ...this.rgba });
     },
   },

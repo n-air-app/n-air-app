@@ -1,4 +1,3 @@
-import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import Utils from 'services/utils';
 import { Component, Prop } from 'vue-property-decorator';
@@ -67,11 +66,7 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
   }
 
   handleColorChange(color: IColor) {
-    if (this.isDragging) {
-      this.setValueImpl(color);
-    } else {
-      this.setValue(color);
-    }
+    this.setValueImpl(color);
   }
 
   startEyedropper() {
@@ -115,18 +110,12 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
     }
   }
 
-  private debouncedSetValue = debounce(this.setValueImpl, 500);
-
   setValue(rgba: IColor) {
-    this.debouncedSetValue(rgba);
+    this.setValueImpl(rgba);
   }
 
   mounted() {
     this.setValue(this.obsColor);
-  }
-
-  beforeDestroy() {
-    this.debouncedSetValue.cancel();
   }
 
   get hexAlpha() {

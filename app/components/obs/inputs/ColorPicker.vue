@@ -54,9 +54,10 @@
       <div class="color-picker__field color-picker__field--hex">
         <input
           class="color-picker__input"
+          type="text"
           :value="hexInput"
-          @change="onHexChange"
-          maxlength="7"
+          @input="onHexInput"
+          maxlength="8"
           spellcheck="false"
         />
         <label class="color-picker__label">HEX</label>
@@ -79,11 +80,12 @@
       <div class="color-picker__field">
         <input
           class="color-picker__input"
-          :value="alphaPercent"
+          :value="alphaInput"
           @change="onAlphaChange"
           type="number"
           min="0"
-          max="100"
+          max="1"
+          step="0.01"
         />
         <label class="color-picker__label">A</label>
       </div>
@@ -253,8 +255,8 @@
 /* Input fields */
 .color-picker__fields {
   display: flex;
-  gap: 4px;
-  margin-top: 8px;
+  gap: 3px;
+  margin-top: 6px;
 }
 
 .color-picker__field {
@@ -264,21 +266,31 @@
   align-items: center;
 
   &--hex {
-    flex: 2;
+    flex: 1.6;
   }
 }
 
-.color-picker__input {
+.color-picker__fields .color-picker__input {
   box-sizing: border-box;
   width: 100%;
-  padding: 2px 0;
-  font-size: 10px;
-  color: @text-primary;
+  height: 26px;
+  padding: 1px 0;
+  font-size: 11px;
+  color: var(--color-text);
   text-align: center;
   background-color: @bg-primary;
-  border: none;
+  border: solid 1px var(--color-white);
   border-radius: 2px;
-  box-shadow: inset 0 0 0 1px @border;
+
+  &:hover {
+    border-color: var(--color-white);
+  }
+
+  &:focus {
+    color: var(--color-text);
+    border-color: var(--color-white);
+    box-shadow: none;
+  }
 
   /* Hide number input arrows */
   &[type='number'] {
@@ -294,9 +306,9 @@
 
 .color-picker__label {
   display: block;
-  margin-top: 3px;
-  font-size: 10px;
-  color: @grey;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-text-active);
   text-align: center;
   text-transform: uppercase;
 }
