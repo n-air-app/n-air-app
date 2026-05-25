@@ -191,14 +191,20 @@ export default defineComponent({
       this.$emit('input', { ...this.rgba });
     },
 
-    onRgbChange(channel: 'r' | 'g' | 'b', e: Event) {
-      const val = clamp(parseInt((e.target as HTMLInputElement).value, 10) || 0, 0, 255);
+    onRgbInput(channel: 'r' | 'g' | 'b', e: Event) {
+      const input = e.target as HTMLInputElement;
+      const parsed = parseInt(input.value, 10);
+      if (Number.isNaN(parsed)) {
+        return;
+      }
+
+      const val = clamp(parsed, 0, 255);
       const c = { ...this.rgba, [channel]: val };
       this.hsv = rgbToHsv(c.r, c.g, c.b);
       this.$emit('input', { ...this.rgba });
     },
 
-    onAlphaChange(e: Event) {
+    onAlphaInput(e: Event) {
       const input = e.target as HTMLInputElement;
       const parsed = parseFloat(input.value);
       if (Number.isNaN(parsed)) {

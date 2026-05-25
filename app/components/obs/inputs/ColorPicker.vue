@@ -70,7 +70,7 @@
         <input
           class="color-picker__input"
           :value="rgba[ch.key]"
-          @change="onRgbChange(ch.key, $event)"
+          @input="onRgbInput(ch.key, $event)"
           type="number"
           min="0"
           max="255"
@@ -81,7 +81,7 @@
         <input
           class="color-picker__input"
           :value="alphaInput"
-          @change="onAlphaChange"
+          @input="onAlphaInput"
           type="number"
           min="0"
           max="1"
