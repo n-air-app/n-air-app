@@ -19,7 +19,8 @@ import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
-import { markObsOp } from 'util/sentry-obs-breadcrumb';
+import { markObsOp, runObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -108,23 +109,11 @@ export class StreamingService
   init() {
     super.init();
 
-    try {
-      Sentry.addBreadcrumb({
-        category: 'obs',
-        message: 'OBS_service_connectOutputSignals',
-      });
+    runObsOp('StreamingService', 'init', () => {
       obs.NodeObs.OBS_service_connectOutputSignals((info: IOBSOutputSignalInfo) => {
         this.handleOBSOutputSignal(info);
       });
-    } catch (e) {
-      Sentry.withScope((scope) => {
-        scope.setLevel('error');
-        scope.setTag('service', 'StreamingService');
-        scope.setTag('method', 'init');
-        scope.setFingerprint(['StreamingService', 'init', 'obs', 'exception']);
-        Sentry.captureException(e);
-      });
-    }
+    }, { fingerprint: ['StreamingService', 'init', 'obs', 'exception'] });
   }
 
   getModel() {
@@ -276,12 +265,9 @@ export class StreamingService
         } catch (e) {
           // 例外が発生するのはチャンネル配信をしようとしてユーザー生番組が見つからないケースであり
           // チャンネルのためにそのまま配信開始を続行する
-          Sentry.withScope((scope) => {
-            scope.setLevel('info');
-            scope.setTag('service', 'StreamingService');
-            scope.setTag('method', 'fetchProgram');
-            scope.setFingerprint(['StreamingService', 'fetchProgram', 'niconico', 'exception']);
-            Sentry.captureException(e);
+          SentryReport.error('StreamingService', 'fetchProgram', e, {
+            level: 'info',
+            fingerprint: ['StreamingService', 'fetchProgram', 'niconico', 'exception'],
           });
         }
 
@@ -292,17 +278,8 @@ export class StreamingService
           );
         }
       } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'toggleStreamingAsync');
-          scope.setFingerprint([
-            'StreamingService',
-            'toggleStreamingAsync',
-            'niconico',
-            'exception',
-          ]);
-          Sentry.captureException(e);
+        SentryReport.error('StreamingService', 'toggleStreamingAsync', e, {
+          fingerprint: ['StreamingService', 'toggleStreamingAsync', 'niconico', 'exception'],
         });
         let message: string;
         if (e instanceof Response) {
@@ -341,26 +318,16 @@ export class StreamingService
 
       if (shouldConfirm && !confirm(confirmText)) return;
 
-      markObsOp('StreamingService', 'toggleStreaming', { action: 'start' });
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
-      try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: 'OBS_service_startStreaming',
-        });
-        const horizontalContext = this.videoSettingsService.contexts.horizontal;
+      const horizontalContext = this.videoSettingsService.contexts.horizontal;
+      runObsOp('StreamingService', 'startStreaming', () => {
         obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
         obs.NodeObs.OBS_service_startStreaming();
         this.subStreamService.syncStart();
-      } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'toggleStreaming');
-          scope.setFingerprint(['StreamingService', 'startStreaming', 'obs', 'exception']);
-          Sentry.captureException(e);
-        });
-      }
+      }, {
+        data: { action: 'start' },
+        fingerprint: ['StreamingService', 'startStreaming', 'obs', 'exception'],
+      });
       return;
     }
 
@@ -374,25 +341,17 @@ export class StreamingService
 
       if (shouldConfirm && !confirm(confirmText)) return;
 
-      markObsOp('StreamingService', 'toggleStreaming', { action: 'stop' });
+      markObsOp('StreamingService', 'stopStreaming', { action: 'stop' });
       if (this.powerSaveId) {
         remote.powerSaveBlocker.stop(this.powerSaveId);
       }
 
       try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: `OBS_service_stopStreaming(false) from ${this.state.streamingStatus}`,
-        });
         obs.NodeObs.OBS_service_stopStreaming(false);
         this.subStreamService.syncStop();
       } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'toggleStreaming');
-          scope.setFingerprint(['StreamingService', 'stopStreaming', 'obs', 'exception']);
-          Sentry.captureException(e);
+        SentryReport.error('StreamingService', 'stopStreaming', e, {
+          fingerprint: ['StreamingService', 'stopStreaming', 'obs', 'exception'],
         });
         return;
       }
@@ -411,18 +370,10 @@ export class StreamingService
 
     if (this.state.streamingStatus === EStreamingState.Ending) {
       try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: `OBS_service_stopStreaming(true) from ${this.state.streamingStatus}`,
-        });
         obs.NodeObs.OBS_service_stopStreaming(true);
       } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'toggleStreaming');
-          scope.setFingerprint(['StreamingService', 'stopStreaming', 'obs', 'exception']);
-          Sentry.captureException(e);
+        SentryReport.error('StreamingService', 'stopStreaming', e, {
+          fingerprint: ['StreamingService', 'stopStreaming', 'obs', 'exception'],
         });
         return;
       }
@@ -464,18 +415,12 @@ export class StreamingService
     mustShowDialog: boolean,
   ) {
     if (streamingSetting.quality === undefined) {
-      Sentry.withScope((scope) => {
-        scope.setLevel('error');
-        scope.setTag('service', 'StreamingService');
-        scope.setTag('method', 'optimizeForNiconicoAndStartStreaming');
-        scope.setFingerprint([
-          'StreamingService',
-          'optimizeForNiconicoAndStartStreaming',
-          'niconico',
-          'exception',
-        ]);
-        Sentry.captureException(new Error('StreamingSetting.quality is undefined'));
-      });
+      SentryReport.error(
+        'StreamingService',
+        'optimizeForNiconicoAndStartStreaming',
+        new Error('StreamingSetting.quality is undefined'),
+        { fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'] },
+      );
       return new Promise((resolve) => {
         remote.dialog
           .showMessageBox(remote.getCurrentWindow(), {
@@ -528,23 +473,10 @@ export class StreamingService
   }
 
   toggleRecording() {
-    markObsOp('StreamingService', 'toggleRecording');
     if (this.state.recordingStatus === ERecordingState.Recording) {
-      try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: 'OBS_service_stopRecording',
-        });
-        obs.NodeObs.OBS_service_stopRecording();
-      } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'toggleRecording');
-          scope.setFingerprint(['StreamingService', 'stopRecording', 'obs', 'exception']);
-          Sentry.captureException(e);
-        });
-      }
+      runObsOp('StreamingService', 'stopRecording', () => obs.NodeObs.OBS_service_stopRecording(), {
+        fingerprint: ['StreamingService', 'stopRecording', 'obs', 'exception'],
+      });
       return;
     }
 
@@ -553,31 +485,23 @@ export class StreamingService
         const recordingSettings = this.settingsService.getRecordingSettings();
         if (recordingSettings) {
           // send Recording type to Sentry (どれぐらいURL出力が使われているかの比率を調査する)
-          Sentry.withScope((scope) => {
-            scope.setLevel('info');
-            scope.setTag('recType', recordingSettings.recType);
-            scope.setExtra('path', recordingSettings.path);
-            scope.setFingerprint(['Recording']);
-            Sentry.captureMessage('Recording / recType:' + recordingSettings.recType);
-          });
+          SentryReport.message(
+            'StreamingService',
+            'toggleRecording',
+            'Recording / recType:' + recordingSettings.recType,
+            {
+              level: 'info',
+              tags: { recType: recordingSettings.recType },
+              extra: { path: recordingSettings.path },
+              fingerprint: ['Recording'],
+            },
+          );
         }
       }
 
-      try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: 'OBS_service_startRecording',
-        });
-        obs.NodeObs.OBS_service_startRecording();
-      } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'toggleRecording');
-          scope.setFingerprint(['StreamingService', 'startRecording', 'obs', 'exception']);
-          Sentry.captureException(e);
-        });
-      }
+      runObsOp('StreamingService', 'startRecording', () => obs.NodeObs.OBS_service_startRecording(), {
+        fingerprint: ['StreamingService', 'startRecording', 'obs', 'exception'],
+      });
       return;
     }
   }
@@ -587,66 +511,20 @@ export class StreamingService
 
     this.windowsService.closeChildWindow();
 
-    try {
-      Sentry.addBreadcrumb({
-        category: 'obs',
-        message: 'OBS_service_startReplayBuffer',
-      });
-      obs.NodeObs.OBS_service_startReplayBuffer();
-    } catch (e) {
-      Sentry.withScope((scope) => {
-        scope.setLevel('error');
-        scope.setTag('service', 'StreamingService');
-        scope.setTag('method', 'startReplayBuffer');
-        scope.setFingerprint(['StreamingService', 'startReplayBuffer', 'obs', 'exception']);
-        Sentry.captureException(e);
-      });
-    }
+    runObsOp('StreamingService', 'startReplayBuffer', () => obs.NodeObs.OBS_service_startReplayBuffer(), {
+      fingerprint: ['StreamingService', 'startReplayBuffer', 'obs', 'exception'],
+    });
   }
 
   stopReplayBuffer() {
     if (this.state.replayBufferStatus === EReplayBufferState.Running) {
-      try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: 'OBS_service_stopReplayBuffer(false)',
-        });
-        obs.NodeObs.OBS_service_stopReplayBuffer(false);
-      } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'stopReplayBuffer');
-          scope.setFingerprint([
-            'StreamingService',
-            'stopReplayBuffer(running)',
-            'obs',
-            'exception',
-          ]);
-          Sentry.captureException(e);
-        });
-      }
+      runObsOp('StreamingService', 'stopReplayBuffer', () => obs.NodeObs.OBS_service_stopReplayBuffer(false), {
+        fingerprint: ['StreamingService', 'stopReplayBuffer(running)', 'obs', 'exception'],
+      });
     } else if (this.state.replayBufferStatus === EReplayBufferState.Stopping) {
-      try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: 'OBS_service_stopReplayBuffer(true)',
-        });
-        obs.NodeObs.OBS_service_stopReplayBuffer(true);
-      } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'stopReplayBuffer');
-          scope.setFingerprint([
-            'StreamingService',
-            'stopReplayBuffer(stopping)',
-            'obs',
-            'exception',
-          ]);
-          Sentry.captureException(e);
-        });
-      }
+      runObsOp('StreamingService', 'stopReplayBuffer', () => obs.NodeObs.OBS_service_stopReplayBuffer(true), {
+        fingerprint: ['StreamingService', 'stopReplayBuffer(stopping)', 'obs', 'exception'],
+      });
     }
   }
 
@@ -654,21 +532,9 @@ export class StreamingService
     if (this.state.replayBufferStatus === EReplayBufferState.Running) {
       this.SET_REPLAY_BUFFER_STATUS(EReplayBufferState.Saving);
       this.replayBufferStatusChange.next(EReplayBufferState.Saving);
-      try {
-        Sentry.addBreadcrumb({
-          category: 'obs',
-          message: 'OBS_service_processReplayBufferHotkey',
-        });
-        obs.NodeObs.OBS_service_processReplayBufferHotkey();
-      } catch (e) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'saveReplay');
-          scope.setFingerprint(['StreamingService', 'saveReplay', 'obs', 'exception']);
-          Sentry.captureException(e);
-        });
-      }
+      runObsOp('StreamingService', 'saveReplay', () => obs.NodeObs.OBS_service_processReplayBufferHotkey(), {
+        fingerprint: ['StreamingService', 'saveReplay', 'obs', 'exception'],
+      });
     }
   }
 
@@ -930,19 +796,18 @@ export class StreamingService
             )
             : -1;
           const perfState = PerformanceService.instance.state;
-          Sentry.withScope((scope) => {
-            scope.setLevel('warning');
-            scope.setTag('service', 'StreamingService');
-            scope.setTag('method', 'handleOBSOutputSignal');
-            scope.setTag('signal', 'Reconnect');
-            scope.setFingerprint(['StreamingService', 'reconnect', String(info.code ?? 0)]);
-            scope.setExtra('info', info);
-            scope.setExtra('streamElapsedSec', streamElapsedSec);
-            scope.setExtra('reconnectCount', this.reconnectCount);
-            scope.setExtra('CPU', perfState.CPU);
-            scope.setExtra('streamingBandwidth', perfState.streamingBandwidth);
-            scope.setExtra('percentageDroppedFrames', perfState.percentageDroppedFrames);
-            Sentry.captureMessage('streaming reconnect started');
+          SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect started', {
+            level: 'warning',
+            fingerprint: ['StreamingService', 'reconnect', String(info.code ?? 0)],
+            tags: { signal: 'Reconnect' },
+            extra: {
+              info,
+              streamElapsedSec,
+              reconnectCount: this.reconnectCount,
+              CPU: perfState.CPU,
+              streamingBandwidth: perfState.streamingBandwidth,
+              percentageDroppedFrames: perfState.percentageDroppedFrames,
+            },
           });
         }
       } else if (info.signal === EOBSOutputSignal.ReconnectSuccess) {
@@ -957,15 +822,11 @@ export class StreamingService
           level: 'info',
           data: { durationMs, reconnectCount: this.reconnectCount },
         });
-        Sentry.withScope((scope) => {
-          scope.setLevel('info');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'handleOBSOutputSignal');
-          scope.setTag('signal', 'ReconnectSuccess');
-          scope.setFingerprint(['StreamingService', 'reconnectSuccess']);
-          scope.setExtra('durationMs', durationMs);
-          scope.setExtra('reconnectCount', this.reconnectCount);
-          Sentry.captureMessage('streaming reconnect succeeded');
+        SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect succeeded', {
+          level: 'info',
+          fingerprint: ['StreamingService', 'reconnectSuccess'],
+          tags: { signal: 'ReconnectSuccess' },
+          extra: { durationMs, reconnectCount: this.reconnectCount },
         });
       }
     } else if (info.type === EOBSOutputType.Recording) {
@@ -1010,16 +871,10 @@ export class StreamingService
         info.signal !== EOBSOutputSignal.Reconnect &&
         info.signal !== EOBSOutputSignal.ReconnectSuccess
       ) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'StreamingService');
-          scope.setTag('method', 'handleOBSOutputSignal');
-          scope.setTag('signal', info.signal);
-          scope.setTag('outputType', info.type);
-          scope.setFingerprint(['StreamingService', 'outputCode', String(info.code)]);
-          scope.setExtra('info', info);
-          scope.setExtra('reconnectCount', this.reconnectCount);
-          Sentry.captureMessage(`OBS output error code: ${info.code}`);
+        SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${info.code}`, {
+          fingerprint: ['StreamingService', 'outputCode', String(info.code)],
+          tags: { signal: String(info.signal), outputType: String(info.type) },
+          extra: { info, reconnectCount: this.reconnectCount },
         });
       }
       if (this.outputErrorOpen) {

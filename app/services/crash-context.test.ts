@@ -1,6 +1,11 @@
 import { Subject } from 'rxjs';
 import { createSetupFunction } from 'util/test-setup';
 
+const mockSetObsOpObserver = jest.fn();
+jest.mock('util/sentry-obs-breadcrumb', () => ({
+  setObsOpObserver: mockSetObsOpObserver,
+}));
+
 const mockAddExtraParameter = jest.fn();
 const mockIpcSend = jest.fn();
 
@@ -161,4 +166,21 @@ test('setAppPhase() でnair.appPhaseが設定される', () => {
   instance.setAppPhase('streaming');
 
   expect(mockAddExtraParameter).toHaveBeenCalledWith('nair.appPhase', 'streaming');
+});
+
+test('init() で markObsOp の observer が登録され、nair.lastObsOp が自動設定される', () => {
+  let capturedObserver: ((op: string) => void) | null = null;
+  mockSetObsOpObserver.mockImplementation((fn: (op: string) => void) => {
+    capturedObserver = fn;
+  });
+
+  setup();
+  const { CrashContextService } = require('./crash-context');
+  CrashContextService.instance.init();
+  jest.clearAllMocks();
+
+  expect(capturedObserver).not.toBeNull();
+  capturedObserver!('StreamingService.startStreaming');
+
+  expect(mockAddExtraParameter).toHaveBeenCalledWith('nair.lastObsOp', 'StreamingService.startStreaming');
 });
