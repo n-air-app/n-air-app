@@ -8,6 +8,7 @@ import { ScenesService } from 'services/scenes';
 import { SettingsService } from 'services/settings';
 import { SourcesService } from 'services/sources';
 import { StreamingService } from 'services/streaming';
+import { setObsOpObserver } from 'util/sentry-obs-breadcrumb';
 
 const DEBOUNCE_MS = 300;
 
@@ -22,6 +23,8 @@ export class CrashContextService extends Service {
   private encoderUpdateTrigger = new Subject<void>();
 
   init() {
+    setObsOpObserver((op) => this.setLastObsOp(op));
+
     this.subscriptions.push(
       this.scenesService.sceneSwitched.subscribe((scene) => {
         this.set('nair.scene', scene.name);
