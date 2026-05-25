@@ -1,15 +1,18 @@
 import * as Sentry from '@sentry/vue';
 
-import { captureServiceError } from './sentry-capture';
 import { getLastObsOp, markObsOp, runObsOp, setObsOpObserver } from './sentry-obs-breadcrumb';
+import { SentryReport } from './sentry-report';
 
 jest.mock('@sentry/vue', () => ({
   addBreadcrumb: jest.fn(),
   setTag: jest.fn(),
 }));
 
-jest.mock('./sentry-capture', () => ({
-  captureServiceError: jest.fn(),
+jest.mock('./sentry-report', () => ({
+  SentryReport: {
+    error: jest.fn(),
+    message: jest.fn(),
+  },
 }));
 
 describe('sentry-obs-breadcrumb', () => {
@@ -108,10 +111,10 @@ describe('runObsOp', () => {
     );
   });
 
-  test('fn が例外を投げると captureServiceError が呼ばれる', () => {
+  test('fn が例外を投げると SentryReport.error が呼ばれる', () => {
     const err = new Error('obs error');
     runObsOp('FooService', 'barMethod', () => { throw err; });
-    expect(captureServiceError).toHaveBeenCalledWith('FooService', 'barMethod', err, {
+    expect(SentryReport.error).toHaveBeenCalledWith('FooService', 'barMethod', err, {
       level: 'error',
       fingerprint: ['FooService', 'barMethod', 'obs', 'exception'],
     });
@@ -122,7 +125,7 @@ describe('runObsOp', () => {
     runObsOp('FooService', 'barMethod', () => { throw err; }, {
       fingerprint: ['FooService', 'barMethod', 'custom', 'exception'],
     });
-    expect(captureServiceError).toHaveBeenCalledWith(
+    expect(SentryReport.error).toHaveBeenCalledWith(
       'FooService',
       'barMethod',
       err,
@@ -142,8 +145,8 @@ describe('runObsOp', () => {
     }).toThrow(err);
   });
 
-  test('fn が成功しても captureServiceError は呼ばれない', () => {
+  test('fn が成功しても SentryReport.error は呼ばれない', () => {
     runObsOp('FooService', 'barMethod', () => {});
-    expect(captureServiceError).not.toHaveBeenCalled();
+    expect(SentryReport.error).not.toHaveBeenCalled();
   });
 });

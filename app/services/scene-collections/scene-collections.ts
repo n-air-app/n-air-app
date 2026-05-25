@@ -19,7 +19,7 @@ import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
-import { captureServiceError, captureServiceMessage } from 'util/sentry-capture';
+import { SentryReport } from 'util/sentry-report';
 
 import namingHelpers from '../../util/NamingHelpers';
 
@@ -242,7 +242,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       await this.setActiveCollection(id);
       loadErrors = await this.readCollectionDataAndLoadIntoApplicationState(id);
     } catch (e) {
-      captureServiceError('SceneCollectionsService', 'load', e, {
+      SentryReport.error('SceneCollectionsService', 'load', e, {
         tags: { collectionId: id, collectionName },
         context: { sceneCollection: { id, name: collectionName, fileName: `${id}.json` } },
       });
@@ -302,7 +302,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         return acc;
       }, {});
 
-      captureServiceMessage('SceneCollectionsService', 'load', 'Scene collection loaded with partial errors', {
+      SentryReport.message('SceneCollectionsService', 'load', 'Scene collection loaded with partial errors', {
         level: 'warning',
         tags: { collectionId: id, collectionName, errorCount: loadErrors.length.toString() },
         context: {

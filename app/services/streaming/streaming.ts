@@ -19,8 +19,8 @@ import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
-import { captureServiceError, captureServiceMessage } from 'util/sentry-capture';
 import { markObsOp, runObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -265,7 +265,7 @@ export class StreamingService
         } catch (e) {
           // 例外が発生するのはチャンネル配信をしようとしてユーザー生番組が見つからないケースであり
           // チャンネルのためにそのまま配信開始を続行する
-          captureServiceError('StreamingService', 'fetchProgram', e, {
+          SentryReport.error('StreamingService', 'fetchProgram', e, {
             level: 'info',
             fingerprint: ['StreamingService', 'fetchProgram', 'niconico', 'exception'],
           });
@@ -278,7 +278,7 @@ export class StreamingService
           );
         }
       } catch (e) {
-        captureServiceError('StreamingService', 'toggleStreamingAsync', e, {
+        SentryReport.error('StreamingService', 'toggleStreamingAsync', e, {
           fingerprint: ['StreamingService', 'toggleStreamingAsync', 'niconico', 'exception'],
         });
         let message: string;
@@ -350,7 +350,7 @@ export class StreamingService
         obs.NodeObs.OBS_service_stopStreaming(false);
         this.subStreamService.syncStop();
       } catch (e) {
-        captureServiceError('StreamingService', 'stopStreaming', e, {
+        SentryReport.error('StreamingService', 'stopStreaming', e, {
           fingerprint: ['StreamingService', 'stopStreaming', 'obs', 'exception'],
         });
         return;
@@ -372,7 +372,7 @@ export class StreamingService
       try {
         obs.NodeObs.OBS_service_stopStreaming(true);
       } catch (e) {
-        captureServiceError('StreamingService', 'stopStreaming', e, {
+        SentryReport.error('StreamingService', 'stopStreaming', e, {
           fingerprint: ['StreamingService', 'stopStreaming', 'obs', 'exception'],
         });
         return;
@@ -415,7 +415,7 @@ export class StreamingService
     mustShowDialog: boolean,
   ) {
     if (streamingSetting.quality === undefined) {
-      captureServiceError(
+      SentryReport.error(
         'StreamingService',
         'optimizeForNiconicoAndStartStreaming',
         new Error('StreamingSetting.quality is undefined'),
@@ -485,7 +485,7 @@ export class StreamingService
         const recordingSettings = this.settingsService.getRecordingSettings();
         if (recordingSettings) {
           // send Recording type to Sentry (どれぐらいURL出力が使われているかの比率を調査する)
-          captureServiceMessage(
+          SentryReport.message(
             'StreamingService',
             'toggleRecording',
             'Recording / recType:' + recordingSettings.recType,
@@ -796,7 +796,7 @@ export class StreamingService
             )
             : -1;
           const perfState = PerformanceService.instance.state;
-          captureServiceMessage('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect started', {
+          SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect started', {
             level: 'warning',
             fingerprint: ['StreamingService', 'reconnect', String(info.code ?? 0)],
             tags: { signal: 'Reconnect' },
@@ -822,7 +822,7 @@ export class StreamingService
           level: 'info',
           data: { durationMs, reconnectCount: this.reconnectCount },
         });
-        captureServiceMessage('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect succeeded', {
+        SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect succeeded', {
           level: 'info',
           fingerprint: ['StreamingService', 'reconnectSuccess'],
           tags: { signal: 'ReconnectSuccess' },
@@ -871,7 +871,7 @@ export class StreamingService
         info.signal !== EOBSOutputSignal.Reconnect &&
         info.signal !== EOBSOutputSignal.ReconnectSuccess
       ) {
-        captureServiceMessage('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${info.code}`, {
+        SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${info.code}`, {
           fingerprint: ['StreamingService', 'outputCode', String(info.code)],
           tags: { signal: String(info.signal), outputType: String(info.type) },
           extra: { info, reconnectCount: this.reconnectCount },

@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/vue';
 
-import { captureServiceError } from './sentry-capture';
+import { SentryReport } from './sentry-report';
 
 let lastObsOp = '';
 
@@ -48,7 +48,7 @@ export function runObsOp<T>(
   try {
     return fn();
   } catch (e) {
-    captureServiceError(serviceName, methodName, e, {
+    SentryReport.error(serviceName, methodName, e, {
       level: 'error',
       fingerprint: opts?.fingerprint ?? [serviceName, methodName, 'obs', 'exception'],
     });

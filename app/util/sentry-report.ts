@@ -1,7 +1,7 @@
 import type { SeverityLevel } from '@sentry/vue';
 import * as Sentry from '@sentry/vue';
 
-export interface CaptureServiceErrorOpts {
+export interface SentryReportOpts {
   level?: SeverityLevel;
   fingerprint?: string[];
   extra?: Record<string, unknown>;
@@ -12,7 +12,7 @@ export interface CaptureServiceErrorOpts {
 function withServiceScope(
   serviceName: string,
   methodName: string,
-  opts: CaptureServiceErrorOpts | undefined,
+  opts: SentryReportOpts | undefined,
   capture: () => void,
 ): void {
   Sentry.withScope((scope) => {
@@ -27,20 +27,22 @@ function withServiceScope(
   });
 }
 
-export function captureServiceError(
-  serviceName: string,
-  methodName: string,
-  error: unknown,
-  opts?: CaptureServiceErrorOpts,
-): void {
-  withServiceScope(serviceName, methodName, opts, () => Sentry.captureException(error));
-}
+export const SentryReport = {
+  error(
+    serviceName: string,
+    methodName: string,
+    error: unknown,
+    opts?: SentryReportOpts,
+  ): void {
+    withServiceScope(serviceName, methodName, opts, () => Sentry.captureException(error));
+  },
 
-export function captureServiceMessage(
-  serviceName: string,
-  methodName: string,
-  message: string,
-  opts?: CaptureServiceErrorOpts,
-): void {
-  withServiceScope(serviceName, methodName, opts, () => Sentry.captureMessage(message));
-}
+  message(
+    serviceName: string,
+    methodName: string,
+    message: string,
+    opts?: SentryReportOpts,
+  ): void {
+    withServiceScope(serviceName, methodName, opts, () => Sentry.captureMessage(message));
+  },
+};

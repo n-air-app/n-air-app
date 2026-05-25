@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/vue';
 
-import { captureServiceError, captureServiceMessage } from './sentry-capture';
+import { SentryReport } from './sentry-report';
 
 jest.mock('@sentry/vue', () => ({
   withScope: jest.fn(),
@@ -8,7 +8,7 @@ jest.mock('@sentry/vue', () => ({
   captureMessage: jest.fn(),
 }));
 
-describe('captureServiceError', () => {
+describe('SentryReport.error', () => {
   let mockScope: {
     setLevel: jest.Mock;
     setTag: jest.Mock;
@@ -31,33 +31,33 @@ describe('captureServiceError', () => {
 
   test('captureException が呼ばれる', () => {
     const err = new Error('test');
-    captureServiceError('FooService', 'barMethod', err);
+    SentryReport.error('FooService', 'barMethod', err);
     expect(Sentry.captureException).toHaveBeenCalledWith(err);
   });
 
   test('service / method タグがセットされる', () => {
-    captureServiceError('FooService', 'barMethod', new Error());
+    SentryReport.error('FooService', 'barMethod', new Error());
     expect(mockScope.setTag).toHaveBeenCalledWith('service', 'FooService');
     expect(mockScope.setTag).toHaveBeenCalledWith('method', 'barMethod');
   });
 
   test('デフォルト level は error', () => {
-    captureServiceError('FooService', 'barMethod', new Error());
+    SentryReport.error('FooService', 'barMethod', new Error());
     expect(mockScope.setLevel).toHaveBeenCalledWith('error');
   });
 
   test('opts.level を上書きできる', () => {
-    captureServiceError('FooService', 'barMethod', new Error(), { level: 'warning' });
+    SentryReport.error('FooService', 'barMethod', new Error(), { level: 'warning' });
     expect(mockScope.setLevel).toHaveBeenCalledWith('warning');
   });
 
   test('デフォルト fingerprint は [service, method, exception]', () => {
-    captureServiceError('FooService', 'barMethod', new Error());
+    SentryReport.error('FooService', 'barMethod', new Error());
     expect(mockScope.setFingerprint).toHaveBeenCalledWith(['FooService', 'barMethod', 'exception']);
   });
 
   test('opts.fingerprint を上書きできる', () => {
-    captureServiceError('FooService', 'barMethod', new Error(), {
+    SentryReport.error('FooService', 'barMethod', new Error(), {
       fingerprint: ['FooService', 'barMethod', 'obs', 'exception'],
     });
     expect(mockScope.setFingerprint).toHaveBeenCalledWith([
@@ -69,7 +69,7 @@ describe('captureServiceError', () => {
   });
 
   test('opts.extra が setExtra でセットされる', () => {
-    captureServiceError('FooService', 'barMethod', new Error(), {
+    SentryReport.error('FooService', 'barMethod', new Error(), {
       extra: { foo: 'bar', count: 3 },
     });
     expect(mockScope.setExtra).toHaveBeenCalledWith('foo', 'bar');
@@ -77,7 +77,7 @@ describe('captureServiceError', () => {
   });
 
   test('opts.tags が追加タグとしてセットされる', () => {
-    captureServiceError('FooService', 'barMethod', new Error(), {
+    SentryReport.error('FooService', 'barMethod', new Error(), {
       tags: { collectionId: 'abc', collectionName: 'MyCollection' },
     });
     expect(mockScope.setTag).toHaveBeenCalledWith('collectionId', 'abc');
@@ -86,21 +86,21 @@ describe('captureServiceError', () => {
 
   test('opts.context が setContext でセットされる', () => {
     const ctx = { id: 'abc', name: 'test' };
-    captureServiceError('FooService', 'barMethod', new Error(), {
+    SentryReport.error('FooService', 'barMethod', new Error(), {
       context: { sceneCollection: ctx },
     });
     expect(mockScope.setContext).toHaveBeenCalledWith('sceneCollection', ctx);
   });
 
   test('opts.context に null を渡せる (クリア)', () => {
-    captureServiceError('FooService', 'barMethod', new Error(), {
+    SentryReport.error('FooService', 'barMethod', new Error(), {
       context: { sceneCollection: null },
     });
     expect(mockScope.setContext).toHaveBeenCalledWith('sceneCollection', null);
   });
 });
 
-describe('captureServiceMessage', () => {
+describe('SentryReport.message', () => {
   let mockScope: {
     setLevel: jest.Mock;
     setTag: jest.Mock;
@@ -122,28 +122,28 @@ describe('captureServiceMessage', () => {
   });
 
   test('captureMessage が呼ばれる', () => {
-    captureServiceMessage('FooService', 'barMethod', 'Something happened');
+    SentryReport.message('FooService', 'barMethod', 'Something happened');
     expect(Sentry.captureMessage).toHaveBeenCalledWith('Something happened');
   });
 
   test('service / method タグがセットされる', () => {
-    captureServiceMessage('FooService', 'barMethod', 'msg');
+    SentryReport.message('FooService', 'barMethod', 'msg');
     expect(mockScope.setTag).toHaveBeenCalledWith('service', 'FooService');
     expect(mockScope.setTag).toHaveBeenCalledWith('method', 'barMethod');
   });
 
   test('デフォルト level は error', () => {
-    captureServiceMessage('FooService', 'barMethod', 'msg');
+    SentryReport.message('FooService', 'barMethod', 'msg');
     expect(mockScope.setLevel).toHaveBeenCalledWith('error');
   });
 
   test('opts.level を上書きできる', () => {
-    captureServiceMessage('FooService', 'barMethod', 'msg', { level: 'warning' });
+    SentryReport.message('FooService', 'barMethod', 'msg', { level: 'warning' });
     expect(mockScope.setLevel).toHaveBeenCalledWith('warning');
   });
 
   test('opts.tags が追加タグとしてセットされる', () => {
-    captureServiceMessage('FooService', 'barMethod', 'msg', {
+    SentryReport.message('FooService', 'barMethod', 'msg', {
       tags: { errorCount: '3' },
     });
     expect(mockScope.setTag).toHaveBeenCalledWith('errorCount', '3');
@@ -151,7 +151,7 @@ describe('captureServiceMessage', () => {
 
   test('opts.context が setContext でセットされる', () => {
     const ctx = { items: 3 };
-    captureServiceMessage('FooService', 'barMethod', 'msg', {
+    SentryReport.message('FooService', 'barMethod', 'msg', {
       context: { errors: ctx },
     });
     expect(mockScope.setContext).toHaveBeenCalledWith('errors', ctx);
