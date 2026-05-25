@@ -1,6 +1,5 @@
+import type { SeverityLevel } from '@sentry/vue';
 import * as Sentry from '@sentry/vue';
-
-type SeverityLevel = 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
 
 export interface CaptureServiceErrorOpts {
   level?: SeverityLevel;
@@ -10,34 +9,31 @@ export interface CaptureServiceErrorOpts {
   context?: Record<string, Record<string, unknown> | null>;
 }
 
-export function captureServiceError(
+function withServiceScope(
   serviceName: string,
   methodName: string,
-  error: unknown,
-  opts?: CaptureServiceErrorOpts,
+  opts: CaptureServiceErrorOpts | undefined,
+  capture: () => void,
 ): void {
   Sentry.withScope((scope) => {
     scope.setLevel(opts?.level ?? 'error');
     scope.setTag('service', serviceName);
     scope.setTag('method', methodName);
     scope.setFingerprint(opts?.fingerprint ?? [serviceName, methodName, 'exception']);
-    if (opts?.extra) {
-      for (const [key, val] of Object.entries(opts.extra)) {
-        scope.setExtra(key, val);
-      }
-    }
-    if (opts?.tags) {
-      for (const [key, val] of Object.entries(opts.tags)) {
-        scope.setTag(key, val);
-      }
-    }
-    if (opts?.context) {
-      for (const [key, val] of Object.entries(opts.context)) {
-        scope.setContext(key, val);
-      }
-    }
-    Sentry.captureException(error);
+    for (const [key, val] of Object.entries(opts?.extra ?? {})) scope.setExtra(key, val);
+    for (const [key, val] of Object.entries(opts?.tags ?? {})) scope.setTag(key, val);
+    for (const [key, val] of Object.entries(opts?.context ?? {})) scope.setContext(key, val);
+    capture();
   });
+}
+
+export function captureServiceError(
+  serviceName: string,
+  methodName: string,
+  error: unknown,
+  opts?: CaptureServiceErrorOpts,
+): void {
+  withServiceScope(serviceName, methodName, opts, () => Sentry.captureException(error));
 }
 
 export function captureServiceMessage(
@@ -46,26 +42,5 @@ export function captureServiceMessage(
   message: string,
   opts?: CaptureServiceErrorOpts,
 ): void {
-  Sentry.withScope((scope) => {
-    scope.setLevel(opts?.level ?? 'error');
-    scope.setTag('service', serviceName);
-    scope.setTag('method', methodName);
-    scope.setFingerprint(opts?.fingerprint ?? [serviceName, methodName, 'exception']);
-    if (opts?.extra) {
-      for (const [key, val] of Object.entries(opts.extra)) {
-        scope.setExtra(key, val);
-      }
-    }
-    if (opts?.tags) {
-      for (const [key, val] of Object.entries(opts.tags)) {
-        scope.setTag(key, val);
-      }
-    }
-    if (opts?.context) {
-      for (const [key, val] of Object.entries(opts.context)) {
-        scope.setContext(key, val);
-      }
-    }
-    Sentry.captureMessage(message);
-  });
+  withServiceScope(serviceName, methodName, opts, () => Sentry.captureMessage(message));
 }
