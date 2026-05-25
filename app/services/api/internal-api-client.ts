@@ -2,6 +2,7 @@ import electron from 'electron';
 import { Observable, Subject } from 'rxjs';
 import { IJsonRpcEvent, IJsonRpcResponse, IMutation, JsonrpcService } from 'services/api/jsonrpc';
 import * as traverse from 'traverse';
+import { captureIpcRequestError } from 'util/sentry-ipc-request';
 
 import { ServicesManager } from '../../services-manager';
 import { commitMutation } from '../../store';
@@ -80,7 +81,13 @@ export class InternalApiClient {
           );
 
           if (response.error) {
-            throw Error('IPC request failed: check the errors in the main window');
+            throw captureIpcRequestError(
+              serviceName,
+              methodName,
+              isHelper,
+              isHelper ? target['_resourceId'] : undefined,
+              response.error,
+            );
           }
 
           const result = response.result;
