@@ -6,6 +6,7 @@ import { CustomizationService } from 'services/customization';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
+import { getLastObsOp } from 'util/sentry-obs-breadcrumb';
 import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
@@ -136,7 +137,13 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
           level: 'warning',
         });
       } else {
-        Sentry.captureException(e);
+        Sentry.withScope((scope) => {
+          scope.setTag('service', 'PerformanceService');
+          scope.setTag('method', 'getState');
+          scope.setExtra('streamingStatus', this.streamingService.state.streamingStatus);
+          scope.setExtra('lastObsOp', getLastObsOp());
+          Sentry.captureException(e);
+        });
       }
       return null;
     }

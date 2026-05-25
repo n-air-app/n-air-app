@@ -21,6 +21,7 @@ import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
@@ -763,6 +764,9 @@ export class SettingsService
   }
 
   setSettings(categoryName: SettingsCategory, settingsData: ISettingsSubCategory[]) {
+    if (categoryName === 'Output' || categoryName === 'Video' || categoryName === 'Stream') {
+      markObsOp('SettingsService', 'setSettings', { category: categoryName });
+    }
     if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()]);
     if (categoryName === 'Developer') return this.setDeveloperSettings(settingsData);
 
