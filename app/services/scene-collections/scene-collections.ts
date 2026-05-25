@@ -339,6 +339,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       });
     }
 
+    // Record load status as a persistent session tag for correlating downstream crashes
+    Sentry.setTag('sceneCollections.lastLoadStatus', loadErrors.length > 0 ? 'partial-errors' : 'ok');
+    Sentry.setTag('sceneCollections.loadErrorCount', loadErrors.length.toString());
+
     // Clear scene collection context after all load processing is complete
     Sentry.setContext('sceneCollection', null);
     Sentry.setTag('collectionId', null);
