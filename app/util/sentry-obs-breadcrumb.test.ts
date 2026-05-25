@@ -131,15 +131,15 @@ describe('runObsOp', () => {
   });
 
   test('rethrow: false のとき例外を飲み込み undefined を返す', () => {
-    const result = runObsOp('FooService', 'barMethod', () => { throw new Error(); });
+    const result: unknown = runObsOp('FooService', 'barMethod', () => { throw new Error(); });
     expect(result).toBeUndefined();
   });
 
   test('rethrow: true のとき例外を再 throw する', () => {
     const err = new Error('obs error');
-    expect(() =>
-      runObsOp('FooService', 'barMethod', () => { throw err; }, { rethrow: true }),
-    ).toThrow(err);
+    expect(() => {
+      runObsOp('FooService', 'barMethod', () => { throw err; }, { rethrow: true });
+    }).toThrow(err);
   });
 
   test('fn が成功しても captureServiceError は呼ばれない', () => {
