@@ -1,6 +1,6 @@
 import { URL, URLSearchParams } from 'url';
 
-import * as Sentry from '@sentry/electron/renderer';
+import * as Sentry from '@sentry/vue';
 import electron from 'electron';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';

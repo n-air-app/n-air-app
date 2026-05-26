@@ -11,18 +11,22 @@ jest.mock('@sentry/vue', () => ({
 
 describe('captureIpcRequestError', () => {
   let mockScope: {
+    setLevel: jest.Mock;
     setTag: jest.Mock;
     setExtra: jest.Mock;
     setFingerprint: jest.Mock;
+    setContext: jest.Mock;
     captureException: jest.Mock;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockScope = {
+      setLevel: jest.fn(),
       setTag: jest.fn(),
       setExtra: jest.fn(),
       setFingerprint: jest.fn(),
+      setContext: jest.fn(),
       captureException: jest.fn(),
     };
     (Sentry.withScope as jest.Mock).mockImplementation((cb) => cb(mockScope));

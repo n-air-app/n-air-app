@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/vue';
+import { SentryReport } from './sentry-report';
 
 /**
  * Wraps a menu click handler to attach a diagnostic tag if it throws.
@@ -15,16 +15,14 @@ export function withMenuHandlerTag<T>(
   try {
     return fn();
   } catch (e) {
-    Sentry.withScope((scope) => {
-      scope.setTag('menu.handler', name);
-      try {
-        const extra = getExtra?.();
-        if (extra) scope.setContext('menu', extra);
-      } catch {
-        // ignore failures while collecting extra context
-      }
-      Sentry.captureException(e);
-    });
+    let context: Record<string, Record<string, unknown> | null> | undefined;
+    try {
+      const extra = getExtra?.();
+      if (extra) context = { menu: extra };
+    } catch {
+      // ignore failures while collecting extra context
+    }
+    SentryReport.error('MenuHandler', name, e, context ? { context } : undefined);
     throw e;
   }
 }

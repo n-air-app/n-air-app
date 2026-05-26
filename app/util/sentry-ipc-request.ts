@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/vue';
 
 import { IpcRequestError } from './ipc-request-error';
+import { SentryReport } from './sentry-report';
 
 export function captureIpcRequestError(
   serviceName: string,
@@ -18,15 +19,16 @@ export function captureIpcRequestError(
     level: 'error',
   });
 
-  Sentry.withScope((scope) => {
-    scope.setTag('service', serviceName);
-    scope.setTag('method', method);
-    scope.setTag('isHelper', String(isHelper));
-    scope.setTag('rpc.code', String(rpcError.code));
-    if (isHelper && resourceId) scope.setTag('resourceId', resourceId);
-    scope.setExtra('mainError', rpcError.message ?? '(no message)');
-    scope.setFingerprint([err.name, serviceName, method]);
-    Sentry.captureException(err);
+  const tags: Record<string, string> = {
+    isHelper: String(isHelper),
+    'rpc.code': String(rpcError.code),
+  };
+  if (isHelper && resourceId) tags.resourceId = resourceId;
+
+  SentryReport.error(serviceName, method, err, {
+    tags,
+    extra: { mainError: rpcError.message ?? '(no message)' },
+    fingerprint: [err.name, serviceName, method],
   });
 
   return err;
