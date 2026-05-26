@@ -141,10 +141,6 @@ export default defineComponent({
   },
 
   methods: {
-    emitColor() {
-      this.$emit('input', this.rgba);
-    },
-
     onSaturationMouseDown(e: MouseEvent) {
       startDrag(this, e, (ev: MouseEvent) => {
         const el = this.$refs.saturation as HTMLElement;
@@ -156,7 +152,7 @@ export default defineComponent({
         };
         const { r, g, b } = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
         this.rgba = { r, g, b, a: this.rgba.a };
-        this.emitColor();
+        this.$emit('input', this.rgba);
       });
     },
 
@@ -167,7 +163,7 @@ export default defineComponent({
         const newHsv = { ...this.hsv, h: clamp((ev.clientX - rect.left) / rect.width, 0, 1) * 360 };
         const { r, g, b } = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
         this.rgba = { r, g, b, a: this.rgba.a };
-        this.emitColor();
+        this.$emit('input', this.rgba);
       });
     },
 
@@ -177,7 +173,7 @@ export default defineComponent({
         const rect = el.getBoundingClientRect();
         const a = clamp((ev.clientX - rect.left) / rect.width, 0, 1);
         this.rgba = { ...this.rgba, a };
-        this.emitColor();
+        this.$emit('input', this.rgba);
       });
     },
 
@@ -197,7 +193,7 @@ export default defineComponent({
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
       this.rgba = { r, g, b, a };
-      this.emitColor();
+      this.$emit('input', this.rgba);
     },
 
     onRgbInput(channel: 'r' | 'g' | 'b', e: Event) {
@@ -208,7 +204,7 @@ export default defineComponent({
       }
 
       this.rgba = { ...this.rgba, [channel]: clamp(parsed, 0, 255) };
-      this.emitColor();
+      this.$emit('input', this.rgba);
     },
 
     onAlphaInput(e: Event) {
@@ -220,13 +216,13 @@ export default defineComponent({
       }
 
       this.rgba = { ...this.rgba, a: clamp(parsed, 0, 1) };
-      this.emitColor();
+      this.$emit('input', this.rgba);
     },
 
     applyPreset(color: string) {
       if (color === 'transparent') {
         this.rgba = { ...this.rgba, a: 0 };
-        this.emitColor();
+        this.$emit('input', this.rgba);
         return;
       }
       const hex = color.replace(/^#/, '');
@@ -234,7 +230,7 @@ export default defineComponent({
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
       this.rgba = { r, g, b, a: 1 };
-      this.emitColor();
+      this.$emit('input', this.rgba);
     },
   },
 });
