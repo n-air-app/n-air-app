@@ -90,6 +90,20 @@
         <label class="color-picker__label">A</label>
       </div>
     </div>
+
+    <!-- Preset colors -->
+    <div class="color-picker__presets">
+      <div
+        v-for="color in presetColors"
+        :key="color"
+        class="color-picker__preset"
+        :class="{ 'color-picker__preset--transparent': color === 'transparent' }"
+        :style="color !== 'transparent' ? { background: color } : {}"
+        @click="applyPreset(color)"
+      >
+        <div v-if="color === 'transparent'" class="color-picker__preset-checker" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -311,5 +325,40 @@
   color: var(--color-text-active);
   text-align: center;
   text-transform: uppercase;
+}
+
+/* Preset colors */
+.color-picker__presets {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  padding-top: 8px;
+  margin-top: 6px;
+  border-top: 1px solid @border;
+}
+
+.color-picker__preset {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 15%);
+
+  &:hover {
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 40%);
+  }
+}
+
+.color-picker__preset-checker {
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-size: 8px 8px;
 }
 </style>
