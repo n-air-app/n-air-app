@@ -13,15 +13,14 @@
           <button class="colorpicker__eyedropper" @click="startEyedropper" title="Color picker">
             <i class="icon-eyedropper-fill" />
           </button>
-          <template v-if="pickerVisible">
-            <div class="colorpicker-overlay" @mousedown="closePicker" />
-            <color-picker
-              :value="obsColor"
-              @input="handleColorChange"
-              @dragging-change="handleDraggingChange"
-              class="colorpicker-menu"
-            />
-          </template>
+          <color-picker
+            v-if="pickerVisible"
+            :value="obsColor"
+            @input="handleColorChange"
+            @dragging-change="handleDraggingChange"
+            class="colorpicker-menu"
+            ref="colorPickerMenu"
+          />
         </div>
       </div>
     </div>
@@ -74,12 +73,6 @@
   &:hover {
     opacity: 1;
   }
-}
-
-.colorpicker-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9;
 }
 
 .colorpicker-menu {

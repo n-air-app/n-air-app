@@ -53,10 +53,30 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
 
   togglePicker() {
     this.pickerVisible = !this.pickerVisible;
+    if (this.pickerVisible) {
+      this.$nextTick(() => {
+        document.addEventListener('mousedown', this.onDocumentMouseDown);
+      });
+    } else {
+      document.removeEventListener('mousedown', this.onDocumentMouseDown);
+    }
   }
 
   closePicker() {
     this.pickerVisible = false;
+    document.removeEventListener('mousedown', this.onDocumentMouseDown);
+  }
+
+  onDocumentMouseDown(event: MouseEvent) {
+    const menu = this.$refs.colorPickerMenu as Vue | undefined;
+    if (menu && menu.$el && menu.$el.contains(event.target as Node)) {
+      return;
+    }
+    const el = this.$el as HTMLElement;
+    if (el && el.contains(event.target as Node)) {
+      return;
+    }
+    this.closePicker();
   }
 
   isDragging = false;
@@ -116,6 +136,10 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
 
   mounted() {
     this.setValue(this.obsColor);
+  }
+
+  beforeDestroy() {
+    document.removeEventListener('mousedown', this.onDocumentMouseDown);
   }
 
   get hexAlpha() {
