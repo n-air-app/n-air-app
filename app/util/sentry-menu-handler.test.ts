@@ -8,11 +8,23 @@ jest.mock('@sentry/vue', () => ({
 }));
 
 describe('withMenuHandlerTag', () => {
-  let mockScope: { setTag: jest.Mock; setContext: jest.Mock };
+  let mockScope: {
+    setLevel: jest.Mock;
+    setTag: jest.Mock;
+    setExtra: jest.Mock;
+    setFingerprint: jest.Mock;
+    setContext: jest.Mock;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockScope = { setTag: jest.fn(), setContext: jest.fn() };
+    mockScope = {
+      setLevel: jest.fn(),
+      setTag: jest.fn(),
+      setExtra: jest.fn(),
+      setFingerprint: jest.fn(),
+      setContext: jest.fn(),
+    };
     (Sentry.withScope as jest.Mock).mockImplementation((cb) => cb(mockScope));
   });
 
@@ -23,7 +35,7 @@ describe('withMenuHandlerTag', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
-  test('throw 時に menu.handler タグと captureException を送信して再 throw する', () => {
+  test('throw 時に service/method タグと captureException を送信して再 throw する', () => {
     const err = new Error('test error');
     let thrown: unknown;
     try {
@@ -35,7 +47,8 @@ describe('withMenuHandlerTag', () => {
     }
     expect(thrown).toBe(err);
     expect(Sentry.withScope).toHaveBeenCalledTimes(1);
-    expect(mockScope.setTag).toHaveBeenCalledWith('menu.handler', 'SceneSelector.Duplicate');
+    expect(mockScope.setTag).toHaveBeenCalledWith('service', 'MenuHandler');
+    expect(mockScope.setTag).toHaveBeenCalledWith('method', 'SceneSelector.Duplicate');
     expect(Sentry.captureException).toHaveBeenCalledWith(err);
   });
 

@@ -7,6 +7,7 @@ import { VideoSettingsService } from 'services/settings-v2/video';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
 import { getLastObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
@@ -137,12 +138,11 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
           level: 'warning',
         });
       } else {
-        Sentry.withScope((scope) => {
-          scope.setTag('service', 'PerformanceService');
-          scope.setTag('method', 'getState');
-          scope.setExtra('streamingStatus', this.streamingService.state.streamingStatus);
-          scope.setExtra('lastObsOp', getLastObsOp());
-          Sentry.captureException(e);
+        SentryReport.error('PerformanceService', 'getState', e, {
+          extra: {
+            streamingStatus: this.streamingService.state.streamingStatus,
+            lastObsOp: getLastObsOp(),
+          },
         });
       }
       return null;
@@ -235,21 +235,17 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
                   1000,
             )
             : -1;
-          Sentry.withScope((scope) => {
-            scope.setLevel('warning');
-            scope.setTag('service', 'PerformanceService');
-            scope.setTag('method', 'update');
-            scope.setTag('condition', 'bandwidthZero');
-            scope.setFingerprint(['PerformanceService', 'bandwidthZero']);
-            scope.setExtra(
-              'zeroDurationSec',
-              this.zeroBandwidthSamples * (STATS_UPDATE_INTERVAL / 1000),
-            );
-            scope.setExtra('CPU', stats.CPU);
-            scope.setExtra('droppedFrames', stats.numberDroppedFrames);
-            scope.setExtra('percentageDroppedFrames', stats.percentageDroppedFrames);
-            scope.setExtra('streamElapsedSec', streamElapsedSec);
-            Sentry.captureMessage('streaming bandwidth stuck at 0kbps');
+          SentryReport.message('PerformanceService', 'update', 'streaming bandwidth stuck at 0kbps', {
+            level: 'warning',
+            tags: { condition: 'bandwidthZero' },
+            fingerprint: ['PerformanceService', 'bandwidthZero'],
+            extra: {
+              zeroDurationSec: this.zeroBandwidthSamples * (STATS_UPDATE_INTERVAL / 1000),
+              CPU: stats.CPU,
+              droppedFrames: stats.numberDroppedFrames,
+              percentageDroppedFrames: stats.percentageDroppedFrames,
+              streamElapsedSec,
+            },
           });
           this.zeroBandwidthAlertSent = true;
         }

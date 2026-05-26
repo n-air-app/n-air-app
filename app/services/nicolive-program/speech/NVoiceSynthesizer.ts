@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/vue';
 import { PrepareFunc } from 'util/QueueRunner';
+import { SentryReport } from 'util/sentry-report';
 
 import { Speech } from '../nicolive-comment-synthesizer';
 
@@ -74,13 +74,10 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
           };
         };
       } catch (error) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('in', 'NVoiceSynthesizer:speakText');
-          scope.setExtra('speech', speech);
-          scope.setExtra('error', error);
-          scope.setFingerprint(['NVoiceSynthesizer', 'speakText', 'error']);
-          Sentry.captureException(error);
+        SentryReport.error('NVoiceSynthesizer', 'speakText', error, {
+          tags: { in: 'NVoiceSynthesizer:speakText' },
+          extra: { speech, error },
+          fingerprint: ['NVoiceSynthesizer', 'speakText', 'error'],
         });
         console.info(`NVoiceSynthesizer: text:${JSON.stringify(speech.text)} -> ${error}`);
       }

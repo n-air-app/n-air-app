@@ -12,6 +12,7 @@ import { SceneCollectionsService } from 'services/scene-collections';
 import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
+import { SentryReport } from 'util/sentry-report';
 import Vue from 'vue';
 
 import { OnboardingService } from './onboarding';
@@ -296,11 +297,10 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     authWindow.setMenu(null);
     authWindow.loadURL(service.authUrl).catch((error) => {
       if (error instanceof Error) {
-        Sentry.withScope((scope) => {
-          scope.setLevel('warning');
-          scope.setExtra('url', service.authUrl);
-          scope.setFingerprint(['startAuth', 'loadURL', service.authUrl]);
-          Sentry.captureException(error);
+        SentryReport.error('UserService', 'startAuth', error, {
+          level: 'warning',
+          extra: { url: service.authUrl },
+          fingerprint: ['startAuth', 'loadURL', service.authUrl],
         });
       }
     });

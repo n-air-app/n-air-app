@@ -21,6 +21,7 @@ import { $t } from 'services/i18n';
 import { sendLogGif } from 'services/nicolive-program/nicolive-logger';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { TranscriptionLog } from 'services/usage-statistics';
+import { SentryReport } from 'util/sentry-report';
 
 import { Inject, mutation, PersistentStatefulService } from '../core';
 
@@ -509,14 +510,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       });
       this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
     } catch (err) {
-      Sentry.withScope((scope) => {
-        scope.setTags({
-          service: 'transcription',
-          voskModelName: this.state.voskModelName,
-        });
-        scope.setExtra('voskCliPath', this.voskCliPath);
-        scope.setExtra('modelPath', this.getModelPath(this.state.voskModelName));
-        Sentry.captureException(err);
+      SentryReport.error('TranscriptionService', 'createClient', err, {
+        tags: { voskModelName: this.state.voskModelName },
+        extra: { voskCliPath: this.voskCliPath, modelPath: this.getModelPath(this.state.voskModelName) },
       });
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
@@ -562,12 +558,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       },
       error: (err) => {
-        Sentry.withScope((scope) => {
-          scope.setTags({
-            service: 'transcription',
-            voskModelName: this.state.voskModelName,
-          });
-          Sentry.captureException(err);
+        SentryReport.error('TranscriptionService', 'startTranscription', err, {
+          tags: { voskModelName: this.state.voskModelName },
         });
         console.error('Transcription error:', err);
       },
