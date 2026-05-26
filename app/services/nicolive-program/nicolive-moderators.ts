@@ -1,11 +1,11 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
-import * as Sentry from '@sentry/vue';
 import { Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { WindowsService } from 'services/windows';
 import { isFakeMode } from 'util/fakeMode';
+import { SentryReport } from 'util/sentry-report';
 
 import { convertSSNGType, NdgrClient, toISO8601, toNumber } from './NdgrClient';
 import { isNdgrFetchError } from './NdgrFetchError';
@@ -134,15 +134,10 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
                     // 未対応のタイプが増えたときに毎回送信すると送信数が無駄に増えるので、一回だけ送信する
                     if (this.registerUnknownSSNGType(type)) {
                       console.warn(`Unknown SSNG Type: ${type}`);
-                      Sentry.withScope((scope) => {
-                        scope.setFingerprint([
-                          'NicoliveModeratorsService',
-                          'unknownSSNGType',
-                          type.toString(),
-                        ]);
-                        scope.setExtra('ssngUpdated', ssngUpdated);
-                        scope.setTag('unknownSSNGType', type);
-                        Sentry.captureException(e);
+                      SentryReport.error('NicoliveModeratorsService', 'onSSNGType', e, {
+                        fingerprint: ['NicoliveModeratorsService', 'unknownSSNGType', type.toString()],
+                        extra: { ssngUpdated },
+                        tags: { unknownSSNGType: String(type) },
                       });
                     }
                     return; // 不明タイプなので追加せず終わる
@@ -182,15 +177,10 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
             default:
               if (this.registerUnknownSSNGOperation(ssngUpdated.operation)) {
                 console.warn('Unknown SSNG operation:', ssngUpdated.operation, ssngUpdated);
-                Sentry.withScope((scope) => {
-                  scope.setFingerprint([
-                    'NicoliveModeratorsService',
-                    'unknownSSNGOperation',
-                    ssngUpdated.operation.toString(),
-                  ]);
-                  scope.setExtra('ssngUpdated', ssngUpdated);
-                  scope.setTag('unknownSSNGOperation', ssngUpdated.operation);
-                  Sentry.captureMessage('Unknown SSNG operation');
+                SentryReport.message('NicoliveModeratorsService', 'onSSNGOperation', 'Unknown SSNG operation', {
+                  fingerprint: ['NicoliveModeratorsService', 'unknownSSNGOperation', String(ssngUpdated.operation as unknown)],
+                  extra: { ssngUpdated },
+                  tags: { unknownSSNGOperation: String(ssngUpdated.operation as unknown) },
                 });
               }
           }
@@ -201,22 +191,18 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
       error: (err) => {
         console.error('Moderator message stream error:', err);
         const error: Error = err instanceof Error ? err : new Error(err);
-        Sentry.withScope((scope) => {
-          scope.setFingerprint(['NicoliveModeratorsService', 'NdgrClient', 'messageStreamError']);
-          scope.setTag('ndgr.type', 'moderator');
-          scope.captureException(error);
+        SentryReport.error('NicoliveModeratorsService', 'messageStream', error, {
+          fingerprint: ['NicoliveModeratorsService', 'NdgrClient', 'messageStreamError'],
+          tags: { 'ndgr.type': 'moderator' },
         });
       },
       complete: () => console.log('Message stream completed'),
     });
     await this.ndgrClient.connect().catch((err) => {
       console.info('Failed to connect moderator stream:', err);
-      Sentry.withScope((scope) => {
-        scope.setFingerprint(['NicoliveModeratorsService', 'NdgrClient', 'connectError']);
-        if (isNdgrFetchError(err)) {
-          scope.setTags(err.getTagsForSentry());
-        }
-        scope.captureException(err);
+      SentryReport.error('NicoliveModeratorsService', 'connectNdgr', err, {
+        fingerprint: ['NicoliveModeratorsService', 'NdgrClient', 'connectError'],
+        tags: isNdgrFetchError(err) ? err.getTagsForSentry() : {},
       });
     });
   }

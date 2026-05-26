@@ -4,6 +4,7 @@ import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
 import * as Sentry from '@sentry/vue';
+import { SentryReport, SentryReportOpts } from 'util/sentry-report';
 
 export function getNVoicePath(): string {
   // import/require構文を使うとビルド時に展開してしまうが、
@@ -380,29 +381,26 @@ export class NVoiceClient {
       );
       return await this.waitOkNg(this.commandLineClient);
     } catch (err) {
-      Sentry.withScope((scope) => {
-        scope.setLevel('error');
-        if (err instanceof NVoiceEngineError) {
-          scope.setTag('NVoiceEngineError.code', err.code);
-          for (const a of args) {
-            if (a.sentryExtra) {
-              scope.setExtra(a.label, a.value);
-            } else {
-              scope.setTag(`${command}.${a.label}`, a.value);
-            }
+      const opts: SentryReportOpts = {};
+      if (err instanceof NVoiceEngineError) {
+        const tags: Record<string, string> = { 'NVoiceEngineError.code': err.code };
+        const extra: Record<string, unknown> = {};
+        for (const a of args) {
+          if (a.sentryExtra) {
+            extra[a.label] = a.value;
+          } else {
+            tags[`${command}.${a.label}`] = a.value;
           }
-          switch (err.code) {
-            case '401': // テキスト解析失敗
-              scope.setLevel('warning');
-              break;
-          }
-          scope.setFingerprint([command, 'NVoiceEngineError', err.code]);
-        } else {
-          scope.setFingerprint([command]);
         }
-        Sentry.captureException(err);
-        throw err;
-      });
+        opts.tags = tags;
+        if (Object.keys(extra).length) opts.extra = extra;
+        opts.level = err.code === '401' ? 'warning' : 'error';
+        opts.fingerprint = [command, 'NVoiceEngineError', err.code];
+      } else {
+        opts.fingerprint = [command];
+      }
+      SentryReport.error('NVoiceClient', command, err, opts);
+      throw err;
     }
   }
 
