@@ -22,11 +22,16 @@ function prepare(codeExists: string) {
     }),
   }));
 
+  const sentryMessage = jest.fn();
+  jest.doMock('util/sentry-report', () => ({
+    SentryReport: { message: sentryMessage },
+  }));
+
   const m = require('./NicoliveFailure');
   const NicoliveFailure = m.NicoliveFailure as NicoliveFailureType;
   const openErrorDialogFromFailure = m.openErrorDialogFromFailure;
 
-  return { showMessageBox, NicoliveFailure, openErrorDialogFromFailure };
+  return { showMessageBox, sentryMessage, NicoliveFailure, openErrorDialogFromFailure };
 }
 
 test('4xxで未定義文言だったら400にフォールバックする', async () => {
@@ -88,4 +93,34 @@ test('errorCodeがなかったらstatusCode さらに x00 を使う', async () =
   await openErrorDialogFromFailure(failure);
   expect(showMessageBox.mock.calls[0][1].title).toBe('title');
   expect(showMessageBox.mock.calls[0][1].message).toBe('message');
+});
+
+test('network_error タイプの場合は Sentry に送信しないが dialog は表示する', async () => {
+  jest.doMock('./NicoliveClient', () => ({ NotLoggedInError: class {} }));
+  const { showMessageBox, sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const failure = NicoliveFailure.fromClientError('method', {
+    ok: false,
+    value: new Error('network error'),
+  });
+
+  await openErrorDialogFromFailure(failure);
+  expect(sentryMessage).not.toHaveBeenCalled();
+  expect(showMessageBox).toHaveBeenCalled();
+});
+
+test('http_error タイプの場合は Sentry に送信する', async () => {
+  jest.doMock('./NicoliveClient', () => ({ NotLoggedInError: class {} }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('500');
+  const failure = NicoliveFailure.fromClientError('method', {
+    ok: false,
+    value: { meta: { status: 500 } },
+  });
+
+  await openErrorDialogFromFailure(failure);
+  expect(sentryMessage).toHaveBeenCalledWith(
+    'NicoliveProgram',
+    'openErrorDialogFromFailure',
+    'openErrorDialogFromFailure',
+    expect.objectContaining({ level: 'warning' }),
+  );
 });
