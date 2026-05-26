@@ -154,6 +154,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
       const currentDisplay = remote.screen.getDisplayMatching(bounds);
       if (!currentDisplay) {
         SentryReport.message('WindowsService', 'updateScaleFactor', 'Could not find display for window', {
+          level: 'warning',
           extra: { windowId, bounds },
         });
         return;

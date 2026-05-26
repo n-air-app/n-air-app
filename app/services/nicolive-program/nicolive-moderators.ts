@@ -178,6 +178,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
               if (this.registerUnknownSSNGOperation(ssngUpdated.operation)) {
                 console.warn('Unknown SSNG operation:', ssngUpdated.operation, ssngUpdated);
                 SentryReport.message('NicoliveModeratorsService', 'onSSNGOperation', 'Unknown SSNG operation', {
+                  level: 'warning',
                   fingerprint: ['NicoliveModeratorsService', 'unknownSSNGOperation', String(ssngUpdated.operation)],
                   extra: { ssngUpdated },
                   tags: { unknownSSNGOperation: String(ssngUpdated.operation) },
