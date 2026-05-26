@@ -3,6 +3,7 @@ import path from 'path';
 
 import * as Sentry from '@sentry/vue';
 import { Service } from 'services/core/service';
+import { SentryReport } from 'util/sentry-report';
 
 interface IFile {
   data: string;
@@ -161,15 +162,10 @@ export class FileManagerService extends Service {
         file.locked = false;
         await this.flush(filePath, tries - 1);
       } else {
-        Sentry.withScope((scope) => {
-          scope.setLevel('error');
-          scope.setTag('service', 'FileManagerService');
-          scope.setTag('method', 'flush');
-          scope.setTag('tries', tries);
-          scope.setExtra('filePath', filePath);
-          scope.setExtra('fileVersion', version);
-          scope.setFingerprint(['FileManagerService', 'flush', 'RunOutOfRetries']);
-          Sentry.captureMessage('Ran out of retries writing file');
+        SentryReport.message('FileManagerService', 'flush', 'Ran out of retries writing file', {
+          tags: { tries: String(tries) },
+          extra: { filePath, fileVersion: version },
+          fingerprint: ['FileManagerService', 'flush', 'RunOutOfRetries'],
         });
       }
     }

@@ -33,6 +33,7 @@ import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { getPartitionConfig } from 'services/dev-hosts';
 import Util, { uuidv4 } from 'services/utils';
+import { SentryReport } from 'util/sentry-report';
 import Vue from 'vue';
 
 const { ipcRenderer } = electron;
@@ -152,12 +153,8 @@ export class WindowsService extends StatefulService<IWindowsState> {
       const bounds = window.getBounds();
       const currentDisplay = remote.screen.getDisplayMatching(bounds);
       if (!currentDisplay) {
-        Sentry.withScope((scope) => {
-          scope.setExtra('windowId', windowId);
-          scope.setExtra('bounds', bounds);
-          scope.setTag('module', 'windows');
-          scope.setTag('function', 'updateScaleFactor');
-          Sentry.captureMessage('Could not find display for window');
+        SentryReport.message('WindowsService', 'updateScaleFactor', 'Could not find display for window', {
+          extra: { windowId, bounds },
         });
         return;
       }

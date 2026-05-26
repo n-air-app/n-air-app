@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/vue';
 import { IObsListOption, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
@@ -10,6 +9,7 @@ import { DefaultManager } from 'services/sources/properties-managers/default-man
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../obs-api';
 
@@ -293,11 +293,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     const knownTypes: string[] = Object.values(ETransitionType);
     if (!knownTypes.includes(type)) {
       console.warn(`Unknown transition type "${type}", falling back to Cut`);
-      Sentry.withScope((scope) => {
-        scope.setLevel('warning');
-        scope.setExtra('unknownType', type);
-        scope.setExtra('name', name);
-        Sentry.captureMessage('Unknown transition type, falling back to Cut');
+      SentryReport.message('TransitionsService', 'createTransition', 'Unknown transition type, falling back to Cut', {
+        level: 'warning',
+        extra: { unknownType: type, name },
       });
       type = ETransitionType.Cut;
     }
