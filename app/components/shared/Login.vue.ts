@@ -1,64 +1,67 @@
 import * as remote from '@electron/remote';
 import HelpTip from 'components/shared/HelpTip.vue';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({ components: { HelpTip } })
-export default class Login extends Vue {
-  @Inject() userService: UserService;
-  @Inject() compactModeService: CompactModeService;
+export default defineComponent({
+  name: 'Login',
 
-  @Inject() dismissablesService: DismissablesService;
+  components: { HelpTip },
 
   mounted() {
     if (this.loggedIn) {
-      if (!this.dismissablesService.shouldShow(EDismissable.LoginHelpTip)) {
-        this.dismissablesService.reset(EDismissable.LoginHelpTip);
+      if (!DismissablesService.instance.shouldShow(EDismissable.LoginHelpTip)) {
+        DismissablesService.instance.reset(EDismissable.LoginHelpTip);
       }
     }
-  }
+  },
 
-  get loggedIn() {
-    return this.userService.isLoggedIn();
-  }
+  computed: {
+    loggedIn(): boolean {
+      return UserService.instance.isLoggedIn();
+    },
 
-  get username() {
-    return this.userService.username;
-  }
-  get userIcon() {
-    return this.userService.userIcon;
-  }
-  get userId() {
-    return this.userService.platformId;
-  }
-  get userPageURL() {
-    return this.userService.platformUserPageURL;
-  }
+    username() {
+      return UserService.instance.username;
+    },
 
-  get isCompactMode(): boolean {
-    return this.compactModeService.isCompactMode;
-  }
+    userIcon() {
+      return UserService.instance.userIcon;
+    },
 
-  logout() {
-    if (confirm($t('common.logoutConfirmMessage'))) {
-      this.userService.logOut();
-    }
-  }
+    userId() {
+      return UserService.instance.platformId;
+    },
 
-  login() {
-    this.userService.showLogin();
-  }
+    userPageURL() {
+      return UserService.instance.platformUserPageURL;
+    },
 
-  openUserPage() {
-    remote.shell.openExternal(this.userPageURL);
-  }
+    isCompactMode(): boolean {
+      return CompactModeService.instance.isCompactMode;
+    },
 
-  get loginHelpTipDismissable() {
-    return EDismissable.LoginHelpTip;
-  }
-}
+    loginHelpTipDismissable() {
+      return EDismissable.LoginHelpTip;
+    },
+  },
+
+  methods: {
+    logout() {
+      if (confirm($t('common.logoutConfirmMessage'))) {
+        UserService.instance.logOut();
+      }
+    },
+
+    login() {
+      UserService.instance.showLogin();
+    },
+
+    openUserPage() {
+      remote.shell.openExternal(this.userPageURL);
+    },
+  },
+});

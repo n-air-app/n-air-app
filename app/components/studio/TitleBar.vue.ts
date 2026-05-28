@@ -1,64 +1,62 @@
 import * as remote from '@electron/remote';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
-import { CustomizationService } from 'services/customization';
 import { isDevHosts } from 'services/dev-hosts';
 import { $t } from 'services/i18n';
 import { StreamingService } from 'services/streaming';
 import Utils from 'services/utils';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
-  components: {},
-})
-export default class TitleBar extends Vue {
-  @Inject() customizationService: CustomizationService;
-  @Inject() streamingService: StreamingService;
-  @Inject() compactModeService: CompactModeService;
+export default defineComponent({
+  name: 'TitleBar',
 
-  @Prop() title: string;
-  @Prop() resizable: boolean;
+  props: {
+    title: { type: String },
+    resizable: { type: Boolean },
+  },
 
-  get isMinimizable() {
-    return remote.getCurrentWindow().isMinimizable();
-  }
+  computed: {
+    isMinimizable() {
+      return remote.getCurrentWindow().isMinimizable();
+    },
 
-  get isUnstable() {
-    return Utils.isMainWindow() && Utils.isUnstable();
-  }
+    isUnstable() {
+      return Utils.isMainWindow() && Utils.isUnstable();
+    },
 
-  get isDevHosts() {
-    return Utils.isMainWindow() && isDevHosts();
-  }
+    isDevHosts() {
+      return Utils.isMainWindow() && isDevHosts();
+    },
 
-  get isCompactMode() {
-    return this.compactModeService.isCompactMode;
-  }
+    isCompactMode() {
+      return CompactModeService.instance.isCompactMode;
+    },
 
-  minimize() {
-    remote.getCurrentWindow().minimize();
-  }
+    isStreaming() {
+      return StreamingService.instance.isStreaming;
+    },
+  },
 
-  maximize() {
-    const win = remote.getCurrentWindow();
+  methods: {
+    minimize() {
+      remote.getCurrentWindow().minimize();
+    },
 
-    if (win.isMaximized()) {
-      win.unmaximize();
-    } else {
-      win.maximize();
-    }
-  }
+    maximize() {
+      const win = remote.getCurrentWindow();
 
-  close() {
-    if (Utils.isMainWindow() && this.streamingService.isStreaming) {
-      if (!confirm($t('streaming.endStreamInStreamingConfirm'))) return;
-    }
+      if (win.isMaximized()) {
+        win.unmaximize();
+      } else {
+        win.maximize();
+      }
+    },
 
-    remote.getCurrentWindow().close();
-  }
+    close() {
+      if (Utils.isMainWindow() && StreamingService.instance.isStreaming) {
+        if (!confirm($t('streaming.endStreamInStreamingConfirm'))) return;
+      }
 
-  get isStreaming() {
-    return this.streamingService.isStreaming;
-  }
-}
+      remote.getCurrentWindow().close();
+    },
+  },
+});

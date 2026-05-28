@@ -2,42 +2,44 @@ import Slider from 'components/shared/Slider.vue';
 import MixerVolmeter from 'components/studio/MixerVolmeter.vue';
 import { AudioSource } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { EditMenu } from 'util/menus/EditMenu';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'MixerItem',
+
   components: { Slider, MixerVolmeter },
-})
-export default class MixerItem extends Vue {
-  @Prop() audioSource: AudioSource;
 
-  @Inject() compactModeService: CompactModeService;
-  @Inject() private customizationService: CustomizationService;
+  props: {
+    audioSource: { type: Object as PropType<AudioSource> },
+  },
 
-  get previewEnabled() {
-    return !this.customizationService.state.performanceMode;
-  }
+  computed: {
+    previewEnabled() {
+      return !CustomizationService.instance.state.performanceMode;
+    },
 
-  get isCompactMode(): boolean {
-    return this.compactModeService.isCompactMode;
-  }
+    isCompactMode(): boolean {
+      return CompactModeService.instance.isCompactMode;
+    },
+  },
 
-  setMuted(muted: boolean) {
-    this.audioSource.setMuted(muted);
-  }
+  methods: {
+    setMuted(muted: boolean) {
+      this.audioSource.setMuted(muted);
+    },
 
-  onSliderChangeHandler(newVal: number) {
-    this.audioSource.setDeflection(newVal);
-  }
+    onSliderChangeHandler(newVal: number) {
+      this.audioSource.setDeflection(newVal);
+    },
 
-  showSourceMenu(sourceId: string) {
-    const menu = new EditMenu({
-      selectedSourceId: sourceId,
-      showAudioMixerMenu: true,
-    });
-    menu.popup();
-  }
-}
+    showSourceMenu(sourceId: string) {
+      const menu = new EditMenu({
+        selectedSourceId: sourceId,
+        showAudioMixerMenu: true,
+      });
+      menu.popup();
+    },
+  },
+});

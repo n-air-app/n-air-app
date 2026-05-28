@@ -1,5 +1,4 @@
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 interface TocSectionData {
   id: string;
@@ -8,12 +7,17 @@ interface TocSectionData {
   level: number;
 }
 
-@Component({})
-export default class TableOfContents extends Vue {
-  @Prop({ required: true }) sections!: TocSectionData[];
-  @Prop({ default: null }) activeId!: string | null;
+export default defineComponent({
+  name: 'TableOfContents',
 
-  public onNavigate(id: string): void {
-    this.$emit('navigate', id);
-  }
-}
+  props: {
+    sections: { type: Array as () => TocSectionData[], required: true },
+    activeId: { type: String as () => string | null, default: null },
+  },
+
+  methods: {
+    onNavigate(id: string): void {
+      this.$emit('navigate', id);
+    },
+  },
+});

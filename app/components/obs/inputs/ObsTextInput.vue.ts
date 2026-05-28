@@ -1,26 +1,30 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
-import { IObsInput, ObsInput, TObsType } from './ObsInput';
+import { IObsInput, TObsType } from './ObsInput';
 
-@Component
-class ObsTextInput extends ObsInput<IObsInput<string>> {
-  static obsType: TObsType[];
-
-  @Prop()
-    value: IObsInput<string>;
-
-  textVisible = !this.value.masked;
-  testingAnchor = `Form/Text/${this.value.name}`;
-
-  toggleVisible() {
-    this.textVisible = !this.textVisible;
-  }
-
-  onInputHandler(event: Event) {
-    this.emitInput({ ...this.value, value: (event.target as HTMLInputElement)['value'] });
-  }
-}
-
-ObsTextInput.obsType = ['OBS_PROPERTY_EDIT_TEXT', 'OBS_PROPERTY_TEXT'];
-
-export default ObsTextInput;
+const ObsTextInput = defineComponent({
+  name: 'ObsTextInput',
+  props: {
+    value: { type: Object as PropType<IObsInput<string>>, required: true as const },
+    category: { type: String },
+    subCategory: { type: String },
+  },
+  data() {
+    return {
+      textVisible: !this.value.masked,
+      testingAnchor: `Form/Text/${this.value.name}`,
+    };
+  },
+  methods: {
+    emitInput(eventData: IObsInput<string>) {
+      this.$emit('input', eventData);
+    },
+    toggleVisible() {
+      this.textVisible = !this.textVisible;
+    },
+    onInputHandler(event: Event) {
+      this.emitInput({ ...this.value, value: (event.target as HTMLInputElement)['value'] });
+    },
+  },
+});
+export default Object.assign(ObsTextInput, { obsType: ['OBS_PROPERTY_EDIT_TEXT', 'OBS_PROPERTY_TEXT'] as TObsType[] });

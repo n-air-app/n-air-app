@@ -1,5 +1,5 @@
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class SetupOptions extends Vue {}
+export default defineComponent({
+  name: 'SetupOptions',
+});

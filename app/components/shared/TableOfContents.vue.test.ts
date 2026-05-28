@@ -1,7 +1,6 @@
 // Mock Vue
-jest.mock('vue', () => ({
-  __esModule: true,
-  default: class Vue {
+jest.mock('vue', () => {
+  class Vue {
     _emittedEvents?: Array<{ event: string; args: any[] }>;
 
     $emit(event: string, ...args: any[]) {
@@ -11,13 +10,27 @@ jest.mock('vue', () => ({
       }
       this._emittedEvents.push({ event, args });
     }
-  },
-}));
-
-jest.mock('vue-property-decorator', () => ({
-  Component: () => (target: any) => target,
-  Prop: (options?: any) => (target: any, propertyKey: string) => {},
-}));
+  }
+  function defineComponent(options: any): any {
+    class Component extends Vue {
+      constructor() {
+        super();
+        if (options.data) Object.assign(this, options.data.call(this));
+      }
+    }
+    if (options.computed) {
+      for (const [key, fn] of Object.entries(options.computed as Record<string, any>)) {
+        Object.defineProperty(Component.prototype, key, { get: fn, configurable: true });
+      }
+    }
+    if (options.methods) Object.assign(Component.prototype, options.methods);
+    for (const hook of ['mounted', 'beforeDestroy', 'beforeUnmount', 'unmounted', 'created']) {
+      if (options[hook]) (Component.prototype as any)[hook] = options[hook];
+    }
+    return Component;
+  }
+  return { __esModule: true, default: Vue, defineComponent };
+});
 
 interface TocSectionData {
   id: string;

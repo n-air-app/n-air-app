@@ -1,52 +1,53 @@
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 interface INameSceneCollectionOptions {
   rename?: string;
   sceneCollectionToDuplicate?: string;
 }
 
-@Component({
+export default defineComponent({
+  name: 'NameSceneCollection',
+
   components: { ModalLayout },
-})
-export default class NameSceneCollection extends Vue {
-  name = '';
-  error = '';
 
-  @Inject() sceneCollectionsService: SceneCollectionsService;
-  @Inject() windowsService: WindowsService;
-
-  // @ts-expect-error: ts2729: use before initialization
-  options: INameSceneCollectionOptions = this.windowsService.getChildWindowQueryParams();
+  data() {
+    return {
+      name: '',
+      error: '',
+      options: WindowsService.instance.getChildWindowQueryParams() as INameSceneCollectionOptions,
+    };
+  },
 
   mounted() {
-    const suggestedName = this.options.sceneCollectionToDuplicate || $t('scenes.newSceneCollectionName');
-    this.name = this.sceneCollectionsService.suggestName(suggestedName);
-  }
+    const suggestedName =
+      this.options.sceneCollectionToDuplicate || $t('scenes.newSceneCollectionName');
+    this.name = SceneCollectionsService.instance.suggestName(suggestedName);
+  },
 
-  submit() {
-    if (this.isTaken(this.name)) {
-      this.error = $t('scenes.alreadyTakenName');
-    } else if (this.options.rename) {
-      this.sceneCollectionsService.rename(this.name);
-      this.windowsService.closeChildWindow();
-    } else if (this.options.sceneCollectionToDuplicate) {
-      this.sceneCollectionsService.duplicate(this.name);
-      this.windowsService.closeChildWindow();
-    } else {
-      this.sceneCollectionsService.create({ name: this.name });
-      this.windowsService.closeChildWindow();
-    }
-  }
+  methods: {
+    submit() {
+      if (this.isTaken(this.name)) {
+        this.error = $t('scenes.alreadyTakenName');
+      } else if (this.options.rename) {
+        SceneCollectionsService.instance.rename(this.name);
+        WindowsService.instance.closeChildWindow();
+      } else if (this.options.sceneCollectionToDuplicate) {
+        SceneCollectionsService.instance.duplicate(this.name);
+        WindowsService.instance.closeChildWindow();
+      } else {
+        SceneCollectionsService.instance.create({ name: this.name });
+        WindowsService.instance.closeChildWindow();
+      }
+    },
 
-  isTaken(name: string) {
-    return !!this.sceneCollectionsService.collections.find((coll) => {
-      return coll.name === name;
-    });
-  }
-}
+    isTaken(name: string) {
+      return !!SceneCollectionsService.instance.collections.find((coll: any) => {
+        return coll.name === name;
+      });
+    },
+  },
+});

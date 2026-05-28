@@ -1,102 +1,99 @@
 import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { Inject } from 'services/core/injector';
 import { SourcesService } from 'services/sources';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'BrowserSourceInteraction',
+
   components: { ModalLayout, Display },
-})
-export default class BrowserSourceInteraction extends Vue {
-  @Inject() windowsService: WindowsService;
-  @Inject() sourcesService: SourcesService;
 
-  $refs: {
-    eventDiv: HTMLDivElement;
-  };
-
-  get sourceId() {
-    const windowId = Utils.getCurrentUrlParams().windowId;
-    return this.windowsService.getWindowOptions(windowId).sourceId;
-  }
-
-  get source() {
-    return this.sourcesService.getSource(this.sourceId);
-  }
-
-  currentRegion: IRectangle = { x: 0, y: 0, width: 1, height: 1 };
-
-  onOutputResize(region: IRectangle) {
-    this.currentRegion = region;
-  }
-
-  eventLocationInSourceSpace(e: MouseEvent): IVec2 {
-    const factor = this.windowsService.state.child.scaleFactor;
+  data() {
     return {
-      x:
-        ((e.offsetX * factor - this.currentRegion.x) / this.currentRegion.width)
-        * this.source.width,
-      y:
-        ((e.offsetY * factor - this.currentRegion.y) / this.currentRegion.height)
-        * this.source.height,
+      currentRegion: { x: 0, y: 0, width: 1, height: 1 } as IRectangle,
     };
-  }
+  },
 
-  onWheel(e: WheelEvent) {
-    this.source.mouseWheel(this.eventLocationInSourceSpace(e), {
-      x: e.deltaX,
-      y: e.deltaY,
-    });
-  }
+  computed: {
+    sourceId(): string {
+      const windowId = Utils.getCurrentUrlParams().windowId;
+      return WindowsService.instance.getWindowOptions(windowId).sourceId;
+    },
 
-  onMousedown(e: MouseEvent) {
-    this.source.mouseClick(e.button, this.eventLocationInSourceSpace(e), false);
-  }
+    source() {
+      return SourcesService.instance.getSource(this.sourceId);
+    },
+  },
 
-  onMouseup(e: MouseEvent) {
-    this.source.mouseClick(e.button, this.eventLocationInSourceSpace(e), true);
-  }
+  mounted(): void {
+    (this.$refs.eventDiv as HTMLDivElement).focus();
+  },
 
-  onMousemove(e: MouseEvent) {
-    const pos = this.eventLocationInSourceSpace(e);
-    if (pos.x < 0 || pos.y < 0) return;
-    this.source.mouseMove(pos);
-  }
+  methods: {
+    onOutputResize(region: IRectangle): void {
+      this.currentRegion = region;
+    },
 
-  onKeydown(e: KeyboardEvent) {
-    if (this.isModifierPress(e)) return;
+    eventLocationInSourceSpace(e: MouseEvent): IVec2 {
+      const factor = WindowsService.instance.state.child.scaleFactor;
+      return {
+        x:
+          ((e.offsetX * factor - this.currentRegion.x) / this.currentRegion.width)
+          * this.source.width,
+        y:
+          ((e.offsetY * factor - this.currentRegion.y) / this.currentRegion.height)
+          * this.source.height,
+      };
+    },
 
-    this.source.keyInput(e.key, e.keyCode, false, this.getModifiers(e));
-  }
+    onWheel(e: WheelEvent): void {
+      this.source.mouseWheel(this.eventLocationInSourceSpace(e), {
+        x: e.deltaX,
+        y: e.deltaY,
+      });
+    },
 
-  onKeyup(e: KeyboardEvent) {
-    if (this.isModifierPress(e)) return;
+    onMousedown(e: MouseEvent): void {
+      this.source.mouseClick(e.button, this.eventLocationInSourceSpace(e), false);
+    },
 
-    this.source.keyInput(e.key, e.keyCode, true, this.getModifiers(e));
-  }
+    onMouseup(e: MouseEvent): void {
+      this.source.mouseClick(e.button, this.eventLocationInSourceSpace(e), true);
+    },
 
-  isModifierPress(event: KeyboardEvent) {
-    return (
-      event.key === 'Control'
-      || event.key === 'Alt'
-      || event.key === 'Meta'
-      || event.key === 'Shift'
-    );
-  }
+    onMousemove(e: MouseEvent): void {
+      const pos = this.eventLocationInSourceSpace(e);
+      if (pos.x < 0 || pos.y < 0) return;
+      this.source.mouseMove(pos);
+    },
 
-  getModifiers(e: KeyboardEvent) {
-    return {
-      alt: e.altKey,
-      ctrl: e.ctrlKey,
-      shift: e.shiftKey,
-    };
-  }
+    onKeydown(e: KeyboardEvent): void {
+      if (this.isModifierPress(e)) return;
+      this.source.keyInput(e.key, e.keyCode, false, this.getModifiers(e));
+    },
 
-  mounted() {
-    // Allows keyboard events to be immediately captured
-    this.$refs.eventDiv.focus();
-  }
-}
+    onKeyup(e: KeyboardEvent): void {
+      if (this.isModifierPress(e)) return;
+      this.source.keyInput(e.key, e.keyCode, true, this.getModifiers(e));
+    },
+
+    isModifierPress(event: KeyboardEvent): boolean {
+      return (
+        event.key === 'Control'
+        || event.key === 'Alt'
+        || event.key === 'Meta'
+        || event.key === 'Shift'
+      );
+    },
+
+    getModifiers(e: KeyboardEvent) {
+      return {
+        alt: e.altKey,
+        ctrl: e.ctrlKey,
+        shift: e.shiftKey,
+      };
+    },
+  },
+});

@@ -1,32 +1,34 @@
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class ProgramStatistics extends Vue {
-  @Inject()
-    nicoliveProgramService: NicoliveProgramService;
+export default defineComponent({
+  name: 'ProgramStatistics',
 
-  visitorTooltip = $t('common.numberOfVisitors');
-  commentTooltip = $t('common.numberOfComments');
-  adPointTooltip = $t('common.numberOfadPoint');
-  giftPointTooltip = $t('common.numberOfgiftPoint');
+  data() {
+    return {
+      visitorTooltip: $t('common.numberOfVisitors'),
+      commentTooltip: $t('common.numberOfComments'),
+      adPointTooltip: $t('common.numberOfadPoint'),
+      giftPointTooltip: $t('common.numberOfgiftPoint'),
+    };
+  },
 
-  get viewers(): number {
-    return this.nicoliveProgramService.state.viewers;
-  }
+  computed: {
+    viewers(): number {
+      return NicoliveProgramService.instance.state.viewers;
+    },
 
-  get comments(): number {
-    return this.nicoliveProgramService.state.comments;
-  }
+    comments(): number {
+      return NicoliveProgramService.instance.state.comments;
+    },
 
-  get adPoint(): number {
-    return this.nicoliveProgramService.state.adPoint;
-  }
+    adPoint(): number {
+      return NicoliveProgramService.instance.state.adPoint;
+    },
 
-  get giftPoint(): number {
-    return this.nicoliveProgramService.state.giftPoint;
-  }
-}
+    giftPoint(): number {
+      return NicoliveProgramService.instance.state.giftPoint;
+    },
+  },
+});

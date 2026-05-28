@@ -1,15 +1,16 @@
-import { Inject } from 'services/core/injector';
 import { TransitionsService } from 'services/transitions';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class Studio extends Vue {
-  @Inject() private transitionsService: TransitionsService;
+export default defineComponent({
+  name: 'StudioModeControls',
 
-  @Prop() stacked: boolean;
+  props: {
+    stacked: { type: Boolean },
+  },
 
-  studioModeTransition() {
-    this.transitionsService.executeStudioModeTransition();
-  }
-}
+  methods: {
+    studioModeTransition() {
+      TransitionsService.instance.executeStudioModeTransition();
+    },
+  },
+});

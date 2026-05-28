@@ -1,92 +1,69 @@
 import Dropdown from 'components/shared/Dropdown.vue';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { ObsImporterService } from 'services/obs-importer';
 import { OnboardingService } from 'services/onboarding';
-import { SceneCollectionsService } from 'services/scene-collections';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import NAirObsLogo from '../../../../media/images/n-air-obs-logo.svg';
 
-@Component({
-  components: {
-    Dropdown,
-    NAirObsLogo,
+export default defineComponent({
+  name: 'ObsImport',
+
+  components: { Dropdown, NAirObsLogo },
+
+  data() {
+    const profiles = ObsImporterService.instance.getProfiles();
+    return {
+      status: 'initial' as 'initial' | 'importing' | 'done',
+      sceneCollections: ObsImporterService.instance.getSceneCollections(),
+      profiles,
+      selectedProfile: profiles[0] || '',
+      reImportMode: false,
+    };
   },
-})
-export default class ObsImport extends Vue {
-  @Inject()
-    onboardingService: OnboardingService;
-
-  @Inject()
-    obsImporterService: ObsImporterService;
-
-  @Inject()
-    sceneCollectionsService: SceneCollectionsService;
-
-  status: 'initial' | 'importing' | 'done' = 'initial';
-
-  // @ts-expect-error: ts2729: use before initialization
-  sceneCollections = this.obsImporterService.getSceneCollections();
-
-  // @ts-expect-error: ts2729: use before initialization
-  profiles = this.obsImporterService.getProfiles();
-
-  selectedProfile = this.profiles[0] || '';
-
-  reImportMode = false;
 
   created() {
     // シーン編集から来た場合、初期とは違う表記をするため
-    this.reImportMode = this.onboardingService.state.options.skipLogin;
+    this.reImportMode = OnboardingService.instance.state.options.skipLogin;
 
     // OBSのデータが無いならskip
-    if (!this.obsImporterService.canImportFromOBS) this.startFresh();
-  }
+    if (!ObsImporterService.instance.canImportFromOBS) (this as any).startFresh();
+  },
 
-  get title() {
-    if (this.status === 'importing') {
-      return $t('onboarding.importingStateTitle');
-    }
+  computed: {
+    title(): string {
+      if (this.status === 'importing') return $t('onboarding.importingStateTitle');
+      if (this.status === 'done') return $t('onboarding.doneStateTitle');
+      return $t('onboarding.initialStateTitle');
+    },
 
-    if (this.status === 'done') {
-      return $t('onboarding.doneStateTitle');
-    }
+    description(): string {
+      if (this.status === 'importing') return $t('onboarding.importingStateDescription');
+      if (this.status === 'done') return $t('onboarding.doneStateDescription');
+      return $t('onboarding.initialStateDescription');
+    },
+  },
 
-    return $t('onboarding.initialStateTitle');
-  }
+  methods: {
+    startImport() {
+      this.status = 'importing';
+      setTimeout(async () => {
+        try {
+          await ObsImporterService.instance.load(this.selectedProfile);
+          this.status = 'done';
+        } catch (e) {
+          // I suppose let's pretend we succeeded for now.
+          this.status = 'done';
+        }
+      });
+    },
 
-  get description() {
-    if (this.status === 'importing') {
-      return $t('onboarding.importingStateDescription');
-    }
+    startFresh() {
+      OnboardingService.instance.skip();
+    },
 
-    if (this.status === 'done') {
-      return $t('onboarding.doneStateDescription');
-    }
-
-    return $t('onboarding.initialStateDescription');
-  }
-
-  startImport() {
-    this.status = 'importing';
-    setTimeout(async () => {
-      try {
-        await this.obsImporterService.load(this.selectedProfile);
-        this.status = 'done';
-      } catch (e) {
-        // I suppose let's pretend we succeeded for now.
-        this.status = 'done';
-      }
-    });
-  }
-
-  startFresh() {
-    this.onboardingService.skip();
-  }
-
-  next() {
-    this.onboardingService.next();
-  }
-}
+    next() {
+      OnboardingService.instance.next();
+    },
+  },
+});

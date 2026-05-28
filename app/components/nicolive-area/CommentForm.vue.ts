@@ -8,33 +8,48 @@ import {
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 import { TimestampedText, TranscriptionService } from 'services/transcription/transcription';
-import { UserService } from 'services/user';
 import { ScheduledExecutionQueue } from 'util/ScheduledExecutionQueue';
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class CommentForm extends Vue {
-  @Inject()
-    nicoliveProgramService: NicoliveProgramService;
-  @Inject()
-  private transcriptionService: TranscriptionService;
-  @Inject()
-  private userService: UserService;
+export default defineComponent({
+  name: 'CommentForm',
 
-  isCommentSending: boolean = false;
-  operatorCommentValue: string = '';
+  setup() {
+    // Set up service injections (works with test mocks via services/core/__mocks__/injector.ts)
+    const services = {} as Record<string, any>;
+    Inject()(services, 'nicoliveProgramService');
+    Inject()(services, 'transcriptionService');
+    return {
+      nicoliveProgramService: services['nicoliveProgramService'] as NicoliveProgramService,
+      transcriptionService: services['transcriptionService'] as TranscriptionService,
+    };
+  },
 
-  commentQueue: ScheduledExecutionQueue<TimestampedText> | null = null;
+  data() {
+    return {
+      isCommentSending: false,
+      operatorCommentValue: '',
+      commentQueue: null as ScheduledExecutionQueue<TimestampedText> | null,
+      transcriptionSubscription: null as Subscription | null,
+    };
+  },
 
-  queueComment(timestampedText: TimestampedText) {
-    this.commentQueue.add(
-      timestampedText,
-      new Date(Date.now() + this.transcriptionService.state.commentPostDelay),
-    );
-  }
+  computed: {
+    isSendable(): boolean {
+      return !this.isCommentSending && !this.programEnded;
+    },
 
-  transcriptionSubscription: Subscription;
+    programEnded(): boolean {
+      return this.nicoliveProgramService.state.status === 'end';
+    },
+  },
+
+  watch: {
+    isSendable(isSendable: boolean) {
+      this.onIsSendableChanged(isSendable);
+    },
+  },
+
   mounted() {
     this.commentQueue = new ScheduledExecutionQueue<TimestampedText>(
       async (item: TimestampedText): Promise<boolean> => {
@@ -68,83 +83,83 @@ export default class CommentForm extends Vue {
         console.error('Transcription error:', error);
       },
     });
-  }
+  },
 
   beforeDestroy() {
     this.transcriptionSubscription?.unsubscribe();
     this.commentQueue?.destroy();
-  }
+  },
 
-  get isSendable(): boolean {
-    return !this.isCommentSending && !this.programEnded;
-  }
-
-  @Watch('isSendable')
-  onIsSendableChanged(isSendable: boolean) {
-    if (isSendable) {
-      this.commentQueue?.resume();
-    }
-  }
-
-  async sendOperatorComment(event: KeyboardEvent | MouseEvent) {
-    const text = this.operatorCommentValue;
-    if (text.length === 0) return;
-
-    const isPermanent = event.ctrlKey;
-    if (this.isCommentSending) throw new Error('sendOperatorComment is running');
-
-    try {
-      this.isCommentSending = true;
-      await this.nicoliveProgramService.sendOperatorComment(text, isPermanent);
-      this.operatorCommentValue = '';
-    } catch (caught) {
-      if (caught instanceof NicoliveFailure) {
-        await openErrorDialogFromFailure(caught);
-      } else {
-        throw caught;
+  methods: {
+    onIsSendableChanged(isSendable: boolean) {
+      if (isSendable) {
+        this.commentQueue?.resume();
       }
-    } finally {
-      this.isCommentSending = false;
+    },
 
-      this.$nextTick(() => {
-        (this.$refs.input as HTMLElement)?.focus();
+    queueComment(timestampedText: TimestampedText) {
+      this.commentQueue.add(
+        timestampedText,
+        new Date(Date.now() + this.transcriptionService.state.commentPostDelay),
+      );
+    },
+
+    async sendOperatorComment(event: KeyboardEvent | MouseEvent) {
+      const text = this.operatorCommentValue;
+      if (text.length === 0) return;
+
+      const isPermanent = event.ctrlKey;
+      if (this.isCommentSending) throw new Error('sendOperatorComment is running');
+
+      try {
+        this.isCommentSending = true;
+        await this.nicoliveProgramService.sendOperatorComment(text, isPermanent);
+        this.operatorCommentValue = '';
+      } catch (caught) {
+        if (caught instanceof NicoliveFailure) {
+          await openErrorDialogFromFailure(caught);
+        } else {
+          throw caught;
+        }
+      } finally {
+        this.isCommentSending = false;
+
+        this.$nextTick(() => {
+          (this.$refs.input as HTMLElement)?.focus();
+        });
+      }
+    },
+
+    async sendTranscribedLog(text: string) {
+      sendLogGif('transcription', this.nicoliveProgramService.state.programID, {
+        text,
       });
-    }
-  }
+    },
 
-  async sendTranscribedLog(text: string) {
-    sendLogGif('transcription', this.nicoliveProgramService.state.programID, {
-      text,
-    });
-  }
+    async sendTranscribedComment(text: string, estimatedStartSpeaking: Date) {
+      // 放送中以外はコメントできない
+      if (this.nicoliveProgramService.state.status !== 'onAir') return;
+      if (text.length === 0) return;
 
-  async sendTranscribedComment(text: string, estimatedStartSpeaking: Date) {
-    // 放送中以外はコメントできない
-    if (this.nicoliveProgramService.state.status !== 'onAir') return;
-    if (text.length === 0) return;
-
-    try {
-      this.isCommentSending = true;
-      const vpos = this.nicoliveProgramService.getVposFromDate(estimatedStartSpeaking);
-      const modifier: CommentModifier = {
-        position: this.transcriptionService.state.commentPosition,
-        font: this.transcriptionService.state.commentFont,
-        color: this.transcriptionService.state.commentColor,
-        size: this.transcriptionService.state.commentSize,
-      };
-      await this.nicoliveProgramService.sendNormalComment(text, vpos, modifier);
-    } catch (caught) {
-      if (caught instanceof NicoliveFailure) {
-        await openErrorDialogFromFailure(caught);
-      } else {
-        throw caught;
+      try {
+        this.isCommentSending = true;
+        const vpos = this.nicoliveProgramService.getVposFromDate(estimatedStartSpeaking);
+        const modifier: CommentModifier = {
+          position: this.transcriptionService.state.commentPosition,
+          font: this.transcriptionService.state.commentFont,
+          color: this.transcriptionService.state.commentColor,
+          size: this.transcriptionService.state.commentSize,
+        };
+        await this.nicoliveProgramService.sendNormalComment(text, vpos, modifier);
+      } catch (caught) {
+        if (caught instanceof NicoliveFailure) {
+          await openErrorDialogFromFailure(caught);
+        } else {
+          throw caught;
+        }
+      } finally {
+        this.isCommentSending = false;
       }
-    } finally {
-      this.isCommentSending = false;
-    }
-  }
-
-  get programEnded(): boolean {
-    return this.nicoliveProgramService.state.status === 'end';
-  }
-}
+    },
+  },
+});

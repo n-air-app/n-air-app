@@ -63,20 +63,35 @@ jest.mock('services/nicolive-program/nicolive-logger', () => ({
 }));
 
 // Mock Vue
-jest.mock('vue', () => ({
-  __esModule: true,
-  default: class Vue {
+jest.mock('vue', () => {
+  class Vue {
     $refs: any = {};
     $nextTick(fn: () => void) {
       Promise.resolve().then(fn);
     }
-  },
-}));
-
-jest.mock('vue-property-decorator', () => ({
-  Component: () => (target: any) => target,
-  Watch: () => (target: any, propertyKey: string) => {},
-}));
+  }
+  function defineComponent(options: any): any {
+    class Component extends Vue {
+      constructor() {
+        super();
+        if (options.setup) Object.assign(this, options.setup.call(this));
+        if (options.created) options.created.call(this);
+        if (options.data) Object.assign(this, options.data.call(this));
+      }
+    }
+    if (options.computed) {
+      for (const [key, fn] of Object.entries(options.computed as Record<string, any>)) {
+        Object.defineProperty(Component.prototype, key, { get: fn, configurable: true });
+      }
+    }
+    if (options.methods) Object.assign(Component.prototype, options.methods);
+    for (const hook of ['mounted', 'beforeDestroy', 'beforeUnmount', 'unmounted', 'created']) {
+      if (options[hook]) (Component.prototype as any)[hook] = options[hook];
+    }
+    return Component;
+  }
+  return { __esModule: true, default: Vue, defineComponent };
+});
 
 describe('CommentForm', () => {
   let clock: FakeTimers.InstalledClock;
@@ -146,7 +161,7 @@ describe('CommentForm', () => {
   /**
    * Creates a CommentForm instance with current mock services
    */
-  function createInstance(): CommentFormType {
+  function createInstance(): any {
     setup({
       injectee: {
         NicoliveProgramService: mockNicoliveProgramService,
@@ -156,7 +171,7 @@ describe('CommentForm', () => {
     });
 
     const CommentForm = require('./CommentForm.vue.ts').default as typeof CommentFormType;
-    const instance = new CommentForm() as CommentFormType;
+    const instance = new CommentForm() as any;
     instance.mounted();
     return instance;
   }

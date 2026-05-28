@@ -1,57 +1,54 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
-import { IObsNumberInputValue, ObsInput, TObsType } from './ObsInput';
+import { IObsNumberInputValue, TObsType } from './ObsInput';
 
-@Component
-class ObsIntInput extends ObsInput<IObsNumberInputValue> {
-  static obsType: TObsType[];
-
-  @Prop()
-    value: IObsNumberInputValue;
-  testingAnchor = `Form/Int/${this.value.name}`;
-
-  $refs: {
-    input: HTMLInputElement;
-  };
-
-  updateValue(value: string) {
-    let formattedValue = String(isNaN(parseInt(value, 10)) ? 0 : parseInt(value, 10));
-    if (this.value.type === 'OBS_PROPERTY_UINT' && Number(formattedValue) < 0) {
-      formattedValue = '0';
-    }
-
-    if (this.value.minVal !== undefined && Number(value) < this.value.minVal) {
-      formattedValue = String(this.value.minVal);
-    }
-
-    if (this.value.maxVal !== undefined && Number(value) > this.value.maxVal) {
-      formattedValue = String(this.value.maxVal);
-    }
-
-    if (formattedValue !== value) {
-      this.$refs.input.value = formattedValue;
-    }
-    // Emit the number value through the input event
-    this.emitInput({ ...this.value, value: Number(formattedValue) });
-  }
-
-  increment() {
-    this.updateValue(String(Number(this.$refs.input.value) + 1));
-  }
-
-  decrement() {
-    this.updateValue(String(Number(this.$refs.input.value) - 1));
-  }
-
-  onMouseWheelHandler(event: WheelEvent) {
-    const canChange = event.target !== this.$refs.input || this.$refs.input === document.activeElement;
-    if (!canChange) return;
-    if (event.deltaY > 0) this.decrement();
-    else this.increment();
-    event.preventDefault();
-  }
-}
-
-ObsIntInput.obsType = ['OBS_PROPERTY_INT', 'OBS_PROPERTY_UINT'];
-
-export default ObsIntInput;
+const ObsIntInput = defineComponent({
+  name: 'ObsIntInput',
+  props: {
+    value: { type: Object as PropType<IObsNumberInputValue>, required: true as const },
+    category: { type: String },
+    subCategory: { type: String },
+  },
+  data() {
+    return {
+      testingAnchor: `Form/Int/${this.value.name}`,
+    };
+  },
+  methods: {
+    emitInput(eventData: IObsNumberInputValue) {
+      this.$emit('input', eventData);
+    },
+    updateValue(value: string) {
+      let formattedValue = String(isNaN(parseInt(value, 10)) ? 0 : parseInt(value, 10));
+      if (this.value.type === 'OBS_PROPERTY_UINT' && Number(formattedValue) < 0) {
+        formattedValue = '0';
+      }
+      if (this.value.minVal !== undefined && Number(value) < this.value.minVal) {
+        formattedValue = String(this.value.minVal);
+      }
+      if (this.value.maxVal !== undefined && Number(value) > this.value.maxVal) {
+        formattedValue = String(this.value.maxVal);
+      }
+      const input = (this.$refs.input as HTMLInputElement);
+      if (formattedValue !== value) {
+        input.value = formattedValue;
+      }
+      this.emitInput({ ...this.value, value: Number(formattedValue) });
+    },
+    increment() {
+      this.updateValue(String(Number((this.$refs.input as HTMLInputElement).value) + 1));
+    },
+    decrement() {
+      this.updateValue(String(Number((this.$refs.input as HTMLInputElement).value) - 1));
+    },
+    onMouseWheelHandler(event: WheelEvent) {
+      const input = this.$refs.input as HTMLInputElement;
+      const canChange = event.target !== input || input === document.activeElement;
+      if (!canChange) return;
+      if (event.deltaY > 0) this.decrement();
+      else this.increment();
+      event.preventDefault();
+    },
+  },
+});
+export default Object.assign(ObsIntInput, { obsType: ['OBS_PROPERTY_INT', 'OBS_PROPERTY_UINT'] as TObsType[] });

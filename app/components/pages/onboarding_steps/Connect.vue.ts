@@ -1,49 +1,50 @@
-import { Inject } from 'services/core/injector';
 import { OnboardingService } from 'services/onboarding';
 import { TPlatform } from 'services/platforms';
 import { UserService } from 'services/user';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import NAirLogo from '../../../../media/images/n-air-logo.svg';
 
-@Component({
-  components: {
-    NAirLogo,
-  },
-})
-export default class Connect extends Vue {
-  @Inject() userService: UserService;
-  @Inject() onboardingService: OnboardingService;
+export default defineComponent({
+  name: 'Connect',
 
-  loadingState = false;
+  components: { NAirLogo },
 
-  authPlatform(platform: TPlatform) {
-    this.loadingState = true;
-    this.userService.startAuth({
-      platform,
-      onAuthClose: () => {
-        this.loadingState = false;
-      },
-      onAuthFinish: () => {
-        this.onboardingService.next();
-      },
-    });
-  }
-
-  iconForPlatform(platform: TPlatform) {
-    if (this.loadingState) return 'icon-spinner icon-spin';
-
+  data() {
     return {
-      niconico: 'icon-niconico',
-    }[platform];
-  }
+      loadingState: false,
+    };
+  },
 
-  skipOnboarding() {
-    this.onboardingService.skip();
-  }
+  computed: {
+    isSecurityUpgrade(): boolean {
+      return OnboardingService.instance.options.isSecurityUpgrade;
+    },
+  },
 
-  get isSecurityUpgrade() {
-    return this.onboardingService.options.isSecurityUpgrade;
-  }
-}
+  methods: {
+    authPlatform(platform: TPlatform) {
+      this.loadingState = true;
+      UserService.instance.startAuth({
+        platform,
+        onAuthClose: () => {
+          this.loadingState = false;
+        },
+        onAuthFinish: () => {
+          OnboardingService.instance.next();
+        },
+      });
+    },
+
+    iconForPlatform(platform: TPlatform) {
+      if (this.loadingState) return 'icon-spinner icon-spin';
+      return {
+        niconico: 'icon-niconico',
+      }[platform];
+    },
+
+    skipOnboarding() {
+      OnboardingService.instance.skip();
+    },
+  },
+});

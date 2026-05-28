@@ -15,7 +15,6 @@ import TableOfContents from 'components/shared/TableOfContents.vue';
 import { TocManager } from 'components/shared/TocManager';
 import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
-import { Inject } from 'services/core/injector';
 import {
   ISettingsServiceApi,
   ISettingsSubCategory,
@@ -24,8 +23,7 @@ import {
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 interface TocSectionData {
   id: string;
@@ -45,7 +43,8 @@ const CATEGORIES_WITH_TOC: string[] = [
 // ニコニコログインが必要なカテゴリ
 const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'CommentSpeech'];
 
-@Component({
+export default defineComponent({
+  name: 'Settings',
   components: {
     ModalLayout,
     GenericFormGroups,
@@ -61,7 +60,7 @@ const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'CommentSpeec
     TableOfContents,
     TocSection,
   },
-  provide(this: Settings) {
+  provide() {
     return {
       getTocSectionId: (): string => {
         return this.tocManager.generateId();
@@ -69,67 +68,73 @@ const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'CommentSpeec
       registerTocSection: (section: TocSectionData): string => {
         const categoryName = this.categoryName;
         this.tocManager.register(categoryName, section);
-        return categoryName; // Return the category name so TocSection can remember it
+        return categoryName;
       },
       unregisterTocSection: (categoryName: string, sectionId: string) => {
         this.tocManager.unregister(categoryName, sectionId);
       },
     };
   },
-})
-export default class Settings extends Vue {
-  @Inject() settingsService: ISettingsServiceApi;
-  @Inject() windowsService: WindowsService;
-  @Inject() userService: UserService;
-  @Inject() streamingService: StreamingService;
+  data() {
+    return {
+      categoryName: null as SettingsCategory | null,
+      settingsData: [] as ISettingsSubCategory[],
+      categoryNames: (require('services/settings').SettingsService.instance as ISettingsServiceApi).getCategories(),
+      userSubscription: null as Subscription | null,
+      icons: CategoryIcons,
+      isLoggedIn: false,
+      isTocOpen: true,
+      currentActiveTocId: null as string | null,
+      tocManager: new TocManager(),
+    };
+  },
+  computed: {
+    isStreaming(): boolean {
+      return StreamingService.instance.isStreaming;
+    },
+    showLoginRequiredNotice(): boolean {
+      return (
+        !this.isLoggedIn
+        && CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
+      );
+    },
+    currentSections(): TocSectionData[] {
+      if (!this.categoryName) return [];
+      return this.tocManager.getSections(this.categoryName);
+    },
+  },
+  watch: {
+    categoryName(categoryName: SettingsCategory) {
+      Sentry.addBreadcrumb({ category: 'settings', message: `category: ${categoryName}`, level: 'info' });
+      this.settingsData = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getSettingsFormData(categoryName);
+      (this.$refs.settingsContainer as HTMLElement).scrollTop = 0;
+      this.isTocOpen = true;
 
-  $refs: { settingsContainer: HTMLElement };
+      this.tocManager.clear(categoryName);
 
-  categoryName: SettingsCategory | null = null;
-  settingsData: ISettingsSubCategory[] = [];
-  // @ts-expect-error: ts2729: use before initialization
-  categoryNames = this.settingsService.getCategories();
-  userSubscription: Subscription;
-  icons = CategoryIcons;
-  isLoggedIn = false;
+      this.currentActiveTocId = null;
 
-  // TOCの開閉状態を管理するプロパティを追加
-  public isTocOpen: boolean = true;
-  public currentActiveTocId: string | null = null;
-
-  // NavItemのクリック時に呼び出すメソッド
-  public handleCategoryClick(category: SettingsCategory) {
-    if (this.categoryName === category) {
-      this.isTocOpen = !this.isTocOpen;
-    } else {
-      this.categoryName = category;
-    }
-  }
-
-  // TOC管理
-  private tocManager = new TocManager();
-
-  // 現在のカテゴリのセクションリストを取得
-  get currentSections(): TocSectionData[] {
-    if (!this.categoryName) return [];
-    return this.tocManager.getSections(this.categoryName);
-  }
-
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          const sections = this.tocManager.getSections(categoryName);
+          if (sections && sections.length > 0) {
+            this.currentActiveTocId = sections[0].id;
+          }
+        });
+      });
+    },
+  },
   mounted() {
-    // Categories depend on whether the user is logged in or not.
-    // When they depend another state, it's time to refine this implementation.
-    this.userSubscription = this.userService.userLoginState.subscribe((loggedIn) => {
+    this.userSubscription = UserService.instance.userLoginState.subscribe((loggedIn: any) => {
       this.isLoggedIn = !!loggedIn;
-      this.categoryNames = this.settingsService.getCategories();
+      this.categoryNames = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getCategories();
     });
-    this.isLoggedIn = this.userService.isLoggedIn();
+    this.isLoggedIn = UserService.instance.isLoggedIn();
 
-    // Initialize category and TOC before setting categoryName to avoid cross-category TOC contamination
     const initialCategory = this.getInitialCategoryName();
-    this.tocManager.clearAll(); // Clear all categories to start fresh
+    this.tocManager.clearAll();
     this.categoryName = initialCategory;
-    this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
-    // scroll to the anchor if it exists
+    this.settingsData = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getSettingsFormData(this.categoryName);
     const anchor = this.getInitialAnchor();
     if (anchor) {
       this.$nextTick(() => {
@@ -139,92 +144,58 @@ export default class Settings extends Vue {
         }
       });
     }
-  }
-
-  beforeDestroy() {
+  },
+  beforeUnmount() {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
-  }
+  },
+  methods: {
+    handleCategoryClick(category: SettingsCategory) {
+      if (this.categoryName === category) {
+        this.isTocOpen = !this.isTocOpen;
+      } else {
+        this.categoryName = category;
+      }
+    },
+    getInitialCategoryName(): SettingsCategory {
+      const queryParams = WindowsService.instance.state.child.queryParams;
+      return queryParams?.categoryName || 'General';
+    },
+    getInitialAnchor(): string {
+      const anchor = WindowsService.instance.state.child.anchor;
+      return anchor || undefined;
+    },
+    save(settingsData: ISettingsSubCategory[]) {
+      (require('services/settings').SettingsService.instance as ISettingsServiceApi).setSettings(this.categoryName, settingsData);
+      this.settingsData = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getSettingsFormData(this.categoryName);
+    },
+    done() {
+      WindowsService.instance.closeChildWindow();
+    },
+    scrollToSection(sectionId: string) {
+      const element = document.getElementById(sectionId);
+      if (element && this.$refs.settingsContainer) {
+        const container = this.$refs.settingsContainer as HTMLElement;
+        const containerTop = container.getBoundingClientRect().top;
+        const elementTop = element.getBoundingClientRect().top;
+        const offset = elementTop - containerTop - 16;
 
-  get isStreaming() {
-    return this.streamingService.isStreaming;
-  }
-
-  get showLoginRequiredNotice(): boolean {
-    return (
-      !this.isLoggedIn
-      && CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
-    );
-  }
-
-  getInitialCategoryName(): SettingsCategory {
-    const queryParams = this.windowsService.state.child.queryParams;
-    return queryParams?.categoryName || 'General';
-  }
-
-  getInitialAnchor(): string {
-    const anchor = this.windowsService.state.child.anchor;
-    return anchor || undefined;
-  }
-
-  save(settingsData: ISettingsSubCategory[]) {
-    this.settingsService.setSettings(this.categoryName, settingsData);
-    this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
-  }
-
-  done() {
-    this.windowsService.closeChildWindow();
-  }
-
-  @Watch('categoryName')
-  onCategoryNameChangedHandler(categoryName: SettingsCategory) {
-    Sentry.addBreadcrumb({ category: 'settings', message: `category: ${categoryName}`, level: 'info' });
-    this.settingsData = this.settingsService.getSettingsFormData(categoryName);
-    this.$refs.settingsContainer.scrollTop = 0;
-    this.isTocOpen = true;
-
-    // Clear TOC sections for the current category to prevent duplicates on re-selection
-    // This ensures a clean slate when switching tabs or re-selecting the same tab
-    this.tocManager.clear(categoryName);
-
-    this.currentActiveTocId = null;
-
-    this.$nextTick(() => {
-      this.$nextTick(() => {
-        const sections = this.tocManager.getSections(categoryName);
-        if (sections && sections.length > 0) {
-          // 先頭の目次をアクティブにする
-          this.currentActiveTocId = sections[0].id;
-        }
-      });
-    });
-  }
-
-  scrollToSection(sectionId: string) {
-    const element = document.getElementById(sectionId);
-    if (element && this.$refs.settingsContainer) {
-      const container = this.$refs.settingsContainer;
-      const containerTop = container.getBoundingClientRect().top;
-      const elementTop = element.getBoundingClientRect().top;
-      const offset = elementTop - containerTop - 16; // 16px padding
-
-      container.scrollTo({
-        top: container.scrollTop + offset,
-        behavior: 'smooth',
-      });
-    }
-  }
-
-  public handleTocNavigate(sectionId: string) {
-    this.currentActiveTocId = sectionId; // ハイライトを切り替える
-    this.scrollToSection(sectionId); // すでにあるスクロール関数を呼ぶ
-  }
-
-  public hasSections(category: SettingsCategory): boolean {
-    if (!this.isLoggedIn && CATEGORIES_REQUIRING_LOGIN.includes(category)) {
-      return false;
-    }
-    return CATEGORIES_WITH_TOC.includes(category);
-  }
-}
+        container.scrollTo({
+          top: container.scrollTop + offset,
+          behavior: 'smooth',
+        });
+      }
+    },
+    handleTocNavigate(sectionId: string) {
+      this.currentActiveTocId = sectionId;
+      this.scrollToSection(sectionId);
+    },
+    hasSections(category: SettingsCategory): boolean {
+      if (!this.isLoggedIn && CATEGORIES_REQUIRING_LOGIN.includes(category)) {
+        return false;
+      }
+      return CATEGORIES_WITH_TOC.includes(category);
+    },
+  },
+});
