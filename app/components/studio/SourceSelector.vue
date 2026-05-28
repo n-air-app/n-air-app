@@ -32,7 +32,7 @@
       :scrollAreaHeight="50"
       :maxScrollSpeed="15"
     >
-      <template slot="title" slot-scope="{ node }">
+      <template #title="{ node }">
         <div class="title-container">
           <span class="layer-icon">
             <i :class="determineIcon(node.isLeaf, node.data.sourceId)"></i>
@@ -41,40 +41,42 @@
         </div>
       </template>
 
-      <template slot="toggle" slot-scope="{ node }">
+      <template #toggle="{ node }">
         <span v-if="!node.isLeaf && node.children.length">
           <i v-if="node.isExpanded" class="icon-drop-down-arrow" />
           <i v-if="!node.isExpanded" class="icon-drop-down-arrow icon-right" />
         </span>
       </template>
 
-      <template slot="sidebar" slot-scope="{ node }" v-if="canShowActions(node.data.id)">
-        <i
-          class="source-selector-action"
-          :class="lockClassesForSource(node.data.id)"
-          v-tooltip.bottom="lockTooltip"
-          @click.stop="toggleLock(node.data.id)"
-          @dblclick.stop="() => {}"
-        />
-        <i
-          class="source-selector-action"
-          :class="visibilityClassesForSource(node.data.id)"
-          v-tooltip.bottom="visibilityTooltip"
-          @click.stop="toggleVisibility(node.data.id)"
-          @dblclick.stop="() => {}"
-        />
-        <i
-          class="source-selector-action icon-delete"
-          @click="removeItems"
-          v-tooltip.bottom="removeSourcesTooltip"
-          :data-test="`Remove` + node.title"
-        />
-        <i
-          class="source-selector-action icon-settings"
-          @click="sourceProperties"
-          v-tooltip.bottom="openSourcePropertiesTooltip"
-          data-test="Edit"
-        />
+      <template #sidebar="{ node }">
+        <template v-if="canShowActions(node.data.id)">
+          <i
+            class="source-selector-action"
+            :class="lockClassesForSource(node.data.id)"
+            v-tooltip.bottom="lockTooltip"
+            @click.stop="toggleLock(node.data.id)"
+            @dblclick.stop="() => {}"
+          />
+          <i
+            class="source-selector-action"
+            :class="visibilityClassesForSource(node.data.id)"
+            v-tooltip.bottom="visibilityTooltip"
+            @click.stop="toggleVisibility(node.data.id)"
+            @dblclick.stop="() => {}"
+          />
+          <i
+            class="source-selector-action icon-delete"
+            @click="removeItems"
+            v-tooltip.bottom="removeSourcesTooltip"
+            :data-test="`Remove` + node.title"
+          />
+          <i
+            class="source-selector-action icon-settings"
+            @click="sourceProperties"
+            v-tooltip.bottom="openSourcePropertiesTooltip"
+            data-test="Edit"
+          />
+        </template>
       </template>
     </sl-vue-tree>
   </div>

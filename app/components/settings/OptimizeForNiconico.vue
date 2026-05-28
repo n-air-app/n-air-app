@@ -1,6 +1,6 @@
 <template>
   <modal-layout :show-controls="false" :customControls="true">
-    <div slot="content">
+    <template #content>
       <p class="optimize-title">{{ $t('streaming.optimizationForNiconico.description') }}</p>
       <ul class="optimize-category-list">
         <li
@@ -24,15 +24,15 @@
       </ul>
       <BoolInput :value="useHardwareEncoder" @input="setUseHardwareEncoder" />
       <BoolInput :value="doNotShowAgain" @input="setDoNotShowAgain" />
-    </div>
-    <div slot="controls">
+    </template>
+    <template #controls>
       <button class="button button--secondary" :disabled="isStarting" @click="skip">
         {{ $t('streaming.skipOptimization') }}
       </button>
       <button class="button button--primary" :disabled="isStarting" @click="optimizeAndGoLive">
         {{ $t('streaming.optimizeAndGoLive') }}
       </button>
-    </div>
+    </template>
   </modal-layout>
 </template>
 

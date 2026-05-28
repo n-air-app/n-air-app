@@ -1,6 +1,7 @@
 <template>
   <modal-layout :showControls="false">
-    <div slot="content" data-test="AddSource">
+    <template #content>
+      <div data-test="AddSource">
       <div v-if="canAddNew">
         <div class="row">
           <div class="column small-12">
@@ -73,7 +74,8 @@
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

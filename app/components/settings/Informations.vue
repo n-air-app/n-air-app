@@ -1,6 +1,7 @@
 <template>
   <modal-layout :showControls="false">
-    <div class="informations" slot="content" data-test="Informations">
+    <template #content>
+      <div class="informations" data-test="Informations">
       <ul class="information-list" v-if="!fetching && !hasError">
         <li
           class="information-list-item"
@@ -27,7 +28,8 @@
           >
         </i18n>
       </div>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 
