@@ -20,10 +20,12 @@
           </ul>
         </div>
 
-        <div class="indicator" slot="reference">
-          {{ activeContent.name }}
-          <i class="icon-drop-down-arrow"></i>
-        </div>
+        <template #reference>
+          <div class="indicator">
+            {{ activeContent.name }}
+            <i class="icon-drop-down-arrow"></i>
+          </div>
+        </template>
       </popper>
     </div>
   </div>

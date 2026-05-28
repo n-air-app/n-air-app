@@ -6,12 +6,14 @@
     :show-cancel="false"
     :done-handler="done"
   >
-    <div slot="content">
+    <template #content>
+      <div>
       <div v-if="!transitionsEnabled" class="transition-blank">
         {{ $t('transitions.mustHaveLeastTwoScenes') }}
       </div>
       <tabs :tabs="tabs" v-model="selectedTab" v-else>
-        <div slot="transitions" class="transition-tab">
+        <template #transitions>
+          <div class="transition-tab">
           <button class="button button--primary" @click="addTransition">
             {{ $t('transitions.addTransition') }}
           </button>
@@ -43,8 +45,10 @@
               </tr>
             </table>
           </div>
-        </div>
-        <div slot="connections" class="transition-tab">
+          </div>
+        </template>
+        <template #connections>
+          <div class="transition-tab">
           <button class="button button--primary" @click="addConnection">
             {{ $t('transitions.addConnection') }}
           </button>
@@ -76,7 +80,8 @@
               </tr>
             </table>
           </div>
-        </div>
+          </div>
+        </template>
       </tabs>
       <transition name="modal-fade">
         <div v-if="showTransitionSettings" class="modal-backdrop" @click.self="dismissModal('transition-settings')">
@@ -118,7 +123,8 @@
           </div>
         </div>
       </transition>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

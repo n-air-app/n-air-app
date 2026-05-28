@@ -1,30 +1,33 @@
 <template>
   <modal-layout :show-controls="false" :bare-content="true" no-scroll>
-    <div slot="content" class="content">
-      <div
-        v-for="audioSource in audioSources"
-        :key="audioSource.sourceId"
-        class="source-card"
-      >
-        <div class="source-row">
-          <div class="source-name">{{ sourceName(audioSource) }}</div>
-          <div class="controls">
-            <div
-              v-for="formInput in audioSource.getSettingsForm()"
-              :key="`${audioSource.sourceId}${formInput.name}`"
-              :class="['field', 'column-' + formInput.name]"
-            >
-              <component
-                v-if="propertyComponentForType(formInput.type)"
-                :is="propertyComponentForType(formInput.type)"
-                :value="{ ...formInput, showDescription: true }"
-                @input="onInputHandler(audioSource, formInput.name, $event.value)"
-              />
+    <template #content>
+      <div class="content">
+        <div
+          v-for="audioSource in audioSources"
+          :key="audioSource.sourceId"
+          class="source-card"
+        >
+          <div class="source-row">
+            <div class="source-name">{{ audioSource.name }}</div>
+            <div class="controls">
+              <div
+                v-for="formInput in audioSource.getSettingsForm()"
+                :key="`${audioSource.sourceId}${formInput.name}`"
+                :class="['field', 'column-' + formInput.name]"
+              >
+                <component
+                  v-if="propertyComponentForType(formInput.type)"
+                  :is="propertyComponentForType(formInput.type)"
+                  :value="{ ...formInput, showDescription: true }"
+                  @input="onInputHandler(audioSource, formInput.name, $event)"
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

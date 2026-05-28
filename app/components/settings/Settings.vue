@@ -1,6 +1,7 @@
 <template>
   <modal-layout bare-content :show-cancel="false" :done-handler="done">
-    <div slot="content" class="settings" data-test="Settings">
+    <template #content>
+      <div class="settings" data-test="Settings">
       <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
         <template v-for="category in categoryNames">
           <NavItem
@@ -56,7 +57,8 @@
         />
         <extra-settings v-if="categoryName === 'General'" />
       </div>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

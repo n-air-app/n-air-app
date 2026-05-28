@@ -1,12 +1,13 @@
 <template>
   <modal-layout bare-content :show-controls="false">
-    <div slot="content" class="add-source" data-test="SourcesShowCase">
+    <template #content>
+      <div class="add-source" data-test="SourcesShowCase">
       <add-source-info v-if="inspectedSource === 'image_source'" sourceType="image_source" key="1">
-        <imageSourceIcon slot="media" />
+        <template #media><imageSourceIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'slideshow'" sourceType="slideshow" key="2">
-        <SlideshowIcon slot="media" />
+        <template #media><SlideshowIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -14,7 +15,7 @@
         sourceType="ffmpeg_source"
         key="3"
       >
-        <FfmpegSourceIcon slot="media" />
+        <template #media><FfmpegSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -22,26 +23,18 @@
         sourceType="window_capture"
         key="4"
       >
-        <WindowCaptureIcon slot="media" />
-        <p slot="attention-text" class="attention">
+        <template #media><WindowCaptureIcon /></template>
+        <template #attention-text><p class="attention">
           {{ $t('sources.windowCaptureMessage') }}
-        </p>
+        </p></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'dshow_input'" sourceType="dshow_input" key="5">
-        <MonitorCaptureIcon slot="media" />
-      </add-source-info>
-
-      <add-source-info
-        v-if="inspectedSource === 'wasapi_output_capture'"
-        sourceType="wasapi_output_capture"
-        key="6"
-      >
-        <WasapiOutputIcon slot="media" />
+        <template #media><MonitorCaptureIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'color_source'" sourceType="color_source" key="7">
-        <ColorSourceIcon slot="media" />
+        <template #media><ColorSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -49,11 +42,11 @@
         sourceType="browser_source"
         key="8"
       >
-        <BrowserSourceIcon slot="media" />
+        <template #media><BrowserSourceIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'text_gdiplus'" sourceType="text_gdiplus" key="9">
-        <TextGdiplusIcon slot="media" />
+        <template #media><TextGdiplusIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -61,14 +54,14 @@
         sourceType="monitor_capture"
         key="10"
       >
-        <DshowInputIcon slot="media" />
+        <template #media><DshowInputIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'game_capture'" sourceType="game_capture" key="11">
-        <GameCaptureIcon slot="media" />
-        <p slot="attention-text" class="attention">
+        <template #media><GameCaptureIcon /></template>
+        <template #attention-text><p class="attention">
           {{ $t('sources.gameCaptureMessage') }}
-        </p>
+        </p></template>
       </add-source-info>
 
       <add-source-info
@@ -76,11 +69,11 @@
         sourceType="wasapi_input_capture"
         key="12"
       >
-        <WasapiInputCaptureIcon slot="media" />
+        <template #media><WasapiInputCaptureIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'ndi_source'" sourceType="ndi_source" key="13">
-        <NdiSourceIcon slot="media" />
+        <template #media><NdiSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -88,15 +81,15 @@
         sourceType="decklink-input"
         key="14"
       >
-        <BlackmagicSourceIcon slot="media" />
+        <template #media><BlackmagicSourceIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'scene'" sourceType="scene" key="15">
-        <AddSceneIcon slot="media" />
+        <template #media><AddSceneIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'vlc_source'" sourceType="vlc_source" key="16">
-        <VLCSourceIcon slot="media" />
+        <template #media><VLCSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -104,11 +97,11 @@
         sourceType="wasapi_process_output_capture"
         key="17"
       >
-        <AppAudioCaptureSourceIcon slot="media" />
+        <template #media><AppAudioCaptureSourceIcon /></template>
       </add-source-info>
 
       <add-source-info v-if="inspectedSource === 'near'" sourceType="near" key="18">
-        <CharacterSourceIcon slot="media" />
+        <template #media><CharacterSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -116,7 +109,7 @@
         sourceType="custom_cast_ndi_source"
         key="19"
       >
-        <CharacterSourceIcon slot="media" />
+        <template #media><CharacterSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -124,13 +117,13 @@
         sourceType="custom_cast_ndi_guide"
         key="20"
       >
-        <CharacterSourceIcon slot="media" />
-        <p slot="attention-text" class="attention">
+        <template #media><CharacterSourceIcon /></template>
+        <template #attention-text><p class="attention">
           {{ $t('sources.installNdiMessage') }}
           <button class="button button--secondary" @click="downloadNdiRuntime">
             {{ $t('sources.downloadNdiRuntime') }}
           </button>
-        </p>
+        </p></template>
       </add-source-info>
 
       <add-source-info
@@ -138,7 +131,7 @@
         sourceType="nair-rtvc-source"
         key="21"
       >
-        <SpeechEngineIcon slot="media" />
+        <template #media><SpeechEngineIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -146,7 +139,7 @@
         sourceType="text_transcription"
         key="22"
       >
-        <TextGdiplusIcon slot="media" />
+        <template #media><TextGdiplusIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -154,7 +147,7 @@
         sourceType="ffmpeg_source_replay"
         key="23"
       >
-        <FfmpegSourceIcon slot="media" />
+        <template #media><FfmpegSourceIcon /></template>
       </add-source-info>
 
       <add-source-info
@@ -162,7 +155,7 @@
         sourceType="spout_capture"
         key="24"
       >
-        <MonitorCaptureIcon slot="media" />
+        <template #media><MonitorCaptureIcon /></template>
       </add-source-info>
 
       <div class="source-info" v-if="inspectedSource === null">
@@ -175,7 +168,7 @@
           </ol>
         </div>
         <div class="source-info__media">
-          <AddFileIcon slot="media" />
+          <AddFileIcon />
         </div>
       </div>
 
@@ -207,7 +200,8 @@
           {{ $t('sources.addSourceButton') }}
         </button>
       </div>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

@@ -37,7 +37,7 @@
                   <span class="cellicon-label">{{ v.name }}</span>
                 </div>
 
-                <div class="indicator" slot="reference" @click="playSample(v.index)">
+                <div class="indicator" @click="playSample(v.index)">
                   <i
                     class="icon-speaker"
                     v-tooltip.bottom="$t('source-props.nair-rtvc-source.nav.play_sample')"
@@ -94,12 +94,14 @@
                       </li>
                     </ul>
                   </div>
-                  <div class="indicator" :class="{ 'is-show': showPopupMenu }" slot="reference">
-                    <i
-                      class="icon-ellipsis-vertical"
-                      v-tooltip.bottom="$t('source-props.nair-rtvc-source.nav.open_menu')"
-                    ></i>
-                  </div>
+                  <template #reference>
+                    <div class="indicator" :class="{ 'is-show': showPopupMenu }">
+                      <i
+                        class="icon-ellipsis-vertical"
+                        v-tooltip.bottom="$t('source-props.nair-rtvc-source.nav.open_menu')"
+                      ></i>
+                    </div>
+                  </template>
                 </popper>
               </div>
 

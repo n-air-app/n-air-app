@@ -1,21 +1,21 @@
 <template>
   <modal-layout :show-controls="false" :customControls="true" no-scroll>
-    <div slot="content">
+    <template #content>
       <ul class="confirm-list">
         <li class="confirm-list-item">
           <p class="confirm-message">{{ $t('settings.autoCompact.message') }}</p>
           <BoolInput :value="doNotShowAgain" @input="setDoNotShowAgain" />
         </li>
       </ul>
-    </div>
-    <div slot="controls">
+    </template>
+    <template #controls>
       <button class="button button--secondary" @click="skip">
         {{ $t('settings.autoCompact.later') }}
       </button>
       <button class="button button--primary" @click="activate">
         {{ $t('settings.autoCompact.activate') }}
       </button>
-    </div>
+    </template>
   </modal-layout>
 </template>
 
