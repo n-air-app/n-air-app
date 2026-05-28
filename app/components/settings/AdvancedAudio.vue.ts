@@ -1,30 +1,30 @@
 import { propertyComponentForType } from 'components/obs/inputs/Components';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { IAudioServiceApi, IAudioSourceApi } from 'services/audio';
-import { Inject } from 'services/core/injector';
-import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { AudioService, IAudioSourceApi } from 'services/audio';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'AdvancedAudio',
   components: { ModalLayout },
-})
-export default class AdvancedAudio extends Vue {
-  @Inject() audioService: IAudioServiceApi;
-  @Inject() windowsService: WindowsService;
+  data() {
+    return {
+      propertyComponentForType,
+    };
+  },
+  computed: {
+    audioSources() {
+      return AudioService.instance.getSourcesForCurrentScene();
+    },
+  },
+  methods: {
+    onInputHandler(audioSource: IAudioSourceApi, name: string, value: TObsValue) {
+      if (name === 'deflection') {
+        audioSource.setDeflection((value as number) / 100);
+      } else {
+        audioSource.setSettings({ [name]: value });
+      }
+    },
+  },
+});
 
-  propertyComponentForType = propertyComponentForType;
-
-  get audioSources() {
-    return this.audioService.getSourcesForCurrentScene();
-  }
-
-  onInputHandler(audioSource: IAudioSourceApi, name: string, value: TObsValue) {
-    if (name === 'deflection') {
-      audioSource.setDeflection((value as number) / 100);
-    } else {
-      audioSource.setSettings({ [name]: value });
-    }
-  }
-}

@@ -1,15 +1,12 @@
 import * as remote from '@electron/remote';
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { NVoiceCharacterType, NVoiceCharacterTypes } from 'services/nvoice-character';
 import { ScenesService } from 'services/scenes';
 import { SourcesService, TPropertiesManager, TSelectableSourceType } from 'services/sources';
 import { TranscriptionService } from 'services/transcription/transcription';
 import { UserService } from 'services/user';
-import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import AddFileIcon from '../../../media/images/add-file-icon.svg';
 import AddSceneIcon from '../../../media/images/add-scene-icon.svg';
@@ -43,7 +40,58 @@ interface ISelectSourceOptions {
   nVoiceCharacterType?: NVoiceCharacterType;
 }
 
-@Component({
+function addSource(
+  readyToAdd: boolean,
+  inspectedSource: TSelectableSourceType | null,
+  sourceType: TSelectableSourceType,
+  options: ISelectSourceOptions = {},
+): void {
+  if (!readyToAdd) return;
+
+  // 自動文字起こしソースを追加する際に自動文字起こしが有効になっていない場合は迷わないように案内を表示する
+  if (
+    inspectedSource === 'text_transcription'
+    && TranscriptionService.instance.activeStatus() !== 'active'
+  ) {
+    remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+      type: 'info',
+      buttons: [$t('common.ok')],
+      defaultId: 0,
+      message: $t('settings.transcription.addSource.notActive'),
+      noLink: true,
+    });
+  }
+
+  const { propertiesManager: optionsPropertiesManager, ...optionsWithoutManager } = options;
+  if (sourceType === 'custom_cast_ndi_source') {
+    const propertiesManagerSettings: Dictionary<any> = {
+      ...optionsWithoutManager,
+      propertiesManager: 'custom-cast-ndi',
+    };
+    SourcesService.instance.showAddSource('ndi_source', propertiesManagerSettings);
+  } else if (NVoiceCharacterTypes.includes(sourceType as NVoiceCharacterType)) {
+    const propertiesManagerSettings: Dictionary<any> = {
+      NVoiceCharacterType: sourceType as NVoiceCharacterType,
+      ...optionsWithoutManager,
+    };
+    SourcesService.instance.showAddSource('browser_source', {
+      propertiesManagerSettings,
+      propertiesManager: 'nvoice-character',
+    });
+  } else {
+    const propertiesManager = optionsPropertiesManager || 'default';
+    const propertiesManagerSettings: Dictionary<any> = { ...optionsWithoutManager };
+
+    SourcesService.instance.showAddSource(sourceType, {
+      propertiesManagerSettings,
+      propertiesManager,
+    });
+  }
+}
+
+export default defineComponent({
+  name: 'SourcesShowcase',
+
   components: {
     ModalLayout,
     AddSourceInfo,
@@ -68,99 +116,60 @@ interface ISelectSourceOptions {
     VLCSourceIcon,
     SpeechEngineIcon,
   },
-})
-export default class SourcesShowcase extends Vue {
-  @Inject() sourcesService: SourcesService;
-  @Inject() userService: UserService;
-  @Inject() scenesService: ScenesService;
-  @Inject() windowsService: WindowsService;
-  @Inject() transcriptionService: TranscriptionService;
 
-  selectSource(sourceType: TInspectableSource, options: ISelectSourceOptions = {}) {
-    if (!this.readyToAdd) {
-      return;
-    }
+  data() {
+    return {
+      inspectedSource: null as TInspectableSource | null,
+    };
+  },
 
-    // 自動文字起こしソースを追加する際に自動文字起こしが有効になっていない場合は迷わないように案内を表示する
-    if (
-      this.inspectedSource === 'text_transcription'
-      && this.transcriptionService.activeStatus() !== 'active'
-    ) {
-      remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
-        type: 'info',
-        buttons: [$t('common.ok')],
-        defaultId: 0,
-        message: $t('settings.transcription.addSource.notActive'),
-        noLink: true,
+  computed: {
+    loggedIn(): boolean {
+      return UserService.instance.isLoggedIn();
+    },
+
+    platform() {
+      if (!this.loggedIn) return null;
+      return UserService.instance.platform.type;
+    },
+
+    availableSources() {
+      return SourcesService.instance.getAvailableSourcesTypesList().filter((type: any) => {
+        if (type.value === 'text_ft2_source') return false;
+        if (type.value === 'scene' && ScenesService.instance.scenes.length <= 1) return false;
+        return true;
       });
-    }
+    },
 
-    const { propertiesManager: optionsPropertiesManager, ...optionsWithoutManager } = options;
-    if (sourceType === 'custom_cast_ndi_source') {
-      const propertiesManagerSettings: Dictionary<any> = {
-        ...optionsWithoutManager,
-        propertiesManager: 'custom-cast-ndi',
-      };
-      this.sourcesService.showAddSource('ndi_source', propertiesManagerSettings);
-    } else if (NVoiceCharacterTypes.includes(sourceType as NVoiceCharacterType)) {
-      const propertiesManagerSettings: Dictionary<any> = {
-        NVoiceCharacterType: sourceType as NVoiceCharacterType,
-        ...optionsWithoutManager,
-      };
-      this.sourcesService.showAddSource('browser_source', {
-        propertiesManagerSettings,
-        propertiesManager: 'nvoice-character',
-      });
-    } else {
-      const propertiesManager = optionsPropertiesManager || 'default';
-      const propertiesManagerSettings: Dictionary<any> = { ...optionsWithoutManager };
-
-      this.sourcesService.showAddSource(sourceType as TSelectableSourceType, {
-        propertiesManagerSettings,
-        propertiesManager,
-      });
-    }
-  }
-
-  inspectedSource: TInspectableSource = null;
-
-  inspectSource(inspectedSource: TInspectableSource) {
-    this.inspectedSource = inspectedSource;
-  }
-
-  get loggedIn() {
-    return this.userService.isLoggedIn();
-  }
-
-  get platform() {
-    if (!this.loggedIn) return null;
-    return this.userService.platform.type;
-  }
-
-  selectInspectedSource() {
-    this.selectSource(this.inspectedSource);
-  }
-
-  get availableSources() {
-    return this.sourcesService.getAvailableSourcesTypesList().filter((type) => {
-      if (type.value === 'text_ft2_source') return false;
-      if (type.value === 'scene' && this.scenesService.scenes.length <= 1) return false;
-      return true;
-    });
-  }
-
-  downloadNdiRuntime() {
-    remote.shell.openExternal('https://downloads.ndi.tv/SDK/NDI_SDK/NDI%206%20Runtime.exe');
-  }
-
-  get readyToAdd() {
-    if (this.inspectedSource === 'nair-rtvc-source') {
-      // 同一scene上では1つだけ
-      for (const s of this.scenesService.activeScene.items) {
-        if (this.sourcesService.getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
+    readyToAdd(): boolean {
+      if (this.inspectedSource === 'nair-rtvc-source') {
+        // 同一scene上では1つだけ
+        for (const s of ScenesService.instance.activeScene.items) {
+          if (SourcesService.instance.getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
+        }
       }
-    }
 
-    return this.inspectedSource !== null && this.inspectedSource !== 'custom_cast_ndi_guide';
-  }
-}
+      return this.inspectedSource !== null && this.inspectedSource !== 'custom_cast_ndi_guide';
+    },
+  },
+
+  methods: {
+    selectSource(sourceType: TInspectableSource, options: ISelectSourceOptions = {}): void {
+      addSource(this.readyToAdd, this.inspectedSource, sourceType, options);
+    },
+
+    inspectSource(inspectedSource: TInspectableSource): void {
+      this.inspectedSource = inspectedSource;
+    },
+
+    selectInspectedSource(): void {
+      if (this.inspectedSource === null) return;
+      addSource(this.readyToAdd, this.inspectedSource, this.inspectedSource);
+    },
+
+    downloadNdiRuntime(): void {
+      remote.shell.openExternal('https://downloads.ndi.tv/SDK/NDI_SDK/NDI%206%20Runtime.exe');
+    },
+  },
+});
+

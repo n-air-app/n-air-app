@@ -1,58 +1,57 @@
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import EditableSceneCollection from 'components/studio/EditableSceneCollection.vue';
 import Fuse from 'fuse.js';
-import { Inject } from 'services/core/injector';
 import { ObsImporterService } from 'services/obs-importer';
 import { OnboardingService } from 'services/onboarding';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
-  components: {
-    ModalLayout,
-    EditableSceneCollection,
+export default defineComponent({
+  name: 'ManageSceneCollections',
+
+  components: { ModalLayout, EditableSceneCollection },
+
+  data() {
+    return {
+      searchQuery: '',
+    };
   },
-})
-export default class ManageSceneCollections extends Vue {
-  @Inject() windowsService: WindowsService;
-  @Inject() sceneCollectionsService: SceneCollectionsService;
-  @Inject() onboardingService: OnboardingService;
-  @Inject() obsImporterService: ObsImporterService;
 
-  searchQuery = '';
+  computed: {
+    collections() {
+      const list = SceneCollectionsService.instance.collections;
 
-  close() {
-    this.sceneCollectionsService.stateService.flushManifestFile();
-    this.windowsService.closeChildWindow();
-  }
+      if (this.searchQuery) {
+        const fuse = new Fuse(list, {
+          shouldSort: true,
+          keys: ['name'],
+        });
 
-  create() {
-    this.sceneCollectionsService.create({ needsRename: true });
-  }
+        return fuse.search(this.searchQuery).map((result) => result.item);
+      }
 
-  get collections() {
-    const list = this.sceneCollectionsService.collections;
+      return list;
+    },
 
-    if (this.searchQuery) {
-      const fuse = new Fuse(list, {
-        shouldSort: true,
-        keys: ['name'],
-      });
+    canImportFromOBS() {
+      return ObsImporterService.instance.canImportFromOBS;
+    },
+  },
 
-      return fuse.search(this.searchQuery).map((result) => result.item);
-    }
+  methods: {
+    close() {
+      SceneCollectionsService.instance.stateService.flushManifestFile();
+      WindowsService.instance.closeChildWindow();
+    },
 
-    return list;
-  }
+    create() {
+      SceneCollectionsService.instance.create({ needsRename: true });
+    },
 
-  get canImportFromOBS() {
-    return this.obsImporterService.canImportFromOBS;
-  }
-
-  importFromOBS() {
-    this.windowsService.closeChildWindow();
-    this.onboardingService.start({ skipLogin: true });
-  }
-}
+    importFromOBS() {
+      WindowsService.instance.closeChildWindow();
+      OnboardingService.instance.start({ skipLogin: true });
+    },
+  },
+});

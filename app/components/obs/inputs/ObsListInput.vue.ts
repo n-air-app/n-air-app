@@ -1,42 +1,39 @@
 import Dropdown from 'components/shared/Dropdown.vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
-import { IObsListInput, IObsListOption, ObsInput, TObsType, TObsValue } from './ObsInput';
+import { IObsListInput, IObsListOption, TObsType, TObsValue } from './ObsInput';
 
-@Component({
+const ObsListInput = defineComponent({
+  name: 'ObsListInput',
   components: { Dropdown },
-})
-class ObsListInput extends ObsInput<IObsListInput<TObsValue>> {
-  static obsType: TObsType;
-
-  @Prop()
-    value: IObsListInput<TObsValue>;
-  testingAnchor = `Form/List/${this.value.name}`;
-
-  @Prop({ default: false, type: Boolean })
-    allowEmpty: boolean;
-
-  @Prop()
-    placeholder: string;
-
-  @Prop({ default: false, type: Boolean })
-    loading: boolean;
-
-  onInputHandler(option: IObsListOption<string>) {
-    this.emitInput({ ...this.value, value: option ? option.value : null });
-  }
-
-  get currentValue() {
-    const option = this.value.options.find((opt) => {
-      return this.value.value === opt.value;
-    });
-
-    if (option) return option;
-    if (this.allowEmpty) return '';
-    return this.value.options[0];
-  }
-}
-
-ObsListInput.obsType = 'OBS_PROPERTY_LIST';
-
-export default ObsListInput;
+  props: {
+    value: { type: Object as PropType<IObsListInput<TObsValue>>, required: true as const },
+    category: { type: String },
+    subCategory: { type: String },
+    allowEmpty: { type: Boolean, default: false },
+    placeholder: { type: String },
+    loading: { type: Boolean, default: false },
+  },
+  data() {
+    return {
+      testingAnchor: `Form/List/${this.value.name}`,
+    };
+  },
+  computed: {
+    currentValue(): IObsListOption<TObsValue> | string {
+      const option = this.value.options.find((opt) => this.value.value === opt.value);
+      if (option) return option;
+      if (this.allowEmpty) return '';
+      return this.value.options[0];
+    },
+  },
+  methods: {
+    emitInput(eventData: IObsListInput<TObsValue>) {
+      this.$emit('input', eventData);
+    },
+    onInputHandler(option: IObsListOption<string>) {
+      this.emitInput({ ...this.value, value: option ? option.value : null });
+    },
+  },
+});
+export default Object.assign(ObsListInput, { obsType: 'OBS_PROPERTY_LIST' as TObsType });

@@ -1,228 +1,190 @@
 import * as remote from '@electron/remote';
 import Dropdown from 'components/shared/Dropdown.vue';
 import { clipboard } from 'electron';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { SubStreamService, SubStreamTabID } from 'services/substream/SubStreamService';
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'SubStreamSettings',
   components: {
     Dropdown,
   },
-})
-export default class SubStreamSettings extends Vue {
-  @Inject() subStreamService: SubStreamService;
-
-  collapsed: boolean = true;
-
-  use: boolean = SubStreamService.defaultState.use;
-  selectedTab: SubStreamTabID = SubStreamService.defaultState.selectedTab;
-  private _tabSwitching = false;
-  readonly serviceIds: SubStreamTabID[] = ['youtube', 'twitch', 'other'];
-
-  get serviceOptions(): { id: SubStreamTabID; name: string }[] {
-    return this.serviceIds.map((id) => ({ id, name: $t(`settings.substream.tabs.${id}`) }));
-  }
-  url: string = '';
-  key: string = '';
-
-  videoBitrate: number = SubStreamService.defaultState.videoBitrate;
-  videoCodec: { id: string; name: string } = { id: '', name: '' };
-  videoCodecs: { id: string; name: string }[] = [];
-
-  audioBitrate: number = SubStreamService.defaultState.audioBitrate;
-  audioCodec: { id: string; name: string } = { id: '', name: '' };
-  audioCodecs: { id: string; name: string }[] = [];
-
-  keyintSec: number = SubStreamService.defaultState.keyintSec;
-  sync: boolean = SubStreamService.defaultState.sync;
-
-  status: string = '';
-  showKey: boolean = false;
-
-  checker?: number = undefined;
-
-  defaultServers: { [key: string]: { url: string; stream_key_link: string } } = {
-    youtube: {
-      url: 'rtmp://a.rtmp.youtube.com/live2',
-      stream_key_link: 'https://www.youtube.com/live_dashboard',
+  data() {
+    return {
+      collapsed: true,
+      use: SubStreamService.defaultState.use,
+      selectedTab: SubStreamService.defaultState.selectedTab as SubStreamTabID,
+      tabSwitching: false,
+      serviceIds: ['youtube', 'twitch', 'other'] as SubStreamTabID[],
+      url: '',
+      key: '',
+      videoBitrate: SubStreamService.defaultState.videoBitrate,
+      videoCodec: { id: '', name: '' } as { id: string; name: string },
+      videoCodecs: [] as { id: string; name: string }[],
+      audioBitrate: SubStreamService.defaultState.audioBitrate,
+      audioCodec: { id: '', name: '' } as { id: string; name: string },
+      audioCodecs: [] as { id: string; name: string }[],
+      keyintSec: SubStreamService.defaultState.keyintSec,
+      sync: SubStreamService.defaultState.sync,
+      status: '',
+      showKey: false,
+      checker: undefined as number | undefined,
+      defaultServers: {
+        youtube: {
+          url: 'rtmp://a.rtmp.youtube.com/live2',
+          stream_key_link: 'https://www.youtube.com/live_dashboard',
+        },
+        twitch: {
+          url: 'rtmp://live-tyo.twitch.tv/app',
+          stream_key_link: 'https://dashboard.twitch.tv/settings/stream',
+        },
+      } as { [key: string]: { url: string; stream_key_link: string } },
+    };
+  },
+  computed: {
+    serviceOptions(): { id: SubStreamTabID; name: string }[] {
+      return (this.serviceIds as SubStreamTabID[]).map((id) => ({ id, name: $t(`settings.substream.tabs.${id}`) }));
     },
-    twitch: {
-      url: 'rtmp://live-tyo.twitch.tv/app',
-      stream_key_link: 'https://dashboard.twitch.tv/settings/stream',
+  },
+  watch: {
+    use() {
+      SubStreamService.instance.setState({ use: this.use });
+      if (!this.use) {
+        SubStreamService.instance.stop();
+      }
     },
-  };
-
-  /** 現在のタブのタブ設定をストアに書き戻す */
-  private saveCurrentTabSettings() {
-    const { url, key, selectedTab } = this;
-    const tabs = { ...this.subStreamService.state.tabs, [selectedTab]: { url, key } };
-    this.subStreamService.setState({ url, key, tabs });
-  }
-
-  @Watch('use')
-  onUseChange() {
-    this.subStreamService.setState({ use: this.use });
-    if (!this.use) {
-      this.subStreamService.stop();
-    }
-  }
-
-  @Watch('selectedTab')
-  onSelectedTabChange() {
-    const tabSettings = this.subStreamService.state.tabs[this.selectedTab];
-    // url/key の Watch が発火して saveCurrentTabSettings を余分に呼ばないよう抑制する
-    this._tabSwitching = true;
-    this.url = tabSettings.url;
-    this.key = tabSettings.key;
-    this.$nextTick(() => {
-      this._tabSwitching = false;
-    });
-    this.subStreamService.setState({
-      selectedTab: this.selectedTab,
-      url: tabSettings.url,
-      key: tabSettings.key,
-    });
-  }
-
-  setDefaultUrl() {
-    if (this.selectedTab === 'other') return;
-    this.url = this.defaultServers[this.selectedTab].url;
-  }
-
-  toggleShowKey() {
-    this.showKey = !this.showKey;
-  }
-
-  toggleCollapsed() {
-    this.collapsed = !this.collapsed;
-  }
-
-  @Watch('url')
-  onUrlChange() {
-    if (this._tabSwitching) return;
-    this.saveCurrentTabSettings();
-  }
-
-  @Watch('key')
-  onKeyChange() {
-    if (this._tabSwitching) return;
-    this.saveCurrentTabSettings();
-  }
-
-  @Watch('videoBitrate')
-  onVideoBitrateChange() {
-    this.subStreamService.setState({ videoBitrate: Number(this.videoBitrate) });
-  }
-
-  @Watch('videoCodec')
-  onVideoCodecChange() {
-    this.subStreamService.setState({ videoCodec: this.videoCodec.id });
-  }
-
-  @Watch('keyintSec')
-  onKeyintSecChange() {
-    this.subStreamService.setState({ keyintSec: Number(this.keyintSec) });
-  }
-
-  @Watch('audioBitrate')
-  onAudioBitrateChange() {
-    this.subStreamService.setState({ audioBitrate: Number(this.audioBitrate) });
-  }
-
-  @Watch('audioCodec')
-  onAudioCodecChange() {
-    this.subStreamService.setState({ audioCodec: this.audioCodec.id });
-  }
-
-  @Watch('sync')
-  onSyncChange() {
-    this.subStreamService.setState({ sync: this.sync });
-  }
-
-  pasteKey() {
-    const text = clipboard.readText();
-    if (!text || /\s/.test(text)) return;
-    this.key = text;
-  }
-
+    selectedTab() {
+      const tabSettings = SubStreamService.instance.state.tabs[this.selectedTab];
+      this.tabSwitching = true;
+      this.url = tabSettings.url;
+      this.key = tabSettings.key;
+      this.$nextTick(() => {
+        this.tabSwitching = false;
+      });
+      SubStreamService.instance.setState({
+        selectedTab: this.selectedTab,
+        url: tabSettings.url,
+        key: tabSettings.key,
+      });
+    },
+    url() {
+      if (this.tabSwitching) return;
+      this.saveCurrentTabSettings();
+    },
+    key() {
+      if (this.tabSwitching) return;
+      this.saveCurrentTabSettings();
+    },
+    videoBitrate() {
+      SubStreamService.instance.setState({ videoBitrate: Number(this.videoBitrate) });
+    },
+    videoCodec() {
+      SubStreamService.instance.setState({ videoCodec: this.videoCodec.id });
+    },
+    keyintSec() {
+      SubStreamService.instance.setState({ keyintSec: Number(this.keyintSec) });
+    },
+    audioBitrate() {
+      SubStreamService.instance.setState({ audioBitrate: Number(this.audioBitrate) });
+    },
+    audioCodec() {
+      SubStreamService.instance.setState({ audioCodec: this.audioCodec.id });
+    },
+    sync() {
+      SubStreamService.instance.setState({ sync: this.sync });
+    },
+  },
   async mounted() {
-    this.use = this.subStreamService.state.use;
-    this.selectedTab = this.subStreamService.state.selectedTab;
-    this.url = this.subStreamService.state.url;
-    this.key = this.subStreamService.state.key;
-    this.videoBitrate = this.subStreamService.state.videoBitrate;
-    this.keyintSec = this.subStreamService.state.keyintSec;
-    this.audioBitrate = this.subStreamService.state.audioBitrate;
-    this.sync = this.subStreamService.state.sync;
+    this.use = SubStreamService.instance.state.use;
+    this.selectedTab = SubStreamService.instance.state.selectedTab;
+    this.url = SubStreamService.instance.state.url;
+    this.key = SubStreamService.instance.state.key;
+    this.videoBitrate = SubStreamService.instance.state.videoBitrate;
+    this.keyintSec = SubStreamService.instance.state.keyintSec;
+    this.audioBitrate = SubStreamService.instance.state.audioBitrate;
+    this.sync = SubStreamService.instance.state.sync;
 
-    const r = await this.subStreamService.enumEncoderTypes();
+    const r = await SubStreamService.instance.enumEncoderTypes();
     if (r.encoders) {
       this.videoCodecs = r.encoders.video
-        .filter((v) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
-        .map((v) => ({
+        .filter((v: any) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
+        .map((v: any) => ({
           id: v.id,
           name: `${v.name}`,
         }));
 
       this.videoCodec = this.videoCodecs.find(
-        (v) => v.id === this.subStreamService.state.videoCodec,
+        (v) => v.id === SubStreamService.instance.state.videoCodec,
       ) ?? { id: 'obs_x264', name: 'obs_x264' };
 
-      this.audioCodecs = r.encoders.audio.map((v) => ({
+      this.audioCodecs = r.encoders.audio.map((v: any) => ({
         id: v.id,
         name: `${v.name}`,
       }));
 
       this.audioCodec = this.audioCodecs.find(
-        (v) => v.id === this.subStreamService.state.audioCodec,
+        (v) => v.id === SubStreamService.instance.state.audioCodec,
       ) ?? { id: 'ffmpeg_aac', name: 'ffmpeg_aac' };
 
       this.startChecker();
     }
-  }
-
-  beforeDestroy() {
+  },
+  beforeUnmount() {
     this.stopChecker();
-  }
+  },
+  methods: {
+    saveCurrentTabSettings() {
+      const { url, key, selectedTab } = this;
+      const tabs = { ...SubStreamService.instance.state.tabs, [selectedTab]: { url, key } };
+      SubStreamService.instance.setState({ url, key, tabs });
+    },
+    setDefaultUrl() {
+      if (this.selectedTab === 'other') return;
+      this.url = this.defaultServers[this.selectedTab].url;
+    },
+    toggleShowKey() {
+      this.showKey = !this.showKey;
+    },
+    toggleCollapsed() {
+      this.collapsed = !this.collapsed;
+    },
+    pasteKey() {
+      const text = clipboard.readText();
+      if (!text || /\s/.test(text)) return;
+      this.key = text;
+    },
+    openExternalLink(url: string) {
+      remote.shell.openExternal(url);
+    },
+    async checkStatus() {
+      const r = await SubStreamService.instance.getStatus();
 
-  openExternalLink(url: string) {
-    remote.shell.openExternal(url);
-  }
+      const statusParts: string[] = [];
+      statusParts.push(`${$t('settings.substream.info.status')}: ${r.displayStatus}`);
+      if (r.frames) statusParts.push(`${$t('settings.substream.info.frames')}: ${r.frames}`);
+      if (r.dropped) statusParts.push(`${$t('settings.substream.info.dropped')}: ${r.dropped}`);
 
-  async checkStatus() {
-    const r = await this.subStreamService.getStatus();
-
-    const statusParts: string[] = [];
-    statusParts.push(`${$t('settings.substream.info.status')}: ${r.displayStatus}`);
-    if (r.frames) statusParts.push(`${$t('settings.substream.info.frames')}: ${r.frames}`);
-    if (r.dropped) statusParts.push(`${$t('settings.substream.info.dropped')}: ${r.dropped}`);
-
-    this.status = statusParts.length > 0 ? statusParts.join('\n') : $t('settings.substream.info.stopped');
-  }
-
-  startChecker() {
-    this.checkStatus();
-    if (this.checker) return;
-    this.checker = window.setInterval(() => this.checkStatus(), 1000);
-  }
-
-  stopChecker() {
-    if (!this.checker) return;
-    window.clearInterval(this.checker);
-    this.checker = undefined;
-  }
-
-  async start() {
-    const message = await this.subStreamService.start();
-    if (message) {
-      remote.dialog.showErrorBox('Error', message);
-    }
-  }
-
-  async stop() {
-    await this.subStreamService.stop();
-  }
-}
+      this.status = statusParts.length > 0 ? statusParts.join('\n') : $t('settings.substream.info.stopped');
+    },
+    startChecker() {
+      this.checkStatus();
+      if (this.checker) return;
+      this.checker = window.setInterval(() => this.checkStatus(), 1000);
+    },
+    stopChecker() {
+      if (!this.checker) return;
+      window.clearInterval(this.checker);
+      this.checker = undefined;
+    },
+    async start() {
+      const message = await SubStreamService.instance.start();
+      if (message) {
+        remote.dialog.showErrorBox('Error', message);
+      }
+    },
+    async stop() {
+      await SubStreamService.instance.stop();
+    },
+  },
+});

@@ -1,11 +1,10 @@
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class AddSourceInfo extends Vue {
-  @Prop()
-    sourceType: string;
+export default defineComponent({
+  name: 'AddSourceInfo',
 
-  @Prop({ default: true, type: Boolean })
-    showAttention: boolean;
-}
+  props: {
+    sourceType: { type: String },
+    showAttention: { type: Boolean, default: true },
+  },
+});

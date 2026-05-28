@@ -1,60 +1,56 @@
 import * as inputComponents from 'components/obs/inputs';
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { SourceFiltersService } from 'services/source-filters';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'AddSourceFilter',
+
   components: { ModalLayout, ...inputComponents },
-})
-export default class AddSourceFilter extends Vue {
-  @Inject()
-    windowsService: WindowsService;
 
-  @Inject('SourceFiltersService')
-    filtersService: SourceFiltersService;
+  data() {
+    const sourceId = WindowsService.instance.getChildWindowQueryParams().sourceId as string;
+    return {
+      sourceId,
+      form: SourceFiltersService.instance.getAddNewFormData(sourceId),
+      availableTypes: SourceFiltersService.instance.getTypesForSource(sourceId),
+      error: '',
+    };
+  },
 
-  // @ts-expect-error: ts2729: use before initialization
-  sourceId: string = this.windowsService.getChildWindowQueryParams().sourceId;
-  // @ts-expect-error: ts2729: use before initialization
-  form = this.filtersService.getAddNewFormData(this.sourceId);
-  // @ts-expect-error: ts2729: use before initialization
-  availableTypes = this.filtersService.getTypesForSource(this.sourceId);
-  error = '';
-
-  mounted() {
+  mounted(): void {
     this.setTypeAsName();
-  }
+  },
 
-  done() {
-    const name = this.form.name.value;
-    this.error = this.validateName(name);
-    if (this.error) return;
+  methods: {
+    done(): void {
+      const name = this.form.name.value;
+      this.error = this.validateName(name);
+      if (this.error) return;
 
-    this.filtersService.add(this.sourceId, this.form.type.value, name);
+      SourceFiltersService.instance.add(this.sourceId, this.form.type.value, name);
+      SourceFiltersService.instance.showSourceFilters(this.sourceId, name);
+    },
 
-    this.filtersService.showSourceFilters(this.sourceId, name);
-  }
+    cancel(): void {
+      SourceFiltersService.instance.showSourceFilters(this.sourceId);
+    },
 
-  cancel() {
-    this.filtersService.showSourceFilters(this.sourceId);
-  }
+    validateName(name: string): string {
+      if (!name) return $t('common.nameIsRequiredMessage');
+      if (SourceFiltersService.instance.getFilters(this.sourceId).find((filter: any) => filter.name === name)) {
+        return $t('common.alreadyTakenNameMessage');
+      }
+      return '';
+    },
 
-  validateName(name: string) {
-    if (!name) return $t('common.nameIsRequiredMessage');
-    if (this.filtersService.getFilters(this.sourceId).find((filter) => filter.name === name)) {
-      return $t('common.alreadyTakenNameMessage');
-    }
-    return '';
-  }
-
-  setTypeAsName() {
-    const name = this.availableTypes.find(({ type }) => {
-      return type === this.form.type.value;
-    }).description;
-    this.form.name.value = this.filtersService.suggestName(this.sourceId, name);
-  }
-}
+    setTypeAsName(): void {
+      const name = this.availableTypes.find(({ type }: any) => {
+        return type === this.form.type.value;
+      }).description;
+      this.form.name.value = SourceFiltersService.instance.suggestName(this.sourceId, name);
+    },
+  },
+});

@@ -1,23 +1,27 @@
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 export interface ITab {
   name: string;
   value: string;
 }
 
-@Component({})
-export default class Tabs extends Vue {
-  @Prop() tabs: ITab[];
-  @Prop() value: string;
-  @Prop() className: string;
-  @Prop() hideContent: boolean;
+export default defineComponent({
+  name: 'Tabs',
 
-  showTab(tab: string) {
-    this.$emit('input', tab);
-  }
+  props: {
+    tabs: { type: Array as () => ITab[] },
+    value: { type: String },
+    className: { type: String },
+    hideContent: { type: Boolean },
+  },
 
   mounted() {
-    if (!this.value) this.showTab(this.tabs[0].value);
-  }
-}
+    if (!this.value) this.showTab((this.tabs as ITab[])[0].value);
+  },
+
+  methods: {
+    showTab(tab: string) {
+      this.$emit('input', tab);
+    },
+  },
+});

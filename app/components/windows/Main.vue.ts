@@ -9,17 +9,17 @@ import StudioFooter from 'components/studio/StudioFooter.vue';
 import TitleBar from 'components/studio/TitleBar.vue';
 import { AppService } from 'services/app';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { NavigationService } from 'services/navigation';
 import { ScenesService } from 'services/scenes';
 import { UserService } from 'services/user';
 import { WindowSizeService } from 'services/window-size';
 import { WindowsService } from 'services/windows';
 import { SentryReport } from 'util/sentry-report';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'MainWindow',
+
   components: {
     TitleBar,
     SideNav,
@@ -30,84 +30,81 @@ import { Component } from 'vue-property-decorator';
     PatchNotes,
     NicoliveArea,
   },
-})
-export default class Main extends Vue {
-  @Inject() compactModeService: CompactModeService;
-  @Inject() navigationService: NavigationService;
-  @Inject() appService: AppService;
-  @Inject() userService: UserService;
-  @Inject() windowsService: WindowsService;
-  @Inject() scenesService: ScenesService;
 
   mounted() {
     remote.getCurrentWindow().show();
     WindowSizeService.instance; // manage compact mode
-  }
+  },
 
-  get isCompactMode() {
-    return this.compactModeService.isCompactMode;
-  }
-  get compactModeTab() {
-    return this.compactModeService.compactModeTab;
-  }
+  computed: {
+    isCompactMode(): boolean {
+      return CompactModeService.instance.isCompactMode;
+    },
 
-  get title() {
-    return this.windowsService.state.main.title;
-  }
+    compactModeTab() {
+      return CompactModeService.instance.compactModeTab;
+    },
 
-  get page() {
-    return this.navigationService.state.currentPage;
-  }
+    title(): string {
+      return WindowsService.instance.state.main.title;
+    },
 
-  get params() {
-    return this.navigationService.state.params;
-  }
+    page(): string {
+      return NavigationService.instance.state.currentPage;
+    },
 
-  get applicationLoading() {
-    return this.appService.state.loading;
-  }
+    params() {
+      return NavigationService.instance.state.params;
+    },
 
-  get isLoggedIn() {
-    return this.userService.isLoggedIn();
-  }
+    applicationLoading(): boolean {
+      return AppService.instance.state.loading;
+    },
 
-  get isOnboarding() {
-    return this.navigationService.state.currentPage === 'Onboarding';
-  }
+    isLoggedIn(): boolean {
+      return UserService.instance.isLoggedIn();
+    },
 
-  get showMainMiddle() {
-    if (this.isCompactMode) {
-      return this.compactModeTab === 'studio';
-    }
-    return true;
-  }
+    isOnboarding(): boolean {
+      return NavigationService.instance.state.currentPage === 'Onboarding';
+    },
 
-  get showNicoliveArea() {
-    if (this.isCompactMode) {
-      return this.compactModeTab === 'niconico';
-    }
-    return this.page === 'Studio' && this.isLoggedIn;
-  }
+    showMainMiddle(): boolean {
+      if (this.isCompactMode) {
+        return this.compactModeTab === 'studio';
+      }
+      return true;
+    },
 
-  /**
-   * Only certain pages get locked out while the application
-   * is loading.  Other pages are OK to keep using.
-   */
-  get shouldLockContent() {
-    return this.applicationLoading && this.navigationService.state.currentPage === 'Studio';
-  }
+    showNicoliveArea(): boolean {
+      if (this.isCompactMode) {
+        return this.compactModeTab === 'niconico';
+      }
+      return this.page === 'Studio' && this.isLoggedIn;
+    },
 
-  onDropHandler(event: DragEvent) {
-    const files = event.dataTransfer.files;
-    if (!this.scenesService.activeScene) {
-      SentryReport.message('MainWindow', 'onDropHandler', 'Attempted to add files to a scene when no scene was active', { level: 'warning' });
-      return;
-    }
+    /**
+     * Only certain pages get locked out while the application
+     * is loading.  Other pages are OK to keep using.
+     */
+    shouldLockContent(): boolean {
+      return this.applicationLoading && NavigationService.instance.state.currentPage === 'Studio';
+    },
+  },
 
-    let fi = files.length;
-    while (fi--) {
-      const file = files.item(fi);
-      this.scenesService.activeScene.addFile(file.path);
-    }
-  }
-}
+  methods: {
+    onDropHandler(event: DragEvent) {
+      const files = event.dataTransfer.files;
+      if (!ScenesService.instance.activeScene) {
+        SentryReport.message('MainWindow', 'onDropHandler', 'Attempted to add files to a scene when no scene was active', { level: 'warning' });
+        return;
+      }
+
+      let fi = files.length;
+      while (fi--) {
+        const file = files.item(fi);
+        ScenesService.instance.activeScene.addFile(file.path);
+      }
+    },
+  },
+});

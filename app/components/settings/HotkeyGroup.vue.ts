@@ -1,14 +1,17 @@
 import Hotkey from 'components/shared/Hotkey.vue';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'HotkeyGroup',
+  components: { Hotkey },
   props: {
     title: String,
     hotkeys: Array,
   },
-  components: { Hotkey },
-})
-export default class HotkeyGroup extends Vue {
-  collapsed = false;
-}
+  data() {
+    return {
+      collapsed: false,
+    };
+  },
+});
+

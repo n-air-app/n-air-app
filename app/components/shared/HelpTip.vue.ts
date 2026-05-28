@@ -1,25 +1,28 @@
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { DismissablesService, EDismissable } from 'services/dismissables';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class HelpTip extends Vue {
-  @Inject() dismissablesService: DismissablesService;
-  @Inject() compactModeService: CompactModeService;
-  @Prop() dismissableKey: EDismissable;
-  @Prop({ default: 'scene-selector' }) mode: String;
+export default defineComponent({
+  name: 'HelpTip',
 
-  get shouldShow() {
-    return this.dismissablesService.shouldShow(this.dismissableKey);
-  }
+  props: {
+    dismissableKey: { type: String as () => EDismissable },
+    mode: { type: String, default: 'scene-selector' },
+  },
 
-  closeHelpTip() {
-    this.dismissablesService.dismiss(this.dismissableKey);
-  }
+  computed: {
+    shouldShow(): boolean {
+      return DismissablesService.instance.shouldShow(this.dismissableKey as EDismissable);
+    },
 
-  get isCompactMode(): boolean {
-    return this.compactModeService.isCompactMode;
-  }
-}
+    isCompactMode(): boolean {
+      return CompactModeService.instance.isCompactMode;
+    },
+  },
+
+  methods: {
+    closeHelpTip() {
+      DismissablesService.instance.dismiss(this.dismissableKey as EDismissable);
+    },
+  },
+});

@@ -99,9 +99,6 @@ importers:
       vue-i18n:
         specifier: 7.8.1
         version: 7.8.1(vue@2.7.14)
-      vue-property-decorator:
-        specifier: 7.3.0
-        version: 7.3.0
       vuex:
         specifier: 3.1.1
         version: 3.1.1
@@ -7043,9 +7040,6 @@ packages:
     resolution: {tarball: https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz}
     version: 1.0.2
 
-  vue-class-component@6.3.2:
-    resolution: {integrity: sha512-cH208IoM+jgZyEf/g7mnFyofwPDJTM/QvBNhYMjqGB8fCsRyTf68rH2ISw/G20tJv+5mIThQ3upKwoL4jLTr1A==}
-
   vue-eslint-parser@9.4.3:
     resolution: {integrity: sha512-2rYRLWlIpaiN8xbPiDyXZXRgLGOtWxERV7ND5fFAv5qo1D2N9Fu9MNajBNc6o13lZ+24DAWCkQCvj4klgmcITg==}
     engines: {node: ^14.17.0 || >=16.0.0}
@@ -7079,9 +7073,6 @@ packages:
         optional: true
       vue-template-compiler:
         optional: true
-
-  vue-property-decorator@7.3.0:
-    resolution: {integrity: sha512-HarXfTQ/Nxm4s/APpAaGIGHq5ZzslApImQy8ZrtkfGamw8rUFAVgMS5C50/AQ80+wfw3Wpnf4bNzbmj75m/k2Q==}
 
   vue-style-loader@4.1.3:
     resolution: {integrity: sha512-sFuh0xfbtpRlKfm39ss/ikqs9AbKCoXZBpHeVZ8Tx650o0k0q/YCM7FRvigtxpACezfq6af+a7JeqVTWvncqDg==}
@@ -15286,8 +15277,6 @@ snapshots:
 
   vosk-cli@https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz: {}
 
-  vue-class-component@6.3.2: {}
-
   vue-eslint-parser@9.4.3(eslint@9.39.2(jiti@2.6.1)):
     dependencies:
       debug: 4.4.3
@@ -15372,10 +15361,6 @@ snapshots:
       - velocityjs
       - walrus
       - whiskers
-
-  vue-property-decorator@7.3.0:
-    dependencies:
-      vue-class-component: 6.3.2
 
   vue-style-loader@4.1.3:
     dependencies:

@@ -1,126 +1,87 @@
 import Dropdown from 'components/shared/Dropdown.vue';
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
-import { Inject } from 'services/core/injector';
 import { FontLibraryService } from 'services/font-library';
-import { SourcesService } from 'services/sources/index';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
-import { IGoogleFont, ObsInput } from './ObsInput';
+import { IGoogleFont } from './ObsInput';
 
-@Component({
+export default defineComponent({
+  name: 'GoogleFontSelector',
   components: { Dropdown, FontSizeSelector: ObsFontSizeSelector },
-})
-export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
-  @Inject()
-    fontLibraryService: FontLibraryService;
-
-  @Inject()
-    sourcesService: SourcesService;
-
-  @Prop()
-    value: IGoogleFont;
-  testingAnchor = `Form/GoogleFont/${this.value.face}`;
-
-  fontFamilies: string[] = [];
-
-  fontStyles: string[] = [];
-
-  selectedFamily = '';
-
-  selectedStyle = '';
-
-  /* TrueType/OpenType defines fonts to have a
-   * preferred family name. For instance Arial Black
-   * has a preferred family name of 'Arial' and a
-   * preferred subfamily name of 'Black'.
-   *
-   * GDI+ and consequently the plugin doesn't
-   * understand this at all. GDI+ only understands
-   * the following for styles:
-   *
-   * `Bold | Italic | Bold Italic | Regular
-   *
-   * As a result, anything that isn't part of the style must
-   * be part of the family name. For example, in the eyes of
-   * GDI+, Arial Black has a family name of 'Arial Black' and
-   * a subfamily name of Regular.
-   * The plugin itself takes the family name as the style
-   * as a bitmask of flags */
-  actualFamily = '';
-
-  actualStyle: number = 0;
-
-  // Disambiguate from `loading` which it would conflict with prop being passed/inherited to this
-  isLoading = true;
-
+  props: {
+    value: { type: Object as PropType<IGoogleFont>, required: true as const },
+    category: { type: String },
+    subCategory: { type: String },
+  },
+  data() {
+    return {
+      testingAnchor: `Form/GoogleFont/${this.value.face}`,
+      fontFamilies: [] as string[],
+      fontStyles: [] as string[],
+      selectedFamily: '' as string,
+      selectedStyle: '' as string,
+      actualFamily: '' as string,
+      actualStyle: 0 as number,
+      isLoading: true,
+    };
+  },
   created() {
     this.isLoading = true;
-    this.fontLibraryService.getManifest().then((manifest) => {
+    FontLibraryService.instance.getManifest().then((manifest: any) => {
       this.isLoading = false;
-      this.fontFamilies = manifest.families.map((family) => family.name);
-
+      this.fontFamilies = manifest.families.map((family: any) => family.name);
       if (this.value.path) this.updateSelectionFromPath();
     });
-  }
-
-  updateSelectionFromPath() {
-    this.fontLibraryService.lookupFontInfo(this.value.path).then((info) => {
-      this.selectedFamily = info.family;
-      this.selectedStyle = info.style;
-
-      this.updateStyles();
-    });
-  }
-
-  updateStyles() {
-    if (this.selectedFamily) {
-      this.fontLibraryService.findFamily(this.selectedFamily).then((fam) => {
-        this.fontStyles = fam.styles.map((sty) => sty.name);
+  },
+  methods: {
+    emitInput(eventData: IGoogleFont) {
+      this.$emit('input', eventData);
+    },
+    updateSelectionFromPath() {
+      FontLibraryService.instance.lookupFontInfo(this.value.path).then((info: any) => {
+        this.selectedFamily = info.family;
+        this.selectedStyle = info.style;
+        this.updateStyles();
       });
-    }
-  }
-
-  setFamily(familyName: string) {
-    this.isLoading = true;
-    this.selectedFamily = familyName;
-
-    this.fontLibraryService.findFamily(familyName).then((family) => {
-      const style = family.styles[0];
-
-      this.updateStyles();
-      this.setStyle(style.name);
-    });
-  }
-
-  setStyle(styleName: string) {
-    this.isLoading = true;
-    this.selectedStyle = styleName;
-
-    this.fontLibraryService.findStyle(this.selectedFamily, styleName).then((style) => {
-      this.fontLibraryService.downloadFont(style.file).then((fontPath) => {
-        const fontInfo = fi.getFontInfo(fontPath);
-
-        if (!fontInfo) {
-          this.actualFamily = 'Arial';
-          this.actualStyle = 0;
-        } else {
-          this.actualFamily = fontInfo.family_name;
-
-          this.actualStyle = (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
-        }
-
-        this.value.face = this.actualFamily;
-        this.value.flags = this.actualStyle;
-
-        this.emitInput({ ...this.value, path: fontPath });
-        this.isLoading = false;
+    },
+    updateStyles() {
+      if (this.selectedFamily) {
+        FontLibraryService.instance.findFamily(this.selectedFamily).then((fam: any) => {
+          this.fontStyles = fam.styles.map((sty: any) => sty.name);
+        });
+      }
+    },
+    setFamily(familyName: string) {
+      this.isLoading = true;
+      this.selectedFamily = familyName;
+      FontLibraryService.instance.findFamily(familyName).then((family: any) => {
+        const style = family.styles[0];
+        this.updateStyles();
+        this.setStyle(style.name);
       });
-    });
-  }
-
-  setSize(size: string) {
-    this.emitInput({ ...this.value, size });
-  }
-}
+    },
+    setStyle(styleName: string) {
+      this.isLoading = true;
+      this.selectedStyle = styleName;
+      FontLibraryService.instance.findStyle(this.selectedFamily, styleName).then((style: any) => {
+        FontLibraryService.instance.downloadFont(style.file).then((fontPath: string) => {
+          const fontInfo = fi.getFontInfo(fontPath);
+          if (!fontInfo) {
+            this.actualFamily = 'Arial';
+            this.actualStyle = 0;
+          } else {
+            this.actualFamily = fontInfo.family_name;
+            this.actualStyle = (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
+          }
+          this.emitInput({ ...this.value, path: fontPath, face: this.actualFamily, flags: this.actualStyle });
+          this.isLoading = false;
+        });
+      });
+    },
+    setSize(size: string) {
+      this.emitInput({ ...this.value, size });
+    },
+  },
+});

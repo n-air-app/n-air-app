@@ -1,7 +1,4 @@
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
-
-import NavMenu from './NavMenu.vue';
+import { defineComponent } from 'vue';
 
 interface INavMenu {
   value: string;
@@ -9,64 +6,69 @@ interface INavMenu {
   isChild: boolean;
 }
 
-@Component({})
-export default class NavItem extends Vue {
-  @Prop()
-    to: string;
+export default defineComponent({
+  name: 'NavItem',
 
-  @Prop()
-    ico: string;
+  props: {
+    to: { type: String },
+    ico: { type: String },
+    enabled: { type: Boolean, default: true },
+    showArrow: { type: Boolean, default: false },
+    isTocOpen: { type: Boolean, default: true },
+  },
 
-  @Prop({ default: true, type: Boolean })
-    enabled: boolean;
+  data() {
+    return {
+      expanded: false,
+    };
+  },
 
-  @Prop({ default: false, type: Boolean })
-    showArrow: boolean;
+  computed: {
+    value(): string {
+      return this.rootNavMenu.value;
+    },
 
-  @Prop({ default: true, type: Boolean })
-    isTocOpen: boolean;
+    isSubItem(): boolean {
+      return this.parent.isChild;
+    },
 
-  expanded = false;
+    parent(): INavMenu {
+      return this.$parent as any as INavMenu;
+    },
 
-  get value() {
-    return this.rootNavMenu.value;
-  }
+    rootNavMenu(): INavMenu {
+      function getRoot(element: any): any {
+        if (
+          element.$options?.name === 'NavMenu'
+          && !(element.$parent?.$options?.name === 'NavItem')
+        ) {
+          return element;
+        }
+        return getRoot(element.$parent);
+      }
+      return getRoot(this) as INavMenu;
+    },
 
-  onClickHandler(event: MouseEvent) {
-    if (!this.enabled) return;
-    if (this.expandable) {
-      this.expanded = !this.expanded;
-      return;
-    }
-    this.rootNavMenu.setValue(this.to);
-    event.stopPropagation();
-  }
+    expandable(): boolean {
+      return !!(this.$slots as any)['children'];
+    },
+  },
 
-  onIconClickHandler(event: MouseEvent) {
-    if (!this.enabled) return;
-    this.$emit('iconClick', this.to);
-    event.stopPropagation();
-  }
+  methods: {
+    onClickHandler(event: MouseEvent) {
+      if (!this.enabled) return;
+      if (this.expandable) {
+        this.expanded = !this.expanded;
+        return;
+      }
+      this.rootNavMenu.setValue(this.to);
+      event.stopPropagation();
+    },
 
-  get isSubItem() {
-    // is sub menu item
-    return this.parent.isChild;
-  }
-
-  get parent() {
-    return this.$parent as any as INavMenu;
-  }
-
-  get rootNavMenu() {
-    function getRoot(element: Vue): any {
-      if (element instanceof NavMenu && !(element.$parent instanceof NavItem)) return element;
-      return getRoot(element.$parent);
-    }
-
-    return getRoot(this) as INavMenu;
-  }
-
-  get expandable() {
-    return !!this.$slots['children'];
-  }
-}
+    onIconClickHandler(event: MouseEvent) {
+      if (!this.enabled) return;
+      this.$emit('iconClick', this.to);
+      event.stopPropagation();
+    },
+  },
+});

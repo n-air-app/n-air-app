@@ -1,6 +1,8 @@
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import { CommentBase } from './CommentBase';
 
-@Component({})
-export default class SystemMessage extends CommentBase {}
+export default defineComponent({
+  name: 'SystemMessage',
+  mixins: [CommentBase],
+});

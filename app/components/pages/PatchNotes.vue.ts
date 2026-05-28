@@ -1,19 +1,19 @@
-import { Inject } from 'services/core/injector';
 import { NavigationService } from 'services/navigation';
 import { PatchNotesService } from 'services/patch-notes';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class Dashboard extends Vue {
-  @Inject() patchNotesService: PatchNotesService;
-  @Inject() navigationService: NavigationService;
+export default defineComponent({
+  name: 'Dashboard',
 
-  get notes() {
-    return this.patchNotesService.notes;
-  }
+  computed: {
+    notes() {
+      return PatchNotesService.instance.notes;
+    },
+  },
 
-  done() {
-    this.navigationService.navigate('Studio');
-  }
-}
+  methods: {
+    done() {
+      NavigationService.instance.navigate('Studio');
+    },
+  },
+});

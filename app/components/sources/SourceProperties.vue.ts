@@ -7,70 +7,78 @@ import TextTranscriptionProperties from 'components/sources/TextTranscriptionPro
 import cloneDeep from 'lodash/cloneDeep';
 import { Subscription } from 'rxjs';
 import { AppService } from 'services/app';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
-import { ISourcesServiceApi, TSourceType } from 'services/sources';
+import { SourcesService, TSourceType } from 'services/sources';
 import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 const PeriodicUpdateSources: TSourceType[] = ['ndi_source', 'custom_cast_ndi_source'];
 const PeriodicUpdateInterval = 5000; // in Milliseconds
-@Component({
+
+export default defineComponent({
+  name: 'SourceProperties',
+
   components: {
     ModalLayout,
     Display,
     GenericForm,
     TextTranscriptionProperties,
   },
-})
-export default class SourceProperties extends Vue {
-  @Inject()
-    sourcesService: ISourcesServiceApi;
 
-  @Inject()
-    windowsService: WindowsService;
+  data() {
+    return {
+      properties: [] as TObsFormData,
+      initialProperties: [] as TObsFormData,
+      tainted: false,
+      sourceRemovedSub: null as Subscription | null,
+      sourceUpdatedSub: null as Subscription | null,
+      refreshTimer: undefined as number | undefined,
+    };
+  },
 
-  @Inject() private appService: AppService;
+  computed: {
+    windowId(): string {
+      return Util.getCurrentUrlParams().windowId;
+    },
 
-  // @ts-expect-error: ts2729: use before initialization
-  source = this.sourcesService.getSource(this.sourceId);
-  properties: TObsFormData = [];
-  initialProperties: TObsFormData = [];
-  tainted = false;
+    sourceId(): string {
+      // このビューはoneOffWindow と childWindow どちらからも開かれる可能性があるため
+      // どちらか有効な方のクエリパラメータから sourceId を取得する
+      return (
+        WindowsService.instance.getWindowOptions(this.windowId).sourceId
+        || WindowsService.instance.getChildWindowQueryParams().sourceId
+      );
+    },
 
-  sourceRemovedSub: Subscription;
-  sourceUpdatedSub: Subscription;
+    source() {
+      return SourcesService.instance.getSource(this.sourceId);
+    },
 
-  get windowId() {
-    return Util.getCurrentUrlParams().windowId;
-  }
+    isShuttingDown(): boolean {
+      return AppService.instance.state.shuttingDown;
+    },
 
-  get sourceId() {
-    // このビューはoneOffWindow と childWindow どちらからも開かれる可能性があるため
-    // どちらか有効な方のクエリパラメータから sourceId を取得する
-    return (
-      this.windowsService.getWindowOptions(this.windowId).sourceId
-      || this.windowsService.getChildWindowQueryParams().sourceId
-    );
-  }
-  /** アプリシャットダウン中なら true。ウィンドウが開いた状態で終了したときに分岐するときに見る */
-  get isShuttingDown(): boolean {
-    return this.appService.state.shuttingDown;
-  }
+    propertiesManagerUI(): string | undefined {
+      if (this.source) return this.source.getPropertiesManagerUI();
+      return undefined;
+    },
 
-  refreshTimer: number = undefined;
+    windowTitle(): string {
+      const source = SourcesService.instance.getSource(this.sourceId);
+      return source ? $t('sources.propertyWindowTitle', { sourceName: source.name }) : '';
+    },
+  },
 
-  mounted() {
+  mounted(): void {
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
     this.initialProperties = cloneDeep(this.properties);
-    this.sourceRemovedSub = this.sourcesService.sourceRemoved.subscribe((source) => {
+    this.sourceRemovedSub = SourcesService.instance.sourceRemoved.subscribe((source: any) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }
     });
-    this.sourceUpdatedSub = this.sourcesService.sourceUpdated.subscribe((source) => {
+    this.sourceUpdatedSub = SourcesService.instance.sourceUpdated.subscribe((source: any) => {
       if (source.sourceId === this.sourceId) {
         this.refresh();
       }
@@ -78,56 +86,48 @@ export default class SourceProperties extends Vue {
 
     if (PeriodicUpdateSources.includes(this.source.type)) {
       this.refreshTimer = window.setInterval(() => {
-        const source = this.sourcesService.getSource(this.sourceId);
-        // 任意の値を同内容で上書き更新すると、OBS側でリスト選択の選択肢が最新の値に更新される
+        const source = SourcesService.instance.getSource(this.sourceId);
         source.setPropertiesFormData([this.properties[0]]);
         this.refresh();
       }, PeriodicUpdateInterval);
     }
-    this.windowsService.requireWaitWindowCleanup(this.windowId, true);
-  }
+    WindowsService.instance.requireWaitWindowCleanup(this.windowId, true);
+  },
 
-  destroyed() {
+  unmounted(): void {
     if (this.refreshTimer) {
       window.clearInterval(this.refreshTimer);
     }
     this.sourceRemovedSub.unsubscribe();
     this.sourceUpdatedSub.unsubscribe();
-    this.windowsService.requireWaitWindowCleanup(this.windowId, false);
-  }
+    WindowsService.instance.requireWaitWindowCleanup(this.windowId, false);
+  },
 
-  get propertiesManagerUI() {
-    if (this.source) return this.source.getPropertiesManagerUI();
-  }
+  methods: {
+    onInputHandler(properties: TObsFormData, changedIndex: number): void {
+      const source = SourcesService.instance.getSource(this.sourceId);
+      source.setPropertiesFormData([properties[changedIndex]]);
+      this.tainted = true;
+    },
 
-  onInputHandler(properties: TObsFormData, changedIndex: number) {
-    const source = this.sourcesService.getSource(this.sourceId);
-    source.setPropertiesFormData([properties[changedIndex]]);
-    this.tainted = true;
-  }
+    refresh(): void {
+      this.properties = this.source.getPropertiesFormData();
+    },
 
-  refresh() {
-    this.properties = this.source.getPropertiesFormData();
-  }
+    closeWindow(): void {
+      WindowsService.instance.closeChildWindow();
+    },
 
-  closeWindow() {
-    this.windowsService.closeChildWindow();
-  }
+    done(): void {
+      this.closeWindow();
+    },
 
-  done() {
-    this.closeWindow();
-  }
-
-  cancel() {
-    if (this.tainted) {
-      const source = this.sourcesService.getSource(this.sourceId);
-      source.setPropertiesFormData(this.initialProperties);
-    }
-    this.closeWindow();
-  }
-
-  get windowTitle() {
-    const source = this.sourcesService.getSource(this.sourceId);
-    return source ? $t('sources.propertyWindowTitle', { sourceName: source.name }) : '';
-  }
-}
+    cancel(): void {
+      if (this.tainted) {
+        const source = SourcesService.instance.getSource(this.sourceId);
+        source.setPropertiesFormData(this.initialProperties);
+      }
+      this.closeWindow();
+    },
+  },
+});
