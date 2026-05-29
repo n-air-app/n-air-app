@@ -66,16 +66,18 @@ function fallbackToX00(reason: string): string {
 }
 
 export async function openErrorDialogFromFailure(failure: NicoliveFailure): Promise<void> {
-  SentryReport.message('NicoliveProgram', 'openErrorDialogFromFailure', 'openErrorDialogFromFailure', {
-    level: 'warning',
-    extra: { failure },
-    tags: {
-      'failure.type': failure.type,
-      'failure.method': failure.method,
-      'failure.reason': failure.reason,
-    },
-    fingerprint: ['openErrorDialogFromFailure'],
-  });
+  if (failure.type !== 'network_error') {
+    SentryReport.message('NicoliveProgram', 'openErrorDialogFromFailure', 'openErrorDialogFromFailure', {
+      level: 'warning',
+      extra: { failure },
+      tags: {
+        'failure.type': failure.type,
+        'failure.method': failure.method,
+        'failure.reason': failure.reason,
+      },
+      fingerprint: ['openErrorDialogFromFailure'],
+    });
+  }
 
   if (failure.type === 'logic') {
     return openErrorDialog({

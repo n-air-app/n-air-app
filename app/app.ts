@@ -89,13 +89,19 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
       sampleRate: /* isPreview ? */ 1.0 /* : 0.1 */,
       Vue,
       beforeSend(event) {
-        // 一度出始めると大量に送信しつづける IPC error のSentry送信を削減する(quota対策)
-        if (event.exception && event.exception.values) {
-          const value = event.exception.values[0].value;
-          if (value?.match(/Failed to make IPC call/)) {
-            console.log(`skip send to Sentry(IPC): ${value}`, event);
-            return null;
-          }
+        // quota 対策: ユーザー側ネット環境起因またはアプリバグに起因しないノイズを除外する
+        const NOISE_PATTERNS = [
+          /Failed to make IPC call/,
+          /ERR_ABORTED/,
+          /ERR_FAILED/,
+          /read ECONNRESET/,
+          /network error/i,
+          /Failed to fetch/,
+        ];
+        const messageText =
+          (event.exception?.values?.[0]?.value) ?? event.message ?? '';
+        if (NOISE_PATTERNS.some((re) => re.test(messageText))) {
+          return null;
         }
         return event;
       },
