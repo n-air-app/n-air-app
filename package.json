@@ -11,6 +11,7 @@
     "clear-plugins": "shx rm -rf plugins",
     "compile": "pnpm clear && webpack-cli --progress --mode development",
     "compile:ci": "pnpm clear && webpack-cli --mode development",
+    "typecheck": "tsc --noEmit",
     "compile:production": "pnpm clear && webpack-cli --progress --mode production",
     "compile-tests": "tsc -p test",
     "dev": "run-p --race dev:*",
