@@ -102,7 +102,7 @@ export default defineComponent({
         all: () => true,
         broadcaster: isBroadcaster,
         moderator: (x: FilterRecord) => !isBroadcaster(x),
-      }[this.currentFilterBy];
+      }[this.currentFilterBy as FilterByUser];
 
       return this.filters
         .filter((x: any) => x.type === this.currentType)

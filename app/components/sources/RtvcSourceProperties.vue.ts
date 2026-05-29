@@ -263,7 +263,7 @@ export default defineComponent({
   methods: {
     updateManualList(): void {
       // add,delに反応しないのでコード側から変更指示
-      this.manualList = this.draftState.manuals.map((a, num) => ({
+      this.manualList = this.draftState.manuals.map((a: StateParam['manuals'][number], num: number) => ({
         index: `manual/${num}`,
         name: a.name,
         label: `manual${num}`,
@@ -332,18 +332,18 @@ export default defineComponent({
     },
 
     getSourcePropertyValue(key: SourcePropKey): TObsValue {
-      const p = this.properties.find((a) => a.name === key);
-      return p ? p.value : undefined;
+      const p = this.properties.find((a: { name: string }) => a.name === key);
+      return p ? p.value as TObsValue : undefined;
     },
 
     getSourcePropertyOptions(key: SourcePropKey): IObsListOption<number>[] {
-      const p = this.properties.find((a) => a.name === key) as IObsListInput<any>;
+      const p = this.properties.find((a: { name: string }) => a.name === key) as IObsListInput<any>;
       return p ? p.options : [];
     },
 
     getSourcePropertyOption(key: SourcePropKey, value: any): IObsListOption<number> {
       const list = this.getSourcePropertyOptions(key);
-      return list.find((a) => a.value === value) ?? { description: '', value: 0 };
+      return list.find((a: IObsListOption<number>) => a.value === value) ?? { description: '', value: 0 };
     },
 
     setSourcePropertyValue(key: SourcePropKey, value: TObsValue): void {
@@ -393,14 +393,14 @@ export default defineComponent({
 
     findNewManualImageNum(): number {
       for (let i = 0; i < RtvcStateService.instance.manualImages.length; i++) {
-        if (!this.draftState.manuals.find((a) => a.imageNum === i)) return i;
+        if (!this.draftState.manuals.find((a: StateParam['manuals'][number]) => a.imageNum === i)) return i;
       }
       return 0;
     },
 
     onAdd(): void {
       if (this.draftState.manuals.length >= this.manualMax) return;
-      const newNum = this.manualList.reduce((v, a) => {
+      const newNum = this.manualList.reduce((v: number, a: { name: string }) => {
         const m = a.name.match(/(\d+)$/);
         return m ? Math.max(v, parseInt(m[1], 10) + 1) : v;
       }, 1);

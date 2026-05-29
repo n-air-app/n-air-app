@@ -60,7 +60,7 @@ const ObsEditableListProperty = defineComponent({
       this.setList(data.order);
     },
     handleRemove() {
-      this.setList(this.list.filter((item) => item !== this.activeItem));
+      this.setList(this.list.filter((item: string) => item !== this.activeItem));
     },
     handleEdit() {
       this.showReplaceFileDialog();
