@@ -8,7 +8,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { Subscription } from 'rxjs';
 import { AppService } from 'services/app';
 import { $t } from 'services/i18n';
-import { SourcesService, TSourceType } from 'services/sources';
+import { ISource, SourcesService, TSourceType } from 'services/sources';
 import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
@@ -46,17 +46,17 @@ export default defineComponent({
       // このビューはoneOffWindow と childWindow どちらからも開かれる可能性があるため
       // どちらか有効な方のクエリパラメータから sourceId を取得する
       return (
-        WindowsService.instance.getWindowOptions(this.windowId).sourceId
-        || WindowsService.instance.getChildWindowQueryParams().sourceId
+        WindowsService.instance().getWindowOptions(this.windowId).sourceId
+        || WindowsService.instance().getChildWindowQueryParams().sourceId
       );
     },
 
     source() {
-      return SourcesService.instance.getSource(this.sourceId);
+      return SourcesService.instance().getSource(this.sourceId);
     },
 
     isShuttingDown(): boolean {
-      return AppService.instance.state.shuttingDown;
+      return AppService.instance().state.shuttingDown;
     },
 
     propertiesManagerUI(): string | undefined {
@@ -65,7 +65,7 @@ export default defineComponent({
     },
 
     windowTitle(): string {
-      const source = SourcesService.instance.getSource(this.sourceId);
+      const source = SourcesService.instance().getSource(this.sourceId);
       return source ? $t('sources.propertyWindowTitle', { sourceName: source.name }) : '';
     },
   },
@@ -73,12 +73,12 @@ export default defineComponent({
   mounted(): void {
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
     this.initialProperties = cloneDeep(this.properties);
-    this.sourceRemovedSub = SourcesService.instance.sourceRemoved.subscribe((source: any) => {
+    this.sourceRemovedSub = SourcesService.instance().sourceRemoved.subscribe((source: ISource) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }
     });
-    this.sourceUpdatedSub = SourcesService.instance.sourceUpdated.subscribe((source: any) => {
+    this.sourceUpdatedSub = SourcesService.instance().sourceUpdated.subscribe((source: ISource) => {
       if (source.sourceId === this.sourceId) {
         this.refresh();
       }
@@ -86,12 +86,12 @@ export default defineComponent({
 
     if (PeriodicUpdateSources.includes(this.source.type)) {
       this.refreshTimer = window.setInterval(() => {
-        const source = SourcesService.instance.getSource(this.sourceId);
+        const source = SourcesService.instance().getSource(this.sourceId);
         source.setPropertiesFormData([this.properties[0]]);
         this.refresh();
       }, PeriodicUpdateInterval);
     }
-    WindowsService.instance.requireWaitWindowCleanup(this.windowId, true);
+    WindowsService.instance().requireWaitWindowCleanup(this.windowId, true);
   },
 
   unmounted(): void {
@@ -100,12 +100,12 @@ export default defineComponent({
     }
     this.sourceRemovedSub.unsubscribe();
     this.sourceUpdatedSub.unsubscribe();
-    WindowsService.instance.requireWaitWindowCleanup(this.windowId, false);
+    WindowsService.instance().requireWaitWindowCleanup(this.windowId, false);
   },
 
   methods: {
     onInputHandler(properties: TObsFormData, changedIndex: number): void {
-      const source = SourcesService.instance.getSource(this.sourceId);
+      const source = SourcesService.instance().getSource(this.sourceId);
       source.setPropertiesFormData([properties[changedIndex]]);
       this.tainted = true;
     },
@@ -115,7 +115,7 @@ export default defineComponent({
     },
 
     closeWindow(): void {
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
 
     done(): void {
@@ -124,7 +124,7 @@ export default defineComponent({
 
     cancel(): void {
       if (this.tainted) {
-        const source = SourcesService.instance.getSource(this.sourceId);
+        const source = SourcesService.instance().getSource(this.sourceId);
         source.setPropertiesFormData(this.initialProperties);
       }
       this.closeWindow();

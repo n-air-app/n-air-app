@@ -49,20 +49,20 @@ export default defineComponent({
   },
   watch: {
     use() {
-      SubStreamService.instance.setState({ use: this.use });
+      SubStreamService.instance().setState({ use: this.use });
       if (!this.use) {
-        SubStreamService.instance.stop();
+        SubStreamService.instance().stop();
       }
     },
     selectedTab() {
-      const tabSettings = SubStreamService.instance.state.tabs[this.selectedTab];
+      const tabSettings = SubStreamService.instance().state.tabs[this.selectedTab];
       this.tabSwitching = true;
       this.url = tabSettings.url;
       this.key = tabSettings.key;
       this.$nextTick(() => {
         this.tabSwitching = false;
       });
-      SubStreamService.instance.setState({
+      SubStreamService.instance().setState({
         selectedTab: this.selectedTab,
         url: tabSettings.url,
         key: tabSettings.key,
@@ -77,35 +77,35 @@ export default defineComponent({
       this.saveCurrentTabSettings();
     },
     videoBitrate() {
-      SubStreamService.instance.setState({ videoBitrate: Number(this.videoBitrate) });
+      SubStreamService.instance().setState({ videoBitrate: Number(this.videoBitrate) });
     },
     videoCodec() {
-      SubStreamService.instance.setState({ videoCodec: this.videoCodec.id });
+      SubStreamService.instance().setState({ videoCodec: this.videoCodec.id });
     },
     keyintSec() {
-      SubStreamService.instance.setState({ keyintSec: Number(this.keyintSec) });
+      SubStreamService.instance().setState({ keyintSec: Number(this.keyintSec) });
     },
     audioBitrate() {
-      SubStreamService.instance.setState({ audioBitrate: Number(this.audioBitrate) });
+      SubStreamService.instance().setState({ audioBitrate: Number(this.audioBitrate) });
     },
     audioCodec() {
-      SubStreamService.instance.setState({ audioCodec: this.audioCodec.id });
+      SubStreamService.instance().setState({ audioCodec: this.audioCodec.id });
     },
     sync() {
-      SubStreamService.instance.setState({ sync: this.sync });
+      SubStreamService.instance().setState({ sync: this.sync });
     },
   },
   async mounted() {
-    this.use = SubStreamService.instance.state.use;
-    this.selectedTab = SubStreamService.instance.state.selectedTab;
-    this.url = SubStreamService.instance.state.url;
-    this.key = SubStreamService.instance.state.key;
-    this.videoBitrate = SubStreamService.instance.state.videoBitrate;
-    this.keyintSec = SubStreamService.instance.state.keyintSec;
-    this.audioBitrate = SubStreamService.instance.state.audioBitrate;
-    this.sync = SubStreamService.instance.state.sync;
+    this.use = SubStreamService.instance().state.use;
+    this.selectedTab = SubStreamService.instance().state.selectedTab;
+    this.url = SubStreamService.instance().state.url;
+    this.key = SubStreamService.instance().state.key;
+    this.videoBitrate = SubStreamService.instance().state.videoBitrate;
+    this.keyintSec = SubStreamService.instance().state.keyintSec;
+    this.audioBitrate = SubStreamService.instance().state.audioBitrate;
+    this.sync = SubStreamService.instance().state.sync;
 
-    const r = await SubStreamService.instance.enumEncoderTypes();
+    const r = await SubStreamService.instance().enumEncoderTypes();
     if (r.encoders) {
       this.videoCodecs = r.encoders.video
         .filter((v: any) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
@@ -115,7 +115,7 @@ export default defineComponent({
         }));
 
       this.videoCodec = this.videoCodecs.find(
-        (v: { id: string; name: string }) => v.id === SubStreamService.instance.state.videoCodec,
+        (v: { id: string; name: string }) => v.id === SubStreamService.instance().state.videoCodec,
       ) ?? { id: 'obs_x264', name: 'obs_x264' };
 
       this.audioCodecs = r.encoders.audio.map((v: any) => ({
@@ -124,7 +124,7 @@ export default defineComponent({
       }));
 
       this.audioCodec = this.audioCodecs.find(
-        (v: { id: string; name: string }) => v.id === SubStreamService.instance.state.audioCodec,
+        (v: { id: string; name: string }) => v.id === SubStreamService.instance().state.audioCodec,
       ) ?? { id: 'ffmpeg_aac', name: 'ffmpeg_aac' };
 
       this.startChecker();
@@ -136,8 +136,8 @@ export default defineComponent({
   methods: {
     saveCurrentTabSettings() {
       const { url, key, selectedTab } = this;
-      const tabs = { ...SubStreamService.instance.state.tabs, [selectedTab]: { url, key } };
-      SubStreamService.instance.setState({ url, key, tabs });
+      const tabs = { ...SubStreamService.instance().state.tabs, [selectedTab]: { url, key } };
+      SubStreamService.instance().setState({ url, key, tabs });
     },
     setDefaultUrl() {
       if (this.selectedTab === 'other') return;
@@ -158,7 +158,7 @@ export default defineComponent({
       remote.shell.openExternal(url);
     },
     async checkStatus() {
-      const r = await SubStreamService.instance.getStatus();
+      const r = await SubStreamService.instance().getStatus();
 
       const statusParts: string[] = [];
       statusParts.push(`${$t('settings.substream.info.status')}: ${r.displayStatus}`);
@@ -178,13 +178,13 @@ export default defineComponent({
       this.checker = undefined;
     },
     async start() {
-      const message = await SubStreamService.instance.start();
+      const message = await SubStreamService.instance().start();
       if (message) {
         remote.dialog.showErrorBox('Error', message);
       }
     },
     async stop() {
-      await SubStreamService.instance.stop();
+      await SubStreamService.instance().stop();
     },
   },
 });

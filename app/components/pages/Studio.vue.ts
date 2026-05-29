@@ -44,29 +44,29 @@ export default defineComponent({
 
   computed: {
     previewEnabled(): boolean {
-      return !CustomizationService.instance.state.performanceMode;
+      return !CustomizationService.instance().state.performanceMode;
     },
 
     studioMode(): boolean {
-      return TransitionsService.instance.state.studioMode;
+      return TransitionsService.instance().state.studioMode;
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     compactModeTab() {
-      return CompactModeService.instance.compactModeTab;
+      return CompactModeService.instance().compactModeTab;
     },
   },
 
   methods: {
     studioModeTransition() {
-      TransitionsService.instance.executeStudioModeTransition();
+      TransitionsService.instance().executeStudioModeTransition();
     },
 
     enablePreview() {
-      CustomizationService.instance.setSettings({ performanceMode: false });
+      CustomizationService.instance().setSettings({ performanceMode: false });
     },
   },
 });

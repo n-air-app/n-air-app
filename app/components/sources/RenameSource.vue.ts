@@ -10,7 +10,7 @@ export default defineComponent({
   components: { ModalLayout },
 
   data() {
-    const options = WindowsService.instance.getChildWindowQueryParams() as {
+    const options = WindowsService.instance().getChildWindowQueryParams() as {
       sourceId?: string;
     };
     return {
@@ -21,7 +21,7 @@ export default defineComponent({
   },
 
   mounted(): void {
-    const source = SourcesService.instance.getSource(this.options.sourceId);
+    const source = SourcesService.instance().getSource(this.options.sourceId);
     this.name = source.name;
   },
 
@@ -30,8 +30,8 @@ export default defineComponent({
       if (!this.name) {
         this.error = $t('sources.sourceNameIsRequired');
       } else {
-        SourcesService.instance.getSource(this.options.sourceId).setName(this.name);
-        WindowsService.instance.closeChildWindow();
+        SourcesService.instance().getSource(this.options.sourceId).setName(this.name);
+        WindowsService.instance().closeChildWindow();
       }
     },
   },

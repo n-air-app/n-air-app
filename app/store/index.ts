@@ -38,7 +38,7 @@ const storeReady = new Promise<Store<any>>((resolve) => {
 // IPC with the main process.
 plugins.push((store: Store<any>) => {
   store.subscribe((mutation: Dictionary<any>) => {
-    const internalApiService: InternalApiService = InternalApiService.instance;
+    const internalApiService: InternalApiService = InternalApiService.instance();
     if (mutation.payload && !mutation.payload.__vuexSyncIgnore) {
       const mutationToSend: IMutation = {
         type: mutation.type,
@@ -87,7 +87,7 @@ plugins.push((store: Store<any>) => {
     }
 
     // for child and one-offs windows commit mutations via api-client
-    const servicesManager: ServicesManager = ServicesManager.instance;
+    const servicesManager: ServicesManager = ServicesManager.instance();
     servicesManager.internalApiClient.handleMutation(mutation);
   });
 
@@ -98,7 +98,7 @@ let store: Store<any> = null;
 
 export function createStore(): Promise<Store<any>> {
   const statefulServiceModules: Dictionary<any> = {};
-  const servicesManager: ServicesManager = ServicesManager.instance;
+  const servicesManager: ServicesManager = ServicesManager.instance();
   const statefulServices = servicesManager.getStatefulServicesAndMutators();
   Object.keys(statefulServices).forEach((serviceName) => {
     statefulServiceModules[serviceName] = getModule(statefulServices[serviceName]);

@@ -15,7 +15,7 @@ const { ipcRenderer } = electron;
  * Only the child window and one-off windows instantiate this class
  */
 export class InternalApiClient {
-  private servicesManager: ServicesManager = ServicesManager.instance;
+  private servicesManager: ServicesManager = ServicesManager.instance();
 
   /**
    * If the result of calling a service method in the main window is promise -

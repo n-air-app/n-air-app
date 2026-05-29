@@ -8,7 +8,7 @@ export default defineComponent({
 
   computed: {
     programDescription(): string {
-      return applyAutoLink(NicoliveProgramService.instance.state.description);
+      return applyAutoLink(NicoliveProgramService.instance().state.description);
     },
   },
 

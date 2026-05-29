@@ -30,31 +30,31 @@ export default defineComponent({
 
   computed: {
     recording() {
-      return StreamingService.instance.isRecording;
+      return StreamingService.instance().isRecording;
     },
 
     streamingStatus() {
-      return StreamingService.instance.state.streamingStatus;
+      return StreamingService.instance().state.streamingStatus;
     },
 
     loggedIn() {
-      return UserService.instance.isLoggedIn();
+      return UserService.instance().isLoggedIn();
     },
 
     replayBufferEnabled() {
-      return SettingsService.instance.state.Output?.RecRB;
+      return SettingsService.instance().state.Output?.RecRB;
     },
 
     replayBufferOffline() {
-      return StreamingService.instance.state.replayBufferStatus === EReplayBufferState.Offline;
+      return StreamingService.instance().state.replayBufferStatus === EReplayBufferState.Offline;
     },
 
     replayBufferStopping() {
-      return StreamingService.instance.state.replayBufferStatus === EReplayBufferState.Stopping;
+      return StreamingService.instance().state.replayBufferStatus === EReplayBufferState.Stopping;
     },
 
     replayBufferSaving() {
-      return StreamingService.instance.state.replayBufferStatus === EReplayBufferState.Saving;
+      return StreamingService.instance().state.replayBufferStatus === EReplayBufferState.Saving;
     },
   },
 
@@ -74,19 +74,19 @@ export default defineComponent({
 
   methods: {
     toggleRecording() {
-      StreamingService.instance.toggleRecording();
+      StreamingService.instance().toggleRecording();
     },
 
     toggleReplayBuffer() {
-      if (StreamingService.instance.state.replayBufferStatus === EReplayBufferState.Offline) {
-        StreamingService.instance.startReplayBuffer();
+      if (StreamingService.instance().state.replayBufferStatus === EReplayBufferState.Offline) {
+        StreamingService.instance().startReplayBuffer();
       } else {
-        StreamingService.instance.stopReplayBuffer();
+        StreamingService.instance().stopReplayBuffer();
       }
     },
 
     saveReplay() {
-      StreamingService.instance.saveReplay();
+      StreamingService.instance().saveReplay();
     },
 
     clearTimeoutHandle() {
@@ -97,13 +97,13 @@ export default defineComponent({
     },
 
     updateStreamingElapsedTime(): void {
-      if (StreamingService.instance.state.streamingStatus !== EStreamingState.Live) {
+      if (StreamingService.instance().state.streamingStatus !== EStreamingState.Live) {
         this.streamingElapsedTime = '--:--:--';
         this.clearTimeoutHandle();
         return;
       }
 
-      this.streamingElapsedTime = StreamingService.instance.formattedDurationInCurrentStreamingState;
+      this.streamingElapsedTime = StreamingService.instance().formattedDurationInCurrentStreamingState;
 
       this.clearTimeoutHandle();
       this.timeoutHandle = window.setTimeout(() => this.updateStreamingElapsedTime(), 200);

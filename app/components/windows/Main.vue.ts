@@ -33,40 +33,40 @@ export default defineComponent({
 
   mounted() {
     remote.getCurrentWindow().show();
-    WindowSizeService.instance; // manage compact mode
+    WindowSizeService.instance(); // manage compact mode
   },
 
   computed: {
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     compactModeTab() {
-      return CompactModeService.instance.compactModeTab;
+      return CompactModeService.instance().compactModeTab;
     },
 
     title(): string {
-      return WindowsService.instance.state.main.title;
+      return WindowsService.instance().state.main.title;
     },
 
     page(): string {
-      return NavigationService.instance.state.currentPage;
+      return NavigationService.instance().state.currentPage;
     },
 
     params() {
-      return NavigationService.instance.state.params;
+      return NavigationService.instance().state.params;
     },
 
     applicationLoading(): boolean {
-      return AppService.instance.state.loading;
+      return AppService.instance().state.loading;
     },
 
     isLoggedIn(): boolean {
-      return UserService.instance.isLoggedIn();
+      return UserService.instance().isLoggedIn();
     },
 
     isOnboarding(): boolean {
-      return NavigationService.instance.state.currentPage === 'Onboarding';
+      return NavigationService.instance().state.currentPage === 'Onboarding';
     },
 
     showMainMiddle(): boolean {
@@ -88,14 +88,14 @@ export default defineComponent({
      * is loading.  Other pages are OK to keep using.
      */
     shouldLockContent(): boolean {
-      return this.applicationLoading && NavigationService.instance.state.currentPage === 'Studio';
+      return this.applicationLoading && NavigationService.instance().state.currentPage === 'Studio';
     },
   },
 
   methods: {
     onDropHandler(event: DragEvent) {
       const files = event.dataTransfer.files;
-      if (!ScenesService.instance.activeScene) {
+      if (!ScenesService.instance().activeScene) {
         SentryReport.message('MainWindow', 'onDropHandler', 'Attempted to add files to a scene when no scene was active', { level: 'warning' });
         return;
       }
@@ -103,7 +103,7 @@ export default defineComponent({
       let fi = files.length;
       while (fi--) {
         const file = files.item(fi);
-        ScenesService.instance.activeScene.addFile(file.path);
+        ScenesService.instance().activeScene.addFile(file.path);
       }
     },
   },

@@ -17,11 +17,11 @@ export default defineComponent({
 
   computed: {
     previewEnabled() {
-      return !CustomizationService.instance.state.performanceMode;
+      return !CustomizationService.instance().state.performanceMode;
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
   },
 

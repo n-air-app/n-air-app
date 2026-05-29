@@ -92,12 +92,12 @@ export default defineComponent({
     },
 
     filters() {
-      return NicoliveCommentFilterService.instance.filters;
+      return NicoliveCommentFilterService.instance().filters;
     },
 
     currentTypeFilters() {
       const isBroadcaster = (x: FilterRecord) =>
-        NicoliveCommentFilterService.instance.isBroadcastersFilter(x);
+        NicoliveCommentFilterService.instance().isBroadcastersFilter(x);
       const filtersBy: (x: FilterRecord) => boolean = {
         all: () => true,
         broadcaster: isBroadcaster,
@@ -133,7 +133,7 @@ export default defineComponent({
   methods: {
     async reloadFilters() {
       try {
-        return NicoliveCommentFilterService.instance.fetchFilters();
+        return NicoliveCommentFilterService.instance().fetchFilters();
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);
@@ -146,7 +146,7 @@ export default defineComponent({
     async deleteFilter(record: FilterRecord) {
       try {
         this.deleting = true;
-        await NicoliveCommentFilterService.instance.deleteFilters([record.id]);
+        await NicoliveCommentFilterService.instance().deleteFilters([record.id]);
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);
@@ -164,7 +164,7 @@ export default defineComponent({
 
       try {
         this.adding = true;
-        await NicoliveCommentFilterService.instance.addFilter({
+        await NicoliveCommentFilterService.instance().addFilter({
           type: this.currentType,
           body,
         });

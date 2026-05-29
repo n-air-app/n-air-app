@@ -125,7 +125,7 @@ test('接続先情報が来たら接続する', async () => {
   setup({ injectee: { NicoliveProgramService: { stateChange } } });
 
   const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
-  const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+  const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
 
   expect(clientSubject.observers).toHaveLength(0);
   expect(stateChange.observers).toHaveLength(3);
@@ -146,7 +146,7 @@ test('接続先情報が欠けていたら接続しない', () => {
   setup({ injectee: { NicoliveProgramService: { stateChange } } });
 
   const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
-  const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+  const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
 
   expect(clientSubject.observers).toHaveLength(0);
   expect(stateChange.observers).toHaveLength(3);
@@ -172,7 +172,7 @@ test('status=endedが流れてきたらunsubscribeし、refreshProgramも呼ぶ'
   setup({ injectee: { NicoliveProgramService: { stateChange, refreshProgram } } });
 
   const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
-  const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+  const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
   const unsubscribe = jest.fn();
   (instance as any).unsubscribe = unsubscribe;
 
@@ -212,7 +212,7 @@ test('status=endedでrefreshProgramがNicoliveFailureを投げてもunhandledに
   setup({ injectee: { NicoliveProgramService: { stateChange, refreshProgram } } });
 
   const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
-  const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+  const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
   (instance as any).unsubscribe = jest.fn();
 
   stateChange.next({ viewUri: 'https://example.com' });
@@ -297,7 +297,7 @@ function connectionSetup(options: { speechEnabled?: boolean; httpRelationEnabled
   });
 
   const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
-  const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+  const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
 
   stateChange.next({ viewUri: 'https://example.com' });
 
@@ -636,7 +636,7 @@ describe('startUpdateSupporters', () => {
     });
 
     const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
-    const instance = NicoliveCommentViewerService.instance as NicoliveCommentViewerService;
+    const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
     return { instance, update };
   }
 

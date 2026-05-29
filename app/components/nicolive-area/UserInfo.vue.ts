@@ -46,7 +46,7 @@ export default defineComponent({
   },
 
   data() {
-    const userId = WindowsService.instance.getChildWindowQueryParams().userId as string;
+    const userId = WindowsService.instance().getChildWindowQueryParams().userId as string;
     return {
       konomiTagsSubscription: null as Subscription | null,
       myKonomiTags: [] as KonomiTag[],
@@ -73,23 +73,23 @@ export default defineComponent({
 
   computed: {
     userName(): string {
-      return WindowsService.instance.getChildWindowQueryParams().userName as string;
+      return WindowsService.instance().getChildWindowQueryParams().userName as string;
     },
 
     userId(): string {
-      return WindowsService.instance.getChildWindowQueryParams().userId as string;
+      return WindowsService.instance().getChildWindowQueryParams().userId as string;
     },
 
     isPremium() {
-      return WindowsService.instance.getChildWindowQueryParams().isPremium;
+      return WindowsService.instance().getChildWindowQueryParams().isPremium;
     },
 
     isSupporter() {
-      return WindowsService.instance.getChildWindowQueryParams().isSupporter;
+      return WindowsService.instance().getChildWindowQueryParams().isSupporter;
     },
 
     comments(): WrappedChatWithComponent[] {
-      const comments = NicoliveCommentViewerService.instance.items.filter((item: any) => {
+      const comments = NicoliveCommentViewerService.instance().items.filter((item: any) => {
         return isWrappedChat(item) && item.value.user_id === this.userId;
       }) as WrappedChatWithComponent[];
       return comments;
@@ -97,7 +97,7 @@ export default defineComponent({
 
     getFormattedLiveTime() {
       return (chat: ChatMessage): string => {
-        const { startTime } = NicoliveProgramService.instance.state;
+        const { startTime } = NicoliveProgramService.instance().state;
         const diffTime = (chat.date ?? 0) - startTime;
         return NicoliveProgramService.format(diffTime);
       };
@@ -123,39 +123,39 @@ export default defineComponent({
       io.unobserve(sentinelEl);
     };
 
-    this.konomiTagsSubscription = KonomiTagsService.instance.stateChange.subscribe({
+    this.konomiTagsSubscription = KonomiTagsService.instance().stateChange.subscribe({
       next: (state: any) => {
         this.myKonomiTags = state.loggedIn ? state.loggedIn.konomiTags : [];
         this.updateKonomiTags();
       },
     });
     // ユーザー情報ウィンドウを開く度に自分の好みタグも更新する(自分の好みタグが変わっている可能性があるため)
-    KonomiTagsService.instance.fetch();
+    KonomiTagsService.instance().fetch();
 
-    NicoliveProgramService.instance.client.fetchKonomiTags(this.userId).then((tags: any) => {
+    NicoliveProgramService.instance().client.fetchKonomiTags(this.userId).then((tags: any) => {
       this.rawKonomiTags = tags;
       this.updateKonomiTags();
     });
 
-    NicoliveProgramService.instance.client.fetchUserFollow(this.userId).then((following: any) => {
+    NicoliveProgramService.instance().client.fetchUserFollow(this.userId).then((following: any) => {
       this.isFollowing = following;
     });
 
-    this.isModerator = NicoliveModeratorsService.instance.isModerator(this.userId);
-    this.moderatorSubscription = NicoliveModeratorsService.instance.stateChange.subscribe({
+    this.isModerator = NicoliveModeratorsService.instance().isModerator(this.userId);
+    this.moderatorSubscription = NicoliveModeratorsService.instance().stateChange.subscribe({
       next: (state: any) => {
         const isModerator = state.moderatorsCache.includes(this.userId);
         this.isModerator = isModerator;
       },
     });
 
-    this.isBroadcaster = NicoliveProgramService.instance.isBroadcaster(this.userId);
+    this.isBroadcaster = NicoliveProgramService.instance().isBroadcaster(this.userId);
 
     const isBlocked = (filters: { type: string; body: string }[]) =>
       filters.some((filter) => filter.type === 'user' && filter.body === this.userId);
 
-    this.isBlockedUser = isBlocked(NicoliveCommentFilterService.instance.state.filters);
-    this.isBlockedSubscription = NicoliveCommentFilterService.instance.stateChange.subscribe({
+    this.isBlockedUser = isBlocked(NicoliveCommentFilterService.instance().state.filters);
+    this.isBlockedSubscription = NicoliveCommentFilterService.instance().stateChange.subscribe({
       next: (state: any) => {
         this.isBlockedUser = isBlocked(state.filters);
       },
@@ -181,19 +181,19 @@ export default defineComponent({
 
   methods: {
     followUser(): void {
-      NicoliveProgramService.instance.client.followUser(this.userId).then(() => {
+      NicoliveProgramService.instance().client.followUser(this.userId).then(() => {
         this.isFollowing = true;
       });
     },
 
     unFollowUser(): void {
-      NicoliveProgramService.instance.client.unFollowUser(this.userId).then(() => {
+      NicoliveProgramService.instance().client.unFollowUser(this.userId).then(() => {
         this.isFollowing = false;
       });
     },
 
     async blockUser() {
-      await NicoliveCommentFilterService.instance
+      await NicoliveCommentFilterService.instance()
         .addFilter({
           type: 'user',
           body: this.userId,
@@ -206,7 +206,7 @@ export default defineComponent({
     },
 
     async unBlockUser() {
-      const filterRecord = NicoliveCommentFilterService.instance.state.filters.find(
+      const filterRecord = NicoliveCommentFilterService.instance().state.filters.find(
         (filter: any) => filter.type === 'user' && filter.body === this.userId,
       );
       if (!filterRecord) {
@@ -214,7 +214,7 @@ export default defineComponent({
         return;
       }
 
-      await NicoliveCommentFilterService.instance.deleteFilters([filterRecord.id]).catch((e: any) => {
+      await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]).catch((e: any) => {
         if (e instanceof NicoliveFailure) {
           openErrorDialogFromFailure(e);
         }
@@ -222,14 +222,14 @@ export default defineComponent({
     },
 
     async addModerator() {
-      return NicoliveModeratorsService.instance.addModeratorWithConfirm({
+      return NicoliveModeratorsService.instance().addModeratorWithConfirm({
         userId: this.userId,
         userName: this.userName,
       });
     },
 
     async removeModerator() {
-      return NicoliveModeratorsService.instance.removeModeratorWithConfirm({
+      return NicoliveModeratorsService.instance().removeModeratorWithConfirm({
         userId: this.userId,
         userName: this.userName,
       });
@@ -260,7 +260,7 @@ export default defineComponent({
     },
 
     openUserPage() {
-      remote.shell.openExternal(HostsService.instance.getUserPageURL(this.userId));
+      remote.shell.openExternal(HostsService.instance().getUserPageURL(this.userId));
     },
 
     copyUserId() {

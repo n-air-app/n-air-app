@@ -12,18 +12,18 @@ export default defineComponent({
   components: { ModalLayout },
   computed: {
     fetching() {
-      return InformationsService.instance.fetching;
+      return InformationsService.instance().fetching;
     },
     hasError() {
-      return InformationsService.instance.hasError;
+      return InformationsService.instance().hasError;
     },
     informations() {
-      return InformationsService.instance.informations;
+      return InformationsService.instance().informations;
     },
   },
   mounted() {
-    InformationsService.instance.updateInformations();
-    InformationsService.instance.updateLastOpen(Date.now());
+    InformationsService.instance().updateInformations();
+    InformationsService.instance().updateLastOpen(Date.now());
   },
   methods: {
     format(unixtime: number) {
@@ -45,7 +45,7 @@ export default defineComponent({
       }
     },
     done() {
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
   },
 });

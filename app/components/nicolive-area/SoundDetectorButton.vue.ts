@@ -18,7 +18,7 @@ export default defineComponent({
   computed: {
     // SoundDetectorが有効かどうか
     isEnabled(): boolean {
-      return SoundDetectorService.instance.isEnabled();
+      return SoundDetectorService.instance().isEnabled();
     },
 
     // アイコンクラスを返す
@@ -67,8 +67,8 @@ export default defineComponent({
 
   mounted() {
     // SoundDetectorの状態を購読
-    this.soundDetectSubscription = SoundDetectorService.instance.soundDetectedObservable.subscribe({
-      next: (detected: any) => {
+    this.soundDetectSubscription = SoundDetectorService.instance().soundDetectedObservable.subscribe({
+      next: (detected: { soundDetected: SoundDetectedState }) => {
         this.soundDetected = detected.soundDetected;
       },
     });
@@ -84,7 +84,7 @@ export default defineComponent({
   methods: {
     // クリック時に設定画面を開く
     openSettings() {
-      SettingsService.instance.showSoundDetectorSettings();
+      SettingsService.instance().showSoundDetectorSettings();
     },
   },
 });

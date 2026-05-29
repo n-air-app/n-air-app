@@ -41,7 +41,7 @@ function prepare() {
   }));
 
   const { NicoliveSupportersService } = require('./nicolive-supporters');
-  const instance = NicoliveSupportersService.instance as NicoliveSupportersService;
+  const instance = NicoliveSupportersService.instance() as NicoliveSupportersService;
   return {
     instance,
     fetchSupporters,

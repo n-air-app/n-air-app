@@ -51,7 +51,7 @@ function addSource(
   // 自動文字起こしソースを追加する際に自動文字起こしが有効になっていない場合は迷わないように案内を表示する
   if (
     inspectedSource === 'text_transcription'
-    && TranscriptionService.instance.activeStatus() !== 'active'
+    && TranscriptionService.instance().activeStatus() !== 'active'
   ) {
     remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
       type: 'info',
@@ -68,13 +68,13 @@ function addSource(
       ...optionsWithoutManager,
       propertiesManager: 'custom-cast-ndi',
     };
-    SourcesService.instance.showAddSource('ndi_source', propertiesManagerSettings);
+    SourcesService.instance().showAddSource('ndi_source', propertiesManagerSettings);
   } else if (NVoiceCharacterTypes.includes(sourceType as NVoiceCharacterType)) {
     const propertiesManagerSettings: Dictionary<any> = {
       NVoiceCharacterType: sourceType as NVoiceCharacterType,
       ...optionsWithoutManager,
     };
-    SourcesService.instance.showAddSource('browser_source', {
+    SourcesService.instance().showAddSource('browser_source', {
       propertiesManagerSettings,
       propertiesManager: 'nvoice-character',
     });
@@ -82,7 +82,7 @@ function addSource(
     const propertiesManager = optionsPropertiesManager || 'default';
     const propertiesManagerSettings: Dictionary<any> = { ...optionsWithoutManager };
 
-    SourcesService.instance.showAddSource(sourceType, {
+    SourcesService.instance().showAddSource(sourceType, {
       propertiesManagerSettings,
       propertiesManager,
     });
@@ -125,18 +125,18 @@ export default defineComponent({
 
   computed: {
     loggedIn(): boolean {
-      return UserService.instance.isLoggedIn();
+      return UserService.instance().isLoggedIn();
     },
 
     platform() {
       if (!this.loggedIn) return null;
-      return UserService.instance.platform.type;
+      return UserService.instance().platform.type;
     },
 
     availableSources() {
-      return SourcesService.instance.getAvailableSourcesTypesList().filter((type: any) => {
+      return SourcesService.instance().getAvailableSourcesTypesList().filter((type: any) => {
         if (type.value === 'text_ft2_source') return false;
-        if (type.value === 'scene' && ScenesService.instance.scenes.length <= 1) return false;
+        if (type.value === 'scene' && ScenesService.instance().scenes.length <= 1) return false;
         return true;
       });
     },
@@ -144,8 +144,8 @@ export default defineComponent({
     readyToAdd(): boolean {
       if (this.inspectedSource === 'nair-rtvc-source') {
         // 同一scene上では1つだけ
-        for (const s of ScenesService.instance.activeScene.items) {
-          if (SourcesService.instance.getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
+        for (const s of ScenesService.instance().activeScene.items) {
+          if (SourcesService.instance().getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
         }
       }
 

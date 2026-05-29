@@ -9,18 +9,18 @@ export default defineComponent({
   computed: {
     enabled: {
       get(): boolean {
-        return NicoliveCommentSynthesizerService.instance.enabled;
+        return NicoliveCommentSynthesizerService.instance().enabled;
       },
       set(e: boolean) {
-        NicoliveCommentSynthesizerService.instance.enabled = e;
+        NicoliveCommentSynthesizerService.instance().enabled = e;
       },
     },
     maxTime: {
       get(): number {
-        return NicoliveCommentSynthesizerService.instance.maxTime;
+        return NicoliveCommentSynthesizerService.instance().maxTime;
       },
       set(v: number) {
-        NicoliveCommentSynthesizerService.instance.maxTime = v;
+        NicoliveCommentSynthesizerService.instance().maxTime = v;
       },
     },
     maxTimeCandidates(): number[] {
@@ -31,10 +31,10 @@ export default defineComponent({
     },
     pitch: {
       get(): number {
-        return NicoliveCommentSynthesizerService.instance.pitch;
+        return NicoliveCommentSynthesizerService.instance().pitch;
       },
       set(v: number) {
-        NicoliveCommentSynthesizerService.instance.pitch = v;
+        NicoliveCommentSynthesizerService.instance().pitch = v;
       },
     },
     pitchCandidates(): number[] {
@@ -52,7 +52,7 @@ export default defineComponent({
       this.$emit('close');
     },
     testSpeechPlay(synthId: SynthesizerId) {
-      NicoliveCommentSynthesizerService.instance.startTestSpeech('これは読み上げ設定のテスト音声です', synthId, 'normal');
+      NicoliveCommentSynthesizerService.instance().startTestSpeech('これは読み上げ設定のテスト音声です', synthId, 'normal');
     },
     resetNVoice() {
       this.maxTime = this.maxTimeDefault;

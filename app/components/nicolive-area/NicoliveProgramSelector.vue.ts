@@ -33,57 +33,57 @@ export default defineComponent({
   computed: {
     currentStep: {
       get(): TStep {
-        return NicoliveProgramSelectorService.instance.state.currentStep;
+        return NicoliveProgramSelectorService.instance().state.currentStep;
       },
       set(step: TStep) {
-        NicoliveProgramSelectorService.instance.backTo(step);
+        NicoliveProgramSelectorService.instance().backTo(step);
       },
     },
 
     candidateChannels() {
-      return NicoliveProgramSelectorService.instance.state.candidateChannels;
+      return NicoliveProgramSelectorService.instance().state.candidateChannels;
     },
 
     candidatePrograms() {
-      return NicoliveProgramSelectorService.instance.state.candidatePrograms;
+      return NicoliveProgramSelectorService.instance().state.candidatePrograms;
     },
   },
 
   beforeUnmount(): void {
     // 状態初期化
-    NicoliveProgramSelectorService.instance.reset();
+    NicoliveProgramSelectorService.instance().reset();
   },
 
   methods: {
     onSelectProviderType(providerType: TProviderType): void {
-      if (NicoliveProgramSelectorService.instance.state.isLoading) return;
-      NicoliveProgramSelectorService.instance.onSelectProviderType(providerType);
+      if (NicoliveProgramSelectorService.instance().state.isLoading) return;
+      NicoliveProgramSelectorService.instance().onSelectProviderType(providerType);
     },
 
     onSelectChannel(id: string, name: string): void {
-      if (NicoliveProgramSelectorService.instance.state.isLoading) return;
-      NicoliveProgramSelectorService.instance.onSelectChannel(id, name);
+      if (NicoliveProgramSelectorService.instance().state.isLoading) return;
+      NicoliveProgramSelectorService.instance().onSelectChannel(id, name);
     },
 
     onSelectBroadcastingProgram(id: string, title: string): void {
-      if (NicoliveProgramSelectorService.instance.state.isLoading) return;
-      NicoliveProgramSelectorService.instance.onSelectBroadcastingProgram(id, title);
+      if (NicoliveProgramSelectorService.instance().state.isLoading) return;
+      NicoliveProgramSelectorService.instance().onSelectBroadcastingProgram(id, title);
     },
 
     isCompletedStep(step: TStep): boolean {
-      return NicoliveProgramSelectorService.instance.isCompletedStep(step);
+      return NicoliveProgramSelectorService.instance().isCompletedStep(step);
     },
 
     shouldEnableNavItem(step: TStep): boolean {
       return (
-        !NicoliveProgramSelectorService.instance.state.isLoading
-        && NicoliveProgramSelectorService.instance.isCompletedOrCurrentStep(step)
+        !NicoliveProgramSelectorService.instance().state.isLoading
+        && NicoliveProgramSelectorService.instance().isCompletedOrCurrentStep(step)
       );
     },
 
     getSelectedValueForDisplay(navItemStep: TSelectionStep): string {
       const { selectedProviderType, selectedChannel, selectedChannelProgram } =
-        NicoliveProgramSelectorService.instance.state;
+        NicoliveProgramSelectorService.instance().state;
       switch (navItemStep) {
         case 'providerTypeSelect':
           return this.getProviderTypeProgramText(selectedProviderType) || this.BLANK;
@@ -96,8 +96,8 @@ export default defineComponent({
 
     canShowNoProgramsSection(): boolean {
       return (
-        !NicoliveProgramSelectorService.instance.state.isLoading
-        && NicoliveProgramSelectorService.instance.state.candidatePrograms.length <= 0
+        !NicoliveProgramSelectorService.instance().state.isLoading
+        && NicoliveProgramSelectorService.instance().state.candidatePrograms.length <= 0
       );
     },
 
@@ -118,14 +118,14 @@ export default defineComponent({
     },
 
     ok(): void {
-      StreamingService.instance.toggleStreamingAsync({
+      StreamingService.instance().toggleStreamingAsync({
         nicoliveProgramSelectorResult: {
-          providerType: NicoliveProgramSelectorService.instance.state.selectedProviderType,
+          providerType: NicoliveProgramSelectorService.instance().state.selectedProviderType,
           channelProgramId:
-            NicoliveProgramSelectorService.instance.state.selectedChannelProgram?.id ?? undefined,
+            NicoliveProgramSelectorService.instance().state.selectedChannelProgram?.id ?? undefined,
         },
       });
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
   },
 });

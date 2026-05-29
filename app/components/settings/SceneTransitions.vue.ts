@@ -37,21 +37,21 @@ export default defineComponent({
   },
   computed: {
     transitionsEnabled() {
-      return ScenesService.instance.scenes.length > 1;
+      return ScenesService.instance().scenes.length > 1;
     },
     transitions() {
-      return TransitionsService.instance.state.transitions;
+      return TransitionsService.instance().state.transitions;
     },
     defaultTransitionId() {
-      return TransitionsService.instance.state.defaultTransitionId;
+      return TransitionsService.instance().state.defaultTransitionId;
     },
     connections() {
-      return TransitionsService.instance.state.connections;
+      return TransitionsService.instance().state.connections;
     },
   },
   methods: {
     addTransition() {
-      const transition = TransitionsService.instance.createTransition(
+      const transition = TransitionsService.instance().createTransition(
         ETransitionType.Cut,
         $t('transitions.newTransition'),
       );
@@ -62,19 +62,19 @@ export default defineComponent({
       this.showTransitionSettings = true;
     },
     deleteTransition(id: string) {
-      if (TransitionsService.instance.state.transitions.length === 1) {
+      if (TransitionsService.instance().state.transitions.length === 1) {
         alert($t('transitions.mustHaveLeastOneTransition'));
         return;
       }
-      TransitionsService.instance.deleteTransition(id);
+      TransitionsService.instance().deleteTransition(id);
     },
     makeDefault(id: string) {
-      TransitionsService.instance.setDefaultTransition(id);
+      TransitionsService.instance().setDefaultTransition(id);
     },
     addConnection() {
-      const connection = TransitionsService.instance.addConnection(
-        ScenesService.instance.scenes[0].id,
-        ScenesService.instance.scenes[1].id,
+      const connection = TransitionsService.instance().addConnection(
+        ScenesService.instance().scenes[0].id,
+        ScenesService.instance().scenes[1].id,
         this.transitions[0].id,
       );
       this.editConnection(connection.id);
@@ -84,26 +84,26 @@ export default defineComponent({
       this.showConnectionSettings = true;
     },
     deleteConnection(id: string) {
-      TransitionsService.instance.deleteConnection(id);
+      TransitionsService.instance().deleteConnection(id);
     },
     getTransitionName(id: string) {
-      const transition = TransitionsService.instance.getTransition(id);
+      const transition = TransitionsService.instance().getTransition(id);
       if (transition) return transition.name;
       return `<${$t('transitions.deleted')}>`;
     },
     getSceneName(id: string) {
-      const scene = ScenesService.instance.getScene(id);
+      const scene = ScenesService.instance().getScene(id);
       if (scene) return scene.name;
       return `<${$t('transitions.deleted')}>`;
     },
     isConnectionRedundant(id: string) {
-      return TransitionsService.instance.isConnectionRedundant(id);
+      return TransitionsService.instance().isConnectionRedundant(id);
     },
     nameForType(type: ETransitionType) {
-      return TransitionsService.instance.getTypes().find((t: any) => t.value === type).description;
+      return TransitionsService.instance().getTypes().find((t: any) => t.value === type).description;
     },
     done() {
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
     dismissModal(modal: string) {
       if (modal === 'transition-settings') {

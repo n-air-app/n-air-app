@@ -21,11 +21,11 @@ export default defineComponent({
   components: { ModalLayout, Selector, Display },
 
   data() {
-    const sourceType = WindowsService.instance.getChildWindowQueryParams().sourceType as TSelectableSourceType;
-    const sourceAddOptions = WindowsService.instance.getChildWindowQueryParams().sourceAddOptions as ISourceAddOptions;
+    const sourceType = WindowsService.instance().getChildWindowQueryParams().sourceType as TSelectableSourceType;
+    const sourceAddOptions = WindowsService.instance().getChildWindowQueryParams().sourceAddOptions as ISourceAddOptions;
     const nVoiceCharacterType: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
 
-    const sources = SourcesService.instance.getSources().filter((source: any) => {
+    const sources = SourcesService.instance().getSources().filter((source: any) => {
       const comparison = {
         type: sourceType as TSourceType,
         propertiesManager: sourceAddOptions.propertiesManager,
@@ -35,7 +35,7 @@ export default defineComponent({
           comparison.propertiesManager === 'nvoice-character'
             ? { ...comparison, nVoiceCharacterType }
             : comparison,
-        ) && source.sourceId !== ScenesService.instance.activeSceneId
+        ) && source.sourceId !== ScenesService.instance().activeSceneId
       );
     });
 
@@ -58,23 +58,23 @@ export default defineComponent({
     },
 
     selectedSource() {
-      return SourcesService.instance.getSource(this.selectedSourceId);
+      return SourcesService.instance().getSource(this.selectedSourceId);
     },
   },
 
   mounted(): void {
     if (this.sourceAddOptions.propertiesManager === 'custom-cast-ndi') {
-      this.name = SourcesService.instance.suggestName($t('source-props.custom_cast_ndi_source.name'));
+      this.name = SourcesService.instance().suggestName($t('source-props.custom_cast_ndi_source.name'));
     } else if (this.sourceAddOptions.propertiesManager === 'nvoice-character') {
       const type = this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
-      this.name = SourcesService.instance.suggestName($t(`source-props.${type}.name`));
+      this.name = SourcesService.instance().suggestName($t(`source-props.${type}.name`));
     } else {
       const sourceType = this.sourceType
-        && SourcesService.instance
+        && SourcesService.instance()
           .getAvailableSourcesTypesList()
           .find((sourceTypeDef: any) => sourceTypeDef.value === this.sourceType);
 
-      this.name = SourcesService.instance.suggestName(this.sourceType && sourceType.description);
+      this.name = SourcesService.instance().suggestName(this.sourceType && sourceType.description);
     }
 
     if (this.sourceType === 'scene') this.canAddNew = false;
@@ -84,19 +84,19 @@ export default defineComponent({
 
   methods: {
     addExisting(): void {
-      const scene = ScenesService.instance.activeScene;
+      const scene = ScenesService.instance().activeScene;
       if (!scene.canAddSource(this.selectedSourceId)) {
         // for now only a scene-source can be a problem
         alert($t('sources.circularReferenceMessage'));
         return;
       }
       this.adding = true;
-      ScenesService.instance.activeScene.addSource(this.selectedSourceId);
+      ScenesService.instance().activeScene.addSource(this.selectedSourceId);
       this.close();
     },
 
     close(): void {
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
 
     addNew(): void {
@@ -116,9 +116,9 @@ export default defineComponent({
         || this.sourceAddOptions.propertiesManager === 'nvoice-character'
       ) {
         const type: NVoiceCharacterType = this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
-        s = NVoiceCharacterService.instance.createNVoiceCharacterSource(type, this.name);
+        s = NVoiceCharacterService.instance().createNVoiceCharacterSource(type, this.name);
       } else if (this.sourceType === 'text_transcription') {
-        s = TranscriptionSourceService.instance.createTextTranscriptionSourceAndOption(
+        s = TranscriptionSourceService.instance().createTextTranscriptionSourceAndOption(
           this.name,
           this.sourceAddOptions,
         );
@@ -126,7 +126,7 @@ export default defineComponent({
         s = this.createReplaySourceAndOption(this.name);
       } else {
         s = {
-          source: SourcesService.instance.createSource(
+          source: SourcesService.instance().createSource(
             this.name,
             this.sourceType,
             {}, // IPCがundefinedをnullに変換するのでデフォルト値は使わない
@@ -140,10 +140,10 @@ export default defineComponent({
       }
 
       this.adding = true;
-      ScenesService.instance.activeScene.addSource(s.source.sourceId, s.options);
+      ScenesService.instance().activeScene.addSource(s.source.sourceId, s.options);
 
       if (s.source.hasProps() && !s.forceSkipProperties) {
-        SourcesService.instance.showSourceProperties(s.source.sourceId);
+        SourcesService.instance().showSourceProperties(s.source.sourceId);
       } else {
         this.close();
       }
@@ -155,7 +155,7 @@ export default defineComponent({
       forceSkipProperties?: boolean;
     } {
       return {
-        source: SourcesService.instance.createSource(
+        source: SourcesService.instance().createSource(
           name,
           'ffmpeg_source',
           {},

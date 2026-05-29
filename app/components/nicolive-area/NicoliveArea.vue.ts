@@ -40,7 +40,7 @@ export default defineComponent({
   },
 
   unmounted() {
-    NicoliveProgramService.instance.hidePlaceholder();
+    NicoliveProgramService.instance().hidePlaceholder();
   },
 
   computed: {
@@ -60,30 +60,30 @@ export default defineComponent({
     },
 
     opened(): boolean {
-      return NicoliveProgramService.instance.state.panelOpened;
+      return NicoliveProgramService.instance().state.panelOpened;
     },
 
     isCompactMode(): boolean {
-      return CustomizationService.instance.state.compactMode;
+      return CustomizationService.instance().state.compactMode;
     },
 
     hasProgram(): boolean {
-      return NicoliveProgramService.instance.hasProgram;
+      return NicoliveProgramService.instance().hasProgram;
     },
 
     showPlaceholder(): boolean {
-      return NicoliveProgramService.instance.isShownPlaceholder;
+      return NicoliveProgramService.instance().isShownPlaceholder;
     },
   },
 
   methods: {
     onToggle(): void {
-      NicoliveProgramService.instance.togglePanelOpened();
+      NicoliveProgramService.instance().togglePanelOpened();
     },
 
     async createProgram(): Promise<void> {
       try {
-        await NicoliveProgramService.instance.createProgram();
+        await NicoliveProgramService.instance().createProgram();
       } catch (e) {
         console.error(e);
       }
@@ -93,7 +93,7 @@ export default defineComponent({
       if (this.isFetching) throw new Error('fetchProgram is running');
       try {
         this.isFetching = true;
-        await NicoliveProgramService.instance.fetchProgram();
+        await NicoliveProgramService.instance().fetchProgram();
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);

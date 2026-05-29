@@ -13,35 +13,35 @@ export default defineComponent({
 
   mounted() {
     if (this.loggedIn) {
-      if (!DismissablesService.instance.shouldShow(EDismissable.LoginHelpTip)) {
-        DismissablesService.instance.reset(EDismissable.LoginHelpTip);
+      if (!DismissablesService.instance().shouldShow(EDismissable.LoginHelpTip)) {
+        DismissablesService.instance().reset(EDismissable.LoginHelpTip);
       }
     }
   },
 
   computed: {
     loggedIn(): boolean {
-      return UserService.instance.isLoggedIn();
+      return UserService.instance().isLoggedIn();
     },
 
     username() {
-      return UserService.instance.username;
+      return UserService.instance().username;
     },
 
     userIcon() {
-      return UserService.instance.userIcon;
+      return UserService.instance().userIcon;
     },
 
     userId() {
-      return UserService.instance.platformId;
+      return UserService.instance().platformId;
     },
 
     userPageURL() {
-      return UserService.instance.platformUserPageURL;
+      return UserService.instance().platformUserPageURL;
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     loginHelpTipDismissable() {
@@ -52,12 +52,12 @@ export default defineComponent({
   methods: {
     logout() {
       if (confirm($t('common.logoutConfirmMessage'))) {
-        UserService.instance.logOut();
+        UserService.instance().logOut();
       }
     },
 
     login() {
-      UserService.instance.showLogin();
+      UserService.instance().showLogin();
     },
 
     openUserPage() {

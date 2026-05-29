@@ -10,7 +10,7 @@ export default defineComponent({
   components: { GenericForm, TocSection },
   data() {
     return {
-      settings: I18nService.instance.getLocaleFormData(),
+      settings: I18nService.instance().getLocaleFormData(),
     };
   },
   methods: {
@@ -27,8 +27,8 @@ export default defineComponent({
 
       if (choice.response !== 0) return;
 
-      await I18nService.instance.setLocale(data[0].value as string);
-      this.settings = I18nService.instance.getLocaleFormData();
+      await I18nService.instance().setLocale(data[0].value as string);
+      this.settings = I18nService.instance().getLocaleFormData();
     },
   },
 });

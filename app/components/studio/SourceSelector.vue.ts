@@ -72,15 +72,15 @@ export default defineComponent({
     },
 
     activeItemIds() {
-      return SelectionService.instance.getIds();
+      return SelectionService.instance().getIds();
     },
 
     activeItems() {
-      return SelectionService.instance.getItems();
+      return SelectionService.instance().getItems();
     },
 
     scene() {
-      return ScenesService.instance.activeScene;
+      return ScenesService.instance().activeScene;
     },
   },
 
@@ -89,7 +89,7 @@ export default defineComponent({
       if (!isLeaf) {
         return 'icon-folder';
       }
-      const sourceDetails = SourcesService.instance.getSource(sourceId).getComparisonDetails();
+      const sourceDetails = SourcesService.instance().getSource(sourceId).getComparisonDetails();
       switch (sourceDetails.propertiesManager) {
         case 'nvoice-character':
           return (sourceIconMap as Dictionary<string>)[(sourceDetails.nVoiceCharacterType || 'near') as string];
@@ -101,21 +101,21 @@ export default defineComponent({
     },
 
     addSource() {
-      if (ScenesService.instance.activeScene) {
-        SourcesService.instance.showShowcase();
+      if (ScenesService.instance().activeScene) {
+        SourcesService.instance().showShowcase();
       }
     },
 
     addFolder() {
-      if (ScenesService.instance.activeScene) {
+      if (ScenesService.instance().activeScene) {
         let itemsToGroup: string[] = [];
         let parentId: string;
-        if (SelectionService.instance.canGroupIntoFolder()) {
-          itemsToGroup = SelectionService.instance.getIds();
-          const parent = SelectionService.instance.getClosestParent();
+        if (SelectionService.instance().canGroupIntoFolder()) {
+          itemsToGroup = SelectionService.instance().getIds();
+          const parent = SelectionService.instance().getClosestParent();
           if (parent) parentId = parent.id;
         }
-        ScenesService.instance.showNameFolder({ itemsToGroup, parentId });
+        ScenesService.instance().showNameFolder({ itemsToGroup, parentId });
       }
     },
 
@@ -144,17 +144,17 @@ export default defineComponent({
     },
 
     removeItems() {
-      SelectionService.instance.remove();
+      SelectionService.instance().remove();
     },
 
     sourceProperties() {
       if (!this.canShowProperties()) return;
-      SourcesService.instance.showSourceProperties(this.activeItems[0].sourceId);
+      SourcesService.instance().showSourceProperties(this.activeItems[0].sourceId);
     },
 
     canShowProperties(): boolean {
       if (this.activeItemIds.length === 0) return false;
-      const sceneNode = SelectionService.instance.getLastSelected();
+      const sceneNode = SelectionService.instance().getLastSelected();
       return sceneNode && sceneNode.sceneNodeType === 'item'
         ? sceneNode.getSource().hasProps()
         : false;
@@ -175,12 +175,12 @@ export default defineComponent({
       } else if (position.placement === 'inside') {
         nodesToMove.setParent(destNode.id);
       }
-      SelectionService.instance.select(nodesToMove.getIds());
+      SelectionService.instance().select(nodesToMove.getIds());
     },
 
     makeActive(treeNodes: ISlTreeNode<ISceneItemNode>[], ev: MouseEvent) {
       const ids = treeNodes.map((treeNode) => treeNode.data.id);
-      SelectionService.instance.select(ids);
+      SelectionService.instance().select(ids);
     },
 
     toggleFolder(treeNode: ISlTreeNode<ISceneItemNode>) {

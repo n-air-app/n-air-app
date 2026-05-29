@@ -19,7 +19,7 @@ export default defineComponent({
   },
   data() {
     return {
-      settings: WindowsService.instance.getChildWindowQueryParams() as any as OptimizedSettings,
+      settings: WindowsService.instance().getChildWindowQueryParams() as any as OptimizedSettings,
       icons: CategoryIcons,
       isStarting: false,
     };
@@ -29,40 +29,40 @@ export default defineComponent({
       return {
         name: 'do_not_show_again',
         description: $t('streaming.doNotShowAgainOptimizationDialog'),
-        value: CustomizationService.instance.showOptimizationDialogForNiconico === false,
+        value: CustomizationService.instance().showOptimizationDialogForNiconico === false,
       };
     },
     useHardwareEncoder(): IObsInput<boolean> {
       return {
         name: 'use_hardware_encoder',
         description: $t('streaming.optimizeWithHardwareEncoder'),
-        value: CustomizationService.instance.optimizeWithHardwareEncoder === true,
+        value: CustomizationService.instance().optimizeWithHardwareEncoder === true,
       };
     },
   },
   methods: {
     setDoNotShowAgain(model: IObsInput<boolean>) {
-      CustomizationService.instance.setShowOptimizationDialogForNiconico(!model.value);
+      CustomizationService.instance().setShowOptimizationDialogForNiconico(!model.value);
     },
     setUseHardwareEncoder(model: IObsInput<boolean>) {
-      CustomizationService.instance.setOptimizeWithHardwareEncoder(model.value);
+      CustomizationService.instance().setOptimizeWithHardwareEncoder(model.value);
       // close the dialog and open again to apply new optimization settings
-      WindowsService.instance.closeChildWindow();
-      StreamingService.instance.toggleStreamingAsync({ mustShowOptimizationDialog: true });
+      WindowsService.instance().closeChildWindow();
+      StreamingService.instance().toggleStreamingAsync({ mustShowOptimizationDialog: true });
     },
     optimizeAndGoLive() {
       this.isStarting = true;
-      SettingsService.instance.optimizeForNiconico(this.settings.best);
-      StreamingService.instance.toggleStreaming();
-      WindowsService.instance.closeChildWindow();
+      SettingsService.instance().optimizeForNiconico(this.settings.best);
+      StreamingService.instance().toggleStreaming();
+      WindowsService.instance().closeChildWindow();
     },
     skip() {
       this.isStarting = true;
       if (this.doNotShowAgain.value) {
-        CustomizationService.instance.setOptimizeForNiconico(false);
+        CustomizationService.instance().setOptimizeForNiconico(false);
       }
-      StreamingService.instance.toggleStreaming();
-      WindowsService.instance.closeChildWindow();
+      StreamingService.instance().toggleStreaming();
+      WindowsService.instance().closeChildWindow();
     },
   },
 });

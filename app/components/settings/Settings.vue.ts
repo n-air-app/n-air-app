@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import { CategoryIcons } from 'components/settings/CategoryIcons';
 import CommentSettings from 'components/settings/CommentSettings.vue';
@@ -15,6 +14,7 @@ import TableOfContents from 'components/shared/TableOfContents.vue';
 import { TocManager } from 'components/shared/TocManager';
 import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
+import { IPlatformAuth } from 'services/platforms';
 import {
   ISettingsServiceApi,
   ISettingsSubCategory,
@@ -79,7 +79,7 @@ export default defineComponent({
     return {
       categoryName: null as SettingsCategory | null,
       settingsData: [] as ISettingsSubCategory[],
-      categoryNames: (require('services/settings').SettingsService.instance as ISettingsServiceApi).getCategories(),
+      categoryNames: (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getCategories(),
       userSubscription: null as Subscription | null,
       icons: CategoryIcons,
       isLoggedIn: false,
@@ -90,7 +90,7 @@ export default defineComponent({
   },
   computed: {
     isStreaming(): boolean {
-      return StreamingService.instance.isStreaming;
+      return StreamingService.instance().isStreaming;
     },
     showLoginRequiredNotice(): boolean {
       return (
@@ -105,8 +105,7 @@ export default defineComponent({
   },
   watch: {
     categoryName(categoryName: SettingsCategory) {
-      Sentry.addBreadcrumb({ category: 'settings', message: `category: ${categoryName}`, level: 'info' });
-      this.settingsData = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getSettingsFormData(categoryName);
+      this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(categoryName);
       (this.$refs.settingsContainer as HTMLElement).scrollTop = 0;
       this.isTocOpen = true;
 
@@ -125,16 +124,16 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.userSubscription = UserService.instance.userLoginState.subscribe((loggedIn: any) => {
+    this.userSubscription = UserService.instance().userLoginState.subscribe((loggedIn: IPlatformAuth | void) => {
       this.isLoggedIn = !!loggedIn;
-      this.categoryNames = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getCategories();
+      this.categoryNames = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getCategories();
     });
-    this.isLoggedIn = UserService.instance.isLoggedIn();
+    this.isLoggedIn = UserService.instance().isLoggedIn();
 
     const initialCategory = this.getInitialCategoryName();
     this.tocManager.clearAll();
     this.categoryName = initialCategory;
-    this.settingsData = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getSettingsFormData(this.categoryName);
+    this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(this.categoryName);
     const anchor = this.getInitialAnchor();
     if (anchor) {
       this.$nextTick(() => {
@@ -159,19 +158,19 @@ export default defineComponent({
       }
     },
     getInitialCategoryName(): SettingsCategory {
-      const queryParams = WindowsService.instance.state.child.queryParams;
+      const queryParams = WindowsService.instance().state.child.queryParams;
       return queryParams?.categoryName || 'General';
     },
     getInitialAnchor(): string {
-      const anchor = WindowsService.instance.state.child.anchor;
+      const anchor = WindowsService.instance().state.child.anchor;
       return anchor || undefined;
     },
     save(settingsData: ISettingsSubCategory[]) {
-      (require('services/settings').SettingsService.instance as ISettingsServiceApi).setSettings(this.categoryName, settingsData);
-      this.settingsData = (require('services/settings').SettingsService.instance as ISettingsServiceApi).getSettingsFormData(this.categoryName);
+      (require('services/settings').SettingsService.instance() as ISettingsServiceApi).setSettings(this.categoryName, settingsData);
+      this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(this.categoryName);
     },
     done() {
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
     scrollToSection(sectionId: string) {
       const element = document.getElementById(sectionId);

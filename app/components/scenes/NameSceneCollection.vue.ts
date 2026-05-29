@@ -18,14 +18,14 @@ export default defineComponent({
     return {
       name: '',
       error: '',
-      options: WindowsService.instance.getChildWindowQueryParams() as INameSceneCollectionOptions,
+      options: WindowsService.instance().getChildWindowQueryParams() as INameSceneCollectionOptions,
     };
   },
 
   mounted() {
     const suggestedName =
       this.options.sceneCollectionToDuplicate || $t('scenes.newSceneCollectionName');
-    this.name = SceneCollectionsService.instance.suggestName(suggestedName);
+    this.name = SceneCollectionsService.instance().suggestName(suggestedName);
   },
 
   methods: {
@@ -33,19 +33,19 @@ export default defineComponent({
       if (this.isTaken(this.name)) {
         this.error = $t('scenes.alreadyTakenName');
       } else if (this.options.rename) {
-        SceneCollectionsService.instance.rename(this.name);
-        WindowsService.instance.closeChildWindow();
+        SceneCollectionsService.instance().rename(this.name);
+        WindowsService.instance().closeChildWindow();
       } else if (this.options.sceneCollectionToDuplicate) {
-        SceneCollectionsService.instance.duplicate(this.name);
-        WindowsService.instance.closeChildWindow();
+        SceneCollectionsService.instance().duplicate(this.name);
+        WindowsService.instance().closeChildWindow();
       } else {
-        SceneCollectionsService.instance.create({ name: this.name });
-        WindowsService.instance.closeChildWindow();
+        SceneCollectionsService.instance().create({ name: this.name });
+        WindowsService.instance().closeChildWindow();
       }
     },
 
     isTaken(name: string) {
-      return !!SceneCollectionsService.instance.collections.find((coll: any) => {
+      return !!SceneCollectionsService.instance().collections.find((coll: any) => {
         return coll.name === name;
       });
     },

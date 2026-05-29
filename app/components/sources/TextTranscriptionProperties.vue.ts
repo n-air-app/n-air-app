@@ -8,13 +8,13 @@ export default defineComponent({
   computed: {
     isTranscriptionEnabled(): boolean {
       // 設定画面とこの画面はテレコなのでon/offタイミングでこの画面は出ていないた め現状subscriptionまでは不要
-      return TranscriptionService.instance.state.enabled ?? false;
+      return TranscriptionService.instance().state.enabled ?? false;
     },
   },
 
   methods: {
     openSettings(): void {
-      SettingsService.instance.showSettings('Transcription');
+      SettingsService.instance().showSettings('Transcription');
     },
   },
 });

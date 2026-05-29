@@ -16,7 +16,7 @@ export default defineComponent({
 
   computed: {
     currentView() {
-      return OnboardingService.instance.currentStep;
+      return OnboardingService.instance().currentStep;
     },
   },
 });

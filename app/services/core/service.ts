@@ -27,9 +27,9 @@ export abstract class Service {
 
   serviceName = this.constructor.name;
 
-  static get instance() {
+  static instance<T extends typeof Service>(this: T): InstanceType<T> {
     const instance = !this.hasInstance ? Service.createInstance(this) : this[singleton];
-    return this.proxyFn ? this.proxyFn(instance) : instance;
+    return (this.proxyFn ? this.proxyFn(instance) : instance) as InstanceType<T>;
   }
 
   static get hasInstance(): boolean {
@@ -53,19 +53,19 @@ export abstract class Service {
   /**
    * all services must be created via factory method
    */
-  static createInstance(ServiceClass: any) {
+  static createInstance<T extends typeof Service>(ServiceClass: T): InstanceType<T> {
     if (ServiceClass.hasInstance) {
       throw Error('Unable to create more than one singleton service');
     }
     ServiceClass.isSingleton = true;
-    const instance = new ServiceClass(singletonEnforcer);
+    const instance = new (ServiceClass as unknown as new (enforcer: symbol) => InstanceType<T>)(singletonEnforcer);
     ServiceClass[singleton] = instance;
     instances[ServiceClass.name] = instance;
 
-    const mustInit = !this.initFn;
+    const mustInit = !Service.initFn;
 
     // call a custom init function if exists
-    if (this.initFn) this.initFn(instance);
+    if (Service.initFn) Service.initFn(instance);
 
     if (mustInit) instance.init();
 

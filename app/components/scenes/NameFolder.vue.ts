@@ -11,7 +11,7 @@ export default defineComponent({
 
   data() {
     return {
-      options: WindowsService.instance.getChildWindowQueryParams() as {
+      options: WindowsService.instance().getChildWindowQueryParams() as {
         renameId?: string;
         itemsToGroup?: string[];
         parentId?: string;
@@ -23,9 +23,9 @@ export default defineComponent({
 
   mounted() {
     if (this.options.renameId) {
-      this.name = ScenesService.instance.activeScene.getFolder(this.options.renameId).name;
+      this.name = ScenesService.instance().activeScene.getFolder(this.options.renameId).name;
     } else {
-      this.name = ScenesService.instance.suggestName($t('sources.newFolderName'));
+      this.name = ScenesService.instance().suggestName($t('sources.newFolderName'));
     }
   },
 
@@ -34,15 +34,15 @@ export default defineComponent({
       if (!this.name) {
         this.error = $t('sources.sourceNameIsRequired');
       } else if (this.options.renameId) {
-        const folder = ScenesService.instance.activeScene.getFolder(this.options.renameId);
+        const folder = ScenesService.instance().activeScene.getFolder(this.options.renameId);
         folder.setName(this.name);
-        WindowsService.instance.closeChildWindow();
+        WindowsService.instance().closeChildWindow();
       } else {
-        const scene = ScenesService.instance.activeScene;
-        const newFolder = ScenesService.instance.activeScene.createFolder(this.name);
+        const scene = ScenesService.instance().activeScene;
+        const newFolder = ScenesService.instance().activeScene.createFolder(this.name);
 
         if (this.options.itemsToGroup) {
-          ScenesService.instance.activeScene
+          ScenesService.instance().activeScene
             .getSelection(this.options.itemsToGroup)
             .moveTo(scene.id, newFolder.id);
           if (this.options.parentId) {
@@ -51,7 +51,7 @@ export default defineComponent({
         }
         newFolder.select();
 
-        WindowsService.instance.closeChildWindow();
+        WindowsService.instance().closeChildWindow();
       }
     },
   },

@@ -40,7 +40,7 @@ export default defineComponent({
 
   computed: {
     loading(): boolean {
-      return AppService.instance.state.loading;
+      return AppService.instance().state.loading;
     },
   },
 
@@ -49,7 +49,7 @@ export default defineComponent({
       if (this.cancelHandler) {
         (this.cancelHandler as Function)();
       } else {
-        WindowsService.instance.closeChildWindow();
+        WindowsService.instance().closeChildWindow();
       }
     },
 
@@ -57,7 +57,7 @@ export default defineComponent({
       if (this.doneHandler) {
         (this.doneHandler as Function)();
       } else {
-        WindowsService.instance.closeChildWindow();
+        WindowsService.instance().closeChildWindow();
       }
     },
   },

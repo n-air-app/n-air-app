@@ -11,11 +11,11 @@ export default defineComponent({
   components: { ModalLayout, ...inputComponents },
 
   data() {
-    const sourceId = WindowsService.instance.getChildWindowQueryParams().sourceId as string;
+    const sourceId = WindowsService.instance().getChildWindowQueryParams().sourceId as string;
     return {
       sourceId,
-      form: SourceFiltersService.instance.getAddNewFormData(sourceId),
-      availableTypes: SourceFiltersService.instance.getTypesForSource(sourceId),
+      form: SourceFiltersService.instance().getAddNewFormData(sourceId),
+      availableTypes: SourceFiltersService.instance().getTypesForSource(sourceId),
       error: '',
     };
   },
@@ -30,17 +30,17 @@ export default defineComponent({
       this.error = this.validateName(name);
       if (this.error) return;
 
-      SourceFiltersService.instance.add(this.sourceId, this.form.type.value, name);
-      SourceFiltersService.instance.showSourceFilters(this.sourceId, name);
+      SourceFiltersService.instance().add(this.sourceId, this.form.type.value, name);
+      SourceFiltersService.instance().showSourceFilters(this.sourceId, name);
     },
 
     cancel(): void {
-      SourceFiltersService.instance.showSourceFilters(this.sourceId);
+      SourceFiltersService.instance().showSourceFilters(this.sourceId);
     },
 
     validateName(name: string): string {
       if (!name) return $t('common.nameIsRequiredMessage');
-      if (SourceFiltersService.instance.getFilters(this.sourceId).find((filter: any) => filter.name === name)) {
+      if (SourceFiltersService.instance().getFilters(this.sourceId).find((filter: any) => filter.name === name)) {
         return $t('common.alreadyTakenNameMessage');
       }
       return '';
@@ -50,7 +50,7 @@ export default defineComponent({
       const name = this.availableTypes.find(({ type }: any) => {
         return type === this.form.type.value;
       }).description;
-      this.form.name.value = SourceFiltersService.instance.suggestName(this.sourceId, name);
+      this.form.name.value = SourceFiltersService.instance().suggestName(this.sourceId, name);
     },
   },
 });

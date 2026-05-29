@@ -16,19 +16,19 @@ export default defineComponent({
 
   computed: {
     viewers(): number {
-      return NicoliveProgramService.instance.state.viewers;
+      return NicoliveProgramService.instance().state.viewers;
     },
 
     comments(): number {
-      return NicoliveProgramService.instance.state.comments;
+      return NicoliveProgramService.instance().state.comments;
     },
 
     adPoint(): number {
-      return NicoliveProgramService.instance.state.adPoint;
+      return NicoliveProgramService.instance().state.adPoint;
     },
 
     giftPoint(): number {
-      return NicoliveProgramService.instance.state.giftPoint;
+      return NicoliveProgramService.instance().state.giftPoint;
     },
   },
 });

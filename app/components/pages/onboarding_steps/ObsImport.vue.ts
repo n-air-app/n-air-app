@@ -12,10 +12,10 @@ export default defineComponent({
   components: { Dropdown, NAirObsLogo },
 
   data() {
-    const profiles = ObsImporterService.instance.getProfiles();
+    const profiles = ObsImporterService.instance().getProfiles();
     return {
       status: 'initial' as 'initial' | 'importing' | 'done',
-      sceneCollections: ObsImporterService.instance.getSceneCollections(),
+      sceneCollections: ObsImporterService.instance().getSceneCollections(),
       profiles,
       selectedProfile: profiles[0] || '',
       reImportMode: false,
@@ -24,10 +24,10 @@ export default defineComponent({
 
   created() {
     // シーン編集から来た場合、初期とは違う表記をするため
-    this.reImportMode = OnboardingService.instance.state.options.skipLogin;
+    this.reImportMode = OnboardingService.instance().state.options.skipLogin;
 
     // OBSのデータが無いならskip
-    if (!ObsImporterService.instance.canImportFromOBS) (this as any).startFresh();
+    if (!ObsImporterService.instance().canImportFromOBS) (this as any).startFresh();
   },
 
   computed: {
@@ -49,7 +49,7 @@ export default defineComponent({
       this.status = 'importing';
       setTimeout(async () => {
         try {
-          await ObsImporterService.instance.load(this.selectedProfile);
+          await ObsImporterService.instance().load(this.selectedProfile);
           this.status = 'done';
         } catch (e) {
           // I suppose let's pretend we succeeded for now.
@@ -59,11 +59,11 @@ export default defineComponent({
     },
 
     startFresh() {
-      OnboardingService.instance.skip();
+      OnboardingService.instance().skip();
     },
 
     next() {
-      OnboardingService.instance.next();
+      OnboardingService.instance().next();
     },
   },
 });

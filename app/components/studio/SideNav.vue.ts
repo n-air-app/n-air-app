@@ -40,24 +40,24 @@ export default defineComponent({
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     compactModeTab: {
       get(): 'studio' | 'niconico' {
-        return CompactModeService.instance.compactModeTab;
+        return CompactModeService.instance().compactModeTab;
       },
       set(tab: 'studio' | 'niconico') {
-        CompactModeService.instance.compactModeTab = tab;
+        CompactModeService.instance().compactModeTab = tab;
       },
     },
 
     notifyNewComment(): boolean {
-      return CompactModeService.instance.notifyNewComment;
+      return CompactModeService.instance().notifyNewComment;
     },
 
     studioModeEnabled() {
-      return TransitionsService.instance.state.studioMode;
+      return TransitionsService.instance().state.studioMode;
     },
 
     InitialHelpTipDismissable() {
@@ -73,45 +73,45 @@ export default defineComponent({
     },
 
     page() {
-      return NavigationService.instance.state.currentPage;
+      return NavigationService.instance().state.currentPage;
     },
 
     isUserLoggedIn() {
-      return UserService.instance.isLoggedIn();
+      return UserService.instance().isLoggedIn();
     },
 
     hasUnseenInformation() {
-      return InformationsService.instance.hasUnseenItem;
+      return InformationsService.instance().hasUnseenItem;
     },
   },
 
   methods: {
     navigateStudio() {
-      NavigationService.instance.navigate('Studio');
+      NavigationService.instance().navigate('Studio');
     },
 
     navigateOnboarding() {
-      NavigationService.instance.navigate('Onboarding');
+      NavigationService.instance().navigate('Onboarding');
     },
 
     featureIsEnabled(feature: EAvailableFeatures) {
-      return IncrementalRolloutService.instance.featureIsEnabled(feature);
+      return IncrementalRolloutService.instance().featureIsEnabled(feature);
     },
 
     toggleCompactMode() {
-      CompactModeService.instance.toggleCompactMode();
+      CompactModeService.instance().toggleCompactMode();
     },
 
     studioMode() {
-      if (TransitionsService.instance.state.studioMode) {
-        TransitionsService.instance.disableStudioMode();
+      if (TransitionsService.instance().state.studioMode) {
+        TransitionsService.instance().disableStudioMode();
       } else {
-        TransitionsService.instance.enableStudioMode();
+        TransitionsService.instance().enableStudioMode();
       }
     },
 
     openSettingsWindow() {
-      SettingsService.instance.showSettings();
+      SettingsService.instance().showSettings();
     },
 
     openFeedback() {
@@ -123,7 +123,7 @@ export default defineComponent({
     },
 
     openInformations() {
-      InformationsService.instance.showInformations();
+      InformationsService.instance().showInformations();
     },
 
     openDevTools() {

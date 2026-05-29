@@ -12,17 +12,17 @@ export default defineComponent({
 
   computed: {
     shouldShow(): boolean {
-      return DismissablesService.instance.shouldShow(this.dismissableKey as EDismissable);
+      return DismissablesService.instance().shouldShow(this.dismissableKey as EDismissable);
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
   },
 
   methods: {
     closeHelpTip() {
-      DismissablesService.instance.dismiss(this.dismissableKey as EDismissable);
+      DismissablesService.instance().dismiss(this.dismissableKey as EDismissable);
     },
   },
 });

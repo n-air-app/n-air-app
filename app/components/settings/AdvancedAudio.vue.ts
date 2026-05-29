@@ -14,7 +14,7 @@ export default defineComponent({
   },
   computed: {
     audioSources() {
-      return AudioService.instance.getSourcesForCurrentScene();
+      return AudioService.instance().getSourcesForCurrentScene();
     },
   },
   methods: {

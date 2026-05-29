@@ -50,7 +50,7 @@ beforeEach(() => {
 test('get instance', () => {
   setup(); // モックを設定
   const { PerformanceService } = require('./performance');
-  expect(PerformanceService.instance).toBeInstanceOf(PerformanceService);
+  expect(PerformanceService.instance()).toBeInstanceOf(PerformanceService);
 });
 
 test('getState returns proper state when pollingPerformanceStatistics is false', () => {
@@ -77,7 +77,7 @@ test('getState returns proper state when pollingPerformanceStatistics is false',
   setupLocal();
 
   const { PerformanceService } = require('./performance');
-  const { instance } = PerformanceService;
+  const instance = PerformanceService.instance();
 
   // getState() を呼ぶとゼロ値の状態が返される
   const state = instance.getState();
@@ -90,7 +90,7 @@ describe('Moving Average Calculation', () => {
   test('adds samples to historical records', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     instance.addSample(instance.historicalDroppedFrames, 0.1);
     instance.addSample(instance.historicalDroppedFrames, 0.2);
@@ -102,7 +102,7 @@ describe('Moving Average Calculation', () => {
   test('calculates average factor correctly', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     const result = instance.averageFactor([0.1, 0.2, 0.3]);
     expect(result).toBeCloseTo(0.2);
@@ -111,7 +111,7 @@ describe('Moving Average Calculation', () => {
   test('maintains maximum 60 samples', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     // 61サンプルを追加
     for (let i = 0; i < 61; i++) {
@@ -128,7 +128,7 @@ describe('Moving Average Calculation', () => {
   test('returns 0 for empty array', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     const result = instance.averageFactor([]);
     expect(result).toBe(0);
@@ -139,7 +139,7 @@ describe('Stream Quality Detection', () => {
   test('returns GOOD when all factors below 0.05', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     instance.historicalDroppedFrames = [0.01, 0.02, 0.03];
     instance.historicalLaggedFrames = [0.02, 0.03, 0.04];
@@ -152,7 +152,7 @@ describe('Stream Quality Detection', () => {
   test('returns FAIR when max factor between 0.05 and 0.15', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     instance.historicalDroppedFrames = [0.06, 0.07, 0.08];
     instance.historicalLaggedFrames = [0.02, 0.03, 0.04];
@@ -165,7 +165,7 @@ describe('Stream Quality Detection', () => {
   test('returns POOR when max factor above 0.15', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     instance.historicalDroppedFrames = [0.16, 0.17, 0.18];
     instance.historicalLaggedFrames = [0.02, 0.03, 0.04];
@@ -178,7 +178,7 @@ describe('Stream Quality Detection', () => {
   test('returns GOOD when all arrays are empty', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     instance.historicalDroppedFrames = [];
     instance.historicalLaggedFrames = [];
@@ -193,7 +193,7 @@ describe('Init and Streaming State', () => {
   test('init sets up interval', () => {
     setup();
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     // init() が自動的に呼ばれているので、intervalId が設定されているはず
     expect(instance.intervalId).toBeDefined();
@@ -225,7 +225,7 @@ describe('Init and Streaming State', () => {
     setupWithMock();
 
     const { PerformanceService } = require('./performance');
-    const { instance } = PerformanceService;
+    const instance = PerformanceService.instance();
 
     // subscribe が呼ばれていることを確認
     expect(subscribeMock).toHaveBeenCalled();

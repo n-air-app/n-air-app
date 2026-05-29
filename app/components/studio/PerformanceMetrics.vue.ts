@@ -23,32 +23,32 @@ export default defineComponent({
 
   computed: {
     isCompactMode() {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     isLoggedIn() {
-      return UserService.instance.isLoggedIn();
+      return UserService.instance().isLoggedIn();
     },
 
     isStreaming() {
-      return StreamingService.instance.isStreaming;
+      return StreamingService.instance().isStreaming;
     },
 
     cpuPercent() {
-      return PerformanceService.instance.state.CPU.toFixed(1);
+      return PerformanceService.instance().state.CPU.toFixed(1);
     },
 
     outputResolution() {
-      return SettingsService.instance.state.Video.Output;
+      return SettingsService.instance().state.Video.Output;
     },
 
     frameRate() {
-      if (!CustomizationService.instance.pollingPerformanceStatistics) return '--';
-      return PerformanceService.instance.state.frameRate.toFixed(2);
+      if (!CustomizationService.instance().pollingPerformanceStatistics) return '--';
+      return PerformanceService.instance().state.frameRate.toFixed(2);
     },
 
     targetFrameRate() {
-      const Video = SettingsService.instance.state.Video;
+      const Video = SettingsService.instance().state.Video;
 
       // FPSType and related values (FPSCommon, FPSInt, ...) are not guaranteed to be synchronized.
       // So we detect the current type from given values.
@@ -69,28 +69,28 @@ export default defineComponent({
     },
 
     droppedFrames() {
-      if (!CustomizationService.instance.pollingPerformanceStatistics) return '--';
-      return PerformanceService.instance.state.numberDroppedFrames;
+      if (!CustomizationService.instance().pollingPerformanceStatistics) return '--';
+      return PerformanceService.instance().state.numberDroppedFrames;
     },
 
     percentDropped() {
-      if (!CustomizationService.instance.pollingPerformanceStatistics) return '--';
-      return (PerformanceService.instance.state.percentageDroppedFrames || 0).toFixed(1);
+      if (!CustomizationService.instance().pollingPerformanceStatistics) return '--';
+      return (PerformanceService.instance().state.percentageDroppedFrames || 0).toFixed(1);
     },
 
     bandwidth() {
-      if (!CustomizationService.instance.pollingPerformanceStatistics) return '--';
-      return PerformanceService.instance.state.streamingBandwidth.toFixed(0);
+      if (!CustomizationService.instance().pollingPerformanceStatistics) return '--';
+      return PerformanceService.instance().state.streamingBandwidth.toFixed(0);
     },
 
     bandwidthAlert(): boolean {
-      if (!CustomizationService.instance.pollingPerformanceStatistics) return false;
-      return this.isStreaming && PerformanceService.instance.state.streamingBandwidth === 0;
+      if (!CustomizationService.instance().pollingPerformanceStatistics) return false;
+      return this.isStreaming && PerformanceService.instance().state.streamingBandwidth === 0;
     },
 
     // 配信品質インジケーター
     streamQuality() {
-      return PerformanceService.instance.state.streamQuality;
+      return PerformanceService.instance().state.streamQuality;
     },
 
     qualityText() {
@@ -131,9 +131,9 @@ export default defineComponent({
 
   methods: {
     async reloadSubStreamStatus() {
-      this.subStreamUse = SubStreamService.instance.state.use;
+      this.subStreamUse = SubStreamService.instance().state.use;
       if (this.subStreamUse) {
-        const status = await SubStreamService.instance.getStatus();
+        const status = await SubStreamService.instance().getStatus();
         this.subStreamStatus = status.displayStatus;
       } else {
         this.subStreamStatus = '';

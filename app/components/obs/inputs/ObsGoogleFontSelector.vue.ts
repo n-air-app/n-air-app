@@ -29,7 +29,7 @@ export default defineComponent({
   },
   created() {
     this.isLoading = true;
-    FontLibraryService.instance.getManifest().then((manifest: any) => {
+    FontLibraryService.instance().getManifest().then((manifest: any) => {
       this.isLoading = false;
       this.fontFamilies = manifest.families.map((family: any) => family.name);
       if (this.value.path) this.updateSelectionFromPath();
@@ -40,7 +40,7 @@ export default defineComponent({
       this.$emit('input', eventData);
     },
     updateSelectionFromPath() {
-      FontLibraryService.instance.lookupFontInfo(this.value.path).then((info: any) => {
+      FontLibraryService.instance().lookupFontInfo(this.value.path).then((info: any) => {
         this.selectedFamily = info.family;
         this.selectedStyle = info.style;
         this.updateStyles();
@@ -48,7 +48,7 @@ export default defineComponent({
     },
     updateStyles() {
       if (this.selectedFamily) {
-        FontLibraryService.instance.findFamily(this.selectedFamily).then((fam: any) => {
+        FontLibraryService.instance().findFamily(this.selectedFamily).then((fam: any) => {
           this.fontStyles = fam.styles.map((sty: any) => sty.name);
         });
       }
@@ -56,7 +56,7 @@ export default defineComponent({
     setFamily(familyName: string) {
       this.isLoading = true;
       this.selectedFamily = familyName;
-      FontLibraryService.instance.findFamily(familyName).then((family: any) => {
+      FontLibraryService.instance().findFamily(familyName).then((family: any) => {
         const style = family.styles[0];
         this.updateStyles();
         this.setStyle(style.name);
@@ -65,8 +65,8 @@ export default defineComponent({
     setStyle(styleName: string) {
       this.isLoading = true;
       this.selectedStyle = styleName;
-      FontLibraryService.instance.findStyle(this.selectedFamily, styleName).then((style: any) => {
-        FontLibraryService.instance.downloadFont(style.file).then((fontPath: string) => {
+      FontLibraryService.instance().findStyle(this.selectedFamily, styleName).then((style: any) => {
+        FontLibraryService.instance().downloadFont(style.file).then((fontPath: string) => {
           const fontInfo = fi.getFontInfo(fontPath);
           if (!fontInfo) {
             this.actualFamily = 'Arial';

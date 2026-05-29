@@ -8,13 +8,13 @@ const setup = createSetupFunction();
 test('get instance', () => {
   setup();
   const { SceneCollectionsStateService } = require('./state');
-  expect(SceneCollectionsStateService.instance).toBeInstanceOf(SceneCollectionsStateService);
+  expect(SceneCollectionsStateService.instance()).toBeInstanceOf(SceneCollectionsStateService);
 });
 
 test('loadManifestFileで初回起動の場合', async () => {
   setup();
   const { SceneCollectionsStateService } = require('./state');
-  const { instance } = SceneCollectionsStateService;
+  const instance = SceneCollectionsStateService.instance();
 
   instance.ensureDirectory = jest.fn();
   instance.flushManifestFile = jest.fn();
@@ -30,7 +30,7 @@ test('loadManifestFileで初回起動の場合', async () => {
 test('loadManifestFileでオリジナルのmanifestが読める場合', async () => {
   setup();
   const { SceneCollectionsStateService } = require('./state');
-  const { instance } = SceneCollectionsStateService;
+  const instance = SceneCollectionsStateService.instance();
 
   instance.ensureDirectory = jest.fn();
   instance.flushManifestFile = jest.fn();
@@ -48,7 +48,7 @@ test('loadManifestFileでオリジナルのmanifestが読める場合', async ()
 test('loadManifestFileでオリジナルのmanifestが読めない場合', async () => {
   setup();
   const { SceneCollectionsStateService } = require('./state');
-  const { instance } = SceneCollectionsStateService;
+  const instance = SceneCollectionsStateService.instance();
 
   instance.ensureDirectory = jest.fn();
   instance.flushManifestFile = jest.fn();
@@ -67,7 +67,7 @@ test('loadManifestFileでオリジナルのmanifestが読めない場合', async
 test('loadManifestFileでバックアップも読み取れない場合', async () => {
   setup();
   const { SceneCollectionsStateService } = require('./state');
-  const { instance } = SceneCollectionsStateService;
+  const instance = SceneCollectionsStateService.instance();
 
   instance.ensureDirectory = jest.fn();
   instance.flushManifestFile = jest.fn();
