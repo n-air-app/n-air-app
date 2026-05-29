@@ -191,7 +191,7 @@ export default defineComponent({
       this.resetVolume();
     },
     getSynthesizerItem(id: string): SynthesizerItem {
-      return this.synthesizers.find((a) => a.id === id) ?? this.synthesizers[0];
+      return this.synthesizers.find((a: SynthesizerItem) => a.id === id) ?? this.synthesizers[0];
     },
     isTestable(id: SynthesizerSelector) {
       if (!NicoliveCommentSynthesizerService.instance().enabled) return false;

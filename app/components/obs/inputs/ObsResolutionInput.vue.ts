@@ -18,7 +18,7 @@ const ObsResolutionInput = defineComponent({
   },
   computed: {
     currentValue(): IObsListOption<TObsValue> {
-      const option = this.value.options.find((opt) => this.value.value === opt.value);
+      const option = this.value.options.find((opt: IObsListOption<TObsValue>) => this.value.value === opt.value);
       if (option) return option;
       if (this.value.value) {
         return { value: this.value.value, description: this.value.value as string } as IObsListOption<string>;
