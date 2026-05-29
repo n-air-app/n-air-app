@@ -17,7 +17,7 @@
               <component
                 v-if="propertyComponentForType(formInput.type)"
                 :is="propertyComponentForType(formInput.type)"
-                :value="{ ...formInput, showDescription: true, label: $t('audio.enable') }"
+                :value="{ ...formInput, showDescription: true }"
                 @input="onInputHandler(audioSource, formInput.name, $event.value)"
               />
             </div>
@@ -88,14 +88,17 @@
   width: 126px;
 }
 
-.column-audioMixers,
-.column-forceMono {
+.column-audioMixers {
   /* stylelint-disable-next-line selector-pseudo-element-no-unknown */
   ::v-deep .input-wrapper {
     display: flex;
     align-items: center;
     height: @item-generic-size;
   }
+}
+
+.column-forceMono {
+  width: 160px;
 }
 
 /* stylelint-disable-next-line selector-pseudo-element-no-unknown */

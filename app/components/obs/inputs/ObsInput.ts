@@ -48,7 +48,6 @@ export interface IObsInput<TValueType> {
   name: string;
   description: string;
   showDescription?: boolean;
-  label?: string;
   enabled?: boolean;
   visible?: boolean;
   masked?: boolean;

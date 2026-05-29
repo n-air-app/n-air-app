@@ -10,6 +10,5 @@
   "tracks": "Tracks",
   "advancedAudioSettings": "Advanced Audio Settings",
   "mixer": "Mixer",
-  "mixerTooltip": "Monitor audio levels. If the bars are moving you are outputting audio.",
-  "enable": "Enable"
+  "mixerTooltip": "Monitor audio levels. If the bars are moving you are outputting audio."
 }

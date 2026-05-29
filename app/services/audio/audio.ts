@@ -470,6 +470,20 @@ export class AudioSource implements IAudioSourceApi {
         enabled: true,
       },
 
+      <IObsListInput<boolean>>{
+        value: this.forceMono,
+        name: 'forceMono',
+        description: $t('audio.downmixToMono'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_LIST',
+        visible: true,
+        enabled: true,
+        options: [
+          { value: true, description: $t('common.on') },
+          { value: false, description: $t('common.off') },
+        ],
+      },
+
       <IObsBitmaskInput>{
         value: this.audioMixers,
         name: 'audioMixers',
@@ -479,16 +493,6 @@ export class AudioSource implements IAudioSourceApi {
         visible: true,
         enabled: true,
         size: 6,
-      },
-
-      <IObsInput<boolean>>{
-        value: this.forceMono,
-        name: 'forceMono',
-        description: $t('audio.downmixToMono'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_BOOL',
-        visible: true,
-        enabled: true,
       },
     ];
   }
