@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "noImplicitThis": true,
+    "noImplicitThis": false,
     "removeComments": true,
     "strictNullChecks": false,
     "emitDecoratorMetadata": true,

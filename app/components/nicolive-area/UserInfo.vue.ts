@@ -237,8 +237,8 @@ export default defineComponent({
 
     updateKonomiTags() {
       const [same, other] = this.rawKonomiTags.reduce(
-        (acc, tag) => {
-          if (this.myKonomiTags.some((myTag) => myTag.tag_id.value === tag.tag_id.value)) {
+        (acc: [string[], string[]], tag: KonomiTag) => {
+          if (this.myKonomiTags.some((myTag: KonomiTag) => myTag.tag_id.value === tag.tag_id.value)) {
             acc[0].push(tag.name);
           } else {
             acc[1].push(tag.name);
@@ -249,8 +249,8 @@ export default defineComponent({
       );
 
       this.konomiTags = [
-        ...same.map((name) => ({ name, common: true })),
-        ...other.map((name) => ({ name, common: false })),
+        ...same.map((name: string) => ({ name, common: true })),
+        ...other.map((name: string) => ({ name, common: false })),
       ];
     },
 

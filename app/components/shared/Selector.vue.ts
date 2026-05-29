@@ -91,7 +91,7 @@ export default defineComponent({
 
       if (oldIndex === newIndex) return;
 
-      const order = newItems.map((item) => item.value);
+      const order = newItems.map((item: ISelectorItem) => item.value);
       this.$emit('sort', {
         change: { moved: { element: newItems[newIndex], oldIndex, newIndex } },
         order,

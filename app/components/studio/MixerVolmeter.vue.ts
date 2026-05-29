@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { AudioSource } from 'services/audio';
+import { AudioSource, IVolmeter } from 'services/audio';
 import { defineComponent, PropType } from 'vue';
 
 // Configuration
@@ -222,7 +222,7 @@ export default defineComponent({
     subscribeVolmeter(): void {
       this.volmeterSubscription = this.audioSource
         .getVolmeterStream()
-        .subscribe((volmeter) => {
+        .subscribe((volmeter: IVolmeter) => {
           if (this.checkPeaks(volmeter.peak)) return;
           this.setChannelCount(volmeter.peak.length);
           this.drawVolmeter(volmeter.peak);

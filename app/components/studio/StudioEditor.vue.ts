@@ -123,7 +123,7 @@ export default defineComponent({
     },
 
     handleMouseDblClick(event: MouseEvent) {
-      const overSource = this.sceneItems.find((source) => {
+      const overSource = this.sceneItems.find((source: SceneItem) => {
         return this.isOverSource(event, source);
       });
 
@@ -165,7 +165,7 @@ export default defineComponent({
       // If neither a drag or resize was initiated, it must have been
       // an attempted selection or right click.
       if (!this.dragHandler && !this.resizeRegion) {
-        const overSource = this.sceneItems.find((source) => {
+        const overSource = this.sceneItems.find((source: SceneItem) => {
           return this.isOverSource(event, source);
         });
 
@@ -227,7 +227,7 @@ export default defineComponent({
       const converted = this.convertScalarToBaseSpace(mousePosX * factor, mousePosY * factor);
 
       if (this.resizeRegion) {
-        const name = this.resizeRegion.name;
+        const name = this.resizeRegion.name as IResizeRegion['name'];
 
         const optionsMap = Object.freeze({
           nw: {
@@ -285,7 +285,7 @@ export default defineComponent({
         // We might need to start dragging
         const sourcesInPriorityOrder = this.activeSources.concat(this.sceneItems).filter(Boolean);
 
-        const overSource = sourcesInPriorityOrder.find((source) => {
+        const overSource = sourcesInPriorityOrder.find((source: SceneItem) => {
           return this.isOverSource(event, source);
         });
 
@@ -408,7 +408,7 @@ export default defineComponent({
         if (overResize) {
           display.style.cursor = overResize.cursor;
         } else {
-          const overSource = this.sceneItems.find((source) => {
+          const overSource = this.sceneItems.find((source: SceneItem) => {
             return this.isOverSource(event, source);
           });
 
@@ -462,7 +462,7 @@ export default defineComponent({
     // of the active source's resize regions.
     isOverResize(event: MouseEvent) {
       if (this.activeSources.length > 0) {
-        return this.resizeRegions.find((region) => {
+        return this.resizeRegions.find((region: IResizeRegion) => {
           return this.isOverBox(event, region.x, region.y, region.width, region.height);
         });
       }

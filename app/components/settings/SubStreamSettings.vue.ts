@@ -115,7 +115,7 @@ export default defineComponent({
         }));
 
       this.videoCodec = this.videoCodecs.find(
-        (v) => v.id === SubStreamService.instance.state.videoCodec,
+        (v: { id: string; name: string }) => v.id === SubStreamService.instance.state.videoCodec,
       ) ?? { id: 'obs_x264', name: 'obs_x264' };
 
       this.audioCodecs = r.encoders.audio.map((v: any) => ({
@@ -124,7 +124,7 @@ export default defineComponent({
       }));
 
       this.audioCodec = this.audioCodecs.find(
-        (v) => v.id === SubStreamService.instance.state.audioCodec,
+        (v: { id: string; name: string }) => v.id === SubStreamService.instance.state.audioCodec,
       ) ?? { id: 'ffmpeg_aac', name: 'ffmpeg_aac' };
 
       this.startChecker();
