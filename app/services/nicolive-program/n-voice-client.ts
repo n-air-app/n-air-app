@@ -3,8 +3,8 @@
 import { join } from 'path';
 
 import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { StatefulService } from 'services/core/stateful-service';
+import { SentryReport } from 'util/sentry-report';
 import { sleep } from 'util/sleep';
 
 import { getNVoicePath, NVoiceClient } from './speech/NVoiceClient';
@@ -43,10 +43,8 @@ async function playAudio(
             }
           })
           .catch((err) => {
-            Sentry.withScope((scope) => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:pause');
-              Sentry.captureException(err);
+            SentryReport.error('NVoiceClientService', 'playAudio', err, {
+              tags: { in: 'playAudio:pause' },
             });
           });
       }
@@ -60,10 +58,8 @@ async function playAudio(
             }
           })
           .catch((err) => {
-            Sentry.withScope((scope) => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:resume');
-              Sentry.captureException(err);
+            SentryReport.error('NVoiceClientService', 'playAudio', err, {
+              tags: { in: 'playAudio:resume' },
             });
           });
       }
@@ -75,10 +71,8 @@ async function playAudio(
             audio.pause();
           })
           .catch((err) => {
-            Sentry.withScope((scope) => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:cancel');
-              Sentry.captureException(err);
+            SentryReport.error('NVoiceClientService', 'playAudio', err, {
+              tags: { in: 'playAudio:cancel' },
             });
           })
           .finally(() => {

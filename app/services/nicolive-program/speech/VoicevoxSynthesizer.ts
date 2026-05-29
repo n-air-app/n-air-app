@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/vue';
+import { SentryReport } from 'util/sentry-report';
 
 import { Speech } from '../nicolive-comment-synthesizer';
 
@@ -80,13 +80,10 @@ export class VoicevoxSynthesizer implements ISpeechSynthesizer {
             console.warn(`[VoicevoxSynthesizer] VOICEVOX server unavailable - text:${speech.text}`);
             return;
           }
-          Sentry.withScope((scope) => {
-            scope.setLevel('error');
-            scope.setTag('in', 'VoicevoxSynthesizer:speakText');
-            scope.setExtra('speech', speech);
-            scope.setExtra('error', error);
-            scope.setFingerprint(['VoicevoxSynthesizer', 'speakText', 'error']);
-            Sentry.captureException(error);
+          SentryReport.error('VoicevoxSynthesizer', 'speakText', error, {
+            tags: { in: 'VoicevoxSynthesizer:speakText' },
+            extra: { speech, error },
+            fingerprint: ['VoicevoxSynthesizer', 'speakText', 'error'],
           });
           console.info(`VoicevoxSynthesizer: text:${JSON.stringify(speech.text)} -> ${error}`);
         })

@@ -21,6 +21,8 @@ import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
@@ -574,45 +576,37 @@ export class SettingsService
       if (delta.length === 0) {
         // send to Sentry
         if (retry > 0) {
-          Sentry.withScope((scope) => {
-            scope.setLevel('info');
-            scope.setTag('optimizeForNiconico', 'retry');
-            scope.setTag('retry', `${retry}`);
-            scope.setFingerprint(['optimizeForNiconico', 'retry']);
-            Sentry.captureMessage('optimizeForNiconico: リトライで成功');
+          SentryReport.message('SettingsService', 'optimizeForNiconico', 'optimizeForNiconico: リトライで成功', {
+            level: 'info',
+            tags: { optimizeForNiconico: 'retry', retry: `${retry}` },
+            fingerprint: ['optimizeForNiconico', 'retry'],
           });
         } else {
-          Sentry.withScope((scope) => {
-            scope.setLevel('info');
-            scope.setTag('optimizeForNiconico', 'success');
-            scope.setFingerprint(['optimizeForNiconico', 'success']);
-            Sentry.captureMessage('optimizeForNiconico: 一発で成功');
+          SentryReport.message('SettingsService', 'optimizeForNiconico', 'optimizeForNiconico: 一発で成功', {
+            level: 'info',
+            tags: { optimizeForNiconico: 'success' },
+            fingerprint: ['optimizeForNiconico', 'success'],
           });
         }
         return;
       }
 
       const encoder = accessor.getSetting(OptimizationKey.encoder);
-      Sentry.withScope((scope) => {
-        scope.setLevel('warning');
-        scope.setTag('optimizeForNiconico', 'partial');
-        scope.setTag('retry', `${retry}`);
-        scope.setFingerprint(['optimizeForNiconico', 'partial']);
-        scope.setExtra('delta', delta);
-        if (encoder && encoder.options) {
-          scope.setExtra('encoder.options', encoder.options);
-        }
-        Sentry.captureMessage('optimizeForNiconico: optimization setting is not set perfectly');
+      SentryReport.message('SettingsService', 'optimizeForNiconico', 'optimizeForNiconico: optimization setting is not set perfectly', {
+        level: 'warning',
+        tags: { optimizeForNiconico: 'partial', retry: `${retry}` },
+        fingerprint: ['optimizeForNiconico', 'partial'],
+        extra: {
+          delta,
+          ...(encoder?.options ? { 'encoder.options': encoder.options } : {}),
+        },
       });
     }
 
-    // send to Sentry
-    Sentry.withScope((scope) => {
-      scope.setLevel('error');
-      scope.setTag('optimizeForNiconico', 'failed');
-      scope.setExtra('best', best);
-      scope.setFingerprint(['optimizeForNiconico', 'failed']);
-      Sentry.captureMessage('optimizeForNiconico: 最適化リトライ満了したが設定できなかった');
+    SentryReport.message('SettingsService', 'optimizeForNiconico', 'optimizeForNiconico: 最適化リトライ満了したが設定できなかった', {
+      tags: { optimizeForNiconico: 'failed' },
+      extra: { best },
+      fingerprint: ['optimizeForNiconico', 'failed'],
     });
   }
 
@@ -763,6 +757,9 @@ export class SettingsService
   }
 
   setSettings(categoryName: SettingsCategory, settingsData: ISettingsSubCategory[]) {
+    if (categoryName === 'Output' || categoryName === 'Video' || categoryName === 'Stream') {
+      markObsOp('SettingsService', 'setSettings', { category: categoryName });
+    }
     if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()]);
     if (categoryName === 'Developer') return this.setDeveloperSettings(settingsData);
 

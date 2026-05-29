@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/vue';
 import { EMPTY, interval, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import {
   bufferTime,
@@ -23,6 +22,7 @@ import { NicoliveProgramService } from 'services/nicolive-program/nicolive-progr
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { FakeModeConfig, isFakeMode } from 'util/fakeMode';
+import { SentryReport } from 'util/sentry-report';
 
 import { MessageResponse, StatisticsMessage } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
@@ -479,20 +479,14 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
         catchError((err) => {
           console.info('Failed to connect comment stream', err);
           if (isNdgrFetchError(err)) {
-            Sentry.withScope((scope) => {
-              scope.setTags(err.getTagsForSentry());
-              scope.setFingerprint([
-                'NicoliveCommentViewerService.connect',
-                'NdgrFetchError',
-                `${err.status}`,
-              ]);
-              Sentry.captureException(err);
+            SentryReport.error('NicoliveCommentViewerService', 'connect', err, {
+              tags: err.getTagsForSentry(),
+              fingerprint: ['NicoliveCommentViewerService.connect', 'NdgrFetchError', `${err.status}`],
             });
             return of(makeEmulatedChat('コメントの取得に失敗しました'));
           } else {
-            Sentry.withScope((scope) => {
-              scope.setFingerprint(['NicoliveCommentViewerService.connect', err.message]);
-              Sentry.captureException(err);
+            SentryReport.error('NicoliveCommentViewerService', 'connect', err, {
+              fingerprint: ['NicoliveCommentViewerService.connect', err.message],
             });
             return of(makeEmulatedChat(`エラーが発生しました: ${err.message}`));
           }
@@ -630,10 +624,8 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       if (Utils.isDevMode()) {
         console.warn(e);
       }
-      Sentry.captureException(new Error('Unhandled exception in onMessage', { cause: e }), {
-        tags: {
-          error: 'Unhandled exception in onMessage',
-        },
+      SentryReport.error('NicoliveCommentViewerService', 'onMessage', new Error('Unhandled exception in onMessage', { cause: e }), {
+        tags: { error: 'Unhandled exception in onMessage' },
         extra: {
           values: values.map((v) => {
             try {

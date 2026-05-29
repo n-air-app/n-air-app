@@ -1,6 +1,7 @@
 // An abstraction on electron Menus
 
 import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 
 export class Menu {
   menu: Electron.Menu;
@@ -14,7 +15,24 @@ export class Menu {
   }
 
   append(options: Electron.MenuItemConstructorOptions) {
-    this.menu.append(new remote.MenuItem(options));
+    const { click } = options;
+    if (click) {
+      this.menu.append(
+        new remote.MenuItem({
+          ...options,
+          click: (...args) => {
+            Sentry.addBreadcrumb({
+              category: 'ui.menu',
+              message: String(options.id ?? options.label ?? '(unknown)'),
+              level: 'info',
+            });
+            click(...args);
+          },
+        }),
+      );
+    } else {
+      this.menu.append(new remote.MenuItem(options));
+    }
   }
 
   destroy() {

@@ -1,10 +1,10 @@
 import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { BrowserWindow } from 'electron';
 import { Inject } from 'services/core/injector';
 import { ISourceApi, ISourcesServiceApi } from 'services/sources';
 import { WindowsService } from 'services/windows';
 import { ResizeBoxPoint, ScalableRectangle } from 'util/ScalableRectangle';
+import { SentryReport } from 'util/sentry-report';
 
 import { mutation, StatefulService } from '../core/stateful-service';
 import { SceneItem } from '../scenes';
@@ -175,38 +175,19 @@ function getDisplayFromSource(source: ISourceApi, label: string): Electron.Displ
   const displays = remote.screen.getAllDisplays();
 
   if (targetDisplayId >= displays.length) {
-    Sentry.captureMessage('getDisplayFromSource: 対象のdisplay IDが範囲外です', {
-      level: 'error',
-      tags: {
-        label,
-        propMonitors: propMonitors.length,
-        displays: displays.length,
-      },
-      extra: {
-        monitorId,
-        propMonitors,
-        targetDisplayId,
-        displays: displaysForSentry(displays),
-      },
+    SentryReport.message('MonitorCaptureCroppingService', 'getDisplayFromSource', 'getDisplayFromSource: 対象のdisplay IDが範囲外です', {
+      tags: { label: String(label), propMonitors: String(propMonitors.length), displays: String(displays.length) },
+      extra: { monitorId, propMonitors, targetDisplayId, displays: displaysForSentry(displays) },
     });
     return null;
   }
 
   if (displays.length !== 1 || propMonitors.length !== 2) {
     // モニタが複数あるときは選択が正しそうなのかを確認するためにログを残す
-    Sentry.captureMessage('getDisplayFromSource: multiple monitors', {
+    SentryReport.message('MonitorCaptureCroppingService', 'getDisplayFromSource', 'getDisplayFromSource: multiple monitors', {
       level: 'info',
-      tags: {
-        label,
-        propMonitors: propMonitors.length,
-        displays: displays.length,
-      },
-      extra: {
-        monitorId,
-        propMonitors,
-        targetDisplayId,
-        displays: displaysForSentry(displays),
-      },
+      tags: { label: String(label), propMonitors: String(propMonitors.length), displays: String(displays.length) },
+      extra: { monitorId, propMonitors, targetDisplayId, displays: displaysForSentry(displays) },
     });
   }
 

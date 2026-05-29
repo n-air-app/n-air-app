@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/vue';
 import {
   getPropertiesFormData,
   IObsListInput,
@@ -9,6 +8,7 @@ import {
 } from 'components/obs/inputs/ObsInput';
 import { EOrderMovement } from 'obs-studio-node';
 import { $t } from 'services/i18n';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../obs-api';
 import namingHelpers from '../util/NamingHelpers';
@@ -221,11 +221,8 @@ export class SourceFiltersService extends Service {
     if (!filterName) return [];
     const filter = this.getObsFilter(sourceId, filterName);
     if (!filter) {
-      Sentry.withScope((scope) => {
-        scope.setLevel('error');
-        scope.setExtra('sourceId', sourceId);
-        scope.setExtra('filterName', filterName);
-        Sentry.captureException(new Error('Filter not found'));
+      SentryReport.error('SourceFiltersService', 'getPropertiesFormData', new Error('Filter not found'), {
+        extra: { sourceId, filterName },
       });
       return [];
     }

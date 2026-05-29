@@ -19,6 +19,7 @@ import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
+import { SentryReport } from 'util/sentry-report';
 
 import namingHelpers from '../../util/NamingHelpers';
 
@@ -232,16 +233,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     this.startLoadingOperation();
     await this.deloadCurrentApplicationState();
 
-    // Set scene collection context for all Sentry events during load
     const collection = this.getCollection(id);
     const collectionName = collection ? collection.name : id;
-    Sentry.setContext('sceneCollection', {
-      id,
-      name: collectionName,
-      fileName: `${id}.json`,
-    });
-    Sentry.setTag('collectionId', id);
-    Sentry.setTag('collectionName', collectionName);
 
     let loadErrors: ILoadError[] = [];
 
@@ -249,11 +242,9 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       await this.setActiveCollection(id);
       loadErrors = await this.readCollectionDataAndLoadIntoApplicationState(id);
     } catch (e) {
-      Sentry.withScope((scope) => {
-        scope.setLevel('error');
-        scope.setTag('service', 'SceneCollectionsService');
-        scope.setTag('method', 'load');
-        Sentry.captureException(e);
+      SentryReport.error('SceneCollectionsService', 'load', e, {
+        tags: { collectionId: id, collectionName },
+        context: { sceneCollection: { id, name: collectionName, fileName: `${id}.json` } },
       });
 
       console.warn(`Failed to load scene collection ${id}:`, e);
@@ -269,11 +260,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       });
 
       if (choice === 0) {
-        // Clear scene collection context before quitting
-        Sentry.setContext('sceneCollection', null);
-        Sentry.setTag('collectionId', null);
-        Sentry.setTag('collectionName', null);
-        // Quit application
         remote.app.quit();
         return;
       } else {
@@ -298,10 +284,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       const itemList = sortedLoadErrors.map((err) => `- ${err.name}`).join('\n');
       console.warn('Partial load errors:', loadErrors);
 
-      // Get collection name for better context
-      const collection = this.getCollection(id);
-      const collectionName = collection ? collection.name : id;
-
       // Send partial load errors to Sentry for monitoring
       const errorsByType = loadErrors.reduce<Record<string, number>>((acc, err) => {
         acc[err.type] = (acc[err.type] || 0) + 1;
@@ -320,15 +302,14 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         return acc;
       }, {});
 
-      Sentry.withScope((scope) => {
-        scope.setLevel('warning');
-        scope.setTag('service', 'SceneCollectionsService');
-        scope.setTag('method', 'load');
-        scope.setTag('errorCount', loadErrors.length.toString());
-        // Note: collectionId, collectionName, and sceneCollection context are already set globally
-        scope.setContext('errorsByType', errorsByType);
-        scope.setContext('failedItems', failedItemsContext);
-        Sentry.captureMessage('Scene collection loaded with partial errors', 'warning');
+      SentryReport.message('SceneCollectionsService', 'load', 'Scene collection loaded with partial errors', {
+        level: 'warning',
+        tags: { collectionId: id, collectionName, errorCount: loadErrors.length.toString() },
+        context: {
+          sceneCollection: { id, name: collectionName, fileName: `${id}.json` },
+          errorsByType,
+          failedItems: failedItemsContext,
+        },
       });
 
       remote.dialog.showMessageBoxSync({
@@ -339,10 +320,9 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       });
     }
 
-    // Clear scene collection context after all load processing is complete
-    Sentry.setContext('sceneCollection', null);
-    Sentry.setTag('collectionId', null);
-    Sentry.setTag('collectionName', null);
+    // Record load status as a persistent session tag for correlating downstream crashes
+    Sentry.setTag('sceneCollections.lastLoadStatus', loadErrors.length > 0 ? 'partial-errors' : 'ok');
+    Sentry.setTag('sceneCollections.loadErrorCount', loadErrors.length.toString());
   }
 
   /**

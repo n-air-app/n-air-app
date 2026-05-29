@@ -1,5 +1,4 @@
 import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { Subject } from 'rxjs';
 import { mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
@@ -19,6 +18,7 @@ import {
   TSceneNodeModel,
 } from 'services/scenes';
 import { CenteringAxis } from 'util/ScalableRectangle';
+import { SentryReport } from 'util/sentry-report';
 
 import { Inject } from '../core/injector';
 import { shortcut } from '../shortcuts';
@@ -152,7 +152,7 @@ export class SelectionService extends StatefulService<ISelectionState> {
 
     const scene = this.getScene();
     if (!scene) {
-      Sentry.captureMessage('Selection.select: no active scene', 'warning');
+      SentryReport.message('SelectionService', 'select', 'Selection.select: no active scene', { level: 'warning' });
       return;
     }
 

@@ -12,6 +12,7 @@ export { AppService } from 'services/app';
 export { AudioService, AudioSource } from 'services/audio';
 export { ClipboardService } from 'services/clipboard';
 export { CompactModeService } from 'services/compact-mode';
+export { CrashContextService } from 'services/crash-context';
 export { CrashReporterService } from 'services/crash-reporter';
 export { CustomcastUsageService } from 'services/custom-cast-usage';
 export { CustomizationService } from 'services/customization';

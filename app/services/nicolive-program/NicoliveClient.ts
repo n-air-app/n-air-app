@@ -7,6 +7,7 @@ import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 import { handleErrors } from 'util/requests';
+import { SentryReport } from 'util/sentry-report';
 
 import {
   AddFilterRecord,
@@ -531,11 +532,10 @@ export class NicoliveClient {
           resolve(CreateResult.RESERVED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
-          Sentry.withScope((scope) => {
-            scope.setLevel('warning');
-            scope.setTag('url', url);
-            scope.setFingerprint(['createProgram', 'did-navigate', url]);
-            Sentry.captureMessage('createProgram did-navigate to unexpected URL');
+          SentryReport.message('NicoliveClient', 'createProgram', 'createProgram did-navigate to unexpected URL', {
+            level: 'warning',
+            tags: { url },
+            fingerprint: ['createProgram', 'did-navigate', url],
           });
           resolve(CreateResult.OTHER);
           remote.shell.openExternal(url);
@@ -548,11 +548,10 @@ export class NicoliveClient {
       console.log('Loading URL in createProgram window:', url);
       win.loadURL(url)?.catch((error) => {
         if (error instanceof Error) {
-          Sentry.withScope((scope) => {
-            scope.setLevel('warning');
-            scope.setExtra('url', url);
-            scope.setFingerprint(['createProgram', 'loadURL', url]);
-            Sentry.captureException(error);
+          SentryReport.error('NicoliveClient', 'createProgram', error, {
+            level: 'warning',
+            extra: { url },
+            fingerprint: ['createProgram', 'loadURL', url],
           });
         }
       });
@@ -609,12 +608,10 @@ export class NicoliveClient {
           resolve(EditResult.EDITED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
-          Sentry.withScope((scope) => {
-            scope.setLevel('warning');
-            scope.setTag('url', url);
-            scope.setTag('programID', programID);
-            scope.setFingerprint(['editProgram', 'did-navigate', url]);
-            Sentry.captureMessage('editProgram did-navigate to unexpected URL');
+          SentryReport.message('NicoliveClient', 'editProgram', 'editProgram did-navigate to unexpected URL', {
+            level: 'warning',
+            tags: { url, programID },
+            fingerprint: ['editProgram', 'did-navigate', url],
           });
           resolve(EditResult.OTHER);
           remote.shell.openExternal(url);
@@ -626,12 +623,11 @@ export class NicoliveClient {
       const url = `${NicoliveClient.liveBaseURL}/edit/${programID}`;
       win.loadURL(url)?.catch((error) => {
         if (error instanceof Error) {
-          Sentry.withScope((scope) => {
-            scope.setLevel('warning');
-            scope.setExtra('url', url);
-            scope.setTag('programID', programID);
-            scope.setFingerprint(['editProgram', 'loadURL', url]);
-            Sentry.captureException(error);
+          SentryReport.error('NicoliveClient', 'editProgram', error, {
+            level: 'warning',
+            extra: { url },
+            tags: { programID },
+            fingerprint: ['editProgram', 'loadURL', url],
           });
         }
       });

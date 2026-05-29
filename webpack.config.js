@@ -306,9 +306,7 @@ module.exports = function (env, argv) {
 
       plugins,
 
-      stats: {
-        warningsFilter: ["Can't resolve 'osx-temperature-sensor'"],
-      },
+      ignoreWarnings: [{ message: /Can't resolve 'osx-temperature-sensor'/ }],
     },
     {
       ...common,

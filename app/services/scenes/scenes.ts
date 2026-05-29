@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { Inject } from 'services/core/injector';
@@ -9,6 +10,7 @@ import { TransitionsService } from 'services/transitions';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
@@ -187,6 +189,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   createScene(name: string, options: ISceneCreateOptions = {}) {
+    markObsOp('ScenesService', 'createScene');
     // Get an id to identify the scene on the frontend
     const id = options.sceneId || `scene_${uuidv4()}`;
     this.ADD_SCENE(id, name);
@@ -221,6 +224,7 @@ export class ScenesService extends StatefulService<IScenesState> {
     if (!scene) {
       return null;
     }
+    markObsOp('ScenesService', 'removeScene', { sceneId: id });
     const sceneModel = this.state.scenes[id];
 
     if (!force) this.rtvcStateService.didRemoveScene(id);
@@ -270,6 +274,13 @@ export class ScenesService extends StatefulService<IScenesState> {
     if (!scene) return false;
 
     const activeScene = this.activeScene;
+    markObsOp('ScenesService', 'makeSceneActive', { sceneId: id });
+
+    Sentry.addBreadcrumb({
+      category: 'scenes',
+      message: `makeSceneActive: ${activeScene?.name ?? '(none)'} → ${scene.name}`,
+      level: 'info',
+    });
 
     this.transitionsService.transition(activeScene && activeScene.id, scene.id);
 
