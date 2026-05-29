@@ -8,7 +8,7 @@
         :disabled="locked"
         class="button--circle button--secondary record-button"
         @click="toggleRecording"
-        :class="{ active: streamingService.isRecording }"
+        :class="{ active: recording }"
         v-tooltip.left="recordTooltip"
       >
         <span>{{ $t('streaming.recording') }}</span>

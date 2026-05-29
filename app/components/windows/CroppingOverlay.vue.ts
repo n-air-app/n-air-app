@@ -81,7 +81,7 @@ export default defineComponent({
       if (event.button !== 0) return;
       if (!this.isCropping) return;
 
-      MonitorCaptureCroppingService.instance.crop(this.croppingArea);
+      MonitorCaptureCroppingService.instance().crop(this.croppingArea);
 
       this.isCropping = false;
       window.close();

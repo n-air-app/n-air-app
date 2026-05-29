@@ -122,7 +122,7 @@ test('init preserves persisted speechSynthesizerSettings', () => {
   });
 
   const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
-  const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+  const instance = NicoliveCommentSynthesizerService.instance() as NicoliveCommentSynthesizerService;
 
   expect(instance.state.pitch).toBe(persistedSettings.pitch);
   expect(instance.state.rate).toBe(persistedSettings.rate);
@@ -138,7 +138,7 @@ test('init preserves persisted speechSynthesizerSettings', () => {
 test('makeSpeechText', async () => {
   setup();
   const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
-  const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+  const instance = NicoliveCommentSynthesizerService.instance() as NicoliveCommentSynthesizerService;
   expect(
     instance.makeSpeechText({ type: 'normal', value: { content: 'test' }, seqId: 1 }, 'webSpeech'),
   ).toBe('test');
@@ -160,7 +160,7 @@ test('makeSpeechText', async () => {
 test('makeSpeech', async () => {
   setup();
   const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
-  const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+  const instance = NicoliveCommentSynthesizerService.instance() as NicoliveCommentSynthesizerService;
 
   jest.spyOn(instance, 'state', 'get').mockReturnValue(mockedState);
 
@@ -215,7 +215,7 @@ test.each([
   ) => {
     setup();
     const { NicoliveCommentSynthesizerService } = require('./nicolive-comment-synthesizer');
-    const instance = NicoliveCommentSynthesizerService.instance as NicoliveCommentSynthesizerService;
+    const instance = NicoliveCommentSynthesizerService.instance() as NicoliveCommentSynthesizerService;
     jest.spyOn(instance, 'state', 'get').mockReturnValue(mockedState);
 
     (instance.getSynthesizer('nVoice').speakText as jest.Mock).mockImplementation(

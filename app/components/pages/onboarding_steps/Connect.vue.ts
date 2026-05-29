@@ -18,20 +18,20 @@ export default defineComponent({
 
   computed: {
     isSecurityUpgrade(): boolean {
-      return OnboardingService.instance.options.isSecurityUpgrade;
+      return OnboardingService.instance().options.isSecurityUpgrade;
     },
   },
 
   methods: {
     authPlatform(platform: TPlatform) {
       this.loadingState = true;
-      UserService.instance.startAuth({
+      UserService.instance().startAuth({
         platform,
         onAuthClose: () => {
           this.loadingState = false;
         },
         onAuthFinish: () => {
-          OnboardingService.instance.next();
+          OnboardingService.instance().next();
         },
       });
     },
@@ -44,7 +44,7 @@ export default defineComponent({
     },
 
     skipOnboarding() {
-      OnboardingService.instance.skip();
+      OnboardingService.instance().skip();
     },
   },
 });

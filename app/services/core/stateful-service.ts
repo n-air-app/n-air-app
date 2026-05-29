@@ -29,11 +29,11 @@ function registerMutation(
     localState: any,
     payload: { args: any; constructorArgs: any },
   ) {
-    const targetIsSingleton = !!target.constructor.instance;
+    const targetIsSingleton = typeof target.constructor.instance === 'function';
     let context: any;
 
     if (targetIsSingleton) {
-      context = target.constructor.instance;
+      context = target.constructor.instance();
     } else {
       context = new target.constructor(...payload.constructorArgs);
     }

@@ -17,7 +17,7 @@ export default defineComponent({
     },
 
     options() {
-      return WindowsService.instance.state[this.windowId];
+      return WindowsService.instance().state[this.windowId];
     },
   },
 });

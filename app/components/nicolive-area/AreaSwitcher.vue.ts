@@ -27,7 +27,7 @@ export default defineComponent({
 
   computed: {
     isCompactMode(): boolean {
-      return CustomizationService.instance.state.compactMode;
+      return CustomizationService.instance().state.compactMode;
     },
 
     activeContent(): IArea {

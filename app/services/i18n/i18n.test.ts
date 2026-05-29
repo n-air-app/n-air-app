@@ -33,13 +33,13 @@ const setup = createSetupFunction({
 test('get instance', () => {
   setup();
   const { I18nService } = require('./i18n');
-  expect(I18nService.instance).toBeInstanceOf(I18nService);
+  expect(I18nService.instance()).toBeInstanceOf(I18nService);
 });
 
 test('load', async () => {
   setup();
   const { I18nService } = require('./i18n');
-  const { instance } = I18nService;
+  const instance = I18nService.instance();
   await instance.load();
   expect(instance.isLoaded).toBe(true);
   expect(typeof instance.state.locale).toBe('string');

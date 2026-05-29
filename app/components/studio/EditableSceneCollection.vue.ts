@@ -26,7 +26,7 @@ export default defineComponent({
     },
 
     collection() {
-      return SceneCollectionsService.instance.collections.find((coll: any) => coll.id === this.collectionId);
+      return SceneCollectionsService.instance().collections.find((coll: any) => coll.id === this.collectionId);
     },
 
     modified() {
@@ -36,7 +36,7 @@ export default defineComponent({
     isActive() {
       const collection = this.collection;
       if (!collection) return false;
-      const activeCollection = SceneCollectionsService.instance.activeCollection;
+      const activeCollection = SceneCollectionsService.instance().activeCollection;
       if (!activeCollection) return false;
 
       return collection.id === activeCollection.id;
@@ -59,14 +59,14 @@ export default defineComponent({
     },
 
     makeActive() {
-      SceneCollectionsService.instance.load(this.collection.id);
+      SceneCollectionsService.instance().load(this.collection.id);
     },
 
     duplicate() {
       this.duplicating = true;
 
       setTimeout(() => {
-        SceneCollectionsService.instance
+        SceneCollectionsService.instance()
           .duplicate(this.collection.name, this.collection.id)
           .then(() => {
             this.duplicating = false;
@@ -84,7 +84,7 @@ export default defineComponent({
     },
 
     submitRename() {
-      SceneCollectionsService.instance.rename(this.editableName, this.collectionId);
+      SceneCollectionsService.instance().rename(this.editableName, this.collectionId);
       this.renaming = false;
     },
 
@@ -107,7 +107,7 @@ export default defineComponent({
         })
         .then(({ response: cancel }) => {
           if (cancel) return;
-          SceneCollectionsService.instance.delete(this.collectionId);
+          SceneCollectionsService.instance().delete(this.collectionId);
         });
     },
   },

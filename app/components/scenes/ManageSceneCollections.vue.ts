@@ -20,7 +20,7 @@ export default defineComponent({
 
   computed: {
     collections() {
-      const list = SceneCollectionsService.instance.collections;
+      const list = SceneCollectionsService.instance().collections;
 
       if (this.searchQuery) {
         const fuse = new Fuse(list, {
@@ -35,23 +35,23 @@ export default defineComponent({
     },
 
     canImportFromOBS() {
-      return ObsImporterService.instance.canImportFromOBS;
+      return ObsImporterService.instance().canImportFromOBS;
     },
   },
 
   methods: {
     close() {
-      SceneCollectionsService.instance.stateService.flushManifestFile();
-      WindowsService.instance.closeChildWindow();
+      SceneCollectionsService.instance().stateService.flushManifestFile();
+      WindowsService.instance().closeChildWindow();
     },
 
     create() {
-      SceneCollectionsService.instance.create({ needsRename: true });
+      SceneCollectionsService.instance().create({ needsRename: true });
     },
 
     importFromOBS() {
-      WindowsService.instance.closeChildWindow();
-      OnboardingService.instance.start({ skipLogin: true });
+      WindowsService.instance().closeChildWindow();
+      OnboardingService.instance().start({ skipLogin: true });
     },
   },
 });

@@ -7,13 +7,13 @@ export default defineComponent({
 
   computed: {
     notes() {
-      return PatchNotesService.instance.notes;
+      return PatchNotesService.instance().notes;
     },
   },
 
   methods: {
     done() {
-      NavigationService.instance.navigate('Studio');
+      NavigationService.instance().navigate('Studio');
     },
   },
 });

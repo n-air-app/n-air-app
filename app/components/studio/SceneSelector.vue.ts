@@ -31,7 +31,7 @@ export default defineComponent({
 
   computed: {
     scenes() {
-      return ScenesService.instance.scenes.map((scene: any) => {
+      return ScenesService.instance().scenes.map((scene: any) => {
         return {
           name: scene.name,
           value: scene.id,
@@ -40,7 +40,7 @@ export default defineComponent({
     },
 
     sceneCollections() {
-      const list = SceneCollectionsService.instance.collections;
+      const list = SceneCollectionsService.instance().collections;
 
       if (this.searchQuery) {
         const fuse = new Fuse(list, {
@@ -55,16 +55,16 @@ export default defineComponent({
     },
 
     activeId() {
-      return SceneCollectionsService.instance.activeCollection?.id ?? null;
+      return SceneCollectionsService.instance().activeCollection?.id ?? null;
     },
 
     activeCollection() {
-      return SceneCollectionsService.instance.activeCollection ?? null;
+      return SceneCollectionsService.instance().activeCollection ?? null;
     },
 
     activeSceneId() {
-      if (ScenesService.instance.activeScene) {
-        return ScenesService.instance.activeScene.id;
+      if (ScenesService.instance().activeScene) {
+        return ScenesService.instance().activeScene.id;
       }
 
       return null;
@@ -75,16 +75,16 @@ export default defineComponent({
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
   },
 
   methods: {
     showContextMenu() {
       const getExtra = () => ({
-        activeSceneIsNull: ScenesService.instance.activeScene == null,
-        activeCollectionIsNull: SceneCollectionsService.instance.activeCollection == null,
-        sceneCount: ScenesService.instance.scenes.length,
+        activeSceneIsNull: ScenesService.instance().activeScene == null,
+        activeCollectionIsNull: SceneCollectionsService.instance().activeCollection == null,
+        sceneCount: ScenesService.instance().scenes.length,
       });
       const menu = new Menu();
       menu.append({
@@ -93,7 +93,7 @@ export default defineComponent({
         click: () =>
           withMenuHandlerTag(
             'SceneSelector.Duplicate',
-            () => ScenesService.instance.showDuplicateScene(ScenesService.instance.activeScene.id),
+            () => ScenesService.instance().showDuplicateScene(ScenesService.instance().activeScene.id),
             getExtra,
           ),
       });
@@ -104,8 +104,8 @@ export default defineComponent({
           withMenuHandlerTag(
             'SceneSelector.Rename',
             () =>
-              ScenesService.instance.showNameScene({
-                rename: ScenesService.instance.activeScene.id,
+              ScenesService.instance().showNameScene({
+                rename: ScenesService.instance().activeScene.id,
               }),
             getExtra,
           ),
@@ -122,7 +122,7 @@ export default defineComponent({
           withMenuHandlerTag(
             'SceneSelector.Filters',
             () =>
-              SourceFiltersService.instance.showSourceFilters(ScenesService.instance.activeScene.id),
+              SourceFiltersService.instance().showSourceFilters(ScenesService.instance().activeScene.id),
             getExtra,
           ),
       });
@@ -132,7 +132,7 @@ export default defineComponent({
         click: () =>
           withMenuHandlerTag(
             'SceneSelector.CreateSceneProjector',
-            () => ProjectorService.instance.createProjector(ScenesService.instance.activeScene.id),
+            () => ProjectorService.instance().createProjector(ScenesService.instance().activeScene.id),
             getExtra,
           ),
       });
@@ -140,20 +140,20 @@ export default defineComponent({
     },
 
     makeActive(id: string) {
-      ScenesService.instance.makeSceneActive(id);
+      ScenesService.instance().makeSceneActive(id);
     },
 
     handleSort(data: any) {
-      ScenesService.instance.setSceneOrder(data.order);
+      ScenesService.instance().setSceneOrder(data.order);
     },
 
     addScene() {
-      ScenesService.instance.showNameScene();
+      ScenesService.instance().showNameScene();
     },
 
     removeScene(id?: string) {
       this.makeActive(id || this.activeSceneId);
-      const name = ScenesService.instance.activeScene.name;
+      const name = ScenesService.instance().activeScene.name;
       remote.dialog
         .showMessageBox(remote.getCurrentWindow(), {
           type: 'warning',
@@ -165,22 +165,22 @@ export default defineComponent({
         })
         .then(({ response: cancel }) => {
           if (cancel) return;
-          if (!ScenesService.instance.removeScene(this.activeSceneId)) {
+          if (!ScenesService.instance().removeScene(this.activeSceneId)) {
             alert($t('scenes.mustHaveLeastOnceScene'));
           }
         });
     },
 
     showTransitions() {
-      TransitionsService.instance.showSceneTransitions();
+      TransitionsService.instance().showSceneTransitions();
     },
 
     loadCollection(id: string) {
-      SceneCollectionsService.instance.load(id);
+      SceneCollectionsService.instance().load(id);
     },
 
     manageCollections() {
-      SceneCollectionsService.instance.showManageWindow();
+      SceneCollectionsService.instance().showManageWindow();
     },
   },
 });

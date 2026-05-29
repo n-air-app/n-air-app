@@ -28,11 +28,11 @@ export default defineComponent({
     },
 
     isCompactMode() {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     isStreaming() {
-      return StreamingService.instance.isStreaming;
+      return StreamingService.instance().isStreaming;
     },
   },
 
@@ -52,7 +52,7 @@ export default defineComponent({
     },
 
     close() {
-      if (Utils.isMainWindow() && StreamingService.instance.isStreaming) {
+      if (Utils.isMainWindow() && StreamingService.instance().isStreaming) {
         if (!confirm($t('streaming.endStreamInStreamingConfirm'))) return;
       }
 

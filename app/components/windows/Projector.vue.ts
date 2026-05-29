@@ -3,7 +3,7 @@ import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import electron from 'electron';
 import { Subscription } from 'rxjs';
-import { SourcesService } from 'services/sources';
+import { ISource, SourcesService } from 'services/sources';
 import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
@@ -26,11 +26,11 @@ export default defineComponent({
     },
 
     fullscreen(): boolean {
-      return WindowsService.instance.state[this.windowId].isFullScreen;
+      return WindowsService.instance().state[this.windowId].isFullScreen;
     },
 
     sourceId(): string {
-      return WindowsService.instance.getWindowOptions(this.windowId).sourceId;
+      return WindowsService.instance().getWindowOptions(this.windowId).sourceId;
     },
 
     allDisplays() {
@@ -39,7 +39,7 @@ export default defineComponent({
   },
 
   mounted() {
-    this.sourcesSubscription = SourcesService.instance.sourceRemoved.subscribe((source: any) => {
+    this.sourcesSubscription = SourcesService.instance().sourceRemoved.subscribe((source: ISource) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }
@@ -53,7 +53,7 @@ export default defineComponent({
   methods: {
     enterFullscreen(display: electron.Display) {
       const currentWindow = remote.getCurrentWindow();
-      WindowsService.instance.setOneOffFullscreen(this.windowId, true);
+      WindowsService.instance().setOneOffFullscreen(this.windowId, true);
       this.oldBounds = currentWindow.getBounds();
       currentWindow.setPosition(display.bounds.x, display.bounds.y);
       currentWindow.setFullScreen(true);
@@ -63,7 +63,7 @@ export default defineComponent({
     exitFullscreen(e: KeyboardEvent) {
       if (e.code !== 'Escape') return;
       document.removeEventListener('keydown', this.exitFullscreen);
-      WindowsService.instance.setOneOffFullscreen(this.windowId, false);
+      WindowsService.instance().setOneOffFullscreen(this.windowId, false);
       const currentWindow = remote.getCurrentWindow();
       currentWindow.setFullScreen(false);
       currentWindow.setBounds(this.oldBounds);

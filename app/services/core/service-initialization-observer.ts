@@ -7,7 +7,7 @@ import { Service } from './service';
  */
 export function InitAfter(observableServiceName: string) {
   return function (target: typeof Service) {
-    const observeList = ObserveList.instance;
+    const observeList = ObserveList.instance();
     observeList.add({ observableServiceName, observerServiceName: target.name });
   };
 }

@@ -34,44 +34,44 @@ export default defineComponent({
   computed: {
     nameplateEnabled: {
       get(): boolean {
-        return NicoliveProgramStateService.instance.state.nameplateEnabled;
+        return NicoliveProgramStateService.instance().state.nameplateEnabled;
       },
       set(e: boolean) {
-        NicoliveProgramStateService.instance.updateNameplateEnabled(e);
+        NicoliveProgramStateService.instance().updateNameplateEnabled(e);
       },
     },
     showAnonymous: {
       get() {
-        return NicoliveCommentLocalFilterService.instance.showAnonymous;
+        return NicoliveCommentLocalFilterService.instance().showAnonymous;
       },
       set(v: boolean) {
-        NicoliveCommentLocalFilterService.instance.showAnonymous = v;
+        NicoliveCommentLocalFilterService.instance().showAnonymous = v;
       },
     },
     httpRelationMethod: {
       get(): MethodObject {
-        const value = NicoliveProgramStateService.instance.state.httpRelation.method;
+        const value = NicoliveProgramStateService.instance().state.httpRelation.method;
         const obj = this.httpRelationMethods.find((a: any) => a.value === value);
         return obj ?? this.httpRelationMethods[0];
       },
       set(method: MethodObject) {
-        NicoliveProgramStateService.instance.updateHttpRelation({ method: method.value });
+        NicoliveProgramStateService.instance().updateHttpRelation({ method: method.value });
       },
     },
     httpRelationUrl: {
       get(): string {
-        return NicoliveProgramStateService.instance.state.httpRelation.url;
+        return NicoliveProgramStateService.instance().state.httpRelation.url;
       },
       set(url: string) {
-        NicoliveProgramStateService.instance.updateHttpRelation({ url });
+        NicoliveProgramStateService.instance().updateHttpRelation({ url });
       },
     },
     httpRelationBody: {
       get(): string {
-        return NicoliveProgramStateService.instance.state.httpRelation.body;
+        return NicoliveProgramStateService.instance().state.httpRelation.body;
       },
       set(body: string) {
-        NicoliveProgramStateService.instance.updateHttpRelation({ body });
+        NicoliveProgramStateService.instance().updateHttpRelation({ body });
       },
     },
   },
@@ -79,18 +79,18 @@ export default defineComponent({
     async useOneComme() {
       const use = this.useOneComme;
       this.isOneCommeError = false;
-      if (use === NicoliveProgramStateService.instance.state.onecommeRelation.use) return;
+      if (use === NicoliveProgramStateService.instance().state.onecommeRelation.use) return;
       if (use) {
-        if (!(await NicoliveProgramService.instance.oneCommeRelation.testConnection())) {
+        if (!(await NicoliveProgramService.instance().oneCommeRelation.testConnection())) {
           this.isOneCommeError = true;
         }
       }
-      NicoliveProgramStateService.instance.updateOneCommeRelation({ use });
-      if (use) NicoliveProgramService.instance.oneCommeRelation.update({ force: true });
+      NicoliveProgramStateService.instance().updateOneCommeRelation({ use });
+      if (use) NicoliveProgramService.instance().oneCommeRelation.update({ force: true });
     },
     removeComment() {
       const removeComment = this.removeComment;
-      NicoliveProgramStateService.instance.updateOneCommeRelation({ removeComment });
+      NicoliveProgramStateService.instance().updateOneCommeRelation({ removeComment });
     },
   },
   mounted() {
@@ -98,14 +98,14 @@ export default defineComponent({
   },
   methods: {
     initOneComme() {
-      this.useOneComme = NicoliveProgramStateService.instance.state.onecommeRelation.use;
-      this.removeComment = NicoliveProgramStateService.instance.state.onecommeRelation.removeComment;
+      this.useOneComme = NicoliveProgramStateService.instance().state.onecommeRelation.use;
+      this.removeComment = NicoliveProgramStateService.instance().state.onecommeRelation.removeComment;
     },
     showOneCommeInfo() {
       remote.shell.openExternal('https://onecomme.com/docs/about');
     },
     testHttpRelation() {
-      HttpRelation.sendTest(NicoliveProgramStateService.instance.state.httpRelation).then();
+      HttpRelation.sendTest(NicoliveProgramStateService.instance().state.httpRelation).then();
     },
     showHttpRelationPage() {
       remote.shell.openExternal('https://github.com/n-air-app/n-air-app/wiki/http_relation');

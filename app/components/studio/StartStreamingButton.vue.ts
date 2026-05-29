@@ -29,19 +29,19 @@ export default defineComponent({
 
   computed: {
     isCompactMode() {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     streamingStatus() {
-      return StreamingService.instance.state.streamingStatus;
+      return StreamingService.instance().state.streamingStatus;
     },
 
     programFetching() {
-      return StreamingService.instance.state.programFetching;
+      return StreamingService.instance().state.programFetching;
     },
 
     isStreaming() {
-      return StreamingService.instance.isStreaming;
+      return StreamingService.instance().isStreaming;
     },
 
     isDisabled() {
@@ -49,9 +49,9 @@ export default defineComponent({
         this.disabled
         || this.programFetching
         || (this.streamingStatus === EStreamingState.Starting
-          && StreamingService.instance.delaySecondsRemaining === 0)
+          && StreamingService.instance().delaySecondsRemaining === 0)
         || (this.streamingStatus === EStreamingState.Ending
-          && StreamingService.instance.delaySecondsRemaining === 0)
+          && StreamingService.instance().delaySecondsRemaining === 0)
       );
     },
 
@@ -62,7 +62,7 @@ export default defineComponent({
     showEndStreamHelpTip(): boolean {
       if (this.streamingStatus === EStreamingState.Offline) {
         // ニコ生番組が放送中で、配信は停止している
-        if (NicoliveProgramService.instance.state.status === 'onAir') {
+        if (NicoliveProgramService.instance().state.status === 'onAir') {
           return true;
         }
       }
@@ -78,12 +78,12 @@ export default defineComponent({
 
   methods: {
     toggleStreaming() {
-      if (StreamingService.instance.isStreaming) {
-        StreamingService.instance.toggleStreaming();
+      if (StreamingService.instance().isStreaming) {
+        StreamingService.instance().toggleStreaming();
         return;
       }
 
-      StreamingService.instance.toggleStreamingAsync();
+      StreamingService.instance().toggleStreamingAsync();
     },
 
     getStreamButtonLabel() {
@@ -96,9 +96,9 @@ export default defineComponent({
       }
 
       if (this.streamingStatus === EStreamingState.Starting) {
-        if (StreamingService.instance.delayEnabled) {
+        if (StreamingService.instance().delayEnabled) {
           return $t('streaming.startingWithDelay', {
-            delaySeconds: StreamingService.instance.delaySecondsRemaining,
+            delaySeconds: StreamingService.instance().delaySecondsRemaining,
           });
         }
 
@@ -106,9 +106,9 @@ export default defineComponent({
       }
 
       if (this.streamingStatus === EStreamingState.Ending) {
-        if (StreamingService.instance.delayEnabled) {
+        if (StreamingService.instance().delayEnabled) {
           return $t('streaming.endingWithDelay', {
-            delaySeconds: StreamingService.instance.delaySecondsRemaining,
+            delaySeconds: StreamingService.instance().delaySecondsRemaining,
           });
         }
 
@@ -125,7 +125,7 @@ export default defineComponent({
     setDelayUpdate() {
       this.$forceUpdate();
 
-      if (StreamingService.instance.delaySecondsRemaining) {
+      if (StreamingService.instance().delaySecondsRemaining) {
         setTimeout(() => this.setDelayUpdate(), 100);
       }
     },

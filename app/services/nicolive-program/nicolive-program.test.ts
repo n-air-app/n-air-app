@@ -140,7 +140,7 @@ afterEach(() => {
 function setupInstance(options: { mockSetState: boolean } = { mockSetState: false }) {
   const NicoliveProgramService = require('./nicolive-program')
     .NicoliveProgramService as typeof NicoliveProgramServiceType;
-  const instance = NicoliveProgramService.instance as NicoliveProgramServiceType;
+  const instance = NicoliveProgramService.instance() as NicoliveProgramServiceType;
   const setState = jest.fn().mockName('setState');
   if (options.mockSetState) {
     (instance as any).setState = setState; // private method
@@ -152,7 +152,7 @@ function setupInstance(options: { mockSetState: boolean } = { mockSetState: fals
 test('get instance', () => {
   setup();
   const { NicoliveProgramService } = setupInstance();
-  expect(NicoliveProgramService.instance).toBeInstanceOf(NicoliveProgramService);
+  expect(NicoliveProgramService.instance()).toBeInstanceOf(NicoliveProgramService);
 });
 
 test('isProgramExtendable', () => {

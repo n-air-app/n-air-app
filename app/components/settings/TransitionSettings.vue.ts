@@ -16,8 +16,8 @@ export default defineComponent({
   },
   data() {
     return {
-      localType: TransitionsService.instance.getTransition(this.transitionId).type as ETransitionType,
-      properties: TransitionsService.instance.getPropertiesFormData(this.transitionId),
+      localType: TransitionsService.instance().getTransition(this.transitionId).type as ETransitionType,
+      properties: TransitionsService.instance().getPropertiesFormData(this.transitionId),
     };
   },
   computed: {
@@ -27,13 +27,13 @@ export default defineComponent({
           description: $t('transitions.transitionType'),
           name: 'type',
           value: this.localType,
-          options: TransitionsService.instance.getTypes(),
+          options: TransitionsService.instance().getTypes(),
         };
       },
       set(model: IObsListInput<ETransitionType>) {
         this.localType = model.value;
-        TransitionsService.instance.changeTransitionType(this.transitionId, model.value);
-        this.properties = TransitionsService.instance.getPropertiesFormData(this.transitionId);
+        TransitionsService.instance().changeTransitionType(this.transitionId, model.value);
+        this.properties = TransitionsService.instance().getPropertiesFormData(this.transitionId);
       },
     },
     durationModel: {
@@ -45,7 +45,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TransitionsService.instance.setDuration(this.transitionId, model.value);
+        TransitionsService.instance().setDuration(this.transitionId, model.value);
       },
     },
     nameModel: {
@@ -57,16 +57,16 @@ export default defineComponent({
         };
       },
       set(name: IObsInput<string>) {
-        TransitionsService.instance.renameTransition(this.transitionId, name.value);
+        TransitionsService.instance().renameTransition(this.transitionId, name.value);
       },
     },
     transition() {
-      return TransitionsService.instance.getTransition(this.transitionId);
+      return TransitionsService.instance().getTransition(this.transitionId);
     },
   },
   methods: {
     saveProperties(props: TObsFormData) {
-      TransitionsService.instance.setPropertiesFormData(this.transitionId, props);
+      TransitionsService.instance().setPropertiesFormData(this.transitionId, props);
     },
   },
 });

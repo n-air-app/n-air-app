@@ -236,7 +236,7 @@ function prepare(options: PrepareOptions = {}): {
   // @ts-expect-error: initialState is readonly, but we need to override it for testing
   TranscriptionService.initialState = TranscriptionService.defaultState;
 
-  const instance = TranscriptionService.instance as TranscriptionServiceType;
+  const instance = TranscriptionService.instance() as TranscriptionServiceType;
   instance.updateAudioDevices();
   // Trigger activeness check after initialization
   instance['updateActiveness$'].next();

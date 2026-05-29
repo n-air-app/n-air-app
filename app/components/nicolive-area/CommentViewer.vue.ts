@@ -92,11 +92,11 @@ export default defineComponent({
 
   computed: {
     isCompactMode(): boolean {
-      return CustomizationService.instance.state.compactMode;
+      return CustomizationService.instance().state.compactMode;
     },
 
     pinnedComment(): WrappedChatWithComponent | null {
-      return NicoliveCommentViewerService.instance.state.pinnedMessage;
+      return NicoliveCommentViewerService.instance().state.pinnedMessage;
     },
 
     pinnedItem(): WrappedMessage | null {
@@ -107,7 +107,7 @@ export default defineComponent({
           value: {
             ...item.value,
             content: `${getContentWithFilter(item)}  (${this.getFormattedLiveTime(item.value)})`,
-            name: NicoliveProgramStateService.instance.state.nameplateEnabled
+            name: NicoliveProgramStateService.instance().state.nameplateEnabled
               ? item.value.name
               : undefined,
           },
@@ -116,30 +116,30 @@ export default defineComponent({
     },
 
     items() {
-      return NicoliveCommentViewerService.instance.itemsLocalFiltered;
+      return NicoliveCommentViewerService.instance().itemsLocalFiltered;
     },
 
     speakingEnabled: {
       get(): boolean {
-        return NicoliveCommentViewerService.instance.speakingEnabled;
+        return NicoliveCommentViewerService.instance().speakingEnabled;
       },
       set(e: boolean) {
-        NicoliveCommentViewerService.instance.speakingEnabled = e;
+        NicoliveCommentViewerService.instance().speakingEnabled = e;
       },
     },
 
     speakingSeqId() {
-      return NicoliveCommentViewerService.instance.speakingSeqId;
+      return NicoliveCommentViewerService.instance().speakingSeqId;
     },
 
     blockingNextSeqId(): number | null {
-      return NicoliveCommentViewerService.instance.blockingNextSeqId;
+      return NicoliveCommentViewerService.instance().blockingNextSeqId;
     },
 
     nameplateHintNo(): number | undefined {
-      const nameplateHint = NicoliveProgramStateService.instance.state.nameplateHint;
+      const nameplateHint = NicoliveProgramStateService.instance().state.nameplateHint;
       if (!nameplateHint) return undefined;
-      if (nameplateHint.programID !== NicoliveProgramService.instance.state.programID) {
+      if (nameplateHint.programID !== NicoliveProgramService.instance().state.programID) {
         return undefined;
       }
       return nameplateHint.commentNo;
@@ -147,7 +147,7 @@ export default defineComponent({
 
     getFormattedLiveTime() {
       return (chat: ChatMessage): string => {
-        const { startTime } = NicoliveProgramService.instance.state;
+        const { startTime } = NicoliveProgramService.instance().state;
         const diffTime = (chat.date ?? 0) - startTime;
         return NicoliveProgramService.format(diffTime);
       };
@@ -158,8 +158,8 @@ export default defineComponent({
       action: { label: string; onClick: () => void };
       hideDelay: number;
     } | null {
-      if (SnackbarService.instance.state.latest?.position === 'niconico') {
-        return SnackbarService.instance.state.latest;
+      if (SnackbarService.instance().state.latest?.position === 'niconico') {
+        return SnackbarService.instance().state.latest;
       }
       return null;
     },
@@ -172,7 +172,7 @@ export default defineComponent({
         this.snackbarTimeout = setTimeout(() => {
           this.snackbarTimeout = null;
           if (!this.isSnackbarHovered) {
-            SnackbarService.instance.hide();
+            SnackbarService.instance().hide();
           }
         }, this.snackbar.hideDelay);
       }
@@ -195,16 +195,16 @@ export default defineComponent({
     };
     this.scrollToLatest();
 
-    this.blockingSubscription = SoundDetectorService.instance.isBlockingObservable.subscribe({
-      next: (isBlocking: any) => {
+    this.blockingSubscription = SoundDetectorService.instance().isBlockingObservable.subscribe({
+      next: (isBlocking: boolean) => {
         this.isBlocking = isBlocking;
       },
     });
 
-    NicoliveCommentViewerService.instance.enableSoundDetector(true);
-    if (this.speakingEnabled && !SoundDetectorService.instance.isDialogShown) {
+    NicoliveCommentViewerService.instance().enableSoundDetector(true);
+    if (this.speakingEnabled && !SoundDetectorService.instance().isDialogShown) {
       // 放送者の声を避けたコメント読み上げ機能を案内する（初回のみ）
-      SoundDetectorService.instance.markDialogShown();
+      SoundDetectorService.instance().markDialogShown();
       remote.dialog
         .showMessageBox(remote.getCurrentWindow(), {
           type: 'question',
@@ -216,10 +216,10 @@ export default defineComponent({
         })
         .then(({ response }) => {
           if (response === 0) {
-            NicoliveCommentViewerService.instance.setSoundDetectorEnabled(true);
-            SettingsService.instance.showSoundDetectorSettings();
+            NicoliveCommentViewerService.instance().setSoundDetectorEnabled(true);
+            SettingsService.instance().showSoundDetectorSettings();
           } else {
-            NicoliveCommentViewerService.instance.setSoundDetectorEnabled(false);
+            NicoliveCommentViewerService.instance().setSoundDetectorEnabled(false);
           }
         });
     }
@@ -235,7 +235,7 @@ export default defineComponent({
       this.blockingSubscription.unsubscribe();
       this.blockingSubscription = null;
     }
-    NicoliveCommentViewerService.instance.enableSoundDetector(false);
+    NicoliveCommentViewerService.instance().enableSoundDetector(false);
   },
 
   updated() {
@@ -243,7 +243,7 @@ export default defineComponent({
     if (this.isLatestVisible) {
       this.scrollToLatest();
     } else {
-      const popouts = NicoliveCommentViewerService.instance.recentPopoutsLocalFiltered;
+      const popouts = NicoliveCommentViewerService.instance().recentPopoutsLocalFiltered;
       const opt = {
         top: -popouts.length * 32, // item's height
       };
@@ -259,10 +259,10 @@ export default defineComponent({
 
     pin(item: WrappedMessageWithComponent | null): void {
       if (!item || item.type === 'normal') {
-        NicoliveCommentViewerService.instance.pinComment(null);
+        NicoliveCommentViewerService.instance().pinComment(null);
         if (item && item.type === 'normal') {
           this.$nextTick(() => {
-            NicoliveCommentViewerService.instance.pinComment(
+            NicoliveCommentViewerService.instance().pinComment(
               item && {
                 ...item,
                 value: {
@@ -297,14 +297,14 @@ export default defineComponent({
     },
 
     async refreshConnection() {
-      await NicoliveCommentViewerService.instance.refreshConnection();
+      await NicoliveCommentViewerService.instance().refreshConnection();
     },
 
     showCommentMenu(item: WrappedMessageWithComponent) {
       if (!(item.type === 'normal' || item.type === 'operator')) {
         return;
       }
-      const isBroadcaster = NicoliveProgramService.instance.isBroadcaster(item.value.user_id);
+      const isBroadcaster = NicoliveProgramService.instance().isBroadcaster(item.value.user_id);
 
       const menu = new Menu();
       menu.append({
@@ -331,12 +331,12 @@ export default defineComponent({
               id: 'Undo delete a comment',
               label: 'コメント削除を取り消す',
               click: () => {
-                NicoliveCommentViewerService.instance.undoDeleteComment(item.value.id).catch((e: any) => {
+                NicoliveCommentViewerService.instance().undoDeleteComment(item.value.id).catch((e: any) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
                 });
-                SnackbarService.instance.hide(); // スナックバーを消す
+                SnackbarService.instance().hide(); // スナックバーを消す
               },
             });
           } else {
@@ -344,16 +344,16 @@ export default defineComponent({
               id: 'Delete a comment',
               label: 'コメントを削除',
               click: () => {
-                NicoliveCommentViewerService.instance
+                NicoliveCommentViewerService.instance()
                   .deleteComment(item.value.id)
                   .then(() => {
-                    SnackbarService.instance.show({
+                    SnackbarService.instance().show({
                       position: 'niconico',
                       message: 'コメントを削除しました',
                       action: {
                         label: '取り消す',
                         onClick: () => {
-                          NicoliveCommentViewerService.instance
+                          NicoliveCommentViewerService.instance()
                             .undoDeleteComment(item.value.id)
                             .catch((e: any) => {
                               if (e instanceof NicoliveFailure) {
@@ -380,7 +380,7 @@ export default defineComponent({
               id: 'Ban comment owner',
               label: 'ユーザーを配信からブロック',
               click: () => {
-                NicoliveCommentFilterService.instance
+                NicoliveCommentFilterService.instance()
                   .addFilter({
                     type: 'user',
                     body: item.value.user_id,
@@ -397,7 +397,7 @@ export default defineComponent({
           }
         }
         if (item.value.name /* なふだ有効ユーザー */ && !isBroadcaster) {
-          if (!NicoliveModeratorsService.instance.isModerator(item.value.user_id)) {
+          if (!NicoliveModeratorsService.instance().isModerator(item.value.user_id)) {
             if (!item.filtered) {
               menu.append({
                 type: 'separator',
@@ -406,7 +406,7 @@ export default defineComponent({
                 id: 'Add to moderator',
                 label: 'モデレーターに追加',
                 click: () => {
-                  NicoliveModeratorsService.instance.addModeratorWithConfirm({
+                  NicoliveModeratorsService.instance().addModeratorWithConfirm({
                     userId: item.value.user_id,
                     userName: item.value.name,
                   });
@@ -421,7 +421,7 @@ export default defineComponent({
               id: 'Remove from moderator',
               label: 'モデレーターから削除',
               click: () => {
-                NicoliveModeratorsService.instance.removeModeratorWithConfirm({
+                NicoliveModeratorsService.instance().removeModeratorWithConfirm({
                   userId: item.value.user_id,
                   userName: item.value.name,
                 });
@@ -457,7 +457,7 @@ export default defineComponent({
 
     showUserInfo(item: WrappedMessageWithComponent) {
       if (isWrappedChat(item)) {
-        NicoliveCommentViewerService.instance.showUserInfo(
+        NicoliveCommentViewerService.instance().showUserInfo(
           item.value.user_id,
           item.value.name,
           (item.value.premium & 1) !== 0,
@@ -467,11 +467,11 @@ export default defineComponent({
     },
 
     openCommentSettings() {
-      SettingsService.instance.showSettings('Comment');
+      SettingsService.instance().showSettings('Comment');
     },
 
     openModeratorSettings() {
-      remote.shell.openExternal(HostsService.instance.getModeratorSettingsURL());
+      remote.shell.openExternal(HostsService.instance().getModeratorSettingsURL());
     },
 
     clearSnackbarTimeout() {
@@ -484,12 +484,12 @@ export default defineComponent({
     onSnackbarMouseLeave() {
       this.isSnackbarHovered = false;
       if (this.snackbar && this.snackbarTimeout === null) {
-        SnackbarService.instance.hide();
+        SnackbarService.instance().hide();
       }
     },
 
     openSnackbar(message: string, action?: { label: string; onClick: () => void }) {
-      SnackbarService.instance.show({ position: 'niconico', message, action });
+      SnackbarService.instance().show({ position: 'niconico', message, action });
     },
 
   },

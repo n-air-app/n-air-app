@@ -70,16 +70,16 @@ export default defineComponent({
     },
     modelStatus(): VoskModelStatus | { state: 'not_available' } {
       return (
-        this.modelsStatus[TranscriptionService.instance.state.voskModelName] || { state: 'not_available' }
+        this.modelsStatus[TranscriptionService.instance().state.voskModelName] || { state: 'not_available' }
       );
     },
     enabled: {
       get(): boolean {
-        return TranscriptionService.instance.state.enabled ?? false;
+        return TranscriptionService.instance().state.enabled ?? false;
       },
       set(enable: boolean) {
-        const lastEnabled = TranscriptionService.instance.state.enabled ?? false;
-        TranscriptionService.instance.setEnabled(enable);
+        const lastEnabled = TranscriptionService.instance().state.enabled ?? false;
+        TranscriptionService.instance().setEnabled(enable);
         if (!lastEnabled && enable) {
           if (!this.hasVoskModelDownloadedOrInProgress) {
             if (
@@ -94,15 +94,15 @@ export default defineComponent({
               }) === 0
             ) {
               const modelToDownload = VOSK_MODEL_NAMES[0];
-              TranscriptionService.instance.setModelName(modelToDownload);
-              TranscriptionService.instance.startDownloadVoskModel(modelToDownload);
+              TranscriptionService.instance().setModelName(modelToDownload);
+              TranscriptionService.instance().startDownloadVoskModel(modelToDownload);
             }
           }
 
-          const hasOutputDestination = this.transcriptionSourceInActiveScene || (UserService.instance.isNiconicoLoggedIn() && this.commentEnabled);
+          const hasOutputDestination = this.transcriptionSourceInActiveScene || (UserService.instance().isNiconicoLoggedIn() && this.commentEnabled);
 
           if (!hasOutputDestination) {
-            const detailKey = UserService.instance.isNiconicoLoggedIn()
+            const detailKey = UserService.instance().isNiconicoLoggedIn()
               ? 'settings.transcription.addOutputDestinationConfirm.detailWithComment'
               : 'settings.transcription.addOutputDestinationConfirm.detail';
 
@@ -121,7 +121,7 @@ export default defineComponent({
             }
           }
 
-          TranscriptionService.instance.initializeText();
+          TranscriptionService.instance().initializeText();
         }
       },
     },
@@ -138,8 +138,8 @@ export default defineComponent({
         return {
           name: 'voskModel',
           description: '',
-          value: TranscriptionService.instance.state.voskModelName ?? '',
-          options: TranscriptionService.instance.getVoskModels().map((model: any) => {
+          value: TranscriptionService.instance().state.voskModelName ?? '',
+          options: TranscriptionService.instance().getVoskModels().map((model: any) => {
             const status = this.modelsStatus[model.name];
             return {
               value: model.name,
@@ -149,7 +149,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TranscriptionService.instance.setModelName(model.value);
+        TranscriptionService.instance().setModelName(model.value);
       },
     },
     isDownloadButtonEnabled(): boolean {
@@ -164,18 +164,18 @@ export default defineComponent({
     },
     isDeleteButtonEnabled(): boolean {
       return !!(
-        TranscriptionService.instance.state.voskModelName
+        TranscriptionService.instance().state.voskModelName
         && ((this.modelStatus as any).state === 'downloaded' || (this.modelStatus as any).state === 'load_error')
       );
     },
     audioSourceIdModel: {
       get(): IObsListInput<string> {
-        const sources = TranscriptionService.instance.getAudioDeviceList();
+        const sources = TranscriptionService.instance().getAudioDeviceList();
         if (sources.length === 0) {
           return {
             description: $t('settings.transcription.audioSource'),
             name: 'transcriptionAudioSource',
-            value: TranscriptionService.instance.state.audioDeviceId ?? '',
+            value: TranscriptionService.instance().state.audioDeviceId ?? '',
             options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: null }],
             enabled: false,
           };
@@ -183,7 +183,7 @@ export default defineComponent({
         return {
           description: $t('settings.transcription.audioSource'),
           name: 'transcriptionAudioSource',
-          value: TranscriptionService.instance.state.audioDeviceId ?? '',
+          value: TranscriptionService.instance().state.audioDeviceId ?? '',
           options: [
             ...sources.map((source: any) => ({
               description: source.name,
@@ -193,15 +193,15 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TranscriptionService.instance.setAudioDeviceId(model.value);
+        TranscriptionService.instance().setAudioDeviceId(model.value);
       },
     },
     commentEnabled: {
       get(): boolean {
-        return TranscriptionService.instance.state.commentEnabled ?? false;
+        return TranscriptionService.instance().state.commentEnabled ?? false;
       },
       set(value: boolean) {
-        TranscriptionService.instance.setCommentEnabled(value);
+        TranscriptionService.instance().setCommentEnabled(value);
       },
     },
     commentPostDelayModel: {
@@ -209,7 +209,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentPostDelay',
           description: $t('settings.transcription.comment.postDelay'),
-          value: TranscriptionService.instance.state.commentPostDelay,
+          value: TranscriptionService.instance().state.commentPostDelay,
           enabled: true,
           minVal: 0,
           maxVal: 10000,
@@ -217,7 +217,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance.setCommentPostDelay(model.value);
+        TranscriptionService.instance().setCommentPostDelay(model.value);
       },
     },
     commentVposOffsetModel: {
@@ -225,7 +225,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentVposOffset',
           description: $t('settings.transcription.comment.vposOffset'),
-          value: TranscriptionService.instance.state.commentVposOffset,
+          value: TranscriptionService.instance().state.commentVposOffset,
           enabled: true,
           minVal: -10000,
           maxVal: 10000,
@@ -233,7 +233,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance.setCommentVposOffset(model.value);
+        TranscriptionService.instance().setCommentVposOffset(model.value);
       },
     },
     commentPositionModel: {
@@ -241,7 +241,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentPosition',
           description: $t('settings.transcription.comment.positionLabel'),
-          value: TranscriptionService.instance.state.commentPosition,
+          value: TranscriptionService.instance().state.commentPosition,
           enabled: true,
           options: COMMENT_POSITIONS.map((position) => ({
             description:
@@ -254,7 +254,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentPosition>) {
-        TranscriptionService.instance.setCommentPosition(model.value);
+        TranscriptionService.instance().setCommentPosition(model.value);
       },
     },
     commentSizeModel: {
@@ -262,7 +262,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentSize',
           description: $t('settings.transcription.comment.sizeLabel'),
-          value: TranscriptionService.instance.state.commentSize,
+          value: TranscriptionService.instance().state.commentSize,
           enabled: true,
           options: COMMENT_SIZES.map((size) => ({
             description:
@@ -275,7 +275,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentSize>) {
-        TranscriptionService.instance.setCommentSize(model.value);
+        TranscriptionService.instance().setCommentSize(model.value);
       },
     },
     commentFontModel: {
@@ -283,7 +283,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentFont',
           description: $t('settings.transcription.comment.fontLabel'),
-          value: TranscriptionService.instance.state.commentFont,
+          value: TranscriptionService.instance().state.commentFont,
           enabled: true,
           options: COMMENT_FONTS.map((font) => ({
             description: $t(`settings.transcription.comment.font.${font}`),
@@ -292,7 +292,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentFont>) {
-        TranscriptionService.instance.setCommentFont(model.value);
+        TranscriptionService.instance().setCommentFont(model.value);
       },
     },
     commentColorModel: {
@@ -300,7 +300,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentColor',
           description: $t('settings.transcription.comment.colorLabel'),
-          value: TranscriptionService.instance.state.commentColor,
+          value: TranscriptionService.instance().state.commentColor,
           enabled: true,
           options: COMMENT_COLORS.map((color) => ({
             description:
@@ -313,7 +313,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentColor>) {
-        TranscriptionService.instance.setCommentColor(model.value);
+        TranscriptionService.instance().setCommentColor(model.value);
       },
     },
     textFileEnabledModel: {
@@ -321,12 +321,12 @@ export default defineComponent({
         return {
           name: 'enableTranscriptionTextFile',
           description: $t('settings.transcription.textFile.enable'),
-          value: TranscriptionService.instance.state.textFileEnabled ?? false,
+          value: TranscriptionService.instance().state.textFileEnabled ?? false,
           enabled: true,
         };
       },
       set(model: IObsInput<boolean>) {
-        TranscriptionService.instance.setTextFileEnabled(model.value);
+        TranscriptionService.instance().setTextFileEnabled(model.value);
       },
     },
     textFilePathModel: {
@@ -334,13 +334,13 @@ export default defineComponent({
         return {
           name: 'transcriptionTextFilePath',
           description: $t('settings.transcription.textFile.path'),
-          value: TranscriptionService.instance.state.textFilePath ?? '',
+          value: TranscriptionService.instance().state.textFilePath ?? '',
           enabled: false,
           filters: [{ name: 'Text Files', extensions: ['txt'] }],
         };
       },
       set(model: IObsPathInputValue) {
-        TranscriptionService.instance.setTextFilePath(model.value);
+        TranscriptionService.instance().setTextFilePath(model.value);
       },
     },
     textFileMaxLineModel: {
@@ -348,7 +348,7 @@ export default defineComponent({
         return {
           name: 'transcriptionTextFileMaxLine',
           description: $t('settings.transcription.textFile.maxLine'),
-          value: TranscriptionService.instance.state.textFileMaxLine,
+          value: TranscriptionService.instance().state.textFileMaxLine,
           enabled: true,
           minVal: 1,
           maxVal: 10000,
@@ -356,7 +356,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance.setTextFileMaxLine(model.value);
+        TranscriptionService.instance().setTextFileMaxLine(model.value);
       },
     },
     textFileLineTimeToLiveModel: {
@@ -364,7 +364,7 @@ export default defineComponent({
         return {
           name: 'transcriptionTextFileLineTimeToLive',
           description: $t('settings.transcription.textFile.lineTimeToLive'),
-          value: TranscriptionService.instance.state.textFileLineTimeToLive,
+          value: TranscriptionService.instance().state.textFileLineTimeToLive,
           enabled: true,
           minVal: 500,
           maxVal: 60000,
@@ -372,17 +372,17 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance.setTextFileLineTimeToLive(model.value);
+        TranscriptionService.instance().setTextFileLineTimeToLive(model.value);
       },
     },
   },
   created() {
-    this.modelStatusSubscription = TranscriptionService.instance.modelsStatus$.subscribe((status: any) => {
+    this.modelStatusSubscription = TranscriptionService.instance().modelsStatus$.subscribe((status: any) => {
       this.modelsStatus = status;
     });
-    this.modelsStatus = TranscriptionService.instance.modelsStatus();
+    this.modelsStatus = TranscriptionService.instance().modelsStatus();
 
-    this.textSubscription = TranscriptionService.instance.lines$.subscribe(
+    this.textSubscription = TranscriptionService.instance().lines$.subscribe(
       (lines: { texts: string[]; partial: string }) => {
         if (lines.partial.length > 0) {
           this.previewText = lines.partial;
@@ -392,11 +392,11 @@ export default defineComponent({
       },
     );
 
-    this.activeStatusSubscription = TranscriptionService.instance.activeStatus$.subscribe((isActive: any) => {
+    this.activeStatusSubscription = TranscriptionService.instance().activeStatus$.subscribe((isActive: any) => {
       this.activeStatus = isActive;
     });
-    this.activeStatus = TranscriptionService.instance.activeStatus();
-    TranscriptionService.instance.updateAudioDevices();
+    this.activeStatus = TranscriptionService.instance().activeStatus();
+    TranscriptionService.instance().updateAudioDevices();
 
     this.subscribeTranscriptionSourceUsage();
   },
@@ -408,37 +408,37 @@ export default defineComponent({
   },
   methods: {
     isNiconicoLoggedIn(): boolean {
-      return UserService.instance.isNiconicoLoggedIn();
+      return UserService.instance().isNiconicoLoggedIn();
     },
     openHelp() {
       const url = 'https://qa.nicovideo.jp/faq/show/24942?site_domain=default';
       remote.shell.openExternal(url);
     },
     subscribeTranscriptionSourceUsage() {
-      this.transcriptionSourceInActiveSceneSubscription = TranscriptionSourceUsageService.instance.state$.subscribe((state: any) => {
+      this.transcriptionSourceInActiveSceneSubscription = TranscriptionSourceUsageService.instance().state$.subscribe((state: any) => {
         this.transcriptionSourceInActiveScene = state.existsInActiveScene;
       });
-      this.transcriptionSourceInActiveScene = TranscriptionSourceUsageService.instance.state.existsInActiveScene;
+      this.transcriptionSourceInActiveScene = TranscriptionSourceUsageService.instance().state.existsInActiveScene;
     },
     unsubscribeTranscriptionSourceUsage() {
       this.transcriptionSourceInActiveSceneSubscription?.unsubscribe();
     },
     addTranscriptionSourceToActiveScene(): void {
-      TranscriptionSourceService.instance.addTextTranscriptionSourceToActiveScene();
+      TranscriptionSourceService.instance().addTextTranscriptionSourceToActiveScene();
     },
     downloadVoskModel(): void {
-      TranscriptionService.instance.startDownloadVoskModel(TranscriptionService.instance.state.voskModelName);
+      TranscriptionService.instance().startDownloadVoskModel(TranscriptionService.instance().state.voskModelName);
     },
     cancelDownloadVoskModel(): void {
-      const wasCancelled = TranscriptionService.instance.cancelDownloadVoskModel(
-        TranscriptionService.instance.state.voskModelName,
+      const wasCancelled = TranscriptionService.instance().cancelDownloadVoskModel(
+        TranscriptionService.instance().state.voskModelName,
       );
       if (wasCancelled) {
-        console.log('Cancelled download for model:', TranscriptionService.instance.state.voskModelName);
+        console.log('Cancelled download for model:', TranscriptionService.instance().state.voskModelName);
       }
     },
     deleteVoskModel(): void {
-      TranscriptionService.instance.deleteVoskModel(TranscriptionService.instance.state.voskModelName);
+      TranscriptionService.instance().deleteVoskModel(TranscriptionService.instance().state.voskModelName);
     },
   },
 });

@@ -69,18 +69,18 @@ export default defineComponent({
   computed: {
     synthesizerEnabled: {
       get(): boolean {
-        return NicoliveCommentSynthesizerService.instance.enabled;
+        return NicoliveCommentSynthesizerService.instance().enabled;
       },
       set(e: boolean) {
-        NicoliveCommentSynthesizerService.instance.enabled = e;
+        NicoliveCommentSynthesizerService.instance().enabled = e;
       },
     },
     rate: {
       get(): number {
-        return NicoliveCommentSynthesizerService.instance.rate;
+        return NicoliveCommentSynthesizerService.instance().rate;
       },
       set(v: number) {
-        NicoliveCommentSynthesizerService.instance.rate = v;
+        NicoliveCommentSynthesizerService.instance().rate = v;
       },
     },
     rateCandidates(): number[] {
@@ -94,10 +94,10 @@ export default defineComponent({
     },
     volume: {
       get(): number {
-        return NicoliveCommentSynthesizerService.instance.volume;
+        return NicoliveCommentSynthesizerService.instance().volume;
       },
       set(v: number) {
-        NicoliveCommentSynthesizerService.instance.volume = v;
+        NicoliveCommentSynthesizerService.instance().volume = v;
       },
     },
     volumeCandidates(): number[] {
@@ -111,62 +111,62 @@ export default defineComponent({
     },
     normal: {
       get(): SynthesizerItem {
-        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance.normal);
+        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance().normal);
       },
       set(s: SynthesizerItem) {
-        NicoliveCommentSynthesizerService.instance.normal = s.id;
+        NicoliveCommentSynthesizerService.instance().normal = s.id;
         this.startVoicevoxChecker();
       },
     },
     operator: {
       get(): SynthesizerItem {
-        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance.operator);
+        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance().operator);
       },
       set(s: SynthesizerItem) {
-        NicoliveCommentSynthesizerService.instance.operator = s.id;
+        NicoliveCommentSynthesizerService.instance().operator = s.id;
         this.startVoicevoxChecker();
       },
     },
     system: {
       get(): SynthesizerItem {
-        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance.system);
+        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance().system);
       },
       set(s: SynthesizerItem) {
-        NicoliveCommentSynthesizerService.instance.system = s.id;
+        NicoliveCommentSynthesizerService.instance().system = s.id;
         this.startVoicevoxChecker();
       },
     },
     isUseVoicevox(): boolean {
       return (
-        NicoliveCommentSynthesizerService.instance.normal === 'voicevox'
-        || NicoliveCommentSynthesizerService.instance.operator === 'voicevox'
-        || NicoliveCommentSynthesizerService.instance.system === 'voicevox'
+        NicoliveCommentSynthesizerService.instance().normal === 'voicevox'
+        || NicoliveCommentSynthesizerService.instance().operator === 'voicevox'
+        || NicoliveCommentSynthesizerService.instance().system === 'voicevox'
       );
     },
     voicevoxInformation: {
       get(): boolean {
-        return NicoliveProgramStateService.instance.state.voicevoxInformation;
+        return NicoliveProgramStateService.instance().state.voicevoxInformation;
       },
       set(a: boolean) {
-        NicoliveProgramStateService.instance.updateVoicevoxInformation(a);
+        NicoliveProgramStateService.instance().updateVoicevoxInformation(a);
       },
     },
   },
   watch: {
     voicevoxNormalItem() {
-      NicoliveCommentSynthesizerService.instance.voicevoxNormal = this.voicevoxNormalItem;
+      NicoliveCommentSynthesizerService.instance().voicevoxNormal = this.voicevoxNormalItem;
     },
     voicevoxSystemItem() {
-      NicoliveCommentSynthesizerService.instance.voicevoxSystem = this.voicevoxSystemItem;
+      NicoliveCommentSynthesizerService.instance().voicevoxSystem = this.voicevoxSystemItem;
     },
     voicevoxOperatorItem() {
-      NicoliveCommentSynthesizerService.instance.voicevoxOperator = this.voicevoxOperatorItem;
+      NicoliveCommentSynthesizerService.instance().voicevoxOperator = this.voicevoxOperatorItem;
     },
   },
   mounted() {
     this.startVoicevoxChecker();
     if (this.synthesizerEnabled) {
-      NicoliveCommentSynthesizerService.instance.prefetchNVoice();
+      NicoliveCommentSynthesizerService.instance().prefetchNVoice();
     }
   },
   beforeUnmount() {
@@ -178,7 +178,7 @@ export default defineComponent({
       type: WrappedChat['type'],
       cancelBeforeSpeaking = true,
     ) {
-      NicoliveCommentSynthesizerService.instance.testSpeechPlay(synthId, type, cancelBeforeSpeaking);
+      NicoliveCommentSynthesizerService.instance().testSpeechPlay(synthId, type, cancelBeforeSpeaking);
     },
     resetRate() {
       this.rate = this.rateDefault;
@@ -194,7 +194,7 @@ export default defineComponent({
       return this.synthesizers.find((a: SynthesizerItem) => a.id === id) ?? this.synthesizers[0];
     },
     isTestable(id: SynthesizerSelector) {
-      if (!NicoliveCommentSynthesizerService.instance.enabled) return false;
+      if (!NicoliveCommentSynthesizerService.instance().enabled) return false;
       if (id === 'ignore') return false;
       if (id === 'voicevox' && !this.isExistVoicevox) return false;
       return true;
@@ -237,13 +237,13 @@ export default defineComponent({
         if (!list.length) return;
         this.voicevoxItems = list;
         this.voicevoxNormalItem = this.getVoicevoxItem(
-          NicoliveCommentSynthesizerService.instance.voicevoxNormal.id,
+          NicoliveCommentSynthesizerService.instance().voicevoxNormal.id,
         );
         this.voicevoxSystemItem = this.getVoicevoxItem(
-          NicoliveCommentSynthesizerService.instance.voicevoxSystem.id,
+          NicoliveCommentSynthesizerService.instance().voicevoxSystem.id,
         );
         this.voicevoxOperatorItem = this.getVoicevoxItem(
-          NicoliveCommentSynthesizerService.instance.voicevoxOperator.id,
+          NicoliveCommentSynthesizerService.instance().voicevoxOperator.id,
         );
 
         this.isLoadingVoicevox = false;

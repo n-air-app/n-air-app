@@ -100,7 +100,7 @@ beforeEach(() => {
 test('init() でシーン名・シーン数・ソースリスト・エンコーダー・ストリーミング状態が設定される', () => {
   setup();
   const { CrashContextService } = require('./crash-context');
-  const instance = CrashContextService.instance;
+  const instance = CrashContextService.instance();
   instance.init();
 
   expect(mockAddExtraParameter).toHaveBeenCalledWith('nair.scene', 'Scene 1');
@@ -113,7 +113,7 @@ test('init() でシーン名・シーン数・ソースリスト・エンコー�
 test('init() でcrash-context-updateがipcRenderer経由でmainに送信される', () => {
   setup();
   const { CrashContextService } = require('./crash-context');
-  const instance = CrashContextService.instance;
+  const instance = CrashContextService.instance();
   instance.init();
 
   expect(mockIpcSend).toHaveBeenCalledWith('crash-context-update', 'nair.scene', 'Scene 1');
@@ -122,7 +122,7 @@ test('init() でcrash-context-updateがipcRenderer経由でmainに送信され�
 test('init() でソースが4件の場合、先頭3件+件数が記録される', () => {
   setup();
   const { CrashContextService } = require('./crash-context');
-  const instance = CrashContextService.instance;
+  const instance = CrashContextService.instance();
   instance.init();
 
   expect(mockAddExtraParameter).toHaveBeenCalledWith(
@@ -134,7 +134,7 @@ test('init() でソースが4件の場合、先頭3件+件数が記録される'
 test('setLastUserOp() でnair.lastUserOpが設定される', () => {
   setup();
   const { CrashContextService } = require('./crash-context');
-  const instance = CrashContextService.instance;
+  const instance = CrashContextService.instance();
   instance.init();
   jest.clearAllMocks();
 
@@ -147,7 +147,7 @@ test('setLastUserOp() でnair.lastUserOpが設定される', () => {
 test('setLastObsOp() でnair.lastObsOpが設定される', () => {
   setup();
   const { CrashContextService } = require('./crash-context');
-  const instance = CrashContextService.instance;
+  const instance = CrashContextService.instance();
   instance.init();
   jest.clearAllMocks();
 
@@ -159,7 +159,7 @@ test('setLastObsOp() でnair.lastObsOpが設定される', () => {
 test('setAppPhase() でnair.appPhaseが設定される', () => {
   setup();
   const { CrashContextService } = require('./crash-context');
-  const instance = CrashContextService.instance;
+  const instance = CrashContextService.instance();
   instance.init();
   jest.clearAllMocks();
 
@@ -176,7 +176,7 @@ test('init() で markObsOp の observer が登録され、nair.lastObsOp が自�
 
   setup();
   const { CrashContextService } = require('./crash-context');
-  CrashContextService.instance.init();
+  CrashContextService.instance().init();
   jest.clearAllMocks();
 
   expect(capturedObserver).not.toBeNull();

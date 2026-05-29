@@ -75,7 +75,7 @@ export default defineComponent({
 
   computed: {
     presetList() {
-      return RtvcStateService.instance.getPresets();
+      return RtvcStateService.instance().getPresets();
     },
 
     jvsList() {
@@ -186,7 +186,7 @@ export default defineComponent({
           ? this.initialMonitoringType
           : obs.EMonitoringType.MonitoringOnly;
         const monitoringType = this.isMonitor ? onValue : obs.EMonitoringType.None;
-        AudioService.instance.setSettings(this.sourceId, { monitoringType });
+        AudioService.instance().setSettings(this.sourceId, { monitoringType });
         this.currentMonitoringType = monitoringType;
       },
     },
@@ -197,8 +197,8 @@ export default defineComponent({
           this.isSongMode ? PitchShiftModeValue.song : PitchShiftModeValue.talk,
         );
         // 値入れ直し
-        const p = RtvcStateService.instance.stateParamToCommonParam(this.draftState, this.currentIndex);
-        RtvcStateService.instance.setSourcePropertiesByCommonParam(this.source, p);
+        const p = RtvcStateService.instance().stateParamToCommonParam(this.draftState, this.currentIndex);
+        RtvcStateService.instance().setSourcePropertiesByCommonParam(this.source, p);
       },
     },
   },
@@ -206,7 +206,7 @@ export default defineComponent({
   created(): void {
     // SourceProperties.mountedで取得するが、リストなど間に合わないので先にこれだけ。該当ソースの各パラメタはpropertiesを見れば分かる
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
-    const audio = AudioService.instance.getSource(this.sourceId);
+    const audio = AudioService.instance().getSource(this.sourceId);
     if (audio) {
       const mt = audio.monitoringType;
       // 有効なmonitoringType以外の値はNoneに正規化
@@ -224,11 +224,11 @@ export default defineComponent({
     }
 
     // 初期値修正
-    if (RtvcStateService.instance.isEmptyState()) {
+    if (RtvcStateService.instance().isEmptyState()) {
       this.setSourcePropertyValue('latency', 13);
     }
 
-    this.draftState = RtvcStateService.instance.getState();
+    this.draftState = RtvcStateService.instance().getState();
 
     this.device = this.getSourcePropertyValue('device') as number;
     this.latency = this.getSourcePropertyValue('latency') as number;
@@ -248,7 +248,7 @@ export default defineComponent({
 
     // モニタリング状態は元の値に戻す
     if (this.initialMonitoringType !== this.currentMonitoringType) {
-      AudioService.instance.setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
+      AudioService.instance().setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
     }
 
     if (this.canceled) {
@@ -267,7 +267,7 @@ export default defineComponent({
         index: `manual/${num}`,
         name: a.name,
         label: `manual${num}`,
-        image: RtvcStateService.instance.manualImages[a.imageNum],
+        image: RtvcStateService.instance().manualImages[a.imageNum],
       }));
       this.canAdd = this.manualList.length < this.manualMax;
     },
@@ -284,7 +284,7 @@ export default defineComponent({
     },
 
     onChangeIndex(): void {
-      const p = RtvcStateService.instance.stateParamToCommonParam(this.draftState, this.currentIndex);
+      const p = RtvcStateService.instance().stateParamToCommonParam(this.draftState, this.currentIndex);
 
       this.name = p.name;
       this.label = p.label;
@@ -305,12 +305,12 @@ export default defineComponent({
       this.deviceModel = this.getSourcePropertyOption('device', this.device);
       this.latencyModel = this.getSourcePropertyOption('latency', this.latency);
 
-      RtvcStateService.instance.setSourcePropertiesByCommonParam(this.source, p);
+      RtvcStateService.instance().setSourcePropertiesByCommonParam(this.source, p);
       this.audio.pause();
     },
 
     indexToModeNum(index: string): { isManual: boolean; num: number } {
-      return RtvcStateService.instance.indexToModeNum(index);
+      return RtvcStateService.instance().indexToModeNum(index);
     },
 
     getManualIndexNum(index: string): number {
@@ -347,19 +347,19 @@ export default defineComponent({
     },
 
     setSourcePropertyValue(key: SourcePropKey, value: TObsValue): void {
-      RtvcStateService.instance.setSourceProperties(this.source, [{ key, value }]);
+      RtvcStateService.instance().setSourceProperties(this.source, [{ key, value }]);
     },
 
     update(): void {
       if (!this.draftState) return;
       this.draftState.currentIndex = this.currentIndex;
       const scenes = this.draftState.scenes ?? {};
-      const sceneId = ScenesService.instance.activeScene.id;
+      const sceneId = ScenesService.instance().activeScene.id;
       if (sceneId) scenes[sceneId] = this.currentIndex;
       this.draftState.scenes = scenes;
       this.draftState.tab = this.tab;
-      RtvcStateService.instance.setState(this.draftState);
-      RtvcStateService.instance.modifyEventLog();
+      RtvcStateService.instance().setState(this.draftState);
+      RtvcStateService.instance().modifyEventLog();
     },
 
     onRandom(): void {
@@ -392,7 +392,7 @@ export default defineComponent({
     },
 
     findNewManualImageNum(): number {
-      for (let i = 0; i < RtvcStateService.instance.manualImages.length; i++) {
+      for (let i = 0; i < RtvcStateService.instance().manualImages.length; i++) {
         if (!this.draftState.manuals.find((a: StateParam['manuals'][number]) => a.imageNum === i)) return i;
       }
       return 0;

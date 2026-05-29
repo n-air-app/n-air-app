@@ -163,11 +163,11 @@ const showDialog = (message: string): void => {
 
 document.addEventListener('DOMContentLoaded', () => {
   createStore().then(async (store) => {
-    const windowsService: WindowsService = WindowsService.instance;
+    const windowsService: WindowsService = WindowsService.instance();
 
     if (Utils.isMainWindow()) {
       // Services
-      const appService: AppService = AppService.instance;
+      const appService: AppService = AppService.instance();
 
       // This is used for debugging
       // @ts-ignore
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       ipcRenderer.on('closeWindow', () => windowsService.closeMainWindow());
-      AppService.instance.load();
+      AppService.instance().load();
     } else {
       if (Utils.isChildWindow()) {
         ipcRenderer.on('closeWindow', () => windowsService.closeChildWindow());
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // setup VueI18n plugin
     Vue.use(VueI18n);
-    const i18nService: I18nService = I18nService.instance;
+    const i18nService: I18nService = I18nService.instance();
     await i18nService.load(); // load translations from a disk
     const notFoundKeys = new Set<string>();
 

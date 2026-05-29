@@ -17,7 +17,7 @@ export default defineComponent({
 
   computed: {
     isCompactMode() {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
   },
 });

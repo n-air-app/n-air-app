@@ -48,17 +48,17 @@ export default defineComponent({
 
   computed: {
     studioMode() {
-      return TransitionsService.instance.state.studioMode;
+      return TransitionsService.instance().state.studioMode;
     },
 
     activeSources(): SceneItem[] {
-      return SelectionService.instance.getItems().filter((item: any) => {
+      return SelectionService.instance().getItems().filter((item: any) => {
         return item.isVisualSource;
       });
     },
 
     sceneItems(): SceneItem[] {
-      const scene = ScenesService.instance.activeScene;
+      const scene = ScenesService.instance().activeScene;
       if (scene) {
         return scene.getItems().filter((source: any) => {
           return source.isVisualSource;
@@ -69,22 +69,22 @@ export default defineComponent({
     },
 
     scene(): Scene {
-      return ScenesService.instance.activeScene;
+      return ScenesService.instance().activeScene;
     },
 
     baseWidth() {
-      return VideoService.instance.baseWidth;
+      return VideoService.instance().baseWidth;
     },
 
     baseHeight() {
-      return VideoService.instance.baseHeight;
+      return VideoService.instance().baseHeight;
     },
 
     // Using a computed property since it is cached
     resizeRegions(): IResizeRegion[] {
       let regions: IResizeRegion[] = [];
 
-      SelectionService.instance.getItems().forEach((item: any) => {
+      SelectionService.instance().getItems().forEach((item: any) => {
         regions = regions.concat(this.generateResizeRegionsForItem(item));
       });
 
@@ -102,7 +102,7 @@ export default defineComponent({
 
     // Not reactive, don't cache
     getStudioTransitionName() {
-      return TransitionsService.instance.studioTransitionName;
+      return TransitionsService.instance().studioTransitionName;
     },
 
     /*****************
@@ -132,9 +132,9 @@ export default defineComponent({
       const parent = overSource.getParent();
 
       if (!parent || (parent && parent.isSelected())) {
-        SelectionService.instance.select(overSource.id);
+        SelectionService.instance().select(overSource.id);
       } else if (parent) {
-        SelectionService.instance.select(parent.id);
+        SelectionService.instance().select(parent.id);
       }
     },
 
@@ -183,7 +183,7 @@ export default defineComponent({
             overNode.select();
           }
         } else if (event.button === 0) {
-          SelectionService.instance.reset();
+          SelectionService.instance().reset();
         }
 
         if (event.button === 2) {
@@ -220,7 +220,7 @@ export default defineComponent({
     },
 
     handleMouseMove(event: MouseEvent) {
-      const factor = WindowsService.instance.state.main.scaleFactor;
+      const factor = WindowsService.instance().state.main.scaleFactor;
       const mousePosX = event.offsetX - this.renderedOffsetX / factor;
       const mousePosY = event.offsetY - this.renderedOffsetY / factor;
 
@@ -424,7 +424,7 @@ export default defineComponent({
     // Takes the given mouse event, and determines if it is
     // over the given box in base resolution space.
     isOverBox(event: MouseEvent, x: number, y: number, width: number, height: number) {
-      const factor = WindowsService.instance.state.main.scaleFactor;
+      const factor = WindowsService.instance().state.main.scaleFactor;
 
       const mouse = this.convertVectorToBaseSpace(event.offsetX * factor, event.offsetY * factor);
 
@@ -491,7 +491,7 @@ export default defineComponent({
 
     generateResizeRegionsForItem(item: SceneItem): IResizeRegion[] {
       const renderedRegionRadius = 5;
-      const factor = WindowsService.instance.state.main.scaleFactor;
+      const factor = WindowsService.instance().state.main.scaleFactor;
       const regionRadius = (renderedRegionRadius * factor * this.baseWidth) / this.renderedWidth;
       const width = regionRadius * 2;
       const height = regionRadius * 2;

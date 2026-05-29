@@ -44,7 +44,7 @@ beforeEach(() => {
 
 function setupInstance() {
   const { NiconicoService } = require('./niconico');
-  const { instance } = NiconicoService as { instance: NiconicoServiceType };
+  const instance = NiconicoService.instance() as NiconicoServiceType;
 
   instance.client.fetchIngestInfo = jest_fn<
     typeof instance.client.fetchIngestInfo
@@ -80,7 +80,7 @@ function setupInstance() {
 test('get instance', () => {
   setup();
   const { NiconicoService } = require('./niconico');
-  expect(NiconicoService.instance).toBeInstanceOf(NiconicoService);
+  expect(NiconicoService.instance()).toBeInstanceOf(NiconicoService);
 });
 
 test('setupStreamSettingsでストリーム情報がとれた場合', async () => {

@@ -53,38 +53,38 @@ export default defineComponent({
     },
 
     isOnAir(): boolean {
-      return NicoliveProgramService.instance.state.status === 'onAir';
+      return NicoliveProgramService.instance().state.status === 'onAir';
     },
 
     isFetching(): boolean {
-      return NicoliveProgramService.instance.state.isFetching;
+      return NicoliveProgramService.instance().state.isFetching;
     },
 
     isExtending(): boolean {
-      return NicoliveProgramService.instance.state.isExtending;
+      return NicoliveProgramService.instance().state.isExtending;
     },
 
     programStatus(): string {
-      return NicoliveProgramService.instance.state.status;
+      return NicoliveProgramService.instance().state.status;
     },
 
     programEndTime(): number {
-      return NicoliveProgramService.instance.state.endTime;
+      return NicoliveProgramService.instance().state.endTime;
     },
 
     programStartTime(): number {
-      return NicoliveProgramService.instance.state.startTime;
+      return NicoliveProgramService.instance().state.startTime;
     },
 
     isProgramExtendable() {
       return (
-        NicoliveProgramService.instance.isProgramExtendable
+        NicoliveProgramService.instance().isProgramExtendable
         && this.programEndTime - this.currentTime > 60
       );
     },
 
     autoExtensionEnabled() {
-      return NicoliveProgramService.instance.state.autoExtensionEnabled;
+      return NicoliveProgramService.instance().state.autoExtensionEnabled;
     },
 
     programCurrentTime(): number {
@@ -96,11 +96,11 @@ export default defineComponent({
     },
 
     isStarting(): boolean {
-      return NicoliveProgramService.instance.state.isStarting;
+      return NicoliveProgramService.instance().state.isStarting;
     },
 
     isEnding(): boolean {
-      return NicoliveProgramService.instance.state.isEnding;
+      return NicoliveProgramService.instance().state.isEnding;
     },
   },
 
@@ -147,7 +147,7 @@ export default defineComponent({
 
     async createProgram() {
       try {
-        return await NicoliveProgramService.instance.createProgram();
+        return await NicoliveProgramService.instance().createProgram();
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);
@@ -162,9 +162,9 @@ export default defineComponent({
     async fetchProgram(): Promise<void> {
       if (this.isFetching) throw new Error('fetchProgram is running');
       try {
-        await NicoliveProgramService.instance.fetchProgram();
+        await NicoliveProgramService.instance().fetchProgram();
         // 番組情報取得時にコメント接続も更新する
-        await NicoliveCommentViewerService.instance.refreshConnection();
+        await NicoliveCommentViewerService.instance().refreshConnection();
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);
@@ -177,7 +177,7 @@ export default defineComponent({
     async extendProgram() {
       if (this.isExtending) throw new Error('extendProgram is running');
       try {
-        return await NicoliveProgramService.instance.extendProgram();
+        return await NicoliveProgramService.instance().extendProgram();
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);
@@ -188,11 +188,11 @@ export default defineComponent({
     },
 
     toggleAutoExtension() {
-      NicoliveProgramService.instance.toggleAutoExtension();
+      NicoliveProgramService.instance().toggleAutoExtension();
     },
 
     updateCurrentTime() {
-      this.currentTime = Math.floor(NicoliveProgramService.instance.correctedNowMs() / 1000);
+      this.currentTime = Math.floor(NicoliveProgramService.instance().correctedNowMs() / 1000);
     },
 
     startTimer() {
@@ -204,7 +204,7 @@ export default defineComponent({
       try {
         // もし配信開始してなかったら確認する
         let startStreaming = false;
-        if (!StreamingService.instance.isStreaming) {
+        if (!StreamingService.instance().isStreaming) {
           // TODO: 翻訳
           const selectedId = await remote.dialog
             .showMessageBox(remote.getCurrentWindow(), {
@@ -220,10 +220,10 @@ export default defineComponent({
           }
           startStreaming = selectedId === 0;
         }
-        await NicoliveProgramService.instance.startProgram();
+        await NicoliveProgramService.instance().startProgram();
         if (startStreaming) {
           // 開始
-          await StreamingService.instance.toggleStreamingAsync();
+          await StreamingService.instance().toggleStreamingAsync();
         }
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
@@ -249,7 +249,7 @@ export default defineComponent({
           .then((value) => value.response === 0);
 
         if (isOk) {
-          return await NicoliveProgramService.instance.endProgram();
+          return await NicoliveProgramService.instance().endProgram();
         }
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
@@ -265,7 +265,7 @@ export default defineComponent({
     },
 
     async releaseProgram() {
-      const status = NicoliveProgramService.instance.state.status;
+      const status = NicoliveProgramService.instance().state.status;
 
       if (status === 'test') {
         const isOk = await remote.dialog
@@ -280,12 +280,12 @@ export default defineComponent({
         if (!isOk) return;
       }
 
-      NicoliveProgramService.instance.releaseProgram();
+      NicoliveProgramService.instance().releaseProgram();
     },
 
     async refreshProgram() {
       try {
-        await NicoliveProgramService.instance.refreshProgram();
+        await NicoliveProgramService.instance().refreshProgram();
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);

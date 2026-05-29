@@ -29,7 +29,7 @@ export default defineComponent({
     const currentHeight = ref(CustomizationService.defaultState.studioControlsHeight);
 
     onMounted(() => {
-      currentHeight.value = clampHeight(CustomizationService.instance.state.studioControlsHeight);
+      currentHeight.value = clampHeight(CustomizationService.instance().state.studioControlsHeight);
     });
 
     function onDrag(e: MouseEvent) {
@@ -41,7 +41,7 @@ export default defineComponent({
     function onDragEnd() {
       document.removeEventListener('mousemove', onDrag);
       document.removeEventListener('mouseup', onDragEnd);
-      CustomizationService.instance.setStudioControlsHeight(currentHeight.value);
+      CustomizationService.instance().setStudioControlsHeight(currentHeight.value);
     }
 
     let startY = 0;
@@ -56,30 +56,30 @@ export default defineComponent({
 
   computed: {
     opened() {
-      return CustomizationService.instance.studioControlsOpened;
+      return CustomizationService.instance().studioControlsOpened;
     },
 
     isCompactMode() {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
 
     compactModeStudioController: {
       get(): 'scenes' | 'mixer' {
-        return CompactModeService.instance.compactModeStudioController;
+        return CompactModeService.instance().compactModeStudioController;
       },
       set(controller: 'scenes' | 'mixer') {
-        CompactModeService.instance.compactModeStudioController = controller;
+        CompactModeService.instance().compactModeStudioController = controller;
       },
     },
 
     activeCollection() {
-      return SceneCollectionsService.instance.activeCollection;
+      return SceneCollectionsService.instance().activeCollection;
     },
   },
 
   methods: {
     onToggleControls() {
-      CustomizationService.instance.toggleStudioControls();
+      CustomizationService.instance().toggleStudioControls();
     },
   },
 });

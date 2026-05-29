@@ -24,7 +24,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TransitionsService.instance.updateConnection(this.connectionId, {
+        TransitionsService.instance().updateConnection(this.connectionId, {
           fromSceneId: model.value,
         });
       },
@@ -39,7 +39,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TransitionsService.instance.updateConnection(this.connectionId, {
+        TransitionsService.instance().updateConnection(this.connectionId, {
           toSceneId: model.value,
         });
       },
@@ -54,22 +54,22 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TransitionsService.instance.updateConnection(this.connectionId, {
+        TransitionsService.instance().updateConnection(this.connectionId, {
           transitionId: model.value,
         });
       },
     },
     connection() {
-      return TransitionsService.instance.getConnection(this.connectionId);
+      return TransitionsService.instance().getConnection(this.connectionId);
     },
     sceneOptions() {
-      return ScenesService.instance.scenes.map((scene: any) => ({
+      return ScenesService.instance().scenes.map((scene: any) => ({
         description: scene.name,
         value: scene.id,
       }));
     },
     transitionOptions() {
-      return TransitionsService.instance.state.transitions.map((transition: any) => ({
+      return TransitionsService.instance().state.transitions.map((transition: any) => ({
         description: transition.name,
         value: transition.id,
       }));

@@ -795,7 +795,7 @@ export class StreamingService
               (Date.now() - new Date(this.state.streamingStatusTime).getTime()) / 1000,
             )
             : -1;
-          const perfState = PerformanceService.instance.state;
+          const perfState = PerformanceService.instance().state;
           SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect started', {
             level: 'warning',
             fingerprint: ['StreamingService', 'reconnect', String(info.code ?? 0)],

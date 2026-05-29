@@ -19,11 +19,11 @@ export default defineComponent({
   computed: {
     sourceId(): string {
       const windowId = Utils.getCurrentUrlParams().windowId;
-      return WindowsService.instance.getWindowOptions(windowId).sourceId;
+      return WindowsService.instance().getWindowOptions(windowId).sourceId;
     },
 
     source() {
-      return SourcesService.instance.getSource(this.sourceId);
+      return SourcesService.instance().getSource(this.sourceId);
     },
   },
 
@@ -37,7 +37,7 @@ export default defineComponent({
     },
 
     eventLocationInSourceSpace(e: MouseEvent): IVec2 {
-      const factor = WindowsService.instance.state.child.scaleFactor;
+      const factor = WindowsService.instance().state.child.scaleFactor;
       return {
         x:
           ((e.offsetX * factor - this.currentRegion.x) / this.currentRegion.width)

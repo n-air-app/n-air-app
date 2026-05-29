@@ -27,14 +27,14 @@ export default defineComponent({
   },
 
   data() {
-    const windowOptions = WindowsService.instance.getChildWindowQueryParams() as {
+    const windowOptions = WindowsService.instance().getChildWindowQueryParams() as {
       sourceId: string;
       selectedFilterName: string;
     };
     const sourceId = windowOptions.sourceId;
-    const filters = SourceFiltersService.instance.getFilters(sourceId);
+    const filters = SourceFiltersService.instance().getFilters(sourceId);
     const selectedFilterName = windowOptions.selectedFilterName || (filters[0] && filters[0].name) || null;
-    const properties = SourceFiltersService.instance.getPropertiesFormData(
+    const properties = SourceFiltersService.instance().getPropertiesFormData(
       sourceId,
       selectedFilterName,
     );
@@ -49,7 +49,7 @@ export default defineComponent({
 
   computed: {
     sourceDisplayName(): string {
-      return SourcesService.instance.getSource(this.sourceId).name;
+      return SourcesService.instance().getSource(this.sourceId).name;
     },
 
     nodes() {
@@ -69,7 +69,7 @@ export default defineComponent({
   watch: {
     selectedFilterName: {
       handler(): void {
-        this.properties = SourceFiltersService.instance.getPropertiesFormData(
+        this.properties = SourceFiltersService.instance().getPropertiesFormData(
           this.sourceId,
           this.selectedFilterName,
         );
@@ -79,39 +79,39 @@ export default defineComponent({
 
   methods: {
     save(): void {
-      SourceFiltersService.instance.setPropertiesFormData(
+      SourceFiltersService.instance().setPropertiesFormData(
         this.sourceId,
         this.selectedFilterName,
         this.properties,
       );
-      this.properties = SourceFiltersService.instance.getPropertiesFormData(
+      this.properties = SourceFiltersService.instance().getPropertiesFormData(
         this.sourceId,
         this.selectedFilterName,
       );
     },
 
     done(): void {
-      WindowsService.instance.closeChildWindow();
+      WindowsService.instance().closeChildWindow();
     },
 
     addFilter(): void {
-      SourceFiltersService.instance.showAddSourceFilter(this.sourceId);
+      SourceFiltersService.instance().showAddSourceFilter(this.sourceId);
     },
 
     removeFilter(): void {
-      SourceFiltersService.instance.remove(this.sourceId, this.selectedFilterName);
-      this.filters = SourceFiltersService.instance.getFilters(this.sourceId);
+      SourceFiltersService.instance().remove(this.sourceId, this.selectedFilterName);
+      this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
       this.selectedFilterName = (this.filters[0] && this.filters[0].name) || null;
     },
 
     toggleVisibility(filterName: string): void {
       const sourceFilter = this.filters.find((filter: any) => filter.name === filterName);
-      SourceFiltersService.instance.setVisibility(
+      SourceFiltersService.instance().setVisibility(
         this.sourceId,
         sourceFilter.name,
         !sourceFilter.visible,
       );
-      this.filters = SourceFiltersService.instance.getFilters(this.sourceId);
+      this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
     },
 
     makeActive(filterDescr: any[]): void {
@@ -131,12 +131,12 @@ export default defineComponent({
       } else if (sourceInd > targetInd) {
         targetInd = position.placement === 'before' ? targetInd : targetInd + 1;
       }
-      SourceFiltersService.instance.setOrder(
+      SourceFiltersService.instance().setOrder(
         this.sourceId,
         this.selectedFilterName,
         targetInd - sourceInd,
       );
-      this.filters = SourceFiltersService.instance.getFilters(this.sourceId);
+      this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
     },
   },
 });

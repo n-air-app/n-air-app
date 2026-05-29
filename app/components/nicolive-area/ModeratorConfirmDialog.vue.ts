@@ -12,7 +12,7 @@ export default defineComponent({
 
   data() {
     const windowId = Util.getCurrentUrlParams().windowId;
-    const queryParams = WindowsService.instance.getWindowOptions(windowId) as any;
+    const queryParams = WindowsService.instance().getWindowOptions(windowId) as any;
     return {
       user: {
         userName: queryParams.userName as string,
@@ -28,7 +28,7 @@ export default defineComponent({
     },
 
     queryParams() {
-      return WindowsService.instance.getWindowOptions(this.windowId);
+      return WindowsService.instance().getWindowOptions(this.windowId);
     },
 
     userName(): string {
@@ -43,12 +43,12 @@ export default defineComponent({
   methods: {
     ok() {
       this.isClosing = true;
-      NicoliveModeratorsService.instance.closeConfirmWindow(true);
+      NicoliveModeratorsService.instance().closeConfirmWindow(true);
     },
 
     cancel() {
       this.isClosing = true;
-      NicoliveModeratorsService.instance.closeConfirmWindow(false);
+      NicoliveModeratorsService.instance().closeConfirmWindow(false);
     },
 
     openModeratorHelpPage() {

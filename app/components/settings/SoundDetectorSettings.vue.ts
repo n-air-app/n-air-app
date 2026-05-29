@@ -39,29 +39,29 @@ export default defineComponent({
   },
   computed: {
     synthesizerEnabled(): boolean {
-      return NicoliveCommentSynthesizerService.instance.enabled;
+      return NicoliveCommentSynthesizerService.instance().enabled;
     },
     queueLength(): number {
-      return NicoliveCommentSynthesizerService.instance.queueLength;
+      return NicoliveCommentSynthesizerService.instance().queueLength;
     },
     soundDetectorEnabled: {
       get(): boolean {
-        return SoundDetectorService.instance.state.enabled;
+        return SoundDetectorService.instance().state.enabled;
       },
       set(b: boolean) {
         if (!b) {
           this.stopContinuousPlayback();
         }
-        SoundDetectorService.instance.setEnabled(b);
-        NicoliveCommentSynthesizerService.instance.syncSoundDetectorSubscription();
+        SoundDetectorService.instance().setEnabled(b);
+        NicoliveCommentSynthesizerService.instance().syncSoundDetectorSubscription();
       },
     },
     soundDetectorSourceModel: {
       get(): IObsListInput<string> {
         // audioSourcesVersion にアクセスすることで再評価される
         this.audioSourcesVersion;
-        const sources = SoundDetectorService.instance.getAvailableSources();
-        const sourceId = SoundDetectorService.instance.state.sourceId;
+        const sources = SoundDetectorService.instance().getAvailableSources();
+        const sourceId = SoundDetectorService.instance().state.sourceId;
         const options: { description: string; value: string }[] = [
           { description: 'マイクまたはボイスチェンジャー(自動)', value: 'mic' },
           ...sources.map((source: any) => ({
@@ -81,7 +81,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        SoundDetectorService.instance.updateSourceId(model.value);
+        SoundDetectorService.instance().updateSourceId(model.value);
       },
     },
     soundThresholdDbModel: {
@@ -89,7 +89,7 @@ export default defineComponent({
         return {
           description: '一時停止する最低音量(dB)',
           name: 'soundThresholdDb',
-          value: SoundDetectorService.instance.state.soundThresholdDb,
+          value: SoundDetectorService.instance().state.soundThresholdDb,
           minVal: -60,
           maxVal: 0,
           stepVal: 1,
@@ -98,7 +98,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        SoundDetectorService.instance.updateSoundThresholdDb(model.value);
+        SoundDetectorService.instance().updateSoundThresholdDb(model.value);
       },
     },
     resumeSilenceMsModel: {
@@ -106,7 +106,7 @@ export default defineComponent({
         return {
           description: '読み上げ再開までの時間(ms)',
           name: 'resumeSilenceMs',
-          value: SoundDetectorService.instance.state.resumeSilenceMs,
+          value: SoundDetectorService.instance().state.resumeSilenceMs,
           minVal: 100,
           maxVal: 10000,
           stepVal: 100,
@@ -115,7 +115,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        SoundDetectorService.instance.updateResumeSilenceMs(model.value);
+        SoundDetectorService.instance().updateResumeSilenceMs(model.value);
       },
     },
     soundDetectedSpeechActionModel: {
@@ -128,13 +128,13 @@ export default defineComponent({
         return {
           description: '一時停止する際の挙動',
           name: 'soundDetectedSpeechAction',
-          value: SoundDetectorService.instance.state.speechActionOnSoundDetected,
+          value: SoundDetectorService.instance().state.speechActionOnSoundDetected,
           enabled: this.soundDetectorEnabled,
           options,
         };
       },
       set(model: IObsListInput<string>) {
-        SoundDetectorService.instance.updateSpeechActionOnSoundDetected(
+        SoundDetectorService.instance().updateSpeechActionOnSoundDetected(
           model.value as (typeof SpeechActionsOnSoundDetected)[number],
         );
       },
@@ -142,8 +142,8 @@ export default defineComponent({
     soundDetectorAudioSources(): AudioSource[] {
       // audioSourcesVersion にアクセスすることで再評価される
       this.audioSourcesVersion;
-      return SoundDetectorService.instance
-        .getEffectiveWatchSources(SoundDetectorService.instance.state.sourceId)
+      return SoundDetectorService.instance()
+        .getEffectiveWatchSources(SoundDetectorService.instance().state.sourceId)
         .filter((source: any) => !source.muted);
     },
   },
@@ -164,8 +164,8 @@ export default defineComponent({
   },
   methods: {
     play(): void {
-      const synthId = NicoliveCommentSynthesizerService.instance.normal;
-      NicoliveCommentSynthesizerService.instance.testSpeechPlay(synthId, 'normal', false);
+      const synthId = NicoliveCommentSynthesizerService.instance().normal;
+      NicoliveCommentSynthesizerService.instance().testSpeechPlay(synthId, 'normal', false);
     },
     triggerNextTestPlaybackIfNeeded() {
       if (!this.speaking && this.isTestPlaybackActive && this.queueLength === 0) {
@@ -175,15 +175,15 @@ export default defineComponent({
     startMonitorSpeaking() {
       this.speakingSubscription = new Subscription();
       this.speakingSubscription.add(
-        NicoliveCommentSynthesizerService.instance.speaking.subscribe({
-          next: (speaking: any) => {
+        NicoliveCommentSynthesizerService.instance().speaking.subscribe({
+          next: (speaking: boolean) => {
             this.speaking = speaking;
             this.triggerNextTestPlaybackIfNeeded();
           },
         }),
       );
       this.speakingSubscription.add(
-        NicoliveCommentSynthesizerService.instance.queueBecameIdle.subscribe({
+        NicoliveCommentSynthesizerService.instance().queueBecameIdle.subscribe({
           next: () => {
             this.triggerNextTestPlaybackIfNeeded();
           },
@@ -201,11 +201,11 @@ export default defineComponent({
     stopContinuousPlayback() {
       if (!this.isTestPlaybackActive) return;
       this.isTestPlaybackActive = false;
-      NicoliveCommentSynthesizerService.instance.queue.cancel();
+      NicoliveCommentSynthesizerService.instance().queue.cancel();
     },
     subscribeMuted() {
-      this.sourceMutedSubscription = SoundDetectorService.instance.sourceMuted.subscribe({
-        next: (muted: any) => {
+      this.sourceMutedSubscription = SoundDetectorService.instance().sourceMuted.subscribe({
+        next: (muted: boolean) => {
           this.sourceMuted = muted;
         },
       });
@@ -214,8 +214,8 @@ export default defineComponent({
       this.sourceMutedSubscription!.unsubscribe();
     },
     subscribeSourceAvailable() {
-      this.sourceAvailableSubscription = SoundDetectorService.instance.sourceAvailable.subscribe({
-        next: (available: any) => {
+      this.sourceAvailableSubscription = SoundDetectorService.instance().sourceAvailable.subscribe({
+        next: (available: boolean) => {
           this.sourceAvailable = available;
         },
       });
@@ -226,14 +226,14 @@ export default defineComponent({
     subscribeAudioSourcesChanged() {
       const sub = new Subscription();
       sub.add(
-        AudioService.instance.audioSourcesChanged.subscribe({
+        AudioService.instance().audioSourcesChanged.subscribe({
           next: () => {
             this.audioSourcesVersion++;
           },
         }),
       );
       sub.add(
-        AudioService.instance.muteChanged.subscribe({
+        AudioService.instance().muteChanged.subscribe({
           next: () => {
             this.audioSourcesVersion++;
           },
@@ -245,17 +245,17 @@ export default defineComponent({
       this.audioSourcesChangedSubscription!.unsubscribe();
     },
     startSoundDetection() {
-      NicoliveCommentSynthesizerService.instance.enableSoundDetector(true);
-      this.soundDetectSubscription = SoundDetectorService.instance.soundDetectedObservable.subscribe({
-        next: (detected: any) => {
+      NicoliveCommentSynthesizerService.instance().enableSoundDetector(true);
+      this.soundDetectSubscription = SoundDetectorService.instance().soundDetectedObservable.subscribe({
+        next: (detected: { soundDetected: SoundDetectedState }) => {
           this.soundDetected = detected.soundDetected;
         },
       });
-      this.soundDetected = SoundDetectorService.instance.getCurrentSoundDetected();
+      this.soundDetected = SoundDetectorService.instance().getCurrentSoundDetected();
     },
     endSoundDetection() {
       this.soundDetectSubscription!.unsubscribe();
-      NicoliveCommentSynthesizerService.instance.enableSoundDetector(false);
+      NicoliveCommentSynthesizerService.instance().enableSoundDetector(false);
     },
   },
 });

@@ -19,17 +19,17 @@ export default defineComponent({
 
   computed: {
     audioSources() {
-      return AudioService.instance.getVisibleSourcesForCurrentScene();
+      return AudioService.instance().getVisibleSourcesForCurrentScene();
     },
 
     isCompactMode(): boolean {
-      return CompactModeService.instance.isCompactMode;
+      return CompactModeService.instance().isCompactMode;
     },
   },
 
   methods: {
     showAdvancedSettings() {
-      AudioService.instance.showAdvancedSettings();
+      AudioService.instance().showAdvancedSettings();
     },
 
     handleRightClick() {
@@ -37,7 +37,7 @@ export default defineComponent({
       menu.append({
         id: 'Unhide All',
         label: $t('sources.unhideAll'),
-        click: () => AudioService.instance.unhideAllSourcesForCurrentScene(),
+        click: () => AudioService.instance().unhideAllSourcesForCurrentScene(),
       });
       menu.popup();
     },

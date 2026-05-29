@@ -10,7 +10,7 @@ export default defineComponent({
 
   methods: {
     studioModeTransition() {
-      TransitionsService.instance.executeStudioModeTransition();
+      TransitionsService.instance().executeStudioModeTransition();
     },
   },
 });

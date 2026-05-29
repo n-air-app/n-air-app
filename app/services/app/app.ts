@@ -85,7 +85,7 @@ export class AppService extends StatefulService<IAppState> {
   readonly pid = require('process').pid;
 
   async load() {
-    UsageStatisticsService.instance.recordEvent({ event: 'boot' });
+    UsageStatisticsService.instance().recordEvent({ event: 'boot' });
     return this.runInLoadingMode(async () => {
       if (Utils.isDevMode()) {
         electron.ipcRenderer.on('showErrorAlert', () => {
@@ -139,7 +139,7 @@ export class AppService extends StatefulService<IAppState> {
   }
 
   private shutdownHandler() {
-    UsageStatisticsService.instance.recordEvent({ event: 'app_close' });
+    UsageStatisticsService.instance().recordEvent({ event: 'app_close' });
     // SLOBS の shutdownHandlerでの順序に従います
     // https://github.com/stream-labs/desktop/blob/05edf2206a3c10c13b60ede8ddd5e776509ebd5f/app/services/app/app.ts#L178
     console.log('[SHUTDOWN] Starting shutdown sequence');

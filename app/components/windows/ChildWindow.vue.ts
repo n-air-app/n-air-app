@@ -20,7 +20,7 @@ export default defineComponent({
 
   mounted() {
     this.onWindowUpdatedHandler(this.options);
-    WindowsService.instance.windowUpdated.subscribe((windowInfo: any) => {
+    WindowsService.instance().windowUpdated.subscribe((windowInfo: { windowId: string; options: IWindowOptions }) => {
       if (windowInfo.windowId !== 'child') return;
       this.onWindowUpdatedHandler(windowInfo.options);
     });
@@ -28,7 +28,7 @@ export default defineComponent({
 
   computed: {
     options() {
-      return WindowsService.instance.state.child;
+      return WindowsService.instance().state.child;
     },
 
     currentComponent(): { name: string; isShown: boolean; title: string } {

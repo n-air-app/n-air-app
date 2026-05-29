@@ -6,11 +6,11 @@ export default defineComponent({
 
   computed: {
     streamingStatus() {
-      return StreamingService.instance.state.streamingStatus;
+      return StreamingService.instance().state.streamingStatus;
     },
 
     isStreaming() {
-      return StreamingService.instance.isStreaming;
+      return StreamingService.instance().isStreaming;
     },
 
     liveText() {
