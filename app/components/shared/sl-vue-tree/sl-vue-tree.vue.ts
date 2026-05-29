@@ -298,7 +298,7 @@ export default Vue.extend({
       const selectedNodes: ISlTreeNode[] = [];
       let shiftSelectionStarted = false;
 
-      this.traverse((node: ISlTreeNode, nodeModel: ISlTreeNodeModel) => {
+      this.traverse((node, nodeModel) => {
         if (shiftSelectionMode) {
           if (node.pathStr === selectedNode.pathStr || node.pathStr === this.lastSelectedNode.pathStr) {
             nodeModel.isSelected = node.isSelectable;
@@ -448,7 +448,7 @@ export default Vue.extend({
 
     getLastNode(): ISlTreeNode | null {
       let lastNode: ISlTreeNode | null = null;
-      this.traverse((node: ISlTreeNode) => {
+      this.traverse((node) => {
         lastNode = node;
       });
       return lastNode;
@@ -461,7 +461,7 @@ export default Vue.extend({
     getNextNode(path: number[], filter: ((node: ISlTreeNode) => boolean) | null = null): ISlTreeNode | null {
       let resultNode = null;
 
-      this.traverse((node: ISlTreeNode) => {
+      this.traverse((node) => {
         if (this.comparePaths(node.path, path) < 1) return;
 
         if (!filter || filter(node)) {
@@ -476,7 +476,7 @@ export default Vue.extend({
     getPrevNode(path: number[], filter?: (node: ISlTreeNode) => boolean): ISlTreeNode | null {
       const prevNodes: ISlTreeNode[] = [];
 
-      this.traverse((node: ISlTreeNode) => {
+      this.traverse((node) => {
         if (this.comparePaths(node.path, path) >= 0) {
           return false;
         }
@@ -671,7 +671,7 @@ export default Vue.extend({
 
       const pathStr = JSON.stringify(path);
       const newNodes = this.copy(this.currentValue);
-      this.traverse((node: ISlTreeNode, nodeModel: ISlTreeNodeModel) => {
+      this.traverse((node, nodeModel) => {
         if (node.pathStr !== pathStr) return;
         Object.assign(nodeModel, patch);
       }, newNodes);
@@ -681,7 +681,7 @@ export default Vue.extend({
 
     getSelected(): ISlTreeNode[] {
       const selectedNodes: ISlTreeNode[] = [];
-      this.traverse((node: ISlTreeNode) => {
+      this.traverse((node) => {
         if (node.isSelected) selectedNodes.push(node);
       });
       return selectedNodes;
@@ -689,7 +689,7 @@ export default Vue.extend({
 
     getDraggable(): ISlTreeNode[] {
       const selectedNodes: ISlTreeNode[] = [];
-      this.traverse((node: ISlTreeNode) => {
+      this.traverse((node) => {
         if (node.isSelected && node.isDraggable) selectedNodes.push(node);
       });
       return selectedNodes;

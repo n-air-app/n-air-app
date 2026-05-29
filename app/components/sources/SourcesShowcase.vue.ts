@@ -134,7 +134,7 @@ export default defineComponent({
     },
 
     availableSources() {
-      return SourcesService.instance().getAvailableSourcesTypesList().filter((type: any) => {
+      return SourcesService.instance().getAvailableSourcesTypesList().filter((type) => {
         if (type.value === 'text_ft2_source') return false;
         if (type.value === 'scene' && ScenesService.instance().scenes.length <= 1) return false;
         return true;

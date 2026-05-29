@@ -63,13 +63,13 @@ export default defineComponent({
       return TransitionsService.instance().getConnection(this.connectionId);
     },
     sceneOptions() {
-      return ScenesService.instance().scenes.map((scene: any) => ({
+      return ScenesService.instance().scenes.map((scene) => ({
         description: scene.name,
         value: scene.id,
       }));
     },
     transitionOptions() {
-      return TransitionsService.instance().state.transitions.map((transition: any) => ({
+      return TransitionsService.instance().state.transitions.map((transition) => ({
         description: transition.name,
         value: transition.id,
       }));

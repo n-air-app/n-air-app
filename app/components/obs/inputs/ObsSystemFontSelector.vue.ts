@@ -43,7 +43,7 @@ export default defineComponent({
       return this.fontsToFamily(this.fontsByFamily[this.value.value.face]);
     },
     selectedFont(): IFontDescriptor | undefined {
-      return this.selectedFamily.fonts.find((font: IFontDescriptor) => {
+      return this.selectedFamily.fonts.find((font) => {
         return this.value.value.flags === this.getFlagsFromFont(font);
       });
     },

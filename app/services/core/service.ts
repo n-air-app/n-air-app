@@ -75,7 +75,7 @@ export abstract class Service {
     return instance;
   }
 
-  static getResourceId(resource: any): string {
+  static getResourceId(resource: { resourceId?: string; serviceName?: string }): string {
     const resourceId = resource.resourceId || resource.serviceName;
     if (!resourceId) throw new Error('invalid resource');
     return resourceId;

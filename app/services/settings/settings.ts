@@ -624,7 +624,7 @@ export class SettingsService
     setting: string,
   ): TObsFormData[number] | undefined {
     for (const subCategory of this.findSubCategory(settings, category)) {
-      const found = subCategory.parameters.find((param) => param.name === setting) as any;
+      const found = subCategory.parameters.find((param) => param.name === setting);
       if (found) {
         return found;
       }

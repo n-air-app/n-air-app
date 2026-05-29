@@ -89,7 +89,7 @@ export default defineComponent({
     },
 
     comments(): WrappedChatWithComponent[] {
-      const comments = NicoliveCommentViewerService.instance().items.filter((item: any) => {
+      const comments = NicoliveCommentViewerService.instance().items.filter((item) => {
         return isWrappedChat(item) && item.value.user_id === this.userId;
       }) as WrappedChatWithComponent[];
       return comments;
@@ -124,7 +124,7 @@ export default defineComponent({
     };
 
     this.konomiTagsSubscription = KonomiTagsService.instance().stateChange.subscribe({
-      next: (state: any) => {
+      next: (state) => {
         this.myKonomiTags = state.loggedIn ? state.loggedIn.konomiTags : [];
         this.updateKonomiTags();
       },
@@ -132,18 +132,18 @@ export default defineComponent({
     // ユーザー情報ウィンドウを開く度に自分の好みタグも更新する(自分の好みタグが変わっている可能性があるため)
     KonomiTagsService.instance().fetch();
 
-    NicoliveProgramService.instance().client.fetchKonomiTags(this.userId).then((tags: any) => {
+    NicoliveProgramService.instance().client.fetchKonomiTags(this.userId).then((tags) => {
       this.rawKonomiTags = tags;
       this.updateKonomiTags();
     });
 
-    NicoliveProgramService.instance().client.fetchUserFollow(this.userId).then((following: any) => {
+    NicoliveProgramService.instance().client.fetchUserFollow(this.userId).then((following) => {
       this.isFollowing = following;
     });
 
     this.isModerator = NicoliveModeratorsService.instance().isModerator(this.userId);
     this.moderatorSubscription = NicoliveModeratorsService.instance().stateChange.subscribe({
-      next: (state: any) => {
+      next: (state) => {
         const isModerator = state.moderatorsCache.includes(this.userId);
         this.isModerator = isModerator;
       },
@@ -156,7 +156,7 @@ export default defineComponent({
 
     this.isBlockedUser = isBlocked(NicoliveCommentFilterService.instance().state.filters);
     this.isBlockedSubscription = NicoliveCommentFilterService.instance().stateChange.subscribe({
-      next: (state: any) => {
+      next: (state) => {
         this.isBlockedUser = isBlocked(state.filters);
       },
     });
@@ -238,7 +238,7 @@ export default defineComponent({
     updateKonomiTags() {
       const [same, other] = this.rawKonomiTags.reduce(
         (acc: [string[], string[]], tag: KonomiTag) => {
-          if (this.myKonomiTags.some((myTag: KonomiTag) => myTag.tag_id.value === tag.tag_id.value)) {
+          if (this.myKonomiTags.some((myTag) => myTag.tag_id.value === tag.tag_id.value)) {
             acc[0].push(tag.name);
           } else {
             acc[1].push(tag.name);
@@ -249,8 +249,8 @@ export default defineComponent({
       );
 
       this.konomiTags = [
-        ...same.map((name: string) => ({ name, common: true })),
-        ...other.map((name: string) => ({ name, common: false })),
+        ...same.map((name) => ({ name, common: true })),
+        ...other.map((name) => ({ name, common: false })),
       ];
     },
 

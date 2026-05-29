@@ -19,7 +19,7 @@ export default defineComponent({
   },
   data() {
     return {
-      settings: WindowsService.instance().getChildWindowQueryParams() as any as OptimizedSettings,
+      settings: WindowsService.instance().getChildWindowQueryParams() as unknown as OptimizedSettings,
       icons: CategoryIcons,
       isStarting: false,
     };

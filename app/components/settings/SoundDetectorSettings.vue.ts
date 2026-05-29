@@ -64,12 +64,12 @@ export default defineComponent({
         const sourceId = SoundDetectorService.instance().state.sourceId;
         const options: { description: string; value: string }[] = [
           { description: 'マイクまたはボイスチェンジャー(自動)', value: 'mic' },
-          ...sources.map((source: any) => ({
+          ...sources.map((source) => ({
             description: source.name,
             value: source.sourceId,
           })),
         ];
-        if (sourceId !== null && sourceId !== 'mic' && !options.some((o: any) => o.value === sourceId)) {
+        if (sourceId !== null && sourceId !== 'mic' && !options.some((o) => o.value === sourceId)) {
           options.push({ description: '(このシーンにありません)', value: sourceId });
         }
         return {
@@ -144,7 +144,7 @@ export default defineComponent({
       this.audioSourcesVersion;
       return SoundDetectorService.instance()
         .getEffectiveWatchSources(SoundDetectorService.instance().state.sourceId)
-        .filter((source: any) => !source.muted);
+        .filter((source) => !source.muted);
     },
   },
   mounted() {
@@ -176,7 +176,7 @@ export default defineComponent({
       this.speakingSubscription = new Subscription();
       this.speakingSubscription.add(
         NicoliveCommentSynthesizerService.instance().speaking.subscribe({
-          next: (speaking: boolean) => {
+          next: (speaking) => {
             this.speaking = speaking;
             this.triggerNextTestPlaybackIfNeeded();
           },
@@ -205,7 +205,7 @@ export default defineComponent({
     },
     subscribeMuted() {
       this.sourceMutedSubscription = SoundDetectorService.instance().sourceMuted.subscribe({
-        next: (muted: boolean) => {
+        next: (muted) => {
           this.sourceMuted = muted;
         },
       });
@@ -215,7 +215,7 @@ export default defineComponent({
     },
     subscribeSourceAvailable() {
       this.sourceAvailableSubscription = SoundDetectorService.instance().sourceAvailable.subscribe({
-        next: (available: boolean) => {
+        next: (available) => {
           this.sourceAvailable = available;
         },
       });

@@ -14,7 +14,6 @@ import TableOfContents from 'components/shared/TableOfContents.vue';
 import { TocManager } from 'components/shared/TocManager';
 import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
-import { IPlatformAuth } from 'services/platforms';
 import {
   ISettingsServiceApi,
   ISettingsSubCategory,
@@ -124,7 +123,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    this.userSubscription = UserService.instance().userLoginState.subscribe((loggedIn: IPlatformAuth | void) => {
+    this.userSubscription = UserService.instance().userLoginState.subscribe((loggedIn) => {
       this.isLoggedIn = !!loggedIn;
       this.categoryNames = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getCategories();
     });

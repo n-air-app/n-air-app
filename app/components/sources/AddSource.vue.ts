@@ -25,7 +25,7 @@ export default defineComponent({
     const sourceAddOptions = WindowsService.instance().getChildWindowQueryParams().sourceAddOptions as ISourceAddOptions;
     const nVoiceCharacterType: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
 
-    const sources = SourcesService.instance().getSources().filter((source: any) => {
+    const sources = SourcesService.instance().getSources().filter((source) => {
       const comparison = {
         type: sourceType as TSourceType,
         propertiesManager: sourceAddOptions.propertiesManager,
@@ -47,7 +47,7 @@ export default defineComponent({
       canAddNew: true,
       adding: false,
       sources,
-      existingSources: sources.map((source: any) => ({ name: source.name, value: source.sourceId })),
+      existingSources: sources.map((source) => ({ name: source.name, value: source.sourceId })),
       selectedSourceId: sources[0] ? sources[0].sourceId : null as string | null,
     };
   },
@@ -72,7 +72,7 @@ export default defineComponent({
       const sourceType = this.sourceType
         && SourcesService.instance()
           .getAvailableSourcesTypesList()
-          .find((sourceTypeDef: any) => sourceTypeDef.value === this.sourceType);
+          .find((sourceTypeDef) => sourceTypeDef.value === this.sourceType);
 
       this.name = SourcesService.instance().suggestName(this.sourceType && sourceType.description);
     }

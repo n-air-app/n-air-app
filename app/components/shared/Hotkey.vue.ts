@@ -123,7 +123,7 @@ export default defineComponent({
     setBindings() {
       const bindings: IBinding[] = [];
 
-      this.bindings.forEach((binding: IKeyedBinding) => {
+      this.bindings.forEach((binding) => {
         if (binding.binding.key) bindings.push(binding.binding);
       });
 

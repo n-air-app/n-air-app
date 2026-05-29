@@ -196,7 +196,7 @@ export default defineComponent({
     this.scrollToLatest();
 
     this.blockingSubscription = SoundDetectorService.instance().isBlockingObservable.subscribe({
-      next: (isBlocking: boolean) => {
+      next: (isBlocking) => {
         this.isBlocking = isBlocking;
       },
     });

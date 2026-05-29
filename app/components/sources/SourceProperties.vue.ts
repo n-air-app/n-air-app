@@ -8,7 +8,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { Subscription } from 'rxjs';
 import { AppService } from 'services/app';
 import { $t } from 'services/i18n';
-import { ISource, SourcesService, TSourceType } from 'services/sources';
+import { SourcesService, TSourceType } from 'services/sources';
 import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
@@ -73,12 +73,12 @@ export default defineComponent({
   mounted(): void {
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
     this.initialProperties = cloneDeep(this.properties);
-    this.sourceRemovedSub = SourcesService.instance().sourceRemoved.subscribe((source: ISource) => {
+    this.sourceRemovedSub = SourcesService.instance().sourceRemoved.subscribe((source) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }
     });
-    this.sourceUpdatedSub = SourcesService.instance().sourceUpdated.subscribe((source: ISource) => {
+    this.sourceUpdatedSub = SourcesService.instance().sourceUpdated.subscribe((source) => {
       if (source.sourceId === this.sourceId) {
         this.refresh();
       }

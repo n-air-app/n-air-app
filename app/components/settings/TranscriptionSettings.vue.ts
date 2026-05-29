@@ -139,7 +139,7 @@ export default defineComponent({
           name: 'voskModel',
           description: '',
           value: TranscriptionService.instance().state.voskModelName ?? '',
-          options: TranscriptionService.instance().getVoskModels().map((model: any) => {
+          options: TranscriptionService.instance().getVoskModels().map((model) => {
             const status = this.modelsStatus[model.name];
             return {
               value: model.name,
@@ -154,18 +154,18 @@ export default defineComponent({
     },
     isDownloadButtonEnabled(): boolean {
       return (
-        (this.modelStatus as any).state === 'not_downloaded'
-        || (this.modelStatus as any).state === 'download_error'
-        || (this.modelStatus as any).state === 'cancelled'
+        this.modelStatus.state === 'not_downloaded'
+        || this.modelStatus.state === 'download_error'
+        || this.modelStatus.state === 'cancelled'
       );
     },
     isCancelButtonEnabled(): boolean {
-      return (this.modelStatus as any).state === 'downloading';
+      return this.modelStatus.state === 'downloading';
     },
     isDeleteButtonEnabled(): boolean {
       return !!(
         TranscriptionService.instance().state.voskModelName
-        && ((this.modelStatus as any).state === 'downloaded' || (this.modelStatus as any).state === 'load_error')
+        && (this.modelStatus.state === 'downloaded' || this.modelStatus.state === 'load_error')
       );
     },
     audioSourceIdModel: {
@@ -377,7 +377,7 @@ export default defineComponent({
     },
   },
   created() {
-    this.modelStatusSubscription = TranscriptionService.instance().modelsStatus$.subscribe((status: any) => {
+    this.modelStatusSubscription = TranscriptionService.instance().modelsStatus$.subscribe((status) => {
       this.modelsStatus = status;
     });
     this.modelsStatus = TranscriptionService.instance().modelsStatus();
@@ -392,7 +392,7 @@ export default defineComponent({
       },
     );
 
-    this.activeStatusSubscription = TranscriptionService.instance().activeStatus$.subscribe((isActive: any) => {
+    this.activeStatusSubscription = TranscriptionService.instance().activeStatus$.subscribe((isActive) => {
       this.activeStatus = isActive;
     });
     this.activeStatus = TranscriptionService.instance().activeStatus();
@@ -415,7 +415,7 @@ export default defineComponent({
       remote.shell.openExternal(url);
     },
     subscribeTranscriptionSourceUsage() {
-      this.transcriptionSourceInActiveSceneSubscription = TranscriptionSourceUsageService.instance().state$.subscribe((state: any) => {
+      this.transcriptionSourceInActiveSceneSubscription = TranscriptionSourceUsageService.instance().state$.subscribe((state) => {
         this.transcriptionSourceInActiveScene = state.existsInActiveScene;
       });
       this.transcriptionSourceInActiveScene = TranscriptionSourceUsageService.instance().state.existsInActiveScene;

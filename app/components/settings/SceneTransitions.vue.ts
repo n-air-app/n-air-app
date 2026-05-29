@@ -100,7 +100,7 @@ export default defineComponent({
       return TransitionsService.instance().isConnectionRedundant(id);
     },
     nameForType(type: ETransitionType) {
-      return TransitionsService.instance().getTypes().find((t: any) => t.value === type).description;
+      return TransitionsService.instance().getTypes().find((t) => t.value === type).description;
     },
     done() {
       WindowsService.instance().closeChildWindow();

@@ -4,7 +4,7 @@ import { clipboard } from 'electron';
 import { DateTime } from 'luxon';
 import { Subscription } from 'rxjs';
 import { HostsService } from 'services/hosts';
-import { INicoliveProgramState, NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
+import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { defineComponent } from 'vue';
@@ -22,7 +22,7 @@ export default defineComponent({
   },
 
   mounted() {
-    this.subscription = NicoliveProgramService.instance().stateChange.subscribe((state: INicoliveProgramState) => {
+    this.subscription = NicoliveProgramService.instance().stateChange.subscribe((state) => {
       if (state.status === 'end') {
         if (StreamingService.instance().isStreaming) {
           StreamingService.instance().toggleStreamingAsync();
