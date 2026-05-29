@@ -105,9 +105,9 @@ export default defineComponent({
       }[this.currentFilterBy as FilterByUser];
 
       return this.filters
-        .filter((x) => x.type === this.currentType)
-        .filter((x) => filtersBy(x))
-        .map((item) => {
+        .filter((x: FilterRecord) => x.type === this.currentType)
+        .filter((x: FilterRecord) => filtersBy(x))
+        .map((item: FilterRecord) => {
           return {
             id: item.id,
             type: item.type,
