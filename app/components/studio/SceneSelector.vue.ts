@@ -31,7 +31,7 @@ export default defineComponent({
 
   computed: {
     scenes() {
-      return ScenesService.instance().scenes.map((scene: any) => {
+      return ScenesService.instance().scenes.map((scene) => {
         return {
           name: scene.name,
           value: scene.id,

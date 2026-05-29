@@ -21,7 +21,7 @@ const ObsListInput = defineComponent({
   },
   computed: {
     currentValue(): IObsListOption<TObsValue> | string {
-      const option = this.value.options.find((opt: IObsListOption<TObsValue>) => this.value.value === opt.value);
+      const option = this.value.options.find((opt) => this.value.value === opt.value);
       if (option) return option;
       if (this.allowEmpty) return '';
       return this.value.options[0];

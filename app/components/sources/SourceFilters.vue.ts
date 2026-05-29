@@ -53,7 +53,7 @@ export default defineComponent({
     },
 
     nodes() {
-      return this.filters.map((filter: any) => {
+      return this.filters.map((filter) => {
         return {
           title: filter.name,
           isSelected: filter.name === this.selectedFilterName,
@@ -105,7 +105,7 @@ export default defineComponent({
     },
 
     toggleVisibility(filterName: string): void {
-      const sourceFilter = this.filters.find((filter: any) => filter.name === filterName);
+      const sourceFilter = this.filters.find((filter) => filter.name === filterName);
       SourceFiltersService.instance().setVisibility(
         this.sourceId,
         sourceFilter.name,
@@ -123,8 +123,8 @@ export default defineComponent({
       position: ICursorPosition<IFilterNodeData>,
     ): void {
       const sourceNode = nodes[0];
-      const sourceInd = this.filters.findIndex((filter: any) => filter.name === sourceNode.title);
-      let targetInd = this.filters.findIndex((filter: any) => filter.name === position.node.title);
+      const sourceInd = this.filters.findIndex((filter) => filter.name === sourceNode.title);
+      let targetInd = this.filters.findIndex((filter) => filter.name === position.node.title);
 
       if (sourceInd < targetInd) {
         targetInd = position.placement === 'before' ? targetInd - 1 : targetInd;

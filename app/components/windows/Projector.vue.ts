@@ -3,7 +3,7 @@ import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import electron from 'electron';
 import { Subscription } from 'rxjs';
-import { ISource, SourcesService } from 'services/sources';
+import { SourcesService } from 'services/sources';
 import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
@@ -39,7 +39,7 @@ export default defineComponent({
   },
 
   mounted() {
-    this.sourcesSubscription = SourcesService.instance().sourceRemoved.subscribe((source: ISource) => {
+    this.sourcesSubscription = SourcesService.instance().sourceRemoved.subscribe((source) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }

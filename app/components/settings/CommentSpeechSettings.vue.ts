@@ -191,7 +191,7 @@ export default defineComponent({
       this.resetVolume();
     },
     getSynthesizerItem(id: string): SynthesizerItem {
-      return this.synthesizers.find((a: SynthesizerItem) => a.id === id) ?? this.synthesizers[0];
+      return this.synthesizers.find((a) => a.id === id) ?? this.synthesizers[0];
     },
     isTestable(id: SynthesizerSelector) {
       if (!NicoliveCommentSynthesizerService.instance().enabled) return false;
@@ -253,7 +253,7 @@ export default defineComponent({
       }
     },
     getVoicevoxItem(id: string): VoicevoxItem {
-      return this.voicevoxItems.find((a: VoicevoxItem) => a.id === id) ?? { id: '', name: '' };
+      return this.voicevoxItems.find((a) => a.id === id) ?? { id: '', name: '' };
     },
     async getVoicevoxIcon(id: string, uuid?: string) {
       if (this.voicevoxIcons[id]) return this.voicevoxIcons[id];

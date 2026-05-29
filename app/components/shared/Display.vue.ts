@@ -47,7 +47,7 @@ export default defineComponent({
       });
       this.display.setShoulddrawUI(this.drawUI);
 
-      this.display.onOutputResize((region: IRectangle) => {
+      this.display.onOutputResize((region) => {
         this.$emit('outputResize', region);
       });
 

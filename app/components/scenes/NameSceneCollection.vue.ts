@@ -45,7 +45,7 @@ export default defineComponent({
     },
 
     isTaken(name: string) {
-      return !!SceneCollectionsService.instance().collections.find((coll: any) => {
+      return !!SceneCollectionsService.instance().collections.find((coll) => {
         return coll.name === name;
       });
     },

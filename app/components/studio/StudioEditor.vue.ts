@@ -52,7 +52,7 @@ export default defineComponent({
     },
 
     activeSources(): SceneItem[] {
-      return SelectionService.instance().getItems().filter((item: any) => {
+      return SelectionService.instance().getItems().filter((item) => {
         return item.isVisualSource;
       });
     },
@@ -60,7 +60,7 @@ export default defineComponent({
     sceneItems(): SceneItem[] {
       const scene = ScenesService.instance().activeScene;
       if (scene) {
-        return scene.getItems().filter((source: any) => {
+        return scene.getItems().filter((source) => {
           return source.isVisualSource;
         });
       }
@@ -84,7 +84,7 @@ export default defineComponent({
     resizeRegions(): IResizeRegion[] {
       let regions: IResizeRegion[] = [];
 
-      SelectionService.instance().getItems().forEach((item: any) => {
+      SelectionService.instance().getItems().forEach((item) => {
         regions = regions.concat(this.generateResizeRegionsForItem(item));
       });
 
@@ -123,7 +123,7 @@ export default defineComponent({
     },
 
     handleMouseDblClick(event: MouseEvent) {
-      const overSource = this.sceneItems.find((source: SceneItem) => {
+      const overSource = this.sceneItems.find((source) => {
         return this.isOverSource(event, source);
       });
 
@@ -165,7 +165,7 @@ export default defineComponent({
       // If neither a drag or resize was initiated, it must have been
       // an attempted selection or right click.
       if (!this.dragHandler && !this.resizeRegion) {
-        const overSource = this.sceneItems.find((source: SceneItem) => {
+        const overSource = this.sceneItems.find((source) => {
           return this.isOverSource(event, source);
         });
 
@@ -285,7 +285,7 @@ export default defineComponent({
         // We might need to start dragging
         const sourcesInPriorityOrder = this.activeSources.concat(this.sceneItems).filter(Boolean);
 
-        const overSource = sourcesInPriorityOrder.find((source: SceneItem) => {
+        const overSource = sourcesInPriorityOrder.find((source) => {
           return this.isOverSource(event, source);
         });
 
@@ -408,7 +408,7 @@ export default defineComponent({
         if (overResize) {
           display.style.cursor = overResize.cursor;
         } else {
-          const overSource = this.sceneItems.find((source: SceneItem) => {
+          const overSource = this.sceneItems.find((source) => {
             return this.isOverSource(event, source);
           });
 
@@ -462,7 +462,7 @@ export default defineComponent({
     // of the active source's resize regions.
     isOverResize(event: MouseEvent) {
       if (this.activeSources.length > 0) {
-        return this.resizeRegions.find((region: IResizeRegion) => {
+        return this.resizeRegions.find((region) => {
           return this.isOverBox(event, region.x, region.y, region.width, region.height);
         });
       }

@@ -30,12 +30,12 @@ export default defineComponent({
       this.$emit('input', this.value);
     },
     hasAnyVisibleSettings(category: ISettingsSubCategory) {
-      return !!category.parameters.find((setting: any) => setting.visible);
+      return !!category.parameters.find((setting) => setting.visible);
     },
     getUntitledSectionTitle(formGroup: ISettingsSubCategory): string {
-      const firstVisibleParam = formGroup.parameters.find((p: any) => p.visible);
-      if (firstVisibleParam && (firstVisibleParam as any).description) {
-        return (firstVisibleParam as any).description;
+      const firstVisibleParam = formGroup.parameters.find((p) => p.visible);
+      if (firstVisibleParam && firstVisibleParam.description) {
+        return firstVisibleParam.description;
       }
       return this.category || 'Settings';
     },

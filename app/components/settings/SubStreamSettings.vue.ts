@@ -108,8 +108,8 @@ export default defineComponent({
     const r = await SubStreamService.instance().enumEncoderTypes();
     if (r.encoders) {
       this.videoCodecs = r.encoders.video
-        .filter((v: any) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
-        .map((v: any) => ({
+        .filter((v) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
+        .map((v) => ({
           id: v.id,
           name: `${v.name}`,
         }));
@@ -118,7 +118,7 @@ export default defineComponent({
         (v: { id: string; name: string }) => v.id === SubStreamService.instance().state.videoCodec,
       ) ?? { id: 'obs_x264', name: 'obs_x264' };
 
-      this.audioCodecs = r.encoders.audio.map((v: any) => ({
+      this.audioCodecs = r.encoders.audio.map((v) => ({
         id: v.id,
         name: `${v.name}`,
       }));

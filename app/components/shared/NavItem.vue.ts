@@ -33,7 +33,7 @@ export default defineComponent({
     },
 
     parent(): INavMenu {
-      return this.$parent as any as INavMenu;
+      return this.$parent as unknown as INavMenu;
     },
 
     rootNavMenu(): INavMenu {
@@ -50,7 +50,7 @@ export default defineComponent({
     },
 
     expandable(): boolean {
-      return !!(this.$slots as any)['children'];
+      return !!('children' in this.$slots);
     },
   },
 

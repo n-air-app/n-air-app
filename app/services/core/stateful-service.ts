@@ -135,7 +135,7 @@ export abstract class StatefulService<TState extends object> extends Service {
  * Returns an injectable Vuex module
  */
 export function getModule(ModuleContainer: any): Module<any, any> {
-  const prototypeMutations = (<any>ModuleContainer.prototype).mutations;
+  const prototypeMutations = ModuleContainer.prototype.mutations;
   const mutations: Dictionary<any> = {};
 
   // filter inherited mutations

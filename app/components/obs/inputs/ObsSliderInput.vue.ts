@@ -1,4 +1,5 @@
 import Slider from 'components/shared/Slider.vue';
+import { DebouncedFunc } from 'lodash';
 import debounce from 'lodash/debounce';
 import { defineComponent, PropType } from 'vue';
 
@@ -16,7 +17,7 @@ const ObsSliderInput = defineComponent({
     return {
       testingAnchor: `Form/Slider/${this.value.name}`,
       localValue: this.value.value as number,
-      debouncedEmitValue: null as ((value: number) => void) | null,
+      debouncedEmitValue: null as DebouncedFunc<(value: number) => void> | null,
     };
   },
   watch: {
@@ -31,7 +32,7 @@ const ObsSliderInput = defineComponent({
   },
   beforeUnmount() {
     if (this.debouncedEmitValue) {
-      (this.debouncedEmitValue as any).cancel();
+      this.debouncedEmitValue.cancel();
     }
   },
   methods: {
