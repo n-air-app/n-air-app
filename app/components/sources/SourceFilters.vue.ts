@@ -3,7 +3,7 @@ import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import NavItem from 'components/shared/NavItem.vue';
 import NavMenu from 'components/shared/NavMenu.vue';
-import { SourceFiltersService } from 'services/source-filters';
+import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { SourcesService } from 'services/sources';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
@@ -53,7 +53,7 @@ export default defineComponent({
     },
 
     nodes() {
-      return this.filters.map((filter) => {
+      return this.filters.map((filter: ISourceFilter) => {
         return {
           title: filter.name,
           isSelected: filter.name === this.selectedFilterName,
@@ -105,7 +105,7 @@ export default defineComponent({
     },
 
     toggleVisibility(filterName: string): void {
-      const sourceFilter = this.filters.find((filter) => filter.name === filterName);
+      const sourceFilter = this.filters.find((filter: ISourceFilter) => filter.name === filterName);
       SourceFiltersService.instance().setVisibility(
         this.sourceId,
         sourceFilter.name,
@@ -123,8 +123,8 @@ export default defineComponent({
       position: ICursorPosition<IFilterNodeData>,
     ): void {
       const sourceNode = nodes[0];
-      const sourceInd = this.filters.findIndex((filter) => filter.name === sourceNode.title);
-      let targetInd = this.filters.findIndex((filter) => filter.name === position.node.title);
+      const sourceInd = this.filters.findIndex((filter: ISourceFilter) => filter.name === sourceNode.title);
+      let targetInd = this.filters.findIndex((filter: ISourceFilter) => filter.name === position.node.title);
 
       if (sourceInd < targetInd) {
         targetInd = position.placement === 'before' ? targetInd - 1 : targetInd;

@@ -253,7 +253,7 @@ export default defineComponent({
       }
     },
     getVoicevoxItem(id: string): VoicevoxItem {
-      return this.voicevoxItems.find((a) => a.id === id) ?? { id: '', name: '' };
+      return this.voicevoxItems.find((a: VoicevoxItem) => a.id === id) ?? { id: '', name: '' };
     },
     async getVoicevoxIcon(id: string, uuid?: string) {
       if (this.voicevoxIcons[id]) return this.voicevoxIcons[id];

@@ -55,7 +55,7 @@ export default defineComponent({
       }
     },
     selectedTab() {
-      const tabSettings = SubStreamService.instance().state.tabs[this.selectedTab];
+      const tabSettings = SubStreamService.instance().state.tabs[this.selectedTab as SubStreamTabID];
       this.tabSwitching = true;
       this.url = tabSettings.url;
       this.key = tabSettings.key;
