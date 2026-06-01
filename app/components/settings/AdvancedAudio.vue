@@ -1,11 +1,11 @@
 <template>
-  <modal-layout :show-controls="false" no-scroll>
+  <modal-layout :show-controls="false" :bare-content="true" no-scroll>
     <div slot="content" class="content">
       <div
-        v-for="(audioSource, index) in audioSources"
+        v-for="audioSource in audioSources"
         :key="audioSource.sourceId"
+        class="source-card"
       >
-        <div v-if="index > 0" class="divider" />
         <div class="source-row">
           <div class="source-name">{{ sourceName(audioSource) }}</div>
           <div class="controls">
@@ -36,14 +36,17 @@
 .content {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
   height: 100%;
+  padding: var(--spacing-md);
   overflow-y: auto;
-  background-color: var(--color-background);
+  background-color: var(--color-bg-quinary);
 }
 
-.divider {
-  height: 1px;
-  background-color: var(--color-border-emphasis-low);
+.source-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-emphasis-low);
+  border-radius: var(--border-radius-md);
 }
 
 .source-row {
