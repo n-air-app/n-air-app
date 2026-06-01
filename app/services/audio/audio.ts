@@ -303,7 +303,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       title: $t('audio.advancedAudioSettings'),
       size: {
         width: 840,
-        height: 500,
+        height: 640,
       },
     });
   }
@@ -430,38 +430,6 @@ export class AudioSource implements IAudioSourceApi {
 
   getSettingsForm(): TObsFormData {
     return [
-      <IObsNumberInputValue>{
-        name: 'deflection',
-        value: Math.round(this.fader.deflection * 100),
-        description: $t('audio.volumeInPercent'),
-        showDescription: false,
-        visible: true,
-        enabled: true,
-        minVal: 0,
-        maxVal: 100,
-        type: 'OBS_PROPERTY_INT',
-      },
-
-      <IObsInput<boolean>>{
-        value: this.forceMono,
-        name: 'forceMono',
-        description: $t('audio.downmixToMono'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_BOOL',
-        visible: true,
-        enabled: true,
-      },
-
-      <IObsInput<number>>{
-        value: this.syncOffset,
-        name: 'syncOffset',
-        description: $t('audio.syncOffsetInMs'),
-        showDescription: false,
-        type: 'OBS_PROPERTY_UINT',
-        visible: true,
-        enabled: true,
-      },
-
       <IObsListInput<obs.EMonitoringType>>{
         value: this.monitoringType,
         name: 'monitoringType',
@@ -477,6 +445,42 @@ export class AudioSource implements IAudioSourceApi {
             value: obs.EMonitoringType.MonitoringAndOutput,
             description: $t('audio.monitorAndOutput'),
           },
+        ],
+      },
+
+      <IObsNumberInputValue>{
+        name: 'deflection',
+        value: Math.round(this.fader.deflection * 100),
+        description: $t('audio.volumeInPercent'),
+        showDescription: false,
+        visible: true,
+        enabled: true,
+        minVal: 0,
+        maxVal: 100,
+        type: 'OBS_PROPERTY_INT',
+      },
+
+      <IObsInput<number>>{
+        value: this.syncOffset,
+        name: 'syncOffset',
+        description: $t('audio.syncOffsetInMs'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_UINT',
+        visible: true,
+        enabled: true,
+      },
+
+      <IObsListInput<boolean>>{
+        value: this.forceMono,
+        name: 'forceMono',
+        description: $t('audio.downmixToMono'),
+        showDescription: false,
+        type: 'OBS_PROPERTY_LIST',
+        visible: true,
+        enabled: true,
+        options: [
+          { value: true, description: $t('common.on') },
+          { value: false, description: $t('common.off') },
         ],
       },
 
