@@ -281,7 +281,7 @@ module.exports = function (env, argv) {
           },
           {
             test: /\.svg$/,
-            use: ['vue-svg-loader'],
+            use: ['vue-loader', path.resolve(__dirname, 'build-utils/svg-loader.js')],
           },
         ],
       },
