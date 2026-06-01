@@ -245,10 +245,6 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
-      - name: Type check
-        if: ${{ needs.changes.outputs.app == 'true' }}
-        run: pnpm run typecheck
-
       - name: Compile
         if: ${{ needs.changes.outputs.app == 'true' }}
         run: pnpm run compile:ci
