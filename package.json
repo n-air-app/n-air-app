@@ -161,7 +161,6 @@
     "typescript-eslint": "8.51.0",
     "vue-eslint-parser": "^9.0.0",
     "vue-loader": "15.11.1",
-    "vue-svg-loader": "0.16.0",
     "vue-template-compiler": "2.7.14",
     "webdriverio": "7.30.2",
     "webpack": "^5.104.1",
