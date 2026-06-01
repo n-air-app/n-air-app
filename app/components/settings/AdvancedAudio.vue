@@ -1,34 +1,36 @@
 <template>
   <modal-layout :show-controls="false" no-scroll>
-    <div slot="content" class="table-wrapper section">
-      <table>
-        <thead>
-          <tr>
-            <th class="device">{{ $t('common.name') }}</th>
-            <th class="volume">{{ $t('audio.volumeInPercent') }}</th>
-            <th class="downmix">{{ $t('audio.downmixToMono') }}</th>
-            <th class="syncOffset">{{ $t('audio.syncOffsetInMs') }}</th>
-            <th class="audioMonitor">{{ $t('audio.audioMonitoring') }}</th>
-            <th class="track">{{ $t('audio.tracks') }}</th>
+    <template #content>
+      <div class="table-wrapper section">
+        <table>
+          <thead>
+            <tr>
+              <th class="device">{{ $t('common.name') }}</th>
+              <th class="volume">{{ $t('audio.volumeInPercent') }}</th>
+              <th class="downmix">{{ $t('audio.downmixToMono') }}</th>
+              <th class="syncOffset">{{ $t('audio.syncOffsetInMs') }}</th>
+              <th class="audioMonitor">{{ $t('audio.audioMonitoring') }}</th>
+              <th class="track">{{ $t('audio.tracks') }}</th>
+            </tr>
+          </thead>
+          <tr v-for="audioSource in audioSources" :key="audioSource.sourceId">
+            <td>{{ audioSource.name }}</td>
+            <td
+              v-for="formInput in audioSource.getSettingsForm()"
+              :key="`${audioSource.name}${formInput.name}`"
+              :class="'column-' + formInput.name"
+            >
+              <component
+                v-if="propertyComponentForType(formInput.type)"
+                :is="propertyComponentForType(formInput.type)"
+                :value="formInput"
+                @input="value => onInputHandler(audioSource, formInput.name, value.value)"
+              />
+            </td>
           </tr>
-        </thead>
-        <tr v-for="audioSource in audioSources" :key="audioSource.sourceId">
-          <td>{{ audioSource.name }}</td>
-          <td
-            v-for="formInput in audioSource.getSettingsForm()"
-            :key="`${audioSource.name}${formInput.name}`"
-            :class="'column-' + formInput.name"
-          >
-            <component
-              v-if="propertyComponentForType(formInput.type)"
-              :is="propertyComponentForType(formInput.type)"
-              :value="formInput"
-              @input="value => onInputHandler(audioSource, formInput.name, value.value)"
-            />
-          </td>
-        </tr>
-      </table>
-    </div>
+        </table>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

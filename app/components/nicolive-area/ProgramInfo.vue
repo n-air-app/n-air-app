@@ -83,9 +83,11 @@
           </li>
         </ul>
       </div>
-      <div class="indicator" :class="{ 'is-show': showPopupMenu }" slot="reference">
-        <i class="icon-drop-down-arrow"></i>
-      </div>
+      <template #reference>
+        <div class="indicator" :class="{ 'is-show': showPopupMenu }">
+          <i class="icon-drop-down-arrow"></i>
+        </div>
+      </template>
     </popper>
   </div>
 </template>

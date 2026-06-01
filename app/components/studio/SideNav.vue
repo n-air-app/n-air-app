@@ -10,8 +10,8 @@
             :dismissable-key="CompactModeToggleHelpTipDismissable"
             mode="compact-mode-toggle"
           >
-            <div slot="title" v-text="$t('common.compactModeToggleHelpTipTitle')"></div>
-            <div slot="content" v-text="$t('common.compactModeToggleHelpTipContent')"></div>
+            <template #title><div v-text="$t('common.compactModeToggleHelpTipTitle')"></div></template>
+            <template #content><div v-text="$t('common.compactModeToggleHelpTipContent')"></div></template>
           </help-tip>
         </a>
       </div>
@@ -71,8 +71,8 @@
         <a @click="openHelp" class="link help_tip_content" :title="$t('common.help')">
           <i class="icon-help" />
           <help-tip :dismissable-key="InitialHelpTipDismissable" mode="login">
-            <div slot="title" v-text="$t('common.initialHelpTipTitle')"></div>
-            <div slot="content" v-text="$t('common.initialHelpTipContent')"></div>
+            <template #title><div v-text="$t('common.initialHelpTipTitle')"></div></template>
+            <template #content><div v-text="$t('common.initialHelpTipContent')"></div></template>
           </help-tip>
         </a>
       </div>

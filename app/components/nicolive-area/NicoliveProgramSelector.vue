@@ -1,22 +1,23 @@
 <template>
   <modal-layout bare-content :show-controls="false" :custom-controls="true">
-    <div slot="content" class="nicolive-program-selector">
-      <NavMenu v-model="currentStep" class="side-menu" data-test="SideMenu">
-        <NavItem
-          v-for="step in steps"
-          :enabled="shouldEnableNavItem(step)"
-          :key="step"
-          :to="step"
-          :ico="isCompletedStep(step) ? 'icon-check' : undefined"
-          :data-test="step"
-          :class="'step-item'"
-        >
-          <h3 class="step-item-title">{{ getStepTitleForMenu(step) }}</h3>
-          <p class="step-item-selected-item" v-if="isCompletedStep(step)">
-            {{ getSelectedValueForDisplay(step) }}
-          </p>
-        </NavItem>
-      </NavMenu>
+    <template #content>
+      <div class="nicolive-program-selector">
+        <NavMenu v-model="currentStep" class="side-menu" data-test="SideMenu">
+          <NavItem
+            v-for="step in steps"
+            :enabled="shouldEnableNavItem(step)"
+            :key="step"
+            :to="step"
+            :ico="isCompletedStep(step) ? 'icon-check' : undefined"
+            :data-test="step"
+            :class="'step-item'"
+          >
+            <h3 class="step-item-title">{{ getStepTitleForMenu(step) }}</h3>
+            <p class="step-item-selected-item" v-if="isCompletedStep(step)">
+              {{ getSelectedValueForDisplay(step) }}
+            </p>
+          </NavItem>
+        </NavMenu>
       <div class="nicolive-program-selector-container">
         <Step
           v-if="currentStep === 'providerTypeSelect'"
@@ -85,11 +86,14 @@
         </Step>
       </div>
     </div>
-    <div slot="controls" v-if="currentStep === 'confirm'">
-      <button class="button button--primary" @click="ok" data-test="Done">
-        {{ $t('streaming.nicoliveProgramSelector.done') }}
-      </button>
-    </div>
+    </template>
+    <template #controls>
+      <template v-if="currentStep === 'confirm'">
+        <button class="button button--primary" @click="ok" data-test="Done">
+          {{ $t('streaming.nicoliveProgramSelector.done') }}
+        </button>
+      </template>
+    </template>
   </modal-layout>
 </template>
 

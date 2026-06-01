@@ -1,6 +1,7 @@
 <template>
   <modal-layout :showControls="false">
-    <div class="user-info" slot="content">
+    <template #content>
+      <div class="user-info">
       <div class="user-detail">
         <img
           :src="userIconURL"
@@ -97,14 +98,15 @@
                 </li>
               </ul>
             </div>
-            <div
-              class="button--circle button--secondary"
-              v-tooltip.bottom="otherMenuTooltip"
-              :class="{ 'is-show': showPopupMenu }"
-              slot="reference"
-            >
-              <i class="icon-ellipsis-horizontal"></i>
-            </div>
+            <template #reference>
+              <div
+                class="button--circle button--secondary"
+                v-tooltip.bottom="otherMenuTooltip"
+                :class="{ 'is-show': showPopupMenu }"
+              >
+                <i class="icon-ellipsis-horizontal"></i>
+              </div>
+            </template>
           </popper>
         </div>
       </div>
@@ -162,7 +164,8 @@
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

@@ -1,14 +1,16 @@
 <template>
   <modal-layout :done-handler="submit">
-    <form slot="content" @submit.prevent="submit">
-      <p v-if="!error" class="NameSource-label">
-        {{ $t('sources.enterTheNameOfSource') }}
-      </p>
-      <p v-if="error" class="NameSource-label NameSource-label__error">
-        {{ error }}
-      </p>
-      <input autofocus type="text" v-model="name" />
-    </form>
+    <template #content>
+      <form @submit.prevent="submit">
+        <p v-if="!error" class="NameSource-label">
+          {{ $t('sources.enterTheNameOfSource') }}
+        </p>
+        <p v-if="error" class="NameSource-label NameSource-label__error">
+          {{ error }}
+        </p>
+        <input autofocus type="text" v-model="name" />
+      </form>
+    </template>
   </modal-layout>
 </template>
 
