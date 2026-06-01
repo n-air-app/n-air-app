@@ -1,5 +1,6 @@
 import { Subscription } from 'rxjs';
 import { AudioSource } from 'services/audio';
+import { IVolmeter } from 'services/audio/audio-api';
 import { defineComponent } from 'vue';
 
 // Configuration
@@ -197,7 +198,7 @@ export default defineComponent({
     subscribeVolmeter(): void {
       this.volmeterSubscription = this.audioSource
         .getVolmeterStream()
-        .subscribe((volmeter) => {
+        .subscribe((volmeter: IVolmeter) => {
           const maxPeak = volmeter.peak.length > 0
             ? Math.max(...volmeter.peak)
             : -Infinity;
