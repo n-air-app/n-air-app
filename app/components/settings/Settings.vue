@@ -3,9 +3,8 @@
     <template #content>
       <div class="settings" data-test="Settings">
       <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
-        <template v-for="category in categoryNames">
+        <template v-for="category in categoryNames" :key="category">
           <NavItem
-            :key="category"
             :to="category"
             :ico="icons.get(category)"
             :data-test="category"

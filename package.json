@@ -83,9 +83,10 @@
     "traverse": "~0.6.7",
     "unzip-stream": "^0.3.4",
     "vosk-cli": "https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz",
-    "vue": "2.7.14",
-    "vue-i18n": "7.8.1",
-    "vuex": "3.1.1",
+    "@vue/compiler-sfc": "^3.5.34",
+    "vue": "3.5.34",
+    "vue-i18n": "9.14.5",
+    "vuex": "4.1.0",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
@@ -160,8 +161,7 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.51.0",
     "vue-eslint-parser": "^9.0.0",
-    "vue-loader": "15.11.1",
-    "vue-template-compiler": "2.7.14",
+    "vue-loader": "17.4.2",
     "webdriverio": "7.30.2",
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",

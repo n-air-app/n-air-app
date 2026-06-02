@@ -3,13 +3,10 @@ import electron from 'electron';
 import { InternalApiService } from 'services/api/internal-api';
 import { IMutation } from 'services/api/jsonrpc';
 import Util from 'services/utils';
-import Vue from 'vue';
-import Vuex, { Store } from 'vuex';
+import { createStore as vuexCreateStore, Store } from 'vuex';
 
 import { getModule, StatefulService } from '../services/core/stateful-service';
 import { ServicesManager } from '../services-manager';
-
-Vue.use(Vuex);
 
 const { ipcRenderer } = electron;
 
@@ -104,7 +101,7 @@ export function createStore(): Promise<Store<any>> {
     statefulServiceModules[serviceName] = getModule(statefulServices[serviceName]);
   });
 
-  store = new Vuex.Store({
+  store = vuexCreateStore({
     plugins,
     mutations,
     actions,

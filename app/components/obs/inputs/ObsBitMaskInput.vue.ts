@@ -32,7 +32,7 @@ const ObsBitMaskInput = defineComponent({
       this.flags = Utils.numberToBinnaryArray(this.value.value, this.value.size).reverse();
     },
     onChangeHandler(index: number, state: boolean) {
-      this.$set(this.flags, index, Number(state));
+      this.flags[index] = Number(state);
       const value = Utils.binnaryArrayToNumber(this.flags.reverse());
       this.emitInput({ ...this.value, value });
     },

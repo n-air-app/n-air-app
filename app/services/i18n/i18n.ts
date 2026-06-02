@@ -8,7 +8,7 @@ import { Inject } from 'services/core/injector';
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { mutation } from 'services/core/stateful-service';
 import { FileManagerService } from 'services/file-manager';
-import VueI18n from 'vue-i18n';
+import { type VueI18n } from 'vue-i18n';
 
 import * as obs from '../../../obs-api';
 
@@ -18,16 +18,20 @@ interface II18nState {
   locale: string;
 }
 
-export function $t(...args: any[]): string {
+export function $t(key: string, options?: any): string {
   const vueI18nInstance = I18nService.vueI18nInstance;
 
   // some tests try to call this function before dictionaries have been loaded
-  if (!vueI18nInstance) return args[0];
+  if (!vueI18nInstance) return (options && options.fallback) ?? key;
 
-  return vueI18nInstance.t.call(
-    I18nService.vueI18nInstance,
-    ...(args as [key: string, locale: string, values?: VueI18n.Values]),
-  ) as string;
+  // vue-i18n v9: missing handler no longer receives $t call values,
+  // so { fallback: '...' } must be handled here.
+  // When a key is missing, t() returns the key itself - we detect that and return the fallback.
+  const result = (vueI18nInstance.t as (...args: any[]) => string)(key, options);
+  if (options && typeof options.fallback === 'string' && result === key) {
+    return options.fallback;
+  }
+  return result;
 }
 
 /**
@@ -60,7 +64,7 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
   static vueI18nInstance: VueI18n;
 
   static setVuei18nInstance(instance: VueI18n) {
-    I18nService.vueI18nInstance = instance;
+    I18nService.vueI18nInstance = instance as VueI18n;
   }
 
   private availableLocales: Dictionary<string> = {};

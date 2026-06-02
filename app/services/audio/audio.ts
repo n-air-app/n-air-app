@@ -14,7 +14,6 @@ import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService } from 
 import Utils, { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
 
@@ -381,7 +380,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   @mutation()
   private ADD_AUDIO_SOURCE(source: IAudioSource) {
-    Vue.set(this.state.audioSources, source.sourceId, source);
+    this.state.audioSources[source.sourceId] = source;
   }
 
   @mutation()
@@ -391,7 +390,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   @mutation()
   private REMOVE_AUDIO_SOURCE(sourceId: string) {
-    Vue.delete(this.state.audioSources, sourceId);
+    delete this.state.audioSources[sourceId];
   }
 }
 

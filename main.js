@@ -787,8 +787,26 @@ function initialize(crashHandler) {
     });
 
     // Ensure splash is closed on error
-    mainWindow.webContents.on('did-fail-load', () => {
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('[RENDERER] did-fail-load:', errorCode, errorDescription, validatedURL);
       closeSplashWindow();
+    });
+
+    mainWindow.webContents.on('render-process-gone', (event, details) => {
+      console.error('[RENDERER] render-process-gone:', JSON.stringify(details));
+    });
+
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      const levelName = ['verbose', 'info', 'warning', 'error'][level] || 'unknown';
+      if (level >= 2) { // warning or error
+        // intlify の fallback/missing 警告は動作上問題ないため除外
+        if (message.includes('[intlify] Fall back to translate') ||
+            message.includes('[intlify] Not found') ||
+            message.includes('modulo syntax is deprecated')) {
+          return;
+        }
+        console.log(`[RENDERER-CONSOLE][${levelName}] ${message} (${sourceId}:${line})`);
+      }
     });
 
     mainWindow.on('close', (e) => {

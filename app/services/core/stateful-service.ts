@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { toRaw } from 'vue';
 import { Module, Store } from 'vuex';
 
 import Utils from '../utils';
@@ -58,7 +58,7 @@ function registerMutation(
           },
           set(_, key, val) {
             if (key === 'state') {
-              Vue.set(context, 'state', val);
+              context.state = val;
               return true;
             }
 
@@ -77,8 +77,20 @@ function registerMutation(
     value(...args: any[]) {
       const constructorArgs = this['_constructorArgs'];
       const store = StatefulService.getStore();
+      // Vue 3 の reactive proxy を再帰的に剥がしてシリアライズエラーを防ぐ
+      function deepToRaw(val: any): any {
+        const raw = toRaw(val);
+        if (raw === null || typeof raw !== 'object') return raw;
+        if (Array.isArray(raw)) return raw.map(deepToRaw);
+        const result: any = {};
+        for (const key of Object.keys(raw)) {
+          result[key] = deepToRaw(raw[key]);
+        }
+        return result;
+      }
+      const rawArgs = args.map(deepToRaw);
       store.commit(mutationName, {
-        args,
+        args: rawArgs,
         constructorArgs,
       });
     },
@@ -127,7 +139,7 @@ export abstract class StatefulService<TState extends object> extends Service {
   }
 
   set state(newState: TState) {
-    Vue.set(this.store.state, this.serviceName, newState);
+    this.store.state[this.serviceName] = newState;
   }
 }
 
