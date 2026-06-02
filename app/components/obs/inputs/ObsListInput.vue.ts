@@ -6,6 +6,7 @@ import { IObsListInput, IObsListOption, TObsType, TObsValue } from './ObsInput';
 const ObsListInput = defineComponent({
   name: 'ObsListInput',
   components: { Dropdown },
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsListInput<TObsValue>>, required: true as const },
     category: { type: String },

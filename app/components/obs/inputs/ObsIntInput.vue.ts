@@ -4,6 +4,7 @@ import { IObsNumberInputValue, TObsType } from './ObsInput';
 
 const ObsIntInput = defineComponent({
   name: 'ObsIntInput',
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsNumberInputValue>, required: true as const },
     category: { type: String },
