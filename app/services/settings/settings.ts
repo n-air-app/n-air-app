@@ -23,6 +23,7 @@ import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
+import { toRaw } from 'vue';
 
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
@@ -775,8 +776,8 @@ export class SettingsService
 
     for (const subGroup of settingsData) {
       dataToSave.push({
-        ...subGroup,
-        parameters: inputValuesToObsValues(subGroup.parameters, {
+        ...toRaw(subGroup),
+        parameters: inputValuesToObsValues(toRaw(subGroup.parameters).map((p) => toRaw(p)), {
           valueToCurrentValue: true,
         }) as any, // TODO fix type
       });

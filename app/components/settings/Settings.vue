@@ -49,7 +49,7 @@
               'Transcription',
             ].includes(categoryName)
           "
-          v-model="settingsData"
+          :value="settingsData"
           :category="categoryName"
           :isLoggedIn="isLoggedIn"
           @input="save"

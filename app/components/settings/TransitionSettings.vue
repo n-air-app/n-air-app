@@ -1,10 +1,10 @@
 <template>
   <div>
-    <ObsTextInput v-model="nameModel" />
-    <ObsListInput v-model="typeModel" />
-    <ObsIntInput v-model="durationModel" />
+    <ObsTextInput :value="nameModel" @input="nameModel = $event" />
+    <ObsListInput :value="typeModel" @input="typeModel = $event" />
+    <ObsIntInput :value="durationModel" @input="durationModel = $event" />
 
-    <GenericForm v-model="properties" @input="saveProperties"></GenericForm>
+    <GenericForm :value="properties" @input="saveProperties"></GenericForm>
   </div>
 </template>
 

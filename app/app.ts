@@ -270,6 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
       fallbackWarn: false,
     });
 
+    // legacy: true モードでは createI18n オプションだけでは fallbackWarn が効かない場合があるため
+    // global インスタンスにも直接設定する
+    (i18n.global as any).fallbackWarn = false;
+    (i18n.global as any).missingWarn = false;
+
     I18nService.setVuei18nInstance(i18n.global);
 
     Settings.defaultLocale = i18nService.state.locale.split('-')[0];

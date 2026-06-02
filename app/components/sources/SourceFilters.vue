@@ -43,7 +43,7 @@
 
       <div class="content">
         <div v-if="selectedFilterName">
-          <GenericForm v-model="properties" @input="save" :key="selectedFilterName"></GenericForm>
+          <GenericForm :value="properties" @input="v => { properties = v; save(); }" :key="selectedFilterName"></GenericForm>
         </div>
         <div v-if="!selectedFilterName">
           {{ $t('filters.noFilterMessage') }}

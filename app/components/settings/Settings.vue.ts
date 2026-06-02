@@ -22,7 +22,7 @@ import {
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
-import { defineComponent } from 'vue';
+import { defineComponent, toRaw } from 'vue';
 
 interface TocSectionData {
   id: string;
@@ -165,7 +165,18 @@ export default defineComponent({
       return anchor || undefined;
     },
     save(settingsData: ISettingsSubCategory[]) {
-      (require('services/settings').SettingsService.instance() as ISettingsServiceApi).setSettings(this.categoryName, settingsData);
+      // Vue 3 の reactive proxy を剥がしてから IPC 経由の OBS API に渡す
+      function deepToRaw(val: any): any {
+        const raw = toRaw(val);
+        if (raw === null || typeof raw !== 'object') return raw;
+        if (Array.isArray(raw)) return raw.map(deepToRaw);
+        const result: any = {};
+        for (const key of Object.keys(raw)) {
+          result[key] = deepToRaw(raw[key]);
+        }
+        return result;
+      }
+      (require('services/settings').SettingsService.instance() as ISettingsServiceApi).setSettings(this.categoryName, deepToRaw(settingsData));
       this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(this.categoryName);
     },
     done() {

@@ -2,7 +2,7 @@
   <modal-layout bare-content :show-controls="false" :custom-controls="true">
     <template #content>
       <div class="nicolive-program-selector">
-        <NavMenu v-model="currentStep" class="side-menu" data-test="SideMenu">
+        <NavMenu :value="currentStep" @input="currentStep = $event" class="side-menu" data-test="SideMenu">
           <NavItem
             v-for="step in steps"
             :enabled="shouldEnableNavItem(step)"

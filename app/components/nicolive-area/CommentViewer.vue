@@ -179,6 +179,7 @@
 .container {
   display: flex;
   flex-grow: 1;
+  flex-direction: column;
   width: 100%;
   background-color: var(--color-bg-tertiary);
 }
@@ -315,15 +316,13 @@
 
 .created-notice {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
+  justify-content: center;
   padding: 8px;
   pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
 .created-notice-large {
