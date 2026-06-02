@@ -5,6 +5,7 @@ import { IObsInput, TObsValue } from './ObsInput';
 
 export default defineComponent({
   name: 'GenericForm',
+  emits: ['input'],
   props: {
     value: { type: Array as PropType<IObsInput<TObsValue>[]> },
     category: { type: String },
