@@ -13,7 +13,7 @@
         :source="source"
         @update="refresh"
       />
-      <GenericForm v-model="properties" @input="onInputHandler" />
+      <GenericForm :value="properties" @input="onInputHandler" />
     </template>
   </modal-layout>
 </template>

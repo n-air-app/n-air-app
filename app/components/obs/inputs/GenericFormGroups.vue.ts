@@ -1,6 +1,6 @@
 import TocSection from 'components/shared/TocSection.vue';
 import { ISettingsSubCategory } from 'services/settings';
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType, toRaw } from 'vue';
 
 import GenericForm from './GenericForm.vue';
 
@@ -25,6 +25,13 @@ export default defineComponent({
   methods: {
     toggleGroup(index: string) {
       this.collapsedGroups[index] = !this.collapsedGroups[index];
+    },
+    onFormInput(groupIndex: number, newParameters: any) {
+      // prop を直接変更せず、新しい配列を作って emit する
+      const newValue = toRaw(this.value).map((group, i) =>
+        i === groupIndex ? { ...toRaw(group), parameters: newParameters } : toRaw(group),
+      );
+      this.$emit('input', newValue);
     },
     onInputHandler() {
       this.$emit('input', this.value);

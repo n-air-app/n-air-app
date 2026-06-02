@@ -166,7 +166,8 @@
                 <span> {{ labelForPitchSong(pitchShiftSong) }} </span>
               </div>
               <slider
-                v-model="pitchShiftSong"
+                :value="pitchShiftSong"
+                @input="pitchShiftSong = $event"
                 :min="-1200"
                 :max="1200"
                 :interval="1200"
@@ -184,7 +185,8 @@
                 <span> {{ pitchShift.toFixed(0) + ' cent' }} </span>
               </div>
               <slider
-                v-model="pitchShift"
+                :value="pitchShift"
+                @input="pitchShift = $event"
                 :min="-1200"
                 :max="1200"
                 :interval="1"
@@ -196,7 +198,8 @@
                 <span>{{ $t('source-props.nair-rtvc-source.primary_voice.name') }}</span>
               </div>
               <dropdown
-                v-model="primaryVoiceModel"
+                :value="primaryVoiceModel"
+                @input="primaryVoiceModel = $event"
                 :options="primaryVoiceList"
                 label="description"
                 track-by="value"
@@ -210,7 +213,8 @@
                 <span>{{ $t('source-props.nair-rtvc-source.secondary_voice.name') }}</span>
               </div>
               <dropdown
-                v-model="secondaryVoiceModel"
+                :value="secondaryVoiceModel"
+                @input="secondaryVoiceModel = $event"
                 :options="secondaryVoiceList"
                 label="description"
                 track-by="value"
@@ -225,7 +229,8 @@
                 <span> {{ amount.toFixed(0) + '%' }}</span>
               </div>
               <slider
-                v-model="amount"
+                :value="amount"
+                @input="amount = $event"
                 :min="0"
                 :max="100"
                 :interval="1"
@@ -248,7 +253,8 @@
               </div>
               <div class="input-wrapper">
                 <dropdown
-                  v-model="deviceModel"
+                  :value="deviceModel"
+                  @input="deviceModel = $event"
                   :options="deviceList"
                   label="description"
                   track-by="value"
@@ -269,7 +275,8 @@
               </div>
               <div class="input-wrapper">
                 <dropdown
-                  v-model="latencyModel"
+                  :value="latencyModel"
+                  @input="latencyModel = $event"
                   :options="latencyList"
                   label="description"
                   track-by="value"

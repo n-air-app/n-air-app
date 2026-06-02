@@ -3,10 +3,22 @@ import { Subscription } from 'rxjs';
 import { InternalApiService } from 'services/api/internal-api';
 import { IJsonRpcEvent, IJsonRpcRequest, IJsonRpcResponse } from 'services/api/jsonrpc';
 import { Inject } from 'services/core/injector';
+import { toRaw } from 'vue';
 
 import { Service } from '../../core/service';
 
 const { ipcRenderer } = electron;
+
+function deepToRaw<T>(val: T): T {
+  const raw = toRaw(val);
+  if (raw === null || typeof raw !== 'object') return raw;
+  if (Array.isArray(raw)) return (raw as any[]).map(deepToRaw) as unknown as T;
+  const result: any = {};
+  for (const key of Object.keys(raw as object)) {
+    result[key] = deepToRaw((raw as any)[key]);
+  }
+  return result;
+}
 
 /**
  * A transport layer for IPC communications between services in the child and main window
@@ -20,7 +32,7 @@ export class IpcServerService extends Service {
   listen() {
     this.requestHandler = (event: Electron.IpcRendererEvent, request: IJsonRpcRequest) => {
       const response: IJsonRpcResponse<any> = this.exec(request);
-      ipcRenderer.send('services-response', response);
+      ipcRenderer.send('services-response', deepToRaw(response));
     };
     ipcRenderer.on('services-request', this.requestHandler);
     ipcRenderer.send('services-ready');
@@ -40,6 +52,6 @@ export class IpcServerService extends Service {
   }
 
   private sendEvent(event: IJsonRpcResponse<IJsonRpcEvent>) {
-    ipcRenderer.send('services-message', event);
+    ipcRenderer.send('services-message', deepToRaw(event));
   }
 }

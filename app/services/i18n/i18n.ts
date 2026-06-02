@@ -24,14 +24,16 @@ export function $t(key: string, options?: any): string {
   // some tests try to call this function before dictionaries have been loaded
   if (!vueI18nInstance) return (options && options.fallback) ?? key;
 
-  // vue-i18n v9: missing handler no longer receives $t call values,
-  // so { fallback: '...' } must be handled here.
-  // When a key is missing, t() returns the key itself - we detect that and return the fallback.
-  const result = (vueI18nInstance.t as (...args: any[]) => string)(key, options);
-  if (options && typeof options.fallback === 'string' && result === key) {
-    return options.fallback;
+  // fallback オプションがある場合、キーが存在しなければ t() を呼ばずに即 fallback を返す。
+  // vue-i18n v9 は fallbackLocale チェーン（ja-JP → en-US → en）を全て試みるため、
+  // 存在しないキーに対して t() を呼ぶと大量の warn と処理コストが発生する。
+  if (options && typeof options.fallback === 'string') {
+    if (!(vueI18nInstance.te as (key: string) => boolean)(key)) {
+      return options.fallback;
+    }
   }
-  return result;
+
+  return (vueI18nInstance.t as (...args: any[]) => string)(key, options);
 }
 
 /**

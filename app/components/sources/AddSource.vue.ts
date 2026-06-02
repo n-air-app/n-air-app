@@ -13,7 +13,7 @@ import {
 } from 'services/sources';
 import { TranscriptionSourceService } from 'services/transcription/transcription-source';
 import { WindowsService } from 'services/windows';
-import { defineComponent } from 'vue';
+import { defineComponent, toRaw } from 'vue';
 
 export default defineComponent({
   name: 'AddSource',
@@ -105,6 +105,8 @@ export default defineComponent({
         return;
       }
 
+      const sourceAddOptions = toRaw(this.sourceAddOptions);
+
       let s: {
         source: ISourceApi;
         options: ISourceAddOptions;
@@ -113,14 +115,14 @@ export default defineComponent({
 
       if (
         this.sourceType === 'near'
-        || this.sourceAddOptions.propertiesManager === 'nvoice-character'
+        || sourceAddOptions.propertiesManager === 'nvoice-character'
       ) {
-        const type: NVoiceCharacterType = this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+        const type: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
         s = NVoiceCharacterService.instance().createNVoiceCharacterSource(type, this.name);
       } else if (this.sourceType === 'text_transcription') {
         s = TranscriptionSourceService.instance().createTextTranscriptionSourceAndOption(
           this.name,
-          this.sourceAddOptions,
+          sourceAddOptions,
         );
       } else if (this.sourceType === 'ffmpeg_source_replay') {
         s = this.createReplaySourceAndOption(this.name);
@@ -131,8 +133,8 @@ export default defineComponent({
             this.sourceType,
             {}, // IPCがundefinedをnullに変換するのでデフォルト値は使わない
             {
-              propertiesManager: this.sourceAddOptions.propertiesManager,
-              propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
+              propertiesManager: sourceAddOptions.propertiesManager,
+              propertiesManagerSettings: sourceAddOptions.propertiesManagerSettings,
             },
           ),
           options: {},
@@ -154,6 +156,7 @@ export default defineComponent({
       options: ISourceAddOptions;
       forceSkipProperties?: boolean;
     } {
+      const sourceAddOptions = toRaw(this.sourceAddOptions);
       return {
         source: SourcesService.instance().createSource(
           name,
@@ -161,7 +164,7 @@ export default defineComponent({
           {},
           {
             propertiesManager: 'replay',
-            propertiesManagerSettings: this.sourceAddOptions.propertiesManagerSettings,
+            propertiesManagerSettings: sourceAddOptions.propertiesManagerSettings,
           },
         ),
         options: {},

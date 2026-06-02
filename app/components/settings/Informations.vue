@@ -19,14 +19,14 @@
       <div class="information-error" v-else-if="hasError">
         <h2 class="error-title">{{ $t('informations.errorHeading') }}</h2>
         <p class="error-text">{{ $t('informations.errorDescription') }}</p>
-        <i18n class="error-attention" path="informations.errorAttention" tag="p">
-          <a
-            place="link"
-            href="https://blog.nicovideo.jp/niconews/category/se_n-air/"
-            @click="handleAnchorClick($event)"
-          >{{ $t('informations.errorAttentionLink') }}</a
-          >
-        </i18n>
+        <i18n-t class="error-attention" keypath="informations.errorAttention" tag="p">
+          <template #link>
+            <a
+              href="https://blog.nicovideo.jp/niconews/category/se_n-air/"
+              @click="handleAnchorClick($event)"
+            >{{ $t('informations.errorAttentionLink') }}</a>
+          </template>
+        </i18n-t>
       </div>
       </div>
     </template>

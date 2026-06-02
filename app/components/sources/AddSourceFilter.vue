@@ -2,8 +2,8 @@
   <modal-layout :done-handler="done" :cancel-handler="cancel">
     <template #content>
       <div>
-        <ObsListInput v-model="form.type" @input="setTypeAsName"></ObsListInput>
-        <ObsTextInput v-model="form.name"></ObsTextInput>
+        <ObsListInput :value="form.type" @input="v => { form.type = v; setTypeAsName(); }"></ObsListInput>
+        <ObsTextInput :value="form.name" @input="form.name = $event"></ObsTextInput>
         <p v-if="error" style="color: red">
           {{ error }}
         </p>

@@ -11,7 +11,7 @@
       <div v-if="!transitionsEnabled" class="transition-blank">
         {{ $t('transitions.mustHaveLeastTwoScenes') }}
       </div>
-      <tabs :tabs="tabs" v-model="selectedTab" v-else>
+      <tabs :tabs="tabs" :value="selectedTab" @input="selectedTab = $event" v-else>
         <template #transitions>
           <div class="transition-tab">
           <button class="button button--primary" @click="addTransition">
