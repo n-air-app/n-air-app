@@ -181,7 +181,7 @@ module.exports = function (env, argv) {
       target: 'electron29-renderer',
 
       resolve: {
-        extensions: ['.js', '.ts'],
+        extensions: ['.js', '.ts', '.vue'],
         modules: [path.resolve(__dirname, 'app'), 'node_modules'],
       },
 
@@ -198,10 +198,13 @@ module.exports = function (env, argv) {
             test: /\.vue$/,
             loader: 'vue-loader',
             options: {
-              esModule: true,
-              transformToRequire: {
-                video: 'src',
-                source: 'src',
+              enableTsInTemplate: false,
+              transformAssetUrls: {
+                video: ['src', 'poster'],
+                source: ['src'],
+                img: ['src'],
+                image: ['xlink:href', 'href'],
+                use: ['xlink:href', 'href'],
               },
             },
           },

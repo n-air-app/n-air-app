@@ -40,7 +40,6 @@
             </div>
           </template>
         </sl-vue-tree>
-      </NavMenu>
 
       <div class="content">
         <div v-if="selectedFilterName">

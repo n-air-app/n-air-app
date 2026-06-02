@@ -1,5 +1,4 @@
 import { computed, defineComponent, nextTick, PropType, ref, watch } from 'vue';
-import type { DirectiveBinding } from 'vue/types/options';
 
 /**
  * Dropdown - カスタムドロップダウンコンポーネント
@@ -73,23 +72,21 @@ import type { DirectiveBinding } from 'vue/types/options';
  */
 
 // クリックアウトサイドディレクティブを外部で定義
-const clickOutsideHandlers: WeakMap<HTMLElement, (event: MouseEvent) => void> = new WeakMap();
-
 const clickOutsideDirective = {
-  bind(el: HTMLElement, binding: DirectiveBinding) {
+  beforeMount(el: HTMLElement, binding: any) {
     const handler = (event: MouseEvent) => {
       if (!el.contains(event.target as Node)) {
         binding.value(event);
       }
     };
-    clickOutsideHandlers.set(el, handler);
+    (el as any).__clickOutsideHandler__ = handler;
     document.addEventListener('click', handler);
   },
-  unbind(el: HTMLElement) {
-    const handler = clickOutsideHandlers.get(el);
+  beforeUnmount(el: HTMLElement) {
+    const handler = (el as any).__clickOutsideHandler__;
     if (handler) {
       document.removeEventListener('click', handler);
-      clickOutsideHandlers.delete(el);
+      delete (el as any).__clickOutsideHandler__;
     }
   },
 };
@@ -101,13 +98,13 @@ export default defineComponent({
   },
   props: {
     value: {
-      type: null as unknown as PropType<unknown>,
+      type: null as any,
       default: null,
     },
     // ドロップダウンの選択肢（文字列配列またはオブジェクト配列）
     // オブジェクト配列を使う場合は label と trackBy の指定が必須
     options: {
-      type: Array as PropType<unknown[]>,
+      type: Array as PropType<any[]>,
       required: true,
     },
     // オプションからラベル（表示テキスト）を取得するプロパティ名

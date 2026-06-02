@@ -24,7 +24,7 @@ export default defineComponent({
   },
   methods: {
     toggleGroup(index: string) {
-      this.$set(this.collapsedGroups, index, !this.collapsedGroups[index]);
+      this.collapsedGroups[index] = !this.collapsedGroups[index];
     },
     onInputHandler() {
       this.$emit('input', this.value);

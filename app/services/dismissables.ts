@@ -1,6 +1,5 @@
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { getKeys } from 'util/getKeys';
-import Vue from 'vue';
 
 import { mutation } from './core/stateful-service';
 
@@ -48,11 +47,11 @@ export class DismissablesService extends PersistentStatefulService<IDismissables
 
   @mutation()
   DISMISS(key: EDismissable) {
-    Vue.set(this.state, key, true);
+    this.state[key] = true;
   }
 
   @mutation()
   RESET(key: EDismissable) {
-    Vue.set(this.state, key, false);
+    this.state[key] = false;
   }
 }

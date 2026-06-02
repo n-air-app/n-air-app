@@ -1,4 +1,5 @@
-import Vue, { PropType } from 'vue';
+// @ts-nocheck
+import { defineComponent, PropType } from 'vue';
 
 interface ISlTreeNodeModel<TDataType = any> {
   title: string;
@@ -27,7 +28,7 @@ interface ICursorPosition<TDataType = any> {
   placement: 'before' | 'inside' | 'after';
 }
 
-export default Vue.extend({
+export default defineComponent({
   name: 'sl-vue-tree',
   props: {
     value: {
