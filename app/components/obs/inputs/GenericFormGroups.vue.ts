@@ -7,6 +7,7 @@ import GenericForm from './GenericForm.vue';
 export default defineComponent({
   name: 'GenericFormGroups',
   components: { GenericForm, TocSection },
+  emits: ['input'],
   props: {
     value: { type: Array as PropType<ISettingsSubCategory[]> },
     category: { type: String },

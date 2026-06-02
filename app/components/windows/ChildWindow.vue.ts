@@ -1,7 +1,7 @@
 import * as remote from '@electron/remote';
 import TitleBar from 'components/studio/TitleBar.vue';
 import { getComponents, IWindowOptions, WindowsService } from 'services/windows';
-import { defineComponent } from 'vue';
+import { defineComponent, nextTick } from 'vue';
 
 export default defineComponent({
   name: 'ChildWindow',
@@ -48,6 +48,7 @@ export default defineComponent({
     onWindowUpdatedHandler(options: IWindowOptions) {
       // If the window was closed, just clear the stack
       if (!options.isShown) {
+        clearTimeout(this.refreshingTimeout);
         this.clearComponentStack();
         return;
       }
@@ -73,9 +74,11 @@ export default defineComponent({
       // that will do a bunch of synchronous IO.
       clearTimeout(this.refreshingTimeout);
       this.refreshingTimeout = window.setTimeout(() => {
-        this.components.push({ name: options.componentName, isShown: true, title: options.title });
-        this.setWindowTitle();
-      }, 50);
+        nextTick(() => {
+          this.components.push({ name: options.componentName, isShown: true, title: options.title });
+          this.setWindowTitle();
+        });
+      });
     },
   },
 });
