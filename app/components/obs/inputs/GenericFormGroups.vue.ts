@@ -28,7 +28,7 @@ export default defineComponent({
     },
     onFormInput(groupIndex: number, newParameters: any) {
       // prop を直接変更せず、新しい配列を作って emit する
-      const newValue = toRaw(this.value).map((group, i) =>
+      const newValue = toRaw(this.value).map((group: ISettingsSubCategory, i: number) =>
         i === groupIndex ? { ...toRaw(group), parameters: newParameters } : toRaw(group),
       );
       this.$emit('input', newValue);

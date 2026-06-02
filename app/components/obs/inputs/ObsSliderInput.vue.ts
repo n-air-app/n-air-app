@@ -8,6 +8,7 @@ import { IObsSliderInputValue, TObsType } from './ObsInput';
 const ObsSliderInput = defineComponent({
   name: 'ObsSliderInput',
   components: { Slider },
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsSliderInputValue>, required: true as const },
     category: { type: String },
