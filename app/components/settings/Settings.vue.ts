@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import { CategoryIcons } from 'components/settings/CategoryIcons';
 import CommentSettings from 'components/settings/CommentSettings.vue';
@@ -178,6 +179,7 @@ export default class Settings extends Vue {
 
   @Watch('categoryName')
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
+    Sentry.addBreadcrumb({ category: 'settings', message: `category: ${categoryName}`, level: 'info' });
     this.settingsData = this.settingsService.getSettingsFormData(categoryName);
     this.$refs.settingsContainer.scrollTop = 0;
     this.isTocOpen = true;
