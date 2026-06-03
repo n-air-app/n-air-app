@@ -1,5 +1,6 @@
 import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { TranscriptionSourceService as TranscriptionSourceServiceType } from './transcription-source';
 
 const setup = createSetupFunction({

@@ -1,9 +1,11 @@
+import { URL, URLSearchParams } from 'url';
+
 import * as Sentry from '@sentry/electron/renderer';
 import electron from 'electron';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
 import { NavigationService } from 'services/navigation';
-import { URL, URLSearchParams } from 'url';
+
 import { SettingsCategory, SettingsService } from './settings';
 import Utils from './utils';
 
@@ -28,7 +30,7 @@ export class ProtocolLinksService extends Service {
 
   start(argv: string[]) {
     // Check if this instance was started with a protocol link
-    argv.forEach(arg => {
+    argv.forEach((arg) => {
       if (arg.match(/^n-air-app:\/\//)) this.handleLink(arg);
     });
 
@@ -63,8 +65,15 @@ export class ProtocolLinksService extends Service {
   }
 
   private openSettings(info: IProtocolLinkInfo) {
-    const category = info.path.replace('/', '') as SettingsCategory;
+    type CategoryRedirect = { category: SettingsCategory; defaultHash?: string };
+    const RENAMED_CATEGORIES: Record<string, CategoryRedirect> = {
+      SpeechEngine: { category: 'CommentSpeech', defaultHash: '#speech-engine-settings' },
+    };
+    const rawCategory = info.path.replace('/', '');
+    const redirect = RENAMED_CATEGORIES[rawCategory];
+    const category = (redirect?.category ?? rawCategory) as SettingsCategory;
+    const hash = info.hash || redirect?.defaultHash || undefined;
 
-    this.settingsService.showSettings(category, info.hash || undefined);
+    this.settingsService.showSettings(category, hash);
   }
 }

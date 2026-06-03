@@ -29,5 +29,5 @@ module.exports = {
     githubToken: process.env.NAIR_GITHUB_TOKEN_INTERNAL,
     s3BucketName: process.env.RELEASE_DWANGO_S3_BUCKET_NAME,
     s3KeyPrefix: 'download/windows',
-  }
+  },
 };

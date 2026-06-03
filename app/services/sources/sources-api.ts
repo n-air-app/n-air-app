@@ -2,8 +2,10 @@ import { IObsListOption, TObsFormData } from 'components/obs/inputs/ObsInput';
 import { Observable } from 'rxjs';
 import { NVoiceAvatarStyle, NVoiceCharacterType } from 'services/nvoice-character';
 import { IPartialTransform } from 'services/scenes';
+
 import * as obs from '../../../obs-api';
 import { IAudioSource } from '../audio';
+
 import { IPropertyManager } from './properties-managers/properties-manager';
 
 export interface ISource extends IResource {

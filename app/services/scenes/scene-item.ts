@@ -1,14 +1,15 @@
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import merge from 'lodash/merge';
+import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { ISource, SourcesService, TSourceType } from 'services/sources';
 import { VideoService } from 'services/video';
+import { assertIsDefined } from 'util/properties-type-guards';
 import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';
+
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
 import Utils from '../utils';
 
-import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
-import { assertIsDefined } from 'util/properties-type-guards';
 import {
   IPartialSettings,
   IPartialTransform,
@@ -86,7 +87,7 @@ export class SceneItem extends SceneItemNode {
 
   constructor(sceneId: string, sceneItemId: string, sourceId: string) {
     super();
-    const sceneItemState = this.scenesService.state.scenes[sceneId].nodes.find(item => {
+    const sceneItemState = this.scenesService.state.scenes[sceneId].nodes.find((item) => {
       return item.id === sceneItemId;
     }) as ISceneItem;
     assertIsDefined(sceneItemState);
@@ -240,8 +241,7 @@ export class SceneItem extends SceneItemNode {
   }
 
   loadAttributes() {
-    const { position, scale, visible, crop, rotation, scaleFilter, blendingMode, blendingMethod } =
-      this.getObsSceneItem();
+    const { position, scale, visible, crop, rotation, scaleFilter, blendingMode, blendingMethod } = this.getObsSceneItem();
     this.UPDATE({
       sceneItemId: this.sceneItemId,
       transform: {
@@ -353,7 +353,7 @@ export class SceneItem extends SceneItemNode {
   getItemIndex(): number {
     return this.getScene()
       .getItems()
-      .findIndex(sceneItemModel => sceneItemModel.id === this.id);
+      .findIndex((sceneItemModel) => sceneItemModel.id === this.id);
   }
 
   setScaleFilter(scaleFilter: obs.EScaleType): void {

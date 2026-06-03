@@ -17,16 +17,17 @@
       </div>
 
       <div class="section" v-if="use">
-        <div class="tab-nav">
-          <button
-            v-for="tab in tabIds"
-            :key="tab"
-            class="button--tab"
-            :class="{ active: selectedTab === tab }"
-            @click="selectTab(tab)"
-          >
-            {{ $t(`settings.substream.tabs.${tab}`) }}
-          </button>
+        <div class="input-wrapper">
+          <div class="input-label">
+            <label>{{ $t('settings.substream.service') }}</label>
+          </div>
+          <dropdown
+            :value="serviceOptions.find(o => o.id === selectedTab)"
+            :options="serviceOptions"
+            label="name"
+            track-by="id"
+            @input="selectedTab = $event.id"
+          />
         </div>
 
         <div class="input-wrapper">
@@ -269,21 +270,6 @@
 
 .set-url-icon {
   margin-left: 4px;
-}
-
-.tab-nav {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  margin: 0 -16px 8px;
-  border-bottom: 1px solid var(--color-border-light);
-
-  > button {
-    flex: 1;
-    height: 100%;
-  }
 }
 
 .key-input-wrapper {

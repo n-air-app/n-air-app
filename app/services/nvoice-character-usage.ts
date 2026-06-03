@@ -24,12 +24,11 @@ export class NVoiceCharacterUsageService extends Service {
       }
     });
 
-    this.scenesService.itemAdded.subscribe(item => {
+    this.scenesService.itemAdded.subscribe((item) => {
       const source = this.sourcesService.getSource(item.sourceId);
       if (!source) return;
       if (source.getPropertiesManagerType() !== 'nvoice-character') return;
-      const style: NVoiceAvatarStyle =
-        source.getPropertiesManagerSettings().nVoiceAvatarStyle || 'standing1';
+      const style: NVoiceAvatarStyle = source.getPropertiesManagerSettings().nVoiceAvatarStyle || 'standing1';
       this.usedStyles.add(style);
     });
   }

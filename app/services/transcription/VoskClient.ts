@@ -2,6 +2,7 @@
 
 import { ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
+
 import { Observable, Subject } from 'rxjs';
 import { CommandLineClient } from 'services/nicolive-program/speech/NVoiceClient';
 
@@ -54,15 +55,15 @@ export interface ITranscriber {
 
 function isAudioDeviceList(obj: any): obj is AudioDeviceList {
   return (
-    obj &&
-    Array.isArray(obj.devices) &&
-    obj.devices.every(
+    obj
+    && Array.isArray(obj.devices)
+    && obj.devices.every(
       (device: any) =>
-        typeof device.index === 'number' &&
-        typeof device.id === 'string' &&
-        typeof device.name === 'string',
-    ) &&
-    typeof obj.version === 'string'
+        typeof device.index === 'number'
+        && typeof device.id === 'string'
+        && typeof device.name === 'string',
+    )
+    && typeof obj.version === 'string'
   );
 }
 
@@ -98,12 +99,12 @@ export function isProcessExitedMessage(
 
 function isVoskCliMessage(obj: any): obj is TranscriptionMessage {
   return (
-    obj &&
-    (isInfoTranscriptionMessage(obj) ||
-      isPartialTranscriptionMessage(obj) ||
-      isTextTranscriptionMessage(obj) ||
-      isErrorTranscriptionMessage(obj) ||
-      isFormatTranscriptionMessage(obj))
+    obj
+    && (isInfoTranscriptionMessage(obj)
+      || isPartialTranscriptionMessage(obj)
+      || isTextTranscriptionMessage(obj)
+      || isErrorTranscriptionMessage(obj)
+      || isFormatTranscriptionMessage(obj))
   );
 }
 
@@ -157,7 +158,7 @@ export class VoskClient implements ITranscriber {
 
   activateVoskCliProcess(): void {
     if (this._voskCliProcess && !this._voskCliProcess.killed) {
-      console.warn(`activateVoskCliProcess: Vosk CLI process is already running.`);
+      console.warn('activateVoskCliProcess: Vosk CLI process is already running.');
       return; // Process is already running
     }
     const args = ['-m', this._modelPath];
@@ -167,7 +168,7 @@ export class VoskClient implements ITranscriber {
     this._voskCliProcess = spawn(this._voskCliPath, args, {
       stdio: 'pipe',
     });
-    this._voskCliProcess.on('error', err => {
+    this._voskCliProcess.on('error', (err) => {
       console.error(`vosk-cli process error: ${err.message}`);
       this.transcribe$?.next({ processExited: `Launch error: ${err.message}` });
       this.transcribe$?.next({ info: `Error: ${err.message}` });
@@ -179,7 +180,7 @@ export class VoskClient implements ITranscriber {
     });
     let stdoutBuffer = '';
     let stderrBuffer = '';
-    this._voskCliProcess.stdout.on('data', data => {
+    this._voskCliProcess.stdout.on('data', (data) => {
       stdoutBuffer += data.toString();
       const lines = stdoutBuffer.split('\n');
       stdoutBuffer = lines.pop() || ''; // Keep the last incomplete line
@@ -199,7 +200,7 @@ export class VoskClient implements ITranscriber {
         }
       }
     });
-    this._voskCliProcess.stderr.on('data', data => {
+    this._voskCliProcess.stderr.on('data', (data) => {
       stderrBuffer += data.toString();
       const lines = stderrBuffer.split('\n');
       stderrBuffer = lines.pop() || ''; // Keep the last incomplete line

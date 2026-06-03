@@ -16,6 +16,7 @@ import {
 } from 'services/rtvcStateService';
 import { ScenesService } from 'services/scenes';
 import { Component, Watch } from 'vue-property-decorator';
+
 import * as obs from '../../../obs-api';
 
 // for set param
@@ -108,7 +109,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     };
 
     const pattern = new RegExp(`(${Object.keys(mapping).join('|')})`, 'g');
-    return jvsListBase.map(a => {
+    return jvsListBase.map((a) => {
       a.description = a.description.replace(pattern, (m, p: string) => mapping[p]);
       return a;
     });
@@ -154,7 +155,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.secondaryVoice = p.secondaryVoice;
 
     const optionInList = (list: IObsListOption<number>[], value: number) =>
-      list.find(a => a.value === value) ?? { description: '', value }; // 100以上等はリストにないのでスルー
+      list.find((a) => a.value === value) ?? { description: '', value }; // 100以上等はリストにないのでスルー
 
     this.primaryVoiceModel = optionInList(this.primaryVoiceList, this.primaryVoice);
     this.secondaryVoiceModel = optionInList(this.secondaryVoiceList, this.secondaryVoice);
@@ -220,10 +221,9 @@ export default class RtvcSourceProperties extends SourceProperties {
   @Watch('isMonitor')
   onChangeMonitor() {
     // on値は踏襲かoffならmonitor only, offはNoneでよい
-    const onValue =
-      this.initialMonitoringType !== obs.EMonitoringType.None
-        ? this.initialMonitoringType
-        : obs.EMonitoringType.MonitoringOnly;
+    const onValue = this.initialMonitoringType !== obs.EMonitoringType.None
+      ? this.initialMonitoringType
+      : obs.EMonitoringType.MonitoringOnly;
     const monitoringType = this.isMonitor ? onValue : obs.EMonitoringType.None;
     this.audioService.setSettings(this.sourceId, { monitoringType });
     this.currentMonitoringType = monitoringType;
@@ -245,7 +245,7 @@ export default class RtvcSourceProperties extends SourceProperties {
       { v: 0, n: '±0' },
       { v: 1200, n: '+1' },
       { v: -1200, n: '-1' },
-    ].find(a => a.v === p);
+    ].find((a) => a.v === p);
 
     const n = vn ? vn.n : `${p}/1200`;
     return `${n}オクターブ`;
@@ -278,18 +278,18 @@ export default class RtvcSourceProperties extends SourceProperties {
   // -- sources in/out
 
   getSourcePropertyValue(key: SourcePropKey): TObsValue {
-    const p = this.properties.find(a => a.name === key);
+    const p = this.properties.find((a) => a.name === key);
     return p ? p.value : undefined;
   }
 
   getSourcePropertyOptions(key: SourcePropKey): IObsListOption<number>[] {
-    const p = this.properties.find(a => a.name === key) as IObsListInput<any>;
+    const p = this.properties.find((a) => a.name === key) as IObsListInput<any>;
     return p ? p.options : [];
   }
 
   getSourcePropertyOption(key: SourcePropKey, value: any): IObsListOption<number> {
     const list = this.getSourcePropertyOptions(key);
-    return list.find(a => a.value === value) ?? { description: '', value: 0 };
+    return list.find((a) => a.value === value) ?? { description: '', value: 0 };
   }
 
   setSourcePropertyValue(key: SourcePropKey, value: TObsValue) {
@@ -347,8 +347,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.currentIndex = this.draftState.currentIndex;
     this.onChangeIndex();
 
-    this.isSongMode =
-      (this.getSourcePropertyValue('pitch_shift_mode') as number) === PitchShiftModeValue.song;
+    this.isSongMode = (this.getSourcePropertyValue('pitch_shift_mode') as number) === PitchShiftModeValue.song;
     this.tab = this.draftState.tab ?? 0;
   }
 
@@ -357,8 +356,7 @@ export default class RtvcSourceProperties extends SourceProperties {
     this.audio.pause();
 
     // モニタリング状態は元の値に戻す
-    if (this.initialMonitoringType !== this.currentMonitoringType)
-      this.audioService.setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
+    if (this.initialMonitoringType !== this.currentMonitoringType) this.audioService.setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
 
     if (this.canceled) {
       this.source.setPropertiesFormData(this.initialProperties);
@@ -401,7 +399,7 @@ export default class RtvcSourceProperties extends SourceProperties {
 
   findNewManualImageNum() {
     for (let i = 0; i < this.rtvcStateService.manualImages.length; i++) {
-      if (!this.draftState.manuals.find(a => a.imageNum === i)) return i;
+      if (!this.draftState.manuals.find((a) => a.imageNum === i)) return i;
     }
     return 0;
   }

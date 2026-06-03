@@ -4,15 +4,15 @@ import { test, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver();
 
-test('Streaming to custom streaming server', async t => {
+test('Streaming to custom streaming server', async (t) => {
   const streamingServerURL = process.env.NAIR_TEST_STREAM_SERVER;
   const streamingKey = process.env.NAIR_TEST_STREAM_KEY;
 
   if (!(streamingServerURL && streamingKey)) {
     console.warn(
-      'テスト用配信情報が不足しています。配信テストをスキップします。\n' +
-        `NAIR_TEST_STREAM_SERVER: ${process.env.NAIR_TEST_STREAM_SERVER}\n` +
-        `NAIR_TEST_STREAM_KEY   : ${process.env.NAIR_TEST_STREAM_KEY}`,
+      'テスト用配信情報が不足しています。配信テストをスキップします。\n'
+        + `NAIR_TEST_STREAM_SERVER: ${process.env.NAIR_TEST_STREAM_SERVER}\n`
+        + `NAIR_TEST_STREAM_KEY   : ${process.env.NAIR_TEST_STREAM_KEY}`,
     );
     t.pass();
     return;

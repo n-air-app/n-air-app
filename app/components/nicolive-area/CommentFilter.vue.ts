@@ -169,9 +169,9 @@ export default class CommentFilter extends Vue {
     }[this.currentFilterBy];
 
     return this.filters
-      .filter(x => x.type === this.currentType)
-      .filter(x => filtersBy(x))
-      .map(item => {
+      .filter((x) => x.type === this.currentType)
+      .filter((x) => filtersBy(x))
+      .map((item) => {
         return {
           id: item.id,
           type: item.type,

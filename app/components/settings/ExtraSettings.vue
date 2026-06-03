@@ -34,6 +34,16 @@
 
     <div>
       <div class="section">
+        <ObsBoolInput
+          :value="pollingPerformanceStatisticsModel"
+          @input="setPollingPerformanceStatistics"
+        />
+        <p>{{ $t('settings.pollingPerformanceStatisticsDescription') }}</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
         <div class="input-label">
           <label>{{ $t('settings.cacheManagement') }}</label>
         </div>
@@ -71,16 +81,6 @@
             {{ $t('settings.deleteAllCacheAndRestart') }}
           </a>
         </div>
-      </div>
-    </div>
-
-    <div>
-      <div class="section">
-        <ObsBoolInput
-          :value="pollingPerformanceStatisticsModel"
-          @input="setPollingPerformanceStatistics"
-        />
-        <p>{{ $t('settings.pollingPerformanceStatisticsDescription') }}</p>
       </div>
     </div>
   </div>

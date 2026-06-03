@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 
 interface TocSectionData {
   id: string;
@@ -70,6 +70,25 @@ export default class TocSection extends Vue {
             level: this.computedLevel,
           });
         }
+      });
+    }
+  }
+
+  @Watch('visible')
+  onVisibleChanged(newVal: boolean) {
+    if (!newVal) {
+      if (this._registeredCategoryName) {
+        this.unregisterTocSection(this._registeredCategoryName, this.sectionId);
+        this._registeredCategoryName = undefined;
+      }
+    } else if (!this._registeredCategoryName && typeof this.registerTocSection === 'function') {
+      this.$nextTick(() => {
+        this._registeredCategoryName = this.registerTocSection({
+          id: this.sectionId,
+          title: this.title,
+          order: 0,
+          level: this.computedLevel,
+        });
       });
     }
   }

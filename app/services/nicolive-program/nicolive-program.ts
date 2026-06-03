@@ -5,16 +5,15 @@ import { mutation, StatefulService } from 'services/core/stateful-service';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { isFakeMode } from 'util/fakeMode';
+
 import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
 import {
   calcServerClockOffsetSec,
   CommentModifier,
   CreateResult,
   EditResult,
-  FailedResult,
   isOk,
   NicoliveClient,
-  WrappedResult,
 } from './NicoliveClient';
 import { NicoliveFailure, openErrorDialogFromFailure } from './NicoliveFailure';
 import { OneCommeRelation } from './OneCommeRelation';
@@ -112,13 +111,13 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     super.init();
 
     this.stateService.updated.subscribe({
-      next: persistentState => {
+      next: (persistentState) => {
         this.setState(persistentState);
       },
     });
 
     this.userService.userLoginState.subscribe({
-      next: user => {
+      next: (user) => {
         this.setState({ isLoggedIn: Boolean(user) });
         if (!user) {
           this.setState(NicoliveProgramService.programInitialState);
@@ -178,7 +177,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
   static findSuitableProgram(schedules: Schedules): null | Schedule {
     // テスト中・放送中の番組があればそれで確定
     const currentProgram = schedules.find(
-      s => s.socialGroupId.startsWith('co') && (s.status === 'test' || s.status === 'onAir'),
+      (s) => s.socialGroupId.startsWith('co') && (s.status === 'test' || s.status === 'onAir'),
     );
     if (currentProgram) return currentProgram;
 
@@ -261,9 +260,9 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
   async fetchProgramPassword(nicoliveProgramId: string): Promise<string | undefined> {
     const programPassword = await this.client.fetchProgramPassword(nicoliveProgramId);
     if (
-      !programPassword.ok &&
-      'meta' in programPassword.value &&
-      programPassword.value.meta.errorCode !== 'NOT_PASSWORD_PROGRAM'
+      !programPassword.ok
+      && 'meta' in programPassword.value
+      && programPassword.value.meta.errorCode !== 'NOT_PASSWORD_PROGRAM'
     ) {
       if (!isOk(programPassword)) {
         throw NicoliveFailure.fromClientError('fetchProgramPassword', programPassword);
@@ -324,10 +323,9 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
 
       // setState 前に「同じ番組をすでに接続済みでコメントを受信していたか」を保存
       // viewUri != '' はコメント接続済みであることを示す
-      const isRefetchSameProgram =
-        this.state.programID === nicoliveProgramId &&
-        this.state.viewUri !== '' &&
-        !this.state.showPlaceholder;
+      const isRefetchSameProgram = this.state.programID === nicoliveProgramId
+        && this.state.viewUri !== ''
+        && !this.state.showPlaceholder;
 
       this.setState({
         programID: nicoliveProgramId,
@@ -459,7 +457,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     this.setState({ endTime });
   }
 
-
   async sendOperatorComment(text: string, isPermanent: boolean): Promise<void> {
     if (isFakeMode()) {
       // TODO
@@ -519,35 +516,32 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     const now = this.correctedNowMs();
 
     /** 放送状態が変化しなかった前提で、放送状態が次に変化するであろう時刻 */
-    const prevTargetTime: number =
-      prevState[NicoliveProgramService.REFRESH_TARGET_TIME_TABLE[nextState.status]];
+    const prevTargetTime: number = prevState[NicoliveProgramService.REFRESH_TARGET_TIME_TABLE[nextState.status]];
     /*: 予約番組で現在時刻が開始時刻より30分以上前なら、30分を切ったときに再取得するための補正項 */
-    const readyTimeTermIfReserved =
-      nextState.status === 'reserved' && nextState.startTime - Math.floor(now / 1000) > 30 * 60
-        ? -30 * 60
-        : 0;
-    const nextTargetTime: number =
-      nextState[NicoliveProgramService.REFRESH_TARGET_TIME_TABLE[nextState.status]] +
-      readyTimeTermIfReserved;
+    const readyTimeTermIfReserved = nextState.status === 'reserved' && nextState.startTime - Math.floor(now / 1000) > 30 * 60
+      ? -30 * 60
+      : 0;
+    const nextTargetTime: number = nextState[NicoliveProgramService.REFRESH_TARGET_TIME_TABLE[nextState.status]]
+      + readyTimeTermIfReserved;
     const targetTimeUpdated = !statusUpdated && prevTargetTime !== nextTargetTime;
 
     const prev = prevState.status !== 'end';
     const next = nextState.status !== 'end';
 
     if (
-      next &&
-      (!prev ||
-        programUpdated ||
-        statusUpdated ||
-        targetTimeUpdated ||
-        nextState.status === 'reserved') // 予約中は30分前境界を越えたときに status が 'reserved' のまま変わらないためタイマーを再設定できていなかったので雑に予約中なら毎回設定する
+      next
+      && (!prev
+        || programUpdated
+        || statusUpdated
+        || targetTimeUpdated
+        || nextState.status === 'reserved') // 予約中は30分前境界を越えたときに status が 'reserved' のまま変わらないためタイマーを再設定できていなかったので雑に予約中なら毎回設定する
     ) {
       const waitTime = (nextTargetTime + NicoliveProgramService.TIMER_PADDING_SECONDS) * 1000 - now;
 
       // 次に放送状態が変化する予定の時刻（より少し後）に放送情報を更新するタイマーを仕込む
       clearTimeout(this.refreshProgramTimer);
       this.refreshProgramTimer = window.setTimeout(() => {
-        this.refreshProgram().catch(caught => {
+        this.refreshProgram().catch((caught) => {
           if (caught instanceof NicoliveFailure) {
             console.warn('refreshProgram failed:', caught);
           } else {
@@ -569,11 +563,9 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     const endTimeUpdated = prevState.endTime !== nextState.endTime;
 
     /** 更新前の状態でタイマーが動作しているべきか */
-    const prev =
-      prevState.autoExtensionEnabled && NicoliveProgramService.isProgramExtendable(prevState);
+    const prev = prevState.autoExtensionEnabled && NicoliveProgramService.isProgramExtendable(prevState);
     /** 更新後の状態でタイマーが動作しているべきか */
-    const next =
-      nextState.autoExtensionEnabled && NicoliveProgramService.isProgramExtendable(nextState);
+    const next = nextState.autoExtensionEnabled && NicoliveProgramService.isProgramExtendable(nextState);
 
     // 動作すべき状態になる OR 終了時刻が変わったら再設定
     if ((next && !prev) || (next && endTimeUpdated)) {

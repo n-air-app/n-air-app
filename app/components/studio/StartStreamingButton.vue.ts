@@ -10,6 +10,7 @@ import { EStreamingState, StreamingService } from 'services/streaming';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+
 import StartStreamingIcon from '../../../media/images/start-streaming-icon.svg';
 
 @Component({
@@ -91,12 +92,12 @@ export default class StartStreamingButton extends Vue {
 
   get isDisabled() {
     return (
-      this.disabled ||
-      this.programFetching ||
-      (this.streamingStatus === EStreamingState.Starting &&
-        this.streamingService.delaySecondsRemaining === 0) ||
-      (this.streamingStatus === EStreamingState.Ending &&
-        this.streamingService.delaySecondsRemaining === 0)
+      this.disabled
+      || this.programFetching
+      || (this.streamingStatus === EStreamingState.Starting
+        && this.streamingService.delaySecondsRemaining === 0)
+      || (this.streamingStatus === EStreamingState.Ending
+        && this.streamingService.delaySecondsRemaining === 0)
     );
   }
 

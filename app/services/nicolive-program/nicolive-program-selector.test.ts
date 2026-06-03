@@ -1,5 +1,6 @@
 import { Subject } from 'rxjs';
 import { createSetupFunction } from 'util/test-setup';
+
 import { NicoliveProgramSelectorService, TProviderType, TStep } from './nicolive-program-selector';
 import { OnairChannelData, OnairChannelProgramData } from './ResponseTypes';
 

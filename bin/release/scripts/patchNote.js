@@ -125,7 +125,7 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
     }
     const pullNumber = parseInt(pr[1], 10);
     promises.push(
-      octokit.pulls.get({ owner, repo, pull_number: pullNumber }).catch(e => {
+      octokit.pulls.get({ owner, repo, pull_number: pullNumber }).catch((e) => {
         info(e);
         return { data: {} };
       }),
@@ -148,7 +148,7 @@ async function collectPullRequestMerges({ octokit, owner, repo }, previousVersio
     return 3;
   }
 
-  return Promise.all(promises).then(results => {
+  return Promise.all(promises).then((results) => {
     const summary = [];
     for (const result of results) {
       const { data } = result;
@@ -239,9 +239,9 @@ async function collectNonPRMerges(previousVersion) {
 
     const includedCommits = includedCommitsResult.stdout
       .split(/\r?\n/)
-      .filter(/** @param {string} line */ line => line.trim())
+      .filter(/** @param {string} line */ (line) => line.trim())
       .reverse() // Reverse to show chronological order (oldest first)
-      .map(/** @param {string} line */ line => `  - ${line}`);
+      .map(/** @param {string} line */ (line) => `  - ${line}`);
 
     if (includedCommits.length > 0) {
       nonPRMerges.push({
@@ -266,7 +266,7 @@ async function collectNonPRMerges(previousVersion) {
    * @param {string} subject - Merge commit subject
    * @returns {string|null} Branch name or null if not found
    */
-  const extractBranchName = subject => {
+  const extractBranchName = (subject) => {
     const match = subject.match(/Merge branch '([^']+)'/);
     return match ? match[1] : null;
   };
@@ -300,10 +300,10 @@ export const notes: IPatchNotes = {
   title: '${title}',
   notes: [
 ${notes
-  .trim()
-  .split('\n')
-  .map(s => `    ${JSON.stringify(s)},`)
-  .join('\n')}
+    .trim()
+    .split('\n')
+    .map((s) => `    ${JSON.stringify(s)},`)
+    .join('\n')}
   ],
 };
 `;

@@ -16,7 +16,7 @@ function findTargetDisplay(savedDisplayBounds, savedX, savedY, screen) {
     // 保存された位置と一致するディスプレイを探す
     const allDisplays = screen.getAllDisplays();
     const match = allDisplays.find(
-      d => d.bounds.x === savedDisplayBounds.x && d.bounds.y === savedDisplayBounds.y,
+      (d) => d.bounds.x === savedDisplayBounds.x && d.bounds.y === savedDisplayBounds.y,
     );
     if (match) return match;
     // 完全一致がなければ中心点から最近接ディスプレイを返す（モニター切断時のフォールバック）
@@ -83,7 +83,7 @@ function resolveWindowBounds(rawSavedState, windowState, screen, defaults) {
   const isVisible =
     hasPosition &&
     allDisplays.some(
-      display =>
+      (display) =>
         display.workArea.x < windowState.x + windowState.width &&
         windowState.x < display.workArea.x + display.workArea.width &&
         display.workArea.y < windowState.y &&

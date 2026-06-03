@@ -67,7 +67,7 @@ export default class TranscriptionSettings extends Vue {
   }
 
   created() {
-    this.modelStatusSubscription = this.transcriptionService.modelsStatus$.subscribe(status => {
+    this.modelStatusSubscription = this.transcriptionService.modelsStatus$.subscribe((status) => {
       this.modelsStatus = status;
     });
     this.modelsStatus = this.transcriptionService.modelsStatus();
@@ -83,7 +83,7 @@ export default class TranscriptionSettings extends Vue {
       },
     );
 
-    this.activeStatusSubscription = this.transcriptionService.activeStatus$.subscribe(isActive => {
+    this.activeStatusSubscription = this.transcriptionService.activeStatus$.subscribe((isActive) => {
       this.activeStatus = isActive;
     });
     this.activeStatus = this.transcriptionService.activeStatus();
@@ -138,8 +138,7 @@ export default class TranscriptionSettings extends Vue {
       }
 
       // 出力先チェック: 文字起こしソースがシーンにある、またはニコニコログイン中かつコメント投稿on
-      const hasOutputDestination =
-        this.transcriptionSourceInActiveScene || (this.isNiconicoLoggedIn() && this.commentEnabled);
+      const hasOutputDestination = this.transcriptionSourceInActiveScene || (this.isNiconicoLoggedIn() && this.commentEnabled);
 
       if (!hasOutputDestination) {
         // ニコニコログイン中の場合はコメント投稿の選択肢も紹介する
@@ -170,12 +169,10 @@ export default class TranscriptionSettings extends Vue {
   transcriptionSourceInActiveSceneSubscription: Subscription;
   transcriptionSourceInActiveScene: boolean = false;
   subscribeTranscriptionSourceUsage() {
-    this.transcriptionSourceInActiveSceneSubscription =
-      this.transcriptionSourceUsageService.state$.subscribe(state => {
-        this.transcriptionSourceInActiveScene = state.existsInActiveScene;
-      });
-    this.transcriptionSourceInActiveScene =
-      this.transcriptionSourceUsageService.state.existsInActiveScene;
+    this.transcriptionSourceInActiveSceneSubscription = this.transcriptionSourceUsageService.state$.subscribe((state) => {
+      this.transcriptionSourceInActiveScene = state.existsInActiveScene;
+    });
+    this.transcriptionSourceInActiveScene = this.transcriptionSourceUsageService.state.existsInActiveScene;
   }
   unsubscribeTranscriptionSourceUsage() {
     this.transcriptionSourceInActiveSceneSubscription?.unsubscribe();
@@ -188,10 +185,10 @@ export default class TranscriptionSettings extends Vue {
   // vosk model がひとつでもダウンロード済み、ダウンロード中、またはインストール中ならtrue
   get hasVoskModelDownloadedOrInProgress(): boolean {
     return Object.values(this.modelsStatus).some(
-      status =>
-        status.state === 'downloaded' ||
-        status.state === 'downloading' ||
-        status.state === 'installing',
+      (status) =>
+        status.state === 'downloaded'
+        || status.state === 'downloading'
+        || status.state === 'installing',
     );
   }
 
@@ -200,7 +197,7 @@ export default class TranscriptionSettings extends Vue {
       name: 'voskModel',
       description: '',
       value: this.transcriptionService.state.voskModelName ?? '',
-      options: this.transcriptionService.getVoskModels().map(model => {
+      options: this.transcriptionService.getVoskModels().map((model) => {
         const status = this.modelsStatus[model.name];
         return {
           value: model.name,
@@ -218,9 +215,9 @@ export default class TranscriptionSettings extends Vue {
 
   get isDownloadButtonEnabled(): boolean {
     return (
-      this.modelStatus.state === 'not_downloaded' ||
-      this.modelStatus.state === 'download_error' ||
-      this.modelStatus.state === 'cancelled'
+      this.modelStatus.state === 'not_downloaded'
+      || this.modelStatus.state === 'download_error'
+      || this.modelStatus.state === 'cancelled'
     );
   }
 
@@ -247,8 +244,8 @@ export default class TranscriptionSettings extends Vue {
 
   get isDeleteButtonEnabled(): boolean {
     return (
-      this.transcriptionService.state.voskModelName &&
-      (this.modelStatus.state === 'downloaded' || this.modelStatus.state === 'load_error')
+      this.transcriptionService.state.voskModelName
+      && (this.modelStatus.state === 'downloaded' || this.modelStatus.state === 'load_error')
     );
   }
 
@@ -272,7 +269,7 @@ export default class TranscriptionSettings extends Vue {
       name: 'transcriptionAudioSource',
       value: this.transcriptionService.state.audioDeviceId ?? '',
       options: [
-        ...sources.map(source => ({
+        ...sources.map((source) => ({
           description: source.name,
           value: source.id,
         })),
@@ -331,10 +328,10 @@ export default class TranscriptionSettings extends Vue {
       description: $t('settings.transcription.comment.positionLabel'),
       value: this.transcriptionService.state.commentPosition,
       enabled: true,
-      options: COMMENT_POSITIONS.map(position => ({
+      options: COMMENT_POSITIONS.map((position) => ({
         description:
-          $t(`settings.transcription.comment.position.${position}`) +
-          (position === TranscriptionService.defaultState.commentPosition
+          $t(`settings.transcription.comment.position.${position}`)
+          + (position === TranscriptionService.defaultState.commentPosition
             ? $t('settings.transcription.comment.defaultSuffix')
             : ''),
         value: position,
@@ -351,10 +348,10 @@ export default class TranscriptionSettings extends Vue {
       description: $t('settings.transcription.comment.sizeLabel'),
       value: this.transcriptionService.state.commentSize,
       enabled: true,
-      options: COMMENT_SIZES.map(size => ({
+      options: COMMENT_SIZES.map((size) => ({
         description:
-          $t(`settings.transcription.comment.size.${size}`) +
-          (size === TranscriptionService.defaultState.commentSize
+          $t(`settings.transcription.comment.size.${size}`)
+          + (size === TranscriptionService.defaultState.commentSize
             ? $t('settings.transcription.comment.defaultSuffix')
             : ''),
         value: size,
@@ -371,7 +368,7 @@ export default class TranscriptionSettings extends Vue {
       description: $t('settings.transcription.comment.fontLabel'),
       value: this.transcriptionService.state.commentFont,
       enabled: true,
-      options: COMMENT_FONTS.map(font => ({
+      options: COMMENT_FONTS.map((font) => ({
         description: $t(`settings.transcription.comment.font.${font}`),
         value: font,
       })),
@@ -387,10 +384,10 @@ export default class TranscriptionSettings extends Vue {
       description: $t('settings.transcription.comment.colorLabel'),
       value: this.transcriptionService.state.commentColor,
       enabled: true,
-      options: COMMENT_COLORS.map(color => ({
+      options: COMMENT_COLORS.map((color) => ({
         description:
-          $t(`settings.transcription.comment.color.${color}`) +
-          (color === TranscriptionService.defaultState.commentColor
+          $t(`settings.transcription.comment.color.${color}`)
+          + (color === TranscriptionService.defaultState.commentColor
             ? $t('settings.transcription.comment.defaultSuffix')
             : ''),
         value: color,

@@ -12,7 +12,7 @@
       </div>
       <div class="speech-engine-body">
         <div class="input-label section-heading">
-          <label>音声設定</label>
+          <label>音声</label>
         </div>
         <div class="input-container">
           <div class="row">
@@ -66,7 +66,7 @@
       </div>
       <div class="speech-engine-body">
         <div class="input-label section-heading">
-          <label>音声設定</label>
+          <label>音声</label>
         </div>
         <div class="input-container">
           <div class="row">

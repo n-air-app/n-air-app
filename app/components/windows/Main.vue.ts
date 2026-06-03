@@ -1,5 +1,4 @@
 import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import NicoliveArea from 'components/nicolive-area/NicoliveArea.vue';
 import Onboarding from 'components/pages/Onboarding.vue';
 import PatchNotes from 'components/pages/PatchNotes.vue';
@@ -16,6 +15,7 @@ import { ScenesService } from 'services/scenes';
 import { UserService } from 'services/user';
 import { WindowSizeService } from 'services/window-size';
 import { WindowsService } from 'services/windows';
+import { SentryReport } from 'util/sentry-report';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
@@ -100,10 +100,7 @@ export default class Main extends Vue {
   onDropHandler(event: DragEvent) {
     const files = event.dataTransfer.files;
     if (!this.scenesService.activeScene) {
-      Sentry.captureMessage(
-        'Attempted to add files to a scene when no scene was active',
-        'warning',
-      );
+      SentryReport.message('MainWindow', 'onDropHandler', 'Attempted to add files to a scene when no scene was active', { level: 'warning' });
       return;
     }
 

@@ -4,6 +4,7 @@ import { TPlatform } from 'services/platforms';
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import NAirLogo from '../../../../media/images/n-air-logo.svg';
 
 @Component({

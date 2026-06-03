@@ -1,11 +1,12 @@
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { isFakeMode } from 'util/fakeMode';
-import { NicoliveClient, isOk } from './NicoliveClient';
+
+import { isOk, NicoliveClient } from './NicoliveClient';
 import { NicoliveFailure } from './NicoliveFailure';
 import { AddFilterRecord, FilterRecord } from './ResponseTypes';
 import { WrappedMessage } from './WrappedChat';
@@ -31,9 +32,9 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
     if (wrapped.type === 'normal') {
       for (const record of this.state.filters) {
         if (
-          (record.type === 'word' && wrapped.value.content?.includes(record.body)) ||
-          (record.type === 'user' && wrapped.value.user_id === record.body) ||
-          (record.type === 'command' && wrapped.value.mail?.split(/\s/).includes(record.body))
+          (record.type === 'word' && wrapped.value.content?.includes(record.body))
+          || (record.type === 'user' && wrapped.value.user_id === record.body)
+          || (record.type === 'command' && wrapped.value.mail?.split(/\s/).includes(record.body))
         ) {
           return { ...wrapped, filtered: true };
         }
@@ -58,10 +59,10 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
       .pipe(
         map(({ programID }) => programID),
         distinctUntilChanged(),
-        filter(programID => programID !== ''),
+        filter((programID) => programID !== ''),
       )
       .subscribe(() => {
-        this.fetchFilters().catch(caught => {
+        this.fetchFilters().catch((caught) => {
           if (caught instanceof NicoliveFailure) {
             // ignore
           } else {
@@ -120,11 +121,11 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
   }
 
   findFilterCache(id: number): FilterRecord | undefined {
-    return this.state.filters.find(rec => rec.id === id);
+    return this.state.filters.find((rec) => rec.id === id);
   }
 
   addFilterCache(record: FilterRecord) {
-    if (!this.state.filters.some(rec => rec.id === record.id)) {
+    if (!this.state.filters.some((rec) => rec.id === record.id)) {
       const filters = [...this.state.filters, record];
       this.updateFilters(filters);
     } else {
@@ -133,7 +134,7 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
   }
 
   deleteFiltersCache(ids: number[]) {
-    const filters = this.state.filters.filter(rec => !ids.includes(rec.id));
+    const filters = this.state.filters.filter((rec) => !ids.includes(rec.id));
     this.updateFilters(filters);
   }
 

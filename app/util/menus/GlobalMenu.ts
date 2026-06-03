@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import { $t } from 'services/i18n';
+
 import { Menu } from './Menu';
 
 export function setupGlobalContextMenuForEditableElement() {

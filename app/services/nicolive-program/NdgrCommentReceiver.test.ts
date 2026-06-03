@@ -1,11 +1,12 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Subject } from 'rxjs';
+
 import { MessageResponse } from './ChatMessage';
 import { isChatMessage } from './ChatMessage/util';
 import {
-  NdgrCommentReceiver,
   convertChunkedResponseToMessageResponse,
   convertModifierToMail,
+  NdgrCommentReceiver,
 } from './NdgrCommentReceiver';
 
 describe('NdgrCommentReceiver', () => {
@@ -42,13 +43,13 @@ describe('NdgrCommentReceiver', () => {
     jest.resetModules();
   });
 
-  test('connect() でメッセージを受信できる', done => {
+  test('connect() でメッセージを受信できる', (done) => {
     const Receiver = setupReceiverWithMock();
     const receiver = new Receiver('https://example.com/view');
     const received: MessageResponse[] = [];
 
     receiver.connect().subscribe({
-      next: msg => received.push(msg),
+      next: (msg) => received.push(msg),
       error: done,
     });
 
@@ -73,7 +74,7 @@ describe('NdgrCommentReceiver', () => {
     mockConnectImpl = () => Promise.reject(error);
 
     const errors: unknown[] = [];
-    receiver.connect().subscribe({ error: e => errors.push(e) });
+    receiver.connect().subscribe({ error: (e) => errors.push(e) });
 
     // connect() のエラーが Promise.reject で非同期に来るので待つ
     await Promise.resolve();
@@ -92,8 +93,8 @@ describe('NdgrCommentReceiver', () => {
     const received: MessageResponse[] = [];
     const errors2: unknown[] = [];
     receiver.connect().subscribe({
-      next: msg => received.push(msg),
-      error: e => errors2.push(e),
+      next: (msg) => received.push(msg),
+      error: (e) => errors2.push(e),
     });
 
     // メッセージを送信
@@ -126,7 +127,7 @@ describe('NdgrCommentReceiver', () => {
 
     // 2回目の接続: 新しい購読者がすぐにエラーにならないことを確認
     let immediateError: unknown = null;
-    receiver.connect().subscribe({ error: e => (immediateError = e) });
+    receiver.connect().subscribe({ error: (e) => (immediateError = e) });
 
     // 同期的にはエラーが来ないはず
     expect(immediateError).toBeNull();
@@ -235,7 +236,7 @@ describe('convertModifierToMail', () => {
       },
       expected: 'shita big red',
     },
-  ])(`convertModifierToMail($expected)`, ({ modifier, expected }) => {
+  ])('convertModifierToMail($expected)', ({ modifier, expected }) => {
     expect(convertModifierToMail(modifier)).toBe(expected);
   });
 });

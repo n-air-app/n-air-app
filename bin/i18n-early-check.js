@@ -25,14 +25,14 @@ function readFile(filepath) {
 
 function collectAcceptedAndRejectedValues(promises) {
   const withCatch = promises.map(
-    p => p.then(
-      value => ({ value, ok: true }),
-      value => ({ value, ok: false })
-    )
+    (p) => p.then(
+      (value) => ({ value, ok: true }),
+      (value) => ({ value, ok: false }),
+    ),
   );
 
   return Promise.all(withCatch)
-    .then(results =>
+    .then((results) =>
       results.reduce((acc, cur) => {
         if (cur.ok) {
           acc.accepted.push(cur.value);
@@ -40,7 +40,7 @@ function collectAcceptedAndRejectedValues(promises) {
           acc.rejected.push(cur.value);
         }
         return acc;
-      }, {accepted: [], rejected: []})
+      }, { accepted: [], rejected: [] }),
     );
 }
 
@@ -62,14 +62,14 @@ async function loadAllJsons() {
   const rejected = [];
   for (const locale of locales) {
     const files = await readdir(path.join(dictDir, locale));
-    const jsons = files.filter(x => x.endsWith('.json'));
+    const jsons = files.filter((x) => x.endsWith('.json'));
 
     const tries = jsons
-      .map(async json => {
+      .map(async (json) => {
         const filepath = path.join(dictDir, locale, json);
         const content = await readFile(filepath);
         try {
-          return {locale, filename: json, content: JSON.parse(content)};
+          return { locale, filename: json, content: JSON.parse(content) };
         } catch (e) {
           throw new Error(`in file: ${filepath}\n  ${e.message}`);
         }
@@ -79,12 +79,12 @@ async function loadAllJsons() {
     accepted.push(...values.accepted);
     rejected.push(...values.rejected);
   }
-  return {accepted, rejected};
+  return { accepted, rejected };
 }
 
 /**
- * 
- * @param [{locale: string, filename: string, content: Object}] localeJsons 
+ *
+ * @param [{locale: string, filename: string, content: Object}] localeJsons
  */
 function checkKeys(localeJsons) {
   const result = [];
@@ -93,7 +93,7 @@ function checkKeys(localeJsons) {
 
   const localesOfFiles = localeJsons
     .reduce((acc, cur) => {
-      const {filename, locale, content} = cur;
+      const { filename, locale, content } = cur;
       if (!acc.has(filename)) {
         acc.set(filename, new Map([[locale, content]]));
       } else {
@@ -105,7 +105,7 @@ function checkKeys(localeJsons) {
   for (const [filename, localesOfAFile] of localesOfFiles) {
     const locales = Array.from(localesOfAFile);
     if (locales.length !== allLocales.length) {
-      const missingLocales = allLocales.filter(v => !localesOfAFile.has(v));
+      const missingLocales = allLocales.filter((v) => !localesOfAFile.has(v));
       result.push(new Error(`file ${filename} is only in (${locales}), not in (${missingLocales})`));
     } else {
       const localesOfKeys = new Map();
@@ -120,7 +120,7 @@ function checkKeys(localeJsons) {
       }
       for (const [key, localesOfAKey] of localesOfKeys) {
         if (localesOfAKey.length !== allLocales.length) {
-          const missingLocales = allLocales.filter(v => localesOfAKey.indexOf(v) < 0);
+          const missingLocales = allLocales.filter((v) => localesOfAKey.indexOf(v) < 0);
           const message = `${filename}: '${key}' is only in (${localesOfAKey}), not in (${missingLocales})`;
           result.push(new Error(message));
         }
@@ -131,20 +131,20 @@ function checkKeys(localeJsons) {
 }
 
 loadAllJsons()
-  .then(result => {
+  .then((result) => {
     if (result.rejected.length !== 0) {
       return result.rejected;
     }
     return checkKeys(result.accepted);
   })
-  .then(result => {
+  .then((result) => {
     if (result.length) {
       console.error(`\u001b[31mError in early check\u001b[0m: ${result.length} errors found`);
-      console.error(result.map(e => e.message).join('\n'));
+      console.error(result.map((e) => e.message).join('\n'));
       process.exit(1);
     }
   })
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   });

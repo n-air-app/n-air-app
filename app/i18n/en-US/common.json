@@ -93,5 +93,7 @@
   "gameCapture": {
     "searching": "Looking for a game to capture",
     "missing": "Specified window is not a game"
-  }
+  },
+  "on": "On",
+  "off": "Off"
 }

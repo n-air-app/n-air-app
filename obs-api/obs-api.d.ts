@@ -1,4 +1,6 @@
 // export * from 'obs-studio-node/module'
+import { EOutputCode, EVideoCodes, IVideo } from 'obs-studio-node/module';
+
 export {
   addItems,
   createSources,
@@ -62,7 +64,6 @@ export {
   VideoFactory,
   VolmeterFactory,
 } from 'obs-studio-node/module';
-import { EOutputCode, EVideoCodes, IVideo } from 'obs-studio-node/module';
 
 export interface IGetSettingsData {
   nameSubCategory: string;
@@ -110,7 +111,7 @@ export const NodeObs: {
   ): EVideoCodes;
   // OBS_API_destroyOBS_API(): void;
   OBS_API_getPerformanceStatistics():
-    | {
+    {
         CPU: number;
         numberDroppedFrames: number;
         percentageDroppedFrames: number;
@@ -122,8 +123,7 @@ export const NodeObs: {
         averageTimeToRenderFrame: number;
         memoryUsage: number;
         diskSpaceAvailable: string;
-      }
-    | undefined;
+      };
   SetWorkingDirectory(path: string): void;
   InitShutdownSequence(): void;
   /* OBS_API_QueryHotkeys(): {
@@ -223,8 +223,8 @@ export const NodeObs: {
     context: IVideo,
   ): void;
   OBS_content_destroyDisplay(key: string): void;
-  OBS_content_getDisplayPreviewOffset(key: string): IVec2 | undefined;
-  OBS_content_getDisplayPreviewSize(key: string): { width: number; height: number } | undefined;
+  OBS_content_getDisplayPreviewOffset(key: string): IVec2;
+  OBS_content_getDisplayPreviewSize(key: string): { width: number; height: number };
   OBS_content_createSourcePreviewDisplay(
     window: Buffer,
     sourceName: string,

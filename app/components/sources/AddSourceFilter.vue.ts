@@ -1,22 +1,21 @@
+import * as inputComponents from 'components/obs/inputs';
+import ModalLayout from 'components/shared/ModalLayout.vue';
 import { Inject } from 'services/core/injector';
+import { $t } from 'services/i18n';
 import { SourceFiltersService } from 'services/source-filters';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-
-import * as inputComponents from 'components/obs/inputs';
-import ModalLayout from 'components/shared/ModalLayout.vue';
-import { $t } from 'services/i18n';
 
 @Component({
   components: { ModalLayout, ...inputComponents },
 })
 export default class AddSourceFilter extends Vue {
   @Inject()
-  windowsService: WindowsService;
+    windowsService: WindowsService;
 
   @Inject('SourceFiltersService')
-  filtersService: SourceFiltersService;
+    filtersService: SourceFiltersService;
 
   // @ts-expect-error: ts2729: use before initialization
   sourceId: string = this.windowsService.getChildWindowQueryParams().sourceId;
@@ -46,7 +45,7 @@ export default class AddSourceFilter extends Vue {
 
   validateName(name: string) {
     if (!name) return $t('common.nameIsRequiredMessage');
-    if (this.filtersService.getFilters(this.sourceId).find(filter => filter.name === name)) {
+    if (this.filtersService.getFilters(this.sourceId).find((filter) => filter.name === name)) {
       return $t('common.alreadyTakenNameMessage');
     }
     return '';

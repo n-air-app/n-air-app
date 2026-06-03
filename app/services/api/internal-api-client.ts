@@ -2,9 +2,12 @@ import electron from 'electron';
 import { Observable, Subject } from 'rxjs';
 import { IJsonRpcEvent, IJsonRpcResponse, IMutation, JsonrpcService } from 'services/api/jsonrpc';
 import * as traverse from 'traverse';
+import { captureIpcRequestError } from 'util/sentry-ipc-request';
+
 import { ServicesManager } from '../../services-manager';
 import { commitMutation } from '../../store';
 import { Service } from '../core/service';
+
 const { ipcRenderer } = electron;
 
 /**
@@ -78,14 +81,20 @@ export class InternalApiClient {
           );
 
           if (response.error) {
-            throw Error('IPC request failed: check the errors in the main window');
+            throw captureIpcRequestError(
+              serviceName,
+              methodName,
+              isHelper,
+              isHelper ? target['_resourceId'] : undefined,
+              response.error,
+            );
           }
 
           const result = response.result;
           const mutations = response.mutations;
 
           // commit all mutations caused by the api-request now
-          mutations.forEach(mutation => commitMutation(mutation));
+          mutations.forEach((mutation) => commitMutation(mutation));
           // we'll still receive already committed mutations from async IPC event
           // mark them as ignored
           this.skippedMutationsCount += mutations.length;
@@ -99,8 +108,7 @@ export class InternalApiClient {
             }
 
             if (result.emitter === 'STREAM') {
-              return (this.subscriptions[result.resourceId] =
-                this.subscriptions[result.resourceId] || new Subject());
+              return (this.subscriptions[result.resourceId] = this.subscriptions[result.resourceId] || new Subject());
             }
           }
 

@@ -8,7 +8,7 @@ N Air は Streamlabs OBS をベースにした、生放送に便利な機能が�
 ## 動作条件
 
 - DirectX 10.1 互換の GPU
-- Windows 10 以降(64 ビット版)
+- Windows 11 以降(64 ビット版)
 - メモリ：8GB 以上
 - CPU：Core i5 第四世代相当
 - インターネット接続環境が必要です。

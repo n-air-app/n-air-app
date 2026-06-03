@@ -1,5 +1,6 @@
 import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
+
 import { NiconicoService as NiconicoServiceType } from './niconico';
 
 const setup = createSetupFunction({

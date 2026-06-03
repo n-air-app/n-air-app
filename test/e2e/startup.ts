@@ -1,6 +1,6 @@
 import { focusChild, focusMain, getFocusedWindowId } from '../helpers/modules/core';
 import { sleep } from '../helpers/sleep';
-import { TExecutionContext, test, useWebdriver } from '../helpers/webdriver/index';
+import { test, TExecutionContext, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver();
 

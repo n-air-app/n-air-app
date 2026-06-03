@@ -14,6 +14,7 @@ import { ScenesService } from 'services/scenes';
 import { SourceFiltersService } from 'services/source-filters';
 import { TransitionsService } from 'services/transitions';
 import { Menu } from 'util/menus/Menu';
+import { withMenuHandlerTag } from 'util/sentry-menu-handler';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
 
@@ -36,19 +37,34 @@ export default class SceneSelector extends Vue {
   openSceneSwitcherTooltip = $t('scenes.openSceneSwitcherTooltip');
 
   showContextMenu() {
+    const getExtra = () => ({
+      activeSceneIsNull: this.scenesService.activeScene == null,
+      activeCollectionIsNull: this.sceneCollectionsService.activeCollection == null,
+      sceneCount: this.scenesService.scenes.length,
+    });
     const menu = new Menu();
     menu.append({
       id: 'Duplicate',
       label: $t('common.duplicate'),
-      click: () => this.scenesService.showDuplicateScene(this.scenesService.activeScene.id),
+      click: () =>
+        withMenuHandlerTag(
+          'SceneSelector.Duplicate',
+          () => this.scenesService.showDuplicateScene(this.scenesService.activeScene.id),
+          getExtra,
+        ),
     });
     menu.append({
       id: 'Rename',
       label: $t('common.rename'),
       click: () =>
-        this.scenesService.showNameScene({
-          rename: this.scenesService.activeScene.id,
-        }),
+        withMenuHandlerTag(
+          'SceneSelector.Rename',
+          () =>
+            this.scenesService.showNameScene({
+              rename: this.scenesService.activeScene.id,
+            }),
+          getExtra,
+        ),
     });
     menu.append({
       id: 'Remove',
@@ -58,12 +74,23 @@ export default class SceneSelector extends Vue {
     menu.append({
       id: 'Filters',
       label: $t('common.filters'),
-      click: () => this.sourceFiltersService.showSourceFilters(this.scenesService.activeScene.id),
+      click: () =>
+        withMenuHandlerTag(
+          'SceneSelector.Filters',
+          () =>
+            this.sourceFiltersService.showSourceFilters(this.scenesService.activeScene.id),
+          getExtra,
+        ),
     });
     menu.append({
       id: 'Create Scene Projector',
       label: $t('scenes.createSceneProjector'),
-      click: () => this.projectorService.createProjector(this.scenesService.activeScene.id),
+      click: () =>
+        withMenuHandlerTag(
+          'SceneSelector.CreateSceneProjector',
+          () => this.projectorService.createProjector(this.scenesService.activeScene.id),
+          getExtra,
+        ),
     });
     menu.popup();
   }
@@ -105,7 +132,7 @@ export default class SceneSelector extends Vue {
   }
 
   get scenes() {
-    return this.scenesService.scenes.map(scene => {
+    return this.scenesService.scenes.map((scene) => {
       return {
         name: scene.name,
         value: scene.id,
@@ -122,18 +149,18 @@ export default class SceneSelector extends Vue {
         keys: ['name'],
       });
 
-      return fuse.search(this.searchQuery).map(result => result.item);
+      return fuse.search(this.searchQuery).map((result) => result.item);
     }
 
     return list;
   }
 
   get activeId() {
-    return this.sceneCollectionsService.activeCollection.id;
+    return this.sceneCollectionsService.activeCollection?.id ?? null;
   }
 
   get activeCollection() {
-    return this.sceneCollectionsService.activeCollection;
+    return this.sceneCollectionsService.activeCollection ?? null;
   }
 
   get activeSceneId() {

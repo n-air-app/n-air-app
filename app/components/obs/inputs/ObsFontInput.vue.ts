@@ -1,4 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
+
 import GoogleFontSelector from './ObsGoogleFontSelector.vue';
 import { IGoogleFont, IObsFont, IObsInput, ObsInput, TObsType } from './ObsInput';
 import ObsSystemFontSelector from './ObsSystemFontSelector.vue';
@@ -10,7 +11,7 @@ class ObsFontInput extends ObsInput<IObsInput<IObsFont>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsInput<IObsFont>;
+    value: IObsInput<IObsFont>;
   testingAnchor = `Form/Font/${this.value.name}`;
 
   isGoogleFont = !!this.value.value.path;

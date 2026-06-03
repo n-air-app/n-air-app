@@ -2,6 +2,8 @@
  * All services must be registered in this file
  */
 
+export { UsageStatisticsService } from './services/usage-statistics';
+export { UserService } from './services/user';
 export { InternalApiService } from 'services/api/internal-api';
 export { IpcServerService } from 'services/api/ipc-server';
 export { JsonrpcService } from 'services/api/jsonrpc';
@@ -10,6 +12,7 @@ export { AppService } from 'services/app';
 export { AudioService, AudioSource } from 'services/audio';
 export { ClipboardService } from 'services/clipboard';
 export { CompactModeService } from 'services/compact-mode';
+export { CrashContextService } from 'services/crash-context';
 export { CrashReporterService } from 'services/crash-reporter';
 export { CustomcastUsageService } from 'services/custom-cast-usage';
 export { CustomizationService } from 'services/customization';
@@ -66,6 +69,4 @@ export { UuidService } from 'services/uuid';
 export { VideoService } from 'services/video';
 export { WindowSizeService } from 'services/window-size';
 export { WindowsService } from 'services/windows';
-export { UsageStatisticsService } from './services/usage-statistics';
-export { UserService } from './services/user';
 

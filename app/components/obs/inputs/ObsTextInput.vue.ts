@@ -1,4 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
+
 import { IObsInput, ObsInput, TObsType } from './ObsInput';
 
 @Component
@@ -6,7 +7,7 @@ class ObsTextInput extends ObsInput<IObsInput<string>> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsInput<string>;
+    value: IObsInput<string>;
 
   textVisible = !this.value.masked;
   testingAnchor = `Form/Text/${this.value.name}`;

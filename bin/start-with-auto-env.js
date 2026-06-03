@@ -11,7 +11,7 @@ process.stdin.pipe(childProcess.stdin);
 childProcess.stdout.pipe(process.stdout);
 childProcess.stderr.pipe(process.stderr);
 
-childProcess.on('close', code => {
+childProcess.on('close', (code) => {
   process.exitCode = code;
   process.stdin.unref();
 });

@@ -22,8 +22,8 @@ function loadDevHostsConfig() {
     const lines = fs
       .readFileSync(devHostsPathFile, 'utf-8')
       .split('\n')
-      .map(l => l.trim())
-      .filter(l => l && !l.startsWith('#'));
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'));
     const relPath = lines[n - 1];
     if (!relPath) throw new Error(`.dev-hosts-path has no line ${n}`);
     const fullPath = path.resolve(__dirname, relPath);
@@ -288,7 +288,7 @@ module.exports = function (env, argv) {
 
       optimization: {
         splitChunks: {
-          chunks: chunk => chunk.name === 'renderer',
+          chunks: (chunk) => chunk.name === 'renderer',
           name: 'vendors~renderer',
         },
         chunkIds: 'named',
@@ -306,9 +306,7 @@ module.exports = function (env, argv) {
 
       plugins,
 
-      stats: {
-        warningsFilter: ["Can't resolve 'osx-temperature-sensor'"],
-      },
+      ignoreWarnings: [{ message: /Can't resolve 'osx-temperature-sensor'/ }],
     },
     {
       ...common,

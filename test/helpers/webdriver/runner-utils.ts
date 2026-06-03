@@ -4,9 +4,12 @@
  */
 
 import avaTest, { TestFn } from 'ava';
-import { sleep } from '../../../app/util/sleep';
-import { ITestContext } from './index';
 import { tasklist } from 'tasklist';
+
+import { sleep } from '../../../app/util/sleep';
+
+import { ITestContext } from './index';
+
 const fs = require('fs');
 const kill = require('tree-kill');
 
@@ -44,7 +47,7 @@ const testTimings: Record<string, number> = (() => {
     const result: Record<string, number> = {};
 
     // convert the list to the map where key is a test name
-    records.forEach(r => (result[r.name] = r.time));
+    records.forEach((r) => (result[r.name] = r.time));
     return result;
   } catch (e: unknown) {
     return {};
@@ -60,7 +63,7 @@ export const testFn: TestFn<ITestContext> = new Proxy(avaTest, {
     const testName = args[0];
     if (!isTestEligibleToRun(testName)) {
       // skip tests that don't belong current slice
-      avaTest.skip(`SKIP: ${testName}`, t => {});
+      avaTest.skip(`SKIP: ${testName}`, (t) => {});
       return;
     }
     pendingTests.push(testName);
@@ -68,7 +71,7 @@ export const testFn: TestFn<ITestContext> = new Proxy(avaTest, {
   },
 });
 
-avaTest.before(async t => {
+avaTest.before(async (t) => {
   // consider all tests as failed until it's not successfully finished
   // so we can catch failures for tests with timeouts
   saveFailedTestsToFile(pendingTests);
@@ -106,12 +109,12 @@ function isTestEligibleToRun(testName: string) {
   if (!chunk) return true;
 
   // get the amount of chunks and the chunk we should run on this agent
-  const [currentChunkNum, totalChunks] = chunk.split('/').map(s => Number(s));
+  const [currentChunkNum, totalChunks] = chunk.split('/').map((s) => Number(s));
 
   // calculate the chunk number for the current test
   let testAvgStartTime = 0;
   let testAvgTotalTime = 0;
-  Object.keys(testTimings).forEach(name => {
+  Object.keys(testTimings).forEach((name) => {
     testAvgTotalTime += testTimings[name];
     if (name === testName) testAvgStartTime = testAvgTotalTime;
   });

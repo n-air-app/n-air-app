@@ -1,7 +1,7 @@
 import { Inject } from 'services/core/injector';
+import { transformUrl } from 'services/dev-hosts';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
-import { transformUrl } from 'services/dev-hosts';
 
 /**
  * OneCommeサービスとのやり取りに使用するデータ構造
@@ -86,6 +86,10 @@ export class OneCommeRelation {
       const result = await fetchJSON<OneCommeServiceData>(url, makeRequest('PUT', data));
       return !!result;
     } catch (e) {
+      if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
+        console.warn('[OneCommeRelation] OneComme server unavailable');
+        return false;
+      }
       console.error('OneCommeRelation sendService error', e);
       return false;
     }

@@ -7,7 +7,7 @@ import { Component } from 'vue-property-decorator';
 @Component({})
 export default class ProgramStatistics extends Vue {
   @Inject()
-  nicoliveProgramService: NicoliveProgramService;
+    nicoliveProgramService: NicoliveProgramService;
 
   visitorTooltip = $t('common.numberOfVisitors');
   commentTooltip = $t('common.numberOfComments');

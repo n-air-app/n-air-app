@@ -1,5 +1,6 @@
 import { getContentWithFilter } from '../getContentWithFilter';
 import { WrappedChat, WrappedMessage, WrappedMessageWithComponent } from '../WrappedChat';
+
 import { ChatComponentType } from './ChatComponentType';
 import { isNicoadMessageV0, isNicoadMessageV1 } from './util';
 

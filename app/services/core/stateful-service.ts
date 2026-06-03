@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import { Module, Store } from 'vuex';
+
 import Utils from '../utils';
+
 import { Service } from './service';
 
 export function mutation(options = { unsafe: false }) {
@@ -40,9 +42,9 @@ function registerMutation(
 
     if (Utils.isDevMode() && !options.unsafe) {
       const errorMsg = (key: string) =>
-        `Mutation ${mutationName} attempted to access this.${key}. ` +
-        'To ensure mutations can safely execute in any context, mutations are restricted ' +
-        'to only accessing this.state and their arguments.';
+        `Mutation ${mutationName} attempted to access this.${key}. `
+        + 'To ensure mutations can safely execute in any context, mutations are restricted '
+        + 'to only accessing this.state and their arguments.';
 
       contextProxy = new Proxy(
         {},
@@ -88,7 +90,7 @@ function registerMutation(
 export function inheritMutations(target: any) {
   const baseClassProto = Object.getPrototypeOf(target.prototype).constructor.prototype;
   if (baseClassProto.originalMethods) {
-    Object.keys(baseClassProto.originalMethods).forEach(methodName => {
+    Object.keys(baseClassProto.originalMethods).forEach((methodName) => {
       if (Object.getOwnPropertyDescriptor(target.prototype, methodName)) return; // mutation is overridden
       target.prototype[methodName] = baseClassProto.originalMethods[methodName];
       registerMutation(

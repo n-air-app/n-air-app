@@ -1,10 +1,12 @@
 // N Voice Client Service
 
-import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { join } from 'path';
+
+import * as remote from '@electron/remote';
 import { StatefulService } from 'services/core/stateful-service';
+import { SentryReport } from 'util/sentry-report';
 import { sleep } from 'util/sleep';
+
 import { getNVoicePath, NVoiceClient } from './speech/NVoiceClient';
 import { INVoiceTalker } from './speech/NVoiceSynthesizer';
 
@@ -40,11 +42,9 @@ async function playAudio(
               audio.pause();
             }
           })
-          .catch(err => {
-            Sentry.withScope(scope => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:pause');
-              Sentry.captureException(err);
+          .catch((err) => {
+            SentryReport.error('NVoiceClientService', 'playAudio', err, {
+              tags: { in: 'playAudio:pause' },
             });
           });
       }
@@ -57,11 +57,9 @@ async function playAudio(
               audio.play();
             }
           })
-          .catch(err => {
-            Sentry.withScope(scope => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:resume');
-              Sentry.captureException(err);
+          .catch((err) => {
+            SentryReport.error('NVoiceClientService', 'playAudio', err, {
+              tags: { in: 'playAudio:resume' },
             });
           });
       }
@@ -72,11 +70,9 @@ async function playAudio(
           .then(() => {
             audio.pause();
           })
-          .catch(err => {
-            Sentry.withScope(scope => {
-              scope.setLevel('error');
-              scope.setTag('in', 'playAudio:cancel');
-              Sentry.captureException(err);
+          .catch((err) => {
+            SentryReport.error('NVoiceClientService', 'playAudio', err, {
+              tags: { in: 'playAudio:cancel' },
             });
           })
           .finally(() => {
@@ -208,7 +204,7 @@ export class NVoiceClientService
           if (!paused) {
             const now = Date.now();
             checkPointOffset += now - checkPointTime;
-            paused = new Promise(resolve => {
+            paused = new Promise((resolve) => {
               resolvePaused = resolve;
             });
             pause();

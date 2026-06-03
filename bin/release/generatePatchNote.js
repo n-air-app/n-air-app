@@ -86,7 +86,7 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
     const environmentIsMatched =
       previousVersionContext.environment === newVersionContext.environment;
     const channelIsMatched = previousVersionContext.channel === newVersionContext.channel;
-    const colorize = flag => (flag ? colors.red : colors.cyan);
+    const colorize = (flag) => (flag ? colors.red : colors.cyan);
     log(
       'environment:',
       colorize(!environmentIsMatched)(environmentIsMatched ? 'matched  ' : 'unmatched'),
@@ -155,7 +155,7 @@ checkEnv('NAIR_GITHUB_TOKEN');
 
 generateRoutine({
   githubTokenForReadPullRequest: process.env.NAIR_GITHUB_TOKEN,
-}).catch(e => {
+}).catch((e) => {
   error(e);
   sh.exit(1);
 });

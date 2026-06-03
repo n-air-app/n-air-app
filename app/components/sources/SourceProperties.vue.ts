@@ -27,10 +27,10 @@ const PeriodicUpdateInterval = 5000; // in Milliseconds
 })
 export default class SourceProperties extends Vue {
   @Inject()
-  sourcesService: ISourcesServiceApi;
+    sourcesService: ISourcesServiceApi;
 
   @Inject()
-  windowsService: WindowsService;
+    windowsService: WindowsService;
 
   @Inject() private appService: AppService;
 
@@ -51,8 +51,8 @@ export default class SourceProperties extends Vue {
     // このビューはoneOffWindow と childWindow どちらからも開かれる可能性があるため
     // どちらか有効な方のクエリパラメータから sourceId を取得する
     return (
-      this.windowsService.getWindowOptions(this.windowId).sourceId ||
-      this.windowsService.getChildWindowQueryParams().sourceId
+      this.windowsService.getWindowOptions(this.windowId).sourceId
+      || this.windowsService.getChildWindowQueryParams().sourceId
     );
   }
   /** アプリシャットダウン中なら true。ウィンドウが開いた状態で終了したときに分岐するときに見る */
@@ -65,12 +65,12 @@ export default class SourceProperties extends Vue {
   mounted() {
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
     this.initialProperties = cloneDeep(this.properties);
-    this.sourceRemovedSub = this.sourcesService.sourceRemoved.subscribe(source => {
+    this.sourceRemovedSub = this.sourcesService.sourceRemoved.subscribe((source) => {
       if (source.sourceId === this.sourceId) {
         remote.getCurrentWindow().close();
       }
     });
-    this.sourceUpdatedSub = this.sourcesService.sourceUpdated.subscribe(source => {
+    this.sourceUpdatedSub = this.sourcesService.sourceUpdated.subscribe((source) => {
       if (source.sourceId === this.sourceId) {
         this.refresh();
       }

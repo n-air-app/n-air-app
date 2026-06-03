@@ -1,10 +1,11 @@
 import * as FakeTimers from '@sinonjs/fake-timers';
 import { Subject } from 'rxjs';
+import type { INicoliveProgramState } from 'services/nicolive-program/nicolive-program';
+import type { CommentModifier } from 'services/nicolive-program/NicoliveClient';
+import type { ITranscriptionServiceState, TimestampedText } from 'services/transcription/transcription';
 import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
-import type { TimestampedText, ITranscriptionServiceState } from 'services/transcription/transcription';
-import type { CommentModifier } from 'services/nicolive-program/NicoliveClient';
-import type { INicoliveProgramState } from 'services/nicolive-program/nicolive-program';
+
 import type CommentFormType from './CommentForm.vue';
 
 // Type aliases to avoid repetition
@@ -119,8 +120,7 @@ describe('CommentForm', () => {
       sendOperatorComment: jest_fn<(text: string, isPermanent: boolean) => Promise<void>>()
         .mockName('sendOperatorComment')
         .mockResolvedValue(undefined),
-      sendNormalComment: jest_fn<
-        (text: string, vpos: number, modifier: CommentModifier) => Promise<void>
+      sendNormalComment: jest_fn<(text: string, vpos: number, modifier: CommentModifier) => Promise<void>
       >()
         .mockName('sendNormalComment')
         .mockResolvedValue(undefined),

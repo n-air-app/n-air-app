@@ -1,5 +1,6 @@
+import { default as Utils, EBit } from 'services/utils';
 import { Component, Prop } from 'vue-property-decorator';
-import { EBit, default as Utils } from 'services/utils';
+
 import { IObsBitmaskInput, ObsInput, TObsType } from './ObsInput';
 
 @Component
@@ -7,7 +8,7 @@ class ObsBitMaskInput extends ObsInput<IObsBitmaskInput> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsBitmaskInput;
+    value: IObsBitmaskInput;
   testingAnchor = `Form/BitMask/${this.value.name}`;
 
   flags: EBit[] = [];

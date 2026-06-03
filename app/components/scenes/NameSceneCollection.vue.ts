@@ -25,8 +25,7 @@ export default class NameSceneCollection extends Vue {
   options: INameSceneCollectionOptions = this.windowsService.getChildWindowQueryParams();
 
   mounted() {
-    const suggestedName =
-      this.options.sceneCollectionToDuplicate || $t('scenes.newSceneCollectionName');
+    const suggestedName = this.options.sceneCollectionToDuplicate || $t('scenes.newSceneCollectionName');
     this.name = this.sceneCollectionsService.suggestName(suggestedName);
   }
 
@@ -46,7 +45,7 @@ export default class NameSceneCollection extends Vue {
   }
 
   isTaken(name: string) {
-    return !!this.sceneCollectionsService.collections.find(coll => {
+    return !!this.sceneCollectionsService.collections.find((coll) => {
       return coll.name === name;
     });
   }

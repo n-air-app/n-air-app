@@ -251,8 +251,8 @@ async function runScript({
       const lines = fs
         .readFileSync(devHostsPathFile, 'utf-8')
         .split('\n')
-        .map(l => l.trim())
-        .filter(l => l && !l.startsWith('#'));
+        .map((l) => l.trim())
+        .filter((l) => l && !l.startsWith('#'));
       const relPath = lines[devHostsIndex - 1];
       if (!relPath) throw new Error(`.dev-hosts-path has no entry at line ${devHostsIndex}`);
       const srcPath = path.resolve(projectRoot, relPath);
@@ -272,9 +272,9 @@ async function runScript({
     const sentryCliArgs = [
       `--org ${sentry.organization}`,
       `--project ${sentry.project}`,
-      `node_modules/node-libuiohook/node_libuiohook.pdb`,
-      `node_modules/obs-studio-node/`,
-      `node_modules/crash-handler/`,
+      'node_modules/node-libuiohook/node_libuiohook.pdb',
+      'node_modules/obs-studio-node/',
+      'node_modules/crash-handler/',
     ].join(' ');
     executeCmd(`npx @sentry/cli debug-files upload ${sentryCliArgs}`);
   }
@@ -460,12 +460,12 @@ async function releaseRoutine() {
     // patchNote.notes: 複数行テキストが一つの文字列になっている。行頭に '開発:' があったらその行を除去する
     patchNote.notes = patchNote.notes
       .split('\n')
-      .filter(line => !line.startsWith('開発:'))
+      .filter((line) => !line.startsWith('開発:'))
       .join('\n');
   }
 
   /** @type {import('./configs/type').ReleaseConfig} */
-  // eslint-disable-next-line import/no-dynamic-require
+
   const config = require(`./configs/${environment}-${channel}`);
 
   info('checking current version ...');
@@ -530,7 +530,7 @@ if (SLACK_TEST) {
 `,
   });
 } else if (!module.parent) {
-  releaseRoutine().catch(e => {
+  releaseRoutine().catch((e) => {
     error(e);
     sh.exit(1);
   });

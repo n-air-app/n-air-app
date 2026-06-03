@@ -1,10 +1,10 @@
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import { CategoryIcons } from 'components/settings/CategoryIcons';
 import CommentSettings from 'components/settings/CommentSettings.vue';
+import CommentSpeechSettings from 'components/settings/CommentSpeechSettings.vue';
 import ExtraSettings from 'components/settings/ExtraSettings.vue';
 import Hotkeys from 'components/settings/Hotkeys.vue';
 import LanguageSettings from 'components/settings/LanguageSettings.vue';
-import SpeechEngineSettings from 'components/settings/SpeechEngineSettings.vue';
 import SubStreamSettings from 'components/settings/SubStreamSettings.vue';
 import TranscriptionSettings from 'components/settings/TranscriptionSettings.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
@@ -38,10 +38,11 @@ const CATEGORIES_WITH_TOC: string[] = [
   'Hotkeys',
   'Advanced',
   'Comment',
+  'CommentSpeech',
 ];
 
 // ニコニコログインが必要なカテゴリ
-const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'SpeechEngine'];
+const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'CommentSpeech'];
 
 @Component({
   components: {
@@ -53,7 +54,7 @@ const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'SpeechEngine
     Hotkeys,
     LanguageSettings,
     CommentSettings,
-    SpeechEngineSettings,
+    CommentSpeechSettings,
     SubStreamSettings,
     TranscriptionSettings,
     TableOfContents,
@@ -116,7 +117,7 @@ export default class Settings extends Vue {
   mounted() {
     // Categories depend on whether the user is logged in or not.
     // When they depend another state, it's time to refine this implementation.
-    this.userSubscription = this.userService.userLoginState.subscribe(loggedIn => {
+    this.userSubscription = this.userService.userLoginState.subscribe((loggedIn) => {
       this.isLoggedIn = !!loggedIn;
       this.categoryNames = this.settingsService.getCategories();
     });
@@ -151,8 +152,8 @@ export default class Settings extends Vue {
 
   get showLoginRequiredNotice(): boolean {
     return (
-      !this.isLoggedIn &&
-      CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
+      !this.isLoggedIn
+      && CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
     );
   }
 

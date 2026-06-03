@@ -16,7 +16,7 @@ export interface IArea {
 })
 export default class AreaSwitcher extends Vue {
   @Prop()
-  contents: IArea[];
+    contents: IArea[];
 
   @Inject()
   private customizationService: CustomizationService;
@@ -26,13 +26,13 @@ export default class AreaSwitcher extends Vue {
   }
 
   // @ts-expect-error: ts2729: use before initialization
-  private selectedContent: IArea = this.contents.find(c => c.defaultSelected) ?? this.contents[0];
+  private selectedContent: IArea = this.contents.find((c) => c.defaultSelected) ?? this.contents[0];
 
   get activeContent(): IArea {
     return this.isCompactMode ? this.contents[0] : this.selectedContent;
   }
 
   select(slotName: string) {
-    this.selectedContent = this.contents.find(c => c.slotName === slotName)!;
+    this.selectedContent = this.contents.find((c) => c.slotName === slotName)!;
   }
 }

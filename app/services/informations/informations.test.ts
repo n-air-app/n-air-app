@@ -1,7 +1,9 @@
-import fetchMock from '@fetch-mock/jest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+
+import fetchMock from '@fetch-mock/jest';
 import { createSetupFunction } from 'util/test-setup';
+
 const xmlFeed = readFileSync(resolve(__dirname, './__fixtures__/feed.xml'), 'utf8');
 const parsedFeed = require('./__fixtures__/parsedFeed.json');
 
@@ -38,6 +40,19 @@ const setup = createSetupFunction({
       niconicoNAirInformationsFeed: dummyURL,
     },
   },
+});
+
+test('pluckItems: itemあり', () => {
+  const { InformationsService } = require('./informations');
+  const feedResult = {
+    rss: { channel: [{ item: [{ title: ['t'], link: ['u'], pubDate: ['Mon, 01 Jan 2024 00:00:00 GMT'] }] }] },
+  };
+  expect(InformationsService.pluckItems(feedResult)).toHaveLength(1);
+});
+
+test('pluckItems: itemなし（空フィード）', () => {
+  const { InformationsService } = require('./informations');
+  expect(InformationsService.pluckItems({ rss: { channel: [{}] } })).toEqual([]);
 });
 
 test('get instance', () => {
@@ -150,6 +165,26 @@ test('updateInformations:失敗', async () => {
   expect((instance as any).SET_HAS_ERROR).toHaveBeenNthCalledWith(1, false);
   expect((instance as any).SET_HAS_ERROR).toHaveBeenNthCalledWith(2, true);
   expect((instance as any).SET_INFORMATIONS).not.toHaveBeenCalled();
+});
+
+test('updateInformations:item欠落（空フィード）', async () => {
+  setup();
+  const m = require('./informations');
+
+  m.InformationsService.prototype.afterInit = jest.fn();
+  const instance = m.InformationsService.instance;
+  expect(instance.afterInit).toHaveBeenCalledTimes(1);
+
+  // item を持たないフィード
+  (instance as any).fetchFeed = jest.fn().mockResolvedValue({ rss: { channel: [{}] } });
+  (instance as any).SET_HAS_ERROR = jest.fn();
+  (instance as any).SET_INFORMATIONS = jest.fn();
+
+  await expect(instance.updateInformations()).resolves.toBeUndefined();
+  expect((instance as any).SET_HAS_ERROR).toHaveBeenCalledTimes(1);
+  expect((instance as any).SET_HAS_ERROR).toHaveBeenNthCalledWith(1, false);
+  expect((instance as any).SET_INFORMATIONS).toHaveBeenCalledTimes(1);
+  expect((instance as any).SET_INFORMATIONS).toHaveBeenNthCalledWith(1, []);
 });
 
 test('hasUnseenItem:あるとき', () => {

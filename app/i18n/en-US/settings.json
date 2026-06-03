@@ -647,8 +647,8 @@
   "Comment": {
     "name": "Comment Settings"
   },
-  "SpeechEngine": {
-    "name": "Speech Engine"
+  "CommentSpeech": {
+    "name": "Comment Speech"
   },
   "SubStream": {
     "name": "Sub Stream"
@@ -716,6 +716,7 @@
   "substream": {
     "use": "Use",
     "description": "When this feature is turned ON, you can simultaneously stream\nto other platforms in addition to your main destination.",
+    "service": "Streaming Service",
     "url": "URL",
     "streamKey": "Stream Key",
     "syncWithMainStream": "Sync with main stream start/stop",

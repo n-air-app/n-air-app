@@ -68,7 +68,7 @@ export default class SceneTransitions extends Vue {
   }
 
   get sceneOptions() {
-    return this.scenesService.scenes.map(scene => {
+    return this.scenesService.scenes.map((scene) => {
       return {
         description: scene.name,
         value: scene.id,
@@ -77,7 +77,7 @@ export default class SceneTransitions extends Vue {
   }
 
   get transitionOptions() {
-    return this.transitionsService.state.transitions.map(transition => {
+    return this.transitionsService.state.transitions.map((transition) => {
       return {
         description: transition.name,
         value: transition.id,

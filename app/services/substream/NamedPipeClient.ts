@@ -10,7 +10,7 @@ export class NamedPipeClient {
 
   queue = new Map<
     string,
-    { resolve: (value: any) => void; reject: (reason?: any) => void; timeout: NodeJS.Timeout }
+    { resolve:(value: any) => void; reject: (reason?: any) => void; timeout: NodeJS.Timeout }
   >();
 
   constructor(name: string) {

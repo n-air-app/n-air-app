@@ -2,6 +2,7 @@ import { sleep } from '../../util/sleep';
 import { PersistentStatefulService } from '../core/persistent-stateful-service';
 import { mutation } from '../core/stateful-service';
 import { $t } from '../i18n';
+
 import { NamedPipeClient } from './NamedPipeClient';
 
 type Primitive = string | number | boolean;
@@ -111,10 +112,10 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
     // 旧フォーマット（tabs に値がない = url/key のみのデータ）からのマイグレーション
     // PersistentStatefulService は defaultState と永続化データを deep merge するため、
     // selectedTab は常に defaultState の値が入る。代わりに全タブが空かつ url が設定済みかで判定する。
-    const allTabsEmpty = Object.values(this.state.tabs).every(t => !t.url && !t.key);
+    const allTabsEmpty = Object.values(this.state.tabs).every((t) => !t.url && !t.key);
     if (allTabsEmpty && this.state.url) {
       const tabCandidates: SubStreamTabID[] = ['youtube', 'twitch'];
-      const tab: SubStreamTabID = tabCandidates.find(t => this.state.url.includes(t)) ?? 'other';
+      const tab: SubStreamTabID = tabCandidates.find((t) => this.state.url.includes(t)) ?? 'other';
       this.setState({
         selectedTab: tab,
         tabs: {
@@ -142,8 +143,7 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
   async start(): Promise<string | undefined> {
     if (!this.state) this.setState(SubStreamService.defaultState);
     if (!this.state.use) return;
-    if (!this.state.url.startsWith('rtmp') || !this.state.key)
-      return $t('settings.substream.error.url_key');
+    if (!this.state.url.startsWith('rtmp') || !this.state.key) return $t('settings.substream.error.url_key');
 
     const bitRange = (value: any, min: number, max: number): number =>
       Math.max(min, Math.min(Math.floor(Number(value)), max));
@@ -212,7 +212,7 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
    */
   async getStatus(): Promise<SubStreamStatus> {
     const streamStatus = (await this.client.call('status')) as SubStreamStatus;
-    if (!streamStatus)
+    if (!streamStatus) {
       return {
         status: 'unknown',
         displayStatus: 'internal error',
@@ -221,6 +221,7 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
         streaming: false,
         error: 'not connected',
       };
+    }
 
     const statusMap: { [name: string]: string } = {
       starting: $t('settings.substream.status.starting'),
@@ -238,9 +239,8 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
       'invalid stream': $t('settings.substream.error.invalid_stream'),
     };
 
-    streamStatus.displayStatus =
-      (statusMap[streamStatus.status] || '') +
-      (streamStatus.error ? `: ${errorMap[streamStatus.error] || streamStatus.error}` : '');
+    streamStatus.displayStatus = (statusMap[streamStatus.status] || '')
+      + (streamStatus.error ? `: ${errorMap[streamStatus.error] || streamStatus.error}` : '');
     //console.log('status:', JSON.stringify(streamStatus));
     return streamStatus;
   }

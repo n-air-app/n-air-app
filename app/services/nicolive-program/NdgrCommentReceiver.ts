@@ -1,6 +1,6 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { getKeys } from 'util/getKeys';
+
 import { MessageResponse, NotificationType, NotificationTypeTable } from './ChatMessage';
 import { IMessageServerClient } from './MessageServerClient';
 import { NdgrClient, toNumber } from './NdgrClient';
@@ -131,16 +131,22 @@ function convertSimpleNotificationToMessageResponse(
   common: CommonComponent,
   notification: dwango.nicolive.chat.data.ISimpleNotification,
 ): MessageResponse | undefined {
-  const key = getKeys(notification)[0];
-  let type = key as NotificationType;
-  if (!NotificationTypeTable.includes(key)) {
-    type = 'unknown';
-  }
+  // protobufjs 8 のデコード結果では `message` が oneof の discriminator として設定される。
+  // プレーンオブジェクトとして渡された場合はフォールバックとして Object.keys で探す。
+  const key = notification.message
+    ?? (Object.keys(notification).find((k) => k !== '$unknowns' && k !== 'message') as
+        typeof notification.message | string | undefined);
+  const type: NotificationType =
+    key != null && (NotificationTypeTable as readonly string[]).includes(key)
+      ? (key as NotificationType)
+      : 'unknown';
   return {
     notification: {
       ...common,
       type,
-      message: notification[key],
+      message: key != null
+        ? ((notification[key as keyof typeof notification] as string) ?? '')
+        : '',
     },
   };
 }
@@ -213,7 +219,7 @@ function convertNicoadToMessageResponse(
             ...(latest.point ? { point: latest.point } : {}),
             ...(latest.message ? { message: latest.message } : {}),
           },
-          ranking: ranking.map(r => ({
+          ranking: ranking.map((r) => ({
             ...(r.advertiser ? { advertiser: r.advertiser } : {}),
             ...(r.rank ? { rank: r.rank } : {}),
             ...(r.message ? { message: r.message } : {}),
@@ -375,7 +381,7 @@ export class NdgrCommentReceiver implements IMessageServerClient {
     this.messageSubject = new Subject<MessageResponse>();
     this.ndgrClient = new NdgrClient(this.uri, this.label);
     this.ndgrSubscription = this.ndgrClient.messages.subscribe({
-      next: msg => {
+      next: (msg) => {
         const now = Date.now(); // in milliseconds
         const result = convertChunkedResponseToMessageResponse(msg, now);
         if (result) {
@@ -383,7 +389,7 @@ export class NdgrCommentReceiver implements IMessageServerClient {
         }
       },
     });
-    this.ndgrClient.connect('now', NUM_BACKWARD_COMMENTS).catch(err => {
+    this.ndgrClient.connect('now', NUM_BACKWARD_COMMENTS).catch((err) => {
       this.messageSubject.error(err);
     });
     return this.messageSubject.asObservable();

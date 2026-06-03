@@ -1,6 +1,7 @@
 import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { $t } from 'services/i18n';
+import { SentryReport } from 'util/sentry-report';
+
 import { FailedResult, NotLoggedInError } from './NicoliveClient';
 
 export class NicoliveFailure {
@@ -44,7 +45,7 @@ async function openErrorDialog({
   title: string;
   message: string;
 }): Promise<void> {
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve) => {
     remote.dialog
       .showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
@@ -65,17 +66,18 @@ function fallbackToX00(reason: string): string {
 }
 
 export async function openErrorDialogFromFailure(failure: NicoliveFailure): Promise<void> {
-  Sentry.withScope(scope => {
-    scope.setLevel('warning');
-    scope.setExtra('failure', failure);
-    scope.setTag('module', 'nicolive-program');
-    scope.setTag('function', 'openErrorDialogFromFailure');
-    scope.setTag('failure.type', failure.type);
-    scope.setTag('failure.method', failure.method);
-    scope.setTag('failure.reason', failure.reason);
-    scope.setFingerprint(['openErrorDialogFromFailure']);
-    Sentry.captureMessage(`openErrorDialogFromFailure`);
-  });
+  if (failure.type !== 'network_error') {
+    SentryReport.message('NicoliveProgram', 'openErrorDialogFromFailure', 'openErrorDialogFromFailure', {
+      level: 'warning',
+      extra: { failure },
+      tags: {
+        'failure.type': failure.type,
+        'failure.method': failure.method,
+        'failure.reason': failure.reason,
+      },
+      fingerprint: ['openErrorDialogFromFailure'],
+    });
+  }
 
   if (failure.type === 'logic') {
     return openErrorDialog({

@@ -1,4 +1,5 @@
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
+
 import { mutation } from '../core/stateful-service';
 
 interface IInformationsLastOpen {

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { Inject } from 'services/core/injector';
@@ -9,10 +10,13 @@ import { TransitionsService } from 'services/transitions';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import namingHelpers from 'util/NamingHelpers';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
 import { IVideo } from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
+
 import { EBlendingMethod, EBlendingMode, EScaleType, Scene, SceneItem } from './index';
 
 export type TSceneNodeModel = ISceneItem | ISceneItemFolder;
@@ -171,7 +175,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   private REMOVE_SCENE(id: string) {
     Vue.delete(this.state.scenes, id);
 
-    this.state.displayOrder = this.state.displayOrder.filter(x => x !== id);
+    this.state.displayOrder = this.state.displayOrder.filter((x) => x !== id);
   }
 
   @mutation()
@@ -185,6 +189,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   createScene(name: string, options: ISceneCreateOptions = {}) {
+    markObsOp('ScenesService', 'createScene');
     // Get an id to identify the scene on the frontend
     const id = options.sceneId || `scene_${uuidv4()}`;
     this.ADD_SCENE(id, name);
@@ -199,7 +204,7 @@ export class ScenesService extends StatefulService<IScenesState> {
         .getItems()
         .slice()
         .reverse()
-        .forEach(item => {
+        .forEach((item) => {
           const newItem = newScene.addSource(item.sourceId);
           if (newItem) newItem.setSettings(item.getSettings());
         });
@@ -219,15 +224,16 @@ export class ScenesService extends StatefulService<IScenesState> {
     if (!scene) {
       return null;
     }
+    markObsOp('ScenesService', 'removeScene', { sceneId: id });
     const sceneModel = this.state.scenes[id];
 
     if (!force) this.rtvcStateService.didRemoveScene(id);
 
     // remove all sources from scene
-    scene.getItems().forEach(sceneItem => scene.removeItem(sceneItem.sceneItemId));
+    scene.getItems().forEach((sceneItem) => scene.removeItem(sceneItem.sceneItemId));
 
     // remove scene from other scenes if it has been added as a source
-    this.getSceneItems().forEach(sceneItem => {
+    this.getSceneItems().forEach((sceneItem) => {
       if (sceneItem.sourceId !== scene.id) return;
       sceneItem.getScene().removeItem(sceneItem.sceneItemId);
     });
@@ -247,17 +253,17 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   removeAllScenes() {
-    this.scenes.forEach(scene => scene.remove(true));
+    this.scenes.forEach((scene) => scene.remove(true));
   }
 
   setLockOnAllScenes(locked: boolean) {
-    this.scenes.forEach(scene => scene.setLockOnAllItems(locked));
+    this.scenes.forEach((scene) => scene.setLockOnAllItems(locked));
   }
 
   getSourceScenes(sourceId: string): Scene[] {
     const resultScenes: Scene[] = [];
-    this.scenes.forEach(scene => {
-      const items = scene.getItems().filter(sceneItem => sceneItem.sourceId === sourceId);
+    this.scenes.forEach((scene) => {
+      const items = scene.getItems().filter((sceneItem) => sceneItem.sourceId === sourceId);
       if (items.length > 0) resultScenes.push(scene);
     });
     return resultScenes;
@@ -268,6 +274,13 @@ export class ScenesService extends StatefulService<IScenesState> {
     if (!scene) return false;
 
     const activeScene = this.activeScene;
+    markObsOp('ScenesService', 'makeSceneActive', { sceneId: id });
+
+    Sentry.addBreadcrumb({
+      category: 'scenes',
+      message: `makeSceneActive: ${activeScene?.name ?? '(none)'} → ${scene.name}`,
+      level: 'info',
+    });
 
     this.transitionsService.transition(activeScene && activeScene.id, scene.id);
 
@@ -294,7 +307,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   getSceneByName(name: string) {
-    const foundId = Object.keys(this.state.scenes).find(id => this.state.scenes[id].name === name);
+    const foundId = Object.keys(this.state.scenes).find((id) => this.state.scenes[id].name === name);
     return foundId ? this.getScene(foundId) : null;
   }
 
@@ -308,7 +321,7 @@ export class ScenesService extends StatefulService<IScenesState> {
 
   getSceneItems(): SceneItem[] {
     const sceneItems: SceneItem[] = [];
-    this.scenes.forEach(scene => sceneItems.push(...scene.getItems()));
+    this.scenes.forEach((scene) => sceneItems.push(...scene.getItems()));
     return sceneItems;
   }
 
@@ -317,7 +330,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   get scenes(): Scene[] {
-    return this.state.displayOrder.map(id => {
+    return this.state.displayOrder.map((id) => {
       return this.getScene(id);
     });
   }
@@ -332,7 +345,7 @@ export class ScenesService extends StatefulService<IScenesState> {
 
   suggestName(name: string): string {
     return namingHelpers.suggestName(name, (name: string) => {
-      const ind = this.activeScene.getNodes().findIndex(node => node.name === name);
+      const ind = this.activeScene.getNodes().findIndex((node) => node.name === name);
       return ind !== -1;
     });
   }

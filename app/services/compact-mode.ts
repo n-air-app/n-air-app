@@ -44,15 +44,15 @@ export class CompactModeService extends StatefulService<ICompactModeServiceState
       streaming: this.streamingService.state.streamingStatus !== 'offline',
       navigating: this.navigationService.state.currentPage !== 'Studio',
     });
-    this.customizationService.settingsChanged.subscribe(state => {
+    this.customizationService.settingsChanged.subscribe((state) => {
       if ('autoCompactMode' in state) {
         this.setState({ autoCompactMode: state.autoCompactMode });
       }
     });
-    this.streamingService.streamingStatusChange.subscribe(state => {
+    this.streamingService.streamingStatusChange.subscribe((state) => {
       this.setState({ streaming: state !== 'offline' });
     });
-    this.navigationService.navigated.subscribe(state => {
+    this.navigationService.navigated.subscribe((state) => {
       this.setState({ navigating: state.currentPage !== 'Studio' });
     });
 
@@ -85,11 +85,11 @@ export class CompactModeService extends StatefulService<ICompactModeServiceState
       // 配信停止時、自動コンパクトモードでなく、コンパクトモードになっていた場合
       // 自動コンパクトモード設定ダイアログを出す
       if (
-        prevCompact &&
-        !newCompact &&
-        !this.customizationService.state.autoCompactMode &&
-        this.customizationService.state.showAutoCompactDialog &&
-        this.customizationService.state.compactMode
+        prevCompact
+        && !newCompact
+        && !this.customizationService.state.autoCompactMode
+        && this.customizationService.state.showAutoCompactDialog
+        && this.customizationService.state.compactMode
       ) {
         this.windowsService.showWindow({
           title: $t('settings.autoCompact.title'),

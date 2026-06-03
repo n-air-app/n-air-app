@@ -6,6 +6,7 @@ import {
   RtvcParamPreset,
   RtvcParamPresetKeys,
 } from 'services/usage-statistics';
+
 import { PersistentStatefulService } from './core/persistent-stateful-service';
 import { mutation } from './core/stateful-service';
 import { ISourceApi, SourcesService } from './sources';
@@ -245,14 +246,14 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
         k = 'pitch_shift'; // 本来のkeyに変更
       }
       if (k === 'latency') this.eventLog.latency = v.value as number;
-      const prop = props.find(a => a.name === k);
+      const prop = props.find((a) => a.name === k);
       // for value check
       //console.log(`rtvc set ${k} ${prop?.value} to ${v.value}`);
       if (!prop || prop.value === v.value) continue; // no need change
       prop.value = v.value;
     }
 
-    const pitchShiftModeProp = props.find(a => a.name === 'pitch_shift_mode');
+    const pitchShiftModeProp = props.find((a) => a.name === 'pitch_shift_mode');
     this.isSongMode = pitchShiftModeProp && pitchShiftModeProp.value === PitchShiftModeValue.song;
 
     source.setPropertiesFormData(props);
@@ -280,21 +281,21 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
 
     if (!r.presets) r.presets = [];
     // 不足時修正
-    while (r.presets.length < this.presets.length)
-      r.presets.push({ pitchShift: 0, pitchShiftSong: 0 });
+    while (r.presets.length < this.presets.length) r.presets.push({ pitchShift: 0, pitchShiftSong: 0 });
 
     // defaults
-    if (!r.manuals)
+    if (!r.manuals) {
       r.manuals = [
         { name: 'オリジナル1' },
         { name: 'オリジナル2' },
         { name: 'オリジナル3' },
       ] as any;
+    }
 
     const numFix = (v: any, def: number) => (typeof v === 'number' || !isNaN(v) ? v : def);
 
     // set and repair by default values
-    r.presets.forEach(a => {
+    r.presets.forEach((a) => {
       a.pitchShift = numFix(a.pitchShift, 0);
       a.pitchShiftSong = numFix(a.pitchShiftSong, 0);
     });
@@ -332,9 +333,9 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     const { isManual, num } = this.indexToModeNum(index);
 
     if (
-      num < 0 ||
-      (isManual && num >= param.manuals.length) ||
-      (!isManual && (num >= this.presets.length || num >= RtvcPresets.length))
+      num < 0
+      || (isManual && num >= param.manuals.length)
+      || (!isManual && (num >= this.presets.length || num >= RtvcPresets.length))
     ) {
       // 想定外の場合のデフォルト値
       return {
@@ -432,8 +433,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
       s.primary_voice = p.primaryVoice;
       s.secondary_voice = p.secondaryVoice;
     } else {
-      const p =
-        num < state.presets.length ? state.presets[num] : { pitchShift: 0, pitchShiftSong: 0 };
+      const p = num < state.presets.length ? state.presets[num] : { pitchShift: 0, pitchShiftSong: 0 };
       const key = `preset${num}` as RtvcParamPresetKeys;
       const param = this.eventLog.param as RtvcParamPreset;
       if (!param[key]) param[key] = {};
@@ -447,7 +447,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
   didAddSource(source: ISourceApi) {
     const props = source.getPropertiesFormData();
     this.fixPresets(source);
-    const p = props.find(a => a.name === 'latency');
+    const p = props.find((a) => a.name === 'latency');
     if (p) this.eventLog.latency = p.value as number;
     this.isSouceActive = true;
     this.modifyEventLog();
@@ -473,7 +473,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
   fixPresets(source: ISourceApi) {
     const list = RtvcPresets;
     const props = source.getPropertiesFormData();
-    const p = props.find(a => a.name === 'primary_voice') as IObsListInput<any>;
+    const p = props.find((a) => a.name === 'primary_voice') as IObsListInput<any>;
     if (!p || !p.options) return;
 
     if (p.options.length !== list.length + 100) {

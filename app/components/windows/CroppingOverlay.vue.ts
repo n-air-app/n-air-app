@@ -19,13 +19,13 @@ export default class CroppingOverlay extends Vue {
   movingPositionY: number = 0;
 
   mounted() {
-    window.addEventListener('keydown', e => {
+    window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         window.close();
       }
     });
 
-    window.addEventListener('blur', e => {
+    window.addEventListener('blur', (e) => {
       window.close();
     });
     window.focus();

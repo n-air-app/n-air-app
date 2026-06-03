@@ -1,5 +1,6 @@
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { mutation } from 'services/core/stateful-service';
+
 import { getScore, isAnonymous } from './ChatMessage/util';
 import { WrappedMessage } from './WrappedChat';
 

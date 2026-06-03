@@ -238,7 +238,7 @@ export default class SoundDetectorVolmeter extends Vue {
   private subscribeVolmeter(): void {
     this.volmeterSubscription = this.audioSource
       .getVolmeterStream()
-      .subscribe(volmeter => {
+      .subscribe((volmeter) => {
         // 複数チャンネルの場合は最大値を取って1本のバーにまとめる
         const maxPeak = volmeter.peak.length > 0
           ? Math.max(...volmeter.peak)

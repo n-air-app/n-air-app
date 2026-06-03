@@ -1,6 +1,7 @@
 // @ts-check
 
 const sh = require('shelljs');
+
 let colors; // Lazy load to avoid requiring 'colors' when not needed
 
 /**

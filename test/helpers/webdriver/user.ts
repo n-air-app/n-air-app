@@ -1,9 +1,11 @@
 import { IPlatformAuth } from 'services/platforms';
 import { UserService } from 'services/user';
 import { getKeys } from 'util/getKeys';
+
 import { getApiClient } from '../api-client';
 import { focusMain } from '../modules/core';
 import { clickRemoveSource, selectTestSource, testSourceExists } from '../modules/sources';
+
 import { TExecutionContext } from './index';
 
 export async function logOut(t: TExecutionContext) {
@@ -22,7 +24,7 @@ export async function logIn(t: TExecutionContext, isOnboardingTest = false): Pro
   };
 
   let canAuth = true;
-  getKeys(authInfo).forEach(key => {
+  getKeys(authInfo).forEach((key) => {
     authInfo[key] = env[key];
     if (!authInfo[key]) {
       console.warn(`Setup env.${key} to run this test`);

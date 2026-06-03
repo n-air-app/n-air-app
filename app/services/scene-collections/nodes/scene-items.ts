@@ -2,6 +2,7 @@ import { Inject } from '../../core/injector';
 import { EBlendingMethod, EBlendingMode, EScaleType, ScenesService } from '../../scenes';
 import { Scene } from '../../scenes/scene';
 import { SourcesService } from '../../sources';
+
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
 
@@ -47,18 +48,18 @@ export class SceneItemsNode extends Node<ISchema, {}> {
   schemaVersion = 1;
 
   @Inject('SourcesService')
-  sourcesService: SourcesService;
+    sourcesService: SourcesService;
 
   @Inject('ScenesService')
-  scenesService: ScenesService;
+    scenesService: ScenesService;
 
   getItems(context: IContext) {
     return context.scene.getNodes().slice().reverse();
   }
 
   save(context: IContext): Promise<void> {
-    const promises: Promise<TSceneNodeInfo>[] = this.getItems(context).map(sceneItem => {
-      return new Promise(resolve => {
+    const promises: Promise<TSceneNodeInfo>[] = this.getItems(context).map((sceneItem) => {
+      return new Promise((resolve) => {
         const hotkeys = new HotkeysNode();
 
         if (sceneItem.isItem()) {
@@ -91,8 +92,8 @@ export class SceneItemsNode extends Node<ISchema, {}> {
       });
     });
 
-    return new Promise(resolve => {
-      Promise.all(promises).then(items => {
+    return new Promise((resolve) => {
+      Promise.all(promises).then((items) => {
         this.data = { items };
         resolve();
       });
@@ -106,7 +107,7 @@ export class SceneItemsNode extends Node<ISchema, {}> {
     // Look for duplicate ids
     const ids: Dictionary<boolean> = {};
 
-    this.data.items = this.data.items.filter(item => {
+    this.data.items = this.data.items.filter((item) => {
       if (ids[item.id]) return false;
 
       ids[item.id] = true;
@@ -121,13 +122,13 @@ export class SceneItemsNode extends Node<ISchema, {}> {
 
     const promises: Promise<void>[] = [];
 
-    this.data.items.forEach(item => {
+    this.data.items.forEach((item) => {
       if (item.sceneNodeType === 'folder') return;
       const hotkeys = item.hotkeys;
       if (hotkeys) promises.push(hotkeys.load({ sceneItemId: item.id }));
     });
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       Promise.all(promises).then(() => resolve());
     });
   }

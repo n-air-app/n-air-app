@@ -1,9 +1,14 @@
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { ipcRenderer } from 'electron';
+import { DateTime } from 'luxon';
+import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } from 'services/dev-hosts';
 import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 import { handleErrors } from 'util/requests';
+import { SentryReport } from 'util/sentry-report';
+
 import {
   AddFilterRecord,
   AddFilterResult,
@@ -25,10 +30,6 @@ import {
   UserFollow,
   UserFollowStatus,
 } from './ResponseTypes';
-
-import * as remote from '@electron/remote';
-import { DateTime } from 'luxon';
-import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } from 'services/dev-hosts';
 
 const { BrowserWindow } = remote;
 
@@ -174,9 +175,9 @@ export class NicoliveClient {
 
   static isProgramPage(url: string): boolean {
     return (
-      (url.startsWith(NicoliveClient.liveBaseURL + '/watch/lv') ||
-        url.startsWith(NicoliveClient.live2BaseURL + '/watch/lv')) &&
-      /\/watch\/lv\d+/.test(url)
+      (url.startsWith(NicoliveClient.liveBaseURL + '/watch/lv')
+        || url.startsWith(NicoliveClient.live2BaseURL + '/watch/lv'))
+      && /\/watch\/lv\d+/.test(url)
     );
   }
 
@@ -185,16 +186,16 @@ export class NicoliveClient {
     const liveHostname = new URL(NicoliveClient.liveBaseURL).hostname;
     const live2Hostname = new URL(NicoliveClient.live2BaseURL).hostname;
     return (
-      /^https?:$/.test(urlObj.protocol) &&
-      (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname) &&
-      /^\/my$/.test(urlObj.pathname)
+      /^https?:$/.test(urlObj.protocol)
+      && (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname)
+      && /^\/my$/.test(urlObj.pathname)
     );
   }
 
   static isAllowedURL(url: string): boolean {
     return (
-      url.startsWith(NicoliveClient.live2BaseURL + '/') ||
-      url.startsWith(NicoliveClient.liveBaseURL + '/')
+      url.startsWith(NicoliveClient.live2BaseURL + '/')
+      || url.startsWith(NicoliveClient.liveBaseURL + '/')
     );
   }
 
@@ -272,7 +273,7 @@ export class NicoliveClient {
 
     const { session } = remote.getCurrentWebContents();
     return new Promise((resolve, reject) => {
-      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then(cookies => {
+      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then((cookies) => {
         if (cookies.length < 1) return reject(new NotLoggedInError());
         resolve(cookies[0].value);
       });
@@ -441,8 +442,8 @@ export class NicoliveClient {
     const request = new Request(url, { headers });
     return await fetch(request)
       .then(handleErrors)
-      .then(response => response.json())
-      .then(json => json.data);
+      .then((response) => response.json())
+      .then((json) => json.data);
   }
 
   /**
@@ -531,11 +532,10 @@ export class NicoliveClient {
           resolve(CreateResult.RESERVED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
-          Sentry.withScope(scope => {
-            scope.setLevel('warning');
-            scope.setTag('url', url);
-            scope.setFingerprint(['createProgram', 'did-navigate', url]);
-            Sentry.captureMessage('createProgram did-navigate to unexpected URL');
+          SentryReport.message('NicoliveClient', 'createProgram', 'createProgram did-navigate to unexpected URL', {
+            level: 'warning',
+            tags: { url },
+            fingerprint: ['createProgram', 'did-navigate', url],
           });
           resolve(CreateResult.OTHER);
           remote.shell.openExternal(url);
@@ -546,17 +546,16 @@ export class NicoliveClient {
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = NicoliveClient.liveBaseURL + '/create';
       console.log('Loading URL in createProgram window:', url);
-      win.loadURL(url)?.catch(error => {
+      win.loadURL(url)?.catch((error) => {
         if (error instanceof Error) {
-          Sentry.withScope(scope => {
-            scope.setLevel('warning');
-            scope.setExtra('url', url);
-            scope.setFingerprint(['createProgram', 'loadURL', url]);
-            Sentry.captureException(error);
+          SentryReport.error('NicoliveClient', 'createProgram', error, {
+            level: 'warning',
+            extra: { url },
+            fingerprint: ['createProgram', 'loadURL', url],
           });
         }
       });
-    }).then(result => {
+    }).then((result) => {
       Sentry.addBreadcrumb({
         category: 'createProgram.close',
         message: result,
@@ -609,12 +608,10 @@ export class NicoliveClient {
           resolve(EditResult.EDITED);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
-          Sentry.withScope(scope => {
-            scope.setLevel('warning');
-            scope.setTag('url', url);
-            scope.setTag('programID', programID);
-            scope.setFingerprint(['editProgram', 'did-navigate', url]);
-            Sentry.captureMessage('editProgram did-navigate to unexpected URL');
+          SentryReport.message('NicoliveClient', 'editProgram', 'editProgram did-navigate to unexpected URL', {
+            level: 'warning',
+            tags: { url, programID },
+            fingerprint: ['editProgram', 'did-navigate', url],
           });
           resolve(EditResult.OTHER);
           remote.shell.openExternal(url);
@@ -624,18 +621,17 @@ export class NicoliveClient {
       ipcRenderer.send('window-preventLogout', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = `${NicoliveClient.liveBaseURL}/edit/${programID}`;
-      win.loadURL(url)?.catch(error => {
+      win.loadURL(url)?.catch((error) => {
         if (error instanceof Error) {
-          Sentry.withScope(scope => {
-            scope.setLevel('warning');
-            scope.setExtra('url', url);
-            scope.setTag('programID', programID);
-            scope.setFingerprint(['editProgram', 'loadURL', url]);
-            Sentry.captureException(error);
+          SentryReport.error('NicoliveClient', 'editProgram', error, {
+            level: 'warning',
+            extra: { url },
+            tags: { programID },
+            fingerprint: ['editProgram', 'loadURL', url],
           });
         }
       });
-    }).then(result => {
+    }).then((result) => {
       Sentry.addBreadcrumb({
         category: 'editProgram.close',
         message: result,

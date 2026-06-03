@@ -1,6 +1,6 @@
+import { Hotkey, IBinding } from 'services/hotkeys';
 import Vue from 'vue';
 import { Component, Prop } from 'vue-property-decorator';
-import { Hotkey, IBinding } from 'services/hotkeys';
 
 /**
  * Represents a binding that has a unique key for CSS animations
@@ -15,20 +15,29 @@ interface IKeyedBinding {
 })
 export default class HotkeyComponent extends Vue {
   @Prop()
-  hotkey: Hotkey;
+    hotkey: Hotkey;
 
   // @ts-expect-error: ts2729: use before initialization
   description = this.hotkey.description;
   bindings: IKeyedBinding[] = [];
+  focusedIndex: number | null = null;
 
   created() {
     if (this.hotkey.bindings.length === 0) {
       this.bindings = [this.createBindingWithKey(this.getBlankBinding())];
     } else {
-      this.bindings = Array.from(this.hotkey.bindings).map(binding => {
+      this.bindings = Array.from(this.hotkey.bindings).map((binding) => {
         return this.createBindingWithKey(binding);
       });
     }
+  }
+
+  handleFocus(index: number) {
+    this.focusedIndex = index;
+  }
+
+  handleBlur(index: number) {
+    if (this.focusedIndex === index) this.focusedIndex = null;
   }
 
   handleKeydown(event: KeyboardEvent, index: number) {
@@ -57,10 +66,10 @@ export default class HotkeyComponent extends Vue {
 
   isModifierPress(event: KeyboardEvent) {
     return (
-      event.key === 'Control' ||
-      event.key === 'Alt' ||
-      event.key === 'Meta' ||
-      event.key === 'Shift'
+      event.key === 'Control'
+      || event.key === 'Alt'
+      || event.key === 'Meta'
+      || event.key === 'Shift'
     );
   }
 
@@ -111,7 +120,7 @@ export default class HotkeyComponent extends Vue {
   setBindings() {
     const bindings: IBinding[] = [];
 
-    this.bindings.forEach(binding => {
+    this.bindings.forEach((binding) => {
       if (binding.binding.key) bindings.push(binding.binding);
     });
 

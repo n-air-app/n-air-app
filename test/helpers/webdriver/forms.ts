@@ -1,6 +1,7 @@
 // Tools for dealing with forms in webdriver
 
 import { getClient, waitForDisplayed } from '../modules/core';
+
 import { TExecutionContext } from './index';
 
 export async function setFormInput(label: string, value: string, index = 0) {

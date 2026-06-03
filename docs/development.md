@@ -153,7 +153,7 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 | `pnpm test` | フルテストスイート（i18n チェック + TypeScript コンパイル + AVA） |
 | `pnpm run test:unit` | ユニットテスト（Jest） |
 | `pnpm lint` | ESLint + Stylelint |
-| `pnpm format` | Prettier + ESLint fix + Stylelint fix |
+| `pnpm format` | ESLint fix + Stylelint fix |
 | `pnpm screentest` | ビジュアルリグレッションテスト |
 
 ### パッケージビルド

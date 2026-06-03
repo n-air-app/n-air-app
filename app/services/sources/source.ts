@@ -4,8 +4,10 @@ import isEqual from 'lodash/isEqual';
 import { ScenesService } from 'services/scenes';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
+
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
+
 import {
   ISource,
   ISourceApi,
@@ -37,7 +39,7 @@ export class Source implements ISourceApi {
   state: ISource;
 
   @Inject()
-  scenesService: ScenesService;
+    scenesService: ScenesService;
 
   getObsInput(): obs.IInput {
     return obs.InputFactory.fromName(this.sourceId);
@@ -285,9 +287,8 @@ export class Source implements ISourceApi {
     // is always up-to-date, and essentially acts
     // as a view into the store.  It also enforces
     // the read-only nature of this data
-    const state =
-      this.sourcesService.state.sources[sourceId] ||
-      this.sourcesService.state.temporarySources[sourceId];
+    const state = this.sourcesService.state.sources[sourceId]
+      || this.sourcesService.state.temporarySources[sourceId];
     assertIsDefined(state);
     Utils.applyProxy(this, state);
     this.state = state;

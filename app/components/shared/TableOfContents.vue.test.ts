@@ -1,5 +1,3 @@
-import { jest_fn } from 'util/jest_fn';
-
 // Mock Vue
 jest.mock('vue', () => ({
   __esModule: true,
@@ -77,8 +75,8 @@ describe('TableOfContents', () => {
 
     it('日本語のセクション名を受け取れる', () => {
       const sections: TocSectionData[] = [
-        { id: 'display-settings', title: '表示設定', order: 0, level: 1 },
-        { id: 'audio-settings', title: '音声設定', order: 1, level: 2 },
+        { id: 'display-settings', title: '表示', order: 0, level: 1 },
+        { id: 'audio-settings', title: '音声', order: 1, level: 2 },
       ];
 
       const instance = createInstance(sections);
@@ -148,12 +146,12 @@ describe('TableOfContents', () => {
   describe('integration scenarios', () => {
     it('CommentSettings のような複雑な階層構造を扱える', () => {
       const sections: TocSectionData[] = [
-        { id: 'display', title: '表示設定', order: 0, level: 1 },
-        { id: 'speech', title: '読み上げ設定', order: 1, level: 1 },
-        { id: 'audio', title: '音声設定', order: 2, level: 2 },
-        { id: 'distribution', title: '振り分け設定', order: 3, level: 2 },
+        { id: 'display', title: '表示', order: 0, level: 1 },
+        { id: 'speech', title: '読み上げ', order: 1, level: 1 },
+        { id: 'audio', title: '音声', order: 2, level: 2 },
+        { id: 'distribution', title: '振り分け', order: 3, level: 2 },
         { id: 'onecomme', title: 'わんコメ連携', order: 4, level: 1 },
-        { id: 'http', title: 'HTTP連携設定', order: 5, level: 1 },
+        { id: 'http', title: 'HTTP連携', order: 5, level: 1 },
       ];
 
       const instance = createInstance(sections);

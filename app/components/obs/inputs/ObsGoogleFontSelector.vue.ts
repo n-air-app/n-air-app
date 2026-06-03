@@ -1,10 +1,11 @@
 import Dropdown from 'components/shared/Dropdown.vue';
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
-import { Component, Prop } from 'vue-property-decorator';
 import { Inject } from 'services/core/injector';
 import { FontLibraryService } from 'services/font-library';
 import { SourcesService } from 'services/sources/index';
+import { Component, Prop } from 'vue-property-decorator';
+
 import ObsFontSizeSelector from './ObsFontSizeSelector.vue';
 import { IGoogleFont, ObsInput } from './ObsInput';
 
@@ -13,13 +14,13 @@ import { IGoogleFont, ObsInput } from './ObsInput';
 })
 export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
   @Inject()
-  fontLibraryService: FontLibraryService;
+    fontLibraryService: FontLibraryService;
 
   @Inject()
-  sourcesService: SourcesService;
+    sourcesService: SourcesService;
 
   @Prop()
-  value: IGoogleFont;
+    value: IGoogleFont;
   testingAnchor = `Form/GoogleFont/${this.value.face}`;
 
   fontFamilies: string[] = [];
@@ -56,16 +57,16 @@ export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
 
   created() {
     this.isLoading = true;
-    this.fontLibraryService.getManifest().then(manifest => {
+    this.fontLibraryService.getManifest().then((manifest) => {
       this.isLoading = false;
-      this.fontFamilies = manifest.families.map(family => family.name);
+      this.fontFamilies = manifest.families.map((family) => family.name);
 
       if (this.value.path) this.updateSelectionFromPath();
     });
   }
 
   updateSelectionFromPath() {
-    this.fontLibraryService.lookupFontInfo(this.value.path).then(info => {
+    this.fontLibraryService.lookupFontInfo(this.value.path).then((info) => {
       this.selectedFamily = info.family;
       this.selectedStyle = info.style;
 
@@ -75,8 +76,8 @@ export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
 
   updateStyles() {
     if (this.selectedFamily) {
-      this.fontLibraryService.findFamily(this.selectedFamily).then(fam => {
-        this.fontStyles = fam.styles.map(sty => sty.name);
+      this.fontLibraryService.findFamily(this.selectedFamily).then((fam) => {
+        this.fontStyles = fam.styles.map((sty) => sty.name);
       });
     }
   }
@@ -85,7 +86,7 @@ export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
     this.isLoading = true;
     this.selectedFamily = familyName;
 
-    this.fontLibraryService.findFamily(familyName).then(family => {
+    this.fontLibraryService.findFamily(familyName).then((family) => {
       const style = family.styles[0];
 
       this.updateStyles();
@@ -97,8 +98,8 @@ export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
     this.isLoading = true;
     this.selectedStyle = styleName;
 
-    this.fontLibraryService.findStyle(this.selectedFamily, styleName).then(style => {
-      this.fontLibraryService.downloadFont(style.file).then(fontPath => {
+    this.fontLibraryService.findStyle(this.selectedFamily, styleName).then((style) => {
+      this.fontLibraryService.downloadFont(style.file).then((fontPath) => {
         const fontInfo = fi.getFontInfo(fontPath);
 
         if (!fontInfo) {
@@ -107,8 +108,7 @@ export default class GoogleFontSelector extends ObsInput<IGoogleFont> {
         } else {
           this.actualFamily = fontInfo.family_name;
 
-          this.actualStyle =
-            (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
+          this.actualStyle = (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
         }
 
         this.value.face = this.actualFamily;

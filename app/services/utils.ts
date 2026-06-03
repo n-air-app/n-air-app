@@ -1,6 +1,7 @@
+import { randomUUID } from 'node:crypto';
+
 import * as remote from '@electron/remote';
 import isEqual from 'lodash/isEqual';
-import { randomUUID } from 'node:crypto';
 import { getKeys } from 'util/getKeys';
 
 export function uuidv4(): string {
@@ -14,7 +15,7 @@ export const enum EBit {
 
 export default class Utils {
   static applyProxy(target: Object, source: Object) {
-    Object.keys(source).forEach(propName => {
+    Object.keys(source).forEach((propName) => {
       Object.defineProperty(target, propName, {
         configurable: true,
         get() {
@@ -52,13 +53,13 @@ export default class Utils {
 
   static getMainWindow(): Electron.BrowserWindow {
     return remote.BrowserWindow.getAllWindows().find(
-      win => Utils.getUrlParams(win.webContents.getURL()).windowId === 'main',
+      (win) => Utils.getUrlParams(win.webContents.getURL()).windowId === 'main',
     );
   }
 
   static getChildWindow(): Electron.BrowserWindow {
     return remote.BrowserWindow.getAllWindows().find(
-      win => Utils.getUrlParams(win.webContents.getURL()).windowId === 'child',
+      (win) => Utils.getUrlParams(win.webContents.getURL()).windowId === 'child',
     );
   }
 
@@ -126,7 +127,7 @@ export default class Utils {
 
   static getChangedParams<T>(obj: T, patch: T): Partial<T> {
     const result: Partial<T> = {};
-    getKeys(patch).forEach(key => {
+    getKeys(patch).forEach((key) => {
       if (!isEqual(obj[key], patch[key])) result[key] = patch[key];
     });
     return result;
@@ -137,7 +138,7 @@ export default class Utils {
 
     if (obj == null) return patch;
 
-    getKeys(patch).forEach(key => {
+    getKeys(patch).forEach((key) => {
       if (!isEqual(obj[key], patch[key])) {
         if (patch[key] && typeof patch[key] === 'object' && !Array.isArray(patch[key])) {
           // @ts-expect-error ts2322 再帰的に子要素もPartialなのだが型解決が難しい
@@ -154,14 +155,14 @@ export default class Utils {
    * @see https://www.typescriptlang.org/docs/handbook/mixins.html
    */
   static applyMixins(derivedCtor: any, baseCtors: any[]) {
-    baseCtors.forEach(baseCtor => {
-      Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+    baseCtors.forEach((baseCtor) => {
+      Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
         const baseDescriptor = Object.getOwnPropertyDescriptor(baseCtor.prototype, name);
         const derivedDescriptor = Object.getOwnPropertyDescriptor(derivedCtor.prototype, name);
         // ignore getters
         if (
-          (baseDescriptor && baseDescriptor.get) ||
-          (derivedDescriptor && derivedDescriptor.get)
+          (baseDescriptor && baseDescriptor.get)
+          || (derivedDescriptor && derivedDescriptor.get)
         ) {
           return;
         }

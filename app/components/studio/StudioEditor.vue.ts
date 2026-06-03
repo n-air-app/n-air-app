@@ -90,7 +90,7 @@ export default class StudioEditor extends Vue {
   }
 
   handleMouseDblClick(event: MouseEvent) {
-    const overSource = this.sceneItems.find(source => {
+    const overSource = this.sceneItems.find((source) => {
       return this.isOverSource(event, source);
     });
 
@@ -132,7 +132,7 @@ export default class StudioEditor extends Vue {
     // If neither a drag or resize was initiated, it must have been
     // an attempted selection or right click.
     if (!this.dragHandler && !this.resizeRegion) {
-      const overSource = this.sceneItems.find(source => {
+      const overSource = this.sceneItems.find((source) => {
         return this.isOverSource(event, source);
       });
 
@@ -252,13 +252,12 @@ export default class StudioEditor extends Vue {
       // We might need to start dragging
       const sourcesInPriorityOrder = this.activeSources.concat(this.sceneItems).filter(Boolean);
 
-      const overSource = sourcesInPriorityOrder.find(source => {
+      const overSource = sourcesInPriorityOrder.find((source) => {
         return this.isOverSource(event, source);
       });
 
       if (overSource && this.canDrag) {
-        const overNode =
-          !overSource.isSelected() && overSource.hasParent() ? overSource.getParent() : overSource;
+        const overNode = !overSource.isSelected() && overSource.hasParent() ? overSource.getParent() : overSource;
 
         // Make this source active
         if (event.ctrlKey || overNode.isSelected()) {
@@ -375,7 +374,7 @@ export default class StudioEditor extends Vue {
       if (overResize) {
         this.$refs.display.style.cursor = overResize.cursor;
       } else {
-        const overSource = this.sceneItems.find(source => {
+        const overSource = this.sceneItems.find((source) => {
           return this.isOverSource(event, source);
         });
 
@@ -429,7 +428,7 @@ export default class StudioEditor extends Vue {
   // of the active source's resize regions.
   isOverResize(event: MouseEvent) {
     if (this.activeSources.length > 0) {
-      return this.resizeRegions.find(region => {
+      return this.resizeRegions.find((region) => {
         return this.isOverBox(event, region.x, region.y, region.width, region.height);
       });
     }
@@ -459,7 +458,7 @@ export default class StudioEditor extends Vue {
   // getters
 
   get activeSources(): SceneItem[] {
-    return this.selectionService.getItems().filter(item => {
+    return this.selectionService.getItems().filter((item) => {
       return item.isVisualSource;
     });
   }
@@ -467,7 +466,7 @@ export default class StudioEditor extends Vue {
   get sceneItems(): SceneItem[] {
     const scene = this.scenesService.activeScene;
     if (scene) {
-      return scene.getItems().filter(source => {
+      return scene.getItems().filter((source) => {
         return source.isVisualSource;
       });
     }
@@ -491,7 +490,7 @@ export default class StudioEditor extends Vue {
   get resizeRegions(): IResizeRegion[] {
     let regions: IResizeRegion[] = [];
 
-    this.selectionService.getItems().forEach(item => {
+    this.selectionService.getItems().forEach((item) => {
       regions = regions.concat(this.generateResizeRegionsForItem(item));
     });
 

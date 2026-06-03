@@ -1,4 +1,5 @@
 import { sleep } from 'util/sleep';
+
 import { QueueRunner, StartFunc } from './QueueRunner';
 
 class Task {
@@ -12,12 +13,12 @@ class Task {
   }
 
   constructor(startCallback: (task: Task) => void = undefined) {
-    const prepare = new Promise<boolean>(resolve => {
-      this.completePrepare = skip => {
+    const prepare = new Promise<boolean>((resolve) => {
+      this.completePrepare = (skip) => {
         resolve(skip);
       };
     });
-    const run = new Promise<void>(resolve => {
+    const run = new Promise<void>((resolve) => {
       this.completeRun = () => {
         resolve();
         this._state = 'completed';
@@ -28,7 +29,7 @@ class Task {
       if (startCallback) {
         startCallback(this);
       }
-      return prepare.then(skip => {
+      return prepare.then((skip) => {
         if (skip) {
           return null;
         } else {
@@ -164,7 +165,7 @@ describe('QueueRunner', () => {
     });
     const results: number[] = [];
     for (const n of [1, 2, 3]) {
-      const task = new Task(t => {
+      const task = new Task((t) => {
         results.push(n);
         t.completePrepare(false);
         t.completeRun();
@@ -372,7 +373,7 @@ describe('QueueRunner', () => {
     test('キューに追加すると nextLabel がセットされる', () => {
       const queue = new QueueRunner();
       const states: any[] = [];
-      queue.state$.subscribe(state => states.push(state));
+      queue.state$.subscribe((state) => states.push(state));
 
       const task = new Task();
       queue.add(task.prepare, 'test-label');
@@ -384,7 +385,7 @@ describe('QueueRunner', () => {
     test('キューが空のとき nextLabel は null', () => {
       const queue = new QueueRunner();
       const states: any[] = [];
-      queue.state$.subscribe(state => states.push(state));
+      queue.state$.subscribe((state) => states.push(state));
 
       expect(states[0].nextLabel).toBe(null);
     });
@@ -392,7 +393,7 @@ describe('QueueRunner', () => {
     test('disable 中でもキューの先頭アイテムの nextLabel が取得できる', async () => {
       const queue = new QueueRunner();
       const states: any[] = [];
-      queue.state$.subscribe(state => states.push(state));
+      queue.state$.subscribe((state) => states.push(state));
 
       const task1 = new Task();
       queue.add(task1.prepare, 'first');
@@ -415,7 +416,7 @@ describe('QueueRunner', () => {
     test('cancelQueue すると nextLabel が null になる', async () => {
       const queue = new QueueRunner();
       const states: any[] = [];
-      queue.state$.subscribe(state => states.push(state));
+      queue.state$.subscribe((state) => states.push(state));
 
       const task1 = new Task();
       queue.add(task1.prepare, 'first');

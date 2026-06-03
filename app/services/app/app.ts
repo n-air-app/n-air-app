@@ -28,6 +28,7 @@ import Utils, { uuidv4 } from 'services/utils';
 import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
+
 import * as obs from '../../../obs-api';
 
 interface IAppState {
@@ -179,7 +180,7 @@ export class AppService extends StatefulService<IAppState> {
         try {
           await Promise.race([
             this.streamingService.logStreamEnd(),
-            new Promise<void>(resolve => { setTimeout(resolve, 5000); }),
+            new Promise<void>((resolve) => { setTimeout(resolve, 5000); }),
           ]);
         } catch (e) {
           console.error('[SHUTDOWN] Error sending stream_end log:', e);
@@ -210,7 +211,7 @@ export class AppService extends StatefulService<IAppState> {
         this.transitionsService.enableStudioMode();
       }
       this.studioModeSubscription = this.transitionsService.studioModeChanged.subscribe(
-        isStudioMode => {
+        (isStudioMode) => {
           this.customizationService.setStudioMode(isStudioMode);
         },
       );
@@ -295,7 +296,7 @@ export class AppService extends StatefulService<IAppState> {
     const originalArgs: string[] = remote.process.argv.slice(1);
 
     const args = originalArgs.filter(
-      x => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x),
+      (x) => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x),
     );
     // キャッシュクリアしたいときだけつくようにする
     switch (clearCacheDir) {

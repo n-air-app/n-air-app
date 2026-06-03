@@ -16,7 +16,7 @@ useWebdriver({ chromeDriverLogging: true });
 
 const sourceType = 'nair-rtvc-source';
 
-test('rtvc Adding and removing source', async t => {
+test('rtvc Adding and removing source', async (t) => {
   const sourceName = `Example ${sourceType}`;
   await addSource(sourceType, sourceName);
 
@@ -30,7 +30,7 @@ test('rtvc Adding and removing source', async t => {
   await waitForSourceExist(sourceName, true);
 });
 
-test('rtvc Check conditions that can be added', async t => {
+test('rtvc Check conditions that can be added', async (t) => {
   const client = t.context.app.client;
 
   const sourceName = `Example ${sourceType}`;
@@ -47,7 +47,7 @@ test('rtvc Check conditions that can be added', async t => {
   await click(`[data-test="${sourceType}"`);
   t.true((await client.$('[data-test="AddSource"]').getAttribute('disabled')) === 'true');
   // can add other source
-  await click(`[data-test="image_source"`);
+  await click('[data-test="image_source"');
   t.true((await client.$('[data-test="AddSource"]').getAttribute('disabled')) === null);
   // close
   await click('[data-test="titlebar-close"]');

@@ -1,5 +1,6 @@
 import { Subject } from 'rxjs';
 import { createSetupFunction } from 'util/test-setup';
+
 type NicoliveCommentFilterService =
   import('./nicolive-comment-filter').NicoliveCommentFilterService;
 
@@ -220,7 +221,7 @@ test('applyFilter', async () => {
     { seqId: 4, type: 'operator', value: { user_id: 'user needle' } },
   ] as const;
 
-  const after = chats.map(c => instance.applyFilter(c));
+  const after = chats.map((c) => instance.applyFilter(c));
 
   expect(after[0].filtered).toBe(true);
   expect(after[1].filtered).toBe(true);

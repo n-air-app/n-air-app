@@ -1,8 +1,8 @@
-import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
-import VueColor from 'vue-color';
-import { Component, Prop } from 'vue-property-decorator';
 import Utils from 'services/utils';
+import { Component, Prop } from 'vue-property-decorator';
+
+import ColorPicker from './ColorPicker.vue';
 import { IObsInput, ObsInput, TObsType } from './ObsInput';
 
 interface IColorPickerOptions {
@@ -40,23 +40,53 @@ interface IColor {
 }
 
 @Component({
-  components: { ColorPicker: VueColor.Sketch },
+  components: { ColorPicker },
 })
 class ObsColorInput extends ObsInput<IObsInput<number>> {
   static obsType: TObsType;
 
   @Prop()
-  value: IObsInput<number>;
+    value: IObsInput<number>;
   testingAnchor = `Form/Color/${this.value.name}`;
 
   pickerVisible = false;
 
   togglePicker() {
     this.pickerVisible = !this.pickerVisible;
+    if (this.pickerVisible) {
+      this.$nextTick(() => {
+        document.addEventListener('mousedown', this.onDocumentMouseDown);
+      });
+    } else {
+      document.removeEventListener('mousedown', this.onDocumentMouseDown);
+    }
   }
 
-  handleColorChange(color: any) {
-    this.setValue(color.rgba);
+  closePicker() {
+    this.pickerVisible = false;
+    document.removeEventListener('mousedown', this.onDocumentMouseDown);
+  }
+
+  onDocumentMouseDown(event: MouseEvent) {
+    const menu = this.$refs.colorPickerMenu as Vue | undefined;
+    if (menu && menu.$el && menu.$el.contains(event.target as Node)) {
+      return;
+    }
+    const el = this.$el as HTMLElement;
+    if (el && el.contains(event.target as Node)) {
+      return;
+    }
+    this.closePicker();
+  }
+
+  isDragging = false;
+
+  handleDraggingChange(dragging: boolean) {
+    this.isDragging = dragging;
+  }
+
+  handleColorChange(color: IColor) {
+    this.setValueImpl(color);
   }
 
   startEyedropper() {
@@ -100,10 +130,8 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
     }
   }
 
-  private debouncedSetValue = debounce(this.setValueImpl, 500);
-
   setValue(rgba: IColor) {
-    this.debouncedSetValue(rgba);
+    this.setValueImpl(rgba);
   }
 
   mounted() {
@@ -111,7 +139,7 @@ class ObsColorInput extends ObsInput<IObsInput<number>> {
   }
 
   beforeDestroy() {
-    this.debouncedSetValue.cancel();
+    document.removeEventListener('mousedown', this.onDocumentMouseDown);
   }
 
   get hexAlpha() {

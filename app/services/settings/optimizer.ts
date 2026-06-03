@@ -1,6 +1,7 @@
 import { IObsInput, IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { $t } from 'services/i18n';
 import { getKeys } from 'util/getKeys';
+
 import { ISettingsSubCategory, SettingsCategory } from './settings-api';
 
 export enum EncoderFamily {
@@ -458,9 +459,9 @@ export interface OptimizedSettings {
  */
 function i18nPath(top: string, ...args: string[]): string {
   return (
-    top +
-    [...args]
-      .map(s => {
+    top
+    + [...args]
+      .map((s) => {
         if (typeof s !== 'string') {
           s = (s as any).toString();
         }
@@ -637,7 +638,7 @@ export function filterKeyDescriptions(
  */
 function validateKeyDescriptions(params: KeyDescription[]) {
   // ここは全ての枝を列挙する
-  const actual = new Set<string>(Array.from(iterateAllKeyDescriptions(params)).map(d => d.key));
+  const actual = new Set<string>(Array.from(iterateAllKeyDescriptions(params)).map((d) => d.key));
   const missing = [];
   for (const key of Object.values(OptimizationKey)) {
     if (!actual.has(key)) {
@@ -880,7 +881,7 @@ export class SettingsKeyAccessor {
     const setting = this.getSetting(key, descriptions);
     if (setting && setting.hasOwnProperty('options') && Array.isArray(setting.options)) {
       const options: { value: any }[] = setting.options;
-      return options.find(v => v.value === value) !== undefined;
+      return options.find((v) => v.value === value) !== undefined;
     }
     return false;
   }

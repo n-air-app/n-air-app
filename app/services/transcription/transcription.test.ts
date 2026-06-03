@@ -2,6 +2,7 @@ import * as FakeTimers from '@sinonjs/fake-timers';
 import { Subject } from 'rxjs';
 import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
+
 import type { downloadAndUnzip as downloadAndUnzipType } from './downloadAndUnzip';
 import type { filterNoiseText as filterNoiseTextType } from './filterNoiseText';
 import type { TranscriptionService as TranscriptionServiceType } from './transcription';
@@ -37,7 +38,7 @@ jest.mock('node:path', () => ({
 jest.mock('services/i18n', () => ({
   $t: jest_fn<(key: string) => string>()
     .mockName('$t')
-    .mockImplementation(key => key),
+    .mockImplementation((key) => key),
 }));
 jest.mock('./downloadAndUnzip', () => {
   const actual = jest.requireActual('./downloadAndUnzip');
@@ -49,7 +50,7 @@ jest.mock('./downloadAndUnzip', () => {
 jest.mock('./filterNoiseText', () => ({
   filterNoiseText: jest_fn<typeof filterNoiseTextType>()
     .mockName('filterNoiseText')
-    .mockImplementation(text => text),
+    .mockImplementation((text) => text),
 }));
 jest.mock('./VoskClient', () => {
   const actual = jest.requireActual('./VoskClient');
@@ -150,16 +151,16 @@ function setupTranscription(
 
   const prepareOptions = options.emptyDevices
     ? {
-        mockOverrides: {
-          listAudioDevices: emptyDeviceList,
-          voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
-        },
-      }
+      mockOverrides: {
+        listAudioDevices: emptyDeviceList,
+        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
+      },
+    }
     : {
-        mockOverrides: {
-          voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
-        },
-      };
+      mockOverrides: {
+        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
+      },
+    };
 
   const { instance, ...rest } = prepare(prepareOptions);
 
@@ -209,8 +210,7 @@ function prepare(options: PrepareOptions = {}): {
   }));
 
   const transcriptionMessages$ = new Subject<TranscriptionMessage>();
-  const stopTranscription =
-    jest_fn<VoskClientType['stopTranscription']>().mockName('stopTranscription');
+  const stopTranscription = jest_fn<VoskClientType['stopTranscription']>().mockName('stopTranscription');
   const client = {
     startTranscription: jest_fn<VoskClientType['startTranscription']>()
       .mockName('startTranscription')
@@ -273,7 +273,7 @@ describe('TranscriptionService', () => {
     scenarios.forEach(([desc, setup, shouldStart]) => {
       it(
         `should ${shouldStart ? '' : 'not '}activate when ${desc}`,
-        withClock(async clock => {
+        withClock(async (clock) => {
           const { instance, client } = setupTranscription(setup);
           instance.setEnabled(true);
           await clock.tickAsync(0);
@@ -288,7 +288,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should not activate if audio device manually cleared',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, getVoskModelStatus, client } = prepare();
         const { VoskClient: mockedVoskClient } = require('./VoskClient');
         mockedVoskClient.listAudioDevices.mockReturnValue(emptyDeviceList);
@@ -304,7 +304,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should deactivate when setEnabled(false)',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, client, stopTranscription } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -321,7 +321,7 @@ describe('TranscriptionService', () => {
   describe('activeStatus', () => {
     it(
       'should return "disabled" when service is not enabled',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -332,7 +332,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should return "noAudioDevice" when no audio devices available',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({ modelDownloaded: true, emptyDevices: true });
         instance.setEnabled(true);
         await clock.tickAsync(0);
@@ -342,7 +342,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should return "noModelDownloaded" when no models are downloaded',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({ audioDeviceId: 'test-device' });
         instance.setEnabled(true);
         await clock.tickAsync(0);
@@ -352,7 +352,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should return "noVoskModel" when voskModelName is null/undefined but has downloaded models',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({ audioDeviceId: 'test-device' });
 
         // First set up a scenario where we have some downloaded models
@@ -378,7 +378,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should return "noVoskModel" when selected model is not downloaded but others are',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({ audioDeviceId: 'test-device' });
 
         // Mock that we have some downloaded models, so hasAnyDownloadedModel returns true
@@ -398,7 +398,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should return "active" when all conditions are met',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -411,7 +411,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should emit activeStatus changes through observable',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -436,7 +436,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should transition through different states correctly',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({ emptyDevices: true });
         const statusSpy = jest_fn().mockName('activeStatusSpy');
         instance.activeStatus$.subscribe(statusSpy);
@@ -488,7 +488,7 @@ describe('TranscriptionService', () => {
   describe('text processing', () => {
     it(
       'should initialize text with placeholder when initializeText() is called',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -513,7 +513,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should replace placeholder with actual transcription text',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -546,7 +546,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should process partial and final text',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -575,7 +575,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should handle text file line limit and time to live',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -612,7 +612,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should cancel oldest timer when line is pushed out by max line limit',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -659,7 +659,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should handle multiple line pushouts correctly',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -714,7 +714,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should cancel all timers when deactivating',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -762,7 +762,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should write to text file when enabled',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -787,7 +787,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should disable text file writing on error',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, transcriptionMessages$ } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -886,7 +886,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should cancel download and set model status to cancelled',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, setVoskModelStatus } = setupTranscription();
         const { downloadAndUnzip, CancelledError } = require('./downloadAndUnzip');
 
@@ -943,7 +943,7 @@ describe('TranscriptionService', () => {
       // Mock downloadAndUnzip to return a promise we can control
       downloadAndUnzip.mockImplementation(
         () =>
-          new Promise(resolve => {
+          new Promise((resolve) => {
             resolveDownload = resolve;
           }),
       );
@@ -970,7 +970,7 @@ describe('TranscriptionService', () => {
       // Mock downloadAndUnzip to return a promise we can control
       downloadAndUnzip.mockImplementation(
         () =>
-          new Promise(resolve => {
+          new Promise((resolve) => {
             resolvers.push(resolve);
           }),
       );
@@ -992,7 +992,7 @@ describe('TranscriptionService', () => {
 
     it(
       'should delete a model and deactivate service',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, stopTranscription, setVoskModelStatus } = setupTranscription({
           modelDownloaded: true,
           audioDeviceId: 'test-device',
@@ -1015,7 +1015,7 @@ describe('TranscriptionService', () => {
   describe('model switching', () => {
     it(
       'should deactivate and reactivate with new model when switching models',
-      withClock(async clock => {
+      withClock(async (clock) => {
         const { instance, getVoskModelStatus, stopTranscription } = prepare();
         const { CreateVoskCliClient: mockedCreateVoskCliClient } = require('./VoskClient');
 
@@ -1078,7 +1078,7 @@ describe('TranscriptionService', () => {
   describe('setTextFileMaxLine integration', () => {
     it('should call updateTranscriptionLines when setting new value', () => {
       const { instance } = prepare();
-      
+
       // TranscriptionSourceServiceのupdateTranscriptionLinesをモック
       const mockUpdateTranscriptionLines = jest_fn().mockName('updateTranscriptionLines');
       instance.transcriptionSourceService.updateTranscriptionLines = mockUpdateTranscriptionLines;
@@ -1093,7 +1093,7 @@ describe('TranscriptionService', () => {
 
     it('should update transcription sources when value changes', () => {
       const { instance } = prepare();
-      
+
       // モックを準備
       const mockUpdateTranscriptionLines = jest_fn().mockName('updateTranscriptionLines');
       instance.transcriptionSourceService.updateTranscriptionLines = mockUpdateTranscriptionLines;

@@ -2,6 +2,7 @@ import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { EScaleType } from 'services/scenes';
 import { SelectionService } from 'services/selection';
+
 import { Menu } from './Menu';
 
 export class ScaleFilteringMenu extends Menu {
