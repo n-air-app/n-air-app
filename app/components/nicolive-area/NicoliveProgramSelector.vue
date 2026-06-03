@@ -18,74 +18,74 @@
             </p>
           </NavItem>
         </NavMenu>
-      <div class="nicolive-program-selector-container">
-        <Step
-          v-if="currentStep === 'providerTypeSelect'"
-          :class="'provider-type-select-step'"
-          :title="getStepTitle(currentStep)"
-          :description="getStepDescription(currentStep)"
-        >
-          <ul class="list">
-            <li v-for="providerType in providerTypes" :key="providerType">
-              <a @click="onSelectProviderType(providerType)">
-                <p class="anchor-text">{{ getProviderTypeProgramText(providerType) }}</p>
-              </a>
-            </li>
-          </ul>
-        </Step>
-        <Step
-          v-if="currentStep === 'channelSelect'"
-          :class="'channel-select-step'"
-          :title="getStepTitle(currentStep)"
-          :description="getStepDescription(currentStep)"
-        >
-          <ul class="list">
-            <li v-for="channel in candidateChannels" :key="channel.id">
-              <a @click="onSelectChannel(channel.id, channel.name)">
-                <img :src="channel.thumbnailUrl" :alt="channel.name" class="channel-thumbnail" />
-                <p class="anchor-text">{{ channel.name }}</p>
-              </a>
-            </li>
-          </ul>
-        </Step>
-        <Step
-          v-if="currentStep === 'programSelect'"
-          :class="'program-select-step'"
-          :title="getStepTitle(currentStep)"
-          :description="getStepDescription(currentStep)"
-        >
-          <!-- 文言に改行タグ <br /> を含むため、 v-html で HTML を注入しています。-->
-          <div
-            class="no-program-message"
-            v-if="canShowNoProgramsSection()"
-            v-html="$t('streaming.nicoliveProgramSelector.noChannelPrograms')"
-          />
-          <ul class="list" v-else>
-            <li v-for="program in candidatePrograms" :key="program.id">
-              <a @click="onSelectBroadcastingProgram(program.id, program.title)">
-                <p class="annotation">
-                  <span class="lv">{{ program.id }}</span>
-                </p>
-                <p class="anchor-text">{{ program.title }}</p>
-              </a>
-            </li>
-          </ul>
-        </Step>
-        <Step
-          v-if="currentStep === 'confirm'"
-          :class="'confirm-step'"
-          :title="getStepTitle(currentStep)"
-          :description="getStepDescription(currentStep)"
-        >
-          <ul class="list">
-            <li v-for="step in selectionSteps" :key="step">
-              <div class="caption">{{ getStepTitleForMenu(step) }}</div>
-              <div class="value">{{ getSelectedValueForDisplay(step) || '-' }}</div>
-            </li>
-          </ul>
-        </Step>
+        <div class="nicolive-program-selector-container">
+          <Step
+            v-if="currentStep === 'providerTypeSelect'"
+            :class="'provider-type-select-step'"
+            :title="getStepTitle(currentStep)"
+            :description="getStepDescription(currentStep)"
+          >
+            <ul class="list">
+              <li v-for="providerType in providerTypes" :key="providerType">
+                <a @click="onSelectProviderType(providerType)">
+                  <p class="anchor-text">{{ getProviderTypeProgramText(providerType) }}</p>
+                </a>
+              </li>
+            </ul>
+          </Step>
+          <Step
+            v-if="currentStep === 'channelSelect'"
+            :class="'channel-select-step'"
+            :title="getStepTitle(currentStep)"
+            :description="getStepDescription(currentStep)"
+          >
+            <ul class="list">
+              <li v-for="channel in candidateChannels" :key="channel.id">
+                <a @click="onSelectChannel(channel.id, channel.name)">
+                  <img :src="channel.thumbnailUrl" :alt="channel.name" class="channel-thumbnail" />
+                  <p class="anchor-text">{{ channel.name }}</p>
+                </a>
+              </li>
+            </ul>
+          </Step>
+          <Step
+            v-if="currentStep === 'programSelect'"
+            :class="'program-select-step'"
+            :title="getStepTitle(currentStep)"
+            :description="getStepDescription(currentStep)"
+          >
+            <!-- 文言に改行タグ <br /> を含むため、 v-html で HTML を注入しています。-->
+            <div
+              class="no-program-message"
+              v-if="canShowNoProgramsSection()"
+              v-html="$t('streaming.nicoliveProgramSelector.noChannelPrograms')"
+            />
+            <ul class="list" v-else>
+              <li v-for="program in candidatePrograms" :key="program.id">
+                <a @click="onSelectBroadcastingProgram(program.id, program.title)">
+                  <p class="annotation">
+                    <span class="lv">{{ program.id }}</span>
+                  </p>
+                  <p class="anchor-text">{{ program.title }}</p>
+                </a>
+              </li>
+            </ul>
+          </Step>
+          <Step
+            v-if="currentStep === 'confirm'"
+            :class="'confirm-step'"
+            :title="getStepTitle(currentStep)"
+            :description="getStepDescription(currentStep)"
+          >
+            <ul class="list">
+              <li v-for="step in selectionSteps" :key="step">
+                <div class="caption">{{ getStepTitleForMenu(step) }}</div>
+                <div class="value">{{ getSelectedValueForDisplay(step) || '-' }}</div>
+              </li>
+            </ul>
+          </Step>
+        </div>
       </div>
-    </div>
     </template>
     <template #controls>
       <template v-if="currentStep === 'confirm'">

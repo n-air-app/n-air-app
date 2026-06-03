@@ -8,7 +8,7 @@
           class="source-card"
         >
           <div class="source-row">
-            <div class="source-name">{{ audioSource.name }}</div>
+            <div class="source-name">{{ sourceName(audioSource) }}</div>
             <div class="controls">
               <div
                 v-for="formInput in audioSource.getSettingsForm()"
@@ -19,13 +19,12 @@
                   v-if="propertyComponentForType(formInput.type)"
                   :is="propertyComponentForType(formInput.type)"
                   :value="{ ...formInput, showDescription: true }"
-                  @input="onInputHandler(audioSource, formInput.name, $event)"
+                  @input="onInputHandler(audioSource, formInput.name, $event.value)"
                 />
               </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </template>
   </modal-layout>

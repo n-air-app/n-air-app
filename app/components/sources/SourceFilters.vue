@@ -41,14 +41,14 @@
           </template>
         </sl-vue-tree>
 
-      <div class="content">
-        <div v-if="selectedFilterName">
-          <GenericForm :value="properties" @input="v => { properties = v; save(); }" :key="selectedFilterName"></GenericForm>
+        <div class="content">
+          <div v-if="selectedFilterName">
+            <GenericForm :value="properties" @input="v => { properties = v; save(); }" :key="selectedFilterName"></GenericForm>
+          </div>
+          <div v-if="!selectedFilterName">
+            {{ $t('filters.noFilterMessage') }}
+          </div>
         </div>
-        <div v-if="!selectedFilterName">
-          {{ $t('filters.noFilterMessage') }}
-        </div>
-      </div>
       </div>
     </template>
   </modal-layout>

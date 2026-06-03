@@ -2,60 +2,60 @@
   <modal-layout bare-content :show-cancel="false" :done-handler="done">
     <template #content>
       <div class="settings" data-test="Settings">
-      <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
-        <template v-for="category in categoryNames" :key="category">
-          <NavItem
-            :to="category"
-            :ico="icons.get(category)"
-            :data-test="category"
-            :show-arrow="hasSections(category)"
-            :is-toc-open="category === categoryName ? isTocOpen : false"
-            @click.native.prevent="handleCategoryClick(category)"
-          >
-            {{ $t(`settings.${category}.name`, { fallback: category }) }}
-          </NavItem>
-          <TableOfContents
-            v-if="category === categoryName && currentSections.length > 0 && isTocOpen"
-            :key="`${category}-toc`"
-            :sections="currentSections"
-            :activeId="currentActiveTocId"
-            @navigate="handleTocNavigate"
-          />
-        </template>
-      </NavMenu>
-      <div class="settings-container" ref="settingsContainer">
-        <aside class="notification-root" v-if="isStreaming">
-          <i class="notification-icon icon-notification" />
-          <p class="notification-message">{{ $t('settings.noticeWhileStreaming') }}</p>
-        </aside>
-        <aside class="notification-root" v-if="showLoginRequiredNotice">
-          <i class="notification-icon icon-notification" />
-          <p class="notification-message">{{ $t('settings.noticeLoginRequired') }}</p>
-        </aside>
+        <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
+          <template v-for="category in categoryNames" :key="category">
+            <NavItem
+              :to="category"
+              :ico="icons.get(category)"
+              :data-test="category"
+              :show-arrow="hasSections(category)"
+              :is-toc-open="category === categoryName ? isTocOpen : false"
+              @click.native.prevent="handleCategoryClick(category)"
+            >
+              {{ $t(`settings.${category}.name`, { fallback: category }) }}
+            </NavItem>
+            <TableOfContents
+              v-if="category === categoryName && currentSections.length > 0 && isTocOpen"
+              :key="`${category}-toc`"
+              :sections="currentSections"
+              :activeId="currentActiveTocId"
+              @navigate="handleTocNavigate"
+            />
+          </template>
+        </NavMenu>
+        <div class="settings-container" ref="settingsContainer">
+          <aside class="notification-root" v-if="isStreaming">
+            <i class="notification-icon icon-notification" />
+            <p class="notification-message">{{ $t('settings.noticeWhileStreaming') }}</p>
+          </aside>
+          <aside class="notification-root" v-if="showLoginRequiredNotice">
+            <i class="notification-icon icon-notification" />
+            <p class="notification-message">{{ $t('settings.noticeLoginRequired') }}</p>
+          </aside>
 
-        <language-settings v-if="categoryName === 'General'" />
-        <hotkeys v-if="categoryName === 'Hotkeys'" />
-        <comment-settings v-if="categoryName === 'Comment' && isLoggedIn" />
-        <comment-speech-settings v-if="categoryName === 'CommentSpeech' && isLoggedIn" />
-        <sub-stream-settings v-if="categoryName === 'SubStream'" />
-        <transcription-settings v-if="categoryName === 'Transcription'" />
-        <GenericFormGroups
-          v-if="
-            ![
-              'Hotkeys',
-              'Comment',
-              'CommentSpeech',
-              'SubStream',
-              'Transcription',
-            ].includes(categoryName)
-          "
-          :value="settingsData"
-          :category="categoryName"
-          :isLoggedIn="isLoggedIn"
-          @input="save"
-        />
-        <extra-settings v-if="categoryName === 'General'" />
-      </div>
+          <language-settings v-if="categoryName === 'General'" />
+          <hotkeys v-if="categoryName === 'Hotkeys'" />
+          <comment-settings v-if="categoryName === 'Comment' && isLoggedIn" />
+          <comment-speech-settings v-if="categoryName === 'CommentSpeech' && isLoggedIn" />
+          <sub-stream-settings v-if="categoryName === 'SubStream'" />
+          <transcription-settings v-if="categoryName === 'Transcription'" />
+          <GenericFormGroups
+            v-if="
+              ![
+                'Hotkeys',
+                'Comment',
+                'CommentSpeech',
+                'SubStream',
+                'Transcription',
+              ].includes(categoryName)
+            "
+            :value="settingsData"
+            :category="categoryName"
+            :isLoggedIn="isLoggedIn"
+            @input="save"
+          />
+          <extra-settings v-if="categoryName === 'General'" />
+        </div>
       </div>
     </template>
   </modal-layout>
