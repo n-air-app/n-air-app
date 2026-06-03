@@ -40,16 +40,18 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
         onend();
       };
       uttr.onerror = (e) => {
-        Sentry.captureEvent({
-          message: 'speechSynthesis.onerror',
-          level: ['interrupted', 'canceled'].includes(e.error) ? 'info' : 'warning',
-          tags: {
-            error: e.error,
-          },
-          extra: {
-            speech,
-          },
-        });
+        if (!['interrupted', 'canceled'].includes(e.error)) {
+          Sentry.captureEvent({
+            message: 'speechSynthesis.onerror',
+            level: 'warning',
+            tags: {
+              error: e.error,
+            },
+            extra: {
+              speech,
+            },
+          });
+        }
         if (Utils.isDevMode()) {
           console.warn('speechSynthesis.onerror', e.error);
         }

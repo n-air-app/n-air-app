@@ -18,6 +18,9 @@ export default defineComponent({
     },
   },
   methods: {
+    sourceName(audioSource: IAudioSourceApi): string {
+      return audioSource.getModel().name;
+    },
     onInputHandler(audioSource: IAudioSourceApi, name: string, value: TObsValue) {
       if (name === 'deflection') {
         audioSource.setDeflection((value as number) / 100);
@@ -27,4 +30,3 @@ export default defineComponent({
     },
   },
 });
-
