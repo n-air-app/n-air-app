@@ -64,6 +64,18 @@ interface IOBSOutputSignalInfo {
   error: string;
 }
 
+const OBS_OUTPUT_CODE_NAMES: Record<number, string> = {
+  [-1]: 'BadPath',
+  [-2]: 'ConnectFailed',
+  [-3]: 'InvalidStream',
+  [-4]: 'Error',
+  [-5]: 'Disconnected',
+  [-6]: 'Unsupported',
+  [-7]: 'NoSpace',
+  [-8]: 'EncoderError',
+  [-65]: 'OutdatedDriver',
+};
+
 export class StreamingService
   extends StatefulService<IStreamingServiceState>
   implements IStreamingServiceApi {
@@ -871,9 +883,11 @@ export class StreamingService
         info.signal !== EOBSOutputSignal.Reconnect &&
         info.signal !== EOBSOutputSignal.ReconnectSuccess
       ) {
-        SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${info.code}`, {
-          fingerprint: ['StreamingService', 'outputCode', String(info.code)],
-          tags: { signal: String(info.signal), outputType: String(info.type) },
+        const outputCodeName = OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code);
+        SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${outputCodeName}`, {
+          level: 'warning',
+          fingerprint: ['StreamingService', 'outputCode'],
+          tags: { signal: String(info.signal), outputType: String(info.type), outputCode: outputCodeName },
           extra: { info, reconnectCount: this.reconnectCount },
         });
       }
