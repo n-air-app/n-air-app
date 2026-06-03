@@ -2,168 +2,168 @@
   <modal-layout :showControls="false">
     <template #content>
       <div class="user-info">
-      <div class="user-detail">
-        <img
-          :src="userIconURL"
-          width="64"
-          height="64"
-          class="user-icon"
-          :alt="userName"
-          :title="userName"
-          @error.once="userIconURL = defaultUserIconURL"
-        />
-        <div class="user-detail-body">
-          <div class="user-name-wrapper">
-            <div class="user-name">{{ userName }}</div>
-            <i class="icon-moderator" v-tooltip.bottom="moderatorTooltip" v-if="isModerator"></i>
-            <i
-              class="icon-creator-support"
-              v-tooltip.bottom="supporterTooltip"
-              v-if="isSupporter"
-            ></i>
-          </div>
-          <div class="user-account">
-            <p class="user-id">ID: {{ userId }}</p>
-            <p class="user-type" :class="{ 'is-premium': isPremium }">
-              {{ isPremium ? 'プレミアム会員' : '一般会員' }}
-            </p>
-          </div>
-        </div>
-        <div class="user-button-wrapper">
-          <button class="button button--round button--primary" @click="openUserPage">
-            ユーザーページを見る
-          </button>
-          <popper
-            placement="bottom-end"
-            width="180px"
-            @show="showPopupMenu = true"
-            @hide="showPopupMenu = false"
-          >
-            <div class="popper">
-              <ul class="popup-menu-list">
-                <li class="popup-menu-item">
-                  <a
-                    @click="copyUserId()"
-                    class="link"
-                  >ユーザーIDをコピー</a
-                  >
-                </li>
-              </ul>
-              <ul class="popup-menu-list" v-if="!isBroadcaster">
-                <li class="popup-menu-item">
-                  <a
-                    @click="blockUser()"
-                    class="link"
-                    v-if="!isBlockedUser"
-                  >配信からブロック</a
-                  >
-                  <a
-                    @click="unBlockUser()"
-                    class="link"
-                    v-if="isBlockedUser"
-                  >配信用ブロックから削除</a
-                  >
-                </li>
-              </ul>
-              <ul class="popup-menu-list" v-if="!isBroadcaster">
-                <li class="popup-menu-item">
-                  <a
-                    @click="unFollowUser()"
-                    class="link"
-                    v-if="isFollowing"
-                  >フォローを解除</a
-                  >
-                  <a
-                    @click="followUser()"
-                    class="link"
-                    v-if="!isFollowing"
-                  >ユーザーをフォロー</a
-                  >
-                </li>
-              </ul>
-              <ul class="popup-menu-list" v-if="!isBroadcaster">
-                <li class="popup-menu-item">
-                  <a
-                    @click="addModerator()"
-                    class="link"
-                    v-if="!isModerator"
-                  >モデレーターに追加</a
-                  >
-                  <a
-                    @click="removeModerator()"
-                    class="link text--red"
-                    v-if="isModerator"
-                  >モデレーターから削除</a
-                  >
-                </li>
-              </ul>
+        <div class="user-detail">
+          <img
+            :src="userIconURL"
+            width="64"
+            height="64"
+            class="user-icon"
+            :alt="userName"
+            :title="userName"
+            @error.once="userIconURL = defaultUserIconURL"
+          />
+          <div class="user-detail-body">
+            <div class="user-name-wrapper">
+              <div class="user-name">{{ userName }}</div>
+              <i class="icon-moderator" v-tooltip.bottom="moderatorTooltip" v-if="isModerator"></i>
+              <i
+                class="icon-creator-support"
+                v-tooltip.bottom="supporterTooltip"
+                v-if="isSupporter"
+              ></i>
             </div>
-            <template #reference>
-              <div
-                class="button--circle button--secondary"
-                v-tooltip.bottom="otherMenuTooltip"
-                :class="{ 'is-show': showPopupMenu }"
-              >
-                <i class="icon-ellipsis-horizontal"></i>
-              </div>
-            </template>
-          </popper>
-        </div>
-      </div>
-      <div class="tab-list">
-        <button
-          type="button"
-          @click="changeTab('konomi')"
-          class="button--tab"
-          :class="{ active: currentTab === 'konomi' }"
-        >
-          好きなもの
-        </button>
-        <button
-          type="button"
-          @click="changeTab('comment')"
-          class="button--tab"
-          :class="{ active: currentTab === 'comment' }"
-        >
-          直近のコメント
-        </button>
-      </div>
-      <div class="tag-list" v-show="currentTab === 'konomi'">
-        <div class="tag-list-body">
-          <div
-            v-for="tag in konomiTags"
-            :key="tag.name"
-            :class="{ tagname: true, common: tag.common }"
-          >
-            {{ tag.name }}
+            <div class="user-account">
+              <p class="user-id">ID: {{ userId }}</p>
+              <p class="user-type" :class="{ 'is-premium': isPremium }">
+                {{ isPremium ? 'プレミアム会員' : '一般会員' }}
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="comment-list" v-show="currentTab === 'comment'">
-        <div class="comment-list-body" ref="scroll">
-          <div class="list">
-            <component
-              class="comment-readonly"
-              v-for="item of comments"
-              :key="item.seqId"
-              :is="componentMap[item.component]"
-              :chat="item"
-              :getFormattedLiveTime="getFormattedLiveTime"
-            />
-            <div class="sentinel" ref="sentinel"></div>
-          </div>
-          <div class="floating-wrapper">
-            <button
-              type="button"
-              @click="scrollToLatest"
-              class="button--circle button--tertiary"
-              v-if="!isLatestVisible && comments.length > 0"
-            >
-              <i class="icon-down-arrow"></i>
+          <div class="user-button-wrapper">
+            <button class="button button--round button--primary" @click="openUserPage">
+              ユーザーページを見る
             </button>
+            <popper
+              placement="bottom-end"
+              width="180px"
+              @show="showPopupMenu = true"
+              @hide="showPopupMenu = false"
+            >
+              <div class="popper">
+                <ul class="popup-menu-list">
+                  <li class="popup-menu-item">
+                    <a
+                      @click="copyUserId()"
+                      class="link"
+                    >ユーザーIDをコピー</a
+                    >
+                  </li>
+                </ul>
+                <ul class="popup-menu-list" v-if="!isBroadcaster">
+                  <li class="popup-menu-item">
+                    <a
+                      @click="blockUser()"
+                      class="link"
+                      v-if="!isBlockedUser"
+                    >配信からブロック</a
+                    >
+                    <a
+                      @click="unBlockUser()"
+                      class="link"
+                      v-if="isBlockedUser"
+                    >配信用ブロックから削除</a
+                    >
+                  </li>
+                </ul>
+                <ul class="popup-menu-list" v-if="!isBroadcaster">
+                  <li class="popup-menu-item">
+                    <a
+                      @click="unFollowUser()"
+                      class="link"
+                      v-if="isFollowing"
+                    >フォローを解除</a
+                    >
+                    <a
+                      @click="followUser()"
+                      class="link"
+                      v-if="!isFollowing"
+                    >ユーザーをフォロー</a
+                    >
+                  </li>
+                </ul>
+                <ul class="popup-menu-list" v-if="!isBroadcaster">
+                  <li class="popup-menu-item">
+                    <a
+                      @click="addModerator()"
+                      class="link"
+                      v-if="!isModerator"
+                    >モデレーターに追加</a
+                    >
+                    <a
+                      @click="removeModerator()"
+                      class="link text--red"
+                      v-if="isModerator"
+                    >モデレーターから削除</a
+                    >
+                  </li>
+                </ul>
+              </div>
+              <template #reference>
+                <div
+                  class="button--circle button--secondary"
+                  v-tooltip.bottom="otherMenuTooltip"
+                  :class="{ 'is-show': showPopupMenu }"
+                >
+                  <i class="icon-ellipsis-horizontal"></i>
+                </div>
+              </template>
+            </popper>
           </div>
         </div>
-      </div>
+        <div class="tab-list">
+          <button
+            type="button"
+            @click="changeTab('konomi')"
+            class="button--tab"
+            :class="{ active: currentTab === 'konomi' }"
+          >
+            好きなもの
+          </button>
+          <button
+            type="button"
+            @click="changeTab('comment')"
+            class="button--tab"
+            :class="{ active: currentTab === 'comment' }"
+          >
+            直近のコメント
+          </button>
+        </div>
+        <div class="tag-list" v-show="currentTab === 'konomi'">
+          <div class="tag-list-body">
+            <div
+              v-for="tag in konomiTags"
+              :key="tag.name"
+              :class="{ tagname: true, common: tag.common }"
+            >
+              {{ tag.name }}
+            </div>
+          </div>
+        </div>
+        <div class="comment-list" v-show="currentTab === 'comment'">
+          <div class="comment-list-body" ref="scroll">
+            <div class="list">
+              <component
+                class="comment-readonly"
+                v-for="item of comments"
+                :key="item.seqId"
+                :is="componentMap[item.component]"
+                :chat="item"
+                :getFormattedLiveTime="getFormattedLiveTime"
+              />
+              <div class="sentinel" ref="sentinel"></div>
+            </div>
+            <div class="floating-wrapper">
+              <button
+                type="button"
+                @click="scrollToLatest"
+                class="button--circle button--tertiary"
+                v-if="!isLatestVisible && comments.length > 0"
+              >
+                <i class="icon-down-arrow"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </template>
   </modal-layout>

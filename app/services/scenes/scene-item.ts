@@ -5,6 +5,7 @@ import { ISource, SourcesService, TSourceType } from 'services/sources';
 import { VideoService } from 'services/video';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';
+import { toRaw } from 'vue';
 
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
@@ -148,11 +149,11 @@ export class SceneItem extends SceneItemNode {
       const changedTransform = Utils.getChangedParams(this.state.transform, patch.transform);
 
       if (changedTransform.position) {
-        obsSceneItem.position = newSettings.transform.position;
+        obsSceneItem.position = toRaw(newSettings.transform.position);
       }
 
       if (changedTransform.scale) {
-        obsSceneItem.scale = newSettings.transform.scale;
+        obsSceneItem.scale = toRaw(newSettings.transform.scale);
       }
 
       if (changedTransform.crop) {
@@ -199,8 +200,8 @@ export class SceneItem extends SceneItemNode {
       this.getObsSceneItem().blendingMethod = newSettings.blendingMethod;
     }
 
-    if (changed.output !== undefined || patch.hasOwnProperty('output')) {
-      this.getObsSceneItem().video = newSettings.output as obs.IVideo;
+    if (changed.output !== undefined) {
+      this.getObsSceneItem().video = toRaw(newSettings.output) as obs.IVideo;
     }
 
     this.UPDATE({ sceneItemId: this.sceneItemId, ...changed });

@@ -2,32 +2,32 @@
   <modal-layout :showControls="false">
     <template #content>
       <div class="informations" data-test="Informations">
-      <ul class="information-list" v-if="!fetching && !hasError">
-        <li
-          class="information-list-item"
-          :class="{ 'is-new': isNew(information.date) }"
-          v-for="(information, index) in informations"
-          :key="index"
-        >
-          <a class="information-link" :href="information.url" @click="handleAnchorClick($event)">
-            <p class="information-title">{{ information.title }}</p>
-            <time class="information-date">{{ format(information.date) }}</time>
-          </a>
-        </li>
-      </ul>
-      <p v-else-if="fetching" class="information-fetching">読み込み中...</p>
-      <div class="information-error" v-else-if="hasError">
-        <h2 class="error-title">{{ $t('informations.errorHeading') }}</h2>
-        <p class="error-text">{{ $t('informations.errorDescription') }}</p>
-        <i18n-t class="error-attention" keypath="informations.errorAttention" tag="p">
-          <template #link>
-            <a
-              href="https://blog.nicovideo.jp/niconews/category/se_n-air/"
-              @click="handleAnchorClick($event)"
-            >{{ $t('informations.errorAttentionLink') }}</a>
-          </template>
-        </i18n-t>
-      </div>
+        <ul class="information-list" v-if="!fetching && !hasError">
+          <li
+            class="information-list-item"
+            :class="{ 'is-new': isNew(information.date) }"
+            v-for="(information, index) in informations"
+            :key="index"
+          >
+            <a class="information-link" :href="information.url" @click="handleAnchorClick($event)">
+              <p class="information-title">{{ information.title }}</p>
+              <time class="information-date">{{ format(information.date) }}</time>
+            </a>
+          </li>
+        </ul>
+        <p v-else-if="fetching" class="information-fetching">読み込み中...</p>
+        <div class="information-error" v-else-if="hasError">
+          <h2 class="error-title">{{ $t('informations.errorHeading') }}</h2>
+          <p class="error-text">{{ $t('informations.errorDescription') }}</p>
+          <i18n-t class="error-attention" keypath="informations.errorAttention" tag="p">
+            <template #link>
+              <a
+                href="https://blog.nicovideo.jp/niconews/category/se_n-air/"
+                @click="handleAnchorClick($event)"
+              >{{ $t('informations.errorAttentionLink') }}</a>
+            </template>
+          </i18n-t>
+        </div>
       </div>
     </template>
   </modal-layout>
