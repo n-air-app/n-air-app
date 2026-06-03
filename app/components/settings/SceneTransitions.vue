@@ -211,12 +211,27 @@
 
 table {
   margin-bottom: 0;
+  border-collapse: collapse;
+  background: transparent;
 }
 
 th,
 td {
   padding: 8px 16px;
   text-align: left;
+  background: transparent;
+}
+
+tbody,
+tr {
+  background: transparent;
+}
+
+tbody tr:nth-child(odd),
+tbody tr:nth-child(even) {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
 }
 
 .modal-layout {

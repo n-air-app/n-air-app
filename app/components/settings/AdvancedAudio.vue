@@ -94,8 +94,7 @@
 }
 
 .column-audioMixers {
-  /* stylelint-disable-next-line selector-pseudo-element-no-unknown */
-  ::v-deep .input-wrapper {
+  :deep(.input-wrapper) {
     display: flex;
     align-items: center;
     height: @item-generic-size;
@@ -106,8 +105,7 @@
   width: 160px;
 }
 
-/* stylelint-disable-next-line selector-pseudo-element-no-unknown */
-::v-deep .input-container {
+:deep(.input-container) {
   flex-direction: column;
 
   .input-label,

@@ -119,7 +119,7 @@
   height: auto;
   padding: 12px 40px 12px 16px;
 
-  & /deep/ .icon-check {
+  :deep(.icon-check) {
     position: absolute;
     top: 50%;
     right: 20px;
@@ -131,11 +131,11 @@
     transform: translateY(-50%);
   }
 
-  &:not(.active):hover /deep/ .icon-check {
+  &:not(.active):hover :deep(.icon-check) {
     color: var(--color-text-active);
   }
 
-  & /deep/ .nav-item__name {
+  :deep(.nav-item__name) {
     max-width: inherit;
   }
 

@@ -79,7 +79,7 @@
     display: none;
   }
 
-  & /deep/ .sl-vue-tree-node-item {
+  :deep(.sl-vue-tree-node-item) {
     padding: 0 16px;
     background-color: transparent;
   }

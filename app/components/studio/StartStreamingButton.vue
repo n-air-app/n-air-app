@@ -48,7 +48,7 @@
   }
 }
 
-/deep/ .svg-live {
+:deep(.svg-live) {
   width: 18px;
   height: 18px;
   vertical-align: middle;

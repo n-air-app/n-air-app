@@ -303,15 +303,15 @@ document.addEventListener('DOMContentLoaded', () => {
     app.use(store);
     app.use(i18n);
 
-    // vue-i18n v9: missing handler no longer receives $t call values,
-    // so { fallback: '...' } must be handled at the template $t call site.
-    // When a key is missing, t() returns the key itself - we detect that and return the fallback.
-    const globalT = app.config.globalProperties.$t;
-    app.config.globalProperties.$t = function (key: string, ...args: any[]): string {
-      const result: string = (globalT as (...a: any[]) => string).call(this, key, ...args);
-      const options = args[0];
-      if (options && typeof options.fallback === 'string' && result === key) {
-        return options.fallback;
+    // vue-i18n v9 legacy mode: mixin が各コンポーネントに `$t = this._i18n.t.bind(this._i18n)` を
+    // Object.defineProperty で定義するため、globalProperties.$t の override は実質無視される。
+    // 代わりに i18n.global.t を直接 wrap して、すべての $t() 呼び出しに fallback 処理を適用する。
+    const originalGlobalT = (i18n.global as any).t.bind(i18n.global);
+    (i18n.global as any).t = function (key: string, d: any, options: any): string {
+      const result: string = originalGlobalT(key, d, options);
+      const fallback = (d && d.fallback) || (options && options.fallback);
+      if (fallback !== undefined && typeof fallback === 'string' && result === key) {
+        return fallback;
       }
       return result;
     };

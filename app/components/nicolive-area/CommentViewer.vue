@@ -242,11 +242,11 @@
     transparent
   ); // TODO:後で変数に差し替える
 
-  & /deep/ .comment-wrapper {
+  :deep(.comment-wrapper) {
     padding: 8px 0;
   }
 
-  & /deep/ .comment-number {
+  :deep(.comment-number) {
     display: none;
   }
 

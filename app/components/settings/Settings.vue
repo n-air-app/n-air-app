@@ -3,21 +3,20 @@
     <template #content>
       <div class="settings" data-test="Settings">
         <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
-          <!-- eslint-disable-next-line vue/no-v-for-template-key -->
-          <template v-for="category in categoryNames" :key="category">
-            <NavItem
-              :to="category"
-              :ico="icons.get(category)"
-              :data-test="category"
-              :show-arrow="hasSections(category)"
-              :is-toc-open="category === categoryName ? isTocOpen : false"
-              @click.native.prevent="handleCategoryClick(category)"
-            >
-              {{ $t(`settings.${category}.name`, { fallback: category }) }}
-            </NavItem>
+          <NavItem
+            v-for="category in categoryNames"
+            :key="category"
+            :to="category"
+            :ico="icons.get(category)"
+            :data-test="category"
+            :show-arrow="hasSections(category)"
+            :is-toc-open="category === categoryName ? isTocOpen : false"
+            @click.native.prevent="handleCategoryClick(category)"
+          >
+            {{ $t(`settings.${category}.name`, { fallback: category }) }}
+          </NavItem>
+          <template v-if="currentSections.length > 0 && isTocOpen">
             <TableOfContents
-              v-if="category === categoryName && currentSections.length > 0 && isTocOpen"
-              :key="`${category}-toc`"
               :sections="currentSections"
               :activeId="currentActiveTocId"
               @navigate="handleTocNavigate"
