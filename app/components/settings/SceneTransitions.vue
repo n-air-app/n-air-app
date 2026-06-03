@@ -19,30 +19,34 @@
               </button>
               <div class="table-wrapper">
                 <table>
-                  <tr>
-                    <th>{{ $t('transitions.default') }}</th>
-                    <th>{{ $t('transitions.transitionName') }}</th>
-                    <th>{{ $t('transitions.transitionType') }}</th>
-                    <th class="table__controls"></th>
-                    <!-- Controls has no header -->
-                  </tr>
-                  <tr v-for="transition in transitions" :key="transition.id">
-                    <td class="transition-default-selector" @click="makeDefault(transition.id)">
-                      <i
-                        v-if="defaultTransitionId === transition.id"
-                        class="icon-check transition-default"
-                      />
-                    </td>
-                    <td>{{ transition.name }}</td>
-                    <td>{{ nameForType(transition.type) }}</td>
-                    <td class="table__controls">
-                      <i
-                        @click="deleteTransition(transition.id)"
-                        class="icon-delete transition-control"
-                      />
-                      <i @click="editTransition(transition.id)" class="icon-edit transition-control" />
-                    </td>
-                  </tr>
+                  <thead>
+                    <tr>
+                      <th>{{ $t('transitions.default') }}</th>
+                      <th>{{ $t('transitions.transitionName') }}</th>
+                      <th>{{ $t('transitions.transitionType') }}</th>
+                      <th class="table__controls"></th>
+                      <!-- Controls has no header -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="transition in transitions" :key="transition.id">
+                      <td class="transition-default-selector" @click="makeDefault(transition.id)">
+                        <i
+                          v-if="defaultTransitionId === transition.id"
+                          class="icon-check transition-default"
+                        />
+                      </td>
+                      <td>{{ transition.name }}</td>
+                      <td>{{ nameForType(transition.type) }}</td>
+                      <td class="table__controls">
+                        <i
+                          @click="deleteTransition(transition.id)"
+                          class="icon-delete transition-control"
+                        />
+                        <i @click="editTransition(transition.id)" class="icon-edit transition-control" />
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -54,30 +58,34 @@
               </button>
               <div class="table-wrapper">
                 <table>
-                  <tr>
-                    <th>{{ $t('transitions.connectionFrom') }}</th>
-                    <th>{{ $t('transitions.transitionName') }}</th>
-                    <th>{{ $t('transitions.connectionTo') }}</th>
-                    <th class="table__controls"></th>
-                    <!-- Controls has no header -->
-                  </tr>
-                  <tr v-for="connection in connections" :key="connection.id">
-                    <td>{{ getSceneName(connection.fromSceneId) }}</td>
-                    <td>{{ getTransitionName(connection.transitionId) }}</td>
-                    <td>{{ getSceneName(connection.toSceneId) }}</td>
-                    <td class="table__controls">
-                      <i
-                        @click="deleteConnection(connection.id)"
-                        class="icon-delete transition-control"
-                      />
-                      <i @click="editConnection(connection.id)" class="icon-edit transition-control" />
-                      <i
-                        v-if="isConnectionRedundant(connection.id)"
-                        class="icon-warning transition-redundant"
-                        v-tooltip="redundantConnectionTooltip"
-                      />
-                    </td>
-                  </tr>
+                  <thead>
+                    <tr>
+                      <th>{{ $t('transitions.connectionFrom') }}</th>
+                      <th>{{ $t('transitions.transitionName') }}</th>
+                      <th>{{ $t('transitions.connectionTo') }}</th>
+                      <th class="table__controls"></th>
+                      <!-- Controls has no header -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="connection in connections" :key="connection.id">
+                      <td>{{ getSceneName(connection.fromSceneId) }}</td>
+                      <td>{{ getTransitionName(connection.transitionId) }}</td>
+                      <td>{{ getSceneName(connection.toSceneId) }}</td>
+                      <td class="table__controls">
+                        <i
+                          @click="deleteConnection(connection.id)"
+                          class="icon-delete transition-control"
+                        />
+                        <i @click="editConnection(connection.id)" class="icon-edit transition-control" />
+                        <i
+                          v-if="isConnectionRedundant(connection.id)"
+                          class="icon-warning transition-redundant"
+                          v-tooltip="redundantConnectionTooltip"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>

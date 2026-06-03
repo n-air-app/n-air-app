@@ -3,6 +3,7 @@
     <template #content>
       <div class="settings" data-test="Settings">
         <NavMenu :value="categoryName" class="side-menu" data-test="SideMenu">
+          <!-- eslint-disable-next-line vue/no-v-for-template-key -->
           <template v-for="category in categoryNames" :key="category">
             <NavItem
               :to="category"

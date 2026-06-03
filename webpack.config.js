@@ -309,7 +309,10 @@ module.exports = function (env, argv) {
 
       plugins,
 
-      ignoreWarnings: [{ message: /Can't resolve 'osx-temperature-sensor'/ }],
+      ignoreWarnings: [
+        { message: /Can't resolve 'osx-temperature-sensor'/ },
+        { module: /protobufjs/ },
+      ],
     },
     {
       ...common,
