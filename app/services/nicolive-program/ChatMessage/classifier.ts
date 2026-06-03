@@ -1,4 +1,5 @@
 import { MessageResponse } from '../ChatMessage';
+
 import {
   isChatMessage,
   isGameUpdateMessage,

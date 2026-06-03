@@ -1,7 +1,9 @@
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
 import { SelectionService } from 'services/selection';
+
 import { Inject } from '../../services/core/injector';
+
 import { Menu } from './Menu';
 
 export class GroupMenu extends Menu {
@@ -18,7 +20,7 @@ export class GroupMenu extends Menu {
     const selectionSize = this.selectionService.getSize();
     const selectedItem = this.selectionService.getItems()[0];
     const selectedNodes = this.selectionService.getNodes();
-    const nodesFolders = selectedNodes.map(node => node.parentId || null);
+    const nodesFolders = selectedNodes.map((node) => node.parentId || null);
 
     this.append({
       label: $t('sources.groupIntoFolder'),

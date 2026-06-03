@@ -1,7 +1,9 @@
-import * as remote from '@electron/remote';
 import fs from 'fs';
 import https from 'https';
 import path from 'path';
+
+import * as remote from '@electron/remote';
+
 import { Service } from './core/service';
 
 export interface IFamilyWithStyle {
@@ -34,10 +36,10 @@ export class FontLibraryService extends Service {
       const req = new Request(this.libraryUrl('manifest.json'));
 
       return fetch(req)
-        .then(response => {
+        .then((response) => {
           return response.json();
         })
-        .then(json => {
+        .then((json) => {
           this.manifest = json;
           return json;
         })
@@ -50,27 +52,27 @@ export class FontLibraryService extends Service {
   }
 
   findFamily(family: string): Promise<IFontFamily> {
-    return this.getManifest().then(manifest => {
-      return manifest.families.find(fam => fam.name === family);
+    return this.getManifest().then((manifest) => {
+      return manifest.families.find((fam) => fam.name === family);
     });
   }
 
   findStyle(family: string, style: string): Promise<IFontStyle> {
-    return this.findFamily(family).then(fam => {
-      return fam.styles.find(sty => sty.name === style);
+    return this.findFamily(family).then((fam) => {
+      return fam.styles.find((sty) => sty.name === style);
     });
   }
 
   // Finds family and style info about a given font path
   lookupFontInfo(fontPath: string): Promise<{ family: string; style: string }> {
-    return this.getManifest().then(manifest => {
+    return this.getManifest().then((manifest) => {
       let family: string;
       let style: string;
 
       const file = path.parse(fontPath).base;
 
-      manifest.families.find(fam => {
-        return !!fam.styles.find(sty => {
+      manifest.families.find((fam) => {
+        return !!fam.styles.find((sty) => {
           if (sty.file === file) {
             family = fam.name;
             style = sty.name;
@@ -96,10 +98,10 @@ export class FontLibraryService extends Service {
       return this.fontDownloadPromises[file];
     }
 
-    this.fontDownloadPromises[file] = new Promise(resolve => {
+    this.fontDownloadPromises[file] = new Promise((resolve) => {
       this.ensureFontsDirectory();
 
-      https.get(this.libraryUrl(file), response => {
+      https.get(this.libraryUrl(file), (response) => {
         const fontFile = fs.createWriteStream(fontPath);
 
         fontFile.on('finish', () => resolve(fontPath));

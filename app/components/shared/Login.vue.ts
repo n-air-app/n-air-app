@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import HelpTip from 'components/shared/HelpTip.vue';
 import { CompactModeService } from 'services/compact-mode';
 import { Inject } from 'services/core/injector';
@@ -6,8 +7,6 @@ import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
-
-import * as remote from '@electron/remote';
 
 @Component({ components: { HelpTip } })
 export default class Login extends Vue {

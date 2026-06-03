@@ -14,6 +14,9 @@
             type="text"
             class="Hotkey-input"
             :value="getBindingString(binding.binding)"
+            :placeholder="String(focusedIndex === index ? $t('hotkeys.inputPlaceholderFocused') : $t('hotkeys.inputPlaceholder'))"
+            @focus="handleFocus(index)"
+            @blur="handleBlur(index)"
             @keydown="e => handleKeydown(e, index)"
           />
           <i class="Hotkey-control icon-plus" @click="addBinding(index)" />

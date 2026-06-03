@@ -1,9 +1,10 @@
 import fetchMock from '@fetch-mock/jest';
+
 import { NicoadMessage } from './ChatMessage';
 import { AddComponent } from './ChatMessage/ChatComponentType';
-import { WrappedChatWithComponent, WrappedMessageWithComponent } from './WrappedChat';
 import { HttpRelation } from './httpRelation';
 import { HttpRelationState } from './state';
+import { WrappedChatWithComponent, WrappedMessageWithComponent } from './WrappedChat';
 
 describe('HttpRelation', () => {
   beforeEach(() => {
@@ -14,7 +15,7 @@ describe('HttpRelation', () => {
     fetchMock.mockRestore({ includeSticky: true });
   });
 
-  const makeChat: (content: string) => WrappedChatWithComponent = content =>
+  const makeChat: (content: string) => WrappedChatWithComponent = (content) =>
     AddComponent({
       value: {
         id: '123',
@@ -69,7 +70,7 @@ describe('HttpRelation', () => {
     // test empty method
     ['', '/api/sendChat/{id}', '{comment}', '/api/sendChat/123', 'Hello, world!'],
   ])(
-    `sendChat with %s %s body:%s -> %s body:%s`,
+    'sendChat with %s %s body:%s -> %s body:%s',
     async (method, url, body, expectedUrl, expectedBody) => {
       const mockState: HttpRelationState = {
         method,

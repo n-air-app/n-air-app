@@ -1,5 +1,6 @@
-import { StatefulService, mutation } from 'services/core/stateful-service';
-import { FailedResult, NicoliveClient, isOk } from './NicoliveClient';
+import { mutation, StatefulService } from 'services/core/stateful-service';
+
+import { FailedResult, isOk, NicoliveClient } from './NicoliveClient';
 import { NicoliveFailure, openErrorDialogFromFailure } from './NicoliveFailure';
 import { OnairChannelData } from './ResponseTypes';
 
@@ -139,13 +140,13 @@ export class NicoliveProgramSelectorService extends StatefulService<INicolivePro
       const candidateProgramIds = programs.filter(Boolean);
       const candidatePrograms = (
         await Promise.all(
-          candidateProgramIds.map(async programId => {
+          candidateProgramIds.map(async (programId) => {
             const programResult = await this.client.fetchProgram(programId);
             if (isOk(programResult)) {
               return { id: programId, title: programResult.value.title };
             } else if (
-              programResult.value instanceof Error ||
-              programResult.value.meta.status !== 404
+              programResult.value instanceof Error
+              || programResult.value.meta.status !== 404
             ) {
               // ネットワークエラー, メンテナンスの場合など
               throw NicoliveFailure.fromClientError('fetchProgram', programResult);

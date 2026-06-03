@@ -3,6 +3,7 @@
  */
 
 import { ClickOptions, WaitForOptions } from 'webdriverio';
+
 import { WindowsService } from '../../../app/services/windows';
 import { sleep } from '../../../app/util/sleep';
 import { getApiClient } from '../api-client';
@@ -145,13 +146,13 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
 
       // Skip non-app windows (e.g., splash screen with data: URLs, about:blank)
       if (!url || url.startsWith('data:') || url === 'about:blank') {
-        console.log(`focusWindow: Skipping non-app window`);
+        console.log('focusWindow: Skipping non-app window');
         continue;
       }
 
       // Only process windows that have windowId parameter (app windows)
       if (!url.includes('windowId=')) {
-        console.log(`focusWindow: Skipping window without windowId`);
+        console.log('focusWindow: Skipping window without windowId');
         continue;
       }
 
@@ -172,7 +173,7 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
       continue;
     }
   }
-  console.log(`focusWindow: ✗ Failed to find target window`);
+  console.log('focusWindow: ✗ Failed to find target window');
   return false;
 }
 

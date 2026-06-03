@@ -17,7 +17,7 @@ const electron = require('electron');
   };
 
   function getItem(menu, label) {
-    const found = menu.items.find(item => {
+    const found = menu.items.find((item) => {
       if (item.id) {
         return item.id.indexOf(label) !== -1;
       }
@@ -49,7 +49,7 @@ const electron = require('electron');
   let currentButtons;
 
   electron.dialog.showMessageBox = function showMessageBox(win, opts) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       currentCb = resolve;
 
       // Support alternate function signature where win is omitted
@@ -72,7 +72,7 @@ const electron = require('electron');
   let currentCb;
 
   electron.dialog.showSaveDialog = function showSaveDialog(win, opts) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       currentCb = resolve;
     });
   };

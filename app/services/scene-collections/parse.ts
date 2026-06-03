@@ -4,10 +4,10 @@ const deprecatedNodes = ['FiltersNode'];
 export function parse(config: string, nodeTypes: Dictionary<any>) {
   return JSON.parse(config, (key, value) => {
     if (
-      typeof value === 'object' &&
-      value !== null &&
-      value.nodeType &&
-      !deprecatedNodes.includes(value.nodeType)
+      typeof value === 'object'
+      && value !== null
+      && value.nodeType
+      && !deprecatedNodes.includes(value.nodeType)
     ) {
       const instance = new nodeTypes[value.nodeType]();
 

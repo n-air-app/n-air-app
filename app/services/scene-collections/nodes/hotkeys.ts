@@ -1,6 +1,8 @@
 import { getKeys } from 'util/getKeys';
+
 import { Inject } from '../../core/injector';
 import { Hotkey, HotkeysService, IHotkey } from '../../hotkeys';
+
 import { ArrayNode } from './array-node';
 
 interface IContext {
@@ -26,12 +28,12 @@ export class HotkeysNode extends ArrayNode<IHotkey, IContext, Hotkey> {
     } else {
       items = this.hotkeysService.getGeneralHotkeys();
     }
-    return items.filter(hotkey => hotkey.bindings.length);
+    return items.filter((hotkey) => hotkey.bindings.length);
   }
 
   saveItem(hotkey: Hotkey, context: IContext): Promise<IHotkey> {
     const hotkeyObj = hotkey.getModel();
-    getKeys(context).forEach(key => delete hotkeyObj[key]);
+    getKeys(context).forEach((key) => delete hotkeyObj[key]);
     return Promise.resolve(hotkeyObj);
   }
 

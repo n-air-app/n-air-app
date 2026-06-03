@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import { Component, Prop } from 'vue-property-decorator';
+
 import { IObsButtonInputValue, ObsInput, TObsType } from './ObsInput';
 
 @Component
@@ -7,7 +8,7 @@ class ObsButtonInput extends ObsInput<IObsButtonInputValue> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsButtonInputValue;
+    value: IObsButtonInputValue;
   testingAnchor = `Form/Button/${this.value.name}`;
 
   handleClick() {

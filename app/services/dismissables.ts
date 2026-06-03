@@ -1,6 +1,7 @@
 import { PersistentStatefulService } from 'services/core/persistent-stateful-service';
 import { getKeys } from 'util/getKeys';
 import Vue from 'vue';
+
 import { mutation } from './core/stateful-service';
 
 export enum EDismissable {
@@ -38,11 +39,11 @@ export class DismissablesService extends PersistentStatefulService<IDismissables
   }
 
   dismissAll() {
-    getKeys(EDismissable).forEach(key => this.dismiss(EDismissable[key]));
+    getKeys(EDismissable).forEach((key) => this.dismiss(EDismissable[key]));
   }
 
   resetAll() {
-    getKeys(EDismissable).forEach(key => this.reset(EDismissable[key]));
+    getKeys(EDismissable).forEach((key) => this.reset(EDismissable[key]));
   }
 
   @mutation()

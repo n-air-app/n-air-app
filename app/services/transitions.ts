@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/vue';
 import { IObsListOption, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
@@ -10,6 +9,8 @@ import { DefaultManager } from 'services/sources/properties-managers/default-man
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
+import { SentryReport } from 'util/sentry-report';
+
 import * as obs from '../../obs-api';
 
 export enum ETransitionType {
@@ -114,7 +115,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
       { description: $t('transitions.motion_transition'), value: ETransitionType.Motion },
     ];
     const obsAvailableTypes = obs.TransitionFactory.types();
-    return allTypes.filter(t => obsAvailableTypes.includes(t.value));
+    return allTypes.filter((t) => obsAvailableTypes.includes(t.value));
   }
 
   enableStudioMode() {
@@ -239,7 +240,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * between these 2 scenes, based on the current connections
    */
   getConnectedTransition(fromId: string, toId: string): ITransition {
-    const matchedConnection = this.state.connections.find(connection => {
+    const matchedConnection = this.state.connections.find((connection) => {
       return connection.fromSceneId === fromId && connection.toSceneId === toId;
     });
 
@@ -251,7 +252,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   shutdown() {
-    Object.values(this.obsTransitions).forEach(tran => tran.release());
+    Object.values(this.obsTransitions).forEach((tran) => tran.release());
     this.releaseStudioModeObjects();
     obs.Global.setOutputSource(0, null);
   }
@@ -266,7 +267,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getDefaultTransition() {
-    return this.state.transitions.find(tran => tran.id === this.state.defaultTransitionId);
+    return this.state.transitions.find((tran) => tran.id === this.state.defaultTransitionId);
   }
 
   getSettings(id: string): Dictionary<TObsValue> {
@@ -292,11 +293,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     const knownTypes: string[] = Object.values(ETransitionType);
     if (!knownTypes.includes(type)) {
       console.warn(`Unknown transition type "${type}", falling back to Cut`);
-      Sentry.withScope(scope => {
-        scope.setLevel('warning');
-        scope.setExtra('unknownType', type);
-        scope.setExtra('name', name);
-        Sentry.captureMessage('Unknown transition type, falling back to Cut');
+      SentryReport.message('TransitionsService', 'createTransition', 'Unknown transition type, falling back to Cut', {
+        level: 'warning',
+        extra: { unknownType: type, name },
       });
       type = ETransitionType.Cut;
     }
@@ -349,7 +348,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * switching scene collections.
    */
   deleteAllTransitions() {
-    this.state.transitions.forEach(transition => {
+    this.state.transitions.forEach((transition) => {
       this.deleteTransition(transition.id);
     });
   }
@@ -359,7 +358,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * switching scene collections.
    */
   deleteAllConnections() {
-    this.state.connections.forEach(connection => {
+    this.state.connections.forEach((connection) => {
       this.deleteConnection(connection.id);
     });
   }
@@ -369,7 +368,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getTransition(id: string) {
-    return this.state.transitions.find(tran => tran.id === id);
+    return this.state.transitions.find((tran) => tran.id === id);
   }
 
   addConnection(fromId: string, toId: string, transitionId: string) {
@@ -399,7 +398,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   isConnectionRedundant(id: string) {
     const connection = this.getConnection(id);
 
-    const match = this.state.connections.find(conn => {
+    const match = this.state.connections.find((conn) => {
       return conn.fromSceneId === connection.fromSceneId && conn.toSceneId === connection.toSceneId;
     });
 
@@ -407,7 +406,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   }
 
   getConnection(id: string) {
-    return this.state.connections.find(conn => conn.id === id);
+    return this.state.connections.find((conn) => conn.id === id);
   }
 
   setDuration(id: string, duration: number) {
@@ -437,10 +436,10 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   @mutation()
   private UPDATE_TRANSITION(id: string, patch: Partial<ITransition>) {
-    const transition = this.state.transitions.find(tran => tran.id === id);
+    const transition = this.state.transitions.find((tran) => tran.id === id);
 
     if (transition) {
-      getKeys(patch).forEach(key => {
+      getKeys(patch).forEach((key) => {
         // @ts-expect-error ts2332
         transition[key] = patch[key];
       });
@@ -449,7 +448,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   @mutation()
   private DELETE_TRANSITION(id: string) {
-    this.state.transitions = this.state.transitions.filter(tran => tran.id !== id);
+    this.state.transitions = this.state.transitions.filter((tran) => tran.id !== id);
 
     if (this.state.defaultTransitionId === id) {
       if (this.state.transitions.length > 0) {
@@ -472,10 +471,10 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   @mutation()
   private UPDATE_CONNECTION(id: string, patch: Partial<ITransitionConnection>) {
-    const connection = this.state.connections.find(conn => conn.id === id);
+    const connection = this.state.connections.find((conn) => conn.id === id);
 
     if (connection) {
-      getKeys(patch).forEach(key => {
+      getKeys(patch).forEach((key) => {
         connection[key] = patch[key];
       });
     }
@@ -483,7 +482,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   @mutation()
   private DELETE_CONNECTION(id: string) {
-    this.state.connections = this.state.connections.filter(conn => conn.id !== id);
+    this.state.connections = this.state.connections.filter((conn) => conn.id !== id);
   }
 
   @mutation()

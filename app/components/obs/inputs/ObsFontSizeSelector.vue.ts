@@ -1,11 +1,12 @@
 import Dropdown from 'components/shared/Dropdown.vue';
 import { Component, Prop } from 'vue-property-decorator';
+
 import { ObsInput } from './ObsInput';
 
 @Component({ components: { Dropdown } })
 export default class ObsFontSizeSelector extends ObsInput<number> {
   @Prop()
-  value: number;
+    value: number;
   testingAnchor = 'Form/FontSize';
 
   setFontSizePreset(size: number) {

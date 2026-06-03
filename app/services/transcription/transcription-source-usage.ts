@@ -2,6 +2,7 @@ import { BehaviorSubject, merge } from 'rxjs';
 import { mutation, StatefulService } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { ScenesService } from 'services/scenes';
+
 import { TranscriptionSourceService } from './transcription-source';
 
 interface ITranscriptionSourceUsageState {

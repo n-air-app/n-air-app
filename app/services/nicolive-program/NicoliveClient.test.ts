@@ -1,3 +1,7 @@
+/* eslint-disable import/first */
+// NicoliveClient must be imported AFTER the fetchViaMainProcess mock is set up,
+// so that when Jest loads NicoliveClient (which imports fetchViaMainProcess),
+// the mock factory can reference the already-initialized fetchViaMainProcess variable.
 import fetchMock from '@fetch-mock/jest';
 import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
@@ -39,7 +43,7 @@ describe('parseMaxQuality', () => {
     ['1500kbps480p', 1500, 480, 30],
     ['1.5Mbps480p29.97fps', 1500, 480, 29.97],
     ['invalid', fallback.bitrate, fallback.height, fallback.fps],
-  ])(`%s => %d kbps, %d x %d`, (maxQuality, bitrate, height, fps) => {
+  ])('%s => %d kbps, %d x %d', (maxQuality, bitrate, height, fps) => {
     expect(parseMaxQuality(maxQuality, fallback)).toEqual({
       bitrate,
       height,
@@ -165,14 +169,14 @@ const suites: Suite[] = [
     name: 'fetchModerators',
     method: 'get',
     base: NicoliveClient.live2BaseURL,
-    path: `/unama/api/v2/broadcasters/moderators`,
+    path: '/unama/api/v2/broadcasters/moderators',
     args: [],
   },
   {
     name: 'addModerator',
     method: 'post',
     base: NicoliveClient.live2BaseURL,
-    path: `/unama/api/v2/broadcasters/moderators`,
+    path: '/unama/api/v2/broadcasters/moderators',
     args: [userID],
   },
   {
@@ -186,7 +190,7 @@ const suites: Suite[] = [
     name: 'fetchSupporters',
     method: 'get',
     base: NicoliveClient.live2ApiBaseURL,
-    path: `/api/v1/broadcaster/supporters?limit=1000&offset=0`,
+    path: '/api/v1/broadcaster/supporters?limit=1000&offset=0',
     args: [],
   },
 ];
@@ -423,7 +427,7 @@ describe('NicoliveClient.wrapResult', () => {
       ] as [number, string, string | null][]
     ).flatMap(([status, text, expect]) =>
       [false, true].map<[string, boolean, string | null, MainProcessFetchResponse | Response]>(
-        viaMainProcess => {
+        (viaMainProcess) => {
           const ok = status < 400;
           return [
             `status:${status} viaMainProcess:${viaMainProcess}`,

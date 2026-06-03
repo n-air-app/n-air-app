@@ -1,14 +1,14 @@
 import { jest_fn } from 'util/jest_fn';
 import { createSetupFunction } from 'util/test-setup';
-import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
-import { calcServerClockOffsetSec, type NicoliveClient } from './NicoliveClient';
-import { ProgramInfo } from './ResponseTypes';
 
+import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
 import type {
   INicoliveProgramState,
   NicoliveProgramService as NicoliveProgramServiceType,
   Schedule,
 } from './nicolive-program';
+import { calcServerClockOffsetSec, type NicoliveClient } from './NicoliveClient';
+import { ProgramInfo } from './ResponseTypes';
 
 const rooms: ProgramInfo['data']['rooms'] = [{ viewUri: 'https://example.com/lv1' }];
 
@@ -213,7 +213,7 @@ test.each([
   const { instance } = setupInstance();
 
   let resolved: (value: string) => void;
-  const promise = new Promise<string>(r => {
+  const promise = new Promise<string>((r) => {
     resolved = r;
   });
   instance.client.createProgram = jest

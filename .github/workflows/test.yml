@@ -54,6 +54,9 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.bin == 'true' }}
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -103,6 +106,9 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.bin == 'true' }}
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -131,6 +137,9 @@ jobs:
     needs: [changes, setup-app]
     if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Checkout code
@@ -152,13 +161,22 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Run unit tests(app)
+        timeout-minutes: 20
         run: pnpm run test:unit:app
+
+      - name: Cleanup orphan Electron processes
+        if: always()
+        run: taskkill /F /T /IM electron.exe 2>nul || exit /b 0
+        shell: cmd
 
   unit_test-bin:
     name: unit tests(bin)
     needs: [changes, setup-app, setup-bin]
     if: ${{ needs.changes.outputs.bin == 'true' }}
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Checkout code
@@ -193,6 +211,9 @@ jobs:
     name: e2e tests
     needs: [changes, setup-app]
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
     strategy:
       matrix:
         directory:
@@ -237,6 +258,9 @@ jobs:
     needs: [changes, setup-app]
     if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
     env:
       MIN_INSTALLER_SIZE_MB: 300  # Minimum installer size in MB (adjust if needed)
 
@@ -308,6 +332,7 @@ jobs:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
     needs: [setup-app, setup-bin, unit_test-app, unit_test-bin, e2e_test, build_check]
     if: always()
+    permissions: {}
     steps:
       - name: test-summary
         run: |

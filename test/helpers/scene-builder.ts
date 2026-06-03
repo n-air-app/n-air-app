@@ -1,5 +1,7 @@
 import { Scene, SceneItem, SceneItemNode, ScenesService, TSceneNodeType } from 'services/scenes';
+
 import { TSourceType } from '../../app/services/sources';
+
 import { ApiClient } from './api-client';
 
 interface ISceneBuilderNode {
@@ -73,7 +75,7 @@ export class SceneBuilder {
     }
 
     // normalize sketch by removing spaces at the beginning of each line
-    strings = strings.map(str => str.substr(offset));
+    strings = strings.map((str) => str.substr(offset));
 
     const foldersStack: ISceneBuilderNode[] = [];
     const result: ISceneBuilderNode[] = [];
@@ -147,7 +149,7 @@ export class SceneBuilder {
   getSceneSchema(folderId?: string): ISceneBuilderNode[] {
     const nodes = folderId ? this.scene.getFolder(folderId).getNodes() : this.scene.getRootNodes();
 
-    return nodes.map(sceneNode => {
+    return nodes.map((sceneNode) => {
       if (sceneNode.isFolder()) {
         return {
           name: sceneNode.name,
@@ -173,7 +175,7 @@ export class SceneBuilder {
   getSketch(nodes: ISceneBuilderNode[], sketch?: string, level?: number): string {
     sketch = sketch || '';
     level = level || 0;
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       sketch += ' '.repeat(level);
 
       if (node.type === 'item') {
@@ -188,7 +190,7 @@ export class SceneBuilder {
   }
 
   private buildNodes(nodes: ISceneBuilderNode[], parentId?: string): ISceneBuilderNode[] {
-    nodes.reverse().forEach(node => {
+    nodes.reverse().forEach((node) => {
       let sceneNode: SceneItemNode;
 
       if (node.type === 'item') {

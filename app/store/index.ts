@@ -5,8 +5,9 @@ import { IMutation } from 'services/api/jsonrpc';
 import Util from 'services/utils';
 import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
-import { ServicesManager } from '../services-manager';
+
 import { getModule, StatefulService } from '../services/core/stateful-service';
+import { ServicesManager } from '../services-manager';
 
 Vue.use(Vuex);
 
@@ -16,7 +17,7 @@ const debug = process.env.NODE_ENV !== 'production';
 
 const mutations = {
   BULK_LOAD_STATE(state: any, data: any) {
-    Object.keys(data.state).forEach(key => {
+    Object.keys(data.state).forEach((key) => {
       state[key] = data.state[key];
     });
   },
@@ -29,7 +30,7 @@ const plugins: any[] = [];
 let makeStoreReady: Function;
 let storeCanReceiveMutations = Util.isMainWindow();
 
-const storeReady = new Promise<Store<any>>(resolve => {
+const storeReady = new Promise<Store<any>>((resolve) => {
   makeStoreReady = resolve;
 });
 
@@ -99,7 +100,7 @@ export function createStore(): Promise<Store<any>> {
   const statefulServiceModules: Dictionary<any> = {};
   const servicesManager: ServicesManager = ServicesManager.instance;
   const statefulServices = servicesManager.getStatefulServicesAndMutators();
-  Object.keys(statefulServices).forEach(serviceName => {
+  Object.keys(statefulServices).forEach((serviceName) => {
     statefulServiceModules[serviceName] = getModule(statefulServices[serviceName]);
   });
 

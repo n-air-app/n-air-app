@@ -44,7 +44,7 @@ pnpm screentest     # Visual regression tests
 **Code Quality:**
 ```bash
 pnpm lint           # ESLint + Stylelint
-pnpm format         # Prettier + ESLint fix + Stylelint fix
+pnpm format         # ESLint fix + Stylelint fix + sort-package-json
 ```
 
 ## Architecture
@@ -133,7 +133,7 @@ test('service behavior', () => {
 
 ## Code Style
 
-**Formatting:** Prettier with single quotes, trailing commas
+**Formatting:** ESLint (airbnb-base + overrides) が single quotes / trailing commas / 2-space indent を強制。CSS/Less は Stylelint
 **Linting:** ESLint with TypeScript + Vue plugins, Stylelint for CSS/Less
 **Pre-commit:** Husky + lint-staged runs formatting and linting automatically
 

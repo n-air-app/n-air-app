@@ -3,7 +3,7 @@
 // test, you almost definitely don't.
 
 export function sleep(ms) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }

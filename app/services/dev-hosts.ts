@@ -24,8 +24,7 @@ declare const DEV_HOSTS_CONFIG:
 
 type DevHostsConfig = NonNullable<typeof DEV_HOSTS_CONFIG>;
 
-const config: DevHostsConfig | null =
-  typeof DEV_HOSTS_CONFIG !== 'undefined' ? DEV_HOSTS_CONFIG : null;
+const config: DevHostsConfig | null = typeof DEV_HOSTS_CONFIG !== 'undefined' ? DEV_HOSTS_CONFIG : null;
 
 export function transformUrl(url: string): string {
   if (!config) return url;

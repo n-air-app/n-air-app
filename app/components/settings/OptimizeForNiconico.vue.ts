@@ -10,6 +10,7 @@ import { StreamingService } from 'services/streaming';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import { CategoryIcons } from './CategoryIcons';
 
 @Component({

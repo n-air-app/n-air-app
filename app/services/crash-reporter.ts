@@ -1,6 +1,7 @@
-import * as remote from '@electron/remote';
 import fs from 'fs';
 import path from 'path';
+
+import * as remote from '@electron/remote';
 import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
@@ -56,7 +57,7 @@ export class CrashReporterService extends Service {
   endStartup() {
     this.setState(EAppState.Idle);
 
-    this.streamingSubscription = this.streamingService.streamingStatusChange.subscribe(status => {
+    this.streamingSubscription = this.streamingService.streamingStatusChange.subscribe((status) => {
       if (status === EStreamingState.Live) {
         this.setState(EAppState.Streaming);
       }

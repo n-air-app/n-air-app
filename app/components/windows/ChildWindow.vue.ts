@@ -19,7 +19,7 @@ export default class ChildWindow extends Vue {
 
   mounted() {
     this.onWindowUpdatedHandler(this.options);
-    this.windowsService.windowUpdated.subscribe(windowInfo => {
+    this.windowsService.windowUpdated.subscribe((windowInfo) => {
       if (windowInfo.windowId !== 'child') return;
       this.onWindowUpdatedHandler(windowInfo.options);
     });

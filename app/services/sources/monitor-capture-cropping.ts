@@ -1,11 +1,12 @@
 import * as remote from '@electron/remote';
-import * as Sentry from '@sentry/vue';
 import { BrowserWindow } from 'electron';
 import { Inject } from 'services/core/injector';
 import { ISourceApi, ISourcesServiceApi } from 'services/sources';
 import { WindowsService } from 'services/windows';
 import { ResizeBoxPoint, ScalableRectangle } from 'util/ScalableRectangle';
-import { StatefulService, mutation } from '../core/stateful-service';
+import { SentryReport } from 'util/sentry-report';
+
+import { mutation, StatefulService } from '../core/stateful-service';
 import { SceneItem } from '../scenes';
 
 interface IMonitorCaptureCroppingServiceState {
@@ -160,53 +161,33 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
 function getDisplayFromSource(source: ISourceApi, label: string): Electron.Display | null {
   const monitorId = source.getSettings().monitor_id;
   const propMonitors = (
-    source.getPropertiesFormData().find(prop => prop.name === 'monitor_id') as {
+    source.getPropertiesFormData().find((prop) => prop.name === 'monitor_id') as {
       options: { value: string; description: string }[];
     }
   )?.options;
 
-  const monitorIndex = propMonitors.findIndex(monitor => monitor.value === monitorId);
+  const monitorIndex = propMonitors.findIndex((monitor) => monitor.value === monitorId);
   // Autoを除いた番号に変換し、Autoのときはその先頭の値にする
   // Autoを除いた順序はElectron, OBSともに Windows API の EnumDisplayMonitors の列挙順に従うため、一致すると想定する
   const defaultMonitorIndex = propMonitors[0].value === 'Auto' ? 1 : 0;
-  const targetDisplayId =
-    monitorIndex < defaultMonitorIndex ? 0 : monitorIndex - defaultMonitorIndex;
+  const targetDisplayId = monitorIndex < defaultMonitorIndex ? 0 : monitorIndex - defaultMonitorIndex;
 
   const displays = remote.screen.getAllDisplays();
 
   if (targetDisplayId >= displays.length) {
-    Sentry.captureMessage('getDisplayFromSource: 対象のdisplay IDが範囲外です', {
-      level: 'error',
-      tags: {
-        label,
-        propMonitors: propMonitors.length,
-        displays: displays.length,
-      },
-      extra: {
-        monitorId,
-        propMonitors,
-        targetDisplayId,
-        displays: displaysForSentry(displays),
-      },
+    SentryReport.message('MonitorCaptureCroppingService', 'getDisplayFromSource', 'getDisplayFromSource: 対象のdisplay IDが範囲外です', {
+      tags: { label: String(label), propMonitors: String(propMonitors.length), displays: String(displays.length) },
+      extra: { monitorId, propMonitors, targetDisplayId, displays: displaysForSentry(displays) },
     });
     return null;
   }
 
   if (displays.length !== 1 || propMonitors.length !== 2) {
     // モニタが複数あるときは選択が正しそうなのかを確認するためにログを残す
-    Sentry.captureMessage('getDisplayFromSource: multiple monitors', {
+    SentryReport.message('MonitorCaptureCroppingService', 'getDisplayFromSource', 'getDisplayFromSource: multiple monitors', {
       level: 'info',
-      tags: {
-        label,
-        propMonitors: propMonitors.length,
-        displays: displays.length,
-      },
-      extra: {
-        monitorId,
-        propMonitors,
-        targetDisplayId,
-        displays: displaysForSentry(displays),
-      },
+      tags: { label: String(label), propMonitors: String(propMonitors.length), displays: String(displays.length) },
+      extra: { monitorId, propMonitors, targetDisplayId, displays: displaysForSentry(displays) },
     });
   }
 
@@ -215,7 +196,7 @@ function getDisplayFromSource(source: ISourceApi, label: string): Electron.Displ
 
 function displaysForSentry(displays: Electron.Display[]): any {
   // Sentry の extra 内でネストされた内側のオブジェクトは [Object] に省略されて見えなくなるので、文字列化する
-  return displays.map(display => ({
+  return displays.map((display) => ({
     ...display,
     bounds: JSON.stringify(display.bounds),
     size: JSON.stringify(display.size),

@@ -1,4 +1,5 @@
 import Utils from 'services/utils';
+
 import { Service } from './core/service';
 import { isDevHosts, transformUrl } from './dev-hosts';
 

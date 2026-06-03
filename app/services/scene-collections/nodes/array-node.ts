@@ -16,7 +16,7 @@ export abstract class ArrayNode<TSchema, TContext, TItem> extends Node<
 
   async save(context: TContext): Promise<void> {
     const values = await Promise.all(
-      this.getItems(context).map(item => {
+      this.getItems(context).map((item) => {
         return this.saveItem(item, context);
       }),
     );

@@ -4,19 +4,20 @@ import { $t } from 'services/i18n';
 import { ProjectorService } from 'services/projector';
 import { SelectionService } from 'services/selection/selection';
 import { MonitorCaptureCroppingService } from 'services/sources/monitor-capture-cropping';
+
 import { ClipboardService } from '../../services/clipboard';
 import { Inject } from '../../services/core/injector';
 import { ScenesService } from '../../services/scenes';
 import { SourceFiltersService } from '../../services/source-filters';
 import { Source, SourcesService } from '../../services/sources';
-import { DeinterlaceMenu } from './DeinterlaceMenu';
-import { GroupMenu } from './GroupMenu';
-import { Menu } from './Menu';
-import { SourceTransformMenu } from './SourceTransformMenu';
 
 import { BlendingMethodMenu } from './BlendingMethodMenu';
 import { BlendingModeMenu } from './BlendingModeMenu';
+import { DeinterlaceMenu } from './DeinterlaceMenu';
+import { GroupMenu } from './GroupMenu';
+import { Menu } from './Menu';
 import { ScaleFilteringMenu } from './ScaleFilteringMenu';
+import { SourceTransformMenu } from './SourceTransformMenu';
 
 interface IEditMenuOptions {
   selectedSourceId?: string;
@@ -57,10 +58,10 @@ export class EditMenu extends Menu {
     const isMultipleSelection = this.selectionService.getSize() > 1;
 
     if (
-      this.scene &&
-      !isMultipleSelection &&
-      this.source &&
-      this.source.type === 'monitor_capture'
+      this.scene
+      && !isMultipleSelection
+      && this.source
+      && this.source.type === 'monitor_capture'
     ) {
       this.append({
         id: 'Interactive Crop',
@@ -204,8 +205,8 @@ export class EditMenu extends Menu {
 
     if (this.source) {
       if (
-        this.source.type === 'browser_source' &&
-        this.source.propertiesManagerType === 'default'
+        this.source.type === 'browser_source'
+        && this.source.propertiesManagerType === 'default'
       ) {
         this.append({
           label: $t('common.Interact'),

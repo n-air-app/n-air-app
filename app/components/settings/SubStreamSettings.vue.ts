@@ -20,7 +20,11 @@ export default class SubStreamSettings extends Vue {
   use: boolean = SubStreamService.defaultState.use;
   selectedTab: SubStreamTabID = SubStreamService.defaultState.selectedTab;
   private _tabSwitching = false;
-  readonly tabIds: SubStreamTabID[] = ['youtube', 'twitch', 'other'];
+  readonly serviceIds: SubStreamTabID[] = ['youtube', 'twitch', 'other'];
+
+  get serviceOptions(): { id: SubStreamTabID; name: string }[] {
+    return this.serviceIds.map((id) => ({ id, name: $t(`settings.substream.tabs.${id}`) }));
+  }
   url: string = '';
   key: string = '';
 
@@ -81,10 +85,6 @@ export default class SubStreamSettings extends Vue {
       url: tabSettings.url,
       key: tabSettings.key,
     });
-  }
-
-  selectTab(tab: SubStreamTabID) {
-    this.selectedTab = tab;
   }
 
   setDefaultUrl() {
@@ -161,23 +161,23 @@ export default class SubStreamSettings extends Vue {
     const r = await this.subStreamService.enumEncoderTypes();
     if (r.encoders) {
       this.videoCodecs = r.encoders.video
-        .filter(v => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
-        .map(v => ({
+        .filter((v) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
+        .map((v) => ({
           id: v.id,
           name: `${v.name}`,
         }));
 
       this.videoCodec = this.videoCodecs.find(
-        v => v.id === this.subStreamService.state.videoCodec,
+        (v) => v.id === this.subStreamService.state.videoCodec,
       ) ?? { id: 'obs_x264', name: 'obs_x264' };
 
-      this.audioCodecs = r.encoders.audio.map(v => ({
+      this.audioCodecs = r.encoders.audio.map((v) => ({
         id: v.id,
         name: `${v.name}`,
       }));
 
       this.audioCodec = this.audioCodecs.find(
-        v => v.id === this.subStreamService.state.audioCodec,
+        (v) => v.id === this.subStreamService.state.audioCodec,
       ) ?? { id: 'ffmpeg_aac', name: 'ffmpeg_aac' };
 
       this.startChecker();
@@ -200,8 +200,7 @@ export default class SubStreamSettings extends Vue {
     if (r.frames) statusParts.push(`${$t('settings.substream.info.frames')}: ${r.frames}`);
     if (r.dropped) statusParts.push(`${$t('settings.substream.info.dropped')}: ${r.dropped}`);
 
-    this.status =
-      statusParts.length > 0 ? statusParts.join('\n') : $t('settings.substream.info.stopped');
+    this.status = statusParts.length > 0 ? statusParts.join('\n') : $t('settings.substream.info.stopped');
   }
 
   startChecker() {

@@ -36,9 +36,9 @@ export class TocManager {
     // DOCUMENT_POSITION_FOLLOWING (4): newElement comes before existingElement
     // DOCUMENT_POSITION_CONTAINED_BY (16): existingElement is inside newElement (newElement is parent)
     return (
-      position === Node.DOCUMENT_POSITION_FOLLOWING ||
-      position === Node.DOCUMENT_POSITION_CONTAINED_BY ||
-      (position & Node.DOCUMENT_POSITION_CONTAINED_BY) !== 0
+      position === Node.DOCUMENT_POSITION_FOLLOWING
+      || position === Node.DOCUMENT_POSITION_CONTAINED_BY
+      || (position & Node.DOCUMENT_POSITION_CONTAINED_BY) !== 0
     );
   }
 
@@ -86,7 +86,7 @@ export class TocManager {
     const sections = this.sections[categoryName] || [];
 
     // Check if section already exists (avoid duplicates on re-render)
-    if (sections.some(s => s.id === section.id)) {
+    if (sections.some((s) => s.id === section.id)) {
       return;
     }
 
@@ -116,7 +116,7 @@ export class TocManager {
    */
   unregister(categoryName: string, sectionId: string): void {
     const sections = this.sections[categoryName] || [];
-    const filtered = sections.filter(s => s.id !== sectionId);
+    const filtered = sections.filter((s) => s.id !== sectionId);
     Vue.set(this.sections, categoryName, filtered);
   }
 
@@ -141,7 +141,7 @@ export class TocManager {
    * Clear all sections for all categories
    */
   clearAll(): void {
-    Object.keys(this.sections).forEach(key => {
+    Object.keys(this.sections).forEach((key) => {
       Vue.delete(this.sections, key);
     });
   }

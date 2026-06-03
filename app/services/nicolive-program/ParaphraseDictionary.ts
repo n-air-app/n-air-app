@@ -30,7 +30,7 @@ export function filterEngineId(item: { onlyFor?: EngineId }, engineId: EngineId)
 }
 
 export class ParaphraseDictionary {
-  dictionary = replace_rules.elements.map(e => ({
+  dictionary = replace_rules.elements.map((e) => ({
     pattern: new RegExp(isText(e) ? escapeStringRegexp(e.text) : e.regularExpression, 'gi'),
     to: e.replacement,
     onlyFor: e.onlyFor,
@@ -38,7 +38,7 @@ export class ParaphraseDictionary {
 
   process(input: string, engine: EngineId): string {
     return this.dictionary
-      .filter(item => filterEngineId(item, engine))
+      .filter((item) => filterEngineId(item, engine))
       .reduce<string>((acc, item) => acc.replace(item.pattern, item.to), input);
   }
 }

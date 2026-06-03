@@ -11,9 +11,10 @@ import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import { fetchViaMainProcess } from 'util/fetchViaMainProcess';
-import { authorizedHeaders, handleErrors } from 'util/requests';
 import { RequestError } from 'util/RequestError';
+import { authorizedHeaders, handleErrors } from 'util/requests';
 import { sleep } from 'util/sleep';
+
 import { IPlatformService, IStreamingSetting } from '.';
 import { FrontendIdHeader } from './niconicoDefs';
 
@@ -236,9 +237,9 @@ export class NiconicoService extends Service implements IPlatformService {
     const key = stream.value.rtmp.streamName;
 
     const settings = this.settingsService.getSettingsFormData('Stream');
-    settings.forEach(subCategory => {
+    settings.forEach((subCategory) => {
       if (subCategory.nameSubCategory !== 'Untitled') return;
-      subCategory.parameters.forEach(parameter => {
+      subCategory.parameters.forEach((parameter) => {
         switch (parameter.name) {
           case 'service':
             parameter.value = 'niconico ニコニコ生放送';

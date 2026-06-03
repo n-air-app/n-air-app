@@ -109,7 +109,7 @@
     "yomiage"
   ],
   "files.eol": "\n",
-  "typescript.format.enable": true,
+  "js/ts.format.enabled": false,
   "json.schemas": [
     {
       "fileMatch": ["**/replace_rules.json"],
@@ -161,27 +161,39 @@
     "source.fixAll.eslint": "always",
     "source.fixAll.stylelint": "always"
   },
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue"],
+  "eslint.useFlatConfig": true,
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "json", "jsonc"],
   "css.validate": false,
   "less.validate": false,
   "stylelint.validate": ["css", "less", "vue"],
   "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "editor.codeActionsOnSave": {
-      "source.organizeImports": "always"
+      "source.fixAll.eslint": "always",
+      "source.organizeImports": "never"
     }
   },
   "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always",
+      "source.organizeImports": "never"
+    }
   },
   "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
     "files.insertFinalNewline": true
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    },
     "files.insertFinalNewline": true
   },
   "[vue]": {
@@ -204,9 +216,9 @@
     }
   },
 
-  "typescript.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "js/ts.preferences.autoImportFileExcludePatterns": ["**/app-services.ts"],
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
 
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {

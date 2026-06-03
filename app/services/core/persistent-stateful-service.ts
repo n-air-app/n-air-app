@@ -1,6 +1,8 @@
-import merge from 'lodash/merge';
 import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
+
 import Utils from '../utils';
+
 import { StatefulService } from './stateful-service';
 
 // Extends StatefulService with code that will persist the
@@ -35,7 +37,7 @@ export abstract class PersistentStatefulService<
       () => {
         return JSON.stringify(this.state);
       },
-      val => {
+      (val) => {
         // save only non-default values to the localStorage
         const PersistentService = this.constructor as typeof PersistentStatefulService;
         const valueToSave = Utils.getDeepChangedParams(
@@ -49,7 +51,7 @@ export abstract class PersistentStatefulService<
 
   runMigrations(persistedState: any, migrations: IMigration[]) {
     const migratedState = cloneDeep(persistedState);
-    migrations.forEach(migration => {
+    migrations.forEach((migration) => {
       if (persistedState[migration.oldKey] == null) return;
       migratedState[migration.newKey] = migration.transform(persistedState[migration.oldKey]);
       delete migratedState[migration.oldKey];

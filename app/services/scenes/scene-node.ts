@@ -5,8 +5,10 @@ import { IVideo } from 'obs-studio-node';
 import { SelectionService } from 'services/selection';
 import { TDisplayType } from 'services/settings-v2';
 import { assertIsDefined } from 'util/properties-type-guards';
+
 import { mutation } from '../core';
 import { Inject } from '../core/injector';
+
 import {
   ISceneItemNode,
   Scene,
@@ -48,8 +50,8 @@ export abstract class SceneItemNode implements ISceneItemNode {
   get childrenIds(): string[] {
     return this.getScene()
       .getModel()
-      .nodes.filter(node => node.parentId === this.id && node.id !== this.id)
-      .map(node => node.id);
+      .nodes.filter((node) => node.parentId === this.id && node.id !== this.id)
+      .map((node) => node.id);
   }
 
   setParent(parentId: string) {

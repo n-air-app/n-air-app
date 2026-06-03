@@ -1,7 +1,8 @@
+import { getConfig, getConfigsVariations } from './utils';
+
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
-import { getConfig, getConfigsVariations } from './utils';
 
 const CONFIG = getConfig();
 const branches = process.argv.slice(2, 4);
@@ -55,7 +56,7 @@ const parsedImages: { [imageName: string]: IParsedImage } = {};
 
   console.log('read images...');
 
-  await new Promise<void>(resolve => {
+  await new Promise<void>((resolve) => {
     let parsedImagesCount = 0;
 
     const doneReading = (count: number) => {

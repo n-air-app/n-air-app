@@ -7,6 +7,7 @@ import { CustomizationService } from 'services/customization';
 import { SceneCollectionsService } from 'services/scene-collections';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import ControlsArrow from '../../../media/images/controls-arrow.svg';
 
 @Component({

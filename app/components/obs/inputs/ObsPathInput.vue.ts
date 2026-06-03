@@ -1,5 +1,6 @@
 import * as remote from '@electron/remote';
 import { Component, Prop } from 'vue-property-decorator';
+
 import { IObsPathInputValue, ObsInput, TObsType } from './ObsInput';
 
 import OpenDialogOptions = Electron.OpenDialogOptions;
@@ -9,7 +10,7 @@ class ObsPathInput extends ObsInput<IObsPathInputValue> {
   static obsType: TObsType[];
 
   @Prop()
-  value: IObsPathInputValue;
+    value: IObsPathInputValue;
   testingAnchor = `Form/Path/${this.value.name}`;
 
   $refs: {

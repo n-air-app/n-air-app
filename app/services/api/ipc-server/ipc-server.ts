@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { InternalApiService } from 'services/api/internal-api';
 import { IJsonRpcEvent, IJsonRpcRequest, IJsonRpcResponse } from 'services/api/jsonrpc';
 import { Inject } from 'services/core/injector';
+
 import { Service } from '../../core/service';
 
 const { ipcRenderer } = electron;
@@ -24,7 +25,7 @@ export class IpcServerService extends Service {
     ipcRenderer.on('services-request', this.requestHandler);
     ipcRenderer.send('services-ready');
 
-    this.servicesEventsSubscription = this.internalApiService.serviceEvent.subscribe(event =>
+    this.servicesEventsSubscription = this.internalApiService.serviceEvent.subscribe((event) =>
       this.sendEvent(event),
     );
   }

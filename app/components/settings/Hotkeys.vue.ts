@@ -5,6 +5,7 @@ import { ScenesService } from 'services/scenes';
 import { SourcesService } from 'services/sources';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import HotkeyGroup from './HotkeyGroup.vue';
 
 @Component({

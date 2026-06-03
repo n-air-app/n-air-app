@@ -1,8 +1,10 @@
-import * as Sentry from '@sentry/vue';
 import { ChildProcess, spawn } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
+
+import * as Sentry from '@sentry/vue';
+import { SentryReport, SentryReportOpts } from 'util/sentry-report';
 
 export function getNVoicePath(): string {
   // import/require構文を使うとビルド時に展開してしまうが、
@@ -81,7 +83,7 @@ export class CommandLineClient {
       this.terminateResolve = resolve;
       this.terminateReject = reject;
     }).finally(() => {
-      this.terminateCallbacks.forEach(callback => callback());
+      this.terminateCallbacks.forEach((callback) => callback());
     });
   }
 
@@ -92,7 +94,7 @@ export class CommandLineClient {
   onTerminate(callback: () => void): () => void {
     this.terminateCallbacks.push(callback);
     return () => {
-      this.terminateCallbacks = this.terminateCallbacks.filter(c => c !== callback);
+      this.terminateCallbacks = this.terminateCallbacks.filter((c) => c !== callback);
     };
   }
 
@@ -132,12 +134,12 @@ export class CommandLineClient {
       };
       rl.on('line', onLine);
 
-      this.subprocess.on('error', err => {
+      this.subprocess.on('error', (err) => {
         console.log('subprocess.error', err);
         reject(err);
         this.terminateReject(err);
       });
-      this.subprocess.on('close', code => {
+      this.subprocess.on('close', (code) => {
         this.log(`${label} terminated: ${code}`);
         this.terminateResolve(code || -1);
       });
@@ -148,7 +150,7 @@ export class CommandLineClient {
   }
 
   async send(line: string): Promise<void> {
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       this.log(`<- ${line}`);
       this.subprocess.stdin.write(line + '\n', resolve);
     });
@@ -193,6 +195,7 @@ async function StartNVoice(
 }
 
 const iconv = require('iconv-lite');
+
 function toShiftJisBase64(text: string): string {
   return Buffer.from(iconv.encode(text, 'Shift_JIS')).toString('base64');
 }
@@ -228,7 +231,7 @@ export type Label = {
 
 function loadLabelFile(filename: string): Label[] {
   const labels = readFileSync(filename, 'utf8');
-  const lines = labels.split(/\r?\n/).filter(line => line.length > 0);
+  const lines = labels.split(/\r?\n/).filter((line) => line.length > 0);
   const result: Label[] = [];
   for (const line of lines) {
     const [start, end, phoneme] = line.split('\t');
@@ -285,7 +288,7 @@ export class NVoiceClient {
       const dictionaryPath = 'open_jtalk_dic_shift_jis-1.11';
       const userDictionary = 'user.dic';
 
-      const models = readdirSync(baseDir).filter(s => /.*\.pt$/.test(s));
+      const models = readdirSync(baseDir).filter((s) => /.*\.pt$/.test(s));
       if (models.length !== 1) {
         throw new Error('model file found: ' + models.join(', '));
       }
@@ -300,7 +303,7 @@ export class NVoiceClient {
         cwd,
       );
       let started = false;
-      client.waitExit().then(code => {
+      client.waitExit().then((code) => {
         if (!started) {
           this.options.onError(new Error(`n-voice-engine start failed! ${code}`));
         }
@@ -362,12 +365,12 @@ export class NVoiceClient {
     try {
       Sentry.addBreadcrumb({
         category: 'n-voice-engine',
-        message: `${command} ${args.map(a => a.value).join(' ')}`,
+        message: `${command} ${args.map((a) => a.value).join(' ')}`,
       });
       await this.commandLineClient.send(
         [
           command,
-          ...args.map(a => {
+          ...args.map((a) => {
             if (a.encoder) {
               return a.encoder(a.value);
             } else {
@@ -378,29 +381,26 @@ export class NVoiceClient {
       );
       return await this.waitOkNg(this.commandLineClient);
     } catch (err) {
-      Sentry.withScope(scope => {
-        scope.setLevel('error');
-        if (err instanceof NVoiceEngineError) {
-          scope.setTag('NVoiceEngineError.code', err.code);
-          for (const a of args) {
-            if (a.sentryExtra) {
-              scope.setExtra(a.label, a.value);
-            } else {
-              scope.setTag(`${command}.${a.label}`, a.value);
-            }
+      const opts: SentryReportOpts = {};
+      if (err instanceof NVoiceEngineError) {
+        const tags: Record<string, string> = { 'NVoiceEngineError.code': err.code };
+        const extra: Record<string, unknown> = {};
+        for (const a of args) {
+          if (a.sentryExtra) {
+            extra[a.label] = a.value;
+          } else {
+            tags[`${command}.${a.label}`] = a.value;
           }
-          switch (err.code) {
-            case '401': // テキスト解析失敗
-              scope.setLevel('warning');
-              break;
-          }
-          scope.setFingerprint([command, 'NVoiceEngineError', err.code]);
-        } else {
-          scope.setFingerprint([command]);
         }
-        Sentry.captureException(err);
-        throw err;
-      });
+        opts.tags = tags;
+        if (Object.keys(extra).length) opts.extra = extra;
+        opts.level = err.code === '401' ? 'warning' : 'error';
+        opts.fingerprint = [command, 'NVoiceEngineError', err.code];
+      } else {
+        opts.fingerprint = [command];
+      }
+      SentryReport.error('NVoiceClient', command, err, opts);
+      throw err;
     }
   }
 

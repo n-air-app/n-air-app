@@ -88,7 +88,7 @@ describe('Node error collection', () => {
       'filter',
     ];
 
-    errorTypes.forEach(type => {
+    errorTypes.forEach((type) => {
       const error: ILoadError = {
         type,
         name: `Test ${type}`,

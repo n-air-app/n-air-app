@@ -1,4 +1,5 @@
 import { createSetupFunction } from 'util/test-setup';
+
 jest.mock('services/core/stateful-service');
 jest.mock('services/core/injector');
 

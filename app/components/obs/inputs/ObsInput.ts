@@ -1,7 +1,4 @@
 import { $t } from 'services/i18n/index';
-import Vue from 'vue';
-import { Prop } from 'vue-property-decorator';
-import * as obs from '../../../../obs-api';
 import {
   isEditableListProperty,
   isFontProperty,
@@ -10,6 +7,10 @@ import {
   isPathProperty,
   isTextProperty,
 } from 'util/properties-type-guards';
+import Vue from 'vue';
+import { Prop } from 'vue-property-decorator';
+
+import * as obs from '../../../../obs-api';
 
 /**
  * all possible OBS properties types
@@ -136,12 +137,12 @@ function parsePathFilters(filterStr: string): IElectronOpenDialogFilter[] {
     ];
   }
 
-  return filters.map(filter => {
+  return filters.map((filter) => {
     const match = filter.match(/^(.*)\((.*)\)$/);
     const desc = match[1].trim();
     let types = match[2].split(' ');
 
-    types = types.map(type => {
+    types = types.map((type) => {
       return type.match(/^\*\.(.+)$/)[1];
     });
 
@@ -316,8 +317,8 @@ export function inputValuesToObsValues(
     }
 
     if (
-      options.valueToObject &&
-      !['OBS_PROPERTY_FONT', 'OBS_PROPERTY_EDITABLE_LIST', 'OBS_PROPERTY_BUTTON'].includes(
+      options.valueToObject
+      && !['OBS_PROPERTY_FONT', 'OBS_PROPERTY_EDITABLE_LIST', 'OBS_PROPERTY_BUTTON'].includes(
         prop.type,
       )
     ) {
@@ -399,7 +400,7 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
 
     if (isListProperty(obsProp)) {
       const name = obsProp.name;
-      (formItem as IObsListInput<TObsValue>).options = obsProp.details.items.map(option => {
+      (formItem as IObsListInput<TObsValue>).options = obsProp.details.items.map((option) => {
         return {
           value: option.value,
           description: $t(`source-props.${sourceType}['${name}']['${option.value}']`, {
@@ -457,7 +458,7 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   const formInputs: IObsInput<TObsValue>[] = [];
   let properties = null;
 
-  form.forEach(item => {
+  form.forEach((item) => {
     if (item.type === 'OBS_PROPERTY_BUTTON') {
       // Value will be true if button was pressed
       if (item.value) buttons.push(item as IObsInput<boolean>);
@@ -475,7 +476,7 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   }
 
   const settings: Dictionary<any> = {};
-  formInputs.forEach(property => {
+  formInputs.forEach((property) => {
     settings[property.name] = property.value;
 
     if (property.type === 'OBS_PROPERTY_FONT') {
@@ -492,11 +493,11 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   // validate list-inputs and update properties again if some of list inputs are invalid
   const updatedFormData = getPropertiesFormData(obsSource);
   let needUpdatePropsAgain = false;
-  updatedFormData.forEach(prop => {
+  updatedFormData.forEach((prop) => {
     if (prop.type !== 'OBS_PROPERTY_LIST') return;
     const listProp = prop as IObsListInput<TObsValue>;
     if (!listProp.options.length) return;
-    const optionExists = !!listProp.options.find(option => option.value === listProp.value);
+    const optionExists = !!listProp.options.find((option) => option.value === listProp.value);
     if (optionExists) return;
 
     needUpdatePropsAgain = true;
@@ -507,13 +508,13 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
 
 export abstract class ObsInput<TValueType> extends Vue {
   @Prop()
-  value: TValueType;
+    value: TValueType;
 
   @Prop()
-  category: string;
+    category: string;
 
   @Prop()
-  subCategory: string;
+    subCategory: string;
 
   emitInput(eventData: TValueType) {
     this.$emit('input', eventData);

@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+
 import { MessageResponse } from './ChatMessage';
 
 export type MessageServerConfig = {

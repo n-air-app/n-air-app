@@ -18,7 +18,7 @@ import { Component } from 'vue-property-decorator';
 })
 export default class ProgramInfo extends Vue {
   @Inject()
-  nicoliveProgramService: NicoliveProgramService;
+    nicoliveProgramService: NicoliveProgramService;
   @Inject() streamingService: StreamingService;
   @Inject() hostsService: HostsService;
   @Inject() userService: UserService;
@@ -32,7 +32,7 @@ export default class ProgramInfo extends Vue {
   }
 
   mounted() {
-    this.subscription = this.nicoliveProgramService.stateChange.subscribe(state => {
+    this.subscription = this.nicoliveProgramService.stateChange.subscribe((state) => {
       if (state.status === 'end') {
         if (this.streamingService.isStreaming) {
           this.streamingService.toggleStreamingAsync();

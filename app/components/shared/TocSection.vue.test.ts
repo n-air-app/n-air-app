@@ -22,6 +22,7 @@ jest.mock('vue-property-decorator', () => ({
     return target;
   },
   Prop: (options?: any) => (target: any, propertyKey: string) => {},
+  Watch: (propName: string) => (target: any, propertyKey: string) => {},
 }));
 
 describe('TocSection', () => {
@@ -113,10 +114,10 @@ describe('TocSection', () => {
 
     it('同じタイトルでも異なるIDが生成される', () => {
       const instance1 = createInstance({
-        title: '表示設定',
+        title: '表示',
       });
       const instance2 = createInstance({
-        title: '表示設定',
+        title: '表示',
       });
 
       expect(instance1.sectionId).toBe('toc-section-0');
@@ -193,7 +194,7 @@ describe('TocSection', () => {
       });
 
       await instance.mounted();
-      await new Promise(resolve => { void setTimeout(resolve, 0); });
+      await new Promise((resolve) => { void setTimeout(resolve, 0); });
 
       expect(mockRegisterTocSection).toHaveBeenCalledWith({
         id: 'toc-section-0',
@@ -210,7 +211,7 @@ describe('TocSection', () => {
       });
 
       await instance.mounted();
-      await new Promise(resolve => { void setTimeout(resolve, 0); });
+      await new Promise((resolve) => { void setTimeout(resolve, 0); });
 
       expect(mockRegisterTocSection).not.toHaveBeenCalled();
     });
@@ -222,7 +223,7 @@ describe('TocSection', () => {
       });
 
       await instance.mounted();
-      await new Promise(resolve => { void setTimeout(resolve, 0); });
+      await new Promise((resolve) => { void setTimeout(resolve, 0); });
 
       expect(mockRegisterTocSection).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -238,7 +239,7 @@ describe('TocSection', () => {
       instance.registerTocSection = undefined;
 
       expect(() => instance.mounted()).not.toThrow();
-      await new Promise(resolve => { void setTimeout(resolve, 0); });
+      await new Promise((resolve) => { void setTimeout(resolve, 0); });
     });
 
     it('registerTocSection が関数でない場合でもエラーにならない', async () => {
@@ -248,7 +249,7 @@ describe('TocSection', () => {
       instance.registerTocSection = 'not a function' as any;
 
       expect(() => instance.mounted()).not.toThrow();
-      await new Promise(resolve => { void setTimeout(resolve, 0); });
+      await new Promise((resolve) => { void setTimeout(resolve, 0); });
     });
   });
 
@@ -261,7 +262,7 @@ describe('TocSection', () => {
 
       // mounted を呼び出して登録（非同期）
       instance.mounted();
-      await new Promise(resolve => { void setImmediate(resolve); }); // Wait for $nextTick
+      await new Promise((resolve) => { void setImmediate(resolve); }); // Wait for $nextTick
 
       instance.beforeDestroy();
 
@@ -278,7 +279,7 @@ describe('TocSection', () => {
 
       // mounted を呼び出して登録（非同期）
       instance.mounted();
-      await new Promise(resolve => { void setImmediate(resolve); }); // Wait for $nextTick
+      await new Promise((resolve) => { void setImmediate(resolve); }); // Wait for $nextTick
 
       instance.beforeDestroy();
 

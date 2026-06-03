@@ -1,11 +1,12 @@
+import * as fs from 'fs';
+
 import * as Sentry from '@sentry/vue';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
-import * as fs from 'fs';
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
 import { InitAfter } from 'services/core';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { $t } from 'services/i18n';
 import { IPCWrapper } from 'services/ipc-wrapper';
 import { NVoiceCharacterTypes } from 'services/nvoice-character';
@@ -15,10 +16,13 @@ import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
 import { AudioService } from '../audio';
+
 import {
   IActivePropertyManager,
   ISource,
@@ -82,11 +86,11 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       this.handleSourceCallback(objs),
     );
 
-    this.scenesService.itemRemoved.subscribe(sceneSourceModel =>
+    this.scenesService.itemRemoved.subscribe((sceneSourceModel) =>
       this.onSceneItemRemovedHandler(sceneSourceModel),
     );
 
-    this.scenesService.sceneRemoved.subscribe(sceneModel => this.removeSource(sceneModel.id));
+    this.scenesService.sceneRemoved.subscribe((sceneModel) => this.removeSource(sceneModel.id));
   }
 
   @mutation()
@@ -161,6 +165,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     settings: Dictionary<any> = {},
     options: ISourceAddOptions = {},
   ): Source {
+    markObsOp('SourcesService', 'createSource', { type });
     const id: string = options.sourceId || `${type}_${uuidv4()}`;
     const obsInputSettings = this.getObsSourceCreateSettings(type, settings);
     const obsInput = obs.InputFactory.create(type, id, obsInputSettings);
@@ -197,8 +202,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
         `Unknown properties manager type ${managerType} of source id:${id} ('${source.name}'). fallback to default.`,
       );
     }
-    const managerKlass =
-      PROPERTIES_MANAGER_TYPES[managerType] ?? PROPERTIES_MANAGER_TYPES['default'];
+    const managerKlass = PROPERTIES_MANAGER_TYPES[managerType] ?? PROPERTIES_MANAGER_TYPES['default'];
     this.propertiesManagers[id] = {
       manager: new managerKlass(obsInput, options.propertiesManagerSettings || {}),
       type: managerType,
@@ -213,6 +217,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   removeSource(id: string) {
+    markObsOp('SourcesService', 'removeSource');
     const source = this.getSource(id);
 
     if (!source) throw new Error(`Source ${id} not found`);
@@ -302,7 +307,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   getObsSourceSettings(type: TSourceType, settings: Dictionary<any>): Dictionary<any> {
     const resolvedSettings = cloneDeep(settings);
 
-    Object.keys(resolvedSettings).forEach(propName => {
+    Object.keys(resolvedSettings).forEach((propName) => {
       // device_id is unique for each PC
       // so we allow to provide a device name instead device id
       // resolve the device id by the device name here
@@ -332,7 +337,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
   fixSourceSettings() {
     // fix webcam sources's video_device_id
-    this.getSourcesByType('dshow_input').forEach(webcam => {
+    this.getSourcesByType('dshow_input').forEach((webcam) => {
       webcam.getPropertiesFormData();
     });
   }
@@ -380,7 +385,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       'spout_capture',
     ];
 
-    const availableWhitelistedType = whitelistedTypes.filter(type =>
+    const availableWhitelistedType = whitelistedTypes.filter((type) =>
       obsAvailableTypes.includes(type),
     );
 
@@ -389,12 +394,12 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       console.info('nair-rtvc-source is not available');
       const audioDevices = this.audioService
         .getVisibleSourcesForCurrentScene()
-        .map(source => source.name);
+        .map((source) => source.name);
       const obsLog: { filename: string; data: string } = IPCWrapper.getLatestObsLog();
       const re = /([^/']*\.dll)' not loaded/g;
-      const notLoadedDlls = [...obsLog.data.matchAll(re)].map(m => m[1]);
+      const notLoadedDlls = [...obsLog.data.matchAll(re)].map((m) => m[1]);
       const obsPluginFiles = IPCWrapper.getObsPluginFilesList();
-      const rtvcRelatedLines = [...obsLog.data.matchAll(/.*nair-rtvc-source.*/g)].map(m => m[0]);
+      const rtvcRelatedLines = [...obsLog.data.matchAll(/.*nair-rtvc-source.*/g)].map((m) => m[0]);
       const cpuModel = IPCWrapper.getCpuModel();
 
       /* DLL自体がロードできなかったとき:
@@ -412,10 +417,10 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 [][1748][Warning] Module 'C:/Program Files/N Air/resources/app.asar.unpacked/node_modules/obs-studio-node/obs-plugins/64bit/nair-rtvc-source.dll' not loaded
 ]
      */
-      const failedToLoadVVFX = rtvcRelatedLines.some(line =>
+      const failedToLoadVVFX = rtvcRelatedLines.some((line) =>
         line.includes('failed to load rtvc.vvfx'),
       );
-      const rtvcModuleNotLoaded = rtvcRelatedLines.some(line =>
+      const rtvcModuleNotLoaded = rtvcRelatedLines.some((line) =>
         line.includes("nair-rtvc-source.dll' not loaded"),
       );
 
@@ -429,7 +434,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
         cpuModel,
       });
 
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setLevel('error');
         scope.setTags({
           'nair-rtvc-source': 'not-available',
@@ -481,7 +486,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     availableWhitelistedType.push('ffmpeg_source_replay'); // リプレイバッファ
 
-    const availableWhitelistedSourceType = availableWhitelistedType.map(value => ({
+    const availableWhitelistedSourceType = availableWhitelistedType.map((value) => ({
       value,
       description: $t(`source-props.${value}.name`),
     }));
@@ -490,14 +495,14 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   getAvailableSourcesTypes() {
-    return this.getAvailableSourcesTypesList().map(listItem => listItem.value);
+    return this.getAvailableSourcesTypesList().map((listItem) => listItem.value);
   }
 
   refreshSourceAttributes() {
     const activeItems = this.scenesService.activeScene.getItems();
     const sourcesNames: string[] = [];
 
-    activeItems.forEach(activeItem => {
+    activeItems.forEach((activeItem) => {
       sourcesNames.push(activeItem.name);
     });
 
@@ -507,8 +512,8 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       const source = this.state.sources[item.sourceId];
 
       if (
-        source.width !== sourcesSize[index].width ||
-        source.height !== sourcesSize[index].height
+        source.width !== sourcesSize[index].width
+        || source.height !== sourcesSize[index].height
       ) {
         const size = {
           id: item.sourceId,
@@ -522,7 +527,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   private handleSourceCallback(objs: IObsSourceCallbackInfo[]) {
-    objs.forEach(info => {
+    objs.forEach((info) => {
       const source = this.getSource(info.name);
 
       // This is probably a transition or something else we don't care about
@@ -569,21 +574,21 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   getSourcesByName(name: string): Source[] {
-    const sourceModels = Object.values(this.state.sources).filter(source => {
+    const sourceModels = Object.values(this.state.sources).filter((source) => {
       return source.name === name;
     });
-    return sourceModels.map(sourceModel => this.getSource(sourceModel.sourceId));
+    return sourceModels.map((sourceModel) => this.getSource(sourceModel.sourceId));
   }
 
   getSourcesByType(type: TSourceType): Source[] {
-    const sourceModels = Object.values(this.state.sources).filter(source => {
+    const sourceModels = Object.values(this.state.sources).filter((source) => {
       return source.type === type;
     });
-    return sourceModels.map(sourceModel => this.getSource(sourceModel.sourceId));
+    return sourceModels.map((sourceModel) => this.getSource(sourceModel.sourceId));
   }
 
   get sources(): Source[] {
-    return Object.values(this.state.sources).map(sourceModel =>
+    return Object.values(this.state.sources).map((sourceModel) =>
       this.getSource(sourceModel.sourceId),
     );
   }

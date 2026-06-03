@@ -10,6 +10,7 @@ import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import Vue from 'vue';
 import { Component } from 'vue-property-decorator';
+
 import AddFileIcon from '../../../media/images/add-file-icon.svg';
 import AddSceneIcon from '../../../media/images/add-scene-icon.svg';
 import AppAudioCaptureSourceIcon from '../../../media/images/app-speaker.svg';
@@ -32,6 +33,7 @@ import TextGdiplusIcon from '../../../media/images/text-gdiplus-icon.svg';
 import WasapiInputCaptureIcon from '../../../media/images/wasapi-input-icon.svg';
 import WasapiOutputIcon from '../../../media/images/wasapi-output-icon.svg';
 import WindowCaptureIcon from '../../../media/images/window-capture-icon.svg';
+
 import AddSourceInfo from './AddSourceInfo.vue';
 
 type TInspectableSource = TSelectableSourceType;
@@ -81,8 +83,8 @@ export default class SourcesShowcase extends Vue {
 
     // 自動文字起こしソースを追加する際に自動文字起こしが有効になっていない場合は迷わないように案内を表示する
     if (
-      this.inspectedSource === 'text_transcription' &&
-      this.transcriptionService.activeStatus() !== 'active'
+      this.inspectedSource === 'text_transcription'
+      && this.transcriptionService.activeStatus() !== 'active'
     ) {
       remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
         type: 'info',
@@ -140,7 +142,7 @@ export default class SourcesShowcase extends Vue {
   }
 
   get availableSources() {
-    return this.sourcesService.getAvailableSourcesTypesList().filter(type => {
+    return this.sourcesService.getAvailableSourcesTypesList().filter((type) => {
       if (type.value === 'text_ft2_source') return false;
       if (type.value === 'scene' && this.scenesService.scenes.length <= 1) return false;
       return true;

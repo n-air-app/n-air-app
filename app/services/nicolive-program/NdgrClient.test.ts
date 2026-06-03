@@ -1,6 +1,7 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
-import { Reader, Writer, util } from 'protobufjs/minimal';
+import { Reader, util, Writer } from 'protobufjs/minimal';
 import { jest_fn } from 'util/jest_fn';
+
 import { NdgrClient } from './NdgrClient';
 
 const ENTRY_URL = 'http://example.com/entry';
@@ -95,17 +96,28 @@ function packedSegmentResponse(
 
 function encodeMessages<T>(encoder: (message: T) => Writer, messages: T[]): Uint8Array {
   return messages
-    .map(message => {
+    .map((message) => {
       const writer = encoder(message);
       return writer.finish();
     })
     .reduce((a, b) => new Uint8Array([...a, ...b]), new Uint8Array([]));
 }
 
+// proto3 ではデフォルト値 (enum 0 等) が wire format に乗らないため、
+// 期待値も同じ encode/decode を経由させて正規化してから比較する
+function normalizeChunkedMessage(
+  msg: dwango.nicolive.chat.service.edge.IChunkedMessage,
+): dwango.nicolive.chat.service.edge.IChunkedMessage {
+  const ChunkedMessage = dwango.nicolive.chat.service.edge.ChunkedMessage;
+  return ChunkedMessage.decode(
+    ChunkedMessage.encode(ChunkedMessage.fromObject(msg)).finish(),
+  ).toJSON();
+}
+
 describe('ChunkedEntry', () => {
   test('EncodeDelimited して DecodeDelimited すると元のオブジェクトに戻る', () => {
     const buf = encodeMessages(
-      msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
+      (msg) => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
       entries,
     );
 
@@ -139,7 +151,7 @@ describe('NdgrClient', () => {
               new Response(
                 new Uint8Array(
                   encodeMessages(
-                    msg => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
+                    (msg) => dwango.nicolive.chat.service.edge.ChunkedEntry.encodeDelimited(msg),
                     entries,
                   ),
                 ),
@@ -153,7 +165,7 @@ describe('NdgrClient', () => {
             return Promise.resolve(
               packedSegmentResponse(
                 {
-                  messages: backwardMessages[1].map(msg => ({ message: msg })),
+                  messages: backwardMessages[1].map((msg) => ({ message: msg })),
                   next: { uri: BACKWARD2_MESSAGES_URL },
                 },
                 headers,
@@ -163,7 +175,7 @@ describe('NdgrClient', () => {
             return Promise.resolve(
               packedSegmentResponse(
                 {
-                  messages: backwardMessages[0].map(msg => ({ message: msg })),
+                  messages: backwardMessages[0].map((msg) => ({ message: msg })),
                 },
                 headers,
               ),
@@ -174,8 +186,8 @@ describe('NdgrClient', () => {
               new Response(
                 new Uint8Array(
                   encodeMessages(
-                    msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
-                    prevMessages.map(message => ({ message })),
+                    (msg) => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
+                    prevMessages.map((message) => ({ message })),
                   ),
                 ),
                 {
@@ -189,8 +201,8 @@ describe('NdgrClient', () => {
               new Response(
                 new Uint8Array(
                   encodeMessages(
-                    msg => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
-                    messages.map(message => ({ message })),
+                    (msg) => dwango.nicolive.chat.service.edge.ChunkedMessage.encodeDelimited(msg),
+                    messages.map((message) => ({ message })),
                   ),
                 ),
                 {
@@ -220,7 +232,7 @@ describe('NdgrClient', () => {
       .mockName('onReceived');
     const onCompleted = jest.fn<void, []>().mockName('onCompleted');
     target.messages.subscribe({
-      next: msg => onReceived(msg.toJSON()), // class情報を落とすことで比較可能にする
+      next: (msg) => onReceived(msg.toJSON()), // class情報を落とすことで比較可能にする
       complete: onCompleted,
     });
     await target.connect();
@@ -231,7 +243,10 @@ describe('NdgrClient', () => {
     const expectedMessages = [...prevMessages, ...messages];
     expect(onReceived).toHaveBeenCalledTimes(expectedMessages.length);
     for (let i = 0; i < expectedMessages.length; i++) {
-      expect(onReceived).toHaveBeenNthCalledWith(i + 1, { message: expectedMessages[i] });
+      expect(onReceived).toHaveBeenNthCalledWith(
+        i + 1,
+        normalizeChunkedMessage({ message: expectedMessages[i] }),
+      );
     }
     target.dispose();
     expect(onCompleted).toHaveBeenCalledTimes(1);
@@ -244,7 +259,7 @@ describe('NdgrClient', () => {
       .mockName('onReceived');
     const onCompleted = jest.fn<void, []>().mockName('onCompleted');
     target.messages.subscribe({
-      next: msg => onReceived(msg.toJSON()), // class情報を落とすことで比較可能にする
+      next: (msg) => onReceived(msg.toJSON()), // class情報を落とすことで比較可能にする
       complete: onCompleted,
     });
     const WANT_BACKWARDS = 3;
@@ -262,7 +277,10 @@ describe('NdgrClient', () => {
     const expectedMessages = [...backwards, ...prevMessages, ...messages];
     expect(onReceived).toHaveBeenCalledTimes(expectedMessages.length);
     for (let i = 0; i < expectedMessages.length; i++) {
-      expect(onReceived).toHaveBeenNthCalledWith(i + 1, { message: expectedMessages[i] });
+      expect(onReceived).toHaveBeenNthCalledWith(
+        i + 1,
+        normalizeChunkedMessage({ message: expectedMessages[i] }),
+      );
     }
     target.dispose();
     expect(onCompleted).toHaveBeenCalledTimes(1);
@@ -277,7 +295,7 @@ describe('NdgrClient', () => {
       maxRetry: MAX_RETRY,
     });
     await expect(target.connect()).rejects.toThrow(
-      `Failed to fetch[label:head]: TypeError: network error`,
+      'Failed to fetch[label:head]: TypeError: network error',
     );
     expect(fetchMock as any).toHaveBeenCalledTimes(MAX_RETRY + 1);
   });
@@ -285,7 +303,7 @@ describe('NdgrClient', () => {
   it('should throw an NdgrFetchError when fetch returns a failed response', async () => {
     expect.assertions(2);
     const target = new NdgrClient(HTTP_ERROR_URL);
-    await expect(target.connect()).rejects.toThrow(`Failed to fetch[ndgr:head]: 404`);
+    await expect(target.connect()).rejects.toThrow('Failed to fetch[ndgr:head]: 404');
     expect(fetchMock as any).toHaveBeenCalledTimes(1);
   });
 });

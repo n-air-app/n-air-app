@@ -6,13 +6,16 @@ process.env.NODE_OPTIONS = '--max-old-space-size=4096';
 
 module.exports = {
   // TypeScript, JavaScript, Vue ファイル
-  '*.{ts,js,vue}': ['eslint'],
+  '*.{ts,js,vue}': ['eslint --fix'],
 
   // CSS, Less, Vue スタイル
-  '*.{css,less,vue}': ['stylelint'],
+  '*.{css,less,vue}': ['stylelint --fix'],
 
-  // 国際化ファイル
-  'app/i18n/*/*.json': ['node ./bin/i18n-early-check.js'],
+  // 国際化ファイル（ESLint フォーマット後に構造検証を実行）
+  'app/i18n/*/*.json': ['eslint --fix', 'node ./bin/i18n-early-check.js'],
+
+  // その他の JSON ファイル
+  '*.json': ['eslint --fix'],
 
   // フォントグリフ
   '{app/fonts/glyphs/*.svg,app/styles/custom-icons.less.njk}': [

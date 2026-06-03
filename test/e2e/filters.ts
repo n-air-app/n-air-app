@@ -5,7 +5,7 @@ import { test, useWebdriver } from '../helpers/webdriver/index';
 
 useWebdriver({ restartAppAfterEachTest: false });
 
-test('Adding and removing a source filter', async t => {
+test('Adding and removing a source filter', async (t) => {
   const app = t.context.app;
   const sourceName = 'Color Source';
   const filterName = 'Color Correction';

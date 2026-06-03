@@ -1,14 +1,16 @@
+import fs from 'fs';
+import path from 'path';
+
 import * as remote from '@electron/remote';
 import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
-import fs from 'fs';
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
-import path from 'path';
 import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { UserService } from 'services/user';
+
 import { PropertiesManager } from './properties-manager';
 
 export interface IDefaultManagerSettings {
@@ -58,10 +60,10 @@ export class DefaultManager extends PropertiesManager {
     // TODO: ホットキーのフォームが未実装
     if (this.obsSource.id === 'game_capture') {
       const captureModeProp = propArray.find(
-        prop => prop.name === 'capture_mode',
+        (prop) => prop.name === 'capture_mode',
       ) as IObsListInput<TObsValue>;
       if (captureModeProp) {
-        captureModeProp.options = captureModeProp.options.filter(option => {
+        captureModeProp.options = captureModeProp.options.filter((option) => {
           return option.value !== 'hotkey';
         });
       }
@@ -103,8 +105,7 @@ export class DefaultManager extends PropertiesManager {
     newSettings['font'] = { ...settings['font'] };
     newSettings['font'] = newSettings['font'] || {};
     newSettings['font']['face'] = fontInfo.family_name;
-    newSettings['font']['flags'] =
-      (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
+    newSettings['font']['flags'] = (fontInfo.italic ? EFontStyle.Italic : 0) | (fontInfo.bold ? EFontStyle.Bold : 0);
 
     this.obsSource.update(newSettings);
   }

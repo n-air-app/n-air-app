@@ -1,4 +1,4 @@
 {
-    "main": "index.js",
-    "types": "obs-api.d.ts"
+  "main": "index.js",
+  "types": "obs-api.d.ts"
 }

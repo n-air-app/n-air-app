@@ -24,7 +24,7 @@ export function ServiceHelper() {
       instance._resourceId = originalName + JSON.stringify(args);
 
       // インスタンスからthisにプロパティをコピー
-      Object.getOwnPropertyNames(instance).forEach(key => {
+      Object.getOwnPropertyNames(instance).forEach((key) => {
         this[key] = instance[key];
       });
 
@@ -36,7 +36,7 @@ export function ServiceHelper() {
     f.prototype.constructor = f;
 
     // プロトタイプメソッドをコピー
-    Object.getOwnPropertyNames(original.prototype).forEach(key => {
+    Object.getOwnPropertyNames(original.prototype).forEach((key) => {
       if (key !== 'constructor') {
         const descriptor = Object.getOwnPropertyDescriptor(original.prototype, key);
         if (descriptor) {
@@ -46,7 +46,7 @@ export function ServiceHelper() {
     });
 
     // 静的メソッドとプロパティをコピー
-    Object.getOwnPropertyNames(original).forEach(key => {
+    Object.getOwnPropertyNames(original).forEach((key) => {
       if (key !== 'prototype' && key !== 'name') {
         const descriptor = Object.getOwnPropertyDescriptor(original, key);
         if (descriptor) {

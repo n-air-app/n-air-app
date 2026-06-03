@@ -1,4 +1,5 @@
 import * as input from 'components/obs/inputs/ObsInput';
+
 import * as obs from '../../../../obs-api';
 
 /**
@@ -99,8 +100,8 @@ export abstract class PropertiesManager implements IPropertyManager {
     let propsArray: input.TObsFormData = [];
 
     // First, add properties that appear in the display order
-    this.displayOrder.forEach(name => {
-      const obsIndex = obsProperties.findIndex(prop => prop.name === name);
+    this.displayOrder.forEach((name) => {
+      const obsIndex = obsProperties.findIndex((prop) => prop.name === name);
 
       if (obsIndex !== -1) {
         propsArray.push(obsProperties[obsIndex]);
@@ -109,7 +110,7 @@ export abstract class PropertiesManager implements IPropertyManager {
     });
 
     propsArray = propsArray.concat(obsProperties);
-    propsArray = propsArray.filter(Boolean).filter(prop => !this.blacklist.includes(prop.name));
+    propsArray = propsArray.filter(Boolean).filter((prop) => !this.blacklist.includes(prop.name));
 
     return propsArray;
   }

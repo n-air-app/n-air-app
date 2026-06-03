@@ -1,13 +1,15 @@
-import Vue from 'vue';
-
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { Inject } from 'services/core/injector';
-import { StatefulService, mutation } from 'services/core/stateful-service';
+import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
+import { getLastObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
+import Vue from 'vue';
+
 import * as obs from '../../../obs-api';
 
 export type StreamQuality = 'GOOD' | 'FAIR' | 'POOR';
@@ -35,7 +37,7 @@ const STATS_UPDATE_INTERVAL = 2 * 1000;
 // Keeps a store of up-to-date performance metrics
 export class PerformanceService extends StatefulService<IPerformanceState> {
   @Inject()
-  customizationService: CustomizationService;
+    customizationService: CustomizationService;
   @Inject()
   private videoSettingsService: VideoSettingsService;
   @Inject()
@@ -59,6 +61,11 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
   private intervalId: number;
   private statsFailed: boolean = false;
 
+  private zeroBandwidthSamples = 0;
+  private zeroBandwidthAlertSent = false;
+  private zeroBandwidthStartedAt: number | null = null;
+  private readonly ZERO_BANDWIDTH_THRESHOLD = 8; // 8 × 2s = 16s
+
   // 移動平均用の履歴配列
   private historicalDroppedFrames: number[] = [];
   private historicalSkippedFrames: number[] = [];
@@ -67,7 +74,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   @mutation()
   SET_PERFORMANCE_STATS(stats: Partial<IPerformanceState>) {
-    getKeys(stats).forEach(stat => {
+    getKeys(stats).forEach((stat) => {
       Vue.set(this.state, stat, stats[stat]);
     });
   }
@@ -76,11 +83,18 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     this.intervalId = window.setInterval(() => this.update(), STATS_UPDATE_INTERVAL);
 
     // 配信状態の変化を監視して履歴をリセット
-    this.streamingService.streamingStatusChange.subscribe(status => {
+    this.streamingService.streamingStatusChange.subscribe((status) => {
       if (status === EStreamingState.Live) {
         this.historicalDroppedFrames = [];
         this.historicalLaggedFrames = [];
         this.historicalSkippedFrames = [];
+        this.zeroBandwidthSamples = 0;
+        this.zeroBandwidthAlertSent = false;
+        this.zeroBandwidthStartedAt = null;
+      } else if (status === EStreamingState.Offline) {
+        this.zeroBandwidthSamples = 0;
+        this.zeroBandwidthAlertSent = false;
+        this.zeroBandwidthStartedAt = null;
       }
     });
   }
@@ -124,7 +138,12 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
           level: 'warning',
         });
       } else {
-        Sentry.captureException(e);
+        SentryReport.error('PerformanceService', 'getState', e, {
+          extra: {
+            streamingStatus: this.streamingService.state.streamingStatus,
+            lastObsOp: getLastObsOp(),
+          },
+        });
       }
       return null;
     }
@@ -147,7 +166,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     // CPU 計算（既存）
     const am = remote.app.getAppMetrics();
     stats.CPU += am
-      .map(proc => {
+      .map((proc) => {
         return proc.cpu.percentCPUUsage;
       })
       .reduce((sum, usage) => sum + usage);
@@ -188,6 +207,65 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
       percentageSkippedFrames: skippedFactor * 100,
       streamQuality,
     });
+
+    if (this.streamingService.state.streamingStatus === EStreamingState.Live) {
+      if (stats.streamingBandwidth === 0) {
+        if (this.zeroBandwidthSamples === 0) {
+          this.zeroBandwidthStartedAt = Date.now();
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'bandwidth dropped to 0',
+            level: 'warning',
+            data: {
+              CPU: stats.CPU,
+              droppedFrames: stats.numberDroppedFrames,
+              percentageDroppedFrames: stats.percentageDroppedFrames,
+            },
+          });
+        }
+        this.zeroBandwidthSamples++;
+        if (
+          this.zeroBandwidthSamples === this.ZERO_BANDWIDTH_THRESHOLD &&
+          !this.zeroBandwidthAlertSent
+        ) {
+          const streamElapsedSec = this.streamingService.state.streamingStatusTime
+            ? Math.round(
+              (Date.now() -
+                  new Date(this.streamingService.state.streamingStatusTime).getTime()) /
+                  1000,
+            )
+            : -1;
+          SentryReport.message('PerformanceService', 'update', 'streaming bandwidth stuck at 0kbps', {
+            level: 'warning',
+            tags: { condition: 'bandwidthZero' },
+            fingerprint: ['PerformanceService', 'bandwidthZero'],
+            extra: {
+              zeroDurationSec: this.zeroBandwidthSamples * (STATS_UPDATE_INTERVAL / 1000),
+              CPU: stats.CPU,
+              droppedFrames: stats.numberDroppedFrames,
+              percentageDroppedFrames: stats.percentageDroppedFrames,
+              streamElapsedSec,
+            },
+          });
+          this.zeroBandwidthAlertSent = true;
+        }
+      } else {
+        if (this.zeroBandwidthAlertSent) {
+          Sentry.addBreadcrumb({
+            category: 'streaming',
+            message: 'bandwidth recovered',
+            data: {
+              recoveryDurationSec: this.zeroBandwidthStartedAt
+                ? Math.round((Date.now() - this.zeroBandwidthStartedAt) / 1000)
+                : -1,
+            },
+          });
+        }
+        this.zeroBandwidthSamples = 0;
+        this.zeroBandwidthAlertSent = false;
+        this.zeroBandwidthStartedAt = null;
+      }
+    }
   }
 
   stop() {

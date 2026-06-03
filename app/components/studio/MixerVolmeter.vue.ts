@@ -205,10 +205,9 @@ export default class MixerVolmeter extends Vue {
 
       // 変化がなければ再描画しない
       if (
-        peak !== this.previousPeaks[channel] ||
-        this.peakHolds[channel] !== this.previousPeakHolds[channel]
-      )
-        changed = true;
+        peak !== this.previousPeaks[channel]
+        || this.peakHolds[channel] !== this.previousPeakHolds[channel]
+      ) changed = true;
 
       this.previousPeaks[channel] = peak;
       this.previousPeakHolds[channel] = this.peakHolds[channel];
@@ -220,7 +219,7 @@ export default class MixerVolmeter extends Vue {
   private subscribeVolmeter(): void {
     this.volmeterSubscription = this.audioSource
       .getVolmeterStream()
-      .subscribe(volmeter => {
+      .subscribe((volmeter) => {
         if (this.checkPeaks(volmeter.peak)) return;
         this.setChannelCount(volmeter.peak.length);
         this.drawVolmeter(volmeter.peak);
