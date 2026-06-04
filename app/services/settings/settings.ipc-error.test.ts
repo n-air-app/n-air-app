@@ -68,6 +68,7 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
     instance = Object.create(SettingsService.prototype);
     instance.appService = { relaunch: mockRelaunch };
     instance.obsIpcError = false;
+    instance.settingsFormDataCache = new Map();
   });
 
   describe('正常系', () => {
@@ -83,7 +84,7 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
   });
 
   describe('IpcRequestError 発生時', () => {
-    test('obsIpcError フラグが true になり空配列を返す', () => {
+    test('obsIpcError フラグが true になりキャッシュを返す（キャッシュなしは空配列）', () => {
       jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
         throw new IpcRequestErrorClass('SettingsService', 'getSettingsFormData', { code: -32000 });
       });
@@ -92,7 +93,20 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
       const result = instance.getSettingsFormData('General');
 
       expect(instance.obsIpcError).toBe(true);
-      expect(result).toEqual([]);
+      expect(result).toEqual([]); // キャッシュなしは空配列
+    });
+
+    test('IpcRequestError 発生前に成功していた場合はキャッシュを返す', () => {
+      const cached = [{ nameSubCategory: 'cached', parameters: [] as any[] }];
+      instance.settingsFormDataCache.set('General', cached);
+      jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
+        throw new IpcRequestErrorClass('SettingsService', 'getSettingsFormData', { code: -32000 });
+      });
+      jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
+
+      const result = instance.getSettingsFormData('General');
+
+      expect(result).toBe(cached);
     });
 
     test('offerRestart が呼ばれる', () => {
@@ -106,13 +120,15 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
       expect(offerRestartSpy).toHaveBeenCalledTimes(1);
     });
 
-    test('obsIpcError が true の場合は getSettingsFormDataImpl を呼ばずに空配列を返す', () => {
+    test('obsIpcError が true の場合は getSettingsFormDataImpl を呼ばずキャッシュを返す', () => {
       instance.obsIpcError = true;
+      const cached = [{ nameSubCategory: 'cached', parameters: [] as any[] }];
+      instance.settingsFormDataCache.set('General', cached);
       const implSpy = jest.spyOn(instance, 'getSettingsFormDataImpl');
 
       const result = instance.getSettingsFormData('General');
 
-      expect(result).toEqual([]);
+      expect(result).toBe(cached);
       expect(implSpy).not.toHaveBeenCalled();
     });
 

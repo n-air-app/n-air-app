@@ -124,6 +124,7 @@ export class SettingsService
   }
 
   private obsIpcError: boolean = false;
+  private settingsFormDataCache: Map<SettingsCategory, ISettingsSubCategory[]> = new Map();
 
   @Inject() private sourcesService: SourcesService;
   @Inject() private audioService: AudioService;
@@ -205,14 +206,16 @@ export class SettingsService
   }
 
   getSettingsFormData(categoryName: SettingsCategory): ISettingsSubCategory[] {
-    if (this.obsIpcError) return [];
+    if (this.obsIpcError) return this.settingsFormDataCache.get(categoryName) ?? [];
     try {
-      return this.getSettingsFormDataImpl(categoryName);
+      const result = this.getSettingsFormDataImpl(categoryName);
+      this.settingsFormDataCache.set(categoryName, result);
+      return result;
     } catch (e) {
       if (e instanceof IpcRequestError) {
         this.obsIpcError = true;
         this.offerRestart().catch(() => {});
-        return [];
+        return this.settingsFormDataCache.get(categoryName) ?? [];
       }
       throw e;
     }
