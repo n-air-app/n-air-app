@@ -105,15 +105,18 @@ describe('Settings: loadSettingsFormData', () => {
   });
 
   describe('IpcRequestError 発生時', () => {
-    test('ipcError フラグが true になる', () => {
+    test('ipcError フラグが true になり settingsData を返す', () => {
       const rpcError = { code: -32000 };
       mockGetSettingsFormData.mockImplementation(() => {
         throw new IpcRequestError('SettingsService', 'getSettingsFormData', rpcError);
       });
-      mockShowMessageBox.mockResolvedValue({ response: 1 });
+      jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
+      instance.settingsData = [{ cname: 'cached', parameters: [] as any[] }];
 
-      expect(() => instance['loadSettingsFormData']('General')).toThrow(IpcRequestError);
+      const result = instance['loadSettingsFormData']('General');
+
       expect(instance.ipcError).toBe(true);
+      expect(result).toBe(instance.settingsData); // throw せず既存データを返す
     });
 
     test('ipcError が true の状態では settingsData をそのまま返し getSettingsFormData を呼ばない', () => {
@@ -131,10 +134,10 @@ describe('Settings: loadSettingsFormData', () => {
       mockGetSettingsFormData.mockImplementation(() => {
         throw new IpcRequestError('SettingsService', 'getSettingsFormData', rpcError);
       });
-      mockShowMessageBox.mockResolvedValue({ response: 1 });
       const offerRestartSpy = jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
 
-      expect(() => instance['loadSettingsFormData']('General')).toThrow();
+      instance['loadSettingsFormData']('General');
+
       expect(offerRestartSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -143,11 +146,10 @@ describe('Settings: loadSettingsFormData', () => {
       mockGetSettingsFormData.mockImplementation(() => {
         throw new IpcRequestError('SettingsService', 'getSettingsFormData', rpcError);
       });
-      mockShowMessageBox.mockResolvedValue({ response: 1 });
       jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
 
       // 1回目: エラー
-      expect(() => instance['loadSettingsFormData']('General')).toThrow();
+      instance['loadSettingsFormData']('General');
       expect(mockGetSettingsFormData).toHaveBeenCalledTimes(1);
 
       // 2回目以降: スキップ

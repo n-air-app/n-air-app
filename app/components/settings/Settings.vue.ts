@@ -192,7 +192,8 @@ export default class Settings extends Vue {
     } catch (e) {
       if (e instanceof IpcRequestError) {
         this.ipcError = true;
-        this.offerRestart();
+        this.offerRestart().catch(() => {}); // unhandledrejection を防ぐ
+        return this.settingsData; // Vue/Sentry による二重 capture を防ぐ
       }
       throw e;
     }
