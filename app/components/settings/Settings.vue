@@ -24,6 +24,10 @@
         </template>
       </NavMenu>
       <div class="settings-container" ref="settingsContainer">
+        <aside class="notification-root notification-root--error" v-if="ipcError">
+          <i class="notification-icon icon-warning" />
+          <p class="notification-message">{{ $t('settings.noticeIpcError') }}</p>
+        </aside>
         <aside class="notification-root" v-if="isStreaming">
           <i class="notification-icon icon-notification" />
           <p class="notification-message">{{ $t('settings.noticeWhileStreaming') }}</p>
@@ -98,6 +102,10 @@
   .notification-styling();
 
   margin-bottom: var(--spacing-lg);
+
+  &.notification-root--error {
+    background-color: var(--color-red);
+  }
 }
 
 .settings-container {

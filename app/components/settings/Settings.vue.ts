@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import { CategoryIcons } from 'components/settings/CategoryIcons';
@@ -15,7 +16,9 @@ import TableOfContents from 'components/shared/TableOfContents.vue';
 import { TocManager } from 'components/shared/TocManager';
 import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
+import { AppService } from 'services/app';
 import { Inject } from 'services/core/injector';
+import { $t } from 'services/i18n';
 import {
   ISettingsServiceApi,
   ISettingsSubCategory,
@@ -24,6 +27,7 @@ import {
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+import { IpcRequestError } from 'util/ipc-request-error';
 import Vue from 'vue';
 import { Component, Watch } from 'vue-property-decorator';
 
@@ -82,6 +86,7 @@ export default class Settings extends Vue {
   @Inject() windowsService: WindowsService;
   @Inject() userService: UserService;
   @Inject() streamingService: StreamingService;
+  @Inject() appService: AppService;
 
   $refs: { settingsContainer: HTMLElement };
 
@@ -92,6 +97,9 @@ export default class Settings extends Vue {
   userSubscription: Subscription;
   icons = CategoryIcons;
   isLoggedIn = false;
+
+  // IPC断絶フラグ: 最初のgetSettingsFormData失敗後に立て、後続呼び出しをスキップする
+  public ipcError: boolean = false;
 
   // TOCの開閉状態を管理するプロパティを追加
   public isTocOpen: boolean = true;
@@ -128,7 +136,7 @@ export default class Settings extends Vue {
     const initialCategory = this.getInitialCategoryName();
     this.tocManager.clearAll(); // Clear all categories to start fresh
     this.categoryName = initialCategory;
-    this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
+    this.settingsData = this.loadSettingsFormData(this.categoryName);
     // scroll to the anchor if it exists
     const anchor = this.getInitialAnchor();
     if (anchor) {
@@ -170,17 +178,46 @@ export default class Settings extends Vue {
 
   save(settingsData: ISettingsSubCategory[]) {
     this.settingsService.setSettings(this.categoryName, settingsData);
-    this.settingsData = this.settingsService.getSettingsFormData(this.categoryName);
+    this.settingsData = this.loadSettingsFormData(this.categoryName);
   }
 
   done() {
     this.windowsService.closeChildWindow();
   }
 
+  private loadSettingsFormData(categoryName: SettingsCategory): ISettingsSubCategory[] {
+    if (this.ipcError) return this.settingsData;
+    try {
+      return this.settingsService.getSettingsFormData(categoryName);
+    } catch (e) {
+      if (e instanceof IpcRequestError) {
+        this.ipcError = true;
+        this.offerRestart();
+      }
+      throw e;
+    }
+  }
+
+  private async offerRestart(): Promise<void> {
+    const choice = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'error',
+      buttons: [$t('common.yes'), $t('common.no')],
+      title: $t('common.confirm'),
+      message: $t('settings.noticeIpcError'),
+      detail: $t('settings.noticeIpcErrorDetail'),
+      noLink: true,
+      cancelId: 1,
+      defaultId: 0,
+    });
+    if (choice.response === 0) {
+      this.appService.relaunch();
+    }
+  }
+
   @Watch('categoryName')
   onCategoryNameChangedHandler(categoryName: SettingsCategory) {
     Sentry.addBreadcrumb({ category: 'settings', message: `category: ${categoryName}`, level: 'info' });
-    this.settingsData = this.settingsService.getSettingsFormData(categoryName);
+    this.settingsData = this.loadSettingsFormData(categoryName);
     this.$refs.settingsContainer.scrollTop = 0;
     this.isTocOpen = true;
 

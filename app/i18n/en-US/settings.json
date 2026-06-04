@@ -666,6 +666,8 @@
   "cacheIdDescription": "Copy the Cache ID to clipboard.",
   "cacheIdCopy": "Copy",
   "cacheManagement": "Management of the cache",
+  "noticeIpcError": "Failed to load settings. Restart the app?",
+  "noticeIpcErrorDetail": "An internal communication error occurred. Restarting the app may resolve the issue.",
   "noticeWhileStreaming": "Some settings cannot be changed while streaming.",
   "noticeLoginRequired": "This feature is for niconico live comments only. Please log in to your niconico account to use it.",
   "noticeForStreaming": "The URL/stream key will be set automatically according to the niconico account you are logged in to on N Air when you start streaming.",
