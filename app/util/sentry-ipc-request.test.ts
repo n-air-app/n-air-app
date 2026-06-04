@@ -81,7 +81,7 @@ describe('captureIpcRequestError', () => {
     expect(mockScope.setExtra).toHaveBeenCalledWith('mainError', '(no message)');
   });
 
-  test('fingerprint が err.name + service.method で分割される', () => {
+  test('fingerprint が固定文字列 + service.method で分割される', () => {
     captureIpcRequestError('FooService', 'barMethod', false, undefined, { code: -32603 });
     expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'FooService', 'barMethod']);
   });
