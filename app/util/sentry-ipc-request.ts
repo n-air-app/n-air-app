@@ -28,7 +28,8 @@ export function captureIpcRequestError(
   SentryReport.error(serviceName, method, err, {
     tags,
     extra: { mainError: rpcError.message ?? '(no message)' },
-    fingerprint: [err.name, serviceName, method],
+    // err.name は minify でチャンクごとに短縮名になりissueが分裂するため固定文字列を使う
+    fingerprint: ['IpcRequestError', serviceName, method],
   });
 
   return err;
