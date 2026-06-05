@@ -26,9 +26,9 @@
       @select="makeActive"
       @drop="handleSort"
       @toggle="toggleFolder"
-      @contextmenu.native="showContextMenu()"
-      @nodecontextmenu="(node, event) => showContextMenu(node.data.id, event)"
-      @nodedblclick="node => sourceProperties(node.data.id)"
+      @contextmenu="showContextMenu()"
+      @nodecontextmenu="showContextMenuForNode"
+      @nodedblclick="sourcePropertiesForNode"
       :scrollAreaHeight="50"
       :maxScrollSpeed="15"
     >

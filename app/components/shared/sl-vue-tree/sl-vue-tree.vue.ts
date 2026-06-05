@@ -239,7 +239,7 @@ export default defineComponent({
 
     emitInput(newValue: ISlTreeNodeModel[]): void {
       this.currentValue = newValue;
-      this.getRoot().$emit('input', newValue);
+      this.getRoot().$emit('update:modelValue', newValue);
     },
 
     emitSelect(selectedNodes: ISlTreeNode[], event: MouseEvent | null): void {

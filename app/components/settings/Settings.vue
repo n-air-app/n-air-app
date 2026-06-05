@@ -11,7 +11,7 @@
             :data-test="category"
             :show-arrow="hasSections(category)"
             :is-toc-open="category === categoryName ? isTocOpen : false"
-            @click.native.prevent="handleCategoryClick(category)"
+            @click.prevent="handleCategoryClick(category)"
           >
             {{ $t(`settings.${category}.name`, { fallback: category }) }}
           </NavItem>

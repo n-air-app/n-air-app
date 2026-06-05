@@ -119,6 +119,15 @@ export default defineComponent({
       }
     },
 
+    showContextMenuForNode(node: ISlTreeNode<ISceneItemNode>, event: MouseEvent) {
+      this.showContextMenu(node.data.id, event);
+    },
+
+    sourcePropertiesForNode(node: ISlTreeNode<ISceneItemNode>, ev: MouseEvent) {
+      this.makeActive([node], ev);
+      this.sourceProperties();
+    },
+
     showContextMenu(sceneNodeId?: string, event?: MouseEvent) {
       if (!this.scene) {
         Sentry.addBreadcrumb({
