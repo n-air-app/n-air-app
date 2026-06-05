@@ -75,6 +75,9 @@ describe('TocSection', () => {
     instance.unregisterTocSection = mockUnregisterTocSection;
     instance.parentTocLevel = props.parentTocLevel;
 
+    // Run created() to initialize generatedId
+    if (instance.created) instance.created();
+
     return instance;
   }
 

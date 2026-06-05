@@ -53,16 +53,15 @@ export default defineComponent({
     };
   },
 
+  created() {
+    if (!this.id && this.getTocSectionId) {
+      this.generatedId = this.getTocSectionId();
+    }
+  },
+
   computed: {
     sectionId(): string {
-      if (this.id) return this.id;
-      if (!this.generatedId && this.getTocSectionId) {
-        // NOTE: Vue 3 では computed 内の reactive data への書き込みは副作用となるが、
-        // ID 生成は一度だけ行われる lazy initialization パターンであり実害はない。
-
-        (this as any).generatedId = this.getTocSectionId();
-      }
-      return this.generatedId || '';
+      return this.id || this.generatedId || '';
     },
 
     computedLevel(): number {
