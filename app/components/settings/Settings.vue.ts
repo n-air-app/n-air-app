@@ -15,9 +15,9 @@ import { TocManager } from 'components/shared/TocManager';
 import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
 import {
-  ISettingsServiceApi,
   ISettingsSubCategory,
   SettingsCategory,
+  SettingsService,
 } from 'services/settings';
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
@@ -78,7 +78,7 @@ export default defineComponent({
     return {
       categoryName: null as SettingsCategory | null,
       settingsData: [] as ISettingsSubCategory[],
-      categoryNames: (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getCategories(),
+      categoryNames: SettingsService.instance().getCategories(),
       userSubscription: null as Subscription | null,
       icons: CategoryIcons,
       isLoggedIn: false,
@@ -104,7 +104,7 @@ export default defineComponent({
   },
   watch: {
     categoryName(categoryName: SettingsCategory) {
-      this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(categoryName);
+      this.settingsData = SettingsService.instance().getSettingsFormData(categoryName);
       (this.$refs.settingsContainer as HTMLElement).scrollTop = 0;
       this.isTocOpen = true;
 
@@ -125,14 +125,14 @@ export default defineComponent({
   mounted() {
     this.userSubscription = UserService.instance().userLoginState.subscribe((loggedIn) => {
       this.isLoggedIn = !!loggedIn;
-      this.categoryNames = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getCategories();
+      this.categoryNames = SettingsService.instance().getCategories();
     });
     this.isLoggedIn = UserService.instance().isLoggedIn();
 
     const initialCategory = this.getInitialCategoryName();
     this.tocManager.clearAll();
     this.categoryName = initialCategory;
-    this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(this.categoryName);
+    this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
     const anchor = this.getInitialAnchor();
     if (anchor) {
       this.$nextTick(() => {
@@ -176,8 +176,8 @@ export default defineComponent({
         }
         return result;
       }
-      (require('services/settings').SettingsService.instance() as ISettingsServiceApi).setSettings(this.categoryName, deepToRaw(settingsData));
-      this.settingsData = (require('services/settings').SettingsService.instance() as ISettingsServiceApi).getSettingsFormData(this.categoryName);
+      SettingsService.instance().setSettings(this.categoryName, deepToRaw(settingsData));
+      this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
     },
     done() {
       WindowsService.instance().closeChildWindow();

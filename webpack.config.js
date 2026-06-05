@@ -110,8 +110,10 @@ module.exports = function (env, argv) {
       type: 'filesystem',
       buildDependencies: {
         config: [__filename],
+        packageJson: [path.resolve(__dirname, 'package.json')],
+        lockfile: [path.resolve(__dirname, 'pnpm-lock.yaml')],
       },
-    }, // if problem, clean node_modules/.cache
+    },
   };
 
   return [
