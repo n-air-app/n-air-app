@@ -100,7 +100,7 @@ export default defineComponent({
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('mouseup', this.onDocumentMouseupHandler);
   },
 

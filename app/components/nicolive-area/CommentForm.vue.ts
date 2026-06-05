@@ -85,7 +85,7 @@ export default defineComponent({
     });
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.transcriptionSubscription?.unsubscribe();
     this.commentQueue?.destroy();
   },

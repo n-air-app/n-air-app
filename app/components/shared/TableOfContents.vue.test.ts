@@ -24,7 +24,7 @@ jest.mock('vue', () => {
       }
     }
     if (options.methods) Object.assign(Component.prototype, options.methods);
-    for (const hook of ['mounted', 'beforeDestroy', 'beforeUnmount', 'unmounted', 'created']) {
+    for (const hook of ['mounted', 'beforeUnmount', 'unmounted', 'created']) {
       if (options[hook]) (Component.prototype as any)[hook] = options[hook];
     }
     return Component;

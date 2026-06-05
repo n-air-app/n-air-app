@@ -85,7 +85,7 @@ jest.mock('vue', () => {
       }
     }
     if (options.methods) Object.assign(Component.prototype, options.methods);
-    for (const hook of ['mounted', 'beforeDestroy', 'beforeUnmount', 'unmounted', 'created']) {
+    for (const hook of ['mounted', 'beforeUnmount', 'unmounted', 'created']) {
       if (options[hook]) (Component.prototype as any)[hook] = options[hook];
     }
     return Component;
@@ -204,7 +204,7 @@ describe('CommentForm', () => {
       // 引き続き送信されない
       expect(mockNicoliveProgramService.sendNormalComment).not.toHaveBeenCalled();
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
 
     it('ログは送信される', async () => {
@@ -220,7 +220,7 @@ describe('CommentForm', () => {
         { text: testText },
       );
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
 
     it('放送者コメントは送信できる', async () => {
@@ -239,7 +239,7 @@ describe('CommentForm', () => {
       );
       expect(instance.operatorCommentValue).toBe('');
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
   });
 
@@ -261,7 +261,7 @@ describe('CommentForm', () => {
         TEST_COMMENT_MODIFIER,
       );
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
 
     it('ログも送信される', async () => {
@@ -277,7 +277,7 @@ describe('CommentForm', () => {
         { text: testText },
       );
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
   });
 
@@ -296,7 +296,7 @@ describe('CommentForm', () => {
       instance.isCommentSending = false;
       expect(instance.isSendable).toBe(true);
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
 
     it('programEnded が true の時は送信不可', () => {
@@ -307,7 +307,7 @@ describe('CommentForm', () => {
       expect(instance.programEnded).toBe(true);
       expect(instance.isSendable).toBe(false);
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
 
     it('commentEnabled = true でも isSendable は同じ動作', () => {
@@ -321,7 +321,7 @@ describe('CommentForm', () => {
       instance.isCommentSending = true;
       expect(instance.isSendable).toBe(false);
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
   });
 
@@ -355,7 +355,7 @@ describe('CommentForm', () => {
         TEST_COMMENT_MODIFIER,
       );
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
   });
 
@@ -374,7 +374,7 @@ describe('CommentForm', () => {
       // ログも送信されない
       expect(mockSendLogGif).not.toHaveBeenCalled();
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
 
     it('空の放送者コメントは送信されない', async () => {
@@ -389,7 +389,7 @@ describe('CommentForm', () => {
       // 送信されない
       expect(mockNicoliveProgramService.sendOperatorComment).not.toHaveBeenCalled();
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
     });
   });
 });

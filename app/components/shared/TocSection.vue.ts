@@ -86,7 +86,7 @@ export default defineComponent({
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.registeredCategoryName) {
       this.unregisterTocSection!(this.registeredCategoryName, this.sectionId);
     }

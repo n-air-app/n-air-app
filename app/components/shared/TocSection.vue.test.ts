@@ -20,7 +20,7 @@ jest.mock('vue', () => {
       }
     }
     if (options.methods) Object.assign(Component.prototype, options.methods);
-    for (const hook of ['mounted', 'beforeDestroy', 'beforeUnmount', 'unmounted', 'created']) {
+    for (const hook of ['mounted', 'beforeUnmount', 'unmounted', 'created']) {
       if (options[hook]) (Component.prototype as any)[hook] = options[hook];
     }
     return Component;
@@ -256,7 +256,7 @@ describe('TocSection', () => {
     });
   });
 
-  describe('beforeDestroy', () => {
+  describe('beforeUnmount', () => {
     it('unregisterTocSection が呼ばれる（明示的なID）', async () => {
       const instance = createInstance({
         title: 'Test Section',
@@ -267,7 +267,7 @@ describe('TocSection', () => {
       instance.mounted();
       await new Promise((resolve) => { void setImmediate(resolve); }); // Wait for $nextTick
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
 
       expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', 'test-id');
     });
@@ -284,7 +284,7 @@ describe('TocSection', () => {
       instance.mounted();
       await new Promise((resolve) => { void setImmediate(resolve); }); // Wait for $nextTick
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
 
       expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', generatedId);
       expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', 'toc-section-0');
