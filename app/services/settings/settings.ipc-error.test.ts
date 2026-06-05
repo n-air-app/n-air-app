@@ -67,6 +67,7 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
 
     instance = Object.create(SettingsService.prototype);
     instance.appService = { relaunch: mockRelaunch };
+    instance.windowsService = { getWindow: jest.fn().mockReturnValue(null) };
     instance.obsIpcError = false;
     instance.settingsFormDataCache = new Map();
   });
