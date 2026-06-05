@@ -82,10 +82,15 @@ module.exports = function (env, argv) {
   const SENTRY_DSN = SentryDSNTable[SENTRY_PROJECT];
   const SENTRY_MINIDUMP_URL = getSentryMiniDumpURLFromDSN(SENTRY_DSN);
 
+  const isProduction = argv.mode === 'production';
   const definePlugin = new DefinePlugin({
     SENTRY_DSN: JSON.stringify(SENTRY_DSN),
     SENTRY_MINIDUMP_URL: JSON.stringify(SENTRY_MINIDUMP_URL),
     DEV_HOSTS_CONFIG: JSON.stringify(devHostsConfig),
+    // Required Vue 3 feature flags
+    __VUE_OPTIONS_API__: JSON.stringify(true),
+    __VUE_PROD_DEVTOOLS__: JSON.stringify(!isProduction),
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false),
   });
 
   const plugins = [];
