@@ -77,6 +77,7 @@ function startDrag(ctx: IDragContext, e: MouseEvent, onMove: (e: MouseEvent) => 
 
 export default defineComponent({
   name: 'ColorPicker',
+  emits: ['input', 'dragging-change'],
 
   props: {
     value: { type: Object as () => IColor, required: true },

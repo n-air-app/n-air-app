@@ -5,6 +5,17 @@ import Utils from '../utils';
 
 import { Service } from './service';
 
+export function deepToRaw(val: any): any {
+  const raw = toRaw(val);
+  if (raw === null || typeof raw !== 'object') return raw;
+  if (Array.isArray(raw)) return raw.map(deepToRaw);
+  const result: any = {};
+  for (const key of Object.keys(raw)) {
+    result[key] = deepToRaw(raw[key]);
+  }
+  return result;
+}
+
 export function mutation(options = { unsafe: false }) {
   return function (target: any, methodName: string, descriptor: PropertyDescriptor) {
     return registerMutation(target, methodName, descriptor, options);
@@ -77,17 +88,6 @@ function registerMutation(
     value(...args: any[]) {
       const constructorArgs = this['_constructorArgs'];
       const store = StatefulService.getStore();
-      // Vue 3 の reactive proxy を再帰的に剥がしてシリアライズエラーを防ぐ
-      function deepToRaw(val: any): any {
-        const raw = toRaw(val);
-        if (raw === null || typeof raw !== 'object') return raw;
-        if (Array.isArray(raw)) return raw.map(deepToRaw);
-        const result: any = {};
-        for (const key of Object.keys(raw)) {
-          result[key] = deepToRaw(raw[key]);
-        }
-        return result;
-      }
       const rawArgs = args.map(deepToRaw);
       store.commit(mutationName, {
         args: rawArgs,

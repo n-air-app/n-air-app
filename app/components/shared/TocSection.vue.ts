@@ -56,9 +56,11 @@ export default defineComponent({
   computed: {
     sectionId(): string {
       if (this.id) return this.id;
-      if (!this.generatedId) {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.generatedId = this.getTocSectionId!();
+      if (!this.generatedId && this.getTocSectionId) {
+        // NOTE: Vue 3 では computed 内の reactive data への書き込みは副作用となるが、
+        // ID 生成は一度だけ行われる lazy initialization パターンであり実害はない。
+
+        (this as any).generatedId = this.getTocSectionId();
       }
       return this.generatedId || '';
     },

@@ -4,6 +4,7 @@ import { IObsInput, TObsType } from './ObsInput';
 
 const ObsBoolInput = defineComponent({
   name: 'ObsBoolInput',
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsInput<boolean>>, required: true as const },
     category: { type: String },

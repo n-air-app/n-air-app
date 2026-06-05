@@ -15,6 +15,7 @@ const locale = remote.app.getLocale();
 const fallbackLocale = 'en-US';
 
 const i18n = createI18n({
+  legacy: true,
   locale,
   fallbackLocale,
   messages: {

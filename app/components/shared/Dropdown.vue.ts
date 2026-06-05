@@ -93,6 +93,7 @@ const clickOutsideDirective = {
 
 export default defineComponent({
   name: 'Dropdown',
+  emits: ['input', 'search-change', 'dragging-change'],
   directives: {
     clickOutside: clickOutsideDirective,
   },

@@ -5,7 +5,7 @@ import { IMutation } from 'services/api/jsonrpc';
 import Util from 'services/utils';
 import { createStore as vuexCreateStore, Store } from 'vuex';
 
-import { getModule, StatefulService } from '../services/core/stateful-service';
+import { deepToRaw, getModule, StatefulService } from '../services/core/stateful-service';
 import { ServicesManager } from '../services-manager';
 
 const { ipcRenderer } = electron;
@@ -51,7 +51,7 @@ plugins.push((store: Store<any>) => {
     const win = remote.BrowserWindow.fromId(windowId);
     if (!win || win.isDestroyed()) return;
     try {
-      win.webContents.send('vuex-loadState', store.state);
+      win.webContents.send('vuex-loadState', deepToRaw(store.state));
     } catch (e: unknown) {
       if (e instanceof Error && e.message?.includes('Render frame was disposed')) {
         return;
