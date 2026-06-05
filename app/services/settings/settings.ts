@@ -222,7 +222,8 @@ export class SettingsService
   }
 
   private async offerRestart(): Promise<void> {
-    const choice = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+    const parentWindow = this.windowsService.getWindow('child') ?? remote.getCurrentWindow();
+    const choice = await remote.dialog.showMessageBox(parentWindow, {
       type: 'error',
       buttons: [$t('common.yes'), $t('common.no')],
       title: $t('common.confirm'),
