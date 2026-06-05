@@ -1,9 +1,8 @@
 <template>
   <div class="form-groups">
-    <template v-for="(formGroup, groupIndex) in value">
+    <template v-for="(formGroup, groupIndex) in value" :key="(formGroup.nameSubCategory === 'Untitled' ? 'untitled-' : '') + formGroup.nameSubCategory + groupIndex">
       <component
         v-if="hasAnyVisibleSettings(formGroup)"
-        :key="(formGroup.nameSubCategory === 'Untitled' ? 'untitled-' : '') + formGroup.nameSubCategory + groupIndex"
         :is="isSimpleCategory ? 'div' : 'toc-section'"
         :title="isSimpleCategory ? undefined :
           formGroup.nameSubCategory === 'Untitled'

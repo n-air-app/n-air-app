@@ -224,8 +224,8 @@ export default [
   ...compat.extends('airbnb-base'),
   js.configs.recommended,
 
-  // Vue plugin configs (Vue 2)
-  ...vue.configs['flat/vue2-essential'],
+  // Vue plugin configs (Vue 3)
+  ...vue.configs['flat/essential'],
 
   // Main configuration for JS/TS files
   {
@@ -325,10 +325,11 @@ export default [
     rules: {
       ...COMMON_RULES,
 
-      // The following are already ERROR in vue2-essential preset; listed explicitly for visibility
+      // The following are already ERROR in vue3-essential preset; listed explicitly for visibility
       'vue/no-use-v-if-with-v-for': ERROR,
       'vue/require-v-for-key': ERROR,
       'vue/valid-v-for': ERROR,
+      'vue/no-v-for-template-key-on-child': ERROR, // Vue 3: :key must be on <template v-for>, not on child elements
 
       // Vue template formatting
       'vue/html-indent': [ERROR, 2, {

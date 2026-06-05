@@ -11,10 +11,9 @@
       <div class="spinner-spacer" />
     </div>
     <div class="child-window-content">
-      <template v-for="(component, index) in components">
+      <template v-for="(component, index) in components" :key="`${component.name}-${index}`">
         <component
           v-if="component.name"
-          :key="`${component.name}-${index}`"
           v-show="component.isShown"
           :is="component.name"
         />
