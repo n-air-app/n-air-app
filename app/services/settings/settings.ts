@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import {
   inputValuesToObsValues,
@@ -21,6 +22,7 @@ import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
+import { IpcRequestError } from 'util/ipc-request-error';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 
@@ -121,6 +123,9 @@ export class SettingsService
     return settingsState as ISettingsState;
   }
 
+  private obsIpcError: boolean = false;
+  private settingsFormDataCache: Map<SettingsCategory, ISettingsSubCategory[]> = new Map();
+
   @Inject() private sourcesService: SourcesService;
   @Inject() private audioService: AudioService;
   @Inject() private windowsService: WindowsService;
@@ -201,6 +206,39 @@ export class SettingsService
   }
 
   getSettingsFormData(categoryName: SettingsCategory): ISettingsSubCategory[] {
+    if (this.obsIpcError) return this.settingsFormDataCache.get(categoryName) ?? [];
+    try {
+      const result = this.getSettingsFormDataImpl(categoryName);
+      this.settingsFormDataCache.set(categoryName, result);
+      return result;
+    } catch (e) {
+      if (e instanceof IpcRequestError) {
+        this.obsIpcError = true;
+        this.offerRestart().catch(() => {});
+        return this.settingsFormDataCache.get(categoryName) ?? [];
+      }
+      throw e;
+    }
+  }
+
+  private async offerRestart(): Promise<void> {
+    const parentWindow = this.windowsService.getWindow('child') ?? remote.getCurrentWindow();
+    const choice = await remote.dialog.showMessageBox(parentWindow, {
+      type: 'error',
+      buttons: [$t('common.yes'), $t('common.no')],
+      title: $t('common.confirm'),
+      message: $t('settings.noticeIpcError'),
+      detail: $t('settings.noticeIpcErrorDetail'),
+      noLink: true,
+      cancelId: 1,
+      defaultId: 0,
+    });
+    if (choice.response === 0) {
+      this.appService.relaunch();
+    }
+  }
+
+  private getSettingsFormDataImpl(categoryName: SettingsCategory): ISettingsSubCategory[] {
     let settings = obs.NodeObs.OBS_settings_getSettings(categoryName)
       .data as ISettingsSubCategory[];
     if (!settings) settings = [];
