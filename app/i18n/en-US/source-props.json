@@ -298,6 +298,16 @@
       "name": "Placeholder Image"
     }
   },
+  "screen_capture": {
+    "name": "Screen Capture",
+    "description": "Capture your game, other applications, or your entire monitor.",
+    "capture_cursor": {
+      "name": "Capture Cursor"
+    },
+    "capture_source_list": {
+      "name": "Capture Target"
+    }
+  },
   "dshow_input": {
     "name": "WebCam / Video Input",
     "description": "Select from your build in USB webcam or an external.",

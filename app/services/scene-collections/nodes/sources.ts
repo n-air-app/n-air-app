@@ -335,6 +335,7 @@ export class SourcesNode extends Node<ISchema, {}> {
               const sourceTypesWithAudio = [
                 'nair-rtvc-source',
                 'game_capture',
+                'screen_capture',
                 'wasapi_input_capture',
                 'wasapi_output_capture',
               ];

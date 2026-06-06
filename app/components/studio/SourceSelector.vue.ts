@@ -21,6 +21,7 @@ const sourceIconMap = {
   wasapi_output_capture: 'icon-speaker',
   monitor_capture: 'icon-display',
   game_capture: 'icon-game-capture',
+  screen_capture: 'icon-display',
   browser_source: 'icon-browser',
   scene: 'icon-studio-mode',
   color_source: 'icon-color',

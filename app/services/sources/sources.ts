@@ -372,6 +372,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       'monitor_capture',
       'window_capture',
       'game_capture',
+      'screen_capture',
       'dshow_input',
       'wasapi_input_capture',
       'wasapi_output_capture',

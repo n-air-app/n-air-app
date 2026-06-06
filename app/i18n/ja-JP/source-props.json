@@ -298,6 +298,16 @@
       "name": "プレースホルダー画像"
     }
   },
+  "screen_capture": {
+    "name": "スクリーンキャプチャ",
+    "description": "ゲーム、アプリケーション、またはモニター全体をキャプチャします。",
+    "capture_cursor": {
+      "name": "カーソルをキャプチャ"
+    },
+    "capture_source_list": {
+      "name": "キャプチャ対象"
+    }
+  },
   "dshow_input": {
     "name": "Webカメラ/映像入力機器",
     "description": "シーンに内蔵/外付けのWebカメラやキャプチャーボードを通したゲーム画面などを追加します。",

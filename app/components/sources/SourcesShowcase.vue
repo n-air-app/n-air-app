@@ -165,6 +165,14 @@
         <MonitorCaptureIcon slot="media" />
       </add-source-info>
 
+      <add-source-info
+        v-if="inspectedSource === 'screen_capture'"
+        sourceType="screen_capture"
+        key="25"
+      >
+        <MonitorCaptureIcon slot="media" />
+      </add-source-info>
+
       <div class="source-info" v-if="inspectedSource === null">
         <div class="source-info__text">
           <h3>{{ $t('sources.sourcesWelcomeMessage') }}</h3>
