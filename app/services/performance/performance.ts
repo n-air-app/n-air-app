@@ -135,6 +135,10 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
           category: 'performance.getState',
           message: e.toString(),
           level: 'warning',
+          data: {
+            errorName: e instanceof Error ? e.name : typeof e,
+            errorMessage: e instanceof Error ? e.message : String(e),
+          },
         });
       } else {
         SentryReport.error('PerformanceService', 'getState', e, {

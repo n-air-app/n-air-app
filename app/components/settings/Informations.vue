@@ -1,5 +1,5 @@
 <template>
-  <modal-layout :showControls="false">
+  <modal-layout :showControls="false" :bareContent="true">
     <template #content>
       <div class="informations" data-test="Informations">
         <ul class="information-list" v-if="!fetching && !hasError">
@@ -41,12 +41,13 @@
 .informations {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   height: 100%;
 }
 
 .information-list {
-  margin: -16px;
+  padding: 0;
+  margin: 0;
   list-style: none;
   background: var(--color-background); // TODO: .modal-layoutの背景色を一括で変えるまでの暫定対応
 }
