@@ -1,5 +1,5 @@
 <template>
-  <modal-layout bare-content :show-controls="false">
+  <modal-layout bare-content :show-controls="false" :custom-controls="true">
     <template #content>
       <div class="add-source" data-test="SourcesShowCase">
         <add-source-info v-if="inspectedSource === 'image_source'" sourceType="image_source" key="1">
@@ -190,17 +190,17 @@
           </div>
         </div>
 
-        <div class="modal-layout-controls bottom-sticky">
-          <button
-            @click="selectInspectedSource()"
-            class="button button--primary"
-            :disabled="!readyToAdd"
-            data-test="AddSource"
-          >
-            {{ $t('sources.addSourceButton') }}
-          </button>
-        </div>
       </div>
+    </template>
+    <template #controls>
+      <button
+        @click="selectInspectedSource()"
+        class="button button--primary"
+        :disabled="!readyToAdd"
+        data-test="AddSource"
+      >
+        {{ $t('sources.addSourceButton') }}
+      </button>
     </template>
   </modal-layout>
 </template>
@@ -355,8 +355,4 @@
   }
 }
 
-// .bottom-sticky {
-//   position: sticky;
-//   bottom: 0;
-// }
 </style>

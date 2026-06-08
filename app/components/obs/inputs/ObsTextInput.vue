@@ -8,7 +8,7 @@
         rows="4"
         :value="value.value"
         :disabled="value.enabled == false"
-        @change="onInputHandler"
+        @input="onInputHandler"
       />
     </div>
     <div class="input-wrapper input-wrapper-description" v-else-if="value.info">
@@ -19,7 +19,7 @@
         :type="textVisible ? 'text' : 'password'"
         :value="value.value"
         :disabled="value.enabled == false"
-        @change="onInputHandler"
+        @input="onInputHandler"
       />
       <button
         class="button button--secondary button--input"

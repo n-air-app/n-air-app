@@ -62,7 +62,7 @@
   .transition();
 }
 
-.bindings-enter,
+.bindings-enter-from,
 .bindings-leave-to {
   opacity: 0;
   transform: scale(1, 0);
