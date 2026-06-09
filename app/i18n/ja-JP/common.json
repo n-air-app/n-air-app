@@ -85,9 +85,9 @@
   "compactModeToggleHelpTipTitle": "フルモードへの切り替え",
   "compactModeToggleHelpTipContent": "このボタンをクリックするとコンパクトモードを解除できます",
   "fieldIsRequired": "このフィールドは必須です",
-  "fieldMustBeLarger": "%{value} 以上を指定してください",
-  "fieldMustBeLess": "%{value} 以上を指定してください",
-  "dateFieldFormat": "日付は %{format} の書式に従ってください",
+  "fieldMustBeLarger": "{value} 以上を指定してください",
+  "fieldMustBeLess": "{value} 以上を指定してください",
+  "dateFieldFormat": "日付は {format} の書式に従ってください",
   "fieldAlphaNumeric": "半角英数以外は使用しないでください",
   "Interact": "インタラクション(WEB操作)",
   "gameCapture": {

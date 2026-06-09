@@ -867,7 +867,7 @@
         "502": "Bad gateway",
         "503": "Service unavailable",
         "504": "Gateway timeout",
-        "x00": "HTTP error: %{status}"
+        "x00": "HTTP error: {status}"
       }
     },
     "downloadModelConfirm": {

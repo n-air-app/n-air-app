@@ -7,7 +7,7 @@ import './updater.css';
 
 import * as remote from '@electron/remote';
 import { createApp } from 'vue';
-import { createI18n, Translation } from 'vue-i18n';
+import { createI18n } from 'vue-i18n';
 
 import UpdaterWindow from './UpdaterWindow.vue';
 
@@ -82,6 +82,5 @@ const i18n = createI18n({
 document.addEventListener('DOMContentLoaded', () => {
   const app = createApp(UpdaterWindow);
   app.use(i18n);
-  app.component('i18n', Translation);
   app.mount('#app');
 });

@@ -19,7 +19,7 @@
   "addExistingSourceTitle": "既存のソースを追加する",
   "addExistingSource": "既存のソースを追加する",
   "enterTheNameOfFolder": "フォルダーの名前を入力して下さい。",
-  "propertyWindowTitle": "%{sourceName} のプロパティー",
+  "propertyWindowTitle": "{sourceName} のプロパティー",
   "addFolder": "フォルダーを追加",
   "removeSources": "ソースを削除する",
   "setupSourceProperties": "ソースのプロパティーを設定する",
@@ -82,5 +82,5 @@
   "Bilinear": "バイリニア",
   "Lanczos": "ランチョス",
   "Area": "面積",
-  "InteractTitle": "インタラクション：%{sourceName}"
+  "InteractTitle": "インタラクション：{sourceName}"
 }
