@@ -308,7 +308,11 @@ module.exports = function (env, argv) {
 
       plugins,
 
-      ignoreWarnings: [{ message: /Can't resolve 'osx-temperature-sensor'/ }],
+      ignoreWarnings: [
+        { message: /Can't resolve 'osx-temperature-sensor'/ },
+        // protobufjs/src/util/inquire.js uses dynamic require() to try optional deps at runtime
+        { module: /protobufjs\/src\/util\/inquire\.js/ },
+      ],
     },
     {
       ...common,
