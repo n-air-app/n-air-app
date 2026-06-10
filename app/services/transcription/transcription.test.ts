@@ -113,6 +113,11 @@ interface PrepareOptions {
     audioDevices?: Array<{ id: string; name: string }>;
     // AudioService.getDevices() が返すデバイスリスト (type='input'|'output' を含む)
     obsAudioDevices?: Array<{ id: string; description: string; type: 'input' | 'output' }>;
+    // AudioService の任意メソッドを上書き
+    audioServiceOverride?: Partial<{
+      getDevices: jest.Mock;
+      getSourceByDeviceId: jest.Mock;
+    }>;
   };
 }
 
@@ -189,13 +194,19 @@ function prepare(options: PrepareOptions = {}): {
   client: VoskClientType;
   transcriptionMessages$: Subject<TranscriptionMessage>;
   stopTranscription: jest.Mock;
+  audioSourceUpdated: Subject<unknown>;
 } {
   const obsAudioDevicesOverride = options.mockOverrides?.obsAudioDevices;
-  setup(
-    obsAudioDevicesOverride
-      ? { injectee: { AudioService: { getDevices: jest_fn().mockReturnValue(obsAudioDevicesOverride) } } }
-      : {},
-  );
+  const audioServiceOverride = options.mockOverrides?.audioServiceOverride;
+  const audioSourceUpdated = new Subject<unknown>();
+  const audioServiceInjectee: Record<string, unknown> = { audioSourceUpdated };
+  if (obsAudioDevicesOverride) {
+    audioServiceInjectee.getDevices = jest_fn().mockReturnValue(obsAudioDevicesOverride);
+  }
+  if (audioServiceOverride) {
+    Object.assign(audioServiceInjectee, audioServiceOverride);
+  }
+  setup({ injectee: { AudioService: audioServiceInjectee } });
 
   const getVoskModelStatus = jest_fn()
     .mockName('getVoskModelStatus')
@@ -259,6 +270,7 @@ function prepare(options: PrepareOptions = {}): {
     stopTranscription: stopTranscription!,
     transcriptionMessages$: transcriptionMessages$!,
     setVoskModelStatus: setVoskModelStatus!,
+    audioSourceUpdated,
   };
 }
 
@@ -926,6 +938,136 @@ describe('TranscriptionService', () => {
         },
       });
       expect(instance.state.audioDeviceId).toBe('test-device');
+    });
+
+    it('should fall back to first device when getDevices throws', () => {
+      // AudioService.getDevices() が例外を投げるケース（OBS 未初期化など）
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { instance } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [
+              { id: 'desktop-device', name: 'Desktop Audio', index: 0 },
+              { id: 'mic-device', name: 'Microphone', index: 1 },
+            ],
+          },
+          audioServiceOverride: {
+            getDevices: jest_fn<() => never>()
+              .mockName('getDevices')
+              .mockImplementation(() => { throw new Error('OBS not initialized'); }),
+          },
+        },
+      });
+      // 先頭デバイスにフォールバックし、例外が外に漏れないこと
+      expect(instance.state.audioDeviceId).toBe('desktop-device');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to get OBS audio devices'),
+        expect.any(Error),
+      );
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('audio device muted stream', () => {
+    it('should call getSourceByDeviceId with wasapi_input_capture only', () => {
+      // getSourceByDeviceId は常に wasapi_input_capture のみで呼ばれること
+      const mockedGetSourceByDeviceId = jest_fn()
+        .mockName('getSourceByDeviceId')
+        .mockReturnValue(undefined);
+      const { audioSourceUpdated } = prepare({
+        mockOverrides: {
+          audioServiceOverride: { getSourceByDeviceId: mockedGetSourceByDeviceId },
+        },
+      });
+      mockedGetSourceByDeviceId.mockClear();
+      audioSourceUpdated.next(undefined);
+
+      const callSourceTypes = mockedGetSourceByDeviceId.mock.calls.map(([, , type]) => type);
+      expect(callSourceTypes.every((t) => t === 'wasapi_input_capture')).toBe(true);
+    });
+
+    it('should return muted=true when exact device_id match is muted', () => {
+      // OBS device_id が完全一致するソースがミュートされていればミュート検出
+      const mockedGetSourceByDeviceId = jest_fn()
+        .mockName('getSourceByDeviceId')
+        .mockImplementation((deviceId: string, isDefault: boolean) => {
+          if (!isDefault && deviceId === 'test-device') return { muted: true };
+          return undefined;
+        });
+      const { instance, audioSourceUpdated } = prepare({
+        mockOverrides: {
+          audioServiceOverride: { getSourceByDeviceId: mockedGetSourceByDeviceId },
+        },
+      });
+      instance.setAudioDeviceId('test-device');
+
+      let muted: boolean | undefined;
+      instance['audioDeviceMuted$'].subscribe((v) => { muted = v; });
+      audioSourceUpdated.next(undefined);
+      expect(muted).toBe(true);
+    });
+
+    it('should detect mute via device_id=default fallback when exact match fails', () => {
+      // 完全一致なし → isDefault=true フォールバックで device_id='default' ソースを検出
+      const mockedGetSourceByDeviceId = jest_fn()
+        .mockName('getSourceByDeviceId')
+        .mockImplementation((deviceId: string, isDefault: boolean, sourceType: string) => {
+          if (!isDefault) return undefined;
+          if (isDefault && sourceType === 'wasapi_input_capture') return { muted: true };
+          return undefined;
+        });
+      const { instance, audioSourceUpdated } = prepare({
+        mockOverrides: {
+          audioServiceOverride: { getSourceByDeviceId: mockedGetSourceByDeviceId },
+        },
+      });
+      instance.setAudioDeviceId('test-device');
+
+      let muted: boolean | undefined;
+      instance['audioDeviceMuted$'].subscribe((v) => { muted = v; });
+      audioSourceUpdated.next(undefined);
+      expect(muted).toBe(true);
+    });
+
+    it('should not pick up desktop audio mute when mic is selected (regression)', () => {
+      // リグレッション: デスクトップ音声がミュートされても文字起こしがミュートにならないこと
+      const mockedGetSourceByDeviceId = jest_fn()
+        .mockName('getSourceByDeviceId')
+        .mockImplementation((_deviceId: string, _isDefault: boolean, sourceType: string) => {
+          // wasapi_input_capture 以外(=output)がヒットしたらミュート扱いにしてテスト失敗させる
+          if (sourceType !== 'wasapi_input_capture') return { muted: true };
+          return undefined; // マイクはアンミュート
+        });
+      const { instance, audioSourceUpdated } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [
+              { id: 'desktop-device', name: 'Desktop Audio', index: 0 },
+              { id: 'mic-device', name: 'Microphone', index: 1 },
+            ],
+          },
+          obsAudioDevices: [
+            { id: 'desktop-device', description: 'Desktop Audio', type: 'output' },
+            { id: 'mic-device', description: 'Microphone', type: 'input' },
+          ],
+          audioServiceOverride: { getSourceByDeviceId: mockedGetSourceByDeviceId },
+        },
+      });
+
+      expect(instance.state.audioDeviceId).toBe('mic-device');
+
+      let muted: boolean | undefined;
+      instance['audioDeviceMuted$'].subscribe((v) => { muted = v; });
+      audioSourceUpdated.next(undefined);
+
+      // sourceType フィルタによりデスクトップ音声ソースは除外され、ミュートは false のまま
+      expect(muted).toBe(false);
+      const callsWithWrong = mockedGetSourceByDeviceId.mock.calls.filter(
+        ([, , type]) => type !== 'wasapi_input_capture',
+      );
+      expect(callsWithWrong).toHaveLength(0);
     });
   });
 
