@@ -77,6 +77,9 @@ const setup = createSetupFunction({
   injectee: {
     AudioService: {
       getSourceByDeviceId: jest_fn().mockName('getSourceByDeviceId').mockReturnValue(undefined),
+      getDevices: jest_fn()
+        .mockName('getDevices')
+        .mockReturnValue([{ id: 'test-device', description: 'Test Device', type: 'input' }]),
       audioSourceUpdated: new Subject(),
     },
     TranscriptionSourceService: {
@@ -108,6 +111,8 @@ interface PrepareOptions {
     };
     voskModelStatus?: { state: string };
     audioDevices?: Array<{ id: string; name: string }>;
+    // AudioService.getDevices() が返すデバイスリスト (type='input'|'output' を含む)
+    obsAudioDevices?: Array<{ id: string; description: string; type: 'input' | 'output' }>;
   };
 }
 
@@ -185,7 +190,12 @@ function prepare(options: PrepareOptions = {}): {
   transcriptionMessages$: Subject<TranscriptionMessage>;
   stopTranscription: jest.Mock;
 } {
-  setup();
+  const obsAudioDevicesOverride = options.mockOverrides?.obsAudioDevices;
+  setup(
+    obsAudioDevicesOverride
+      ? { injectee: { AudioService: { getDevices: jest_fn().mockReturnValue(obsAudioDevicesOverride) } } }
+      : {},
+  );
 
   const getVoskModelStatus = jest_fn()
     .mockName('getVoskModelStatus')
@@ -867,6 +877,54 @@ describe('TranscriptionService', () => {
     it('should initialize with default audio device', () => {
       const { instance } = setupTranscription();
       expect(instance.getAudioDeviceList().length).toBeGreaterThan(0);
+      expect(instance.state.audioDeviceId).toBe('test-device');
+    });
+
+    it('should prefer microphone (input) over desktop audio (output) as default', () => {
+      // vosk-cli リストの先頭が output、2番目が input のケース
+      const { instance } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [
+              { id: 'desktop-device', name: 'Desktop Audio', index: 0 },
+              { id: 'mic-device', name: 'Microphone', index: 1 },
+            ],
+          },
+          obsAudioDevices: [
+            { id: 'desktop-device', description: 'Desktop Audio', type: 'output' },
+            { id: 'mic-device', description: 'Microphone', type: 'input' },
+          ],
+        },
+      });
+      expect(instance.state.audioDeviceId).toBe('mic-device');
+    });
+
+    it('should fall back to first device when no input device found', () => {
+      // vosk-cli リストに input が1つも無いケース
+      const { instance } = prepare({
+        mockOverrides: {
+          listAudioDevices: {
+            version: '1',
+            devices: [
+              { id: 'desktop-device', name: 'Desktop Audio', index: 0 },
+            ],
+          },
+          obsAudioDevices: [
+            { id: 'desktop-device', description: 'Desktop Audio', type: 'output' },
+          ],
+        },
+      });
+      expect(instance.state.audioDeviceId).toBe('desktop-device');
+    });
+
+    it('should fall back to first device when getDevices returns empty', () => {
+      // AudioService.getDevices() が空のケース
+      const { instance } = prepare({
+        mockOverrides: {
+          obsAudioDevices: [],
+        },
+      });
       expect(instance.state.audioDeviceId).toBe('test-device');
     });
   });

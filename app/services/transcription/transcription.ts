@@ -325,7 +325,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           }
 
           const isDefault = this.isDefaultAudioDevice(audioDeviceId);
-          const audioSource = this.audioService.getSourceByDeviceId(audioDeviceId, isDefault);
+          const audioSource = this.audioService.getSourceByDeviceId(audioDeviceId, isDefault, 'wasapi_input_capture');
           return audioSource ? audioSource.muted : false;
         }),
         distinctUntilChanged(),
@@ -621,8 +621,24 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
-      this.setAudioDeviceId(this.audioDevices$.value[0]?.id || null);
+      this.setAudioDeviceId(this.selectDefaultAudioDeviceId());
     }
+  }
+
+  // マイク(input)を優先してデフォルト音声デバイスIDを選択する。
+  // input が見つからない場合は先頭デバイスにフォールバック。
+  private selectDefaultAudioDeviceId(): string | null {
+    const voskDevices = this.audioDevices$.value;
+    if (voskDevices.length === 0) {
+      return null;
+    }
+    const obsInputDeviceIds = new Set(
+      this.audioService.getDevices()
+        .filter((d) => d.type === 'input')
+        .map((d) => d.id),
+    );
+    const inputDevice = voskDevices.find((d) => obsInputDeviceIds.has(d.id));
+    return (inputDevice ?? voskDevices[0]).id;
   }
 
   getAudioDeviceIndex<T>(id: string, notFoundValue: T): number | T {
