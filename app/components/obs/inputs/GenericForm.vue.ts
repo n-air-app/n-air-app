@@ -1,8 +1,7 @@
 import { defineComponent, PropType } from 'vue';
 
-import { propertyComponentForType } from './Components';
-import { IObsInput, TObsValue } from './ObsInput';
 import GenericFormItem from './GenericFormItem.vue';
+import { IObsInput, TObsValue } from './ObsInput';
 
 export default defineComponent({
   name: 'GenericForm',

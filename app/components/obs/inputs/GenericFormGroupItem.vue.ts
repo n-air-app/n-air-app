@@ -1,6 +1,6 @@
+import { ISettingsSubCategory } from 'services/settings';
 import { defineComponent, PropType } from 'vue';
 
-import { ISettingsSubCategory } from 'services/settings';
 import GenericForm from './GenericForm.vue';
 
 export default defineComponent({
