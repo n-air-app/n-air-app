@@ -602,6 +602,21 @@ function initialize(crashHandler) {
 
   const SentryElectron = require('@sentry/electron/main');
 
+  // crash-handler-process.exe を終了させてから app.exit() する。
+  // 直接 app.exit() を呼ぶと crash-handler.log がロックされたまま残り、
+  // 次の --clearCacheDir 再起動で EBUSY になる。
+  function exitWithCrashHandlerCleanup(exitCode = 0) {
+    const enableCrashHandler = !process.env.DEV_SERVER || process.env.NAIR_DEBUG_CRASH_HANDLER;
+    if (enableCrashHandler && crashHandler) {
+      try {
+        crashHandler.terminateCrashHandler(pid);
+      } catch (e) {
+        console.error('[EXIT] Failed to terminate crash handler:', e);
+      }
+    }
+    setTimeout(() => app.exit(exitCode), 500);
+  }
+
   function handleFinishedReport() {
     // 先にsentryへの送信flushを開始する
     const flush = SentryElectron.flush(3000).catch((error) => {
@@ -616,7 +631,7 @@ function initialize(crashHandler) {
 
     // ダイアログが閉じたら終了
     flush.finally(() => {
-      app.exit();
+      exitWithCrashHandlerCleanup();
     });
   }
 
@@ -842,7 +857,7 @@ function initialize(crashHandler) {
     } catch (e) {
       console.error('Exception while loading node-libuiohook', e);
       await showRequiredSystemComponentInstallGuideDialog();
-      app.exit();
+      exitWithCrashHandlerCleanup();
     }
 
     mainWindow.on('closed', () => {
@@ -859,23 +874,15 @@ function initialize(crashHandler) {
       getAppSession().flushStorageData();
       console.log('[EXIT] Storage data flushed');
 
-      // Unregister from crash handler before exiting
-      const enableCrashHandler = !process.env.DEV_SERVER || process.env.NAIR_DEBUG_CRASH_HANDLER;
-      if (enableCrashHandler && crashHandler) {
-        try {
-          crashHandler.unregisterProcess(pid);
-          console.log('[EXIT] Unregistered from crash handler');
-        } catch (e) {
-          console.error('[EXIT] Failed to unregister from crash handler:', e);
-        }
-      }
-
-      console.log('[EXIT] Calling app.exit(0)');
+      console.log('[EXIT] Scheduling app.exit(0) after crash handler termination');
 
       // Flush all pending logs before exiting
       flushLogBufferSync();
 
-      app.exit(0);
+      // crash-handler-process.exe を終了させてから exit する。
+      // terminateCrashHandler は tryConnect (非同期 connect→write) を使うため、
+      // setTimeout でイベントループに逃がし送信完了の猶予を与える。
+      exitWithCrashHandlerCleanup();
     });
 
     // Pre-initialize the child window
