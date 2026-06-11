@@ -195,7 +195,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
         if (obsDeviceId === deviceId) {
           return audioSource;
         }
-        // If isDefault is true, also match when device_id is 'default' or undefined
+        // If isDefault is true, also match when device_id is 'default', null, or undefined
         // (OBS omits device_id from settings when using the system default device)
         if (isDefault && (obsDeviceId === 'default' || obsDeviceId == null)) {
           return audioSource;
