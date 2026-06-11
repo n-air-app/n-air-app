@@ -324,8 +324,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
             return false;
           }
 
-          const isDefault = this.isDefaultAudioDevice(audioDeviceId);
-          const audioSource = this.audioService.getSourceByDeviceId(audioDeviceId, isDefault);
+          // まず完全一致で探し、見つからなければ device_id='default' のソースにフォールバック
+          const audioSource =
+            this.audioService.getSourceByDeviceId(audioDeviceId, false, 'wasapi_input_capture')
+            ?? this.audioService.getSourceByDeviceId(audioDeviceId, true, 'wasapi_input_capture');
           return audioSource ? audioSource.muted : false;
         }),
         distinctUntilChanged(),
@@ -621,7 +623,28 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
-      this.setAudioDeviceId(this.audioDevices$.value[0]?.id || null);
+      this.setAudioDeviceId(this.selectDefaultAudioDeviceId());
+    }
+  }
+
+  // マイク(input)を優先してデフォルト音声デバイスIDを選択する。
+  // input が見つからない場合は先頭デバイスにフォールバック。
+  private selectDefaultAudioDeviceId(): string | null {
+    const voskDevices = this.audioDevices$.value;
+    if (voskDevices.length === 0) {
+      return null;
+    }
+    try {
+      const obsInputDeviceIds = new Set(
+        this.audioService.getDevices()
+          .filter((d) => d.type === 'input')
+          .map((d) => d.id),
+      );
+      const inputDevice = voskDevices.find((d) => obsInputDeviceIds.has(d.id));
+      return (inputDevice ?? voskDevices[0]).id;
+    } catch (err) {
+      console.error('Failed to get OBS audio devices for default selection, using first device:', err);
+      return voskDevices[0].id;
     }
   }
 
@@ -638,10 +661,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   getAudioDeviceList(): { id: string; name: string }[] {
     return this.audioDevices$.value;
-  }
-
-  private isDefaultAudioDevice(audioDeviceId: string): boolean {
-    return this.audioDevices$.value[0]?.id === audioDeviceId;
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
