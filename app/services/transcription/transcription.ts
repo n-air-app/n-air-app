@@ -324,10 +324,9 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
             return false;
           }
 
-          // まず完全一致で探し、見つからなければ device_id='default' のソースにフォールバック
+          // device_id 完全一致、または device_id='default'/未設定(OBSデフォルト) にマッチ
           const audioSource =
-            this.audioService.getSourceByDeviceId(audioDeviceId, false, 'wasapi_input_capture')
-            ?? this.audioService.getSourceByDeviceId(audioDeviceId, true, 'wasapi_input_capture');
+            this.audioService.getSourceByDeviceId(audioDeviceId, true, 'wasapi_input_capture');
           return audioSource ? audioSource.muted : false;
         }),
         distinctUntilChanged(),
