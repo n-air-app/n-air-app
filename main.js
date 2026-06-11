@@ -239,7 +239,8 @@ async function showRequiredSystemComponentInstallGuideDialog() {
     case 2:
       break;
   }
-  app.exit(0);
+  // 呼び出し元が exit を担う（crash-handler 起動前の呼び出しは app.exit() 直呼び、
+  // 起動後の呼び出しは exitWithCrashHandlerCleanup() 経由）
 }
 
 async function recollectUserSessionCookie() {
@@ -337,8 +338,9 @@ try {
   initialize(crashHandler);
 } catch (e) {
   console.error('require crash-handler failed: ', e);
-  app.on('ready', () => {
-    showRequiredSystemComponentInstallGuideDialog();
+  app.on('ready', async () => {
+    await showRequiredSystemComponentInstallGuideDialog();
+    app.exit(0);
   });
 }
 
@@ -613,8 +615,12 @@ function initialize(crashHandler) {
       } catch (e) {
         console.error('[EXIT] Failed to terminate crash handler:', e);
       }
+      // terminateCrashHandler は tryConnect (非同期 connect→write) を使うため、
+      // setTimeout でイベントループに逃がし送信完了の猶予を与える。
+      setTimeout(() => app.exit(exitCode), 500);
+    } else {
+      app.exit(exitCode);
     }
-    setTimeout(() => app.exit(exitCode), 500);
   }
 
   function handleFinishedReport() {
