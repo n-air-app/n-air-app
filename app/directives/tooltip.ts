@@ -227,7 +227,7 @@ class TooltipManager {
      */
   setContent(content: string): void {
     this.options.content = content;
-    if (this.tooltipEl && this.isVisible) {
+    if (this.tooltipEl) {
       const inner = this.tooltipEl.querySelector('.tooltip-inner');
       if (inner) {
         inner.textContent = content;
