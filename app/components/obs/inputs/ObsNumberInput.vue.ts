@@ -19,7 +19,10 @@ const ObsNumberInput = defineComponent({
     emitInput(eventData: IObsInput<number>) {
       this.$emit('input', eventData);
     },
-    updateValue(value: string) {
+    updateValue(eventOrValue: Event | string) {
+      const value = eventOrValue instanceof Event
+        ? (eventOrValue.target as HTMLInputElement).value
+        : eventOrValue;
       let formattedValue = value;
       if (isNaN(Number(formattedValue))) formattedValue = '0';
       const input = this.$refs.input as HTMLInputElement;

@@ -83,6 +83,10 @@ export default defineComponent({
   },
 
   methods: {
+    onSelectSource(sourceId: string): void {
+      this.selectedSourceId = sourceId;
+    },
+
     addExisting(): void {
       const scene = ScenesService.instance().activeScene;
       if (!scene.canAddSource(this.selectedSourceId)) {

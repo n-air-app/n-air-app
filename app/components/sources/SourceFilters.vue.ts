@@ -78,6 +78,11 @@ export default defineComponent({
   },
 
   methods: {
+    onPropertiesInput(v: typeof this.properties): void {
+      this.properties = v;
+      this.save();
+    },
+
     save(): void {
       SourceFiltersService.instance().setPropertiesFormData(
         this.sourceId,

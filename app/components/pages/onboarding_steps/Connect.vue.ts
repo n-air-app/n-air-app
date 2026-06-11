@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import { OnboardingService } from 'services/onboarding';
 import { TPlatform } from 'services/platforms';
 import { UserService } from 'services/user';
@@ -45,6 +46,10 @@ export default defineComponent({
 
     skipOnboarding() {
       OnboardingService.instance().skip();
+    },
+
+    contactSupport() {
+      remote.shell.openExternal('https://n-air-app.nicovideo.jp/');
     },
   },
 });

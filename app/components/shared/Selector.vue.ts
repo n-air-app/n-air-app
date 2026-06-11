@@ -39,6 +39,22 @@ export default defineComponent({
   },
 
   methods: {
+    onDragOverSelf(ev: DragEvent) {
+      ev.preventDefault();
+      if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+    },
+
+    indexFromEvent(ev: Event): number {
+      return Number((ev.currentTarget as HTMLElement).dataset.index);
+    },
+
+    onDragStartFromEvent(ev: DragEvent) { this.onDragStart(ev, this.indexFromEvent(ev)); },
+    onDragOverFromEvent(ev: DragEvent) { this.onDragOver(ev, this.indexFromEvent(ev)); },
+    onDropFromEvent(ev: DragEvent) { this.onDropAtIndex(ev, this.draggingIndex); },
+    onContextMenuFromEvent(ev: MouseEvent) { this.handleContextMenu(ev, this.indexFromEvent(ev)); },
+    onClickFromEvent(ev: MouseEvent) { this.handleSelect(ev, this.indexFromEvent(ev)); },
+    onDblClickFromEvent(ev: MouseEvent) { this.handleDoubleClick(ev, this.indexFromEvent(ev)); },
+
     onDragStart(ev: DragEvent, index: number) {
       if (!this.draggable) return;
       this.draggingIndex = index;

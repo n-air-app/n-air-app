@@ -7,7 +7,9 @@ import GenericForm from './GenericForm.vue';
 export default defineComponent({
   name: 'GenericFormGroups',
   components: { GenericForm, TocSection },
-  emits: ['input'],
+  emits: {
+    input: (_value: ISettingsSubCategory[]) => true,
+  },
   props: {
     value: { type: Array as PropType<ISettingsSubCategory[]> },
     category: { type: String },
@@ -26,6 +28,9 @@ export default defineComponent({
   methods: {
     toggleGroup(index: string) {
       this.collapsedGroups[index] = !this.collapsedGroups[index];
+    },
+    handlerFor(groupIndex: number) {
+      return (newParameters: ISettingsSubCategory['parameters']) => this.onFormInput(groupIndex, newParameters);
     },
     onFormInput(groupIndex: number, newParameters: any) {
       // prop を直接変更せず、新しい配列を作って emit する

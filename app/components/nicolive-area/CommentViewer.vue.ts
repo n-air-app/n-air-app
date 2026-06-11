@@ -492,5 +492,9 @@ export default defineComponent({
       SnackbarService.instance().show({ position: 'niconico', message, action });
     },
 
+    closeSnackbar() {
+      SnackbarService.instance().hide();
+    },
+
   },
 });

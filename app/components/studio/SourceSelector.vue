@@ -55,14 +55,14 @@
             :class="lockClassesForSource(node.data.id)"
             v-tooltip.bottom="lockTooltip"
             @click.stop="toggleLock(node.data.id)"
-            @dblclick.stop="() => {}"
+            @dblclick.stop
           />
           <i
             class="source-selector-action"
             :class="visibilityClassesForSource(node.data.id)"
             v-tooltip.bottom="visibilityTooltip"
             @click.stop="toggleVisibility(node.data.id)"
-            @dblclick.stop="() => {}"
+            @dblclick.stop
           />
           <i
             class="source-selector-action icon-delete"

@@ -25,7 +25,7 @@
           </aside>
 
           <div class="section-title--dropdown" v-if="formGroup.nameSubCategory !== 'Untitled'">
-            <h4 class="section-title" @click="toggleGroup(groupIndex)">
+            <h4 class="section-title" @click="toggleGroup(String(groupIndex))">
               <i class="icon-plus" v-show="collapsedGroups[groupIndex]"></i>
               <i class="icon-minus" v-show="!collapsedGroups[groupIndex]"></i>
               {{
@@ -42,7 +42,7 @@
           >
             <GenericForm
               :value="formGroup.parameters"
-              @input="(v) => onFormInput(groupIndex, v)"
+              @input="handlerFor(groupIndex)"
               :category="category"
               :subCategory="formGroup.nameSubCategory"
             ></GenericForm>
