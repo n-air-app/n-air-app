@@ -13,7 +13,7 @@
       </h4>
     </div>
     <div v-show="!collapsed" class="section-content section-content--dropdown">
-      <hotkey :hotkey="hotkey" class="hotkey" v-for="hotkey in hotkeys" :key="hotkey.sourceId ?? hotkey.actionName" />
+      <hotkey :hotkey="hotkey" class="hotkey" v-for="hotkey in hotkeys" :key="[hotkey.actionName, hotkey.sourceId, hotkey.sceneId, hotkey.sceneItemId].join('/')" />
     </div>
   </div>
 </template>
