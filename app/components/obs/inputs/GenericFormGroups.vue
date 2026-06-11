@@ -40,12 +40,13 @@
             :class="formGroup.nameSubCategory === 'Untitled' ? 'section-content' : 'section-content section-content--dropdown'"
             v-if="formGroup.nameSubCategory === 'Untitled' || !collapsedGroups[groupIndex]"
           >
-            <GenericForm
+            <generic-form-group-item
               :value="formGroup.parameters"
-              @input="handlerFor(groupIndex)"
+              :groupIndex="groupIndex"
               :category="category"
               :subCategory="formGroup.nameSubCategory"
-            ></GenericForm>
+              @input="onFormInput"
+            />
           </div>
         </div>
       </component>
