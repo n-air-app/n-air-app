@@ -324,7 +324,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
             return false;
           }
 
-          // まず完全一致で探し、見つからなければ device_id='default' のソースにフォールバック
+          // まず device_id 完全一致で探し、見つからなければ device_id='default'/未設定(OBSデフォルト) にフォールバック
+          // 2段階にすることで、完全一致ソースが device_id 未設定ソースより後ろにある場合も正しく検索できる
           const audioSource =
             this.audioService.getSourceByDeviceId(audioDeviceId, false, 'wasapi_input_capture')
             ?? this.audioService.getSourceByDeviceId(audioDeviceId, true, 'wasapi_input_capture');
