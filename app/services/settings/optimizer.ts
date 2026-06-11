@@ -11,6 +11,7 @@ export enum EncoderFamily {
   amd = 'amd',
   qsv = 'qsv',
   advancedQsv = 'obs_qsv11',
+  qsvNew = 'obs_qsv11_v2',
   advancedNvenc = 'ffmpeg_nvenc',
 }
 
@@ -148,7 +149,7 @@ export const AllKeyDescriptions: KeyDescription[] = [
                 ],
               },
               {
-                values: ['qsv'],
+                values: ['qsv', 'obs_qsv11_v2'],
                 params: [
                   {
                     key: OptimizationKey.targetUsage,
@@ -847,17 +848,17 @@ export class SettingsKeyAccessor {
     for (const item of keyDescriptions) {
       const key = item.key;
       if (item.dependents) {
-        let currentValue = this.findValue(item);
+        // ターゲット値を先に決め、その値に一致する枝だけを辿る。
+        // 複数の兄弟枝に同一 key が現れる場合（outputMode の Advanced/Simple など）、
+        // 一致しない枝まで降りて誤った設定先に書いてしまうのを防ぐ。
+        const targetValue = values.hasOwnProperty(key) ? values[key] : this.findValue(item);
         for (const dependent of item.dependents) {
-          if (isDependOnItems(values, dependent.params)) {
-            this.setValue(item, dependent.values[0]);
+          if (dependent.values.includes(targetValue) && isDependOnItems(values, dependent.params)) {
+            this.setValue(item, targetValue);
             this.setValues(values, dependent.params);
           }
         }
-        if (values.hasOwnProperty(key)) {
-          currentValue = values[key];
-        }
-        this.setValue(item, currentValue);
+        this.setValue(item, targetValue);
       } else {
         if (values.hasOwnProperty(key)) {
           this.setValue(item, values[key]);

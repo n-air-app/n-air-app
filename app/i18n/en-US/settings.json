@@ -116,7 +116,8 @@
         "x264": "@:settings.Output.Streaming.Encoder.obs_x264",
         "qsv": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
-        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc"
+        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "ABitrate": {
         "name": null
@@ -170,7 +171,8 @@
         "obs_x264": "Software (x264)",
         "obs_qsv11": "Hardware (QSV)",
         "ffmpeg_nvenc": "Hardware (NVENC)",
-        "jim_nvenc": "Hardware (NVENC NEW)"
+        "jim_nvenc": "Hardware (NVENC NEW)",
+        "obs_qsv11_v2": "Hardware (QSV)"
       },
       "ApplyServiceSettings": {
         "name": "@:settings.Output.Streaming.EnforceBitrate.name"
@@ -299,7 +301,8 @@
         "obs_x264": "@:settings.Output.Streaming.Encoder.obs_x264",
         "obs_qsv11": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "ffmpeg_nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
-        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc"
+        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "RecAEncoder": { "name": null },
       "RecRescale": {
