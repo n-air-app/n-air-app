@@ -27,7 +27,7 @@
         </li>
       </ul>
       <BoolInput v-if="!isRecording" :value="useHardwareEncoder" @input="setUseHardwareEncoder" />
-      <BoolInput :value="doNotShowAgain" @input="setDoNotShowAgain" />
+      <BoolInput v-if="!isRecording" :value="doNotShowAgain" @input="setDoNotShowAgain" />
     </div>
     <div slot="controls">
       <button class="button button--secondary" :disabled="isStarting" @click="skip">

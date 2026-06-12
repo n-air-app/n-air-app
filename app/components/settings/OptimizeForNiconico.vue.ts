@@ -73,7 +73,7 @@ export default class OptimizeNiconico extends Vue {
 
   skip() {
     this.isStarting = true;
-    if (this.doNotShowAgain.value) {
+    if (!this.isRecording && this.doNotShowAgain.value) {
       this.customizationService.setOptimizeForNiconico(false);
     }
     this.streamingService.toggleStreaming();
