@@ -59,7 +59,12 @@ export default class OptimizeNiconico extends Vue {
 
   isStarting = false;
 
+  get isRecording() {
+    return this.streamingService.isRecording;
+  }
+
   optimizeAndGoLive() {
+    if (this.isRecording) return;
     this.isStarting = true;
     this.settingsService.optimizeForNiconico(this.settings.best);
     this.streamingService.toggleStreaming();
