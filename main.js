@@ -1210,7 +1210,7 @@ function initialize(crashHandler) {
     if (!window || window.webContents.isDestroyed()) return;
     window.webContents.setWindowOpenHandler((details) => {
       if (/^https?:/.test(details.url)) {
-        shell.openExternal(details.url);
+        shell.openExternal(details.url).catch((e) => console.error('shell.openExternal failed:', e));
       }
       return { action: 'deny' };
     });
