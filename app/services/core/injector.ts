@@ -22,9 +22,9 @@ export function Inject(serviceName?: string) {
     Object.defineProperty(target, key, {
       get() {
         const name = serviceName || key.charAt(0).toUpperCase() + key.slice(1);
-        const service = ServicesManager.instance.getService(name);
+        const service = ServicesManager.instance().getService(name);
         if (!service) throw Error(`Service not found: ${name}`);
-        return service.instance;
+        return service.instance();
       },
     });
   };
@@ -38,5 +38,5 @@ export function Inject(serviceName?: string) {
  *  const appService = getResource<AppService>('AppService');
  */
 export function getResource<T>(name: string): T {
-  return ServicesManager.instance.getResource(name);
+  return ServicesManager.instance().getResource(name);
 }

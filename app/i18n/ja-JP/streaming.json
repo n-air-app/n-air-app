@@ -20,9 +20,9 @@
   "programFetching": "番組取得中",
   "endStream": "配信終了",
   "starting": "配信開始中",
-  "startingWithDelay": "配信開始中 %{delaySeconds}秒",
+  "startingWithDelay": "配信開始中 {delaySeconds}秒",
   "ending": "配信終了中",
-  "endingWithDelay": "配信終了中 %{delaySeconds}秒",
+  "endingWithDelay": "配信終了中 {delaySeconds}秒",
   "reconnecting": "再接続中",
   "goLive": "配信開始",
   "goLiveTooltip": "クリックして配信開始",
@@ -39,7 +39,7 @@
   "notBroadcastingCreateProgram": "番組を作成する",
   "broadcastStatusFetchingError": {
     "default": "配信に必要な情報を取得できませんでした。インターネットの接続状態を確認してください。",
-    "httpError": "配信に必要な情報を取得できませんでした。（%{requestURL}: %{statusText}）"
+    "httpError": "配信に必要な情報を取得できませんでした。（{requestURL}: {statusText}）"
   },
   "bitrateFetchingError": {
     "title": "ビットレート取得失敗",

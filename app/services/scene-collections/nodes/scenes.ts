@@ -18,8 +18,8 @@ export interface ISceneSchema {
 export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
   schemaVersion = 1;
 
-  scenesService: ScenesService = ScenesService.instance;
-  sourcesService: SourcesService = SourcesService.instance;
+  scenesService: ScenesService = ScenesService.instance();
+  sourcesService: SourcesService = SourcesService.instance();
 
   getItems() {
     return this.scenesService.scenes;

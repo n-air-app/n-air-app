@@ -1,22 +1,23 @@
 import PerformanceMetrics from 'components/studio/PerformanceMetrics.vue';
 import StreamingController from 'components/studio/StreamingController.vue';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'StudioFooter',
+
   components: {
     StreamingController,
     PerformanceMetrics,
   },
-})
-export default class StudioFooterComponent extends Vue {
-  @Inject() private compactModeService: CompactModeService;
 
-  @Prop() locked: boolean;
+  props: {
+    locked: { type: Boolean },
+  },
 
-  get isCompactMode() {
-    return this.compactModeService.isCompactMode;
-  }
-}
+  computed: {
+    isCompactMode() {
+      return CompactModeService.instance().isCompactMode;
+    },
+  },
+});

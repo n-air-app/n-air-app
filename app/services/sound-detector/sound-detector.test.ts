@@ -151,7 +151,7 @@ function prepare(
   });
 
   const { SoundDetectorService } = require('./sound-detector');
-  const instance = SoundDetectorService.instance as SoundDetectorService;
+  const instance = SoundDetectorService.instance() as SoundDetectorService;
 
   instance.enable();
 
@@ -304,7 +304,7 @@ describe('SoundDetectorService', () => {
       });
 
       const { SoundDetectorService } = require('./sound-detector');
-      const instance = SoundDetectorService.instance as SoundDetectorService;
+      const instance = SoundDetectorService.instance() as SoundDetectorService;
       instance.enable();
 
       let sourceAvailable: boolean;
@@ -343,7 +343,7 @@ describe('SoundDetectorService', () => {
       });
 
       const { SoundDetectorService } = require('./sound-detector');
-      const instance = SoundDetectorService.instance as SoundDetectorService;
+      const instance = SoundDetectorService.instance() as SoundDetectorService;
       instance.enable();
 
       let sourceAvailable: boolean;

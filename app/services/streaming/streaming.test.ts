@@ -172,7 +172,7 @@ beforeEach(() => {
 test('get instance', () => {
   setup();
   const { StreamingService } = require('./streaming');
-  expect(StreamingService.instance).toBeInstanceOf(StreamingService);
+  expect(StreamingService.instance()).toBeInstanceOf(StreamingService);
 });
 
 test('toggleStreamingでstreamingStatusがofflineの場合', () => {
@@ -200,7 +200,7 @@ test('toggleStreamingでstreamingStatusがofflineの場合', () => {
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.toggleRecording = jest.fn();
   instance.toggleStreaming();
@@ -238,7 +238,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始時に確認し�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.toggleRecording = jest.fn();
   jest.spyOn(window, 'confirm').mockReturnValue(false);
@@ -277,7 +277,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始時に確認し�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.toggleRecording = jest.fn();
   jest.spyOn(window, 'confirm').mockReturnValue(true);
@@ -318,7 +318,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始と同時に録�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   expect(OBS_service_connectOutputSignals).toHaveBeenCalledTimes(1);
   const handler = OBS_service_connectOutputSignals.mock.calls[0][0];
@@ -358,7 +358,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始と同時に録�
       });
 
       const { StreamingService } = require('./streaming');
-      const { instance } = StreamingService;
+      const instance = StreamingService.instance();
 
       instance.toggleRecording = jest.fn();
       instance.toggleStreaming();
@@ -394,7 +394,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始と同時に録�
       });
 
       const { StreamingService } = require('./streaming');
-      const { instance } = StreamingService;
+      const instance = StreamingService.instance();
 
       instance.toggleRecording = jest.fn();
       jest.spyOn(window, 'confirm').mockReturnValue(false);
@@ -431,7 +431,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始と同時に録�
       });
 
       const { StreamingService } = require('./streaming');
-      const { instance } = StreamingService;
+      const instance = StreamingService.instance();
 
       instance.toggleRecording = jest.fn();
       jest.spyOn(window, 'confirm').mockReturnValue(true);
@@ -469,7 +469,7 @@ test('toggleStreamingでstreamingStatusがoffline、配信開始と同時に録�
       });
 
       const { StreamingService } = require('./streaming');
-      const { instance } = StreamingService;
+      const instance = StreamingService.instance();
 
       instance.toggleRecording = jest.fn();
       instance.toggleStreaming();
@@ -507,7 +507,7 @@ test('toggleStreamingでstreamingStatusがendingの場合', () => {
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.toggleRecording = jest.fn();
 
@@ -529,7 +529,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline以外の場合', async ()
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve('lv12345'));
   instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
@@ -551,7 +551,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.toggleStreaming = jest.fn();
 
@@ -576,7 +576,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   const channels = [
     {
       id: 'id',
@@ -615,7 +615,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
 
   instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve(undefined));
   instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
@@ -651,7 +651,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
   instance.toggleStreaming = jest.fn();
 
@@ -682,7 +682,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
   instance.toggleStreaming = jest.fn();
 
@@ -718,7 +718,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
   instance.toggleStreaming = jest.fn();
 
@@ -750,7 +750,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
 
@@ -783,7 +783,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
 
@@ -816,7 +816,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
   instance.optimizeForNiconicoAndStartStreaming = jest.fn();
 
@@ -875,7 +875,7 @@ test('optimizeForNiconicoAndStartStreaming: 差分あり・ダイアログ有効
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
 
   instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
@@ -902,7 +902,7 @@ test('optimizeForNiconicoAndStartStreaming: 差分あり・ダイアログ無効
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
 
   instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
@@ -929,7 +929,7 @@ test('optimizeForNiconicoAndStartStreaming: 差分あり・ダイアログ無効
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
 
   instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
@@ -956,7 +956,7 @@ test('optimizeForNiconicoAndStartStreaming: 差分なし・録画中でもtoggle
   });
 
   const { StreamingService } = require('./streaming');
-  const { instance } = StreamingService;
+  const instance = StreamingService.instance();
   instance.toggleStreaming = jest.fn();
 
   instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
@@ -986,7 +986,7 @@ test('logStreamEndがstreamingTrackIdが設定されている場合にstream_end
   });
 
   const { StreamingService } = require('./streaming');
-  const instance = StreamingService.instance;
+  const instance = StreamingService.instance();
 
   instance.logStreamEnd();
 
@@ -1011,7 +1011,7 @@ test('logStreamEndがstreamingTrackIdが空の場合に何もしない', () => {
   });
 
   const { StreamingService } = require('./streaming');
-  const instance = StreamingService.instance;
+  const instance = StreamingService.instance();
 
   instance.logStreamEnd();
 
@@ -1034,7 +1034,7 @@ test('logStreamEndが冪等である（2回呼んでもrecordEventは1回のみ�
   });
 
   const { StreamingService } = require('./streaming');
-  const instance = StreamingService.instance;
+  const instance = StreamingService.instance();
 
   instance.logStreamEnd();
   instance.logStreamEnd();

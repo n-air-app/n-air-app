@@ -1,11 +1,10 @@
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class Step extends Vue {
-  @Prop()
-    title: string;
+export default defineComponent({
+  name: 'Step',
 
-  @Prop()
-    description: string;
-}
+  props: {
+    title: { type: String },
+    description: { type: String },
+  },
+});

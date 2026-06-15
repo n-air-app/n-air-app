@@ -1,6 +1,6 @@
 <template>
   <modal-layout :show-controls="false" title="">
-    <div slot="content"></div>
+    <template #content><div></div></template>
   </modal-layout>
 </template>
 

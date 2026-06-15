@@ -4,19 +4,21 @@
       <display :source-id="sourceId" />
     </div>
     <modal-layout v-else bare-content :showControls="false">
-      <div slot="content" class="projector-windowed">
-        <div class="projector-buttons">
-          <button
-            class="button button--trans"
-            v-for="(display, index) in allDisplays"
-            :key="display.id"
-            @click="enterFullscreen(display)"
-          >
-            Fullscreen Display {{ index + 1 }}: {{ display.size.width }}x{{ display.size.height }}
-          </button>
+      <template #content>
+        <div class="projector-windowed">
+          <div class="projector-buttons">
+            <button
+              class="button button--trans"
+              v-for="(display, index) in allDisplays"
+              :key="display.id"
+              @click="enterFullscreen(display)"
+            >
+              Fullscreen Display {{ index + 1 }}: {{ display.size.width }}x{{ display.size.height }}
+            </button>
+          </div>
+          <display :source-id="sourceId" />
         </div>
-        <display :source-id="sourceId" />
-      </div>
+      </template>
     </modal-layout>
   </div>
 </template>

@@ -3,10 +3,22 @@ import { Observable, Subject } from 'rxjs';
 import { IJsonRpcEvent, IJsonRpcResponse, IMutation, JsonrpcService } from 'services/api/jsonrpc';
 import * as traverse from 'traverse';
 import { captureIpcRequestError } from 'util/sentry-ipc-request';
+import { toRaw } from 'vue';
 
 import { ServicesManager } from '../../services-manager';
 import { commitMutation } from '../../store';
 import { Service } from '../core/service';
+
+function deepToRaw<T>(val: T): T {
+  const raw = toRaw(val as any);
+  if (raw === null || typeof raw !== 'object') return raw;
+  if (Array.isArray(raw)) return (raw as any[]).map(deepToRaw) as unknown as T;
+  const result: any = {};
+  for (const key of Object.keys(raw as object)) {
+    result[key] = deepToRaw((raw as any)[key]);
+  }
+  return result;
+}
 
 const { ipcRenderer } = electron;
 
@@ -15,7 +27,7 @@ const { ipcRenderer } = electron;
  * Only the child window and one-off windows instantiate this class
  */
 export class InternalApiClient {
-  private servicesManager: ServicesManager = ServicesManager.instance;
+  private servicesManager: ServicesManager = ServicesManager.instance();
 
   /**
    * If the result of calling a service method in the main window is promise -
@@ -61,6 +73,8 @@ export class InternalApiClient {
         const handler = (...args: any[]) => {
           // args may contain ServiceHelper objects
           // serialize them
+          // also strip Vue reactive proxies to avoid IPC cloning errors
+          args = deepToRaw(args);
           traverse(args).forEach((item: any) => {
             if (item && item._isHelper) {
               return {

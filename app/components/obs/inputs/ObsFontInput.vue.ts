@@ -1,51 +1,54 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
 import GoogleFontSelector from './ObsGoogleFontSelector.vue';
-import { IGoogleFont, IObsFont, IObsInput, ObsInput, TObsType } from './ObsInput';
+import { IGoogleFont, IObsFont, IObsInput, TObsType } from './ObsInput';
 import ObsSystemFontSelector from './ObsSystemFontSelector.vue';
 
-@Component({
+const ObsFontInput = defineComponent({
+  name: 'ObsFontInput',
   components: { GoogleFontSelector, SystemFontSelector: ObsSystemFontSelector },
-})
-class ObsFontInput extends ObsInput<IObsInput<IObsFont>> {
-  static obsType: TObsType;
-
-  @Prop()
-    value: IObsInput<IObsFont>;
-  testingAnchor = `Form/Font/${this.value.name}`;
-
-  isGoogleFont = !!this.value.value.path;
-
-  setFont(font: IObsInput<IObsFont>) {
-    this.emitInput(font);
-  }
-
-  setGoogleFont(font: IGoogleFont) {
-    this.emitInput({
-      ...this.value,
-      value: {
-        path: font.path,
-        face: font.face,
-        flags: font.flags,
-        size: Number(font.size),
-      },
-    });
-  }
-
-  get googleFont() {
+  props: {
+    value: { type: Object as PropType<IObsInput<IObsFont>>, required: true as const },
+    category: { type: String },
+    subCategory: { type: String },
+  },
+  data() {
     return {
-      path: this.value.value.path,
-      face: this.value.value.face,
-      flags: this.value.value.flags,
-      size: this.value.value.size,
+      testingAnchor: `Form/Font/${this.value.name}`,
+      isGoogleFont: !!this.value.value.path,
     };
-  }
-
-  setFontType(e: Event) {
-    this.isGoogleFont = (e.target as HTMLInputElement)['checked'];
-  }
-}
-
-ObsFontInput.obsType = 'OBS_PROPERTY_FONT';
-
-export default ObsFontInput;
+  },
+  computed: {
+    googleFont(): IGoogleFont {
+      return {
+        path: this.value.value.path,
+        face: this.value.value.face,
+        flags: this.value.value.flags,
+        size: String(this.value.value.size),
+      };
+    },
+  },
+  methods: {
+    emitInput(eventData: IObsInput<IObsFont>) {
+      this.$emit('input', eventData);
+    },
+    setFont(font: IObsInput<IObsFont>) {
+      this.emitInput(font);
+    },
+    setGoogleFont(font: IGoogleFont) {
+      this.emitInput({
+        ...this.value,
+        value: {
+          path: font.path,
+          face: font.face,
+          flags: font.flags,
+          size: Number(font.size),
+        },
+      });
+    },
+    setFontType(e: Event) {
+      this.isGoogleFont = (e.target as HTMLInputElement)['checked'];
+    },
+  },
+});
+export default Object.assign(ObsFontInput, { obsType: 'OBS_PROPERTY_FONT' as TObsType });

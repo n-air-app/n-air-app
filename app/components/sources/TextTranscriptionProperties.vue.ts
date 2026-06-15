@@ -1,20 +1,20 @@
-import { Inject } from 'services/core/injector';
 import { SettingsService } from 'services/settings';
 import { TranscriptionService } from 'services/transcription/transcription';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class TextTranscriptionProperties extends Vue {
-  @Inject() transcriptionService: TranscriptionService;
-  @Inject() settingsService: SettingsService;
+export default defineComponent({
+  name: 'TextTranscriptionProperties',
 
-  get isTranscriptionEnabled(): boolean {
-    // 設定画面とこの画面はテレコなのでon/offタイミングでこの画面は出ていないため現状subscriptionまでは不要
-    return this.transcriptionService.state.enabled ?? false;
-  }
+  computed: {
+    isTranscriptionEnabled(): boolean {
+      // 設定画面とこの画面はテレコなのでon/offタイミングでこの画面は出ていないた め現状subscriptionまでは不要
+      return TranscriptionService.instance().state.enabled ?? false;
+    },
+  },
 
-  openSettings() {
-    this.settingsService.showSettings('Transcription');
-  }
-}
+  methods: {
+    openSettings(): void {
+      SettingsService.instance().showSettings('Transcription');
+    },
+  },
+});

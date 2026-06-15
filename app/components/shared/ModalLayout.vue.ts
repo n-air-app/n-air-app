@@ -1,78 +1,64 @@
 import { AppService } from 'services/app';
-import { Inject } from 'services/core/injector';
-import { CustomizationService } from 'services/customization';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class ModalLayout extends Vue {
-  contentStyle: Object = {};
-  fixedStyle: Object = {};
+export default defineComponent({
+  name: 'ModalLayout',
 
-  @Inject() customizationService: CustomizationService;
-  @Inject() windowsService: WindowsService;
-  @Inject() appService: AppService;
+  props: {
+    // Whether the "cancel" and "done" controls should be
+    // shown at the bottom of the modal.
+    showControls: { type: Boolean, default: true },
+    // If controls are shown, whether or not to show the cancel button.
+    showCancel: { type: Boolean, default: true },
+    // Will be called when "done" is clicked if controls are enabled
+    doneHandler: { type: Function },
+    // Will be called when "cancel" is clicked.
+    // By default this will just close the window.
+    cancelHandler: { type: Function },
+    // The height of the fixed section
+    fixedSectionHeight: { type: Number },
+    /**
+     * Set to true when using custom controls.
+     * Custom controls go in the "controls" slot.
+     */
+    customControls: { type: Boolean, default: false },
+    /** Contentにpaddingを持たせない場合 */
+    bareContent: { type: Boolean, default: false },
+    /* Contentをスクロールさせない場合 */
+    noScroll: { type: Boolean, default: false },
+  },
 
-  // Whether the "cancel" and "done" controls should be
-  // shown at the bottom of the modal.
-  @Prop({ default: true, type: Boolean }) showControls: boolean;
-
-  // If controls are shown, whether or not to show the
-  // cancel button.
-  @Prop({ default: true, type: Boolean }) showCancel: boolean;
-
-  // Will be called when "done" is clicked if controls
-  // are enabled
-  @Prop() doneHandler: Function;
-
-  // Will be called when "cancel" is clicked.  By default
-  // this will just close the window.
-  @Prop() cancelHandler: Function;
-
-  // The height of the fixed section
-  @Prop() fixedSectionHeight: number;
-
-  /**
-   * Set to true when using custom controls.
-   * Custom controls go in the "controls" slot.
-   */
-  @Prop({ default: false, type: Boolean })
-    customControls: boolean;
-
-  /** Contentにpaddingを持たせない場合 */
-  @Prop({ default: false, type: Boolean })
-    bareContent: boolean;
-
-  /* Contentをスクロールさせない場合 */
-  @Prop({ default: false, type: Boolean })
-    noScroll: boolean;
-
-  created() {
-    const fixedStyle = {
-      height: (this.fixedSectionHeight || 0).toString() + 'px',
+  data() {
+    return {
+      contentStyle: {} as object,
+      fixedStyle: {
+        height: ((this.fixedSectionHeight as number) || 0).toString() + 'px',
+      } as object,
     };
+  },
 
-    this.fixedStyle = fixedStyle;
-  }
+  computed: {
+    loading(): boolean {
+      return AppService.instance().state.loading;
+    },
+  },
 
-  cancel() {
-    if (this.cancelHandler) {
-      this.cancelHandler();
-    } else {
-      this.windowsService.closeChildWindow();
-    }
-  }
+  methods: {
+    cancel() {
+      if (this.cancelHandler) {
+        (this.cancelHandler as Function)();
+      } else {
+        WindowsService.instance().closeChildWindow();
+      }
+    },
 
-  done() {
-    if (this.doneHandler) {
-      this.doneHandler();
-    } else {
-      this.windowsService.closeChildWindow();
-    }
-  }
-
-  get loading() {
-    return this.appService.state.loading;
-  }
-}
+    done() {
+      if (this.doneHandler) {
+        (this.doneHandler as Function)();
+      } else {
+        WindowsService.instance().closeChildWindow();
+      }
+    },
+  },
+});

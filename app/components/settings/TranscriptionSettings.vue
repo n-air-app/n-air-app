@@ -32,13 +32,13 @@
         <div class="input-label section-heading">
           <label>{{ $t('settings.transcription.audioSettings') }}</label>
         </div>
-        <ObsListInput v-model="audioSourceIdModel" />
+        <ObsListInput :value="audioSourceIdModel" @input="audioSourceIdModel = $event" />
         <div class="input-container">
           <div class="input-label">
             <label>{{ $t('settings.transcription.voskModel') }}</label>
           </div>
           <div class="select-button-wrapper">
-            <ObsListInput v-model="voskModelModel" />
+            <ObsListInput :value="voskModelModel" @input="voskModelModel = $event" />
             <button
               class="action-icon"
               data-size="md"
@@ -146,10 +146,10 @@
         </div>
         <div class="section" v-if="transcriptionSourceInActiveScene">
           <h4 class="section-title">{{ textFileSectionTitle }}</h4>
-          <ObsBoolInput v-model="textFileEnabledModel" v-if="!textFileEnabledModel.value" />
+          <ObsBoolInput :value="textFileEnabledModel" @input="textFileEnabledModel = $event" v-if="!textFileEnabledModel.value" />
           <div v-if="textFileEnabledModel.value">
-            <ObsIntInput v-model="textFileMaxLineModel" />
-            <ObsIntInput v-model="textFileLineTimeToLiveModel" />
+            <ObsIntInput :value="textFileMaxLineModel" @input="textFileMaxLineModel = $event" />
+            <ObsIntInput :value="textFileLineTimeToLiveModel" @input="textFileLineTimeToLiveModel = $event" />
           </div>
         </div>
         <div class="input-container" v-if="isNiconicoLoggedIn()">
@@ -174,12 +174,12 @@
           </div>
           <p class="section-notice-text">{{ commentSectionNotice4 }}</p>
           <div>
-            <ObsListInput v-model="commentSizeModel" />
-            <ObsListInput v-model="commentPositionModel" />
-            <ObsListInput v-model="commentColorModel" />
-            <ObsListInput v-model="commentFontModel" />
-            <ObsIntInput v-model="commentPostDelayModel" />
-            <ObsIntInput v-model="commentVposOffsetModel" />
+            <ObsListInput :value="commentSizeModel" @input="commentSizeModel = $event" />
+            <ObsListInput :value="commentPositionModel" @input="commentPositionModel = $event" />
+            <ObsListInput :value="commentColorModel" @input="commentColorModel = $event" />
+            <ObsListInput :value="commentFontModel" @input="commentFontModel = $event" />
+            <ObsIntInput :value="commentPostDelayModel" @input="commentPostDelayModel = $event" />
+            <ObsIntInput :value="commentVposOffsetModel" @input="commentVposOffsetModel = $event" />
           </div>
         </div>
       </div>

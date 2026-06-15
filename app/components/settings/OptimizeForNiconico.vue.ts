@@ -1,82 +1,72 @@
 import BoolInput from 'components/obs/inputs/ObsBoolInput.vue';
 import { IObsInput } from 'components/obs/inputs/ObsInput';
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
 import { SettingsService } from 'services/settings';
 import { OptimizedSettings } from 'services/settings/optimizer';
 import { StreamingService } from 'services/streaming';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import { CategoryIcons } from './CategoryIcons';
 
-@Component({
+export default defineComponent({
+  name: 'OptimizeForNiconico',
   components: {
     ModalLayout,
     BoolInput,
   },
-})
-export default class OptimizeNiconico extends Vue {
-  @Inject() customizationService: CustomizationService;
-  @Inject() streamingService: StreamingService;
-  @Inject() windowsService: WindowsService;
-  @Inject() settingsService: SettingsService;
-
-  settings: OptimizedSettings =
-    // @ts-expect-error: ts2729: use before initialization
-    this.windowsService.getChildWindowQueryParams() as any as OptimizedSettings;
-  icons = CategoryIcons;
-
-  get doNotShowAgain(): IObsInput<boolean> {
+  data() {
     return {
-      name: 'do_not_show_again',
-      description: $t('streaming.doNotShowAgainOptimizationDialog'),
-      value: this.customizationService.showOptimizationDialogForNiconico === false,
+      settings: WindowsService.instance().getChildWindowQueryParams() as unknown as OptimizedSettings,
+      icons: CategoryIcons,
+      isStarting: false,
     };
-  }
-
-  setDoNotShowAgain(model: IObsInput<boolean>) {
-    this.customizationService.setShowOptimizationDialogForNiconico(!model.value);
-  }
-
-  get useHardwareEncoder(): IObsInput<boolean> {
-    return {
-      name: 'use_hardware_encoder',
-      description: $t('streaming.optimizeWithHardwareEncoder'),
-      value: this.customizationService.optimizeWithHardwareEncoder === true,
-    };
-  }
-
-  setUseHardwareEncoder(model: IObsInput<boolean>) {
-    this.customizationService.setOptimizeWithHardwareEncoder(model.value);
-    // close the dialog and open again to apply new optimization settings
-    this.windowsService.closeChildWindow();
-    this.streamingService.toggleStreamingAsync({ mustShowOptimizationDialog: true });
-  }
-
-  isStarting = false;
-
-  get isRecording() {
-    return this.streamingService.isRecording;
-  }
-
-  optimizeAndGoLive() {
-    if (this.isRecording) return;
-    this.isStarting = true;
-    this.settingsService.optimizeForNiconico(this.settings.best);
-    this.streamingService.toggleStreaming();
-    this.windowsService.closeChildWindow();
-  }
-
-  skip() {
-    this.isStarting = true;
-    if (!this.isRecording && this.doNotShowAgain.value) {
-      this.customizationService.setOptimizeForNiconico(false);
-    }
-    this.streamingService.toggleStreaming();
-    this.windowsService.closeChildWindow();
-  }
-}
+  },
+  computed: {
+    doNotShowAgain(): IObsInput<boolean> {
+      return {
+        name: 'do_not_show_again',
+        description: $t('streaming.doNotShowAgainOptimizationDialog'),
+        value: CustomizationService.instance().showOptimizationDialogForNiconico === false,
+      };
+    },
+    useHardwareEncoder(): IObsInput<boolean> {
+      return {
+        name: 'use_hardware_encoder',
+        description: $t('streaming.optimizeWithHardwareEncoder'),
+        value: CustomizationService.instance().optimizeWithHardwareEncoder === true,
+      };
+    },
+    isRecording(): boolean {
+      return StreamingService.instance().isRecording;
+    },
+  },
+  methods: {
+    setDoNotShowAgain(model: IObsInput<boolean>) {
+      CustomizationService.instance().setShowOptimizationDialogForNiconico(!model.value);
+    },
+    setUseHardwareEncoder(model: IObsInput<boolean>) {
+      CustomizationService.instance().setOptimizeWithHardwareEncoder(model.value);
+      // close the dialog and open again to apply new optimization settings
+      WindowsService.instance().closeChildWindow();
+      StreamingService.instance().toggleStreamingAsync({ mustShowOptimizationDialog: true });
+    },
+    optimizeAndGoLive() {
+      if (this.isRecording) return;
+      this.isStarting = true;
+      SettingsService.instance().optimizeForNiconico(this.settings.best);
+      StreamingService.instance().toggleStreaming();
+      WindowsService.instance().closeChildWindow();
+    },
+    skip() {
+      this.isStarting = true;
+      if (!this.isRecording && this.doNotShowAgain.value) {
+        CustomizationService.instance().setOptimizeForNiconico(false);
+      }
+      StreamingService.instance().toggleStreaming();
+      WindowsService.instance().closeChildWindow();
+    },
+  },
+});

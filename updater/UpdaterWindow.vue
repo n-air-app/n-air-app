@@ -1,9 +1,9 @@
 <template>
   <div class="UpdaterWindow">
     <div class="message-wrap">
-      <i18n :path="`${currentState}.message`" class="message" v-bind:class="{ error: isError }">
-        <span place="version">{{ version }}</span>
-      </i18n>
+      <i18n-t :keypath="`${currentState}.message`" tag="span" class="message" v-bind:class="{ error: isError }">
+        <template #version>{{ version }}</template>
+      </i18n-t>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 128 128"
@@ -74,11 +74,13 @@
         </button>
       </div>
       <div class="issues" v-if="isInstalling || isError">
-        <i18n :path="`${currentState}.description`">
-          <a class="link" @click="download" place="linkText">
-            {{ $t(`${currentState}.linkText`) }}
-          </a>
-        </i18n>
+        <i18n-t :keypath="`${currentState}.description`" tag="span">
+          <template #linkText>
+            <a class="link" @click="download">
+              {{ $t(`${currentState}.linkText`) }}
+            </a>
+          </template>
+        </i18n-t>
       </div>
     </div>
   </div>
@@ -86,6 +88,7 @@
 
 <script>
 const { ipcRenderer } = window.require('electron');
+const remote = window.require('@electron/remote');
 export default {
   data() {
     return {
@@ -192,8 +195,8 @@ export default {
 .message {
   font-size: @font-size5;
   line-height: 1.6;
-  color: var(--color-text-light);
   vertical-align: middle;
+  color: var(--color-text-light);
 }
 
 .error {
@@ -202,8 +205,8 @@ export default {
 
 .content-wrap {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   padding: 0;
   overflow: hidden;
 }
@@ -313,6 +316,7 @@ export default {
   vertical-align: middle;
   fill: var(--color-accent);
 }
+
 @keyframes icon-spin {
   0% {
     transform: rotate(0deg);
@@ -329,8 +333,8 @@ button {
 
 .change-wrap {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   padding: 16px;
   margin-top: 16px;
   overflow-y: auto;
@@ -340,8 +344,8 @@ button {
 
 .content {
   display: flex;
-  flex-direction: column;
   flex-grow: 1;
+  flex-direction: column;
   padding: 8px 16px 16px;
   overflow: hidden;
 

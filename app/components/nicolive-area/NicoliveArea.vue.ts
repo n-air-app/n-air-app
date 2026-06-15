@@ -6,21 +6,21 @@ import ProgramInfo from 'components/nicolive-area/ProgramInfo.vue';
 import ProgramStatistics from 'components/nicolive-area/ProgramStatistics.vue';
 import ToolBar from 'components/nicolive-area/ToolBar.vue';
 import PerformanceMetrics from 'components/studio/PerformanceMetrics.vue';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import ControlsArrow from '../../../media/images/controls-arrow-vertical.svg';
 
 const CREATED_NOTICE_DURATION = 5000; // 番組作成通知の表示時間(ミリ秒)
 
-@Component({
+export default defineComponent({
+  name: 'NicolivePanelRoot',
+
   components: {
     AreaSwitcher,
     ProgramInfo,
@@ -32,73 +32,77 @@ const CREATED_NOTICE_DURATION = 5000; // 番組作成通知の表示時間(ミ�
     ControlsArrow,
     PerformanceMetrics,
   },
-})
-export default class NicolivePanelRoot extends Vue {
-  @Inject()
-    nicoliveProgramService: NicoliveProgramService;
-  @Inject() private customizationService: CustomizationService;
 
-  destroyed() {
-    this.nicoliveProgramService.hidePlaceholder();
-  }
+  data() {
+    return {
+      isFetching: false,
+    };
+  },
 
-  get contents(): IArea[] {
-    return [
-      {
-        name: 'コメント',
-        text: '番組に投稿されたコメントを閲覧します',
-        slotName: 'commentViewer',
-      },
-      {
-        name: '番組説明文',
-        text: '番組作成時に設定した説明文の表示を確認します',
-        slotName: 'description',
-      },
-    ];
-  }
+  unmounted() {
+    NicoliveProgramService.instance().hidePlaceholder();
+  },
 
-  get opened(): boolean {
-    return this.nicoliveProgramService.state.panelOpened;
-  }
+  computed: {
+    contents(): IArea[] {
+      return [
+        {
+          name: 'コメント',
+          text: '番組に投稿されたコメントを閲覧します',
+          slotName: 'commentViewer',
+        },
+        {
+          name: '番組説明文',
+          text: '番組作成時に設定した説明文の表示を確認します',
+          slotName: 'description',
+        },
+      ];
+    },
 
-  onToggle(): void {
-    this.nicoliveProgramService.togglePanelOpened();
-  }
+    opened(): boolean {
+      return NicoliveProgramService.instance().state.panelOpened;
+    },
 
-  get isCompactMode(): boolean {
-    return this.customizationService.state.compactMode;
-  }
+    isCompactMode(): boolean {
+      return CustomizationService.instance().state.compactMode;
+    },
 
-  async createProgram(): Promise<void> {
-    try {
-      await this.nicoliveProgramService.createProgram();
-    } catch (e) {
-      console.error(e);
-    }
-  }
+    hasProgram(): boolean {
+      return NicoliveProgramService.instance().hasProgram;
+    },
 
-  isFetching: boolean = false;
-  async fetchProgram(): Promise<void> {
-    if (this.isFetching) throw new Error('fetchProgram is running');
-    try {
-      this.isFetching = true;
-      await this.nicoliveProgramService.fetchProgram();
-    } catch (caught) {
-      if (caught instanceof NicoliveFailure) {
-        await openErrorDialogFromFailure(caught);
-      } else {
-        throw caught;
+    showPlaceholder(): boolean {
+      return NicoliveProgramService.instance().isShownPlaceholder;
+    },
+  },
+
+  methods: {
+    onToggle(): void {
+      NicoliveProgramService.instance().togglePanelOpened();
+    },
+
+    async createProgram(): Promise<void> {
+      try {
+        await NicoliveProgramService.instance().createProgram();
+      } catch (e) {
+        console.error(e);
       }
-    } finally {
-      this.isFetching = false;
-    }
-  }
+    },
 
-  get hasProgram(): boolean {
-    return this.nicoliveProgramService.hasProgram;
-  }
-
-  get showPlaceholder(): boolean {
-    return this.nicoliveProgramService.isShownPlaceholder;
-  }
-}
+    async fetchProgram(): Promise<void> {
+      if (this.isFetching) throw new Error('fetchProgram is running');
+      try {
+        this.isFetching = true;
+        await NicoliveProgramService.instance().fetchProgram();
+      } catch (caught) {
+        if (caught instanceof NicoliveFailure) {
+          await openErrorDialogFromFailure(caught);
+        } else {
+          throw caught;
+        }
+      } finally {
+        this.isFetching = false;
+      }
+    },
+  },
+});

@@ -3,158 +3,162 @@ import Popper from 'components/shared/Popper.vue';
 import { clipboard } from 'electron';
 import { DateTime } from 'luxon';
 import { Subscription } from 'rxjs';
-import { Inject } from 'services/core/injector';
 import { HostsService } from 'services/hosts';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
 import { StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
-  components: {
-    Popper,
+export default defineComponent({
+  name: 'ProgramInfo',
+
+  components: { Popper },
+
+  data() {
+    return {
+      subscription: null as Subscription | null,
+      showPopupMenu: false,
+    };
   },
-})
-export default class ProgramInfo extends Vue {
-  @Inject()
-    nicoliveProgramService: NicoliveProgramService;
-  @Inject() streamingService: StreamingService;
-  @Inject() hostsService: HostsService;
-  @Inject() userService: UserService;
-
-  private subscription: Subscription = null;
-
-  showPopupMenu: boolean = false;
-
-  get isOnAir(): boolean {
-    return this.nicoliveProgramService.state.status === 'onAir';
-  }
 
   mounted() {
-    this.subscription = this.nicoliveProgramService.stateChange.subscribe((state) => {
+    this.subscription = NicoliveProgramService.instance().stateChange.subscribe((state) => {
       if (state.status === 'end') {
-        if (this.streamingService.isStreaming) {
-          this.streamingService.toggleStreamingAsync();
+        if (StreamingService.instance().isStreaming) {
+          StreamingService.instance().toggleStreamingAsync();
         }
       }
     });
-  }
+  },
 
-  destroyed() {
+  unmounted() {
     if (this.subscription) {
       this.subscription.unsubscribe();
       this.subscription = null;
     }
-  }
+  },
 
-  get programID(): string {
-    return this.nicoliveProgramService.state.programID;
-  }
+  computed: {
+    isOnAir(): boolean {
+      return NicoliveProgramService.instance().state.status === 'onAir';
+    },
 
-  get programStatus(): string {
-    return this.nicoliveProgramService.state.status;
-  }
+    programID(): string {
+      return NicoliveProgramService.instance().state.programID;
+    },
 
-  get programTitle(): string {
-    return this.nicoliveProgramService.state.title;
-  }
+    programStatus(): string {
+      return NicoliveProgramService.instance().state.status;
+    },
 
-  get userName(): string {
-    return this.userService.username;
-  }
+    programTitle(): string {
+      return NicoliveProgramService.instance().state.title;
+    },
 
-  get userIcon(): string {
-    return this.userService.userIcon;
-  }
+    userName(): string {
+      return UserService.instance().username;
+    },
 
-  get autoExtensionEnabled() {
-    return this.nicoliveProgramService.state.autoExtensionEnabled;
-  }
-  toggleAutoExtension() {
-    this.nicoliveProgramService.toggleAutoExtension();
-  }
+    userIcon(): string {
+      return UserService.instance().userIcon;
+    },
 
-  openInDefaultBrowser(event: MouseEvent): void {
-    const href = (event.currentTarget as HTMLAnchorElement).href;
-    const url = new URL(href);
-    if (/^https?/.test(url.protocol)) {
-      remote.shell.openExternal(url.toString());
-    }
-  }
+    autoExtensionEnabled() {
+      return NicoliveProgramService.instance().state.autoExtensionEnabled;
+    },
 
-  get watchPageURL(): string {
-    return this.hostsService.getWatchPageURL(this.programID);
-  }
+    watchPageURL(): string {
+      return HostsService.instance().getWatchPageURL(this.programID);
+    },
 
-  async editProgram() {
-    try {
-      return await this.nicoliveProgramService.editProgram();
-    } catch (e) {
-      // TODO 失敗時にはユーザーに伝えるべき
-      console.warn(e);
-    }
-  }
+    contentTreeURL(): string {
+      return HostsService.instance().getContentTreeURL(this.programID);
+    },
 
-  get contentTreeURL(): string {
-    return this.hostsService.getContentTreeURL(this.programID);
-  }
+    creatorsProgramURL(): string {
+      return HostsService.instance().getCreatorsProgramURL(this.programID);
+    },
 
-  get creatorsProgramURL(): string {
-    return this.hostsService.getCreatorsProgramURL(this.programID);
-  }
+    xShareURL(): string {
+      const content = this.xShareContent();
+      const url = new URL('https://x.com/intent/tweet');
+      url.searchParams.append('text', content.text);
+      url.searchParams.append('url', content.url);
+      return url.toString();
+    },
 
-  get xShareURL(): string {
-    const content = this.xShareContent();
-    const url = new URL('https://x.com/intent/tweet');
-    url.searchParams.append('text', content.text);
-    url.searchParams.append('url', content.url);
-    return url.toString();
-  }
+    isFetching(): boolean {
+      return NicoliveProgramService.instance().state.isFetching;
+    },
 
-  private xShareContent(): { text: string; url: string } {
-    const title = this.nicoliveProgramService.state.title;
-    const url = `${this.hostsService.getWatchPageURL(this.programID)}?ref=sharetw`;
-    const time = this.nicoliveProgramService.state.startTime;
-    const formattedTime = DateTime.fromSeconds(time).toFormat('yyyy/MM/dd HH:mm');
+    existsProgramPassword(): boolean {
+      return !!NicoliveProgramService.instance().state.password;
+    },
+  },
 
-    if (this.programStatus === 'reserved' || this.programStatus === 'test') {
-      return {
-        text: `【ニコ生(${formattedTime}開始)】${title}`,
-        url,
-      };
-    }
+  methods: {
+    toggleAutoExtension() {
+      NicoliveProgramService.instance().toggleAutoExtension();
+    },
 
-    if (this.programStatus === 'onAir') {
-      return {
-        text: `【ニコ生配信中】${title}`,
-        url,
-      };
-    }
+    openInDefaultBrowser(event: MouseEvent): void {
+      const href = (event.currentTarget as HTMLAnchorElement).href;
+      const url = new URL(href);
+      if (/^https?/.test(url.protocol)) {
+        remote.shell.openExternal(url.toString());
+      }
+    },
 
-    if (this.programStatus === 'end') {
-      return {
-        text: `【ニコ生タイムシフト視聴中(${formattedTime}放送)】${title}`,
-        url,
-      };
-    }
-  }
+    async editProgram() {
+      try {
+        return await NicoliveProgramService.instance().editProgram();
+      } catch (e) {
+        // TODO 失敗時にはユーザーに伝えるべき
+        console.warn(e);
+      }
+    },
 
-  get isFetching(): boolean {
-    return this.nicoliveProgramService.state.isFetching;
-  }
+    xShareContent(): { text: string; url: string } {
+      const title = NicoliveProgramService.instance().state.title;
+      const url = `${HostsService.instance().getWatchPageURL(this.programID)}?ref=sharetw`;
+      const time = NicoliveProgramService.instance().state.startTime;
+      const formattedTime = DateTime.fromSeconds(time).toFormat('yyyy/MM/dd HH:mm');
 
-  copyProgramURL() {
-    if (this.isFetching) throw new Error('fetchProgram is running');
-    clipboard.writeText(
-      this.hostsService.getWatchPageURL(this.nicoliveProgramService.state.programID),
-    );
-  }
-  get existsProgramPassword(): boolean {
-    return !!this.nicoliveProgramService.state.password;
-  }
-  copyProgramPassword() {
-    if (this.isFetching) throw new Error('fetchProgram is running');
-    clipboard.writeText(this.nicoliveProgramService.state.password);
-  }
-}
+      if (this.programStatus === 'reserved' || this.programStatus === 'test') {
+        return {
+          text: `【ニコ生(${formattedTime}開始)】${title}`,
+          url,
+        };
+      }
+
+      if (this.programStatus === 'onAir') {
+        return {
+          text: `【ニコ生配信中】${title}`,
+          url,
+        };
+      }
+
+      if (this.programStatus === 'end') {
+        return {
+          text: `【ニコ生タイムシフト視聴中(${formattedTime}放送)】${title}`,
+          url,
+        };
+      }
+
+      return { text: title, url };
+    },
+
+    copyProgramURL() {
+      if (this.isFetching) throw new Error('fetchProgram is running');
+      clipboard.writeText(
+        HostsService.instance().getWatchPageURL(NicoliveProgramService.instance().state.programID),
+      );
+    },
+
+    copyProgramPassword() {
+      if (this.isFetching) throw new Error('fetchProgram is running');
+      clipboard.writeText(NicoliveProgramService.instance().state.password);
+    },
+  },
+});
+

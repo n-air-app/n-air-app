@@ -4,8 +4,8 @@
   "startRecording": "Start Recording",
   "stopRecording": "Stop Recording",
   "switchToScene": "Switch to scene",
-  "showSource": "Show %{sourcename}",
-  "hideSource": "Hide %{sourcename}",
+  "showSource": "Show {sourcename}",
+  "hideSource": "Hide {sourcename}",
   "mute": "Mute",
   "unmute": "Unmute",
   "pushToMute": "Push to Mute",
@@ -18,8 +18,8 @@
   "stopReplayBuffer": "Stop Replay Buffer",
   "togglePerformanceMode": "Toggle Performance Mode",
   "toggleCompactMode": "Toggle Compact Mode",
-  "pushToSourceShow": "Show %{sourcename} (while key held)",
-  "pushToSourceHide": "Hide %{sourcename} (while key held)",
+  "pushToSourceShow": "Show {sourcename} (while key held)",
+  "pushToSourceHide": "Hide {sourcename} (while key held)",
   "inputPlaceholder": "Click to bind",
   "inputPlaceholderFocused": "Press any key"
 }

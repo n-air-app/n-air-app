@@ -2,7 +2,9 @@ import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
 import { ISettingsSubCategory, SettingsService } from 'services/settings';
 import { VideoSettingsService } from 'services/settings-v2/video';
-import { Dictionary } from 'vuex';
+
+type Dictionary<T> = { [key: string]: T };
+
 /**
  * list of encoders for simple mode
  */

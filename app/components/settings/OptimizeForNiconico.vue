@@ -1,6 +1,6 @@
 <template>
   <modal-layout :show-controls="false" :customControls="true">
-    <div slot="content">
+    <template #content>
       <p class="optimize-title">{{ $t('streaming.optimizationForNiconico.description') }}</p>
       <p v-if="isRecording" class="alert" data-variant="light" data-type="caution">
         <i class="icon-warning-circle"></i>
@@ -28,15 +28,15 @@
       </ul>
       <BoolInput v-if="!isRecording" :value="useHardwareEncoder" @input="setUseHardwareEncoder" />
       <BoolInput v-if="!isRecording" :value="doNotShowAgain" @input="setDoNotShowAgain" />
-    </div>
-    <div slot="controls">
+    </template>
+    <template #controls>
       <button class="button button--secondary" :disabled="isStarting" @click="skip">
         {{ $t('streaming.skipOptimization') }}
       </button>
       <button class="button button--primary" :disabled="isStarting || isRecording" @click="optimizeAndGoLive">
         {{ $t('streaming.optimizeAndGoLive') }}
       </button>
-    </div>
+    </template>
   </modal-layout>
 </template>
 

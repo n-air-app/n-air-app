@@ -22,10 +22,10 @@ export function requiresToken() {
     return {
       ...descriptor,
       value(...args: any[]) {
-        return original.apply(target.constructor.instance, args).catch((error: RequestError) => {
+        return original.apply(target.constructor.instance(), args).catch((error: RequestError) => {
           if (error.status === 401) {
             return target.fetchNewToken().then(() => {
-              return original.apply(target.constructor.instance, args);
+              return original.apply(target.constructor.instance(), args);
             });
           }
           return Promise.reject(error);

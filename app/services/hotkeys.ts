@@ -10,27 +10,27 @@ import { CustomizationService } from './customization';
 import { NicoliveProgramService } from './nicolive-program/nicolive-program';
 
 function getScenesService(): ScenesService {
-  return ScenesService.instance;
+  return ScenesService.instance();
 }
 
 function getSourcesService(): SourcesService {
-  return SourcesService.instance;
+  return SourcesService.instance();
 }
 
 function getStreamingService(): StreamingService {
-  return StreamingService.instance;
+  return StreamingService.instance();
 }
 
 function getNicoliveProgramService(): NicoliveProgramService {
-  return NicoliveProgramService.instance;
+  return NicoliveProgramService.instance();
 }
 
 function getTransitionsService(): TransitionsService {
-  return TransitionsService.instance;
+  return TransitionsService.instance();
 }
 
 function getCustomizationService(): CustomizationService {
-  return CustomizationService.instance;
+  return CustomizationService.instance();
 }
 
 type THotkeyType = 'GENERAL' | 'SCENE' | 'SCENE_ITEM' | 'SOURCE';

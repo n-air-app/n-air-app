@@ -45,6 +45,6 @@ export type TPlatform = 'niconico';
 
 export function getPlatformService(platform: TPlatform): IPlatformService {
   return {
-    niconico: NiconicoService.instance,
+    niconico: NiconicoService.instance(),
   }[platform];
 }

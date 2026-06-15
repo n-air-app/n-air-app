@@ -25,6 +25,7 @@ import { WindowsService } from 'services/windows';
 import { IpcRequestError } from 'util/ipc-request-error';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
+import { toRaw } from 'vue';
 
 import * as obs from '../../../obs-api';
 import { Inject } from '../core/injector';
@@ -662,7 +663,7 @@ export class SettingsService
     setting: string,
   ): TObsFormData[number] | undefined {
     for (const subCategory of this.findSubCategory(settings, category)) {
-      const found = subCategory.parameters.find((param) => param.name === setting) as any;
+      const found = subCategory.parameters.find((param) => param.name === setting);
       if (found) {
         return found;
       }
@@ -813,8 +814,8 @@ export class SettingsService
 
     for (const subGroup of settingsData) {
       dataToSave.push({
-        ...subGroup,
-        parameters: inputValuesToObsValues(subGroup.parameters, {
+        ...toRaw(subGroup),
+        parameters: inputValuesToObsValues(toRaw(subGroup.parameters).map((p) => toRaw(p)), {
           valueToCurrentValue: true,
         }) as any, // TODO fix type
       });

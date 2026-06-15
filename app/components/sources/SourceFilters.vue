@@ -1,9 +1,9 @@
 <template>
   <modal-layout :show-cancel="false" :done-handler="done" :fixedSectionHeight="250" bare-content>
-    <display slot="fixed" :sourceId="sourceId" />
+    <template #fixed><display :sourceId="sourceId" /></template>
 
-    <div slot="content" class="container" data-test="SourceFilters">
-      <NavMenu v-model="selectedFilterName" class="side-menu">
+    <template #content>
+      <div class="container" data-test="SourceFilters">
         <div class="controls">
           <i class="icon-add icon-btn" @click="addFilter" data-test="Add"></i>
           <i
@@ -21,7 +21,7 @@
           @drop="handleSort"
           :allowMultiselect="false"
         >
-          <template slot="title" slot-scope="{ node }">
+          <template #title="{ node }">
             <div class="title-container">
               <span class="layer-icon">
                 <i
@@ -40,17 +40,17 @@
             </div>
           </template>
         </sl-vue-tree>
-      </NavMenu>
 
-      <div class="content">
-        <div v-if="selectedFilterName">
-          <GenericForm v-model="properties" @input="save" :key="selectedFilterName"></GenericForm>
-        </div>
-        <div v-if="!selectedFilterName">
-          {{ $t('filters.noFilterMessage') }}
+        <div class="content">
+          <div v-if="selectedFilterName">
+            <GenericForm :value="properties" @input="v => { properties = v; save(); }" :key="selectedFilterName"></GenericForm>
+          </div>
+          <div v-if="!selectedFilterName">
+            {{ $t('filters.noFilterMessage') }}
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </modal-layout>
 </template>
 
@@ -79,7 +79,7 @@
     display: none;
   }
 
-  & /deep/ .sl-vue-tree-node-item {
+  :deep(.sl-vue-tree-node-item) {
     padding: 0 16px;
     background-color: transparent;
   }

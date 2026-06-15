@@ -1,6 +1,5 @@
 import Dropdown from 'components/shared/Dropdown.vue';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 interface Item {
   id: string;
@@ -8,15 +7,16 @@ interface Item {
   icon?: string;
 }
 
-@Component({
-  components: {
-    Dropdown,
+export default defineComponent({
+  name: 'DropdownIcon',
+
+  components: { Dropdown },
+
+  props: {
+    value: { type: Object as () => Item | null, default: null },
+    options: { type: Array as () => Item[], required: true },
+    disabled: { type: Boolean, default: false },
+    loading: { type: Boolean, default: false },
+    searchable: { type: Boolean, default: false },
   },
-})
-export default class DropdownIcon extends Vue {
-  @Prop({ type: Object, default: null }) value: Item | null;
-  @Prop({ type: Array, required: true }) options: Item[];
-  @Prop({ type: Boolean, default: false }) disabled: boolean;
-  @Prop({ type: Boolean, default: false }) loading: boolean;
-  @Prop({ type: Boolean, default: false }) searchable: boolean;
-}
+});

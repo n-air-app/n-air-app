@@ -1,18 +1,21 @@
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-import NavItem from './NavItem.vue';
+export default defineComponent({
+  name: 'NavMenu',
 
-@Component({})
-export default class NavMenu extends Vue {
-  @Prop()
-    value: string;
+  props: {
+    value: { type: String },
+  },
 
-  get isChild() {
-    return this.$parent instanceof NavItem;
-  }
+  computed: {
+    isChild(): boolean {
+      return (this.$parent as any)?.$options?.name === 'NavItem';
+    },
+  },
 
-  setValue(value: string) {
-    this.$emit('input', value);
-  }
-}
+  methods: {
+    setValue(value: string) {
+      this.$emit('input', value);
+    },
+  },
+});

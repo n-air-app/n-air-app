@@ -35,7 +35,7 @@ afterEach(() => {
 test('filterFn/初期値', async () => {
   setup();
   const { NicoliveCommentLocalFilterService } = require('./nicolive-comment-local-filter');
-  const instance = NicoliveCommentLocalFilterService.instance as NicoliveCommentLocalFilterService;
+  const instance = NicoliveCommentLocalFilterService.instance() as NicoliveCommentLocalFilterService;
 
   const { filterFn } = instance;
   expect(filterFn(makeWrapper({}))).toBe(true);
@@ -48,7 +48,7 @@ test('filterFn/初期値', async () => {
 test('filterFn/184非表示', async () => {
   setup();
   const { NicoliveCommentLocalFilterService } = require('./nicolive-comment-local-filter');
-  const instance = NicoliveCommentLocalFilterService.instance as NicoliveCommentLocalFilterService;
+  const instance = NicoliveCommentLocalFilterService.instance() as NicoliveCommentLocalFilterService;
 
   instance.showAnonymous = false;
 

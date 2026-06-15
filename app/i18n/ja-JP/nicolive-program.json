@@ -84,7 +84,7 @@
         },
         "400": {
           "title": "番組を延長できませんでした",
-          "message": "番組時間を延長できませんでした。\n%{additionalMessage}"
+          "message": "番組時間を延長できませんでした。\n{additionalMessage}"
         },
         "401": {
           "title": "番組を延長する権限がありません",
@@ -92,7 +92,7 @@
         },
         "403": {
           "title": "番組時間を延長できませんでした",
-          "message": "番組時間を延長できませんでした。\n%{additionalMessage}"
+          "message": "番組時間を延長できませんでした。\n{additionalMessage}"
         },
         "404": {
           "title": "番組が見つかりません",
@@ -110,7 +110,7 @@
         },
         "400": {
           "title": "放送者コメントを投稿できませんでした",
-          "message": "放送者コメントを投稿できませんでした。投稿内容をご確認ください。\n%{additionalMessage}"
+          "message": "放送者コメントを投稿できませんでした。投稿内容をご確認ください。\n{additionalMessage}"
         },
         "401": {
           "title": "ログインしていません",
@@ -126,7 +126,7 @@
         },
         "500": {
           "title": "放送者コメントを投稿できませんでした",
-          "message": "放送者コメントを投稿できませんでした。\n%{additionalMessage}"
+          "message": "放送者コメントを投稿できませんでした。\n{additionalMessage}"
         }
       },
       "sendNormalComment": {
@@ -136,7 +136,7 @@
         },
         "400": {
           "title": "コメントを投稿できませんでした",
-          "message": "コメントを投稿できませんでした。投稿内容をご確認ください。\n%{additionalMessage}"
+          "message": "コメントを投稿できませんでした。投稿内容をご確認ください。\n{additionalMessage}"
         },
         "401": {
           "title": "ログインしていません",
@@ -152,7 +152,7 @@
         },
         "500": {
           "title": "コメントを投稿できませんでした",
-          "message": "コメントを投稿できませんでした。\n%{additionalMessage}"
+          "message": "コメントを投稿できませんでした。\n{additionalMessage}"
         }
       },
       "fetchFilters": {
@@ -162,7 +162,7 @@
         },
         "400": {
           "title": "放送者NG一覧を取得できませんでした",
-          "message": "放送者NG一覧を取得できませんでした。\n%{additionalMessage}"
+          "message": "放送者NG一覧を取得できませんでした。\n{additionalMessage}"
         },
         "401": {
           "title": "ログインしていません",
@@ -178,7 +178,7 @@
         },
         "500": {
           "title": "放送者NG一覧を取得できませんでした",
-          "message": "放送者NG一覧を取得できませんでした。\n%{additionalMessage}"
+          "message": "放送者NG一覧を取得できませんでした。\n{additionalMessage}"
         }
       },
       "addFilters": {
@@ -188,7 +188,7 @@
         },
         "400": {
           "title": "配信用ブロック設定を追加できませんでした",
-          "message": "ブロックに失敗しました。\n%{additionalMessage}"
+          "message": "ブロックに失敗しました。\n{additionalMessage}"
         },
         "401": {
           "title": "ログインしていません",
@@ -196,7 +196,7 @@
         },
         "403": {
           "title": "配信用ブロック設定を追加できませんでした",
-          "message": "ブロックに失敗しました。\n%{additionalMessage}"
+          "message": "ブロックに失敗しました。\n{additionalMessage}"
         },
         "404": {
           "title": "番組が見つかりません",
@@ -204,7 +204,7 @@
         },
         "500": {
           "title": "配信用ブロック設定を追加できませんでした",
-          "message": "ブロックに失敗しました。\n%{additionalMessage}"
+          "message": "ブロックに失敗しました。\n{additionalMessage}"
         }
       },
       "deleteFilters": {
@@ -214,7 +214,7 @@
         },
         "400": {
           "title": "配信用ブロック設定を削除できませんでした",
-          "message": "削除に失敗しました。\n%{additionalMessage}"
+          "message": "削除に失敗しました。\n{additionalMessage}"
         },
         "401": {
           "title": "ログインしていません",
@@ -230,7 +230,7 @@
         },
         "500": {
           "title": "配信用ブロック設定を削除できませんでした",
-          "message": "削除に失敗しました。\n%{additionalMessage}"
+          "message": "削除に失敗しました。\n{additionalMessage}"
         }
       },
       "fetchOnairChannels": {
@@ -268,11 +268,11 @@
         },
         "400": {
           "title": "モデレーターを登録できませんでした",
-          "message": "登録に失敗しました。\n%{additionalMessage}"
+          "message": "登録に失敗しました。\n{additionalMessage}"
         },
         "500": {
           "title": "モデレーターを登録できませんでした",
-          "message": "登録に失敗しました。\n%{additionalMessage}"
+          "message": "登録に失敗しました。\n{additionalMessage}"
         },
         "NOT_BROADCASTER": {
           "title": "NOT_BROADCASTER",
@@ -294,11 +294,11 @@
         },
         "400": {
           "title": "モデレーターを削除できませんでした",
-          "message": "削除に失敗しました。\n%{additionalMessage}"
+          "message": "削除に失敗しました。\n{additionalMessage}"
         },
         "500": {
           "title": "モデレーターを削除できませんでした",
-          "message": "削除に失敗しました。\n%{additionalMessage}"
+          "message": "削除に失敗しました。\n{additionalMessage}"
         },
         "NOT_BROADCASTER": {
           "title": "NOT_BROADCASTER",
@@ -312,11 +312,11 @@
         },
         "400": {
           "title": "モデレーター情報を取得できませんでした",
-          "message": "取得に失敗しました。\n%{additionalMessage}"
+          "message": "取得に失敗しました。\n{additionalMessage}"
         },
         "500": {
           "title": "モデレーター情報を取得できませんでした",
-          "message": "取得に失敗しました。\n%{additionalMessage}"
+          "message": "取得に失敗しました。\n{additionalMessage}"
         },
         "NOT_BROADCASTER": {
           "title": "NOT_BROADCASTER",
@@ -330,11 +330,11 @@
         },
         "400": {
           "title": "サポーター情報を取得できませんでした",
-          "message": "取得に失敗しました。\n%{additionalMessage}"
+          "message": "取得に失敗しました。\n{additionalMessage}"
         },
         "500": {
           "title": "サポーター情報を取得できませんでした",
-          "message": "取得に失敗しました。\n%{additionalMessage}"
+          "message": "取得に失敗しました。\n{additionalMessage}"
         }
       },
       "deleteComment": {
@@ -344,11 +344,11 @@
         },
         "400": {
           "title": "コメントを削除できませんでした",
-          "message": "削除に失敗しました。\n%{additionalMessage}"
+          "message": "削除に失敗しました。\n{additionalMessage}"
         },
         "500": {
           "title": "コメントを削除できませんでした",
-          "message": "削除に失敗しました。\n%{additionalMessage}"
+          "message": "削除に失敗しました。\n{additionalMessage}"
         },
         "NOT_FOUND": {
           "title": "NOT_FOUND",
@@ -382,11 +382,11 @@
         },
         "400": {
           "title": "コメントを復元できませんでした",
-          "message": "復元に失敗しました。\n%{additionalMessage}"
+          "message": "復元に失敗しました。\n{additionalMessage}"
         },
         "500": {
           "title": "コメントを復元できませんでした",
-          "message": "復元に失敗しました。\n%{additionalMessage}"
+          "message": "復元に失敗しました。\n{additionalMessage}"
         },
         "NOT_FOUND": {
           "title": "NOT_FOUND",

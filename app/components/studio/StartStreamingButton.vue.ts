@@ -1,128 +1,133 @@
 import HelpTip from 'components/shared/HelpTip.vue';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
-import { NavigationService } from 'services/navigation';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import { SettingsService } from 'services/settings';
 import { EStreamingState, StreamingService } from 'services/streaming';
-import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import StartStreamingIcon from '../../../media/images/start-streaming-icon.svg';
 
-@Component({
+export default defineComponent({
+  name: 'StartStreamingButton',
+
   components: {
     StartStreamingIcon,
     HelpTip,
   },
-})
-export default class StartStreamingButton extends Vue {
-  @Inject() streamingService: StreamingService;
-  @Inject() navigationService: NavigationService;
-  @Inject() settingsService: SettingsService;
-  @Inject() windowsService: WindowsService;
-  @Inject() compactModeService: CompactModeService;
-  @Inject() nicoliveProgramService: NicoliveProgramService;
 
-  @Prop() disabled: boolean;
+  props: {
+    disabled: { type: Boolean },
+  },
 
-  toggleStreaming() {
-    if (this.streamingService.isStreaming) {
-      this.streamingService.toggleStreaming();
-      return;
-    }
+  data() {
+    return {
+      goLiveTooltip: $t('streaming.goLiveTooltip'),
+      endStreamTooltip: $t('streaming.endStreamTooltip'),
+    };
+  },
 
-    this.streamingService.toggleStreamingAsync();
-  }
+  computed: {
+    isCompactMode() {
+      return CompactModeService.instance().isCompactMode;
+    },
 
-  get isCompactMode() {
-    return this.compactModeService.isCompactMode;
-  }
+    streamingStatus() {
+      return StreamingService.instance().state.streamingStatus;
+    },
 
-  get streamingStatus() {
-    return this.streamingService.state.streamingStatus;
-  }
+    programFetching() {
+      return StreamingService.instance().state.programFetching;
+    },
 
-  get programFetching() {
-    return this.streamingService.state.programFetching;
-  }
+    isStreaming() {
+      return StreamingService.instance().isStreaming;
+    },
 
-  getStreamButtonLabel() {
-    if (this.programFetching) {
-      return $t('streaming.programFetching');
-    }
+    isDisabled() {
+      return (
+        this.disabled
+        || this.programFetching
+        || (this.streamingStatus === EStreamingState.Starting
+          && StreamingService.instance().delaySecondsRemaining === 0)
+        || (this.streamingStatus === EStreamingState.Ending
+          && StreamingService.instance().delaySecondsRemaining === 0)
+      );
+    },
 
-    if (this.streamingStatus === EStreamingState.Live) {
-      return $t('streaming.endStream');
-    }
+    endStreamHelpTipDismissable() {
+      return EDismissable.EndStreamHelpTip;
+    },
 
-    if (this.streamingStatus === EStreamingState.Starting) {
-      if (this.streamingService.delayEnabled) {
-        return $t('streaming.startingWithDelay', {
-          delaySeconds: this.streamingService.delaySecondsRemaining,
-        });
+    showEndStreamHelpTip(): boolean {
+      if (this.streamingStatus === EStreamingState.Offline) {
+        // ニコ生番組が放送中で、配信は停止している
+        if (NicoliveProgramService.instance().state.status === 'onAir') {
+          return true;
+        }
+      }
+      return false;
+    },
+  },
+
+  watch: {
+    streamingStatus() {
+      this.setDelayUpdate();
+    },
+  },
+
+  methods: {
+    toggleStreaming() {
+      if (StreamingService.instance().isStreaming) {
+        StreamingService.instance().toggleStreaming();
+        return;
       }
 
-      return $t('streaming.starting');
-    }
+      StreamingService.instance().toggleStreamingAsync();
+    },
 
-    if (this.streamingStatus === EStreamingState.Ending) {
-      if (this.streamingService.delayEnabled) {
-        return $t('streaming.endingWithDelay', {
-          delaySeconds: this.streamingService.delaySecondsRemaining,
-        });
+    getStreamButtonLabel() {
+      if (this.programFetching) {
+        return $t('streaming.programFetching');
       }
 
-      return $t('streaming.ending');
-    }
-
-    if (this.streamingStatus === EStreamingState.Reconnecting) {
-      return $t('streaming.reconnecting');
-    }
-
-    return $t('streaming.goLive');
-  }
-
-  get isStreaming() {
-    return this.streamingService.isStreaming;
-  }
-
-  get isDisabled() {
-    return (
-      this.disabled
-      || this.programFetching
-      || (this.streamingStatus === EStreamingState.Starting
-        && this.streamingService.delaySecondsRemaining === 0)
-      || (this.streamingStatus === EStreamingState.Ending
-        && this.streamingService.delaySecondsRemaining === 0)
-    );
-  }
-
-  @Watch('streamingStatus')
-  setDelayUpdate() {
-    this.$forceUpdate();
-
-    if (this.streamingService.delaySecondsRemaining) {
-      setTimeout(() => this.setDelayUpdate(), 100);
-    }
-  }
-
-  goLiveTooltip = $t('streaming.goLiveTooltip');
-  endStreamTooltip = $t('streaming.endStreamTooltip');
-
-  get endStreamHelpTipDismissable() {
-    return EDismissable.EndStreamHelpTip;
-  }
-  get showEndStreamHelpTip(): boolean {
-    if (this.streamingStatus === EStreamingState.Offline) {
-      // ニコ生番組が放送中で、配信は停止している
-      if (this.nicoliveProgramService.state.status === 'onAir') {
-        return true;
+      if (this.streamingStatus === EStreamingState.Live) {
+        return $t('streaming.endStream');
       }
-    }
-    return false;
-  }
-}
+
+      if (this.streamingStatus === EStreamingState.Starting) {
+        if (StreamingService.instance().delayEnabled) {
+          return $t('streaming.startingWithDelay', {
+            delaySeconds: StreamingService.instance().delaySecondsRemaining,
+          });
+        }
+
+        return $t('streaming.starting');
+      }
+
+      if (this.streamingStatus === EStreamingState.Ending) {
+        if (StreamingService.instance().delayEnabled) {
+          return $t('streaming.endingWithDelay', {
+            delaySeconds: StreamingService.instance().delaySecondsRemaining,
+          });
+        }
+
+        return $t('streaming.ending');
+      }
+
+      if (this.streamingStatus === EStreamingState.Reconnecting) {
+        return $t('streaming.reconnecting');
+      }
+
+      return $t('streaming.goLive');
+    },
+
+    setDelayUpdate() {
+      this.$forceUpdate();
+
+      if (StreamingService.instance().delaySecondsRemaining) {
+        setTimeout(() => this.setDelayUpdate(), 100);
+      }
+    },
+  },
+});
