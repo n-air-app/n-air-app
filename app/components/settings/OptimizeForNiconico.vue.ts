@@ -39,6 +39,9 @@ export default defineComponent({
         value: CustomizationService.instance().optimizeWithHardwareEncoder === true,
       };
     },
+    isRecording(): boolean {
+      return StreamingService.instance().isRecording;
+    },
   },
   methods: {
     setDoNotShowAgain(model: IObsInput<boolean>) {
@@ -51,6 +54,7 @@ export default defineComponent({
       StreamingService.instance().toggleStreamingAsync({ mustShowOptimizationDialog: true });
     },
     optimizeAndGoLive() {
+      if (this.isRecording) return;
       this.isStarting = true;
       SettingsService.instance().optimizeForNiconico(this.settings.best);
       StreamingService.instance().toggleStreaming();
@@ -58,7 +62,7 @@ export default defineComponent({
     },
     skip() {
       this.isStarting = true;
-      if (this.doNotShowAgain.value) {
+      if (!this.isRecording && this.doNotShowAgain.value) {
         CustomizationService.instance().setOptimizeForNiconico(false);
       }
       StreamingService.instance().toggleStreaming();
@@ -66,4 +70,3 @@ export default defineComponent({
     },
   },
 });
-

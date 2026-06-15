@@ -989,6 +989,7 @@ describe('TranscriptionService', () => {
 
     it('should return muted=true when exact device_id match is muted', () => {
       // OBS device_id が完全一致するソースがミュートされていればミュート検出
+      // 完全一致のとき isDefault=false で1回目の呼び出しで解決され、2回目は呼ばれないこと
       const mockedGetSourceByDeviceId = jest_fn()
         .mockName('getSourceByDeviceId')
         .mockImplementation((deviceId: string, isDefault: boolean) => {
@@ -1001,19 +1002,22 @@ describe('TranscriptionService', () => {
         },
       });
       instance.setAudioDeviceId('test-device');
+      mockedGetSourceByDeviceId.mockClear();
 
       let muted: boolean | undefined;
       instance['audioDeviceMuted$'].subscribe((v) => { muted = v; });
       audioSourceUpdated.next(undefined);
       expect(muted).toBe(true);
+      // 完全一致で見つかったので isDefault=false の1回目のみ呼ばれ、isDefault=true の2回目は呼ばれない
+      const isDefaultCalls = mockedGetSourceByDeviceId.mock.calls.filter(([, isDefault]) => isDefault);
+      expect(isDefaultCalls).toHaveLength(0);
     });
 
     it('should detect mute via device_id=default fallback when exact match fails', () => {
-      // 完全一致なし → isDefault=true フォールバックで device_id='default' ソースを検出
+      // device_id 完全一致なし → isDefault=true で device_id='default'/未設定ソースを検出
       const mockedGetSourceByDeviceId = jest_fn()
         .mockName('getSourceByDeviceId')
-        .mockImplementation((deviceId: string, isDefault: boolean, sourceType: string) => {
-          if (!isDefault) return undefined;
+        .mockImplementation((_deviceId: string, isDefault: boolean, sourceType: string) => {
           if (isDefault && sourceType === 'wasapi_input_capture') return { muted: true };
           return undefined;
         });

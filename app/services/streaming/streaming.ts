@@ -450,7 +450,7 @@ export class StreamingService
       useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
     });
     if (Object.keys(settings.delta).length > 0 || mustShowDialog) {
-      if (this.customizationService.showOptimizationDialogForNiconico || mustShowDialog) {
+      if (this.customizationService.showOptimizationDialogForNiconico || mustShowDialog || this.isRecording) {
         this.windowsService.showWindow({
           componentName: 'OptimizeForNiconico',
           title: $t('streaming.optimizationForNiconico.title'),
