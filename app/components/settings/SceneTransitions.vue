@@ -6,119 +6,133 @@
     :show-cancel="false"
     :done-handler="done"
   >
-    <div slot="content">
-      <div v-if="!transitionsEnabled" class="transition-blank">
-        {{ $t('transitions.mustHaveLeastTwoScenes') }}
+    <template #content>
+      <div>
+        <div v-if="!transitionsEnabled" class="transition-blank">
+          {{ $t('transitions.mustHaveLeastTwoScenes') }}
+        </div>
+        <tabs :tabs="tabs" :value="selectedTab" @input="selectedTab = $event" v-else>
+          <template #transitions>
+            <div class="transition-tab">
+              <button class="button button--primary" @click="addTransition">
+                {{ $t('transitions.addTransition') }}
+              </button>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{{ $t('transitions.default') }}</th>
+                      <th>{{ $t('transitions.transitionName') }}</th>
+                      <th>{{ $t('transitions.transitionType') }}</th>
+                      <th class="table__controls"></th>
+                      <!-- Controls has no header -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="transition in transitions" :key="transition.id">
+                      <td class="transition-default-selector" @click="makeDefault(transition.id)">
+                        <i
+                          v-if="defaultTransitionId === transition.id"
+                          class="icon-check transition-default"
+                        />
+                      </td>
+                      <td>{{ transition.name }}</td>
+                      <td>{{ nameForType(transition.type) }}</td>
+                      <td class="table__controls">
+                        <i
+                          @click="deleteTransition(transition.id)"
+                          class="icon-delete transition-control"
+                        />
+                        <i @click="editTransition(transition.id)" class="icon-edit transition-control" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </template>
+          <template #connections>
+            <div class="transition-tab">
+              <button class="button button--primary" @click="addConnection">
+                {{ $t('transitions.addConnection') }}
+              </button>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{{ $t('transitions.connectionFrom') }}</th>
+                      <th>{{ $t('transitions.transitionName') }}</th>
+                      <th>{{ $t('transitions.connectionTo') }}</th>
+                      <th class="table__controls"></th>
+                      <!-- Controls has no header -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="connection in connections" :key="connection.id">
+                      <td>{{ getSceneName(connection.fromSceneId) }}</td>
+                      <td>{{ getTransitionName(connection.transitionId) }}</td>
+                      <td>{{ getSceneName(connection.toSceneId) }}</td>
+                      <td class="table__controls">
+                        <i
+                          @click="deleteConnection(connection.id)"
+                          class="icon-delete transition-control"
+                        />
+                        <i @click="editConnection(connection.id)" class="icon-edit transition-control" />
+                        <i
+                          v-if="isConnectionRedundant(connection.id)"
+                          class="icon-warning transition-redundant"
+                          v-tooltip="redundantConnectionTooltip"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </template>
+        </tabs>
+        <transition name="modal-fade">
+          <div v-if="showTransitionSettings" class="modal-backdrop" @click.self="dismissModal('transition-settings')">
+            <div class="modal-container">
+              <div class="modal-layout transition-settings-modal">
+                <div class="modal-layout-content">
+                  <div class="settings-container">
+                    <div class="section">
+                      <transition-settings :transition-id="inspectedTransition" />
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-layout-controls">
+                  <button class="button button--primary" @click="dismissModal('transition-settings')">
+                    {{ $t('common.done') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+        <transition name="modal-fade">
+          <div v-if="showConnectionSettings" class="modal-backdrop" @click.self="dismissModal('connection-settings')">
+            <div class="modal-container">
+              <div class="modal-layout connection-settings-modal">
+                <div class="modal-layout-content">
+                  <div class="settings-container">
+                    <div class="section">
+                      <connection-settings :connection-id="inspectedConnection" />
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-layout-controls">
+                  <button class="button button--primary" @click="dismissModal('connection-settings')">
+                    {{ $t('common.done') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
       </div>
-      <tabs :tabs="tabs" v-model="selectedTab" v-else>
-        <div slot="transitions" class="transition-tab">
-          <button class="button button--primary" @click="addTransition">
-            {{ $t('transitions.addTransition') }}
-          </button>
-          <div class="table-wrapper">
-            <table>
-              <tr>
-                <th>{{ $t('transitions.default') }}</th>
-                <th>{{ $t('transitions.transitionName') }}</th>
-                <th>{{ $t('transitions.transitionType') }}</th>
-                <th class="table__controls"></th>
-                <!-- Controls has no header -->
-              </tr>
-              <tr v-for="transition in transitions" :key="transition.id">
-                <td class="transition-default-selector" @click="makeDefault(transition.id)">
-                  <i
-                    v-if="defaultTransitionId === transition.id"
-                    class="icon-check transition-default"
-                  />
-                </td>
-                <td>{{ transition.name }}</td>
-                <td>{{ nameForType(transition.type) }}</td>
-                <td class="table__controls">
-                  <i
-                    @click="deleteTransition(transition.id)"
-                    class="icon-delete transition-control"
-                  />
-                  <i @click="editTransition(transition.id)" class="icon-edit transition-control" />
-                </td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div slot="connections" class="transition-tab">
-          <button class="button button--primary" @click="addConnection">
-            {{ $t('transitions.addConnection') }}
-          </button>
-          <div class="table-wrapper">
-            <table>
-              <tr>
-                <th>{{ $t('transitions.connectionFrom') }}</th>
-                <th>{{ $t('transitions.transitionName') }}</th>
-                <th>{{ $t('transitions.connectionTo') }}</th>
-                <th class="table__controls"></th>
-                <!-- Controls has no header -->
-              </tr>
-              <tr v-for="connection in connections" :key="connection.id">
-                <td>{{ getSceneName(connection.fromSceneId) }}</td>
-                <td>{{ getTransitionName(connection.transitionId) }}</td>
-                <td>{{ getSceneName(connection.toSceneId) }}</td>
-                <td class="table__controls">
-                  <i
-                    @click="deleteConnection(connection.id)"
-                    class="icon-delete transition-control"
-                  />
-                  <i @click="editConnection(connection.id)" class="icon-edit transition-control" />
-                  <i
-                    v-if="isConnectionRedundant(connection.id)"
-                    class="icon-warning transition-redundant"
-                    v-tooltip="redundantConnectionTooltip"
-                  />
-                </td>
-              </tr>
-            </table>
-          </div>
-        </div>
-      </tabs>
-      <transition name="modal-fade">
-        <div v-if="showTransitionSettings" class="modal-backdrop" @click.self="dismissModal('transition-settings')">
-          <div class="modal-container">
-            <div class="modal-layout transition-settings-modal">
-              <div class="modal-layout-content">
-                <div class="settings-container">
-                  <div class="section">
-                    <transition-settings :transition-id="inspectedTransition" />
-                  </div>
-                </div>
-              </div>
-              <div class="modal-layout-controls">
-                <button class="button button--primary" @click="dismissModal('transition-settings')">
-                  {{ $t('common.done') }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </transition>
-      <transition name="modal-fade">
-        <div v-if="showConnectionSettings" class="modal-backdrop" @click.self="dismissModal('connection-settings')">
-          <div class="modal-container">
-            <div class="modal-layout connection-settings-modal">
-              <div class="modal-layout-content">
-                <div class="settings-container">
-                  <div class="section">
-                    <connection-settings :connection-id="inspectedConnection" />
-                  </div>
-                </div>
-              </div>
-              <div class="modal-layout-controls">
-                <button class="button button--primary" @click="dismissModal('connection-settings')">
-                  {{ $t('common.done') }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </transition>
-    </div>
+    </template>
   </modal-layout>
 </template>
 
@@ -197,12 +211,27 @@
 
 table {
   margin-bottom: 0;
+  border-collapse: collapse;
+  background: transparent;
 }
 
 th,
 td {
   padding: 8px 16px;
   text-align: left;
+  background: transparent;
+}
+
+tbody,
+tr {
+  background: transparent;
+}
+
+tbody tr:nth-child(odd),
+tbody tr:nth-child(even) {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
 }
 
 .modal-layout {
@@ -282,7 +311,7 @@ td {
   transition: opacity 0.3s ease;
 }
 
-.modal-fade-enter,
+.modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
 }

@@ -71,7 +71,8 @@
               <label>Method</label>
             </div>
             <dropdown
-              v-model="httpRelationMethod"
+              :value="httpRelationMethod"
+              @input="httpRelationMethod = $event"
               :options="httpRelationMethods"
               label="text"
               track-by="value"

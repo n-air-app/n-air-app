@@ -3,13 +3,10 @@ import electron from 'electron';
 import { InternalApiService } from 'services/api/internal-api';
 import { IMutation } from 'services/api/jsonrpc';
 import Util from 'services/utils';
-import Vue from 'vue';
-import Vuex, { Store } from 'vuex';
+import { createStore as vuexCreateStore, Store } from 'vuex';
 
-import { getModule, StatefulService } from '../services/core/stateful-service';
+import { deepToRaw, getModule, StatefulService } from '../services/core/stateful-service';
 import { ServicesManager } from '../services-manager';
-
-Vue.use(Vuex);
 
 const { ipcRenderer } = electron;
 
@@ -38,7 +35,7 @@ const storeReady = new Promise<Store<any>>((resolve) => {
 // IPC with the main process.
 plugins.push((store: Store<any>) => {
   store.subscribe((mutation: Dictionary<any>) => {
-    const internalApiService: InternalApiService = InternalApiService.instance;
+    const internalApiService: InternalApiService = InternalApiService.instance();
     if (mutation.payload && !mutation.payload.__vuexSyncIgnore) {
       const mutationToSend: IMutation = {
         type: mutation.type,
@@ -54,7 +51,7 @@ plugins.push((store: Store<any>) => {
     const win = remote.BrowserWindow.fromId(windowId);
     if (!win || win.isDestroyed()) return;
     try {
-      win.webContents.send('vuex-loadState', store.state);
+      win.webContents.send('vuex-loadState', deepToRaw(store.state));
     } catch (e: unknown) {
       if (e instanceof Error && e.message?.includes('Render frame was disposed')) {
         return;
@@ -87,7 +84,7 @@ plugins.push((store: Store<any>) => {
     }
 
     // for child and one-offs windows commit mutations via api-client
-    const servicesManager: ServicesManager = ServicesManager.instance;
+    const servicesManager: ServicesManager = ServicesManager.instance();
     servicesManager.internalApiClient.handleMutation(mutation);
   });
 
@@ -98,13 +95,13 @@ let store: Store<any> = null;
 
 export function createStore(): Promise<Store<any>> {
   const statefulServiceModules: Dictionary<any> = {};
-  const servicesManager: ServicesManager = ServicesManager.instance;
+  const servicesManager: ServicesManager = ServicesManager.instance();
   const statefulServices = servicesManager.getStatefulServicesAndMutators();
   Object.keys(statefulServices).forEach((serviceName) => {
     statefulServiceModules[serviceName] = getModule(statefulServices[serviceName]);
   });
 
-  store = new Vuex.Store({
+  store = vuexCreateStore({
     plugins,
     mutations,
     actions,

@@ -1,9 +1,20 @@
-import Vue from 'vue';
+import { toRaw } from 'vue';
 import { Module, Store } from 'vuex';
 
 import Utils from '../utils';
 
 import { Service } from './service';
+
+export function deepToRaw(val: any): any {
+  const raw = toRaw(val);
+  if (raw === null || typeof raw !== 'object') return raw;
+  if (Array.isArray(raw)) return raw.map(deepToRaw);
+  const result: any = {};
+  for (const key of Object.keys(raw)) {
+    result[key] = deepToRaw(raw[key]);
+  }
+  return result;
+}
 
 export function mutation(options = { unsafe: false }) {
   return function (target: any, methodName: string, descriptor: PropertyDescriptor) {
@@ -29,11 +40,11 @@ function registerMutation(
     localState: any,
     payload: { args: any; constructorArgs: any },
   ) {
-    const targetIsSingleton = !!target.constructor.instance;
+    const targetIsSingleton = typeof target.constructor.instance === 'function';
     let context: any;
 
     if (targetIsSingleton) {
-      context = target.constructor.instance;
+      context = target.constructor.instance();
     } else {
       context = new target.constructor(...payload.constructorArgs);
     }
@@ -58,7 +69,7 @@ function registerMutation(
           },
           set(_, key, val) {
             if (key === 'state') {
-              Vue.set(context, 'state', val);
+              context.state = val;
               return true;
             }
 
@@ -77,8 +88,9 @@ function registerMutation(
     value(...args: any[]) {
       const constructorArgs = this['_constructorArgs'];
       const store = StatefulService.getStore();
+      const rawArgs = args.map(deepToRaw);
       store.commit(mutationName, {
-        args,
+        args: rawArgs,
         constructorArgs,
       });
     },
@@ -127,7 +139,7 @@ export abstract class StatefulService<TState extends object> extends Service {
   }
 
   set state(newState: TState) {
-    Vue.set(this.store.state, this.serviceName, newState);
+    this.store.state[this.serviceName] = newState;
   }
 }
 
@@ -135,7 +147,7 @@ export abstract class StatefulService<TState extends object> extends Service {
  * Returns an injectable Vuex module
  */
 export function getModule(ModuleContainer: any): Module<any, any> {
-  const prototypeMutations = (<any>ModuleContainer.prototype).mutations;
+  const prototypeMutations = ModuleContainer.prototype.mutations;
   const mutations: Dictionary<any> = {};
 
   // filter inherited mutations

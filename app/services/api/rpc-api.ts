@@ -27,7 +27,7 @@ export interface ISerializable {
  */
 export abstract class RpcApi extends Service {
   serviceEvent = new Subject<IJsonRpcResponse<IJsonRpcEvent>>();
-  protected servicesManager: ServicesManager = ServicesManager.instance;
+  protected servicesManager: ServicesManager = ServicesManager.instance();
   private mutationsBufferingEnabled = false;
   private bufferedMutations: IMutation[] = [];
 

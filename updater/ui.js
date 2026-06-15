@@ -6,17 +6,16 @@ import '../app/theme2.less';
 import './updater.css';
 
 import * as remote from '@electron/remote';
-import Vue from 'vue';
-import VueI18n from 'vue-i18n';
+import { createApp } from 'vue';
+import { createI18n } from 'vue-i18n';
 
 import UpdaterWindow from './UpdaterWindow.vue';
-
-Vue.use(VueI18n);
 
 const locale = remote.app.getLocale();
 const fallbackLocale = 'en-US';
 
-const i18n = new VueI18n({
+const i18n = createI18n({
+  legacy: true,
   locale,
   fallbackLocale,
   messages: {
@@ -81,12 +80,7 @@ const i18n = new VueI18n({
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  // eslint-disable-next-line no-new
-  new Vue({
-    el: '#app',
-    i18n,
-    render: (createEl) => {
-      return createEl(UpdaterWindow);
-    },
-  });
+  const app = createApp(UpdaterWindow);
+  app.use(i18n);
+  app.mount('#app');
 });

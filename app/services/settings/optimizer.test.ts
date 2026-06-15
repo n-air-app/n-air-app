@@ -213,3 +213,140 @@ test('SettingsKeyAccessor#optimizeInfo', () => {
 });
 
 test.todo('Optimizer#getCurrentSettings');
+
+// Simple/Advanced 両方 x264 の状態から最適化して Simple の StreamEncoder が QSV になることを検証
+// setValues が Advanced 枝に降りて誤った設定先に書く二重降下バグの回帰防止
+test('Optimizer#optimize: Simple mode x264->qsv, Advanced side must not be touched', () => {
+  // Simple 側と Advanced 側を両方持つ Output フォーム
+  let outputForm: ISettingsSubCategory[] = [
+    {
+      nameSubCategory: 'Untitled',
+      parameters: [{ name: 'Mode', description: 'Mode', value: 'Simple' }],
+    },
+    {
+      nameSubCategory: 'Streaming',
+      parameters: [
+        {
+          name: 'StreamEncoder',
+          description: 'StreamEncoder',
+          value: 'obs_x264',
+          options: [
+            { value: 'obs_x264', description: 'x264' },
+            { value: 'qsv', description: 'QSV' },
+          ],
+        } as any,
+        {
+          name: 'UseAdvanced',
+          description: 'UseAdvanced',
+          value: false,
+          options: [
+            { value: true, description: 'true' },
+            { value: false, description: 'false' },
+          ],
+        } as any,
+        {
+          name: 'QSVPreset',
+          description: 'QSVPreset',
+          value: 'speed',
+          options: [
+            { value: 'quality', description: 'quality' },
+            { value: 'balanced', description: 'balanced' },
+            { value: 'speed', description: 'speed' },
+          ],
+        } as any,
+        // Advanced 側エンコーダー（同一カテゴリ内に共存）
+        {
+          name: 'Encoder',
+          description: 'Encoder',
+          value: 'obs_x264',
+          options: [
+            { value: 'obs_x264', description: 'x264' },
+            { value: 'obs_qsv11_v2', description: 'QSV' },
+          ],
+        } as any,
+        {
+          name: 'VBitrate',
+          description: 'VBitrate',
+          value: 5808,
+        } as any,
+        {
+          name: 'ABitrate',
+          description: 'ABitrate',
+          value: '192',
+        } as any,
+      ],
+    },
+  ];
+  const videoForm: ISettingsSubCategory[] = [
+    {
+      nameSubCategory: 'Untitled',
+      parameters: [
+        { name: 'Output', description: 'Output', value: '1280x720' } as any,
+        { name: 'FPSType', description: 'FPSType', value: 'Common FPS Values' } as any,
+        { name: 'FPSCommon', description: 'FPSCommon', value: '30' } as any,
+      ],
+    },
+  ];
+  const audioForm: ISettingsSubCategory[] = [
+    {
+      nameSubCategory: 'Untitled',
+      parameters: [{ name: 'SampleRate', description: 'SampleRate', value: 48000 } as any],
+    },
+  ];
+
+  const findParam = (form: ISettingsSubCategory[], subCat: string, name: string) => {
+    for (const sub of form) {
+      if (sub.nameSubCategory !== subCat) continue;
+      for (const p of sub.parameters) {
+        if ((p as any).name === name) return p;
+      }
+    }
+    return undefined;
+  };
+
+  const accessor = {
+    getSettingsFormData: jest.fn().mockImplementation((cat: string) => {
+      if (cat === 'Output') return outputForm;
+      if (cat === 'Video') return videoForm;
+      if (cat === 'Audio') return audioForm;
+      return [];
+    }),
+    findSetting: jest
+      .fn()
+      .mockImplementation((form: ISettingsSubCategory[], subCat: string, name: string) => {
+        return findParam(form, subCat, name);
+      }),
+    findSettingValue: jest
+      .fn()
+      .mockImplementation((form: ISettingsSubCategory[], subCat: string, name: string) => {
+        return (findParam(form, subCat, name) as any)?.value;
+      }),
+    setSettings: jest.fn().mockImplementation((cat: string, data: ISettingsSubCategory[]) => {
+      if (cat === 'Output') outputForm = data;
+    }),
+  };
+
+  const best: OptimizeSettings = {
+    outputMode: 'Simple',
+    encoder: EncoderFamily.qsv,
+    simpleUseAdvanced: true,
+    targetUsage: 'speed',
+    videoBitrate: 5808,
+    audioBitrate: '192',
+    quality: '1280x720',
+    fpsType: 'Common FPS Values',
+    fpsCommon: '30',
+    audioSampleRate: 48000,
+  };
+
+  const a = new SettingsKeyAccessor(accessor);
+  const opt = new Optimizer(a, best);
+  opt.optimize(best);
+
+  // Simple 側の StreamEncoder が qsv に変わっていること
+  expect(findParam(outputForm, 'Streaming', 'StreamEncoder')).toMatchObject({ value: 'qsv' });
+  // 出力モードが Simple であること
+  expect(findParam(outputForm, 'Untitled', 'Mode')).toMatchObject({ value: 'Simple' });
+  // Advanced 側の Encoder は触られていないこと（x264 のまま）
+  expect(findParam(outputForm, 'Streaming', 'Encoder')).toMatchObject({ value: 'obs_x264' });
+});

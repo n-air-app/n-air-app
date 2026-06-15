@@ -1,6 +1,7 @@
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({ components: { ModalLayout } })
-export default class Blank extends Vue { }
+export default defineComponent({
+  name: 'Blank',
+  components: { ModalLayout },
+});

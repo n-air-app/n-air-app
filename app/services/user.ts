@@ -13,7 +13,6 @@ import Utils, { uuidv4 } from 'services/utils';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import { SentryReport } from 'util/sentry-report';
-import Vue from 'vue';
 
 import { OnboardingService } from './onboarding';
 import {
@@ -39,12 +38,12 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
   @mutation()
   LOGIN(auth: IPlatformAuth) {
-    Vue.set(this.state, 'auth', auth);
+    this.state.auth = auth;
   }
 
   @mutation()
   LOGOUT() {
-    Vue.delete(this.state, 'auth');
+    delete this.state.auth;
   }
 
   @mutation()

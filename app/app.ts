@@ -12,15 +12,15 @@ import path from 'path';
 import util from 'util';
 
 import * as Sentry from '@sentry/electron/renderer';
-import { init as sentryVueInit } from '@sentry/vue';
+import { vueIntegration } from '@sentry/vue';
 import ChildWindow from 'components/windows/ChildWindow.vue';
 import OneOffWindow from 'components/windows/OneOffWindow.vue';
 import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
-import Vue from 'vue';
-import VueI18n from 'vue-i18n';
+import { createApp } from 'vue';
+import { createI18n, type Locale, type Path } from 'vue-i18n';
 
 import * as obs from '../obs-api';
 
@@ -87,7 +87,6 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
   Sentry.init(
     {
       sampleRate: /* isPreview ? */ 1.0 /* : 0.1 */,
-      Vue,
       beforeSend(event) {
         // quota 対策: ユーザー側ネット環境起因またはアプリバグに起因しないノイズを除外する
         const NOISE_PATTERNS = [
@@ -106,7 +105,6 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
         return event;
       },
     },
-    sentryVueInit,
   );
 
   const oldConsoleError = console.error;
@@ -128,9 +126,6 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
 require('./app.less');
 require('./theme.less');
 require('./theme2.less');
-
-// Initiates tooltips
-Vue.directive('tooltip', tooltipDirective);
 
 // Disable chrome default drag/drop behavior
 document.addEventListener('dragover', (event) => event.preventDefault());
@@ -169,11 +164,11 @@ const showDialog = (message: string): void => {
 
 document.addEventListener('DOMContentLoaded', () => {
   createStore().then(async (store) => {
-    const windowsService: WindowsService = WindowsService.instance;
+    const windowsService: WindowsService = WindowsService.instance();
 
     if (Utils.isMainWindow()) {
       // Services
-      const appService: AppService = AppService.instance;
+      const appService: AppService = AppService.instance();
 
       // This is used for debugging
       // @ts-ignore
@@ -222,16 +217,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       ipcRenderer.on('closeWindow', () => windowsService.closeMainWindow());
-      AppService.instance.load();
+      AppService.instance().load();
     } else {
       if (Utils.isChildWindow()) {
         ipcRenderer.on('closeWindow', () => windowsService.closeChildWindow());
       }
     }
 
-    // setup VueI18n plugin
-    Vue.use(VueI18n);
-    const i18nService: I18nService = I18nService.instance;
+    // setup vue-i18n plugin
+    const i18nService: I18nService = I18nService.instance();
     await i18nService.load(); // load translations from a disk
     const notFoundKeys = new Set<string>();
 
@@ -241,66 +235,92 @@ document.addEventListener('DOMContentLoaded', () => {
       keys.forEach((key) => notFoundKeys.add(key));
     }
 
-    const i18n = new VueI18n({
+    const i18n = createI18n({
+      legacy: true,
       locale: i18nService.state.locale,
       fallbackLocale: i18nService.getFallbackLocale(),
       messages: i18nService.getLoadedDictionaries(),
-      missing: ((locale: VueI18n.Locale, key: VueI18n.Path, vm: Vue, values: any[]): string => {
-        if (values[0] && typeof values[0].fallback === 'string') {
-          // Check if the key exists in the dictionary with a null value
-          // If so, don't warn - null means "use the fallback value from OBS"
-          const dictionaries = i18nService.getLoadedDictionaries();
-          // Convert key path like "settings.Output['Streaming']['Preset']['ultrafast']"
-          // to lodash-compatible path like "settings.Output.Streaming.Preset.ultrafast"
-          const lodashPath = key.replace(/\['([^']+)'\]/g, '.$1');
-          const value = get(dictionaries[locale], lodashPath);
+      missing: ((locale: Locale, key: Path, _instance: unknown, _type: string) => {
+        // vue-i18n v9: missing handler receives (locale, key, instance, type)
+        // values are no longer passed - fallback is handled at each $t call site
 
-          if (value === null) {
-            // Key exists with null value - this is intentional, use fallback without warning
-            return values[0].fallback;
-          }
-
-          if (!isProduction) {
-            // beware: enable following line only when investigating around i18n keys!
-            // this adds huge amount of lines to console.
-
-            // console.warn(`i18n missing key - ${key}: ${values[0].fallback}`);
-            if (!notFoundKeys.has(key)) {
-              notFoundKeys.add(key);
-              console.warn(`i18n missing key - ${key}: (フォールバックなし)`);
-              if (process.env.NAIR_UPDATE_I18N_NOT_FOUND_KEYS) {
-                ipcRenderer.invoke('appendI18nNotFoundKeys', key);
-              }
-            }
-          }
-          return values[0].fallback;
+        // Check if the key exists in the dictionary with a null value (intentional OBS fallback)
+        const dictionaries = i18nService.getLoadedDictionaries();
+        // Convert key path like "settings.Output['Streaming']['Preset']['ultrafast']"
+        // to lodash-compatible path like "settings.Output.Streaming.Preset.ultrafast"
+        const lodashPath = key.replace(/\['([^']+)'\]/g, '.$1');
+        const value = get(dictionaries[locale], lodashPath);
+        if (value === null) {
+          // Key exists with null value - intentional, suppress warning
+          return;
         }
 
-        // 返すべきものがないときは何も返さずデフォルト動作に任せる
-        // ref. https://github.com/kazupon/vue-i18n/blob/79e3bfe537d28b11a3119ff9ed0704e5dfa72cf3/src/index.js#L172-L188
+        if (!isProduction) {
+          // beware: enable following line only when investigating around i18n keys!
+          // this adds huge amount of lines to console.
+
+          // console.warn(`i18n missing key - ${key}`);
+          if (!notFoundKeys.has(key)) {
+            notFoundKeys.add(key);
+            console.warn(`i18n missing key - ${key}: (フォールバックなし)`);
+            if (process.env.NAIR_UPDATE_I18N_NOT_FOUND_KEYS) {
+              ipcRenderer.invoke('appendI18nNotFoundKeys', key);
+            }
+          }
+        }
+        // Return nothing - vue-i18n will use the key itself as fallback text
       }) as any, // 型定義と実装が異なっているのでanyに飛ばす
       silentTranslationWarn: true,
+      // vue-i18n v9: fallback警告を抑制（OBSの動的キーで大量に出るため）
+      missingWarn: false,
+      fallbackWarn: false,
     });
 
-    I18nService.setVuei18nInstance(i18n);
+    // legacy: true モードでは createI18n オプションだけでは fallbackWarn が効かない場合があるため
+    // global インスタンスにも直接設定する
+    (i18n.global as any).fallbackWarn = false;
+    (i18n.global as any).missingWarn = false;
+
+    I18nService.setVuei18nInstance(i18n.global);
 
     Settings.defaultLocale = i18nService.state.locale.split('-')[0];
 
     // create a root Vue component
     const windowId = Utils.getCurrentUrlParams().windowId;
-    const vm = new Vue({
-      el: '#app',
-      i18n,
-      store,
-      render: (h) => {
-        if (windowId === 'child') return h(ChildWindow);
-        if (windowId === 'main') {
-          const componentName = windowsService.state[windowId].componentName;
-          return h(windowsService.components[componentName]);
-        }
-        return h(OneOffWindow);
-      },
-    });
+
+    let rootComponent;
+    if (windowId === 'child') {
+      rootComponent = ChildWindow;
+    } else if (windowId === 'main') {
+      const componentName = windowsService.state[windowId].componentName;
+      rootComponent = windowsService.components[componentName];
+    } else {
+      rootComponent = OneOffWindow;
+    }
+
+    const app = createApp(rootComponent);
+    app.directive('tooltip', tooltipDirective);
+    app.use(store);
+    app.use(i18n);
+
+    // vue-i18n v9 legacy mode: mixin が各コンポーネントに `$t = this._i18n.t.bind(this._i18n)` を
+    // Object.defineProperty で定義するため、globalProperties.$t の override は実質無視される。
+    // 代わりに i18n.global.t を直接 wrap して、すべての $t() 呼び出しに fallback 処理を適用する。
+    const originalGlobalT = (i18n.global as any).t.bind(i18n.global);
+    (i18n.global as any).t = function (key: string, d: any, options: any): string {
+      const result: string = originalGlobalT(key, d, options);
+      const fallback = (d && d.fallback) || (options && options.fallback);
+      if (fallback !== undefined && typeof fallback === 'string' && result === key) {
+        return fallback;
+      }
+      return result;
+    };
+
+    if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.NAIR_IPC) {
+      Sentry.addIntegration(vueIntegration({ app }));
+    }
+
+    app.mount('#app');
 
     Sentry.getCurrentScope().setTag('windowId', windowId);
 

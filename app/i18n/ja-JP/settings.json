@@ -116,7 +116,8 @@
         "x264": "@:settings.Output.Streaming.Encoder.obs_x264",
         "qsv": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
-        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc"
+        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "ABitrate": {
         "name": "音声ビットレート（kbps）"
@@ -170,7 +171,8 @@
         "obs_x264": "ソフトウェア（x264）",
         "obs_qsv11": "ハードウェア（QSV）",
         "ffmpeg_nvenc": "ハードウェア (NVENC)",
-        "jim_nvenc": "ハードウェア (NVENC(新))"
+        "jim_nvenc": "ハードウェア (NVENC(新))",
+        "obs_qsv11_v2": "ハードウェア（QSV）"
       },
       "ApplyServiceSettings": {
         "name": "@:settings.Output.Streaming.EnforceBitrate.name"
@@ -299,7 +301,8 @@
         "obs_x264": "@:settings.Output.Streaming.Encoder.obs_x264",
         "obs_qsv11": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "ffmpeg_nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
-        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc"
+        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "RecAEncoder": { "name": "音声エンコーダー" },
       "RecRescale": {
@@ -666,6 +669,8 @@
   "cacheIdDescription": "お問い合わせIDをクリップボードにコピーします。",
   "cacheIdCopy": "コピーする",
   "cacheManagement": "キャッシュ管理",
+  "noticeIpcError": "OBS モジュールが応答していません。アプリを再起動しますか？",
+  "noticeIpcErrorDetail": "OBS との通信が切断されました。再起動すると解消する場合があります。",
   "noticeWhileStreaming": "現在配信中のため、一部の設定は変更できません。",
   "noticeLoginRequired": "本機能はニコニコ生放送のコメント専用です。利用するにはニコニコアカウントにログインしてください。",
   "noticeForStreaming": "N Airでログイン中のニコニコアカウントに合わせて、配信開始時に自動で設定されます",
@@ -865,7 +870,7 @@
         "502": "ゲートウェイエラー",
         "503": "サービス停止中",
         "504": "タイムアウト",
-        "x00": "HTTPエラー: %{status}"
+        "x00": "HTTPエラー: {status}"
       }
     },
     "downloadModelConfirm": {

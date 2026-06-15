@@ -1,41 +1,45 @@
 import MixerItem from 'components/studio/MixerItem.vue';
 import { AudioService } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { Menu } from 'util/menus/Menu';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'Mixer',
+
   components: { MixerItem },
-})
-export default class Mixer extends Vue {
-  @Inject() audioService: AudioService;
-  @Inject() compactModeService: CompactModeService;
 
-  advancedSettingsTooltip = $t('audio.advancedSettingsTooltip');
-  mixerTooltip = $t('audio.mixerTooltip');
+  data() {
+    return {
+      advancedSettingsTooltip: $t('audio.advancedSettingsTooltip'),
+      mixerTooltip: $t('audio.mixerTooltip'),
+    };
+  },
 
-  showAdvancedSettings() {
-    this.audioService.showAdvancedSettings();
-  }
+  computed: {
+    audioSources() {
+      return AudioService.instance().getVisibleSourcesForCurrentScene();
+    },
 
-  handleRightClick() {
-    const menu = new Menu();
-    menu.append({
-      id: 'Unhide All',
-      label: $t('sources.unhideAll'),
-      click: () => this.audioService.unhideAllSourcesForCurrentScene(),
-    });
-    menu.popup();
-  }
+    isCompactMode(): boolean {
+      return CompactModeService.instance().isCompactMode;
+    },
+  },
 
-  get audioSources() {
-    return this.audioService.getVisibleSourcesForCurrentScene();
-  }
+  methods: {
+    showAdvancedSettings() {
+      AudioService.instance().showAdvancedSettings();
+    },
 
-  get isCompactMode(): boolean {
-    return this.compactModeService.isCompactMode;
-  }
-}
+    handleRightClick() {
+      const menu = new Menu();
+      menu.append({
+        id: 'Unhide All',
+        label: $t('sources.unhideAll'),
+        click: () => AudioService.instance().unhideAllSourcesForCurrentScene(),
+      });
+      menu.popup();
+    },
+  },
+});

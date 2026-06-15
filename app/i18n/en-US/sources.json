@@ -19,7 +19,7 @@
   "addExistingSourceTitle": "Add Existing Source",
   "addExistingSource": "Add Existing Source",
   "enterTheNameOfFolder": "Please enter the name of the folder",
-  "propertyWindowTitle": "Properties for %{sourceName}",
+  "propertyWindowTitle": "Properties for {sourceName}",
   "addFolder": "Add Folder",
   "removeSources": "Remove Sources",
   "setupSourceProperties": "Setup Source Properties",
@@ -82,5 +82,5 @@
   "Bilinear": "Bilinear",
   "Lanczos": "Lanczos",
   "Area": "Area",
-  "InteractTitle": "Interact: %{sourceName}"
+  "InteractTitle": "Interact: {sourceName}"
 }

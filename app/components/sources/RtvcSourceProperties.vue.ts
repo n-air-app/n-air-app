@@ -5,7 +5,6 @@ import Popper from 'components/shared/Popper.vue';
 import Slider from 'components/shared/Slider.vue';
 import SourceProperties from 'components/sources/SourceProperties.vue';
 import { AudioService } from 'services/audio';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import {
   AmountDefault,
@@ -15,7 +14,7 @@ import {
   StateParam,
 } from 'services/rtvcStateService';
 import { ScenesService } from 'services/scenes';
-import { Component, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import * as obs from '../../../obs-api';
 
@@ -29,293 +28,185 @@ type SetParamKey =
   | 'primaryVoice'
   | 'secondaryVoice';
 
-@Component({
+export default defineComponent({
+  name: 'RtvcSourceProperties',
+
+  extends: SourceProperties,
+
   components: {
     Dropdown,
     Popper,
     Slider,
   },
-})
-export default class RtvcSourceProperties extends SourceProperties {
-  @Inject() private rtvcStateService: RtvcStateService;
-  @Inject() private audioService: AudioService;
-  @Inject() private scenesService: ScenesService;
 
-  readonly manualMax = 5;
-
-  initialMonitoringType: obs.EMonitoringType;
-  currentMonitoringType: obs.EMonitoringType;
-
-  draftState: StateParam;
-
-  currentIndex = 'preset/0';
-  isMonitor = false;
-  canceled = false;
-  canToggleMonitor = true;
-
-  name = '';
-  label = '';
-  description = '';
-  image = '';
-  device: Extract<TObsValue, number> = 0;
-  latency: Extract<TObsValue, number> = 0;
-
-  primaryVoice: Extract<TObsValue, number> = 0;
-  secondaryVoice: Extract<TObsValue, number> = 0;
-  pitchShift: Extract<TObsValue, number> = 0;
-  pitchShiftSong: Extract<TObsValue, number> = 0;
-  amount: Extract<TObsValue, number> = 0;
-
-  isSongMode = false;
-
-  tab = 0;
-  canAdd = false;
-
-  showPopupMenu = false;
-
-  primaryVoiceModel: IObsListOption<number> = { description: '', value: 0 };
-  secondaryVoiceModel: IObsListOption<number> = { description: '', value: 0 };
-  deviceModel: IObsListOption<number> = { description: '', value: 0 };
-  latencyModel: IObsListOption<number> = { description: '', value: 0 };
-
-  audio = new Audio();
-
-  get presetList() {
-    return this.rtvcStateService.getPresets();
-  }
-
-  manualList: { index: string; name: string; label: string; image: string }[] = [];
-
-  updateManualList() {
-    // add,delに反応しないのでコード側から変更指示
-    this.manualList = this.draftState.manuals.map((a, num) => ({
-      index: `manual/${num}`,
-      name: a.name,
-      label: `manual${num}`,
-      image: this.rtvcStateService.manualImages[a.imageNum],
-    }));
-    this.canAdd = this.manualList.length < this.manualMax;
-  }
-
-  get jvsList() {
-    if ($t('source-props.nair-rtvc-source.value.male') === '男性') return jvsListBase; // 同じなので変更不要
-
-    const mapping: { [name: string]: string } = {
-      男性: $t('source-props.nair-rtvc-source.value.male'),
-      女性: $t('source-props.nair-rtvc-source.value.female'),
-      高め: $t('source-props.nair-rtvc-source.value.high'),
-      低め: $t('source-props.nair-rtvc-source.value.low'),
-      普通: $t('source-props.nair-rtvc-source.value.normal'),
+  data() {
+    return {
+      manualMax: 5 as const,
+      initialMonitoringType: null as obs.EMonitoringType | null,
+      currentMonitoringType: null as obs.EMonitoringType | null,
+      draftState: null as StateParam | null,
+      currentIndex: 'preset/0',
+      isMonitor: false,
+      canceled: false,
+      canToggleMonitor: true,
+      name: '',
+      label: '',
+      description: '',
+      image: '',
+      device: 0 as number,
+      latency: 0 as number,
+      primaryVoice: 0 as number,
+      secondaryVoice: 0 as number,
+      pitchShift: 0 as number,
+      pitchShiftSong: 0 as number,
+      amount: 0 as number,
+      isSongMode: false,
+      tab: 0,
+      canAdd: false,
+      showPopupMenu: false,
+      primaryVoiceModel: { description: '', value: 0 } as IObsListOption<number>,
+      secondaryVoiceModel: { description: '', value: 0 } as IObsListOption<number>,
+      deviceModel: { description: '', value: 0 } as IObsListOption<number>,
+      latencyModel: { description: '', value: 0 } as IObsListOption<number>,
+      audio: new Audio(),
+      manualList: [] as { index: string; name: string; label: string; image: string }[],
     };
+  },
 
-    const pattern = new RegExp(`(${Object.keys(mapping).join('|')})`, 'g');
-    return jvsListBase.map((a) => {
-      a.description = a.description.replace(pattern, (m, p: string) => mapping[p]);
-      return a;
-    });
-  }
+  computed: {
+    presetList() {
+      return RtvcStateService.instance().getPresets();
+    },
 
-  get primaryVoiceList() {
-    return this.jvsList;
-  }
+    jvsList() {
+      if ($t('source-props.nair-rtvc-source.value.male') === '男性') return jvsListBase; // 同じなので変更不要
 
-  get secondaryVoiceList() {
-    return [
-      { description: $t('source-props.nair-rtvc-source.value.none'), value: -1 },
-      ...this.jvsList,
-    ];
-  }
+      const mapping: { [name: string]: string } = {
+        男性: $t('source-props.nair-rtvc-source.value.male'),
+        女性: $t('source-props.nair-rtvc-source.value.female'),
+        高め: $t('source-props.nair-rtvc-source.value.high'),
+        低め: $t('source-props.nair-rtvc-source.value.low'),
+        普通: $t('source-props.nair-rtvc-source.value.normal'),
+      };
 
-  get deviceList() {
-    return this.getSourcePropertyOptions('device');
-  }
+      const pattern = new RegExp(`(${Object.keys(mapping).join('|')})`, 'g');
+      return jvsListBase.map((a) => {
+        a.description = a.description.replace(pattern, (m, p: string) => mapping[p]);
+        return a;
+      });
+    },
 
-  get latencyList() {
-    return this.getSourcePropertyOptions('latency');
-  }
+    primaryVoiceList() {
+      return this.jvsList;
+    },
 
-  get isPreset() {
-    if (!this.currentIndex) return false;
-    return this.currentIndex.includes('preset');
-  }
+    secondaryVoiceList() {
+      return [
+        { description: $t('source-props.nair-rtvc-source.value.none'), value: -1 },
+        ...this.jvsList,
+      ];
+    },
 
-  @Watch('currentIndex')
-  onChangeIndex() {
-    const p = this.rtvcStateService.stateParamToCommonParam(this.draftState, this.currentIndex);
+    deviceList() {
+      return this.getSourcePropertyOptions('device');
+    },
 
-    this.name = p.name;
-    this.label = p.label;
-    this.description = p.description;
-    this.image = p.image;
+    latencyList() {
+      return this.getSourcePropertyOptions('latency');
+    },
 
-    this.pitchShift = p.pitchShift;
-    this.pitchShiftSong = p.pitchShiftSong;
-    this.amount = p.amount;
-    this.primaryVoice = p.primaryVoice;
-    this.secondaryVoice = p.secondaryVoice;
+    isPreset(): boolean {
+      if (!this.currentIndex) return false;
+      return this.currentIndex.includes('preset');
+    },
+  },
 
-    const optionInList = (list: IObsListOption<number>[], value: number) =>
-      list.find((a) => a.value === value) ?? { description: '', value }; // 100以上等はリストにないのでスルー
+  watch: {
+    currentIndex: {
+      handler(): void {
+        this.onChangeIndex();
+      },
+    },
+    name: {
+      handler(): void {
+        this.setParam('name', this.name);
+        const num = this.getManualIndexNum(this.currentIndex);
+        if (num >= 0) this.manualList[num].name = this.name; // 画面反映
+      },
+    },
+    pitchShift: {
+      handler(): void {
+        this.setParam('pitchShift', this.pitchShift);
+        this.setSourcePropertyValue('pitch_shift', this.pitchShift);
+      },
+    },
+    pitchShiftSong: {
+      handler(): void {
+        this.setParam('pitchShiftSong', this.pitchShiftSong);
+        this.setSourcePropertyValue('pitch_shift_song', this.pitchShiftSong);
+      },
+    },
+    amount: {
+      handler(): void {
+        this.setParam('amount', this.amount);
+        this.setSourcePropertyValue('amount', this.amount);
+      },
+    },
+    primaryVoiceModel: {
+      handler(): void {
+        this.primaryVoice = this.primaryVoiceModel.value;
+        this.setParam('primaryVoice', this.primaryVoice);
+        this.setSourcePropertyValue('primary_voice', this.primaryVoice);
+      },
+    },
+    secondaryVoiceModel: {
+      handler(): void {
+        if (this.secondaryVoice === -1) this.amount = AmountDefault;
+        this.secondaryVoice = this.secondaryVoiceModel.value;
+        this.setParam('secondaryVoice', this.secondaryVoice);
+        this.setSourcePropertyValue('secondary_voice', this.secondaryVoice);
+      },
+    },
+    deviceModel: {
+      handler(): void {
+        this.device = this.deviceModel.value;
+        this.setSourcePropertyValue('device', this.device);
+      },
+    },
+    latencyModel: {
+      handler(): void {
+        this.latency = this.latencyModel.value;
+        this.setSourcePropertyValue('latency', this.latency);
+      },
+    },
+    isMonitor: {
+      handler(): void {
+        // on値は踏襲かoffならmonitor only, offはNoneでよい
+        const onValue = this.initialMonitoringType !== obs.EMonitoringType.None
+          ? this.initialMonitoringType
+          : obs.EMonitoringType.MonitoringOnly;
+        const monitoringType = this.isMonitor ? onValue : obs.EMonitoringType.None;
+        AudioService.instance().setSettings(this.sourceId, { monitoringType });
+        this.currentMonitoringType = monitoringType;
+      },
+    },
+    isSongMode: {
+      handler(): void {
+        this.setSourcePropertyValue(
+          'pitch_shift_mode',
+          this.isSongMode ? PitchShiftModeValue.song : PitchShiftModeValue.talk,
+        );
+        // 値入れ直し
+        const p = RtvcStateService.instance().stateParamToCommonParam(this.draftState, this.currentIndex);
+        RtvcStateService.instance().setSourcePropertiesByCommonParam(this.source, p);
+      },
+    },
+  },
 
-    this.primaryVoiceModel = optionInList(this.primaryVoiceList, this.primaryVoice);
-    this.secondaryVoiceModel = optionInList(this.secondaryVoiceList, this.secondaryVoice);
-    this.deviceModel = this.getSourcePropertyOption('device', this.device);
-    this.latencyModel = this.getSourcePropertyOption('latency', this.latency);
-
-    this.rtvcStateService.setSourcePropertiesByCommonParam(this.source, p);
-    this.audio.pause();
-  }
-
-  @Watch('name')
-  onChangeName() {
-    this.setParam('name', this.name);
-    const num = this.getManualIndexNum(this.currentIndex);
-    if (num >= 0) this.manualList[num].name = this.name; // 画面反映
-  }
-
-  @Watch('pitchShift')
-  onChangePitchShift() {
-    this.setParam('pitchShift', this.pitchShift);
-    this.setSourcePropertyValue('pitch_shift', this.pitchShift);
-  }
-
-  @Watch('pitchShiftSong')
-  onChangePitchShiftSong() {
-    this.setParam('pitchShiftSong', this.pitchShiftSong);
-    this.setSourcePropertyValue('pitch_shift_song', this.pitchShiftSong);
-  }
-
-  @Watch('amount')
-  onChangeAmount() {
-    this.setParam('amount', this.amount);
-    this.setSourcePropertyValue('amount', this.amount);
-  }
-
-  @Watch('primaryVoiceModel')
-  onChangePrimaryVoice() {
-    this.primaryVoice = this.primaryVoiceModel.value;
-    this.setParam('primaryVoice', this.primaryVoice);
-    this.setSourcePropertyValue('primary_voice', this.primaryVoice);
-  }
-
-  @Watch('secondaryVoiceModel')
-  onChangeSecondaryVoice() {
-    if (this.secondaryVoice === -1) this.amount = AmountDefault;
-    this.secondaryVoice = this.secondaryVoiceModel.value;
-    this.setParam('secondaryVoice', this.secondaryVoice);
-    this.setSourcePropertyValue('secondary_voice', this.secondaryVoice);
-  }
-
-  @Watch('deviceModel')
-  onChangeDevice() {
-    this.device = this.deviceModel.value;
-    this.setSourcePropertyValue('device', this.device);
-  }
-
-  @Watch('latencyModel')
-  onChangeLatency() {
-    this.latency = this.latencyModel.value;
-    this.setSourcePropertyValue('latency', this.latency);
-  }
-
-  @Watch('isMonitor')
-  onChangeMonitor() {
-    // on値は踏襲かoffならmonitor only, offはNoneでよい
-    const onValue = this.initialMonitoringType !== obs.EMonitoringType.None
-      ? this.initialMonitoringType
-      : obs.EMonitoringType.MonitoringOnly;
-    const monitoringType = this.isMonitor ? onValue : obs.EMonitoringType.None;
-    this.audioService.setSettings(this.sourceId, { monitoringType });
-    this.currentMonitoringType = monitoringType;
-  }
-
-  @Watch('isSongMode')
-  onChangeSongMode() {
-    this.setSourcePropertyValue(
-      'pitch_shift_mode',
-      this.isSongMode ? PitchShiftModeValue.song : PitchShiftModeValue.talk,
-    );
-    // 値入れ直し
-    const p = this.rtvcStateService.stateParamToCommonParam(this.draftState, this.currentIndex);
-    this.rtvcStateService.setSourcePropertiesByCommonParam(this.source, p);
-  }
-
-  labelForPitchSong(p: number): string {
-    const vn = [
-      { v: 0, n: '±0' },
-      { v: 1200, n: '+1' },
-      { v: -1200, n: '-1' },
-    ].find((a) => a.v === p);
-
-    const n = vn ? vn.n : `${p}/1200`;
-    return `${n}オクターブ`;
-  }
-
-  // --  param in/out
-
-  indexToModeNum(index: string): { isManual: boolean; num: number } {
-    return this.rtvcStateService.indexToModeNum(index);
-  }
-
-  getManualIndexNum(index: string): number {
-    const r = this.indexToModeNum(index);
-    if (r.isManual) return r.num;
-    return -1;
-  }
-
-  setParam(key: SetParamKey, value: any) {
-    const p = this.indexToModeNum(this.currentIndex);
-    if (p.isManual) {
-      (this.draftState.manuals[p.num] as any)[key] = value;
-      return;
-    }
-
-    // preset用のkey判断
-    if (!['pitchShift', 'pitchShiftSong'].includes(key)) return;
-    (this.draftState.presets[p.num] as any)[key] = value;
-  }
-
-  // -- sources in/out
-
-  getSourcePropertyValue(key: SourcePropKey): TObsValue {
-    const p = this.properties.find((a) => a.name === key);
-    return p ? p.value : undefined;
-  }
-
-  getSourcePropertyOptions(key: SourcePropKey): IObsListOption<number>[] {
-    const p = this.properties.find((a) => a.name === key) as IObsListInput<any>;
-    return p ? p.options : [];
-  }
-
-  getSourcePropertyOption(key: SourcePropKey, value: any): IObsListOption<number> {
-    const list = this.getSourcePropertyOptions(key);
-    return list.find((a) => a.value === value) ?? { description: '', value: 0 };
-  }
-
-  setSourcePropertyValue(key: SourcePropKey, value: TObsValue) {
-    this.rtvcStateService.setSourceProperties(this.source, [{ key, value }]);
-  }
-
-  // --- update
-
-  update() {
-    if (!this.draftState) return;
-    this.draftState.currentIndex = this.currentIndex;
-    const scenes = this.draftState.scenes ?? {};
-    const sceneId = this.scenesService.activeScene.id;
-    if (sceneId) scenes[sceneId] = this.currentIndex;
-    this.draftState.scenes = scenes;
-    this.draftState.tab = this.tab;
-    this.rtvcStateService.setState(this.draftState);
-    this.rtvcStateService.modifyEventLog();
-  }
-
-  // -- vue lifecycle
-
-  created() {
+  created(): void {
     // SourceProperties.mountedで取得するが、リストなど間に合わないので先にこれだけ。該当ソースの各パラメタはpropertiesを見れば分かる
     this.properties = this.source ? this.source.getPropertiesFormData() : [];
-    const audio = this.audioService.getSource(this.sourceId);
+    const audio = AudioService.instance().getSource(this.sourceId);
     if (audio) {
       const mt = audio.monitoringType;
       // 有効なmonitoringType以外の値はNoneに正規化
@@ -333,11 +224,11 @@ export default class RtvcSourceProperties extends SourceProperties {
     }
 
     // 初期値修正
-    if (this.rtvcStateService.isEmptyState()) {
+    if (RtvcStateService.instance().isEmptyState()) {
       this.setSourcePropertyValue('latency', 13);
     }
 
-    this.draftState = this.rtvcStateService.getState();
+    this.draftState = RtvcStateService.instance().getState();
 
     this.device = this.getSourcePropertyValue('device') as number;
     this.latency = this.getSourcePropertyValue('latency') as number;
@@ -349,14 +240,16 @@ export default class RtvcSourceProperties extends SourceProperties {
 
     this.isSongMode = (this.getSourcePropertyValue('pitch_shift_mode') as number) === PitchShiftModeValue.song;
     this.tab = this.draftState.tab ?? 0;
-  }
+  },
 
   // 右上xではOKという感じらしい
-  beforeDestroy() {
+  beforeUnmount(): void {
     this.audio.pause();
 
     // モニタリング状態は元の値に戻す
-    if (this.initialMonitoringType !== this.currentMonitoringType) this.audioService.setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
+    if (this.initialMonitoringType !== this.currentMonitoringType) {
+      AudioService.instance().setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
+    }
 
     if (this.canceled) {
       this.source.setPropertiesFormData(this.initialProperties);
@@ -365,141 +258,242 @@ export default class RtvcSourceProperties extends SourceProperties {
 
     // non-cancel
     this.update();
-  }
+  },
 
-  // --- event
+  methods: {
+    updateManualList(): void {
+      // add,delに反応しないのでコード側から変更指示
+      this.manualList = this.draftState.manuals.map((a: StateParam['manuals'][number], num: number) => ({
+        index: `manual/${num}`,
+        name: a.name,
+        label: `manual${num}`,
+        image: RtvcStateService.instance().manualImages[a.imageNum],
+      }));
+      this.canAdd = this.manualList.length < this.manualMax;
+    },
 
-  onRandom() {
-    const list0 = this.primaryVoiceList;
-    const index0 = Math.floor(Math.random() * list0.length);
-    this.primaryVoiceModel = list0[index0];
+    labelForPitchSong(p: number): string {
+      const vn = [
+        { v: 0, n: '±0' },
+        { v: 1200, n: '+1' },
+        { v: -1200, n: '-1' },
+      ].find((a) => a.v === p);
 
-    const list1 = this.primaryVoiceList;
-    const index1 = Math.floor(Math.random() * list1.length);
-    this.secondaryVoiceModel = list1[index1];
+      const n = vn ? vn.n : `${p}/1200`;
+      return `${n}オクターブ`;
+    },
 
-    this.amount = Math.floor(Math.random() * AmountDefault);
-  }
+    onChangeIndex(): void {
+      const p = RtvcStateService.instance().stateParamToCommonParam(this.draftState, this.currentIndex);
 
-  onTab(a: number) {
-    this.tab = a;
-  }
+      this.name = p.name;
+      this.label = p.label;
+      this.description = p.description;
+      this.image = p.image;
 
-  done() {
-    this.closeWindow();
-  }
-  cancel() {
-    this.canceled = true;
-    this.closeWindow();
-  }
+      this.pitchShift = p.pitchShift;
+      this.pitchShiftSong = p.pitchShiftSong;
+      this.amount = p.amount;
+      this.primaryVoice = p.primaryVoice;
+      this.secondaryVoice = p.secondaryVoice;
 
-  onSelect(index: string) {
-    this.currentIndex = index;
-  }
+      const optionInList = (list: IObsListOption<number>[], value: number) =>
+        list.find((a) => a.value === value) ?? { description: '', value }; // 100以上等はリストにないのでスルー
 
-  findNewManualImageNum() {
-    for (let i = 0; i < this.rtvcStateService.manualImages.length; i++) {
-      if (!this.draftState.manuals.find((a) => a.imageNum === i)) return i;
-    }
-    return 0;
-  }
+      this.primaryVoiceModel = optionInList(this.primaryVoiceList, this.primaryVoice);
+      this.secondaryVoiceModel = optionInList(this.secondaryVoiceList, this.secondaryVoice);
+      this.deviceModel = this.getSourcePropertyOption('device', this.device);
+      this.latencyModel = this.getSourcePropertyOption('latency', this.latency);
 
-  onAdd() {
-    if (this.draftState.manuals.length >= this.manualMax) return;
-    const newNum = this.manualList.reduce((v, a) => {
-      const m = a.name.match(/(\d+)$/);
-      return m ? Math.max(v, parseInt(m[1], 10) + 1) : v;
-    }, 1);
+      RtvcStateService.instance().setSourcePropertiesByCommonParam(this.source, p);
+      this.audio.pause();
+    },
 
-    const index = `manual/${this.draftState.manuals.length}`;
-    this.draftState.manuals.push({
-      name: `オリジナル${newNum}`,
-      pitchShift: 0,
-      pitchShiftSong: 0,
-      amount: AmountDefault,
-      primaryVoice: 0,
-      secondaryVoice: -1,
-      imageNum: this.findNewManualImageNum(),
-    });
-    this.updateManualList();
-    this.currentIndex = index;
-  }
+    indexToModeNum(index: string): { isManual: boolean; num: number } {
+      return RtvcStateService.instance().indexToModeNum(index);
+    },
 
-  canDelete(index: string): boolean {
-    return this.manualList.length > 1 && this.currentIndex !== index;
-  }
+    getManualIndexNum(index: string): number {
+      const r = this.indexToModeNum(index);
+      if (r.isManual) return r.num;
+      return -1;
+    },
 
-  async onDelete(index: string) {
-    const num = this.getManualIndexNum(index);
-    if (num < 0) return;
+    setParam(key: SetParamKey, value: any): void {
+      const p = this.indexToModeNum(this.currentIndex);
+      if (p.isManual) {
+        (this.draftState.manuals[p.num] as any)[key] = value;
+        return;
+      }
 
-    const r = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-      type: 'warning',
-      message: $t('source-props.nair-rtvc-source.nav.remove_confirm'),
-      buttons: [$t('common.remove'), $t('common.cancel')],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-    });
-    if (r.response) return;
+      // preset用のkey判断
+      if (!['pitchShift', 'pitchShiftSong'].includes(key)) return;
+      (this.draftState.presets[p.num] as any)[key] = value;
+    },
 
-    // 指定されたindexを削除
-    this.draftState.manuals.splice(num, 1);
-    this.updateManualList();
+    getSourcePropertyValue(key: SourcePropKey): TObsValue {
+      const p = this.properties.find((a: { name: string }) => a.name === key);
+      return p ? p.value as TObsValue : undefined;
+    },
 
-    // currentIndexがmanualで削除対象より後なら消した分によりズレが生じているのでcurrentIndexを変更
-    const currentNum = this.getManualIndexNum(this.currentIndex);
-    if (currentNum < 0 || currentNum < num) return;
-    const n = Math.max(currentNum - 1, 0);
-    this.currentIndex = `manual/${n}`;
-  }
+    getSourcePropertyOptions(key: SourcePropKey): IObsListOption<number>[] {
+      const p = this.properties.find((a: { name: string }) => a.name === key) as IObsListInput<any>;
+      return p ? p.options : [];
+    },
 
-  onCopy(index: string) {
-    if (this.draftState.manuals.length >= this.manualMax) return;
-    const num = this.getManualIndexNum(index);
-    if (num < 0) return;
-    const v = this.draftState.manuals[num];
-    const newIndex = `manual/${this.draftState.manuals.length}`;
+    getSourcePropertyOption(key: SourcePropKey, value: any): IObsListOption<number> {
+      const list = this.getSourcePropertyOptions(key);
+      return list.find((a: IObsListOption<number>) => a.value === value) ?? { description: '', value: 0 };
+    },
 
-    this.draftState.manuals.push({
-      name: `${v.name}のコピー`,
-      pitchShift: v.pitchShift,
-      pitchShiftSong: v.pitchShiftSong,
-      amount: v.amount,
-      primaryVoice: v.primaryVoice,
-      secondaryVoice: v.secondaryVoice,
-      imageNum: this.findNewManualImageNum(),
-    });
+    setSourcePropertyValue(key: SourcePropKey, value: TObsValue): void {
+      RtvcStateService.instance().setSourceProperties(this.source, [{ key, value }]);
+    },
 
-    this.updateManualList();
-    this.currentIndex = newIndex;
-  }
+    update(): void {
+      if (!this.draftState) return;
+      this.draftState.currentIndex = this.currentIndex;
+      const scenes = this.draftState.scenes ?? {};
+      const sceneId = ScenesService.instance().activeScene.id;
+      if (sceneId) scenes[sceneId] = this.currentIndex;
+      this.draftState.scenes = scenes;
+      this.draftState.tab = this.tab;
+      RtvcStateService.instance().setState(this.draftState);
+      RtvcStateService.instance().modifyEventLog();
+    },
 
-  playSample(index: string) {
-    const assets: string[] = [
-      require('../../../media/sound/rtvc/near.mp3'),
-      require('../../../media/sound/rtvc/zundamon.mp3'),
-      require('../../../media/sound/rtvc/tsumugi.mp3'),
-      require('../../../media/sound/rtvc/tohoku_zunko.mp3'),
-      require('../../../media/sound/rtvc/tohoku_itako.mp3'),
-      require('../../../media/sound/rtvc/tohoku_kiritan.mp3'),
-      require('../../../media/sound/rtvc/shikoku_metan.mp3'),
-      require('../../../media/sound/rtvc/kyushu_sora.mp3'),
-      require('../../../media/sound/rtvc/chugoku_usagi.mp3'),
-      require('../../../media/sound/rtvc/oedo_chanko.mp3'),
-    ];
+    onRandom(): void {
+      const list0 = this.primaryVoiceList;
+      const index0 = Math.floor(Math.random() * list0.length);
+      this.primaryVoiceModel = list0[index0];
 
-    const num = this.indexToModeNum(index);
-    if (num.isManual || num.num < 0 || num.num >= assets.length) return;
+      const list1 = this.primaryVoiceList;
+      const index1 = Math.floor(Math.random() * list1.length);
+      this.secondaryVoiceModel = list1[index1];
 
-    const asset = assets[num.num];
-    if (!asset) return;
-    this.audio.pause();
-    this.audio.src = asset;
-    this.audio.play();
-  }
-}
+      this.amount = Math.floor(Math.random() * AmountDefault);
+    },
 
+    onTab(a: number): void {
+      this.tab = a;
+    },
+
+    done(): void {
+      this.closeWindow();
+    },
+
+    cancel(): void {
+      this.canceled = true;
+      this.closeWindow();
+    },
+
+    onSelect(index: string): void {
+      this.currentIndex = index;
+    },
+
+    findNewManualImageNum(): number {
+      for (let i = 0; i < RtvcStateService.instance().manualImages.length; i++) {
+        if (!this.draftState.manuals.find((a: StateParam['manuals'][number]) => a.imageNum === i)) return i;
+      }
+      return 0;
+    },
+
+    onAdd(): void {
+      if (this.draftState.manuals.length >= this.manualMax) return;
+      const newNum = this.manualList.reduce((v: number, a: { name: string }) => {
+        const m = a.name.match(/(\d+)$/);
+        return m ? Math.max(v, parseInt(m[1], 10) + 1) : v;
+      }, 1);
+
+      const index = `manual/${this.draftState.manuals.length}`;
+      this.draftState.manuals.push({
+        name: `オリジナル${newNum}`,
+        pitchShift: 0,
+        pitchShiftSong: 0,
+        amount: AmountDefault,
+        primaryVoice: 0,
+        secondaryVoice: -1,
+        imageNum: this.findNewManualImageNum(),
+      });
+      this.updateManualList();
+      this.currentIndex = index;
+    },
+
+    canDelete(index: string): boolean {
+      return this.manualList.length > 1 && this.currentIndex !== index;
+    },
+
+    async onDelete(index: string): Promise<void> {
+      const num = this.getManualIndexNum(index);
+      if (num < 0) return;
+
+      const r = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'warning',
+        message: $t('source-props.nair-rtvc-source.nav.remove_confirm'),
+        buttons: [$t('common.remove'), $t('common.cancel')],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+      });
+      if (r.response) return;
+
+      // 指定されたindexを削除
+      this.draftState.manuals.splice(num, 1);
+      this.updateManualList();
+
+      // currentIndexがmanualで削除対象より後なら消した分によりズレが生じているのでcurrentIndexを変更
+      const currentNum = this.getManualIndexNum(this.currentIndex);
+      if (currentNum < 0 || currentNum < num) return;
+      const n = Math.max(currentNum - 1, 0);
+      this.currentIndex = `manual/${n}`;
+    },
+
+    onCopy(index: string): void {
+      if (this.draftState.manuals.length >= this.manualMax) return;
+      const num = this.getManualIndexNum(index);
+      if (num < 0) return;
+      const v = this.draftState.manuals[num];
+      const newIndex = `manual/${this.draftState.manuals.length}`;
+
+      this.draftState.manuals.push({
+        name: `${v.name}のコピー`,
+        pitchShift: v.pitchShift,
+        pitchShiftSong: v.pitchShiftSong,
+        amount: v.amount,
+        primaryVoice: v.primaryVoice,
+        secondaryVoice: v.secondaryVoice,
+        imageNum: this.findNewManualImageNum(),
+      });
+
+      this.updateManualList();
+      this.currentIndex = newIndex;
+    },
+
+    playSample(index: string): void {
+      const assets: string[] = [
+        require('../../../media/sound/rtvc/near.mp3'),
+        require('../../../media/sound/rtvc/zundamon.mp3'),
+        require('../../../media/sound/rtvc/tsumugi.mp3'),
+        require('../../../media/sound/rtvc/tohoku_zunko.mp3'),
+        require('../../../media/sound/rtvc/tohoku_itako.mp3'),
+        require('../../../media/sound/rtvc/tohoku_kiritan.mp3'),
+        require('../../../media/sound/rtvc/shikoku_metan.mp3'),
+        require('../../../media/sound/rtvc/kyushu_sora.mp3'),
+        require('../../../media/sound/rtvc/chugoku_usagi.mp3'),
+        require('../../../media/sound/rtvc/oedo_chanko.mp3'),
+      ];
+
+      const num = this.indexToModeNum(index);
+      if (num.isManual || num.num < 0 || num.num >= assets.length) return;
+
+      const asset = assets[num.num];
+      if (!asset) return;
+      this.audio.pause();
+      this.audio.src = asset;
+      this.audio.play();
+    },
+  },
+});
 const jvsListBase = [
   { description: '男性/低め/1  jvs006', value: 5 },
   { description: '男性/低め/2  jvs021', value: 20 },

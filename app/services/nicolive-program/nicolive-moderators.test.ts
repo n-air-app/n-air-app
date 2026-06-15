@@ -95,7 +95,7 @@ function prepare() {
   const stateChange = initNicoliveProgramService();
 
   const { NicoliveModeratorsService } = require('./nicolive-moderators');
-  const instance = NicoliveModeratorsService.instance as NicoliveModeratorsService;
+  const instance = NicoliveModeratorsService.instance() as NicoliveModeratorsService;
 
   const refreshObserver = jest.fn<void, [ObserveType<typeof instance.refreshObserver>]>();
   instance.refreshObserver.subscribe({ next: refreshObserver });

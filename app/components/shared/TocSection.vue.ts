@@ -1,5 +1,4 @@
-import Vue from 'vue';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import { defineComponent, inject, provide } from 'vue';
 
 interface TocSectionData {
   id: string;
@@ -8,94 +7,111 @@ interface TocSectionData {
   level: number;
 }
 
-@Component({
-  inject: {
-    getTocSectionId: { from: 'getTocSectionId' },
-    registerTocSection: { from: 'registerTocSection' },
-    unregisterTocSection: { from: 'unregisterTocSection' },
-    parentTocLevel: { from: 'tocLevel', default: undefined },
+type GetTocSectionIdFn = () => string;
+type RegisterTocSectionFn = (data: TocSectionData) => string;
+type UnregisterTocSectionFn = (categoryName: string, sectionId: string) => void;
+
+export default defineComponent({
+  name: 'TocSection',
+
+  props: {
+    title: { type: String, required: true },
+    id: { type: String },
+    level: { type: Number },
+    visible: { type: Boolean, default: true },
   },
-  provide(this: TocSection) {
+
+  setup(props) {
+    const getTocSectionId = inject<GetTocSectionIdFn>('getTocSectionId');
+    const registerTocSection = inject<RegisterTocSectionFn>('registerTocSection');
+    const unregisterTocSection = inject<UnregisterTocSectionFn>('unregisterTocSection');
+    const parentTocLevel = inject<number | undefined>('tocLevel', undefined);
+
+    // compute level once and provide to child TocSections (mirrors original static provide())
+    let computedLevel: number;
+    if (props.level !== undefined) {
+      computedLevel = props.level;
+    } else if (parentTocLevel !== undefined) {
+      computedLevel = parentTocLevel + 1;
+    } else {
+      computedLevel = 1;
+    }
+    provide('tocLevel', computedLevel);
+
     return {
-      tocLevel: this.computedLevel,
+      getTocSectionId,
+      registerTocSection,
+      unregisterTocSection,
+      parentTocLevel,
     };
   },
-})
-export default class TocSection extends Vue {
-  @Prop({ required: true }) title!: string;
-  @Prop() id?: string;
-  @Prop() level?: number;
-  @Prop({ default: true }) visible!: boolean;
 
-  getTocSectionId!: () => string;
-  registerTocSection!: (section: TocSectionData) => string;
-  unregisterTocSection!: (categoryName: string, sectionId: string) => void;
-  parentTocLevel!: number | undefined;
+  data() {
+    return {
+      generatedId: undefined as string | undefined,
+      registeredCategoryName: undefined as string | undefined,
+    };
+  },
 
-  private _generatedId?: string;
-  private _registeredCategoryName?: string;
+  created() {
+    if (!this.id && this.getTocSectionId) {
+      this.generatedId = this.getTocSectionId();
+    }
+  },
 
-  get sectionId() {
-    if (this.id) {
-      return this.id;
-    }
-    if (!this._generatedId) {
-      this._generatedId = this.getTocSectionId();
-    }
-    return this._generatedId;
-  }
+  computed: {
+    sectionId(): string {
+      return this.id || this.generatedId || '';
+    },
 
-  get computedLevel(): number {
-    // 明示的に level が指定されている場合はそれを使用
-    if (this.level !== undefined) {
-      return this.level;
-    }
-    // 親の TocSection がある場合は親の level + 1
-    if (this.parentTocLevel !== undefined) {
-      return this.parentTocLevel + 1;
-    }
-    // それ以外はデフォルトで 1
-    return 1;
-  }
+    computedLevel(): number {
+      if (this.level !== undefined) return this.level;
+      if (this.parentTocLevel !== undefined) return this.parentTocLevel + 1;
+      return 1;
+    },
+  },
 
   mounted() {
     if (this.visible) {
-      // Use $nextTick to ensure all components are mounted before registering
       this.$nextTick(() => {
-        if (this.registerTocSection && typeof this.registerTocSection === 'function') {
-          this._registeredCategoryName = this.registerTocSection({
+        const register = this.registerTocSection;
+        if (register && typeof register === 'function') {
+          this.registeredCategoryName = register({
             id: this.sectionId,
             title: this.title,
-            order: 0, // Will be recalculated based on DOM position
+            order: 0,
             level: this.computedLevel,
           });
         }
       });
     }
-  }
+  },
 
-  @Watch('visible')
-  onVisibleChanged(newVal: boolean) {
-    if (!newVal) {
-      if (this._registeredCategoryName) {
-        this.unregisterTocSection(this._registeredCategoryName, this.sectionId);
-        this._registeredCategoryName = undefined;
-      }
-    } else if (!this._registeredCategoryName && typeof this.registerTocSection === 'function') {
-      this.$nextTick(() => {
-        this._registeredCategoryName = this.registerTocSection({
-          id: this.sectionId,
-          title: this.title,
-          order: 0,
-          level: this.computedLevel,
+  beforeUnmount() {
+    if (this.registeredCategoryName) {
+      this.unregisterTocSection!(this.registeredCategoryName, this.sectionId);
+    }
+  },
+
+  watch: {
+    visible(newVal: boolean) {
+      const register = this.registerTocSection;
+      const unregister = this.unregisterTocSection;
+      if (!newVal) {
+        if (this.registeredCategoryName) {
+          unregister!(this.registeredCategoryName, this.sectionId);
+          this.registeredCategoryName = undefined;
+        }
+      } else if (!this.registeredCategoryName && typeof register === 'function') {
+        this.$nextTick(() => {
+          this.registeredCategoryName = register!({
+            id: this.sectionId,
+            title: this.title,
+            order: 0,
+            level: this.computedLevel,
+          });
         });
-      });
-    }
-  }
-
-  beforeDestroy() {
-    if (this._registeredCategoryName) {
-      this.unregisterTocSection(this._registeredCategoryName, this.sectionId);
-    }
-  }
-}
+      }
+    },
+  },
+});

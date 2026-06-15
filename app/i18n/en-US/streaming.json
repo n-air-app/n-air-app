@@ -20,9 +20,9 @@
   "programFetching": "FETCHING",
   "endStream": "END STREAM",
   "starting": "STARTING",
-  "startingWithDelay": "STARTING %{delaySeconds}s",
+  "startingWithDelay": "STARTING {delaySeconds}s",
   "ending": "ENDING",
-  "endingWithDelay": "DISCARD %{delaySeconds}s",
+  "endingWithDelay": "DISCARD {delaySeconds}s",
   "reconnecting": "RECONNECTING",
   "goLive": "GO LIVE",
   "goLiveTooltip": "Click to go live",
@@ -39,7 +39,7 @@
   "notBroadcastingCreateProgram": "Create a program",
   "broadcastStatusFetchingError": {
     "default": "Failed to get information on streaming server.  Please check your internet connection.",
-    "httpError": "Failed to get information on streaming server. (%{requestURL}: %{statusText})"
+    "httpError": "Failed to get information on streaming server. ({requestURL}: {statusText})"
   },
   "bitrateFetchingError": {
     "title": "Failed to get bitrate",
@@ -47,7 +47,8 @@
   },
   "optimizationForNiconico": {
     "title": "Optimize simple settings",
-    "description": "Optimize simple settings to deliver Nicolive."
+    "description": "Optimize simple settings to deliver Nicolive.",
+    "recordingWarning": "Cannot optimize while recording. Start streaming without optimization, or stop recording and start streaming again."
   },
   "nicoliveProgramSelector": {
     "title": "Select a program",

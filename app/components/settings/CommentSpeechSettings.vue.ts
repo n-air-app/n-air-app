@@ -4,7 +4,6 @@ import SpeechEngineSettings from 'components/settings/SpeechEngineSettings.vue';
 import DropdownIcon from 'components/shared/DropdownIcon.vue';
 import Slider from 'components/shared/Slider.vue';
 import TocSection from 'components/shared/TocSection.vue';
-import { Inject } from 'services/core/injector';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { VoicevoxURL } from 'services/nicolive-program/speech/VoicevoxSynthesizer';
 import {
@@ -13,8 +12,7 @@ import {
   SynthesizerSelectors,
 } from 'services/nicolive-program/state';
 import { WrappedChat } from 'services/nicolive-program/WrappedChat';
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 type VoicevoxItem = {
   id: string;
@@ -29,7 +27,8 @@ type SynthesizerItem = {
   icon: string;
 };
 
-@Component({
+export default defineComponent({
+  name: 'CommentSpeechSettings',
   components: {
     DropdownIcon,
     Slider,
@@ -37,281 +36,270 @@ type SynthesizerItem = {
     SpeechEngineSettings,
     TocSection,
   },
-})
-export default class CommentSpeechSettings extends Vue {
-  @Inject()
-  private nicoliveCommentSynthesizerService: NicoliveCommentSynthesizerService;
-  @Inject()
-  private nicoliveProgramStateService: NicoliveProgramStateService;
-
-  synthesizers: SynthesizerItem[] = [
-    {
-      id: 'webSpeech',
-      name: 'Windowsの音声合成',
-      icon: require('../../../media/images/listicon_windows.png'),
+  data() {
+    return {
+      synthesizers: [
+        {
+          id: 'webSpeech' as SynthesizerSelector,
+          name: 'Windowsの音声合成',
+          icon: require('../../../media/images/listicon_windows.png'),
+        },
+        {
+          id: 'nVoice' as SynthesizerSelector,
+          name: 'N Voice 琴読ニア',
+          icon: require('../../../media/images/listicon_nvoice.png'),
+        },
+        { id: 'voicevox' as SynthesizerSelector, name: 'VOICEVOX', icon: require('../../../media/images/listicon_voicevox.png') },
+        {
+          id: 'ignore' as SynthesizerSelector,
+          name: '読み上げない',
+          icon: '',
+        },
+      ] as SynthesizerItem[],
+      voicevoxChecker: undefined as number | undefined,
+      isExistVoicevox: false,
+      isLoadingVoicevox: true,
+      voicevoxItems: [] as VoicevoxItem[],
+      voicevoxNormalItem: { id: '', name: '' } as VoicevoxItem,
+      voicevoxSystemItem: { id: '', name: '' } as VoicevoxItem,
+      voicevoxOperatorItem: { id: '', name: '' } as VoicevoxItem,
+      voicevoxIcons: {} as { [id: string]: string },
+    };
+  },
+  computed: {
+    synthesizerEnabled: {
+      get(): boolean {
+        return NicoliveCommentSynthesizerService.instance().enabled;
+      },
+      set(e: boolean) {
+        NicoliveCommentSynthesizerService.instance().enabled = e;
+      },
     },
-    {
-      id: 'nVoice',
-      name: 'N Voice 琴読ニア',
-      icon: require('../../../media/images/listicon_nvoice.png'),
+    rate: {
+      get(): number {
+        return NicoliveCommentSynthesizerService.instance().rate;
+      },
+      set(v: number) {
+        NicoliveCommentSynthesizerService.instance().rate = v;
+      },
     },
-    { id: 'voicevox', name: 'VOICEVOX', icon: require('../../../media/images/listicon_voicevox.png') },
-    {
-      id: 'ignore',
-      name: '読み上げない',
-      icon: '',
+    rateCandidates(): number[] {
+      return [
+        0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.75, 2, 3, 4, 5, 6, 7,
+        8, 9, 10,
+      ];
     },
-  ];
-
+    rateDefault(): number {
+      return NicoliveCommentSynthesizerService.initialState.rate;
+    },
+    volume: {
+      get(): number {
+        return NicoliveCommentSynthesizerService.instance().volume;
+      },
+      set(v: number) {
+        NicoliveCommentSynthesizerService.instance().volume = v;
+      },
+    },
+    volumeCandidates(): number[] {
+      return [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+    },
+    volumeDefault(): number {
+      return NicoliveCommentSynthesizerService.initialState.volume;
+    },
+    synthIds(): readonly SynthesizerSelector[] {
+      return SynthesizerSelectors;
+    },
+    normal: {
+      get(): SynthesizerItem {
+        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance().normal);
+      },
+      set(s: SynthesizerItem) {
+        NicoliveCommentSynthesizerService.instance().normal = s.id;
+        this.startVoicevoxChecker();
+      },
+    },
+    operator: {
+      get(): SynthesizerItem {
+        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance().operator);
+      },
+      set(s: SynthesizerItem) {
+        NicoliveCommentSynthesizerService.instance().operator = s.id;
+        this.startVoicevoxChecker();
+      },
+    },
+    system: {
+      get(): SynthesizerItem {
+        return this.getSynthesizerItem(NicoliveCommentSynthesizerService.instance().system);
+      },
+      set(s: SynthesizerItem) {
+        NicoliveCommentSynthesizerService.instance().system = s.id;
+        this.startVoicevoxChecker();
+      },
+    },
+    isUseVoicevox(): boolean {
+      return (
+        NicoliveCommentSynthesizerService.instance().normal === 'voicevox'
+        || NicoliveCommentSynthesizerService.instance().operator === 'voicevox'
+        || NicoliveCommentSynthesizerService.instance().system === 'voicevox'
+      );
+    },
+    voicevoxInformation: {
+      get(): boolean {
+        return NicoliveProgramStateService.instance().state.voicevoxInformation;
+      },
+      set(a: boolean) {
+        NicoliveProgramStateService.instance().updateVoicevoxInformation(a);
+      },
+    },
+  },
+  watch: {
+    voicevoxNormalItem() {
+      NicoliveCommentSynthesizerService.instance().voicevoxNormal = this.voicevoxNormalItem;
+    },
+    voicevoxSystemItem() {
+      NicoliveCommentSynthesizerService.instance().voicevoxSystem = this.voicevoxSystemItem;
+    },
+    voicevoxOperatorItem() {
+      NicoliveCommentSynthesizerService.instance().voicevoxOperator = this.voicevoxOperatorItem;
+    },
+  },
   mounted() {
     this.startVoicevoxChecker();
     if (this.synthesizerEnabled) {
-      this.nicoliveCommentSynthesizerService.prefetchNVoice();
+      NicoliveCommentSynthesizerService.instance().prefetchNVoice();
     }
-  }
-
-  beforeDestroy() {
+  },
+  beforeUnmount() {
     this.stopVoicevoxChecker();
-  }
+  },
+  methods: {
+    testSpeechPlay(
+      synthId: SynthesizerSelector,
+      type: WrappedChat['type'],
+      cancelBeforeSpeaking = true,
+    ) {
+      NicoliveCommentSynthesizerService.instance().testSpeechPlay(synthId, type, cancelBeforeSpeaking);
+    },
+    resetRate() {
+      this.rate = this.rateDefault;
+    },
+    resetVolume() {
+      this.volume = this.volumeDefault;
+    },
+    resetVoice() {
+      this.resetRate();
+      this.resetVolume();
+    },
+    getSynthesizerItem(id: string): SynthesizerItem {
+      return this.synthesizers.find((a: SynthesizerItem) => a.id === id) ?? this.synthesizers[0];
+    },
+    isTestable(id: SynthesizerSelector) {
+      if (!NicoliveCommentSynthesizerService.instance().enabled) return false;
+      if (id === 'ignore') return false;
+      if (id === 'voicevox' && !this.isExistVoicevox) return false;
+      return true;
+    },
+    resetAssignment() {
+      this.normal = this.getSynthesizerItem(
+        NicoliveCommentSynthesizerService.initialState.selector.normal,
+      );
+      this.operator = this.getSynthesizerItem(
+        NicoliveCommentSynthesizerService.initialState.selector.operator,
+      );
+      this.system = this.getSynthesizerItem(
+        NicoliveCommentSynthesizerService.initialState.selector.system,
+      );
+      this.voicevoxInformation = true;
+    },
+    async readVoicevoxList() {
+      if (this.isExistVoicevox) return;
 
-  testSpeechPlay(
-    synthId: SynthesizerSelector,
-    type: WrappedChat['type'],
-    cancelBeforeSpeaking = true,
-  ) {
-    this.nicoliveCommentSynthesizerService.testSpeechPlay(synthId, type, cancelBeforeSpeaking);
-  }
+      try {
+        const list: VoicevoxItem[] = [];
+        const json = (await (await fetch(`${VoicevoxURL}/speakers`)).json()) as {
+          name: string;
+          speaker_uuid: string;
+          styles: { id: string; name: string; type: string }[];
+        }[];
+        this.isExistVoicevox = true;
 
-  get synthesizerEnabled(): boolean {
-    return this.nicoliveCommentSynthesizerService.enabled;
-  }
-  set synthesizerEnabled(e: boolean) {
-    this.nicoliveCommentSynthesizerService.enabled = e;
-  }
-
-  get rate(): number {
-    return this.nicoliveCommentSynthesizerService.rate;
-  }
-  set rate(v: number) {
-    this.nicoliveCommentSynthesizerService.rate = v;
-  }
-  get rateCandidates(): number[] {
-    return [
-      0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.75, 2, 3, 4, 5, 6, 7,
-      8, 9, 10,
-    ];
-  }
-  get rateDefault(): number {
-    return NicoliveCommentSynthesizerService.initialState.rate;
-  }
-  resetRate() {
-    this.rate = this.rateDefault;
-  }
-
-  get volume(): number {
-    return this.nicoliveCommentSynthesizerService.volume;
-  }
-  set volume(v: number) {
-    this.nicoliveCommentSynthesizerService.volume = v;
-  }
-  get volumeCandidates(): number[] {
-    return [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
-  }
-  get volumeDefault(): number {
-    return NicoliveCommentSynthesizerService.initialState.volume;
-  }
-  resetVolume() {
-    this.volume = this.volumeDefault;
-  }
-
-  resetVoice() {
-    this.resetRate();
-    this.resetVolume();
-  }
-
-  getSynthesizerItem(id: string): SynthesizerItem {
-    return this.synthesizers.find((a) => a.id === id) ?? this.synthesizers[0];
-  }
-
-  get synthIds(): readonly SynthesizerSelector[] {
-    return SynthesizerSelectors;
-  }
-
-  get normal(): SynthesizerItem {
-    return this.getSynthesizerItem(this.nicoliveCommentSynthesizerService.normal);
-  }
-  set normal(s: SynthesizerItem) {
-    this.nicoliveCommentSynthesizerService.normal = s.id;
-    this.startVoicevoxChecker();
-  }
-  get operator(): SynthesizerItem {
-    return this.getSynthesizerItem(this.nicoliveCommentSynthesizerService.operator);
-  }
-  set operator(s: SynthesizerItem) {
-    this.nicoliveCommentSynthesizerService.operator = s.id;
-    this.startVoicevoxChecker();
-  }
-  get system(): SynthesizerItem {
-    return this.getSynthesizerItem(this.nicoliveCommentSynthesizerService.system);
-  }
-  set system(s: SynthesizerItem) {
-    this.nicoliveCommentSynthesizerService.system = s.id;
-    this.startVoicevoxChecker();
-  }
-
-  isTestable(id: SynthesizerSelector) {
-    if (!this.nicoliveCommentSynthesizerService.enabled) return false;
-    if (id === 'ignore') return false;
-    if (id === 'voicevox' && !this.isExistVoicevox) return false;
-    return true;
-  }
-
-  resetAssignment() {
-    this.normal = this.getSynthesizerItem(
-      NicoliveCommentSynthesizerService.initialState.selector.normal,
-    );
-    this.operator = this.getSynthesizerItem(
-      NicoliveCommentSynthesizerService.initialState.selector.operator,
-    );
-    this.system = this.getSynthesizerItem(
-      NicoliveCommentSynthesizerService.initialState.selector.system,
-    );
-    this.voicevoxInformation = true;
-  }
-
-  voicevoxChecker?: number = undefined;
-  isExistVoicevox = false;
-  isLoadingVoicevox = true;
-  voicevoxItems: VoicevoxItem[] = [];
-  voicevoxNormalItem: VoicevoxItem = { id: '', name: '' };
-  voicevoxSystemItem: VoicevoxItem = { id: '', name: '' };
-  voicevoxOperatorItem: VoicevoxItem = { id: '', name: '' };
-
-  voicevoxIcons: { [id: string]: string } = {};
-
-  get isUseVoicevox(): boolean {
-    return (
-      this.nicoliveCommentSynthesizerService.normal === 'voicevox'
-      || this.nicoliveCommentSynthesizerService.operator === 'voicevox'
-      || this.nicoliveCommentSynthesizerService.system === 'voicevox'
-    );
-  }
-
-  @Watch('voicevoxNormalItem')
-  onChangevoicevoxForNormal() {
-    this.nicoliveCommentSynthesizerService.voicevoxNormal = this.voicevoxNormalItem;
-  }
-  @Watch('voicevoxSystemItem')
-  onChangevoicevoxForSystem() {
-    this.nicoliveCommentSynthesizerService.voicevoxSystem = this.voicevoxSystemItem;
-  }
-  @Watch('voicevoxOperatorItem')
-  onChangevoicevoxForOperator() {
-    this.nicoliveCommentSynthesizerService.voicevoxOperator = this.voicevoxOperatorItem;
-  }
-
-  async readVoicevoxList() {
-    if (this.isExistVoicevox) return;
-
-    try {
-      const list: VoicevoxItem[] = [];
-      const json = (await (await fetch(`${VoicevoxURL}/speakers`)).json()) as {
-        name: string;
-        speaker_uuid: string;
-        styles: { id: string; name: string; type: string }[];
-      }[];
-      this.isExistVoicevox = true;
-
-      for (const item of json) {
-        const name = item['name'];
-        const uuid = item['speaker_uuid'];
-        for (const style of item['styles']) {
-          const id = style['id'];
-          const sn = style['name'];
-          if (id === undefined || sn === undefined || style['type'] !== 'talk') continue;
-          const icon = await this.getVoicevoxIcon(id, uuid);
-          list.push({ id, uuid, name: `${name} ${sn}`, icon });
+        for (const item of json) {
+          const name = item['name'];
+          const uuid = item['speaker_uuid'];
+          for (const style of item['styles']) {
+            const id = style['id'];
+            const sn = style['name'];
+            if (id === undefined || sn === undefined || style['type'] !== 'talk') continue;
+            const icon = await this.getVoicevoxIcon(id, uuid);
+            list.push({ id, uuid, name: `${name} ${sn}`, icon });
+          }
         }
+        if (!list.length) return;
+        this.voicevoxItems = list;
+        this.voicevoxNormalItem = this.getVoicevoxItem(
+          NicoliveCommentSynthesizerService.instance().voicevoxNormal.id,
+        );
+        this.voicevoxSystemItem = this.getVoicevoxItem(
+          NicoliveCommentSynthesizerService.instance().voicevoxSystem.id,
+        );
+        this.voicevoxOperatorItem = this.getVoicevoxItem(
+          NicoliveCommentSynthesizerService.instance().voicevoxOperator.id,
+        );
+
+        this.isLoadingVoicevox = false;
+      } catch (e) {
+        this.isExistVoicevox = false;
+        this.isLoadingVoicevox = false;
       }
-      if (!list.length) return;
-      this.voicevoxItems = list;
-      this.voicevoxNormalItem = this.getVoicevoxItem(
-        this.nicoliveCommentSynthesizerService.voicevoxNormal.id,
-      );
-      this.voicevoxSystemItem = this.getVoicevoxItem(
-        this.nicoliveCommentSynthesizerService.voicevoxSystem.id,
-      );
-      this.voicevoxOperatorItem = this.getVoicevoxItem(
-        this.nicoliveCommentSynthesizerService.voicevoxOperator.id,
-      );
+    },
+    getVoicevoxItem(id: string): VoicevoxItem {
+      return this.voicevoxItems.find((a: VoicevoxItem) => a.id === id) ?? { id: '', name: '' };
+    },
+    async getVoicevoxIcon(id: string, uuid?: string) {
+      if (this.voicevoxIcons[id]) return this.voicevoxIcons[id];
 
-      this.isLoadingVoicevox = false;
-    } catch (e) {
-      this.isExistVoicevox = false;
-      this.isLoadingVoicevox = false;
-    }
-  }
-
-  getVoicevoxItem(id: string): VoicevoxItem {
-    return this.voicevoxItems.find((a) => a.id === id) ?? { id: '', name: '' };
-  }
-
-  async getVoicevoxIcon(id: string, uuid?: string) {
-    if (this.voicevoxIcons[id]) return this.voicevoxIcons[id];
-
-    if (!uuid) {
-      const item = this.getVoicevoxItem(id);
-      if (!item || !item.uuid) return '';
-      uuid = item.uuid;
-    }
-    try {
-      const json = (await (
-        await fetch(`${VoicevoxURL}/speaker_info?resource_format=url&speaker_uuid=${uuid}`)
-      ).json()) as { style_infos: { id: string; icon: string }[] };
-
-      for (const info of json.style_infos) {
-        const id = info['id'];
-        const icon = info['icon'];
-        if (id === undefined || !icon) continue;
-        this.voicevoxIcons[id] = icon;
+      if (!uuid) {
+        const item = this.getVoicevoxItem(id);
+        if (!item || !item.uuid) return '';
+        uuid = item.uuid;
       }
-    } catch (e) {
-      // 想定外の形式の場合における例外排除
-    }
+      try {
+        const json = (await (
+          await fetch(`${VoicevoxURL}/speaker_info?resource_format=url&speaker_uuid=${uuid}`)
+        ).json()) as { style_infos: { id: string; icon: string }[] };
 
-    return this.voicevoxIcons[id] ?? '';
-  }
+        for (const info of json.style_infos) {
+          const id = info['id'];
+          const icon = info['icon'];
+          if (id === undefined || !icon) continue;
+          this.voicevoxIcons[id] = icon;
+        }
+      } catch (e) {
+        // 想定外の形式の場合における例外排除
+      }
 
-  startVoicevoxChecker() {
-    if (!this.isUseVoicevox) {
-      this.stopVoicevoxChecker();
-      return;
-    }
-    if (this.isExistVoicevox) return;
-    this.readVoicevoxList();
-    if (this.voicevoxChecker !== undefined) return;
-    this.voicevoxChecker = window.setInterval(() => this.readVoicevoxList(), 3000);
-  }
-
-  stopVoicevoxChecker() {
-    if (this.voicevoxChecker === undefined) return;
-    window.clearInterval(this.voicevoxChecker);
-    this.voicevoxChecker = undefined;
-  }
-
-  get voicevoxInformation(): boolean {
-    return this.nicoliveProgramStateService.state.voicevoxInformation;
-  }
-
-  set voicevoxInformation(a: boolean) {
-    this.nicoliveProgramStateService.updateVoicevoxInformation(a);
-  }
-
-  closeVoicevoxInformation() {
-    this.voicevoxInformation = false;
-  }
-
-  showVoicevoxInformation() {
-    remote.shell.openExternal('https://qa.nicovideo.jp/faq/show/23961?site_domain=default');
-  }
-}
+      return this.voicevoxIcons[id] ?? '';
+    },
+    startVoicevoxChecker() {
+      if (!this.isUseVoicevox) {
+        this.stopVoicevoxChecker();
+        return;
+      }
+      if (this.isExistVoicevox) return;
+      this.readVoicevoxList();
+      if (this.voicevoxChecker !== undefined) return;
+      this.voicevoxChecker = window.setInterval(() => this.readVoicevoxList(), 3000);
+    },
+    stopVoicevoxChecker() {
+      if (this.voicevoxChecker === undefined) return;
+      window.clearInterval(this.voicevoxChecker);
+      this.voicevoxChecker = undefined;
+    },
+    closeVoicevoxInformation() {
+      this.voicevoxInformation = false;
+    },
+    showVoicevoxInformation() {
+      remote.shell.openExternal('https://qa.nicovideo.jp/faq/show/23961?site_domain=default');
+    },
+  },
+});

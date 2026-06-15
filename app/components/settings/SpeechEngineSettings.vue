@@ -23,7 +23,8 @@
           </div>
           <div class="slider-wrapper">
             <slider
-              v-model="maxTime"
+              :value="maxTime"
+              @input="maxTime = $event"
               :disabled="!enabled"
               :data="maxTimeCandidates"
               tooltip="hover"
@@ -75,7 +76,8 @@
           </div>
           <div class="slider-wrapper">
             <slider
-              v-model="pitch"
+              :value="pitch"
+              @input="pitch = $event"
               :disabled="!enabled"
               :data="pitchCandidates"
               tooltip="hover"

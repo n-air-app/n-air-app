@@ -112,6 +112,9 @@ export class ClipboardService
 
   @shortcut('Ctrl+V')
   paste(duplicateSources = false) {
+    // アクティブシーンが未確定なタイミング(起動直後やシーンコレクション切替中)では貼り付けできない
+    if (!this.scenesService.activeScene) return;
+
     const systemClipboard = this.fetchSystemClipboard();
     if (JSON.stringify(this.state.systemClipboard) !== JSON.stringify(systemClipboard)) {
       this.clear();

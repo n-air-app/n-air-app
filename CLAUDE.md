@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 N Air is an Electron-based desktop streaming application for niconico live streaming, forked from Streamlabs OBS. It combines Vue.js frontend with native OBS streaming capabilities, specifically tailored for Japanese live streaming needs.
 
-**Tech Stack:** Electron 29.3.1, Vue.js 2.7.14, TypeScript 5.5.4, OBS Studio Node, Webpack 5
+**Tech Stack:** Electron 29.3.1, Vue.js 3.5.34, TypeScript 5.5.4, OBS Studio Node, Webpack 5
 
 ## Development Commands
 
@@ -69,9 +69,9 @@ pnpm format         # ESLint fix + Stylelint fix + sort-package-json
 
 **Import Paths:** Uses TypeScript path mapping with `baseUrl: "./app"` - import from app root without relative paths
 
-**Decorators:** Uses experimental decorators for services and Vue components (`@Component`, `@Prop`, etc.)
+**Decorators:** Vue components use `defineComponent` (Options API) — no class-based decorators. Service layer uses custom decorators (`@Inject`, `@mutation`, `@ServiceHelper`, `@shortcut`, `@InitAfter`) via experimentalDecorators. See [docs/decorators.md](docs/decorators.md).
 
-**State Management:** RxJS Subjects/BehaviorSubjects in services, not Vuex for most app state
+**State Management:** RxJS Subjects/BehaviorSubjects in services. `StatefulService<T>` uses Vuex 4 for cross-process state sync; plain `Service` does not.
 
 **Window Communication:** Use `@electron/remote` for IPC between main and renderer processes
 
@@ -91,7 +91,7 @@ pnpm format         # ESLint fix + Stylelint fix + sort-package-json
 
 **Location:** `app/i18n/` with Japanese/English support
 **Validation:** Pre-commit hook runs i18n integrity checks
-**Framework:** Vue-i18n 7.x
+**Framework:** Vue-i18n 9.x (legacy mode)
 
 ## Unit Testing Guidelines
 
@@ -176,4 +176,4 @@ Also ensure `bin/package.json`'s `packageManager` field matches the root `packag
 
 ## Decorators
 
-**Current Status:** See [docs/decorators.md](docs/decorators.md) for decorator usage inventory and Vue 3 migration strategy
+**Current Status:** See [docs/decorators.md](docs/decorators.md) for decorator usage inventory (Vue 3 migration complete)

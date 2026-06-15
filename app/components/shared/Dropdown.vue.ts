@@ -73,7 +73,7 @@ import { computed, defineComponent, nextTick, PropType, ref, watch } from 'vue';
 
 // クリックアウトサイドディレクティブを外部で定義
 const clickOutsideDirective = {
-  bind(el: HTMLElement, binding: any) {
+  beforeMount(el: HTMLElement, binding: any) {
     const handler = (event: MouseEvent) => {
       if (!el.contains(event.target as Node)) {
         binding.value(event);
@@ -82,7 +82,7 @@ const clickOutsideDirective = {
     (el as any).__clickOutsideHandler__ = handler;
     document.addEventListener('click', handler);
   },
-  unbind(el: HTMLElement) {
+  beforeUnmount(el: HTMLElement) {
     const handler = (el as any).__clickOutsideHandler__;
     if (handler) {
       document.removeEventListener('click', handler);
@@ -93,6 +93,7 @@ const clickOutsideDirective = {
 
 export default defineComponent({
   name: 'Dropdown',
+  emits: ['input', 'search-change', 'dragging-change'],
   directives: {
     clickOutside: clickOutsideDirective,
   },
@@ -148,12 +149,14 @@ export default defineComponent({
     // オプション比較ロジック
     // trackBy指定時: 指定プロパティで比較
     // trackBy未指定: 参照比較（オブジェクトの場合はtrackByの指定を推奨）
-    const compareOptions = (opt1: any, opt2: any): boolean => {
+    const compareOptions = (opt1: unknown, opt2: unknown): boolean => {
       if (opt1 === opt2) return true;
       if (opt1 == null || opt2 == null) return false;
 
       if (props.trackBy && typeof opt1 === 'object' && typeof opt2 === 'object') {
-        return opt1[props.trackBy] === opt2[props.trackBy];
+        const r1 = opt1 as Record<string, unknown>;
+        const r2 = opt2 as Record<string, unknown>;
+        return r1[props.trackBy] === r2[props.trackBy];
       }
       return false;
     };
@@ -168,22 +171,22 @@ export default defineComponent({
     // オプションのラベルを取得
     // label指定時: 指定プロパティを使用
     // label未指定: 文字列化（オブジェクトの場合はlabelの指定を推奨）
-    const getOptionLabel = (option: any): string => {
+    const getOptionLabel = (option: unknown): string => {
       if (option == null) return '';
-      if (props.label && typeof option === 'object') return option[props.label];
+      if (props.label && typeof option === 'object') return (option as Record<string, unknown>)[props.label] as string;
       return String(option);
     };
 
     // オプションのキーを取得（Vue の :key として使用）
     // trackBy指定時: 指定プロパティを使用
     // trackBy未指定: 文字列化（オブジェクトの場合はtrackByの指定を推奨）
-    const getOptionKey = (option: any): string | number => {
-      if (props.trackBy && typeof option === 'object') return option[props.trackBy];
+    const getOptionKey = (option: unknown): string | number => {
+      if (props.trackBy && typeof option === 'object') return (option as Record<string, unknown>)[props.trackBy] as string | number;
       return String(option);
     };
 
     // オプションが選択されているか判定
-    const isSelected = (option: any): boolean => {
+    const isSelected = (option: unknown): boolean => {
       return props.value != null && compareOptions(option, props.value);
     };
 
@@ -297,7 +300,7 @@ export default defineComponent({
     };
 
     // オプション選択
-    const selectOption = (option: any) => {
+    const selectOption = (option: unknown) => {
       emit('input', option);
       closeDropdown();
     };

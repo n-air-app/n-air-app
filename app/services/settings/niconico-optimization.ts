@@ -70,6 +70,7 @@ export function getBestSettingsForNiconico(
       };
     } else if (
       settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.qsv)
+      || settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.qsvNew)
       || settings.hasSpecificValue(OptimizationKey.encoder, EncoderFamily.advancedQsv)
     ) {
       encoderSettings = {

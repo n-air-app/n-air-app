@@ -157,7 +157,7 @@ export class CommandLineClient {
   }
 
   private flush(): void {
-    this.receiver.flush((line: string) => this.log(`-> ${line}`));
+    this.receiver.flush((line) => this.log(`-> ${line}`));
   }
 
   /**
@@ -330,7 +330,7 @@ export class NVoiceClient {
       const cancelWatchingTerminate = client.onTerminate(() => {
         reject(new Error(`n-voice-engine exited: ${client.exitCode}`));
       });
-      client.waitLine((data: string) => {
+      client.waitLine((data) => {
         const [first, ...rest] = data.split(' ');
         switch (first) {
           case 'ok':

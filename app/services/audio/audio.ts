@@ -10,11 +10,10 @@ import { debounceTime, filter } from 'rxjs/operators';
 import { InitAfter, Inject, mutation, ServiceHelper, StatefulService } from 'services/core';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
-import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService } from 'services/sources';
+import { isNoAudioPropertiesManagerType, ISource, Source, SourcesService, TSourceType } from 'services/sources';
 import Utils, { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
-import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
 
@@ -175,9 +174,10 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
    * Get AudioSource by WASAPI device ID
    * @param deviceId WASAPI device ID (from getDevices()[].id)
    * @param isDefault If true, also matches when device_id is 'default' (user selected system default)
+   * @param sourceType If specified, only matches sources of this type (e.g. 'wasapi_input_capture')
    * @returns AudioSource if found, undefined otherwise
    */
-  getSourceByDeviceId(deviceId: string, isDefault = false): AudioSource | undefined {
+  getSourceByDeviceId(deviceId: string, isDefault = false, sourceType?: TSourceType): AudioSource | undefined {
     if (!deviceId) {
       return undefined;
     }
@@ -186,13 +186,17 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const audioSources = this.getSources();
     for (const audioSource of audioSources) {
       try {
+        if (sourceType && audioSource.source.type !== sourceType) {
+          continue;
+        }
         const obsInput = audioSource.source.getObsInput();
         const obsDeviceId = obsInput?.settings?.device_id;
         if (obsDeviceId === deviceId) {
           return audioSource;
         }
-        // If isDefault is true, also match when device_id is 'default'
-        if (isDefault && obsDeviceId === 'default') {
+        // If isDefault is true, also match when device_id is 'default', null, or undefined
+        // (OBS omits device_id from settings when using the system default device)
+        if (isDefault && (obsDeviceId === 'default' || obsDeviceId == null)) {
           return audioSource;
         }
       } catch (err) {
@@ -381,7 +385,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   @mutation()
   private ADD_AUDIO_SOURCE(source: IAudioSource) {
-    Vue.set(this.state.audioSources, source.sourceId, source);
+    this.state.audioSources[source.sourceId] = source;
   }
 
   @mutation()
@@ -391,7 +395,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   @mutation()
   private REMOVE_AUDIO_SOURCE(sourceId: string) {
-    Vue.delete(this.state.audioSources, sourceId);
+    delete this.state.audioSources[sourceId];
   }
 }
 

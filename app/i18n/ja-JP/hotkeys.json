@@ -4,8 +4,8 @@
   "startRecording": "録画開始",
   "stopRecording": "録画停止",
   "switchToScene": "シーン切り替え",
-  "showSource": "%{sourcename} を表示する",
-  "hideSource": "%{sourcename} を非表示にする",
+  "showSource": "{sourcename} を表示する",
+  "hideSource": "{sourcename} を非表示にする",
   "mute": "ミュート",
   "unmute": "ミュート解除",
   "pushToMute": "押している間ミュート",
@@ -18,8 +18,8 @@
   "stopReplayBuffer": "リプレイバッファーを停止する",
   "togglePerformanceMode": "パフォーマンス優先モードを切り替える",
   "toggleCompactMode": "コンパクトモードを切り替える",
-  "pushToSourceShow": "%{sourcename} を表示する（押している間）",
-  "pushToSourceHide": "%{sourcename} を非表示にする（押している間）",
+  "pushToSourceShow": "{sourcename} を表示する（押している間）",
+  "pushToSourceHide": "{sourcename} を非表示にする（押している間）",
   "inputPlaceholder": "クリックして割り当て",
   "inputPlaceholderFocused": "キーを押してください"
 }

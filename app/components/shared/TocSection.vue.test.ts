@@ -1,29 +1,32 @@
 import { jest_fn } from 'util/jest_fn';
 
 // Mock Vue
-jest.mock('vue', () => ({
-  __esModule: true,
-  default: class Vue {
+jest.mock('vue', () => {
+  class Vue {
     $nextTick(fn: () => void) {
       Promise.resolve().then(fn);
     }
-  },
-}));
-
-jest.mock('vue-property-decorator', () => ({
-  Component: (options?: any) => (target: any) => {
-    if (options?.inject) {
-      // Store inject configuration for later use in tests
-      target.prototype._injectConfig = options.inject;
+  }
+  function defineComponent(options: any): any {
+    class Component extends Vue {
+      constructor() {
+        super();
+        if (options.data) Object.assign(this, options.data.call(this));
+      }
     }
-    if (options?.provide) {
-      target.prototype._provideFunction = options.provide;
+    if (options.computed) {
+      for (const [key, fn] of Object.entries(options.computed as Record<string, any>)) {
+        Object.defineProperty(Component.prototype, key, { get: fn, configurable: true });
+      }
     }
-    return target;
-  },
-  Prop: (options?: any) => (target: any, propertyKey: string) => {},
-  Watch: (propName: string) => (target: any, propertyKey: string) => {},
-}));
+    if (options.methods) Object.assign(Component.prototype, options.methods);
+    for (const hook of ['mounted', 'beforeUnmount', 'unmounted', 'created']) {
+      if (options[hook]) (Component.prototype as any)[hook] = options[hook];
+    }
+    return Component;
+  }
+  return { __esModule: true, default: Vue, defineComponent };
+});
 
 describe('TocSection', () => {
   let TocSection: any;
@@ -71,6 +74,9 @@ describe('TocSection', () => {
     instance.registerTocSection = mockRegisterTocSection;
     instance.unregisterTocSection = mockUnregisterTocSection;
     instance.parentTocLevel = props.parentTocLevel;
+
+    // Run created() to initialize generatedId
+    if (instance.created) instance.created();
 
     return instance;
   }
@@ -253,7 +259,7 @@ describe('TocSection', () => {
     });
   });
 
-  describe('beforeDestroy', () => {
+  describe('beforeUnmount', () => {
     it('unregisterTocSection が呼ばれる（明示的なID）', async () => {
       const instance = createInstance({
         title: 'Test Section',
@@ -264,7 +270,7 @@ describe('TocSection', () => {
       instance.mounted();
       await new Promise((resolve) => { void setImmediate(resolve); }); // Wait for $nextTick
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
 
       expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', 'test-id');
     });
@@ -281,7 +287,7 @@ describe('TocSection', () => {
       instance.mounted();
       await new Promise((resolve) => { void setImmediate(resolve); }); // Wait for $nextTick
 
-      instance.beforeDestroy();
+      instance.beforeUnmount();
 
       expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', generatedId);
       expect(mockUnregisterTocSection).toHaveBeenCalledWith('TestCategory', 'toc-section-0');

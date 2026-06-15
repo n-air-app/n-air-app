@@ -28,7 +28,8 @@
                   <div class="value">×{{ rate }}<span v-if="rate == rateDefault">（既定）</span></div>
                 </div>
                 <slider
-                  v-model="rate"
+                  :value="rate"
+                  @input="rate = $event"
                   :disabled="!synthesizerEnabled"
                   :data="rateCandidates"
                   tooltip="hover"
@@ -42,7 +43,8 @@
                   </div>
                 </div>
                 <slider
-                  v-model="volume"
+                  :value="volume"
+                  @input="volume = $event"
                   :disabled="!synthesizerEnabled"
                   :data="volumeCandidates"
                   tooltip="hover"
@@ -100,10 +102,10 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <DropdownIcon v-model="system" :options="synthesizers" />
+                <DropdownIcon :value="system" @input="system = $event" :options="synthesizers" />
                 <DropdownIcon
                   v-if="system.id == 'voicevox'"
-                  v-model="voicevoxSystemItem"
+                  :value="voicevoxSystemItem" @input="voicevoxSystemItem = $event"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
                   :searchable="true"
@@ -127,10 +129,10 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <DropdownIcon v-model="normal" :options="synthesizers" />
+                <DropdownIcon :value="normal" @input="normal = $event" :options="synthesizers" />
                 <DropdownIcon
                   v-if="normal.id == 'voicevox'"
-                  v-model="voicevoxNormalItem"
+                  :value="voicevoxNormalItem" @input="voicevoxNormalItem = $event"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
                   :searchable="true"
@@ -155,10 +157,10 @@
                 </label>
               </div>
               <div class="select-wrapper">
-                <DropdownIcon v-model="operator" :options="synthesizers" />
+                <DropdownIcon :value="operator" @input="operator = $event" :options="synthesizers" />
                 <DropdownIcon
                   v-if="operator.id == 'voicevox'"
-                  v-model="voicevoxOperatorItem"
+                  :value="voicevoxOperatorItem" @input="voicevoxOperatorItem = $event"
                   :options="voicevoxItems"
                   :disabled="!isExistVoicevox"
                   :searchable="true"

@@ -26,7 +26,6 @@ import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
 import { CustomcastUsageService } from '../custom-cast-usage';
 import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
-import { PerformanceService } from '../performance';
 import { IStreamingSetting } from '../platforms';
 import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';
@@ -63,6 +62,18 @@ interface IOBSOutputSignalInfo {
   code: obs.EOutputCode;
   error: string;
 }
+
+const OBS_OUTPUT_CODE_NAMES: Record<number, string> = {
+  [-1]: 'BadPath',
+  [-2]: 'ConnectFailed',
+  [-3]: 'InvalidStream',
+  [-4]: 'Error',
+  [-5]: 'Disconnected',
+  [-6]: 'Unsupported',
+  [-7]: 'NoSpace',
+  [-8]: 'EncoderError',
+  [-65]: 'OutdatedDriver',
+};
 
 export class StreamingService
   extends StatefulService<IStreamingServiceState>
@@ -439,7 +450,7 @@ export class StreamingService
       useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
     });
     if (Object.keys(settings.delta).length > 0 || mustShowDialog) {
-      if (this.customizationService.showOptimizationDialogForNiconico || mustShowDialog) {
+      if (this.customizationService.showOptimizationDialogForNiconico || mustShowDialog || this.isRecording) {
         this.windowsService.showWindow({
           componentName: 'OptimizeForNiconico',
           title: $t('streaming.optimizationForNiconico.title'),
@@ -717,8 +728,6 @@ export class StreamingService
 
   private reconnectStartedAt: number | null = null;
   private reconnectCount = 0;
-  private lastReconnectSentAt = 0;
-  private readonly RECONNECT_RATE_LIMIT_MS = 30_000;
 
   private handleOBSOutputSignal(info: IOBSOutputSignalInfo) {
     console.debug('OBS Output signal: ', info);
@@ -788,28 +797,6 @@ export class StreamingService
           level: 'warning',
           data: { code: info.code, error: info.error, reconnectCount: this.reconnectCount },
         });
-        if (Date.now() - this.lastReconnectSentAt >= this.RECONNECT_RATE_LIMIT_MS) {
-          this.lastReconnectSentAt = Date.now();
-          const streamElapsedSec = this.state.streamingStatusTime
-            ? Math.round(
-              (Date.now() - new Date(this.state.streamingStatusTime).getTime()) / 1000,
-            )
-            : -1;
-          const perfState = PerformanceService.instance.state;
-          SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect started', {
-            level: 'warning',
-            fingerprint: ['StreamingService', 'reconnect', String(info.code ?? 0)],
-            tags: { signal: 'Reconnect' },
-            extra: {
-              info,
-              streamElapsedSec,
-              reconnectCount: this.reconnectCount,
-              CPU: perfState.CPU,
-              streamingBandwidth: perfState.streamingBandwidth,
-              percentageDroppedFrames: perfState.percentageDroppedFrames,
-            },
-          });
-        }
       } else if (info.signal === EOBSOutputSignal.ReconnectSuccess) {
         const durationMs =
           this.reconnectStartedAt != null ? Date.now() - this.reconnectStartedAt : -1;
@@ -821,12 +808,6 @@ export class StreamingService
           message: 'reconnect_success',
           level: 'info',
           data: { durationMs, reconnectCount: this.reconnectCount },
-        });
-        SentryReport.message('StreamingService', 'handleOBSOutputSignal', 'streaming reconnect succeeded', {
-          level: 'info',
-          fingerprint: ['StreamingService', 'reconnectSuccess'],
-          tags: { signal: 'ReconnectSuccess' },
-          extra: { durationMs, reconnectCount: this.reconnectCount },
         });
       }
     } else if (info.type === EOBSOutputType.Recording) {
@@ -871,9 +852,11 @@ export class StreamingService
         info.signal !== EOBSOutputSignal.Reconnect &&
         info.signal !== EOBSOutputSignal.ReconnectSuccess
       ) {
-        SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${info.code}`, {
-          fingerprint: ['StreamingService', 'outputCode', String(info.code)],
-          tags: { signal: String(info.signal), outputType: String(info.type) },
+        const outputCodeName = OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code);
+        SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${outputCodeName}`, {
+          level: 'warning',
+          fingerprint: ['StreamingService', 'outputCode'],
+          tags: { signal: String(info.signal), outputType: String(info.type), outputCode: outputCodeName },
           extra: { info, reconnectCount: this.reconnectCount },
         });
       }
