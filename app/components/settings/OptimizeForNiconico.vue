@@ -2,6 +2,10 @@
   <modal-layout :show-controls="false" :customControls="true">
     <div slot="content">
       <p class="optimize-title">{{ $t('streaming.optimizationForNiconico.description') }}</p>
+      <p v-if="isRecording" class="alert" data-variant="light" data-type="caution">
+        <i class="icon-warning-circle"></i>
+        {{ $t('streaming.optimizationForNiconico.recordingWarning') }}
+      </p>
       <ul class="optimize-category-list">
         <li
           class="optimize-category-list-item"
@@ -22,14 +26,14 @@
           </ul>
         </li>
       </ul>
-      <BoolInput :value="useHardwareEncoder" @input="setUseHardwareEncoder" />
-      <BoolInput :value="doNotShowAgain" @input="setDoNotShowAgain" />
+      <BoolInput v-if="!isRecording" :value="useHardwareEncoder" @input="setUseHardwareEncoder" />
+      <BoolInput v-if="!isRecording" :value="doNotShowAgain" @input="setDoNotShowAgain" />
     </div>
     <div slot="controls">
       <button class="button button--secondary" :disabled="isStarting" @click="skip">
         {{ $t('streaming.skipOptimization') }}
       </button>
-      <button class="button button--primary" :disabled="isStarting" @click="optimizeAndGoLive">
+      <button class="button button--primary" :disabled="isStarting || isRecording" @click="optimizeAndGoLive">
         {{ $t('streaming.optimizeAndGoLive') }}
       </button>
     </div>
@@ -47,6 +51,31 @@
 
 .optimize-title {
   color: var(--color-text-light);
+}
+
+.alert {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-lg);
+  color: var(--text-color, var(--color-object-emphasis-high));
+  background-color: var(--bg-color, var(--color-highlight-medium));
+  border-color: var(--border-color, var(--color-border-emphasis-low));
+  border-style: solid;
+  border-width: var(--border-width, 1px);
+  border-radius: var(--radius-sm);
+
+  &[data-variant='light'] {
+    --border-width: 0;
+  }
+
+  &[data-type='caution'] {
+    --text-color: var(--color-caution-primary);
+    --bg-color: var(--color-caution-light);
+  }
 }
 
 .optimize-category-list {

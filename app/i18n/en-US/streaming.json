@@ -47,7 +47,8 @@
   },
   "optimizationForNiconico": {
     "title": "Optimize simple settings",
-    "description": "Optimize simple settings to deliver Nicolive."
+    "description": "Optimize simple settings to deliver Nicolive.",
+    "recordingWarning": "Cannot optimize while recording. Start streaming without optimization, or stop recording and start streaming again."
   },
   "nicoliveProgramSelector": {
     "title": "Select a program",
