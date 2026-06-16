@@ -1245,18 +1245,6 @@ function initialize(crashHandler) {
     }
   });
 
-  ipcMain.on('restartApp', () => {
-    // prevent unexpected cache clear
-    const args = process.argv
-      .slice(1)
-      .filter((x) => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x));
-
-    app.relaunch({ args });
-    // Closing the main window starts the shut down sequence
-    mainWindow.close();
-    closeSplashWindow();
-  });
-
   ipcMain.on('showErrorAlert', () => {
     safeSend(mainWindow, 'showErrorAlert');
   });
