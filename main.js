@@ -1205,14 +1205,15 @@ function initialize(crashHandler) {
    * @see https://github.com/electron/electron/pull/11679#issuecomment-359180722
    **/
 
-  function preventNewWindow(e, url) {
-    e.preventDefault();
-    shell.openExternal(url);
-  }
-
   ipcMain.on('window-preventNewWindow', (_event, id) => {
     const window = BrowserWindow.fromId(id);
-    window.webContents.on('new-window', preventNewWindow);
+    if (!window || window.webContents.isDestroyed()) return;
+    window.webContents.setWindowOpenHandler((details) => {
+      if (/^https?:/.test(details.url)) {
+        shell.openExternal(details.url).catch((e) => console.error('shell.openExternal failed:', e));
+      }
+      return { action: 'deny' };
+    });
   });
 
   // The main process acts as a hub for various windows
@@ -1270,22 +1271,6 @@ function initialize(crashHandler) {
     // Closing the main window starts the shut down sequence
     mainWindow.close();
     closeSplashWindow();
-  });
-
-  /* The following 2 methods need to live in the main process
-     because events bound using the remote module are not
-     executed synchronously and therefore default actions
-     cannot be prevented. */
-  ipcMain.on('webContents-preventNavigation', (e, id) => {
-    webContents.fromId(id).on('will-navigate', (e) => {
-      e.preventDefault();
-    });
-  });
-
-  ipcMain.on('webContents-preventPopup', (e, id) => {
-    webContents.fromId(id).on('new-window', (e) => {
-      e.preventDefault();
-    });
   });
 
   ipcMain.on('getMainWindowWebContentsId', (e) => {

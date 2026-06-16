@@ -150,7 +150,6 @@ isUnskippable: ${this.updateState.isUnskippable}`);
       height: 369,
       webPreferences: {
         nodeIntegration: true,
-        enableRemoteModule: true,
         contextIsolation: false,
       },
       useContentSize: true,
