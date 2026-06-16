@@ -16,7 +16,7 @@ export default defineComponent({
     subCategory: { type: String },
   },
   methods: {
-    onInput(newParameters: ISettingsSubCategory['parameters']) {
+    onInput(newParameters: ISettingsSubCategory['parameters'], _index: number) {
       this.$emit('input', this.groupIndex, newParameters);
     },
   },

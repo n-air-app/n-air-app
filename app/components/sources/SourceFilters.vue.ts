@@ -78,7 +78,7 @@ export default defineComponent({
   },
 
   methods: {
-    onPropertiesInput(v: typeof this.properties): void {
+    onPropertiesInput(v: typeof this.properties, _index: number): void {
       this.properties = v;
       this.save();
     },
