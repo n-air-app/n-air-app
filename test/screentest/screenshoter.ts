@@ -61,7 +61,7 @@ export async function makeScreenshots(t: any, options: IScreentestOptions) {
     processedConfigs.push(configStr);
 
     await applyConfig(t, config);
-    // eslint-disable-next-line no-loop-func
+
     await t.context.app.browserWindow.capturePage().then((imageBuffer: ArrayBuffer) => {
       const testName = t['_test'].title.replace('afterEach for ', '');
       const imageFileName = `${testName}__${configInd}.png`;

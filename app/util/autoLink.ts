@@ -99,7 +99,7 @@ const autoLinkMatcherPattern = new RegExp(
  */
 export function splitByRegExpWithMatchedValues(value: string, pat: RegExp): string[] {
   const result = [];
-  let matched = null;
+  let matched: RegExpExecArray | null;
   let lastIndex = 0;
 
   while ((matched = pat.exec(value))) {

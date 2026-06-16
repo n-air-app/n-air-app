@@ -60,7 +60,7 @@ const config = {
     oneClick: false,
     perMachine: true,
     allowToChangeInstallationDirectory: true,
-    // eslint-disable-next-line no-template-curly-in-string
+
     artifactName: 'n-air-app-setup.${version}.${ext}',
     include: 'installer.nsh',
     warningsAsErrors: false,

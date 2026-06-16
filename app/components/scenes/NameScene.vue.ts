@@ -24,7 +24,7 @@ export default defineComponent({
   },
 
   mounted() {
-    let name = '';
+    let name: string;
 
     if (this.options.rename) {
       name = ScenesService.instance().getScene(this.options.rename).name;

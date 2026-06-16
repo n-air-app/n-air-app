@@ -116,6 +116,7 @@ test('Scenes events', async (t) => {
   t.is(event.data.sceneItemId, image.sceneItemId);
 
   image.setVisibility(false);
+  // eslint-disable-next-line no-useless-assignment
   event = await client.fetchNextEvent();
 
   // 待てば通せるようだがsleepでは別エラーになるので

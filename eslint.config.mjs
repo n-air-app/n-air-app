@@ -1,8 +1,5 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import importPlugin from 'eslint-plugin-import';
 import jest from 'eslint-plugin-jest';
 import jsoncPlugin from 'eslint-plugin-jsonc';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -11,14 +8,6 @@ import vue from 'eslint-plugin-vue';
 import * as jsoncParser from 'jsonc-eslint-parser';
 import tseslint from 'typescript-eslint';
 import vueParser from 'vue-eslint-parser';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
 
 const OFF = 0;
 const WARN = 1;
@@ -129,6 +118,13 @@ const COMMON_RULES = {
   'no-irregular-whitespace': OFF,
   'no-undef': OFF,
 
+  // import/named は TypeScript では型解決が不完全なため OFF（@typescript-eslint が担う）
+  'import/named': OFF,
+  // import/namespace は TypeScript の動的プロパティアクセスで誤検知するため OFF
+  'import/namespace': OFF,
+  // no-redeclare は TypeScript のオーバーロード宣言で誤検知するため OFF
+  'no-redeclare': OFF,
+
   'simple-import-sort/imports': [ERROR, {
     groups: [
       // Side-effect imports
@@ -221,8 +217,10 @@ export default [
   },
 
   // Base config for all JS/TS files
-  ...compat.extends('airbnb-base'),
+  // NOTE: airbnb-base removed (no ESLint 10 support); rules migrated below
   js.configs.recommended,
+  importPlugin.flatConfigs.recommended,
+  importPlugin.flatConfigs.typescript,
 
   // Vue plugin configs (Vue 3)
   ...vue.configs['flat/essential'],

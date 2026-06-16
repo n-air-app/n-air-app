@@ -536,7 +536,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     if (!exists) return [];
 
     let data: string;
-    let loadErrors: ILoadError[] = [];
+    let loadErrors: ILoadError[];
 
     try {
       data = this.stateService.readCollectionFile(id);

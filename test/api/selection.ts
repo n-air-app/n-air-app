@@ -74,6 +74,7 @@ test('Selection actions', async (t) => {
   const selection = client.getResource<SelectionService>('SelectionService');
   const scene = scenesService.activeScene;
 
+  // eslint-disable-next-line no-useless-assignment
   let [color1, color2, color3] = scene.getItems();
 
   selection.select([color1.sceneItemId, color2.sceneItemId]);

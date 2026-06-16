@@ -18,7 +18,7 @@ export class HotkeysNode extends ArrayNode<IHotkey, IContext, Hotkey> {
   private hotkeysService: HotkeysService;
 
   getItems(context: IContext = {}): Hotkey[] {
-    let items: Hotkey[] = [];
+    let items: Hotkey[];
     if (context.sceneId) {
       items = this.hotkeysService.getSceneHotkeys(context.sceneId);
     } else if (context.sceneItemId) {

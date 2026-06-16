@@ -8,8 +8,7 @@ import { assertIsDefined } from 'util/properties-type-guards';
 import { mutation, ServiceHelper } from '../core';
 import Utils from '../utils';
 
-import { ISceneItemFolder } from '.';
-import { Scene, ScenesService } from './index';
+import { ISceneItemFolder, Scene, ScenesService } from './index';
 import { SceneItemNode } from './scene-node';
 import { TSceneNodeType } from './scenes';
 

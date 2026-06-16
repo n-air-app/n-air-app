@@ -1322,6 +1322,7 @@ function initialize(crashHandler) {
         const cause = e.cause
           ? `${e.cause.name}: ${e.cause.message} (code: ${e.cause.code})`
           : undefined;
+        // eslint-disable-next-line preserve-caught-error -- cause を文字列化して IPC シリアライズ対応
         throw new Error(`${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
       }
     },

@@ -190,7 +190,7 @@ export async function waitForElectronInstancesExist() {
   const timeout = 10000;
 
   let timeLeft = timeout;
-  let tasks: any[] = [];
+  let tasks: any[];
 
   do {
     tasks = await getElectronInstances();

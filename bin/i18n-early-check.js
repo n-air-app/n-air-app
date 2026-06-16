@@ -71,7 +71,7 @@ async function loadAllJsons() {
         try {
           return { locale, filename: json, content: JSON.parse(content) };
         } catch (e) {
-          throw new Error(`in file: ${filepath}\n  ${e.message}`);
+          throw new Error(`in file: ${filepath}\n  ${e.message}`, { cause: e });
         }
       });
 

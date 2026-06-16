@@ -3,7 +3,6 @@
 import get from 'lodash/get';
 import { I18nService } from 'services/i18n';
 
-// eslint-disable-next-line no-eval
 window['eval'] = global.eval = () => {
   throw new Error('window.eval() is disabled for security');
 };

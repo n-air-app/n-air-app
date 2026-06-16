@@ -205,7 +205,8 @@ export class NdgrClient {
       } catch (error) {
         if (error instanceof RangeError) {
           //protobufが途中でちぎれていた場合RangeErrorになるので未読分をunreadにつめる
-          unread = buffer.buf.slice(buffer.pos); // Save unread part
+          // eslint-disable-next-line no-useless-assignment
+          unread = buffer.buf.slice(buffer.pos); // Save unread part (break follows)
         } else {
           throw error;
         }

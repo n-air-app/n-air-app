@@ -228,7 +228,6 @@ export class I18nService extends PersistentStatefulService<II18nState> implement
         { cause: e },
       );
     }
-    rawJSON = '';
     this.loadedDictionaries[locale] = dictionary;
     return dictionary;
   }

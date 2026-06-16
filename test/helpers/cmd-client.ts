@@ -28,7 +28,7 @@ console.log = () => {};
   client
     .request(resource, method, ...args)
     .then((response) => {
-      let responseStr = '';
+      let responseStr: string;
       if (response === undefined) {
         responseStr = 'true';
       } else {

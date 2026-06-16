@@ -225,7 +225,7 @@ export class NicoliveClient {
       };
     }
     const body = typeof res.text === 'function' ? await res.text() : res.text;
-    let obj: any = null;
+    let obj: any;
     try {
       obj = JSON.parse(body);
     } catch (e) {
