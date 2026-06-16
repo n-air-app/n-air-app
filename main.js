@@ -1159,22 +1159,6 @@ function initialize(crashHandler) {
     mainWindow.focus();
   });
 
-  function preventClose(e) {
-    if (!shutdownStarted) {
-      e.preventDefault();
-    }
-  }
-
-  ipcMain.on('window-preventClose', (event, id) => {
-    const window = BrowserWindow.fromId(id);
-    window.addListener('close', preventClose);
-  });
-
-  ipcMain.on('window-allowClose', (event, id) => {
-    const window = BrowserWindow.fromId(id);
-    window.removeListener('close', preventClose);
-  });
-
   /**
    * 番組作成・編集画面からログアウトを封じる処理
    * rendererプロセスからは遷移前に止められないのでここに実装がある
@@ -1259,27 +1243,6 @@ function initialize(crashHandler) {
           safeSend(win, 'vuex-mutation', mutation);
         });
     }
-  });
-
-  ipcMain.on('restartApp', () => {
-    // prevent unexpected cache clear
-    const args = process.argv
-      .slice(1)
-      .filter((x) => !['--clearCacheDir', '--clearCookies', '--includeSceneCollections'].includes(x));
-
-    app.relaunch({ args });
-    // Closing the main window starts the shut down sequence
-    mainWindow.close();
-    closeSplashWindow();
-  });
-
-  ipcMain.on('getMainWindowWebContentsId', (e) => {
-    e.returnValue = mainWindow.webContents.id;
-  });
-
-  ipcMain.on('requestPerformanceStats', (e) => {
-    const stats = app.getAppMetrics();
-    safeSend(e.sender, 'performanceStatsResponse', stats);
   });
 
   ipcMain.on('showErrorAlert', () => {
