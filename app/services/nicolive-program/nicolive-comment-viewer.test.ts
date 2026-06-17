@@ -615,7 +615,7 @@ test('moderator.stateChange がきたらコメントのモデレーター情報�
 
 describe('startUpdateSupporters', () => {
   // jest-runner/electron では jestのfakeTimersが使えないのでsinonのfakeTimersを使う
-  let clock: FakeTimers.Clock;
+  let clock: FakeTimers.InstalledClock;
   beforeEach(() => {
     clock = FakeTimers.install();
   });
