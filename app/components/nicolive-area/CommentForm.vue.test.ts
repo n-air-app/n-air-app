@@ -94,7 +94,7 @@ jest.mock('vue', () => {
 });
 
 describe('CommentForm', () => {
-  let clock: FakeTimers.Clock;
+  let clock: FakeTimers.InstalledClock;
   let transcriptionText$: Subject<TimestampedText>;
   let mockNicoliveProgramService: MockNicoliveProgramService;
   let mockTranscriptionService: MockTranscriptionService;

@@ -138,7 +138,7 @@ const testDeviceList = {
   devices: [{ id: 'test-device', name: 'Test Device', index: 0 }],
 };
 
-function withClock(testFn: (clock: FakeTimers.Clock) => Promise<void>) {
+function withClock(testFn: (clock: FakeTimers.InstalledClock) => Promise<void>) {
   return async () => {
     const clock = FakeTimers.install();
     try {
