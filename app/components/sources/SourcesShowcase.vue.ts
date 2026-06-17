@@ -64,11 +64,10 @@ function addSource(
 
   const { propertiesManager: optionsPropertiesManager, ...optionsWithoutManager } = options;
   if (sourceType === 'custom_cast_ndi_source') {
-    const propertiesManagerSettings: Dictionary<any> = {
-      ...optionsWithoutManager,
+    SourcesService.instance().showAddSource('ndi_source', {
+      propertiesManagerSettings: { ...optionsWithoutManager },
       propertiesManager: 'custom-cast-ndi',
-    };
-    SourcesService.instance().showAddSource('ndi_source', propertiesManagerSettings);
+    });
   } else if (NVoiceCharacterTypes.includes(sourceType as NVoiceCharacterType)) {
     const propertiesManagerSettings: Dictionary<any> = {
       NVoiceCharacterType: sourceType as NVoiceCharacterType,
