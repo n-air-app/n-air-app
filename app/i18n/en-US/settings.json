@@ -183,6 +183,14 @@
       "RescaleRes": {
         "name": null
       },
+      "RescaleFilter": {
+        "name": null,
+        "0": null,
+        "2": null,
+        "3": null,
+        "4": null,
+        "5": null
+      },
       "rate_control": {
         "name": null,
         "CBR": null,
