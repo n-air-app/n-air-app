@@ -38,13 +38,14 @@ describe('v-tooltip directive', () => {
     const oldVnode = {} as any;
 
     // ディレクティブをバインド
-    directive.bind?.(targetEl, {
-      name: 'tooltip',
+    directive.beforeMount?.(targetEl, {
       value: 'テストツールチップ',
       modifiers: { bottom: true },
       oldValue: undefined,
       arg: undefined,
-    }, vnode, oldVnode);
+      instance: null,
+      dir: directive,
+    } as any, vnode, oldVnode);
 
     // ツールチップ要素はまだ存在しない
     expect(containerEl.querySelector('.tooltip')).toBeNull();
@@ -73,6 +74,6 @@ describe('v-tooltip directive', () => {
     expect(tooltipEl?.getAttribute('x-placement')).toBe('bottom');
 
     // クリーンアップ
-    directive.unbind?.(targetEl, {} as any, vnode, oldVnode);
+    directive.beforeUnmount?.(targetEl, {} as any, vnode, oldVnode);
   });
 });

@@ -18,7 +18,8 @@
         <div v-if="profiles.length > 1">
           <span class="profile-select__title">{{ $t('onboarding.selectObsProfile') }}</span>
           <dropdown
-            v-model="selectedProfile"
+            :value="selectedProfile"
+            @input="selectedProfile = $event"
             :options="profiles"
           />
         </div>

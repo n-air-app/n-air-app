@@ -73,7 +73,7 @@
     text-align: right;
   }
 
-  &.muted /deep/ .slider-input-range {
+  &.muted :deep(.slider-input-range) {
     opacity: @opacity-disabled;
   }
 

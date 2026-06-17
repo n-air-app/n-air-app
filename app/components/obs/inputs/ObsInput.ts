@@ -7,8 +7,6 @@ import {
   isPathProperty,
   isTextProperty,
 } from 'util/properties-type-guards';
-import Vue from 'vue';
-import { Prop } from 'vue-property-decorator';
 
 import * as obs from '../../../../obs-api';
 
@@ -504,19 +502,4 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
     listProp.value = listProp.options[0].value;
   });
   if (needUpdatePropsAgain) setPropertiesFormData(obsSource, updatedFormData);
-}
-
-export abstract class ObsInput<TValueType> extends Vue {
-  @Prop()
-    value: TValueType;
-
-  @Prop()
-    category: string;
-
-  @Prop()
-    subCategory: string;
-
-  emitInput(eventData: TValueType) {
-    this.$emit('input', eventData);
-  }
 }

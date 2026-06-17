@@ -227,7 +227,7 @@ class TooltipManager {
      */
   setContent(content: string): void {
     this.options.content = content;
-    if (this.tooltipEl && this.isVisible) {
+    if (this.tooltipEl) {
       const inner = this.tooltipEl.querySelector('.tooltip-inner');
       if (inner) {
         inner.textContent = content;
@@ -393,7 +393,7 @@ function getContent(value: any): string {
 }
 
 const directive: ObjectDirective = {
-  bind(el: TooltipElement, binding) {
+  beforeMount(el: TooltipElement, binding) {
     const content = getContent(binding.value);
     if (!content) return;
 
@@ -421,7 +421,7 @@ const directive: ObjectDirective = {
     el.classList.add('has-tooltip');
   },
 
-  update(el: TooltipElement, binding) {
+  updated(el: TooltipElement, binding) {
     const manager = el._tooltipManager;
     if (!manager) return;
 
@@ -435,7 +435,7 @@ const directive: ObjectDirective = {
     manager.setPlacement(getPlacement(binding.modifiers));
   },
 
-  unbind(el: TooltipElement) {
+  beforeUnmount(el: TooltipElement) {
     if (el._tooltipHandlers) {
       Object.entries(el._tooltipHandlers).forEach(([event, handler]) => {
         el.removeEventListener(event, handler);

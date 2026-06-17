@@ -156,7 +156,7 @@ describe('VideoService OBSラッパー エラー格下げ', () => {
       VideoSettingsService: {},
     });
     const { VideoService } = require('./video');
-    return VideoService.instance;
+    return VideoService.instance();
   }
 
   test('moveOBSDisplayが"Invalid key"エラーを投げてもwarnとして格下げされ伝播しない', () => {

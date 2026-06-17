@@ -1,29 +1,34 @@
 import * as remote from '@electron/remote';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent, PropType } from 'vue';
 
-import { IObsButtonInputValue, ObsInput, TObsType } from './ObsInput';
+import { IObsButtonInputValue, TObsType } from './ObsInput';
 
-@Component
-class ObsButtonInput extends ObsInput<IObsButtonInputValue> {
-  static obsType: TObsType[];
-
-  @Prop()
-    value: IObsButtonInputValue;
-  testingAnchor = `Form/Button/${this.value.name}`;
-
-  handleClick() {
-    if (this.value.type === 'NAIR_PROPERTY_LINK_BUTTON') {
-      // リンクボタンをクリックしたら、ブラウザでリンクを直接開く
-      remote.shell.openExternal(this.value.url);
-      return;
-    }
-    if (this.value.onClick) {
-      this.value.onClick();
-    }
-    this.emitInput({ ...this.value, value: true });
-  }
-}
-
-ObsButtonInput.obsType = ['OBS_PROPERTY_BUTTON', 'NAIR_PROPERTY_LINK_BUTTON'];
-
-export default ObsButtonInput;
+const ObsButtonInput = defineComponent({
+  name: 'ObsButtonInput',
+  props: {
+    value: { type: Object as PropType<IObsButtonInputValue>, required: true as const },
+    category: { type: String },
+    subCategory: { type: String },
+  },
+  data() {
+    return {
+      testingAnchor: `Form/Button/${this.value.name}`,
+    };
+  },
+  methods: {
+    emitInput(eventData: IObsButtonInputValue) {
+      this.$emit('input', eventData);
+    },
+    handleClick() {
+      if (this.value.type === 'NAIR_PROPERTY_LINK_BUTTON') {
+        remote.shell.openExternal(this.value.url);
+        return;
+      }
+      if (this.value.onClick) {
+        this.value.onClick();
+      }
+      this.emitInput({ ...this.value, value: true });
+    },
+  },
+});
+export default Object.assign(ObsButtonInput, { obsType: ['OBS_PROPERTY_BUTTON', 'NAIR_PROPERTY_LINK_BUTTON'] as TObsType[] });

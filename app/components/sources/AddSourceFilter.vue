@@ -1,12 +1,14 @@
 <template>
   <modal-layout :done-handler="done" :cancel-handler="cancel">
-    <div slot="content">
-      <ObsListInput v-model="form.type" @input="setTypeAsName"></ObsListInput>
-      <ObsTextInput v-model="form.name"></ObsTextInput>
-      <p v-if="error" style="color: red">
-        {{ error }}
-      </p>
-    </div>
+    <template #content>
+      <div>
+        <ObsListInput :value="form.type" @input="v => { form.type = v; setTypeAsName(); }"></ObsListInput>
+        <ObsTextInput :value="form.name" @input="form.name = $event"></ObsTextInput>
+        <p v-if="error" style="color: red">
+          {{ error }}
+        </p>
+      </div>
+    </template>
   </modal-layout>
 </template>
 

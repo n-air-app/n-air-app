@@ -7,7 +7,6 @@ import SystemMessage from 'components/nicolive-area/comment/SystemMessage.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import Popper from 'components/shared/Popper.vue';
 import { Subscription } from 'rxjs';
-import { Inject } from 'services/core';
 import { HostsService } from 'services/hosts';
 import { ChatMessage } from 'services/nicolive-program/ChatMessage';
 import { ChatComponentType } from 'services/nicolive-program/ChatMessage/ChatComponentType';
@@ -23,10 +22,9 @@ import {
 } from 'services/nicolive-program/NicoliveFailure';
 import { isWrappedChat, WrappedChatWithComponent } from 'services/nicolive-program/WrappedChat';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-const componentMap: { [type in ChatComponentType]: Vue.Component } = {
+const componentMap: { [type in ChatComponentType]: any } = {
   common: CommonComment,
   nicoad: NicoadComment,
   gift: GiftComment,
@@ -34,7 +32,9 @@ const componentMap: { [type in ChatComponentType]: Vue.Component } = {
   system: SystemMessage,
 };
 
-@Component({
+export default defineComponent({
+  name: 'UserInfo',
+
   components: {
     ModalLayout,
     CommonComment,
@@ -44,35 +44,65 @@ const componentMap: { [type in ChatComponentType]: Vue.Component } = {
     SystemMessage,
     Popper,
   },
-})
-export default class UserInfo extends Vue {
-  @Inject() private nicoliveCommentViewerService: NicoliveCommentViewerService;
-  @Inject() private nicoliveProgramService: NicoliveProgramService;
-  @Inject() private windowsService: WindowsService;
-  @Inject() private konomiTagsService: KonomiTagsService;
-  @Inject() private nicoliveModeratorsService: NicoliveModeratorsService;
-  @Inject() private nicoliveCommentFilterService: NicoliveCommentFilterService;
-  @Inject() private hostsService: HostsService;
 
-  private konomiTagsSubscription: Subscription;
-  private myKonomiTags: KonomiTag[] = [];
-  private rawKonomiTags: KonomiTag[] = [];
+  data() {
+    const userId = WindowsService.instance().getChildWindowQueryParams().userId as string;
+    return {
+      konomiTagsSubscription: null as Subscription | null,
+      myKonomiTags: [] as KonomiTag[],
+      rawKonomiTags: [] as KonomiTag[],
+      moderatorSubscription: null as Subscription | null,
+      isBlockedSubscription: null as Subscription | null,
+      cleanup: undefined as (() => void) | undefined,
+      isLatestVisible: true,
+      showPopupMenu: false,
+      isBlockedUser: false,
+      isFollowing: false,
+      isModerator: false,
+      isBroadcaster: false,
+      moderatorTooltip: 'モデレーター',
+      supporterTooltip: 'サポーター',
+      otherMenuTooltip: 'その他メニュー',
+      userIconURL: NicoliveClient.getUserIconURL(userId, `${Date.now()}`),
+      defaultUserIconURL: NicoliveClient.defaultUserIconURL,
+      konomiTags: [] as { name: string; common: boolean }[],
+      componentMap,
+      currentTab: 'konomi',
+    };
+  },
 
-  private moderatorSubscription: Subscription;
-  private isBlockedSubscription: Subscription;
+  computed: {
+    userName(): string {
+      return WindowsService.instance().getChildWindowQueryParams().userName as string;
+    },
 
-  private cleanup: () => void = undefined;
-  isLatestVisible = true;
-  showPopupMenu = false;
+    userId(): string {
+      return WindowsService.instance().getChildWindowQueryParams().userId as string;
+    },
 
-  isBlockedUser = false;
-  isFollowing = false;
-  isModerator = false;
-  isBroadcaster = false;
+    isPremium() {
+      return WindowsService.instance().getChildWindowQueryParams().isPremium;
+    },
 
-  moderatorTooltip = 'モデレーター';
-  supporterTooltip = 'サポーター';
-  otherMenuTooltip = 'その他メニュー';
+    isSupporter() {
+      return WindowsService.instance().getChildWindowQueryParams().isSupporter;
+    },
+
+    comments(): WrappedChatWithComponent[] {
+      const comments = NicoliveCommentViewerService.instance().items.filter((item) => {
+        return isWrappedChat(item) && item.value.user_id === this.userId;
+      }) as WrappedChatWithComponent[];
+      return comments;
+    },
+
+    getFormattedLiveTime() {
+      return (chat: ChatMessage): string => {
+        const { startTime } = NicoliveProgramService.instance().state;
+        const diffTime = (chat.date ?? 0) - startTime;
+        return NicoliveProgramService.format(diffTime);
+      };
+    },
+  },
 
   mounted() {
     this.myKonomiTags = [];
@@ -93,192 +123,152 @@ export default class UserInfo extends Vue {
       io.unobserve(sentinelEl);
     };
 
-    this.konomiTagsSubscription = this.konomiTagsService.stateChange.subscribe({
+    this.konomiTagsSubscription = KonomiTagsService.instance().stateChange.subscribe({
       next: (state) => {
         this.myKonomiTags = state.loggedIn ? state.loggedIn.konomiTags : [];
         this.updateKonomiTags();
       },
     });
     // ユーザー情報ウィンドウを開く度に自分の好みタグも更新する(自分の好みタグが変わっている可能性があるため)
-    this.konomiTagsService.fetch();
+    KonomiTagsService.instance().fetch();
 
-    this.nicoliveProgramService.client.fetchKonomiTags(this.userId).then((tags) => {
+    NicoliveProgramService.instance().client.fetchKonomiTags(this.userId).then((tags) => {
       this.rawKonomiTags = tags;
       this.updateKonomiTags();
     });
 
-    this.nicoliveProgramService.client.fetchUserFollow(this.userId).then((following) => {
+    NicoliveProgramService.instance().client.fetchUserFollow(this.userId).then((following) => {
       this.isFollowing = following;
     });
 
-    this.isModerator = this.nicoliveModeratorsService.isModerator(this.userId);
-    this.moderatorSubscription = this.nicoliveModeratorsService.stateChange.subscribe({
+    this.isModerator = NicoliveModeratorsService.instance().isModerator(this.userId);
+    this.moderatorSubscription = NicoliveModeratorsService.instance().stateChange.subscribe({
       next: (state) => {
         const isModerator = state.moderatorsCache.includes(this.userId);
         this.isModerator = isModerator;
       },
     });
 
-    this.isBroadcaster = this.nicoliveProgramService.isBroadcaster(this.userId);
+    this.isBroadcaster = NicoliveProgramService.instance().isBroadcaster(this.userId);
 
     const isBlocked = (filters: { type: string; body: string }[]) =>
       filters.some((filter) => filter.type === 'user' && filter.body === this.userId);
 
-    this.isBlockedUser = isBlocked(this.nicoliveCommentFilterService.state.filters);
-    this.isBlockedSubscription = this.nicoliveCommentFilterService.stateChange.subscribe({
+    this.isBlockedUser = isBlocked(NicoliveCommentFilterService.instance().state.filters);
+    this.isBlockedSubscription = NicoliveCommentFilterService.instance().stateChange.subscribe({
       next: (state) => {
         this.isBlockedUser = isBlocked(state.filters);
       },
     });
-  }
+  },
 
   updated() {
     if (this.isLatestVisible) {
       this.scrollToLatest();
     }
-  }
+  },
 
-  beforeDestroy() {
-    this.konomiTagsSubscription.unsubscribe();
-    this.moderatorSubscription.unsubscribe();
-    this.isBlockedSubscription.unsubscribe();
+  beforeUnmount() {
+    this.konomiTagsSubscription?.unsubscribe();
+    this.moderatorSubscription?.unsubscribe();
+    this.isBlockedSubscription?.unsubscribe();
 
     if (this.cleanup) {
       this.cleanup();
       this.cleanup = undefined;
     }
-  }
+  },
 
-  userIconURL = NicoliveClient.getUserIconURL(this.userId, `${Date.now()}`);
-  defaultUserIconURL = NicoliveClient.defaultUserIconURL;
+  methods: {
+    followUser(): void {
+      NicoliveProgramService.instance().client.followUser(this.userId).then(() => {
+        this.isFollowing = true;
+      });
+    },
 
-  get userName(): string {
-    return this.windowsService.getChildWindowQueryParams().userName;
-  }
+    unFollowUser(): void {
+      NicoliveProgramService.instance().client.unFollowUser(this.userId).then(() => {
+        this.isFollowing = false;
+      });
+    },
 
-  get userId(): string {
-    return this.windowsService.getChildWindowQueryParams().userId;
-  }
+    async blockUser() {
+      await NicoliveCommentFilterService.instance()
+        .addFilter({
+          type: 'user',
+          body: this.userId,
+        })
+        .catch((e: any) => {
+          if (e instanceof NicoliveFailure) {
+            openErrorDialogFromFailure(e);
+          }
+        });
+    },
 
-  get isPremium() {
-    return this.windowsService.getChildWindowQueryParams().isPremium;
-  }
+    async unBlockUser() {
+      const filterRecord = NicoliveCommentFilterService.instance().state.filters.find(
+        (filter: any) => filter.type === 'user' && filter.body === this.userId,
+      );
+      if (!filterRecord) {
+        console.warn('unBlockUser: block user filter not found', this.userId);
+        return;
+      }
 
-  get isSupporter() {
-    return this.windowsService.getChildWindowQueryParams().isSupporter;
-  }
-
-  followUser(): void {
-    this.nicoliveProgramService.client.followUser(this.userId).then(() => {
-      this.isFollowing = true;
-    });
-  }
-
-  unFollowUser(): void {
-    this.nicoliveProgramService.client.unFollowUser(this.userId).then(() => {
-      this.isFollowing = false;
-    });
-  }
-
-  async blockUser() {
-    await this.nicoliveCommentFilterService
-      .addFilter({
-        type: 'user',
-        body: this.userId,
-      })
-      .catch((e) => {
+      await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]).catch((e: any) => {
         if (e instanceof NicoliveFailure) {
           openErrorDialogFromFailure(e);
         }
       });
-  }
-  async unBlockUser() {
-    const filterRecord = this.nicoliveCommentFilterService.state.filters.find(
-      (filter) => filter.type === 'user' && filter.body === this.userId,
-    );
-    if (!filterRecord) {
-      console.warn('unBlockUser: block user filter not found', this.userId);
-      return;
-    }
+    },
 
-    await this.nicoliveCommentFilterService.deleteFilters([filterRecord.id]).catch((e) => {
-      if (e instanceof NicoliveFailure) {
-        openErrorDialogFromFailure(e);
-      }
-    });
-  }
+    async addModerator() {
+      return NicoliveModeratorsService.instance().addModeratorWithConfirm({
+        userId: this.userId,
+        userName: this.userName,
+      });
+    },
 
-  async addModerator() {
-    return this.nicoliveModeratorsService.addModeratorWithConfirm({
-      userId: this.userId,
-      userName: this.userName,
-    });
-  }
+    async removeModerator() {
+      return NicoliveModeratorsService.instance().removeModeratorWithConfirm({
+        userId: this.userId,
+        userName: this.userName,
+      });
+    },
 
-  async removeModerator() {
-    return this.nicoliveModeratorsService.removeModeratorWithConfirm({
-      userId: this.userId,
-      userName: this.userName,
-    });
-  }
+    updateKonomiTags() {
+      const [same, other] = this.rawKonomiTags.reduce(
+        (acc: [string[], string[]], tag: KonomiTag) => {
+          if (this.myKonomiTags.some((myTag: KonomiTag) => myTag.tag_id.value === tag.tag_id.value)) {
+            acc[0].push(tag.name);
+          } else {
+            acc[1].push(tag.name);
+          }
+          return acc;
+        },
+        [[], []] as [string[], string[]],
+      );
 
-  konomiTags: { name: string; common: boolean }[] = [];
+      this.konomiTags = [
+        ...same.map((name: string) => ({ name, common: true })),
+        ...other.map((name: string) => ({ name, common: false })),
+      ];
+    },
 
-  /**
-   * this.konomiTags に自分の好みタグと共通のものを先頭に括り出しcommon: trueにして、残りを common: falseで連結してセットする
-   */
-  private updateKonomiTags() {
-    const [same, other] = this.rawKonomiTags.reduce(
-      (acc, tag) => {
-        if (this.myKonomiTags.some((myTag) => myTag.tag_id.value === tag.tag_id.value)) {
-          acc[0].push(tag.name);
-        } else {
-          acc[1].push(tag.name);
-        }
-        return acc;
-      },
-      [[], []] as [string[], string[]],
-    );
+    scrollToLatest() {
+      const scrollEl = this.$refs.scroll as HTMLElement;
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    },
 
-    this.konomiTags = [
-      ...same.map((name) => ({ name, common: true })),
-      ...other.map((name) => ({ name, common: false })),
-    ];
-  }
+    openUserPage() {
+      remote.shell.openExternal(HostsService.instance().getUserPageURL(this.userId));
+    },
 
-  componentMap = componentMap;
+    copyUserId() {
+      remote.clipboard.writeText(this.userId);
+    },
 
-  get comments(): WrappedChatWithComponent[] {
-    const comments = this.nicoliveCommentViewerService.items.filter((item) => {
-      return isWrappedChat(item) && item.value.user_id === this.userId;
-    }) as WrappedChatWithComponent[];
-    return comments;
-  }
-
-  scrollToLatest() {
-    const scrollEl = this.$refs.scroll as HTMLElement;
-    scrollEl.scrollTop = scrollEl.scrollHeight;
-  }
-
-  // getterにして関数を返さないと全コメントに対してrerenderが走る
-  get getFormattedLiveTime() {
-    return (chat: ChatMessage): string => {
-      const { startTime } = this.nicoliveProgramService.state;
-      const diffTime = (chat.date ?? 0) - startTime;
-      return NicoliveProgramService.format(diffTime);
-    };
-  }
-
-  openUserPage() {
-    remote.shell.openExternal(this.hostsService.getUserPageURL(this.userId));
-  }
-  copyUserId() {
-    remote.clipboard.writeText(this.userId);
-  }
-
-  currentTab = 'konomi';
-
-  changeTab(tab: string) {
-    this.currentTab = tab;
-  }
-}
+    changeTab(tab: string) {
+      this.currentTab = tab;
+    },
+  },
+});

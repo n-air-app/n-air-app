@@ -8,7 +8,6 @@ import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
 import { getLastObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
-import Vue from 'vue';
 
 import * as obs from '../../../obs-api';
 
@@ -75,7 +74,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
   @mutation()
   SET_PERFORMANCE_STATS(stats: Partial<IPerformanceState>) {
     getKeys(stats).forEach((stat) => {
-      Vue.set(this.state, stat, stats[stat]);
+      (this.state as any)[stat] = stats[stat];
     });
   }
 
@@ -136,6 +135,10 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
           category: 'performance.getState',
           message: e.toString(),
           level: 'warning',
+          data: {
+            errorName: e instanceof Error ? e.name : typeof e,
+            errorMessage: e instanceof Error ? e.message : String(e),
+          },
         });
       } else {
         SentryReport.error('PerformanceService', 'getState', e, {

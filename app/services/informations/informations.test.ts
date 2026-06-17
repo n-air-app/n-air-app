@@ -58,7 +58,7 @@ test('pluckItems: itemなし（空フィード）', () => {
 test('get instance', () => {
   setup();
   const { InformationsService } = require('./informations');
-  expect(InformationsService.instance).toBeInstanceOf(InformationsService);
+  expect(InformationsService.instance()).toBeInstanceOf(InformationsService);
 });
 
 test('fetchFeed(private):成功', async () => {
@@ -67,7 +67,7 @@ test('fetchFeed(private):成功', async () => {
 
   // afterInitがupdateInformationsを呼ぶので、テストの安定のためにスキップ
   m.InformationsService.prototype.updateInformations = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.updateInformations).toHaveBeenCalledTimes(1);
 
   (instance as any).SET_FETCHING = jest.fn();
@@ -84,7 +84,7 @@ test('fetchFeed(private):エラー系レスポンスで失敗', async () => {
 
   // afterInitがupdateInformationsを呼ぶので、テストの安定のためにスキップ
   m.InformationsService.prototype.updateInformations = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.updateInformations).toHaveBeenCalledTimes(1);
 
   m.InformationsService.parseXml = jest.fn();
@@ -107,7 +107,7 @@ test('fetchFeed(private):パース失敗', async () => {
 
   // afterInitがupdateInformationsを呼ぶので、テストの安定のためにスキップ
   m.InformationsService.prototype.updateInformations = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.updateInformations).toHaveBeenCalledTimes(1);
 
   m.InformationsService.parseXml = jest.fn().mockImplementation(() => {
@@ -129,7 +129,7 @@ test('updateInformations:成功', async () => {
   // afterInitがupdateInformationsを呼ぶので、テストの安定のためにスキップ
   // updateInformationsをテストしたいので、afterInitをスキップする
   m.InformationsService.prototype.afterInit = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.afterInit).toHaveBeenCalledTimes(1);
 
   (instance as any).fetchFeed = jest.fn().mockResolvedValue(parsedFeed);
@@ -150,7 +150,7 @@ test('updateInformations:失敗', async () => {
   // afterInitがupdateInformationsを呼ぶので、テストの安定のためにスキップ
   // updateInformationsをテストしたいので、afterInitをスキップする
   m.InformationsService.prototype.afterInit = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.afterInit).toHaveBeenCalledTimes(1);
 
   m.InformationsService.pluckItems = jest.fn();
@@ -172,7 +172,7 @@ test('updateInformations:item欠落（空フィード）', async () => {
   const m = require('./informations');
 
   m.InformationsService.prototype.afterInit = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.afterInit).toHaveBeenCalledTimes(1);
 
   // item を持たないフィード
@@ -204,7 +204,7 @@ test('hasUnseenItem:あるとき', () => {
 
   // afterInitがupdateInformationsを呼び出すのでスキップしておく
   m.InformationsService.prototype.updateInformations = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.updateInformations).toHaveBeenCalledTimes(1);
 
   expect(instance.hasUnseenItem).toBe(true);
@@ -227,7 +227,7 @@ test('hasUnseenItem:ないとき', () => {
 
   // afterInitがupdateInformationsを呼び出すのでスキップしておく
   m.InformationsService.prototype.updateInformations = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.updateInformations).toHaveBeenCalledTimes(1);
 
   expect(instance.hasUnseenItem).toBe(false);
@@ -251,7 +251,7 @@ test('hasUnseenItem:取得中', () => {
 
   // afterInitがupdateInformationsを呼び出すのでスキップしておく
   m.InformationsService.prototype.updateInformations = jest.fn();
-  const instance = m.InformationsService.instance;
+  const instance = m.InformationsService.instance();
   expect(instance.updateInformations).toHaveBeenCalledTimes(1);
 
   expect(instance.hasUnseenItem).toBe(false);

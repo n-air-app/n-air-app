@@ -14,7 +14,7 @@ const setup = createSetupFunction({
 
 function createInstance() {
   const { NicoliveProgramSelectorService } = require('./nicolive-program-selector');
-  const instance = NicoliveProgramSelectorService.instance as NicoliveProgramSelectorService;
+  const instance = NicoliveProgramSelectorService.instance() as NicoliveProgramSelectorService;
   instance.client.fetchOnairChannels = jest.fn().mockResolvedValue({
     ok: true,
     value: [

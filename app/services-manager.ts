@@ -59,11 +59,11 @@ export class ServicesManager extends Service {
    * Find and initialize all observer-services which subscribed with `InitAfter` decorator
    */
   private initObservers(observableService: Service): Service[] {
-    const observeList: ObserveList = ObserveList.instance;
+    const observeList: ObserveList = ObserveList.instance();
     const items = observeList.observations.filter((item) => {
       return item.observableServiceName === observableService.serviceName;
     });
-    return items.map((item) => this.getService(item.observerServiceName).instance);
+    return items.map((item) => this.getService(item.observerServiceName).instance());
   }
 
   getService(serviceName: string) {
@@ -115,8 +115,8 @@ export class ServicesManager extends Service {
     const ServiceClass = this.services[serviceName];
     if (!ServiceClass) throw Error(`unknown service: ${serviceName}`);
     if (this.instances[serviceName]) return this.instances[serviceName];
-    this.instances[serviceName] = ServiceClass.instance;
-    return ServiceClass.instance;
+    this.instances[serviceName] = ServiceClass.instance();
+    return ServiceClass.instance();
   }
 
   private getInstance(serviceName: string): Service {

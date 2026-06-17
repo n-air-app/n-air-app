@@ -34,7 +34,7 @@ import { mutation, StatefulService } from 'services/core/stateful-service';
 import { getPartitionConfig } from 'services/dev-hosts';
 import Util, { uuidv4 } from 'services/utils';
 import { SentryReport } from 'util/sentry-report';
-import Vue from 'vue';
+import { type Component } from 'vue';
 
 const { ipcRenderer } = electron;
 const BrowserWindow = remote.BrowserWindow;
@@ -127,7 +127,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   // This is a list of components that are registered to be
   // top level components in new child windows.
-  components = getComponents() as { [key: string]: Vue.Component };
+  components = getComponents() as { [key: string]: Component };
 
   windowUpdated = new Subject<{ windowId: string; options: IWindowOptions }>();
   windowDestroyed = new Subject<string>();
@@ -433,23 +433,24 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   @mutation()
   private CREATE_ONE_OFF_WINDOW(windowId: string, options: Partial<IWindowOptions>) {
-    const opts = {
+    const opts: IWindowOptions = {
       componentName: 'Blank',
       scaleFactor: 1,
+      isShown: true,
       ...options,
     };
 
-    Vue.set(this.state, windowId, opts);
+    this.state[windowId] = opts;
   }
 
   @mutation()
   private UPDATE_ONE_OFF_WINDOW(windowId: string, options: Partial<IWindowOptions>) {
     const oldOpts = this.state[windowId];
-    Vue.set(this.state, windowId, { ...oldOpts, ...options });
+    this.state[windowId] = { ...oldOpts, ...options };
   }
 
   @mutation()
   private DELETE_ONE_OFF_WINDOW(windowId: string) {
-    Vue.delete(this.state, windowId);
+    delete this.state[windowId];
   }
 }

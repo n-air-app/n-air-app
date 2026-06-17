@@ -77,6 +77,7 @@ function startDrag(ctx: IDragContext, e: MouseEvent, onMove: (e: MouseEvent) => 
 
 export default defineComponent({
   name: 'ColorPicker',
+  emits: ['input', 'dragging-change'],
 
   props: {
     value: { type: Object as () => IColor, required: true },
@@ -142,7 +143,7 @@ export default defineComponent({
 
   methods: {
     onSaturationMouseDown(e: MouseEvent) {
-      startDrag(this, e, (ev: MouseEvent) => {
+      startDrag(this, e, (ev) => {
         const el = this.$refs.saturation as HTMLElement;
         const rect = el.getBoundingClientRect();
         const newHsv = {
@@ -157,7 +158,7 @@ export default defineComponent({
     },
 
     onHueMouseDown(e: MouseEvent) {
-      startDrag(this, e, (ev: MouseEvent) => {
+      startDrag(this, e, (ev) => {
         const el = this.$refs.hue as HTMLElement;
         const rect = el.getBoundingClientRect();
         const newHsv = { ...this.hsv, h: clamp((ev.clientX - rect.left) / rect.width, 0, 1) * 360 };
@@ -168,7 +169,7 @@ export default defineComponent({
     },
 
     onAlphaMouseDown(e: MouseEvent) {
-      startDrag(this, e, (ev: MouseEvent) => {
+      startDrag(this, e, (ev) => {
         const el = this.$refs.alpha as HTMLElement;
         const rect = el.getBoundingClientRect();
         const a = clamp((ev.clientX - rect.left) / rect.width, 0, 1);

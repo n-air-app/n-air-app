@@ -1,9 +1,8 @@
 <template>
   <div class="form-groups">
-    <template v-for="(formGroup, groupIndex) in value">
+    <template v-for="(formGroup, groupIndex) in value" :key="(formGroup.nameSubCategory === 'Untitled' ? 'untitled-' : '') + formGroup.nameSubCategory + groupIndex">
       <component
         v-if="hasAnyVisibleSettings(formGroup)"
-        :key="(formGroup.nameSubCategory === 'Untitled' ? 'untitled-' : '') + formGroup.nameSubCategory + groupIndex"
         :is="isSimpleCategory ? 'div' : 'toc-section'"
         :title="isSimpleCategory ? undefined :
           formGroup.nameSubCategory === 'Untitled'
@@ -16,12 +15,12 @@
           <aside class="notification-root" v-if="category === 'Stream'">
             <i class="notification-icon icon-notification" />
             <p class="notification-message">
-              <i18n path="settings.noticeForStreaming" v-if="isLoggedIn">
-                <br place="br" />
-              </i18n>
-              <i18n path="settings.noticeForStreamingNotLoggedIn" v-else>
-                <br place="br" />
-              </i18n>
+              <i18n-t keypath="settings.noticeForStreaming" v-if="isLoggedIn" tag="span">
+                <template #br><br /></template>
+              </i18n-t>
+              <i18n-t keypath="settings.noticeForStreamingNotLoggedIn" v-else tag="span">
+                <template #br><br /></template>
+              </i18n-t>
             </p>
           </aside>
 
@@ -42,8 +41,8 @@
             v-if="formGroup.nameSubCategory === 'Untitled' || !collapsedGroups[groupIndex]"
           >
             <GenericForm
-              v-model="formGroup.parameters"
-              @input="onInputHandler"
+              :value="formGroup.parameters"
+              @input="(v) => onFormInput(groupIndex, v)"
               :category="category"
               :subCategory="formGroup.nameSubCategory"
             ></GenericForm>

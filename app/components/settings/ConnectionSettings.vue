@@ -1,8 +1,8 @@
 <template>
   <div>
-    <ObsListInput v-model="fromSceneModel" />
-    <ObsListInput v-model="transitionModel" />
-    <ObsListInput v-model="toSceneModel" />
+    <ObsListInput :value="fromSceneModel" @input="fromSceneModel = $event" />
+    <ObsListInput :value="transitionModel" @input="transitionModel = $event" />
+    <ObsListInput :value="toSceneModel" @input="toSceneModel = $event" />
   </div>
 </template>
 

@@ -46,14 +46,15 @@
             </li>
           </ul>
         </div>
-        <button
-          class="button--circle button--secondary button--extension"
-          v-tooltip.bottom="extensionTooltip"
-          :class="{ 'is-show': showPopupMenu, active: autoExtensionEnabled }"
-          slot="reference"
-        >
-          <i class="icon-extension"></i>
-        </button>
+        <template #reference>
+          <button
+            class="button--circle button--secondary button--extension"
+            v-tooltip.bottom="extensionTooltip"
+            :class="{ 'is-show': showPopupMenu, active: autoExtensionEnabled }"
+          >
+            <i class="icon-extension"></i>
+          </button>
+        </template>
       </popper>
 
       <button
@@ -118,22 +119,23 @@
               </li>
             </ul>
           </div>
-          <button
-            class="button button--select-menu"
-            v-tooltip.bottom="startButtonSelectorTooltip"
-            v-show="programStatus !== 'onAir'"
-            :class="{
-              'is-show': showPopupMenu,
-              active: showButtonSelector,
-              'button--action': selectedButton === 'start',
-              'button--end-program button--live': selectedButton === 'end',
-              'button--primary': selectedButton === 'create',
-              'button--secondary': selectedButton === 'release',
-            }"
-            slot="reference"
-          >
-            <i class="icon-drop-down-arrow"></i>
-          </button>
+          <template #reference>
+            <button
+              class="button button--select-menu"
+              v-tooltip.bottom="startButtonSelectorTooltip"
+              v-show="programStatus !== 'onAir'"
+              :class="{
+                'is-show': showPopupMenu,
+                active: showButtonSelector,
+                'button--action': selectedButton === 'start',
+                'button--end-program button--live': selectedButton === 'end',
+                'button--primary': selectedButton === 'create',
+                'button--secondary': selectedButton === 'release',
+              }"
+            >
+              <i class="icon-drop-down-arrow"></i>
+            </button>
+          </template>
         </popper>
       </div>
     </div>

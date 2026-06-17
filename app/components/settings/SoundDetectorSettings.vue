@@ -22,11 +22,11 @@
             <div class="input-label section-heading">
               <label>基本</label>
             </div>
-            <ObsListInput v-model="soundDetectorSourceModel" />
+            <ObsListInput :value="soundDetectorSourceModel" @input="soundDetectorSourceModel = $event" />
             <p v-if="!sourceAvailable" class="source-unavailable-warning">
               選択したソースがこのシーンに存在しません。入力音声ソースを選び直してください。
             </p>
-            <ObsSliderInput v-model="soundThresholdDbModel" />
+            <ObsSliderInput :value="soundThresholdDbModel" @input="soundThresholdDbModel = $event" />
           </div>
         </toc-section>
 
@@ -94,8 +94,8 @@
               <i :class="collapsed ? 'icon-arrow-bottom-fill' : 'icon-arrow-top-fill'" />
             </div>
             <div v-if="!collapsed">
-              <ObsSliderInput v-model="resumeSilenceMsModel" />
-              <ObsListInput v-model="soundDetectedSpeechActionModel" />
+              <ObsSliderInput :value="resumeSilenceMsModel" @input="resumeSilenceMsModel = $event" />
+              <ObsListInput :value="soundDetectedSpeechActionModel" @input="soundDetectedSpeechActionModel = $event" />
             </div>
           </div>
         </toc-section>

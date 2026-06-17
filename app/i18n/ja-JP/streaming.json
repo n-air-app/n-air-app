@@ -10,6 +10,7 @@
   "unsupportedError": "出力フォーマットがサポートされていないか、１つ以上の音声トラックがサポートされていません。設定を確認して、再度お試しください。",
   "error": "出力でエラーが発生しました。配信または録画の設定を変更してみてください。：",
   "outdatedDriverError": "配信に問題が発生しました。これは通常ビデオドライバーのバージョンが古いと発生します。 NVIDIAまたはAMDのドライバーを最新に更新してから再度お試しください。",
+  "encoderError": "エンコーダーでエラーが発生しました。出力設定のエンコーダーや録画品質の設定を確認して、再度お試しください。",
   "streamingError": "配信エラー",
   "recordingError": "録画エラー",
   "replayBufferError": "リプレイ録画エラー",
@@ -20,9 +21,9 @@
   "programFetching": "番組取得中",
   "endStream": "配信終了",
   "starting": "配信開始中",
-  "startingWithDelay": "配信開始中 %{delaySeconds}秒",
+  "startingWithDelay": "配信開始中 {delaySeconds}秒",
   "ending": "配信終了中",
-  "endingWithDelay": "配信終了中 %{delaySeconds}秒",
+  "endingWithDelay": "配信終了中 {delaySeconds}秒",
   "reconnecting": "再接続中",
   "goLive": "配信開始",
   "goLiveTooltip": "クリックして配信開始",
@@ -39,7 +40,7 @@
   "notBroadcastingCreateProgram": "番組を作成する",
   "broadcastStatusFetchingError": {
     "default": "配信に必要な情報を取得できませんでした。インターネットの接続状態を確認してください。",
-    "httpError": "配信に必要な情報を取得できませんでした。（%{requestURL}: %{statusText}）"
+    "httpError": "配信に必要な情報を取得できませんでした。（{requestURL}: {statusText}）"
   },
   "bitrateFetchingError": {
     "title": "ビットレート取得失敗",
@@ -47,7 +48,8 @@
   },
   "optimizationForNiconico": {
     "title": "設定の最適化",
-    "description": "ニコニコ生放送に最適化した設定で配信します。"
+    "description": "ニコニコ生放送に最適化した設定で配信します。",
+    "recordingWarning": "録画中は最適化を実行できません。最適化せずに配信を開始するか、録画を停止してから再度配信を開始してください。"
   },
   "nicoliveProgramSelector": {
     "title": "配信番組の選択",

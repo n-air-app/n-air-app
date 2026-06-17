@@ -116,7 +116,8 @@
         "x264": "@:settings.Output.Streaming.Encoder.obs_x264",
         "qsv": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
-        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc"
+        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "ABitrate": {
         "name": null
@@ -170,7 +171,8 @@
         "obs_x264": "Software (x264)",
         "obs_qsv11": "Hardware (QSV)",
         "ffmpeg_nvenc": "Hardware (NVENC)",
-        "jim_nvenc": "Hardware (NVENC NEW)"
+        "jim_nvenc": "Hardware (NVENC NEW)",
+        "obs_qsv11_v2": "Hardware (QSV)"
       },
       "ApplyServiceSettings": {
         "name": "@:settings.Output.Streaming.EnforceBitrate.name"
@@ -299,7 +301,8 @@
         "obs_x264": "@:settings.Output.Streaming.Encoder.obs_x264",
         "obs_qsv11": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "ffmpeg_nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
-        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc"
+        "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "RecAEncoder": { "name": null },
       "RecRescale": {
@@ -666,6 +669,8 @@
   "cacheIdDescription": "Copy the Cache ID to clipboard.",
   "cacheIdCopy": "Copy",
   "cacheManagement": "Management of the cache",
+  "noticeIpcError": "OBS module is not responding. Restart the app?",
+  "noticeIpcErrorDetail": "Communication with OBS has been disconnected. Restarting may resolve the issue.",
   "noticeWhileStreaming": "Some settings cannot be changed while streaming.",
   "noticeLoginRequired": "This feature is for niconico live comments only. Please log in to your niconico account to use it.",
   "noticeForStreaming": "The URL/stream key will be set automatically according to the niconico account you are logged in to on N Air when you start streaming.",
@@ -865,7 +870,7 @@
         "502": "Bad gateway",
         "503": "Service unavailable",
         "504": "Gateway timeout",
-        "x00": "HTTP error: %{status}"
+        "x00": "HTTP error: {status}"
       }
     },
     "downloadModelConfirm": {

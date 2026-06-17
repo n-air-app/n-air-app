@@ -2,16 +2,18 @@
 import { contextMenuClick } from '../webdriver/context-menu';
 import { setFormDropdown, setFormInput } from '../webdriver/forms';
 
-import { click, focusChild, focusMain } from './core';
-import { rightClickSource } from './sources';
+import { click, focusChild, focusMain, waitForDisplayed } from './core';
+import { rightClickSource, selectSource } from './sources';
 
 export async function openFiltersWindow(sourceName: string) {
   await focusMain();
-  //await selectSource(t, sourceName);
+  await selectSource(sourceName);
   await rightClickSource(sourceName);
   //await new Promise(x => setTimeout(x, 250));
   await contextMenuClick('Filters');
   await focusChild();
+  // wait for the filters window to render
+  await waitForDisplayed('[data-test="SourceFilters"]');
 }
 
 export async function openFilterProperties(sourceName: string, filterName: string) {

@@ -39,9 +39,11 @@
             </ul>
           </div>
 
-          <div class="indicator" :class="{ 'is-show': showPopupMenu }" slot="reference">
-            <i class="icon-adjuster icon-btn" v-tooltip.bottom="adjusterTooltip"></i>
-          </div>
+          <template #reference>
+            <div class="indicator" :class="{ 'is-show': showPopupMenu }">
+              <i class="icon-adjuster icon-btn" v-tooltip.bottom="adjusterTooltip"></i>
+            </div>
+          </template>
         </popper>
 
         <button

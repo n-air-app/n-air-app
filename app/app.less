@@ -5,6 +5,15 @@
 @import url('./styles/inputs');
 @import url('./styles/tooltips');
 
+html,
+body {
+  height: 100%;
+}
+
+#app {
+  height: 100%;
+}
+
 body {
   font-family: @font-family;
   font-size: @font-size4;
@@ -390,7 +399,7 @@ th {
   transition: all 0.3s ease;
 }
 
-.slide-fade-enter,
+.slide-fade-enter-from,
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateX(20px);
@@ -404,7 +413,7 @@ th {
   transition: all 0.2s ease;
 }
 
-.fade-enter,
+.fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }

@@ -5,16 +5,16 @@
     :cancel-handler="cancel"
     :fixedSectionHeight="200"
   >
-    <display slot="fixed" v-if="source" :sourceId="source.id" />
-    <div slot="content">
+    <template #fixed><display v-if="source" :sourceId="source.id" /></template>
+    <template #content>
       <component
         v-if="propertiesManagerUI"
         :is="propertiesManagerUI"
         :source="source"
         @update="refresh"
       />
-      <GenericForm v-model="properties" @input="onInputHandler" />
-    </div>
+      <GenericForm :value="properties" @input="onInputHandler" />
+    </template>
   </modal-layout>
 </template>
 

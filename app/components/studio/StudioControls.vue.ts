@@ -2,83 +2,84 @@ import Mixer from 'components/studio/Mixer.vue';
 import SceneSelector from 'components/studio/SceneSelector.vue';
 import SourceSelector from 'components/studio/SourceSelector.vue';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { SceneCollectionsService } from 'services/scene-collections';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent, onMounted, ref } from 'vue';
 
 import ControlsArrow from '../../../media/images/controls-arrow.svg';
 
-@Component({
+function clampHeight(h: number): number {
+  if (h <= 0) return CustomizationService.defaultState.studioControlsHeight;
+  const minHeight = 40;
+  const maxHeight = window.innerHeight - 200;
+  return Math.min(maxHeight, Math.max(minHeight, h));
+}
+
+export default defineComponent({
+  name: 'StudioControls',
+
   components: {
     SceneSelector,
     SourceSelector,
     Mixer,
     ControlsArrow,
   },
-})
-export default class StudioControls extends Vue {
-  @Inject() customizationService: CustomizationService;
-  @Inject() compactModeService: CompactModeService;
-  @Inject() sceneCollectionsService: SceneCollectionsService;
 
-  get opened() {
-    return this.customizationService.studioControlsOpened;
-  }
+  setup() {
+    const currentHeight = ref(CustomizationService.defaultState.studioControlsHeight);
 
-  get isCompactMode() {
-    return this.compactModeService.isCompactMode;
-  }
-  get compactModeStudioController() {
-    return this.compactModeService.compactModeStudioController;
-  }
-  set compactModeStudioController(controller: 'scenes' | 'mixer') {
-    this.compactModeService.compactModeStudioController = controller;
-  }
-  get activeCollection() {
-    return this.sceneCollectionsService.activeCollection;
-  }
+    onMounted(() => {
+      currentHeight.value = clampHeight(CustomizationService.instance().state.studioControlsHeight);
+    });
 
-  onToggleControls() {
-    this.customizationService.toggleStudioControls();
-  }
+    function onDrag(e: MouseEvent) {
+      const deltaY = startY - e.clientY;
+      currentHeight.value = clampHeight(currentHeight.value + deltaY);
+      startY = e.clientY;
+    }
 
-  //-------------------------------------------------
-  // ドラッグ操作によるコントロール高さ変更
-  private isDragging = false;
-  private startY = 0;
-  currentHeight = CustomizationService.defaultState.studioControlsHeight;
+    function onDragEnd() {
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', onDragEnd);
+      CustomizationService.instance().setStudioControlsHeight(currentHeight.value);
+    }
 
-  mounted() {
-    this.currentHeight = this.clampHeight(this.customizationService.state.studioControlsHeight);
-  }
+    let startY = 0;
+    function onDragStart(e: MouseEvent) {
+      startY = e.clientY;
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', onDragEnd);
+    }
 
-  clampHeight(h: number) {
-    if (h <= 0) return CustomizationService.defaultState.studioControlsHeight; // default height
-    const minHeight = 40;
-    const maxHeight = window.innerHeight - 200;
-    return Math.min(maxHeight, Math.max(minHeight, h));
-  }
+    return { currentHeight, onDragStart };
+  },
 
-  onDragStart(e: MouseEvent) {
-    this.isDragging = true;
-    this.startY = e.clientY;
-    document.addEventListener('mousemove', this.onDrag);
-    document.addEventListener('mouseup', this.onDragEnd);
-  }
+  computed: {
+    opened() {
+      return CustomizationService.instance().studioControlsOpened;
+    },
 
-  onDrag(e: MouseEvent) {
-    if (!this.isDragging) return;
-    const deltaY = this.startY - e.clientY;
-    this.currentHeight = this.clampHeight(this.currentHeight + deltaY);
-    this.startY = e.clientY;
-  }
+    isCompactMode() {
+      return CompactModeService.instance().isCompactMode;
+    },
 
-  onDragEnd() {
-    this.isDragging = false;
-    document.removeEventListener('mousemove', this.onDrag);
-    document.removeEventListener('mouseup', this.onDragEnd);
-    this.customizationService.setStudioControlsHeight(this.currentHeight);
-  }
-}
+    compactModeStudioController: {
+      get(): 'scenes' | 'mixer' {
+        return CompactModeService.instance().compactModeStudioController;
+      },
+      set(controller: 'scenes' | 'mixer') {
+        CompactModeService.instance().compactModeStudioController = controller;
+      },
+    },
+
+    activeCollection() {
+      return SceneCollectionsService.instance().activeCollection;
+    },
+  },
+
+  methods: {
+    onToggleControls() {
+      CustomizationService.instance().toggleStudioControls();
+    },
+  },
+});

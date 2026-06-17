@@ -5,7 +5,7 @@ import { TObsType } from './ObsInput';
 
 type InputComponent = Component & { obsType: TObsType | TObsType[] };
 
-const inputComponents = comps as Record<string, InputComponent>;
+const inputComponents = comps as unknown as Record<string, InputComponent>;
 
 export function propertyComponentForType(type: TObsType): Component {
   const component = Object.values(inputComponents).find((comp) => {

@@ -1,24 +1,23 @@
 import TitleBar from 'components/studio/TitleBar.vue';
-import { Inject } from 'services/core/injector';
 import Util from 'services/utils';
 import { getComponents, WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'OneOffWindow',
+
   components: {
     TitleBar,
     ...getComponents(),
   },
-})
-export default class OneOffWindow extends Vue {
-  @Inject() private windowsService: WindowsService;
 
-  get options() {
-    return this.windowsService.state[this.windowId];
-  }
+  computed: {
+    windowId(): string {
+      return Util.getCurrentUrlParams().windowId;
+    },
 
-  get windowId() {
-    return Util.getCurrentUrlParams().windowId;
-  }
-}
+    options() {
+      return WindowsService.instance().state[this.windowId];
+    },
+  },
+});

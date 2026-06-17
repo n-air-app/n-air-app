@@ -4,7 +4,6 @@ import Login from 'components/shared/Login.vue';
 import StreamingStatus from 'components/studio/StreamingStatus.vue';
 import electron from 'electron';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { EDismissable } from 'services/dismissables';
 import { EAvailableFeatures, IncrementalRolloutService } from 'services/incremental-rollout';
 import { InformationsService } from 'services/informations';
@@ -13,116 +12,122 @@ import { SettingsService } from 'services/settings';
 import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'SideNav',
+
   components: {
     Login,
     HelpTip,
     StreamingStatus,
   },
-})
-export default class SideNav extends Vue {
-  @Inject() settingsService: SettingsService;
-  @Inject() compactModeService: CompactModeService;
-  @Inject() navigationService: NavigationService;
-  @Inject() userService: UserService;
-  @Inject() transitionsService: TransitionsService;
-  @Inject() informationsService: InformationsService;
-  @Inject() incrementalRolloutService: IncrementalRolloutService;
 
-  slideOpen = false;
+  props: {
+    locked: { type: Boolean },
+  },
 
-  studioModeTooltip = 'Studio Mode';
+  data() {
+    return {
+      slideOpen: false,
+      studioModeTooltip: 'Studio Mode',
+    };
+  },
 
-  get availableFeatures() {
-    return EAvailableFeatures;
-  }
+  computed: {
+    availableFeatures() {
+      return EAvailableFeatures;
+    },
 
-  @Prop() locked: boolean;
+    isCompactMode(): boolean {
+      return CompactModeService.instance().isCompactMode;
+    },
 
-  navigateStudio() {
-    this.navigationService.navigate('Studio');
-  }
+    compactModeTab: {
+      get(): 'studio' | 'niconico' {
+        return CompactModeService.instance().compactModeTab;
+      },
+      set(tab: 'studio' | 'niconico') {
+        CompactModeService.instance().compactModeTab = tab;
+      },
+    },
 
-  navigateOnboarding() {
-    this.navigationService.navigate('Onboarding');
-  }
+    notifyNewComment(): boolean {
+      return CompactModeService.instance().notifyNewComment;
+    },
 
-  featureIsEnabled(feature: EAvailableFeatures) {
-    return this.incrementalRolloutService.featureIsEnabled(feature);
-  }
+    studioModeEnabled() {
+      return TransitionsService.instance().state.studioMode;
+    },
 
-  get isCompactMode(): boolean {
-    return this.compactModeService.isCompactMode;
-  }
-  toggleCompactMode() {
-    this.compactModeService.toggleCompactMode();
-  }
-  get compactModeTab(): 'studio' | 'niconico' {
-    return this.compactModeService.compactModeTab;
-  }
-  set compactModeTab(tab: 'studio' | 'niconico') {
-    this.compactModeService.compactModeTab = tab;
-  }
-  get notifyNewComment(): boolean {
-    return this.compactModeService.notifyNewComment;
-  }
+    InitialHelpTipDismissable() {
+      return EDismissable.InitialHelpTip;
+    },
 
-  studioMode() {
-    if (this.transitionsService.state.studioMode) {
-      this.transitionsService.disableStudioMode();
-    } else {
-      this.transitionsService.enableStudioMode();
-    }
-  }
+    CompactModeToggleHelpTipDismissable() {
+      return EDismissable.CompactModeToggleHelpTip;
+    },
 
-  get studioModeEnabled() {
-    return this.transitionsService.state.studioMode;
-  }
+    isDevMode() {
+      return Utils.isDevMode();
+    },
 
-  openSettingsWindow() {
-    this.settingsService.showSettings();
-  }
+    page() {
+      return NavigationService.instance().state.currentPage;
+    },
 
-  openFeedback() {
-    remote.shell.openExternal('https://form.nicovideo.jp/forms/n_air_feedback');
-  }
+    isUserLoggedIn() {
+      return UserService.instance().isLoggedIn();
+    },
 
-  get InitialHelpTipDismissable() {
-    return EDismissable.InitialHelpTip;
-  }
+    hasUnseenInformation() {
+      return InformationsService.instance().hasUnseenItem;
+    },
+  },
 
-  get CompactModeToggleHelpTipDismissable() {
-    return EDismissable.CompactModeToggleHelpTip;
-  }
+  methods: {
+    navigateStudio() {
+      NavigationService.instance().navigate('Studio');
+    },
 
-  openHelp() {
-    remote.shell.openExternal('https://qa.nicovideo.jp/faq/show/11857?site_domain=default');
-  }
+    navigateOnboarding() {
+      NavigationService.instance().navigate('Onboarding');
+    },
 
-  get isDevMode() {
-    return Utils.isDevMode();
-  }
+    featureIsEnabled(feature: EAvailableFeatures) {
+      return IncrementalRolloutService.instance().featureIsEnabled(feature);
+    },
 
-  openInformations() {
-    this.informationsService.showInformations();
-  }
+    toggleCompactMode() {
+      CompactModeService.instance().toggleCompactMode();
+    },
 
-  openDevTools() {
-    electron.ipcRenderer.send('openDevTools');
-  }
+    studioMode() {
+      if (TransitionsService.instance().state.studioMode) {
+        TransitionsService.instance().disableStudioMode();
+      } else {
+        TransitionsService.instance().enableStudioMode();
+      }
+    },
 
-  get page() {
-    return this.navigationService.state.currentPage;
-  }
+    openSettingsWindow() {
+      SettingsService.instance().showSettings();
+    },
 
-  get isUserLoggedIn() {
-    return this.userService.isLoggedIn();
-  }
+    openFeedback() {
+      remote.shell.openExternal('https://form.nicovideo.jp/forms/n_air_feedback');
+    },
 
-  get hasUnseenInformation() {
-    return this.informationsService.hasUnseenItem;
-  }
-}
+    openHelp() {
+      remote.shell.openExternal('https://qa.nicovideo.jp/faq/show/11857?site_domain=default');
+    },
+
+    openInformations() {
+      InformationsService.instance().showInformations();
+    },
+
+    openDevTools() {
+      electron.ipcRenderer.send('openDevTools');
+    },
+  },
+});

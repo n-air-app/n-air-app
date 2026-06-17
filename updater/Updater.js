@@ -29,6 +29,12 @@ class Updater {
 
     autoUpdater.autoDownload = false;
 
+    // 未パッケージ状態では checkForUpdates() が isUpdaterActive() でスキップされるため、
+    // 開発用フラグが立っている場合は強制有効化する。
+    if (process.env.NAIR_FORCE_AUTO_UPDATE) {
+      autoUpdater.forceDevUpdateConfig = true;
+    }
+
     autoUpdater
       .checkForUpdates()
       .then((result) => {
@@ -144,7 +150,6 @@ isUnskippable: ${this.updateState.isUnskippable}`);
       height: 369,
       webPreferences: {
         nodeIntegration: true,
-        enableRemoteModule: true,
         contextIsolation: false,
       },
       useContentSize: true,

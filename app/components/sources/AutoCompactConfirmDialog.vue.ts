@@ -1,44 +1,41 @@
 import BoolInput from 'components/obs/inputs/ObsBoolInput.vue';
 import { IObsInput } from 'components/obs/inputs/ObsInput';
 import ModalLayout from 'components/shared/ModalLayout.vue';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
-  components: {
-    ModalLayout,
-    BoolInput,
+export default defineComponent({
+  name: 'AutoCompactConfirmDialog',
+
+  components: { ModalLayout, BoolInput },
+
+  computed: {
+    doNotShowAgain(): IObsInput<boolean> {
+      return {
+        name: 'do_not_show_again',
+        description: $t('settings.autoCompact.doNotShowAgain'),
+        value: CustomizationService.instance().showOptimizationDialogForNiconico === false,
+      };
+    },
   },
-})
-export default class AutoCompactConfirmDialog extends Vue {
-  @Inject() customizationService: CustomizationService;
-  @Inject() windowsService: WindowsService;
 
-  get doNotShowAgain(): IObsInput<boolean> {
-    return {
-      name: 'do_not_show_again',
-      description: $t('settings.autoCompact.doNotShowAgain'),
-      value: this.customizationService.showOptimizationDialogForNiconico === false,
-    };
-  }
+  methods: {
+    setDoNotShowAgain(model: IObsInput<boolean>): void {
+      CustomizationService.instance().setShowOptimizationDialogForNiconico(!model.value);
+    },
 
-  setDoNotShowAgain(model: IObsInput<boolean>) {
-    this.customizationService.setShowOptimizationDialogForNiconico(!model.value);
-  }
+    activate(): void {
+      CustomizationService.instance().setAutoCompatMode(true);
+      WindowsService.instance().closeChildWindow();
+    },
 
-  activate() {
-    this.customizationService.setAutoCompatMode(true);
-    this.windowsService.closeChildWindow();
-  }
-
-  skip() {
-    if (this.doNotShowAgain.value) {
-      this.customizationService.setShowAutoCompactDialog(false);
-    }
-    this.windowsService.closeChildWindow();
-  }
-}
+    skip(): void {
+      if (this.doNotShowAgain.value) {
+        CustomizationService.instance().setShowAutoCompactDialog(false);
+      }
+      WindowsService.instance().closeChildWindow();
+    },
+  },
+});

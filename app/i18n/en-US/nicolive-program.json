@@ -84,7 +84,7 @@
         },
         "400": {
           "title": "Failed to extend the program",
-          "message": "You could not extend the program.\n%{additionalMessage}"
+          "message": "You could not extend the program.\n{additionalMessage}"
         },
         "401": {
           "title": "You do not have the authority to extend the program",
@@ -92,7 +92,7 @@
         },
         "403": {
           "title": "Failed to extend the program",
-          "message": "Failed to extend the program.\n%{additionalMessage}"
+          "message": "Failed to extend the program.\n{additionalMessage}"
         },
         "404": {
           "title": "There is no program",
@@ -110,7 +110,7 @@
         },
         "400": {
           "title": "Failed to post a comment",
-          "message": "Please make sure the content of comment.\n%{additionalMessage}"
+          "message": "Please make sure the content of comment.\n{additionalMessage}"
         },
         "401": {
           "title": "You are not logged in",
@@ -126,7 +126,7 @@
         },
         "500": {
           "title": "Failed to post a comment",
-          "message": "Failed to post a comment.\n%{additionalMessage}"
+          "message": "Failed to post a comment.\n{additionalMessage}"
         }
       },
       "sendNormalComment": {
@@ -136,7 +136,7 @@
         },
         "400": {
           "title": "Failed to post a comment",
-          "message": "Failed to post a comment. Please check the content of your post.\n%{additionalMessage}"
+          "message": "Failed to post a comment. Please check the content of your post.\n{additionalMessage}"
         },
         "401": {
           "title": "You are not logged in",
@@ -152,7 +152,7 @@
         },
         "500": {
           "title": "Failed to post a comment",
-          "message": "Failed to post a comment.\n%{additionalMessage}"
+          "message": "Failed to post a comment.\n{additionalMessage}"
         }
       },
       "fetchFilters": {
@@ -162,7 +162,7 @@
         },
         "400": {
           "title": "The Block settings could not be fetched",
-          "message": "The block settings could not be fetched\n%{additionalMessage}"
+          "message": "The block settings could not be fetched\n{additionalMessage}"
         },
         "401": {
           "title": "You are not logged in",
@@ -178,7 +178,7 @@
         },
         "500": {
           "title": "The block settings could not be fetched",
-          "message": "The block settings could not be fetched\n%{additionalMessage}"
+          "message": "The block settings could not be fetched\n{additionalMessage}"
         }
       },
       "addFilters": {
@@ -188,7 +188,7 @@
         },
         "400": {
           "title": "The block settings could not be added",
-          "message": "The block settings could not be added.\n%{additionalMessage}"
+          "message": "The block settings could not be added.\n{additionalMessage}"
         },
         "401": {
           "title": "You are not logged in",
@@ -196,7 +196,7 @@
         },
         "403": {
           "title": "The block settings could not be added",
-          "message": "The block settings could not be added\n%{additionalMessage}"
+          "message": "The block settings could not be added\n{additionalMessage}"
         },
         "404": {
           "title": "There is no program",
@@ -204,7 +204,7 @@
         },
         "500": {
           "title": "The block settings could not be added",
-          "message": "The block settings could not be added\n%{additionalMessage}"
+          "message": "The block settings could not be added\n{additionalMessage}"
         }
       },
       "deleteFilters": {
@@ -214,7 +214,7 @@
         },
         "400": {
           "title": "The block settings could not be deleted",
-          "message": "The block settings could not be deleted\n%{additionalMessage}"
+          "message": "The block settings could not be deleted\n{additionalMessage}"
         },
         "401": {
           "title": "You are not logged in",
@@ -230,7 +230,7 @@
         },
         "500": {
           "title": "The block settings could not be deleted",
-          "message": "The block settings could not be deleted\n%{additionalMessage}"
+          "message": "The block settings could not be deleted\n{additionalMessage}"
         }
       },
       "fetchOnairChannels": {
@@ -268,11 +268,11 @@
         },
         "400": {
           "title": "Unable to register a moderator",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "500": {
           "title": "Unable to register a moderator",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "NOT_BROADCASTER": {
           "title": "NOT_BROADCASTER",
@@ -294,11 +294,11 @@
         },
         "400": {
           "title": "Unable to remove a moderator",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "500": {
           "title": "Unable to remove a moderator",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "NOT_BROADCASTER": {
           "title": "NOT_BROADCASTER",
@@ -312,11 +312,11 @@
         },
         "400": {
           "title": "Unable to retrieve moderator information",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "500": {
           "title": "Unable to retrieve moderator information",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "NOT_BROADCASTER": {
           "title": "NOT_BROADCASTER",
@@ -330,11 +330,11 @@
         },
         "400": {
           "title": "Unable to retrieve supporter information",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         },
         "500": {
           "title": "Unable to retrieve supporter information",
-          "message": "%{additionalMessage}"
+          "message": "{additionalMessage}"
         }
       },
       "deleteComment": {
@@ -344,11 +344,11 @@
         },
         "400": {
           "title": "Failed to delete a comment",
-          "message": "Failed to delete a comment.\n%{additionalMessage}"
+          "message": "Failed to delete a comment.\n{additionalMessage}"
         },
         "500": {
           "title": "Failed to delete a comment",
-          "message": "Failed to delete a comment.\n%{additionalMessage}"
+          "message": "Failed to delete a comment.\n{additionalMessage}"
         },
         "NOT_FOUND": {
           "title": "NOT_FOUND",
@@ -382,11 +382,11 @@
         },
         "400": {
           "title": "Failed to restore comment",
-          "message": "Failed to restore.\n%{additionalMessage}"
+          "message": "Failed to restore.\n{additionalMessage}"
         },
         "500": {
           "title": "Failed to restore comment",
-          "message": "Failed to restore.\n%{additionalMessage}"
+          "message": "Failed to restore.\n{additionalMessage}"
         },
         "NOT_FOUND": {
           "title": "NOT_FOUND",

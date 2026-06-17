@@ -148,7 +148,8 @@
               </label>
             </div>
             <dropdown
-              v-model="videoCodec"
+              :value="videoCodec"
+              @input="videoCodec = $event"
               :options="videoCodecs"
               label="name"
               track-by="id"
@@ -188,7 +189,8 @@
               </label>
             </div>
             <dropdown
-              v-model="audioCodec"
+              :value="audioCodec"
+              @input="audioCodec = $event"
               :options="audioCodecs"
               label="name"
               track-by="id"

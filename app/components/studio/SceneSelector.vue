@@ -27,10 +27,12 @@
             </div>
           </div>
 
-          <button slot="reference" class="scene-collections__toggle">
-            <span class="scene-name">{{ activeCollection.name }}</span
-            ><i class="icon-drop-down-arrow" />
-          </button>
+          <template #reference>
+            <button class="scene-collections__toggle">
+              <span class="scene-name">{{ activeCollection.name }}</span
+              ><i class="icon-drop-down-arrow" />
+            </button>
+          </template>
         </popper>
       </div>
 
@@ -58,7 +60,7 @@
       @sort="handleSort"
       @contextmenu="showContextMenu"
     >
-      <template slot="actions" slot-scope="p">
+      <template #actions="p">
         <i
           class="icon-delete icon-btn"
           v-tooltip.bottom="removeSceneTooltip"
@@ -69,8 +71,8 @@
     </selector>
 
     <help-tip :dismissable-key="helpTipDismissable">
-      <div slot="title" v-text="$t('scenes.sceneCollections')"></div>
-      <div slot="content" v-text="$t('scenes.sceneCollectionSelectionDescription')"></div>
+      <template #title><div v-text="$t('scenes.sceneCollections')"></div></template>
+      <template #content><div v-text="$t('scenes.sceneCollectionSelectionDescription')"></div></template>
     </help-tip>
   </div>
 </template>

@@ -36,7 +36,7 @@
   padding: 0 16px;
   background-color: var(--color-bg-primary);
 
-  &.streaming-controller /deep/ .nav-container {
+  &.streaming-controller :deep(.nav-container) {
     flex-grow: 1;
   }
 

@@ -82,7 +82,7 @@ afterEach(() => {
 test('get instance', () => {
   setup();
   const { WindowSizeService } = target({ dummyMainWindowOperation: true });
-  expect(WindowSizeService.instance).toBeInstanceOf(WindowSizeService);
+  expect(WindowSizeService.instance()).toBeInstanceOf(WindowSizeService);
 });
 
 describe('static getPanelState', () => {
@@ -209,7 +209,7 @@ describe('refreshWindowSize', () => {
       jest.spyOn(require('electron').ipcRenderer, 'sendSync').mockImplementation(sendSync);
 
       // kick getter
-      const windowSizeService: WindowSizeServiceType = WindowSizeService.instance;
+      const windowSizeService: WindowSizeServiceType = WindowSizeService.instance();
 
       userLoginState.next(suite.isLoggedIn);
 
@@ -507,7 +507,7 @@ describe('isAlwaysOnTop', () => {
       });
 
       const { WindowSizeService } = target({ dummyMainWindowOperation: true });
-      const instance = WindowSizeService.instance as WindowSizeServiceType;
+      const instance = WindowSizeService.instance() as WindowSizeServiceType;
 
       expect(instance.state.isCompact).toBe(initCompactMode);
       expect(instance.state.isAlwaysOnTop).toBe(initExpected);

@@ -1,8 +1,6 @@
 import Popper from 'components/shared/Popper.vue';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
-import Vue from 'vue';
-import { Component, Prop } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 export interface IArea {
   name: string;
@@ -11,28 +9,37 @@ export interface IArea {
   text: string;
 }
 
-@Component({
+export default defineComponent({
+  name: 'AreaSwitcher',
+
   components: { Popper },
-})
-export default class AreaSwitcher extends Vue {
-  @Prop()
-    contents: IArea[];
 
-  @Inject()
-  private customizationService: CustomizationService;
+  props: {
+    contents: { type: Array as () => IArea[] },
+  },
 
-  get isCompactMode(): boolean {
-    return this.customizationService.state.compactMode;
-  }
+  data() {
+    const contents = this.contents as IArea[];
+    return {
+      selectedContent: (contents.find((c) => c.defaultSelected) ?? contents[0]) as IArea,
+    };
+  },
 
-  // @ts-expect-error: ts2729: use before initialization
-  private selectedContent: IArea = this.contents.find((c) => c.defaultSelected) ?? this.contents[0];
+  computed: {
+    isCompactMode(): boolean {
+      return CustomizationService.instance().state.compactMode;
+    },
 
-  get activeContent(): IArea {
-    return this.isCompactMode ? this.contents[0] : this.selectedContent;
-  }
+    activeContent(): IArea {
+      return this.isCompactMode
+        ? (this.contents as IArea[])[0]
+        : this.selectedContent;
+    },
+  },
 
-  select(slotName: string) {
-    this.selectedContent = this.contents.find((c) => c.slotName === slotName)!;
-  }
-}
+  methods: {
+    select(slotName: string) {
+      this.selectedContent = (this.contents as IArea[]).find((c) => c.slotName === slotName)!;
+    },
+  },
+});

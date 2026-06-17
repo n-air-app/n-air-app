@@ -171,7 +171,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
   speechActionObservable: Observable<'pause' | 'cancel' | 'graceful' | 'resume'> = this.soundDetectedObservable.pipe(
     map(({ soundDetected }) => soundDetected === 'loud'),
     distinctUntilChanged(),
-    map((soundDetected: boolean) => {
+    map((soundDetected) => {
       if (soundDetected) {
         return this.state.speechActionOnSoundDetected;
       }
@@ -262,8 +262,8 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
           this.audioSubscriptions.get(id)
           ?? (() => {
             return source.getVolmeterStream().subscribe((volmeter) => {
-              if (volmeter.peak.some((p: number) => isFinite(p))) {
-                if (volmeter.peak.some((p: number) => p > this.state.soundThresholdDb)) {
+              if (volmeter.peak.some((p) => isFinite(p))) {
+                if (volmeter.peak.some((p) => p > this.state.soundThresholdDb)) {
                   this.startSoundDetected();
                 } else {
                   this.signalDetected();

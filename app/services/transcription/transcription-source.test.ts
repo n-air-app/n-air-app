@@ -48,7 +48,7 @@ function prepare(activeScene: unknown = null) {
   const { TranscriptionSourceService } = require('./transcription-source') as {
     TranscriptionSourceService: typeof TranscriptionSourceServiceType;
   };
-  return TranscriptionSourceService.instance;
+  return TranscriptionSourceService.instance();
 }
 
 describe('TranscriptionSourceService', () => {
@@ -96,7 +96,7 @@ describe('TranscriptionSourceService', () => {
       const { TranscriptionSourceService } = require('./transcription-source') as {
         TranscriptionSourceService: typeof TranscriptionSourceServiceType;
       };
-      const instance = TranscriptionSourceService.instance;
+      const instance = TranscriptionSourceService.instance();
       const items = instance.getTranscriptionItemsInActiveScene();
       expect(items).toEqual([{ sourceId: 'source-1' }, { sourceId: 'source-2' }]);
     });
@@ -129,7 +129,7 @@ describe('TranscriptionSourceService', () => {
       const { TranscriptionSourceService } = require('./transcription-source') as {
         TranscriptionSourceService: typeof TranscriptionSourceServiceType;
       };
-      const instance = TranscriptionSourceService.instance;
+      const instance = TranscriptionSourceService.instance();
       expect(instance.getTranscriptionItemsInActiveScene()).toEqual([]);
     });
   });
@@ -166,7 +166,7 @@ describe('TranscriptionSourceService', () => {
       const { TranscriptionSourceService } = require('./transcription-source') as {
         TranscriptionSourceService: typeof TranscriptionSourceServiceType;
       };
-      const instance = TranscriptionSourceService.instance;
+      const instance = TranscriptionSourceService.instance();
       expect(instance.containsTranscriptionInActiveScene()).toBe(true);
     });
   });

@@ -40,7 +40,7 @@ afterEach(() => {
 test('fetchFilters/通常成功', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
 
   const fetchFilters = jest
     .fn()
@@ -59,7 +59,7 @@ test('fetchFilters/通常成功', async () => {
 test('fetchFilters/失敗', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
 
   const fetchFilters = jest.fn().mockResolvedValue({
     ok: false,
@@ -86,7 +86,7 @@ test('fetchFilters/失敗', async () => {
 test('addFilters/通常成功', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
 
   const addFilters = jest.fn().mockResolvedValue({ ok: true, value: { id: 114514 } });
   (instance as any).client.addFilters = addFilters;
@@ -107,7 +107,7 @@ test('addFilters/通常成功', async () => {
 test('addFilters/既に追加済みのとき', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
 
   const addFilters = jest.fn().mockResolvedValue({ ok: true, value: [] });
   (instance as any).client.addFilters = addFilters;
@@ -127,7 +127,7 @@ test('addFilters/既に追加済みのとき', async () => {
 test('addFilters/失敗', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
 
   const addFilters = jest.fn().mockResolvedValue({
     ok: false,
@@ -154,7 +154,7 @@ test('addFilters/失敗', async () => {
 test('deleteFilters', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
   instance.state.filters = [
     { type: 'word', body: '810', id: 114514 },
     { type: 'word', body: 'yay', id: 114515 },
@@ -175,7 +175,7 @@ test('deleteFilters', async () => {
 test('deleteFilters/失敗', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
   instance.state.filters = [
     { type: 'word', body: '810', id: 114514 },
     { type: 'word', body: 'yay', id: 114515 },
@@ -206,7 +206,7 @@ test('deleteFilters/失敗', async () => {
 test('applyFilter', async () => {
   setup();
   const { NicoliveCommentFilterService } = require('./nicolive-comment-filter');
-  const instance = NicoliveCommentFilterService.instance as NicoliveCommentFilterService;
+  const instance = NicoliveCommentFilterService.instance() as NicoliveCommentFilterService;
   instance.state.filters = [
     { type: 'word', body: 'needle', id: 1 },
     { type: 'command', body: 'needle', id: 2 },

@@ -3,39 +3,31 @@ import StudioControls from 'components/studio/StudioControls.vue';
 import StudioEditor from 'components/studio/StudioEditor.vue';
 import StudioModeControls from 'components/studio/StudioModeControls.vue';
 import { CompactModeService } from 'services/compact-mode';
-import { Inject } from 'services/core/injector';
 import { CustomizationService } from 'services/customization';
-import { ScenesService } from 'services/scenes';
 import { TransitionsService } from 'services/transitions';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({
+export default defineComponent({
+  name: 'Studio',
+
   components: {
     StudioEditor,
     StudioControls,
     Display,
     StudioModeControls,
   },
-})
-export default class Studio extends Vue {
-  @Inject() private customizationService: CustomizationService;
-  @Inject() private compactModeService: CompactModeService;
-  @Inject() private transitionsService: TransitionsService;
-  @Inject() private scenesService: ScenesService;
 
-  $refs: {
-    studioModeContainer: HTMLDivElement;
-  };
-
-  stacked = false;
-
-  sizeCheckInterval: number;
+  data() {
+    return {
+      stacked: false,
+      sizeCheckInterval: 0,
+    };
+  },
 
   mounted() {
     this.sizeCheckInterval = window.setInterval(() => {
       if (this.studioMode && this.$refs.studioModeContainer) {
-        const rect = this.$refs.studioModeContainer.getBoundingClientRect();
+        const rect = (this.$refs.studioModeContainer as HTMLDivElement).getBoundingClientRect();
 
         if (rect.width / rect.height > 16 / 9) {
           this.stacked = false;
@@ -44,32 +36,37 @@ export default class Studio extends Vue {
         }
       }
     }, 1000);
-  }
+  },
 
-  destroyed() {
+  unmounted() {
     clearInterval(this.sizeCheckInterval);
-  }
+  },
 
-  get previewEnabled() {
-    return !this.customizationService.state.performanceMode;
-  }
+  computed: {
+    previewEnabled(): boolean {
+      return !CustomizationService.instance().state.performanceMode;
+    },
 
-  get studioMode() {
-    return this.transitionsService.state.studioMode;
-  }
+    studioMode(): boolean {
+      return TransitionsService.instance().state.studioMode;
+    },
 
-  studioModeTransition() {
-    this.transitionsService.executeStudioModeTransition();
-  }
+    isCompactMode(): boolean {
+      return CompactModeService.instance().isCompactMode;
+    },
 
-  enablePreview() {
-    this.customizationService.setSettings({ performanceMode: false });
-  }
+    compactModeTab() {
+      return CompactModeService.instance().compactModeTab;
+    },
+  },
 
-  get isCompactMode() {
-    return this.compactModeService.isCompactMode;
-  }
-  get compactModeTab() {
-    return this.compactModeService.compactModeTab;
-  }
-}
+  methods: {
+    studioModeTransition() {
+      TransitionsService.instance().executeStudioModeTransition();
+    },
+
+    enablePreview() {
+      CustomizationService.instance().setSettings({ performanceMode: false });
+    },
+  },
+});

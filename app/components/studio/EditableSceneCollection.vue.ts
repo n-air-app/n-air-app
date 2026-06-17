@@ -1,109 +1,114 @@
 import * as remote from '@electron/remote';
 import { DateTime } from 'luxon';
-import { Inject } from 'services/core/injector';
 import { $t } from 'services/i18n';
 import { SceneCollectionsService } from 'services/scene-collections';
-import Vue from 'vue';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
-@Component({})
-export default class EditableSceneCollection extends Vue {
-  @Inject() sceneCollectionsService: SceneCollectionsService;
-  @Prop() collectionId: string;
-  @Prop() selected: boolean;
+export default defineComponent({
+  name: 'EditableSceneCollection',
 
-  renaming = false;
-  editableName = '';
-  duplicating = false;
+  props: {
+    collectionId: { type: String },
+    selected: { type: Boolean },
+  },
 
-  $refs: {
-    rename: HTMLInputElement;
-  };
+  data() {
+    return {
+      renaming: false,
+      editableName: '',
+      duplicating: false,
+    };
+  },
+
+  computed: {
+    needsRename() {
+      return this.collection.needsRename;
+    },
+
+    collection() {
+      return SceneCollectionsService.instance().collections.find((coll: any) => coll.id === this.collectionId);
+    },
+
+    modified() {
+      return DateTime.fromISO(this.collection.modified).toRelative();
+    },
+
+    isActive() {
+      const collection = this.collection;
+      if (!collection) return false;
+      const activeCollection = SceneCollectionsService.instance().activeCollection;
+      if (!activeCollection) return false;
+
+      return collection.id === activeCollection.id;
+    },
+  },
+
+  watch: {
+    needsRename(newVal: boolean) {
+      if (newVal) this.startRenaming();
+    },
+  },
 
   mounted() {
     if (this.collection.needsRename) this.startRenaming();
-  }
+  },
 
-  get needsRename() {
-    return this.collection.needsRename;
-  }
+  methods: {
+    handleKeypress(e: KeyboardEvent) {
+      if (e.code === 'Enter') this.submitRename();
+    },
 
-  @Watch('needsRename')
-  onNeedsRenamedChanged(newVal: boolean) {
-    if (newVal) this.startRenaming();
-  }
+    makeActive() {
+      SceneCollectionsService.instance().load(this.collection.id);
+    },
 
-  get collection() {
-    return this.sceneCollectionsService.collections.find((coll) => coll.id === this.collectionId);
-  }
+    duplicate() {
+      this.duplicating = true;
 
-  get modified() {
-    return DateTime.fromISO(this.collection.modified).toRelative();
-  }
+      setTimeout(() => {
+        SceneCollectionsService.instance()
+          .duplicate(this.collection.name, this.collection.id)
+          .then(() => {
+            this.duplicating = false;
+          })
+          .catch(() => {
+            this.duplicating = false;
+          });
+      }, 500);
+    },
 
-  get isActive() {
-    const collection = this.collection;
-    if (!collection) return false;
-    const activeCollection = this.sceneCollectionsService.activeCollection;
-    if (!activeCollection) return false;
+    startRenaming() {
+      this.renaming = true;
+      this.editableName = this.collection.name;
+      this.$nextTick(() => (this.$refs.rename as HTMLInputElement).focus());
+    },
 
-    return collection.id === activeCollection.id;
-  }
+    submitRename() {
+      SceneCollectionsService.instance().rename(this.editableName, this.collectionId);
+      this.renaming = false;
+    },
 
-  handleKeypress(e: KeyboardEvent) {
-    if (e.code === 'Enter') this.submitRename();
-  }
+    cancelRename() {
+      this.renaming = false;
+    },
 
-  makeActive() {
-    this.sceneCollectionsService.load(this.collection.id);
-  }
-
-  duplicate() {
-    this.duplicating = true;
-
-    setTimeout(() => {
-      this.sceneCollectionsService
-        .duplicate(this.collection.name, this.collection.id)
-        .then(() => {
-          this.duplicating = false;
+    remove() {
+      remote.dialog
+        .showMessageBox(remote.getCurrentWindow(), {
+          type: 'warning',
+          buttons: [$t('common.ok'), $t('common.cancel')],
+          title: $t('scenes.removeSceneCollectionConfirmTitle'),
+          message: $t('scenes.removeSceneCollectionConfirm', {
+            collectionName: this.collection.name,
+          }),
+          noLink: true,
+          defaultId: 1,
+          cancelId: 1,
         })
-        .catch(() => {
-          this.duplicating = false;
+        .then(({ response: cancel }) => {
+          if (cancel) return;
+          SceneCollectionsService.instance().delete(this.collectionId);
         });
-    }, 500);
-  }
-
-  startRenaming() {
-    this.renaming = true;
-    this.editableName = this.collection.name;
-    this.$nextTick(() => this.$refs.rename.focus());
-  }
-
-  submitRename() {
-    this.sceneCollectionsService.rename(this.editableName, this.collectionId);
-    this.renaming = false;
-  }
-
-  cancelRename() {
-    this.renaming = false;
-  }
-
-  remove() {
-    remote.dialog
-      .showMessageBox(remote.getCurrentWindow(), {
-        type: 'warning',
-        buttons: [$t('common.ok'), $t('common.cancel')],
-        title: $t('scenes.removeSceneCollectionConfirmTitle'),
-        message: $t('scenes.removeSceneCollectionConfirm', {
-          collectionName: this.collection.name,
-        }),
-        noLink: true,
-        defaultId: 1,
-        cancelId: 1,
-      })
-      .then(({ response: cancel }) => {
-        if (cancel) return;
-        this.sceneCollectionsService.delete(this.collectionId);
-      });
-  }
-}
+    },
+  },
+});

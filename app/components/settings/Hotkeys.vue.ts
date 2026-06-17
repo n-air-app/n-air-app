@@ -1,49 +1,46 @@
 import TocSection from 'components/shared/TocSection.vue';
-import { Inject } from 'services/core/injector';
 import { HotkeysService, IHotkeysSet } from 'services/hotkeys';
 import { ScenesService } from 'services/scenes';
 import { SourcesService } from 'services/sources';
-import Vue from 'vue';
-import { Component } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import HotkeyGroup from './HotkeyGroup.vue';
 
-@Component({
+export default defineComponent({
+  name: 'Hotkeys',
   components: { HotkeyGroup, TocSection },
-})
-export default class Hotkeys extends Vue {
-  @Inject() private sourcesService: SourcesService;
-  @Inject() private scenesService: ScenesService;
-  @Inject() private hotkeysService: HotkeysService;
-
-  hotkeySet: IHotkeysSet = {
-    general: [],
-    sources: {},
-    scenes: {},
-  };
-
+  data() {
+    return {
+      hotkeySet: {
+        general: [],
+        sources: {},
+        scenes: {},
+      } as IHotkeysSet,
+    };
+  },
+  computed: {
+    sources() {
+      return SourcesService.instance().sources;
+    },
+  },
   mounted() {
     // We don't want hotkeys registering while trying to bind.
     // We may change our minds on this in the future.
-    this.hotkeysService.unregisterAll();
+    HotkeysService.instance().unregisterAll();
 
     // Render a blank page before doing synchronous IPC
-    setTimeout(() => (this.hotkeySet = this.hotkeysService.getHotkeysSet()), 100);
-  }
+    setTimeout(() => (this.hotkeySet = HotkeysService.instance().getHotkeysSet()), 100);
+  },
+  unmounted() {
+    HotkeysService.instance().applyHotkeySet(this.hotkeySet);
+  },
+  methods: {
+    getSceneName(sceneId: string): string {
+      return ScenesService.instance().getScene(sceneId).name;
+    },
+    getSourceName(sourceId: string): string {
+      return SourcesService.instance().getSource(sourceId).name;
+    },
+  },
+});
 
-  destroyed() {
-    this.hotkeysService.applyHotkeySet(this.hotkeySet);
-  }
-
-  get sources() {
-    return this.sourcesService.sources;
-  }
-
-  getSceneName(sceneId: string): string {
-    return this.scenesService.getScene(sceneId).name;
-  }
-
-  getSourceName(sourceId: string): string {
-    return this.sourcesService.getSource(sourceId).name;
-  }
-}

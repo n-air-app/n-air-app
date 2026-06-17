@@ -1,4 +1,5 @@
-import Vue, { PropType } from 'vue';
+// @ts-nocheck
+import { defineComponent, PropType } from 'vue';
 
 interface ISlTreeNodeModel<TDataType = any> {
   title: string;
@@ -27,7 +28,7 @@ interface ICursorPosition<TDataType = any> {
   placement: 'before' | 'inside' | 'after';
 }
 
-export default Vue.extend({
+export default defineComponent({
   name: 'sl-vue-tree',
   props: {
     value: {
@@ -99,7 +100,7 @@ export default Vue.extend({
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('mouseup', this.onDocumentMouseupHandler);
   },
 
@@ -288,7 +289,7 @@ export default Vue.extend({
       const multiselectKeys = Array.isArray(this.multiselectKey)
         ? this.multiselectKey
         : [this.multiselectKey];
-      const multiselectKeyIsPressed = event && !!multiselectKeys.find((key) => (event as any)[key]);
+      const multiselectKeyIsPressed = event && !!multiselectKeys.find((key: string) => (event as any)[key]);
       addToSelection = (multiselectKeyIsPressed || addToSelection) && this.allowMultiselect;
 
       const selectedNode = this.getNode(path);
@@ -298,7 +299,7 @@ export default Vue.extend({
       const selectedNodes: ISlTreeNode[] = [];
       let shiftSelectionStarted = false;
 
-      this.traverse((node, nodeModel) => {
+      this.traverse((node: ISlTreeNode, nodeModel: ISlTreeNodeModel) => {
         if (shiftSelectionMode) {
           if (node.pathStr === selectedNode.pathStr || node.pathStr === this.lastSelectedNode.pathStr) {
             nodeModel.isSelected = node.isSelectable;
@@ -448,7 +449,7 @@ export default Vue.extend({
 
     getLastNode(): ISlTreeNode | null {
       let lastNode: ISlTreeNode | null = null;
-      this.traverse((node) => {
+      this.traverse((node: ISlTreeNode) => {
         lastNode = node;
       });
       return lastNode;
@@ -461,7 +462,7 @@ export default Vue.extend({
     getNextNode(path: number[], filter: ((node: ISlTreeNode) => boolean) | null = null): ISlTreeNode | null {
       let resultNode = null;
 
-      this.traverse((node) => {
+      this.traverse((node: ISlTreeNode) => {
         if (this.comparePaths(node.path, path) < 1) return;
 
         if (!filter || filter(node)) {
@@ -476,7 +477,7 @@ export default Vue.extend({
     getPrevNode(path: number[], filter?: (node: ISlTreeNode) => boolean): ISlTreeNode | null {
       const prevNodes: ISlTreeNode[] = [];
 
-      this.traverse((node) => {
+      this.traverse((node: ISlTreeNode) => {
         if (this.comparePaths(node.path, path) >= 0) {
           return false;
         }
@@ -623,7 +624,7 @@ export default Vue.extend({
       this.insertModels(this.cursorPosition, nodeModelsToInsert, newNodes);
 
       // delete dragging node from the old place
-      this.traverseModels((nodeModel, siblings, ind) => {
+      this.traverseModels((nodeModel: ISlTreeNodeModel, siblings: ISlTreeNodeModel[], ind: number) => {
         if (!(nodeModel as any)._markToDelete) return;
         siblings.splice(ind, 1);
       }, newNodes);
@@ -671,7 +672,7 @@ export default Vue.extend({
 
       const pathStr = JSON.stringify(path);
       const newNodes = this.copy(this.currentValue);
-      this.traverse((node, nodeModel) => {
+      this.traverse((node: ISlTreeNode, nodeModel: ISlTreeNodeModel) => {
         if (node.pathStr !== pathStr) return;
         Object.assign(nodeModel, patch);
       }, newNodes);
@@ -681,7 +682,7 @@ export default Vue.extend({
 
     getSelected(): ISlTreeNode[] {
       const selectedNodes: ISlTreeNode[] = [];
-      this.traverse((node) => {
+      this.traverse((node: ISlTreeNode) => {
         if (node.isSelected) selectedNodes.push(node);
       });
       return selectedNodes;
@@ -689,7 +690,7 @@ export default Vue.extend({
 
     getDraggable(): ISlTreeNode[] {
       const selectedNodes: ISlTreeNode[] = [];
-      this.traverse((node) => {
+      this.traverse((node: ISlTreeNode) => {
         if (node.isSelected && node.isDraggable) selectedNodes.push(node);
       });
       return selectedNodes;
@@ -737,13 +738,13 @@ export default Vue.extend({
     remove(paths: number[][]): void {
       const pathsStr = paths.map((path) => JSON.stringify(path));
       const newNodes = this.copy(this.currentValue);
-      this.traverse((node, nodeModel, siblings) => {
+      this.traverse((node: ISlTreeNode, nodeModel: ISlTreeNodeModel, siblings: ISlTreeNodeModel[]) => {
         for (const pathStr of pathsStr) {
           if (node.pathStr === pathStr) (nodeModel as any)._markToDelete = true;
         }
       }, newNodes);
 
-      this.traverseModels((nodeModel, siblings, ind) => {
+      this.traverseModels((nodeModel: ISlTreeNodeModel, siblings: ISlTreeNodeModel[], ind: number) => {
         if (!(nodeModel as any)._markToDelete) return;
         siblings.splice(ind, 1);
       }, newNodes);

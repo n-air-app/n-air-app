@@ -3,12 +3,10 @@ import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import NavItem from 'components/shared/NavItem.vue';
 import NavMenu from 'components/shared/NavMenu.vue';
-import { Inject } from 'services/core/injector';
-import { SourceFiltersService } from 'services/source-filters';
-import { ISourcesServiceApi } from 'services/sources';
+import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
+import { SourcesService } from 'services/sources';
 import { WindowsService } from 'services/windows';
-import Vue from 'vue';
-import { Component, Watch } from 'vue-property-decorator';
+import { defineComponent } from 'vue';
 
 import SlVueTree, { ICursorPosition, ISlTreeNodeModel } from '../shared/sl-vue-tree';
 
@@ -16,7 +14,9 @@ interface IFilterNodeData {
   visible: boolean;
 }
 
-@Component({
+export default defineComponent({
+  name: 'SourceFilters',
+
   components: {
     ModalLayout,
     NavMenu,
@@ -25,107 +25,118 @@ interface IFilterNodeData {
     Display,
     SlVueTree,
   },
-})
-export default class SourceFilters extends Vue {
-  @Inject() sourceFiltersService: SourceFiltersService;
-  @Inject() sourcesService: ISourcesServiceApi;
-  @Inject() windowsService: WindowsService;
 
-  // @ts-expect-error: ts2729: use before initialization
-  windowOptions = this.windowsService.getChildWindowQueryParams() as {
-    sourceId: string;
-    selectedFilterName: string;
-  };
-  sourceId = this.windowOptions.sourceId;
-  // @ts-expect-error: ts2729: use before initialization
-  filters = this.sourceFiltersService.getFilters(this.sourceId);
-  selectedFilterName = this.windowOptions.selectedFilterName || (this.filters[0] && this.filters[0].name) || null;
-  // @ts-expect-error: ts2729: use before initialization
-  properties = this.sourceFiltersService.getPropertiesFormData(
-    this.sourceId,
-    this.selectedFilterName,
-  );
-
-  @Watch('selectedFilterName')
-  updateProperties() {
-    this.properties = this.sourceFiltersService.getPropertiesFormData(
-      this.sourceId,
-      this.selectedFilterName,
+  data() {
+    const windowOptions = WindowsService.instance().getChildWindowQueryParams() as {
+      sourceId: string;
+      selectedFilterName: string;
+    };
+    const sourceId = windowOptions.sourceId;
+    const filters = SourceFiltersService.instance().getFilters(sourceId);
+    const selectedFilterName = windowOptions.selectedFilterName || (filters[0] && filters[0].name) || null;
+    const properties = SourceFiltersService.instance().getPropertiesFormData(
+      sourceId,
+      selectedFilterName,
     );
-  }
+    return {
+      windowOptions,
+      sourceId,
+      filters,
+      selectedFilterName,
+      properties,
+    };
+  },
 
-  save() {
-    this.sourceFiltersService.setPropertiesFormData(
-      this.sourceId,
-      this.selectedFilterName,
-      this.properties,
-    );
-    this.updateProperties();
-  }
+  computed: {
+    sourceDisplayName(): string {
+      return SourcesService.instance().getSource(this.sourceId).name;
+    },
 
-  done() {
-    this.windowsService.closeChildWindow();
-  }
+    nodes() {
+      return this.filters.map((filter: ISourceFilter) => {
+        return {
+          title: filter.name,
+          isSelected: filter.name === this.selectedFilterName,
+          isLeaf: true,
+          data: {
+            visible: filter.visible,
+          },
+        };
+      });
+    },
+  },
 
-  addFilter() {
-    this.sourceFiltersService.showAddSourceFilter(this.sourceId);
-  }
+  watch: {
+    selectedFilterName: {
+      handler(): void {
+        this.properties = SourceFiltersService.instance().getPropertiesFormData(
+          this.sourceId,
+          this.selectedFilterName,
+        );
+      },
+    },
+  },
 
-  get sourceDisplayName() {
-    return this.sourcesService.getSource(this.sourceId).name;
-  }
+  methods: {
+    save(): void {
+      SourceFiltersService.instance().setPropertiesFormData(
+        this.sourceId,
+        this.selectedFilterName,
+        this.properties,
+      );
+      this.properties = SourceFiltersService.instance().getPropertiesFormData(
+        this.sourceId,
+        this.selectedFilterName,
+      );
+    },
 
-  get nodes() {
-    return this.filters.map((filter) => {
-      return {
-        title: filter.name,
-        isSelected: filter.name === this.selectedFilterName,
-        isLeaf: true,
-        data: {
-          visible: filter.visible,
-        },
-      };
-    });
-  }
+    done(): void {
+      WindowsService.instance().closeChildWindow();
+    },
 
-  removeFilter() {
-    this.sourceFiltersService.remove(this.sourceId, this.selectedFilterName);
-    this.filters = this.sourceFiltersService.getFilters(this.sourceId);
-    this.selectedFilterName = (this.filters[0] && this.filters[0].name) || null;
-  }
+    addFilter(): void {
+      SourceFiltersService.instance().showAddSourceFilter(this.sourceId);
+    },
 
-  toggleVisibility(filterName: string) {
-    const sourceFilter = this.filters.find((filter) => filter.name === filterName);
-    this.sourceFiltersService.setVisibility(
-      this.sourceId,
-      sourceFilter.name,
-      !sourceFilter.visible,
-    );
-    this.filters = this.sourceFiltersService.getFilters(this.sourceId);
-  }
+    removeFilter(): void {
+      SourceFiltersService.instance().remove(this.sourceId, this.selectedFilterName);
+      this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
+      this.selectedFilterName = (this.filters[0] && this.filters[0].name) || null;
+    },
 
-  makeActive(filterDescr: any[]) {
-    this.selectedFilterName = filterDescr[0].title;
-  }
+    toggleVisibility(filterName: string): void {
+      const sourceFilter = this.filters.find((filter: ISourceFilter) => filter.name === filterName);
+      SourceFiltersService.instance().setVisibility(
+        this.sourceId,
+        sourceFilter.name,
+        !sourceFilter.visible,
+      );
+      this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
+    },
 
-  handleSort(
-    nodes: ISlTreeNodeModel<IFilterNodeData>[],
-    position: ICursorPosition<IFilterNodeData>,
-  ) {
-    const sourceNode = nodes[0];
-    const sourceInd = this.filters.findIndex((filter) => filter.name === sourceNode.title);
-    let targetInd = this.filters.findIndex((filter) => filter.name === position.node.title);
+    makeActive(filterDescr: any[]): void {
+      this.selectedFilterName = filterDescr[0].title;
+    },
 
-    if (sourceInd < targetInd) {
-      targetInd = position.placement === 'before' ? targetInd - 1 : targetInd;
-    } else if (sourceInd > targetInd) {
-      targetInd = position.placement === 'before' ? targetInd : targetInd + 1;
-    }
-    this.sourceFiltersService.setOrder(
-      this.sourceId,
-      this.selectedFilterName,
-      targetInd - sourceInd,
-    );
-    this.filters = this.sourceFiltersService.getFilters(this.sourceId);
-  }
-}
+    handleSort(
+      nodes: ISlTreeNodeModel<IFilterNodeData>[],
+      position: ICursorPosition<IFilterNodeData>,
+    ): void {
+      const sourceNode = nodes[0];
+      const sourceInd = this.filters.findIndex((filter: ISourceFilter) => filter.name === sourceNode.title);
+      let targetInd = this.filters.findIndex((filter: ISourceFilter) => filter.name === position.node.title);
+
+      if (sourceInd < targetInd) {
+        targetInd = position.placement === 'before' ? targetInd - 1 : targetInd;
+      } else if (sourceInd > targetInd) {
+        targetInd = position.placement === 'before' ? targetInd : targetInd + 1;
+      }
+      SourceFiltersService.instance().setOrder(
+        this.sourceId,
+        this.selectedFilterName,
+        targetInd - sourceInd,
+      );
+      this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
+    },
+  },
+});
