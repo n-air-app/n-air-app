@@ -23,7 +23,7 @@ export default defineComponent({
   data() {
     const sourceType = WindowsService.instance().getChildWindowQueryParams().sourceType as TSelectableSourceType;
     const sourceAddOptions = WindowsService.instance().getChildWindowQueryParams().sourceAddOptions as ISourceAddOptions;
-    const nVoiceCharacterType: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+    const nVoiceCharacterType: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings?.nVoiceCharacterType || 'near';
 
     const sources = SourcesService.instance().getSources().filter((source) => {
       const comparison = {
@@ -54,7 +54,7 @@ export default defineComponent({
 
   computed: {
     nVoiceCharacterType(): NVoiceCharacterType {
-      return this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+      return this.sourceAddOptions.propertiesManagerSettings?.nVoiceCharacterType || 'near';
     },
 
     selectedSource() {
@@ -117,7 +117,7 @@ export default defineComponent({
         this.sourceType === 'near'
         || sourceAddOptions.propertiesManager === 'nvoice-character'
       ) {
-        const type: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+        const type: NVoiceCharacterType = sourceAddOptions.propertiesManagerSettings?.nVoiceCharacterType || 'near';
         s = NVoiceCharacterService.instance().createNVoiceCharacterSource(type, this.name);
       } else if (this.sourceType === 'text_transcription') {
         s = TranscriptionSourceService.instance().createTextTranscriptionSourceAndOption(
