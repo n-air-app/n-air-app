@@ -165,9 +165,15 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     options: ISourceAddOptions = {},
   ): Source {
     markObsOp('SourcesService', 'createSource', { type });
+    // ネイティブクラッシュ時にどのソースタイプで落ちたか特定できるよう、タグとして残す
+    // （minidump クラッシュでもタグは保存される）
+    Sentry.setTag('source.createType', type);
     const id: string = options.sourceId || `${type}_${uuidv4()}`;
     const obsInputSettings = this.getObsSourceCreateSettings(type, settings);
     const obsInput = obs.InputFactory.create(type, id, obsInputSettings);
+    if (!obsInput) {
+      throw new Error(`InputFactory.create returned no input for type=${type}`);
+    }
 
     this.addSource(obsInput, name, options);
 
