@@ -31,10 +31,10 @@ export default defineComponent({
 
   data() {
     return {
-      contentStyle: {} as object,
+      contentStyle: {} as Record<string, string>,
       fixedStyle: {
         height: ((this.fixedSectionHeight as number) || 0).toString() + 'px',
-      } as object,
+      } as Record<string, string>,
     };
   },
 

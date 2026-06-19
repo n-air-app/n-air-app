@@ -9,7 +9,7 @@
         type="text"
         :value="value.value"
         :disabled="value.enabled == false"
-        @input="updateValue($event.target.value)"
+        @input="updateValue($event)"
       />
     </div>
   </div>

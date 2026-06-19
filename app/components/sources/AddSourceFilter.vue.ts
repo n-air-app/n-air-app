@@ -25,6 +25,11 @@ export default defineComponent({
   },
 
   methods: {
+    onTypeInput(v: typeof this.form.type): void {
+      this.form.type = v;
+      this.setTypeAsName();
+    },
+
     done(): void {
       const name = this.form.name.value;
       this.error = this.validateName(name);
