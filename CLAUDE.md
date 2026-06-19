@@ -149,8 +149,8 @@ test('service behavior', () => {
 
 **Push Remote Configuration:** Developers may use different remotes (personal forks vs main repo):
 - Configure via `.claude/settings.local.json` env variables:
-  - `NAIR_GIT_PUSH_REMOTE`: remote name (e.g., "koizuka", "origin")
-  - `NAIR_GIT_TARGET_REPO`: target repository (e.g., "koizuka/n-air-app", "n-air-app/n-air-app")
+  - `NAIR_GIT_PUSH_REMOTE`: remote name (e.g., "origin", or a personal fork remote)
+  - `NAIR_GIT_TARGET_REPO`: target repository (e.g., "n-air-app/n-air-app", or a personal fork)
 - Use `git push -u ${NAIR_GIT_PUSH_REMOTE:-origin} branch-name` for pushes
 - Use `gh pr create --repo ${NAIR_GIT_TARGET_REPO:-n-air-app/n-air-app}` for PRs
 
