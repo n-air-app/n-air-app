@@ -10,6 +10,7 @@ import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
 import Utils, { uuidv4 } from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../../obs-api';
 
@@ -213,8 +214,15 @@ export class Scene {
   }
 
   addFile(path: string, folderId?: string): TSceneNode {
-    const fstat = fs.lstatSync(path);
-    if (!fstat) return null;
+    let fstat: fs.Stats;
+    try {
+      fstat = fs.lstatSync(path);
+    } catch (e: unknown) {
+      SentryReport.message('ScenesService', 'addFile', `Failed to lstat dropped path: ${(e as Error).message}`, {
+        level: 'warning',
+      });
+      return null;
+    }
     const fname = path.split('\\').slice(-1)[0];
 
     if (fstat.isDirectory()) {
