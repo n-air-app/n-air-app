@@ -173,6 +173,10 @@ export default defineComponent({
       treeNodesToMove: ISlTreeNode<ISceneItemNode>[],
       position: ICursorPosition<TSceneNode>,
     ) {
+      if (!Array.isArray(treeNodesToMove)) {
+        Sentry.captureMessage('handleSort: treeNodesToMove is not an array', { level: 'warning', extra: { treeNodesToMove } });
+        return;
+      }
       const nodesToMove = this.scene.getSelection(treeNodesToMove.map((node) => node.data.id));
 
       const destNode = this.scene.getNode(position.node.data.id);
