@@ -80,6 +80,8 @@ export default defineComponent({
     },
   },
 
+  emits: ['input', 'select', 'beforedrop', 'drop', 'toggle', 'nodeclick', 'nodedblclick', 'nodecontextmenu', 'externaldragover', 'externaldrop'],
+
   data() {
     return {
       rootCursorPosition: null as ICursorPosition | null,
