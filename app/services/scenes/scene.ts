@@ -221,7 +221,7 @@ export class Scene {
       SentryReport.message('ScenesService', 'addFile', `Failed to lstat dropped path: ${(e as Error).message}`, {
         level: 'warning',
       });
-      return null;
+      throw e;
     }
     const fname = path.split('\\').slice(-1)[0];
 

@@ -1,4 +1,6 @@
 {
+  "dropFileNotAvailableTitle": "ファイルを追加できません",
+  "dropFileNotAvailable": "ドロップされたファイルのパスを取得できませんでした。\nOneDriveなどのクラウドストレージから直接ドロップした場合は、ローカルにダウンロードしてからお試しください。",
   "enterTheNameOfTheSceneCollection": "シーンコレクションの名前を入力して下さい。",
   "nameIsRequired": "シーンの名前が必要です。",
   "enterTheNameOfTheScene": "シーンの名前を入力して下さい。",
