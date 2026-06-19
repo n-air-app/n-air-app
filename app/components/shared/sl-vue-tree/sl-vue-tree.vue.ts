@@ -369,6 +369,10 @@ export default defineComponent({
         return;
       }
 
+      if (isDragStarted) {
+        console.info('[sl-vue-tree] drag started:', draggableNodes.map((n: ISlTreeNode) => n.title));
+      }
+
       this.isDragging = isDragging;
 
       this.setCursorPosition({ node: destNode, placement });
@@ -633,6 +637,7 @@ export default defineComponent({
 
       this.lastSelectedNode = null;
       this.emitInput(newNodes);
+      console.info('[sl-vue-tree] drop:', draggingNodes.map((n: ISlTreeNode) => n.title), '->', this.cursorPosition.placement, this.cursorPosition.node.title);
       this.emitDrop(draggingNodes, this.cursorPosition, event);
       this.stopDrag();
     },
@@ -646,6 +651,9 @@ export default defineComponent({
     },
 
     stopDrag(): void {
+      if (this.isDragging) {
+        console.info('[sl-vue-tree] drag cancelled (no drop)');
+      }
       this.isDragging = false;
       this.mouseIsDown = false;
       this.setCursorPosition(null);
