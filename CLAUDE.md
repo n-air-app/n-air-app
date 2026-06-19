@@ -18,6 +18,8 @@ pnpm install
 pnpm install --dir bin  # Required for pnpm start
 ```
 
+**Worktrees:** Each git worktree is an independent directory and does not share `node_modules` with the main working tree. Always run `pnpm install` (and `pnpm install --dir bin`) immediately after creating a worktree before building or running the app. When using Claude Code, call `EnterWorktree({ path })` to switch the session's cwd into the worktree (avoids needing `Set-Location` on every subsequent command).
+
 **Development:**
 ```bash
 pnpm run compile    # Build development assets
@@ -40,6 +42,8 @@ pnpm run test:unit  # Unit tests (Jest for app + bin)
 pnpm run test:unit:app  # Jest tests for app only
 pnpm screentest     # Visual regression tests
 ```
+
+> **Note:** `pnpm test` runs the full suite (i18n + tsc + AVA) and is slow. For day-to-day development, prefer `pnpm run test:unit:app`. For TypeScript type checking (including `.vue` files), run `pnpm run typecheck` separately.
 
 **Code Quality:**
 ```bash
@@ -151,13 +155,19 @@ test('service behavior', () => {
 - Use `gh pr create --repo ${NAIR_GIT_TARGET_REPO:-n-air-app/n-air-app}` for PRs
 
 **PR Title Rules:** PR titles are collected for patch notes shown to users:
-- **User-visible changes:** Use prefixes that will be grouped in patch notes:
+- **User-visible changes:** Use prefixes that will be grouped in patch notes. The title is shown **as-is to end users** in the patch notes, so write it from the user's perspective — what they can now do, what changed, or what was fixed — not as a technical description:
   - `追加:` - New features users can see/use
   - `変更:` - Changes to existing user-visible functionality  
   - `修正:` - Bug fixes users would notice
-- **Internal/development changes:** Use `開発:` prefix (not shown to users)
+- **Internal/development changes:** Use `開発:` prefix (not shown to users) for technical/internal changes
 - Write titles in Japanese using verb form (not noun form): `○○機能を追加`, `○○問題を修正`
 - Examples: `追加: ニコニコ生放送のコメント読み上げ機能を追加`, `修正: 配信開始時のクラッシュ問題を修正`, `開発: ユニットテストを追加`
+
+**PR Body Rules:**
+- **Issue references:** Use `Closes #NNN` / `Fixes #NNN` / `Resolves #NNN` only when the PR fully resolves the issue — GitHub automatically closes it on merge. For ongoing tracking issues (e.g., security alert trackers), use `関連: #NNN` instead.
+- **Dependabot alert numbers:** Write as `Alert NNN` (not `#NNN`, which becomes a PR/issue link). In tables, use the full URL: `[Alert NNN](https://github.com/n-air-app/n-air-app/security/dependabot/NNN)`. Always add the `dependencies` label (`--label "dependencies"`) on dependency update PRs. For multiple CVEs, write each in full (e.g., `CVE-2026-41672/CVE-2026-41674`), not abbreviated (`CVE-2026-41672/41674`).
+- **Test plan:** List only items requiring manual verification by a human. Do not list CI checks (`pnpm test`, tsc, CI pass) — branch protection enforces these automatically. Omit the Test plan section entirely for lockfile-only PRs.
+- **`gh` body with markdown:** Always pass PR/issue body via `--body-file` (write to a temp file first). Backticks and other shell special characters in `--body "..."` are expanded by the shell.
 
 ## Dependencies Notes
 
