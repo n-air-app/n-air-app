@@ -120,6 +120,11 @@ export default defineComponent({
     },
 
     showContextMenuForNode(node: ISlTreeNode<ISceneItemNode>, event: MouseEvent) {
+      // 右クリックしたノードが未選択なら単体選択し直す。
+      // 既に選択に含まれていれば（複数選択含む）選択を維持する。
+      if (!SelectionService.instance().isSelected(node.data.id)) {
+        this.makeActive([node], event);
+      }
       this.showContextMenu(node.data.id, event);
     },
 
