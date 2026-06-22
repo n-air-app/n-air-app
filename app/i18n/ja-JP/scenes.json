@@ -1,4 +1,6 @@
 {
+  "dropFileNotAvailableTitle": "ファイルを追加できません",
+  "dropFileNotAvailable": "ドロップされたファイルのパスを取得できませんでした。\nブラウザや他のアプリのウィンドウ、ZIPファイル内のファイルなど、ローカルパスが取得できないソースからのドロップには対応していません。",
   "enterTheNameOfTheSceneCollection": "シーンコレクションの名前を入力して下さい。",
   "nameIsRequired": "シーンの名前が必要です。",
   "enterTheNameOfTheScene": "シーンの名前を入力して下さい。",

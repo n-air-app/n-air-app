@@ -9,6 +9,7 @@ import StudioFooter from 'components/studio/StudioFooter.vue';
 import TitleBar from 'components/studio/TitleBar.vue';
 import { AppService } from 'services/app';
 import { CompactModeService } from 'services/compact-mode';
+import { $t } from 'services/i18n';
 import { NavigationService } from 'services/navigation';
 import { ScenesService } from 'services/scenes';
 import { UserService } from 'services/user';
@@ -93,17 +94,36 @@ export default defineComponent({
   },
 
   methods: {
-    onDropHandler(event: DragEvent) {
+    async onDropHandler(event: DragEvent) {
       const files = event.dataTransfer.files;
       if (!ScenesService.instance().activeScene) {
         SentryReport.message('MainWindow', 'onDropHandler', 'Attempted to add files to a scene when no scene was active', { level: 'warning' });
         return;
       }
 
+      const unavailableFiles: string[] = [];
       let fi = files.length;
       while (fi--) {
         const file = files.item(fi);
-        ScenesService.instance().activeScene.addFile(file.path);
+        if (!file.path) {
+          unavailableFiles.push(file.name);
+          continue;
+        }
+        try {
+          ScenesService.instance().activeScene.addFile(file.path);
+        } catch {
+          unavailableFiles.push(file.name);
+        }
+      }
+
+      if (unavailableFiles.length > 0) {
+        await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+          type: 'warning',
+          title: $t('scenes.dropFileNotAvailableTitle'),
+          message: $t('scenes.dropFileNotAvailable'),
+          buttons: [$t('common.ok')],
+          noLink: true,
+        });
       }
     },
   },

@@ -1,4 +1,6 @@
 {
+  "dropFileNotAvailableTitle": "Cannot Add File",
+  "dropFileNotAvailable": "Could not get the path of the dropped file.\nDropping files from browser windows, other app windows, or inside ZIP archives is not supported.",
   "enterTheNameOfTheSceneCollection": "Please enter the name of the Scenes Collection",
   "nameIsRequired": "The scene name is required",
   "enterTheNameOfTheScene": "Please enter the name of the scene",
