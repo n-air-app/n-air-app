@@ -1,4 +1,5 @@
-import AreaSwitcher, { IArea } from 'components/nicolive-area/AreaSwitcher.vue';
+import AreaSwitcher from 'components/nicolive-area/AreaSwitcher.vue';
+import type { IArea } from 'components/nicolive-area/AreaSwitcher.vue.ts';
 import CommentFilter from 'components/nicolive-area/CommentFilter.vue';
 import CommentViewer from 'components/nicolive-area/CommentViewer.vue';
 import ProgramDescription from 'components/nicolive-area/ProgramDescription.vue';

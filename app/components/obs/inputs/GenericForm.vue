@@ -1,16 +1,15 @@
 <template>
   <div>
-    <div v-for="(parameter, inputIndex) in value" :key="parameter.name">
-      <component
-        v-if="parameter.visible && propertyComponentForType(parameter.type)"
-        :is="propertyComponentForType(parameter.type)"
-        :value="value[inputIndex]"
-        :data-test-category="category"
-        :data-test-subCategory="subCategory"
-        :data-test-i18nkey="parameter.i18nKey"
-        @input="value => onInputHandler(value, inputIndex)"
-      />
-    </div>
+    <generic-form-item
+      v-for="(parameter, inputIndex) in value"
+      :key="parameter.name"
+      :parameter="parameter"
+      :index="inputIndex"
+      :value="value[inputIndex]"
+      :category="category"
+      :subCategory="subCategory"
+      @input="onInputHandler"
+    />
   </div>
 </template>
 

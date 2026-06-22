@@ -78,6 +78,11 @@ export default defineComponent({
   },
 
   methods: {
+    onPropertiesInput(v: typeof this.properties, _index: number): void {
+      this.properties = v;
+      this.save();
+    },
+
     save(): void {
       SourceFiltersService.instance().setPropertiesFormData(
         this.sourceId,
@@ -122,6 +127,7 @@ export default defineComponent({
       nodes: ISlTreeNodeModel<IFilterNodeData>[],
       position: ICursorPosition<IFilterNodeData>,
     ): void {
+      if (!Array.isArray(nodes)) return;
       const sourceNode = nodes[0];
       const sourceInd = this.filters.findIndex((filter: ISourceFilter) => filter.name === sourceNode.title);
       let targetInd = this.filters.findIndex((filter: ISourceFilter) => filter.name === position.node.title);

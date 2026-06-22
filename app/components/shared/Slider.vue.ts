@@ -184,12 +184,19 @@ export default defineComponent({
       }
     });
 
+    const updateValueFromEvent = (eventOrValue: Event | number) => {
+      const v = eventOrValue instanceof Event
+        ? parseFloat((eventOrValue.target as HTMLInputElement).value)
+        : eventOrValue;
+      updateValue(v);
+    };
+
     return {
       slider,
       showTooltip,
       sliderPercent,
       tooltipStyle,
-      updateValue,
+      updateValue: updateValueFromEvent,
       handleKeydown,
       formatter,
       currentIndex,

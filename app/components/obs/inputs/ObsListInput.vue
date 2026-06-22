@@ -1,7 +1,7 @@
 <template>
   <div
     :data-test="testingAnchor"
-    :data-test-value="currentValue && currentValue.value"
+    :data-test-value="currentValue && typeof currentValue !== 'string' && currentValue.value"
     class="input-container select"
     :class="{ disabled: value.enabled === false }"
   >

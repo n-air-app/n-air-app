@@ -1,12 +1,12 @@
 import { defineComponent, PropType } from 'vue';
 
-import { IObsInput, TObsType } from './ObsInput';
+import { IObsInput, IObsTextInputValue, TObsType } from './ObsInput';
 
 const ObsTextInput = defineComponent({
   name: 'ObsTextInput',
   emits: ['input'],
   props: {
-    value: { type: Object as PropType<IObsInput<string>>, required: true as const },
+    value: { type: Object as PropType<IObsTextInputValue>, required: true as const },
     category: { type: String },
     subCategory: { type: String },
   },
@@ -24,7 +24,7 @@ const ObsTextInput = defineComponent({
       this.textVisible = !this.textVisible;
     },
     onInputHandler(event: Event) {
-      this.emitInput({ ...this.value, value: (event.target as HTMLInputElement)['value'] });
+      this.emitInput({ ...this.value, value: (event.target as HTMLInputElement).value });
     },
   },
 });

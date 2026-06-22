@@ -12,9 +12,10 @@
         <div v-for="(flag, index) in flags" :key="index" class="checkbox">
           <input
             type="checkbox"
-            :checked="flag"
+            :checked="!!flag"
             :disabled="value.enabled == false"
-            @change="event => onChangeHandler(index, !!event.target['checked'])"
+            :data-index="index"
+            @change="onCheckboxChange"
           />
           <label>{{ index + 1 }}</label>
         </div>

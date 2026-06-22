@@ -299,7 +299,13 @@ export class ClipboardService
     const clipboard = this.state.systemClipboard;
     const scene = this.scenesService.activeScene;
     if (clipboard.files.length) {
-      clipboard.files.forEach((filePath) => scene.addFile(filePath));
+      clipboard.files.forEach((filePath) => {
+        try {
+          scene.addFile(filePath);
+        } catch {
+          // ファイルが存在しない場合は無視する
+        }
+      });
       return;
     }
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
