@@ -26,7 +26,7 @@ import { SettingsService } from 'services/settings';
 import { SnackbarService } from 'services/snackbar';
 import { SoundDetectorService } from 'services/sound-detector';
 import { Menu } from 'util/menus/Menu';
-import { defineComponent } from 'vue';
+import { Component, defineComponent } from 'vue';
 
 import NAirLogo from '../../../media/images/n-air-logo.svg';
 
@@ -40,7 +40,7 @@ import CommentFilter from './CommentFilter.vue';
 import CommentForm from './CommentForm.vue';
 import SoundDetectorButton from './SoundDetectorButton.vue';
 
-const componentMap: { [type in ChatComponentType]: any } = {
+const componentMap: { [type in ChatComponentType]: Component } = {
   common: CommonComment,
   nicoad: NicoadComment,
   gift: GiftComment,
@@ -331,7 +331,7 @@ export default defineComponent({
               id: 'Undo delete a comment',
               label: 'コメント削除を取り消す',
               click: () => {
-                NicoliveCommentViewerService.instance().undoDeleteComment(item.value.id).catch((e: any) => {
+                NicoliveCommentViewerService.instance().undoDeleteComment(item.value.id).catch((e: unknown) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
@@ -355,7 +355,7 @@ export default defineComponent({
                         onClick: () => {
                           NicoliveCommentViewerService.instance()
                             .undoDeleteComment(item.value.id)
-                            .catch((e: any) => {
+                            .catch((e: unknown) => {
                               if (e instanceof NicoliveFailure) {
                                 openErrorDialogFromFailure(e);
                               }
@@ -364,7 +364,7 @@ export default defineComponent({
                       },
                     });
                   })
-                  .catch((e: any) => {
+                  .catch((e: unknown) => {
                     if (e instanceof NicoliveFailure) {
                       openErrorDialogFromFailure(e);
                     }
@@ -387,7 +387,7 @@ export default defineComponent({
                     messageId: `${item.value.id}`,
                     memo: item.value.content,
                   })
-                  .catch((e: any) => {
+                  .catch((e: unknown) => {
                     if (e instanceof NicoliveFailure) {
                       openErrorDialogFromFailure(e);
                     }

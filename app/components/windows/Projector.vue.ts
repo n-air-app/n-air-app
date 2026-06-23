@@ -30,7 +30,7 @@ export default defineComponent({
     },
 
     sourceId(): string {
-      return WindowsService.instance().getWindowOptions(this.windowId).sourceId;
+      return WindowsService.instance().getWindowOptions(this.windowId).sourceId as string;
     },
 
     allDisplays() {

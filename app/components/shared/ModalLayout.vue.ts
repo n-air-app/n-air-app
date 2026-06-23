@@ -1,6 +1,6 @@
 import { AppService } from 'services/app';
 import { WindowsService } from 'services/windows';
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({
   name: 'ModalLayout',
@@ -12,10 +12,10 @@ export default defineComponent({
     // If controls are shown, whether or not to show the cancel button.
     showCancel: { type: Boolean, default: true },
     // Will be called when "done" is clicked if controls are enabled
-    doneHandler: { type: Function },
+    doneHandler: { type: Function as PropType<() => void> },
     // Will be called when "cancel" is clicked.
     // By default this will just close the window.
-    cancelHandler: { type: Function },
+    cancelHandler: { type: Function as PropType<() => void> },
     // The height of the fixed section
     fixedSectionHeight: { type: Number },
     /**
@@ -47,7 +47,7 @@ export default defineComponent({
   methods: {
     cancel() {
       if (this.cancelHandler) {
-        (this.cancelHandler as Function)();
+        this.cancelHandler();
       } else {
         WindowsService.instance().closeChildWindow();
       }
@@ -55,7 +55,7 @@ export default defineComponent({
 
     done() {
       if (this.doneHandler) {
-        (this.doneHandler as Function)();
+        this.doneHandler();
       } else {
         WindowsService.instance().closeChildWindow();
       }
