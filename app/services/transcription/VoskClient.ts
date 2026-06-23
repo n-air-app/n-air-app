@@ -206,7 +206,11 @@ export class VoskClient implements ITranscriber {
       stderrBuffer = lines.pop() || ''; // Keep the last incomplete line
       for (const line of lines) {
         if (line.trim()) {
-          console.error(`Vosk CLI process error: ${line}`);
+          if (line.startsWith('WARNING')) {
+            console.warn(`Vosk CLI process warning: ${line}`);
+          } else {
+            console.error(`Vosk CLI process error: ${line}`);
+          }
           this.transcribe$?.next({ info: `Error: ${line}` });
         }
       }
