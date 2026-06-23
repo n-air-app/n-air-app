@@ -29,8 +29,8 @@ export default defineComponent({
       return WindowsService.instance().state[this.windowId].isFullScreen;
     },
 
-    sourceId(): string {
-      return WindowsService.instance().getWindowOptions(this.windowId).sourceId as string;
+    sourceId(): string | undefined {
+      return WindowsService.instance().getWindowOptions(this.windowId).sourceId;
     },
 
     allDisplays() {
