@@ -3,15 +3,12 @@ import { Subject } from 'rxjs';
 import { Inject } from './core/injector';
 import { mutation, StatefulService } from './core/stateful-service';
 import { NavigationService } from './navigation';
-import { UserService } from './user';
 
 type TOnboardingStep = 'Connect' | 'ObsImport';
 
 interface IOnboardingOptions {
   skipImport: boolean; // When logging into a new account after onboarding
-  isSecurityUpgrade: boolean; // When logging in, display a special message
   skipLogin: boolean; // When logging in, skip the onboarding process
-  // about our security upgrade.
 }
 
 interface IOnboardingServiceState {
@@ -49,7 +46,6 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
   static initialState: IOnboardingServiceState = {
     options: {
       skipImport: false,
-      isSecurityUpgrade: false,
       skipLogin: false,
     },
     currentStep: null,
@@ -61,7 +57,6 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
   completed = new Subject<void>();
 
   @Inject() navigationService: NavigationService;
-  @Inject() userService: UserService;
 
   @mutation()
   SET_CURRENT_STEP(step: TOnboardingStep) {
@@ -113,7 +108,6 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
   start(options: Partial<IOnboardingOptions> = {}) {
     const actualOptions: IOnboardingOptions = {
       skipImport: false,
-      isSecurityUpgrade: false,
       skipLogin: false,
       ...options,
     };
@@ -154,14 +148,7 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
    * パッチノートの早期表示判定に使用。
    */
   willOnboardOnStartup(): boolean {
-    if (!localStorage.getItem(this.localStorageKey)) {
-      return true;
-    }
-    // forceLoginForSecurityUpgradeIfRequired と同じ条件（副作用なし）
-    if (this.userService.isLoggedIn() && !this.userService.apiToken) {
-      return true;
-    }
-    return false;
+    return !localStorage.getItem(this.localStorageKey);
   }
 
   startOnboardingIfRequired(): boolean {
@@ -170,21 +157,7 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
       return false;
     }
 
-    if (localStorage.getItem(this.localStorageKey)) {
-      this.forceLoginForSecurityUpgradeIfRequired();
-    } else {
-      this.start();
-    }
+    this.start();
     return true;
-  }
-
-  forceLoginForSecurityUpgradeIfRequired(): boolean {
-    if (!this.userService.isLoggedIn()) return false;
-
-    if (!this.userService.apiToken) {
-      this.start({ skipImport: true, isSecurityUpgrade: true });
-      return true;
-    }
-    return false;
   }
 }
