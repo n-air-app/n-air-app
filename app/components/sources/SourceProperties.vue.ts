@@ -48,7 +48,7 @@ export default defineComponent({
       return (
         WindowsService.instance().getWindowOptions(this.windowId).sourceId
         || WindowsService.instance().getChildWindowQueryParams().sourceId
-      );
+      ) as string;
     },
 
     source() {
