@@ -78,9 +78,11 @@ export class Scene {
 
     if (!nodeModel) return null;
 
-    return nodeModel.sceneNodeType === 'item'
-      ? new SceneItem(this.id, nodeModel.id, nodeModel.sourceId)
-      : new SceneItemFolder(this.id, nodeModel.id);
+    if (nodeModel.sceneNodeType === 'item') {
+      if (!this.sourcesService.state.sources[nodeModel.sourceId]) return null;
+      return new SceneItem(this.id, nodeModel.id, nodeModel.sourceId);
+    }
+    return new SceneItemFolder(this.id, nodeModel.id);
   }
 
   getItem(sceneItemId: string): SceneItem {
