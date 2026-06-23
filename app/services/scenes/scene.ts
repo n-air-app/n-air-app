@@ -105,7 +105,8 @@ export class Scene {
   getItems(): SceneItem[] {
     return this.state.nodes
       .filter((node) => node.sceneNodeType === 'item')
-      .map((item) => this.getItem(item.id));
+      .map((item) => this.getItem(item.id))
+      .filter(Boolean);
   }
 
   getFolders(): SceneItemFolder[] {
