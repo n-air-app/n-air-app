@@ -733,6 +733,7 @@ export class StreamingService
     console.debug('OBS Output signal: ', info);
 
     const time = new Date().toISOString();
+    const outputCodeName = info.code ? (OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code)) : undefined;
 
     if (info.type === EOBSOutputType.Streaming) {
       const time = new Date().toISOString();
@@ -773,7 +774,7 @@ export class StreamingService
           category: 'streaming.signal',
           message: 'stop',
           level: 'info',
-          data: { code: info.code, error: info.error },
+          data: { code: info.code, outputCode: outputCodeName, error: info.error },
         });
         this.SET_STREAMING_STATUS(EStreamingState.Offline, time);
         this.streamingStatusChange.next(EStreamingState.Offline);
@@ -795,7 +796,7 @@ export class StreamingService
           category: 'streaming.signal',
           message: 'reconnect',
           level: 'warning',
-          data: { code: info.code, error: info.error, reconnectCount: this.reconnectCount },
+          data: { code: info.code, outputCode: outputCodeName, error: info.error, reconnectCount: this.reconnectCount },
         });
       } else if (info.signal === EOBSOutputSignal.ReconnectSuccess) {
         const durationMs =
@@ -850,9 +851,9 @@ export class StreamingService
     if (info.code) {
       if (
         info.signal !== EOBSOutputSignal.Reconnect &&
-        info.signal !== EOBSOutputSignal.ReconnectSuccess
+        info.signal !== EOBSOutputSignal.ReconnectSuccess &&
+        info.code !== obs.EOutputCode.Disconnected
       ) {
-        const outputCodeName = OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code);
         SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${outputCodeName}`, {
           level: 'warning',
           fingerprint: ['StreamingService', 'outputCode'],
