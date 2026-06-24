@@ -123,7 +123,9 @@ export class SceneItem extends SceneItemNode {
   }
 
   getObsSceneItem(): obs.ISceneItem {
-    return this.getScene().getObsScene().findItem(this.obsSceneItemId);
+    const item = this.getScene().getObsScene().findItem(this.obsSceneItemId);
+    assertIsDefined(item);
+    return item;
   }
 
   getSettings(): ISceneItemSettings {

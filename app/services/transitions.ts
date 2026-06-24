@@ -9,6 +9,7 @@ import { DefaultManager } from 'services/sources/properties-managers/default-man
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
+import { assertIsDefined } from 'util/properties-type-guards';
 import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../obs-api';
@@ -175,7 +176,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * Fetches the transition currently attached to output channel 0
    */
   private getCurrentTransition() {
-    return obs.Global.getOutputSource(0) as obs.ITransition;
+    const source = obs.Global.getOutputSource(0);
+    assertIsDefined(source);
+    return source as obs.ITransition;
   }
 
   /**

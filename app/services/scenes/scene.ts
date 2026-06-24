@@ -68,7 +68,9 @@ export class Scene {
   }
 
   getObsScene(): obs.IScene {
-    return obs.SceneFactory.fromName(this.id);
+    const scene = obs.SceneFactory.fromName(this.id);
+    assertIsDefined(scene);
+    return scene;
   }
 
   getNode(sceneNodeId: string): TSceneNode {

@@ -42,7 +42,9 @@ export class Source implements ISourceApi {
     scenesService: ScenesService;
 
   getObsInput(): obs.IInput {
-    return obs.InputFactory.fromName(this.sourceId);
+    const input = obs.InputFactory.fromName(this.sourceId);
+    assertIsDefined(input);
+    return input;
   }
 
   getModel() {
