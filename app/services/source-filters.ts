@@ -8,7 +8,7 @@ import {
 } from 'components/obs/inputs/ObsInput';
 import { EOrderMovement } from 'obs-studio-node';
 import { $t } from 'services/i18n';
-import { assertIsDefined } from 'util/properties-type-guards';
+import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../obs-api';
@@ -287,7 +287,7 @@ export class SourceFiltersService extends Service {
   /** フィルターを取得する。見つからない場合は例外を投げる（操作用） */
   private getObsFilter(sourceId: string, filterName: string): obs.IFilter {
     const filter = this.findObsFilter(sourceId, filterName);
-    assertIsDefined(filter);
+    assertObsObjectDefined(filter, 'SourceFiltersService', 'getObsFilter', { sourceId, filterName });
     return filter;
   }
 }

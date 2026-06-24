@@ -10,6 +10,7 @@ import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
 import { Source, SourcesService, TSourceType } from 'services/sources';
 import Utils, { uuidv4 } from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
+import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../../obs-api';
@@ -69,7 +70,7 @@ export class Scene {
 
   getObsScene(): obs.IScene {
     const scene = obs.SceneFactory.fromName(this.id);
-    assertIsDefined(scene);
+    assertObsObjectDefined(scene, 'ScenesService', 'getObsScene', { sceneId: this.id });
     return scene;
   }
 
