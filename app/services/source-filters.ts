@@ -165,7 +165,7 @@ export class SourceFiltersService extends Service {
 
   suggestName(sourceId: string, filterName: string): string {
     return namingHelpers.suggestName(filterName, (name: string) =>
-      this.sourcesService.getSource(sourceId).getObsInput().findFilter(name),
+      this.findObsFilter(sourceId, name),
     );
   }
 
@@ -279,8 +279,14 @@ export class SourceFiltersService extends Service {
     });
   }
 
+  /** フィルターを検索する。見つからない場合は undefined を返す（存在チェック用） */
+  private findObsFilter(sourceId: string, filterName: string): obs.IFilter | undefined {
+    return this.sourcesService.getSource(sourceId).getObsInput().findFilter(filterName);
+  }
+
+  /** フィルターを取得する。見つからない場合は例外を投げる（操作用） */
   private getObsFilter(sourceId: string, filterName: string): obs.IFilter {
-    const filter = this.sourcesService.getSource(sourceId).getObsInput().findFilter(filterName);
+    const filter = this.findObsFilter(sourceId, filterName);
     assertIsDefined(filter);
     return filter;
   }
