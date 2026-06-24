@@ -220,7 +220,7 @@ export class SourceFiltersService extends Service {
 
   getPropertiesFormData(sourceId: string, filterName: string): TObsFormData {
     if (!filterName) return [];
-    const filter = this.getObsFilter(sourceId, filterName);
+    const filter = this.findObsFilter(sourceId, filterName);
     if (!filter) {
       SentryReport.error('SourceFiltersService', 'getPropertiesFormData', new Error('Filter not found'), {
         extra: { sourceId, filterName },
