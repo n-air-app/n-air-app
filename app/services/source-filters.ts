@@ -165,7 +165,7 @@ export class SourceFiltersService extends Service {
 
   suggestName(sourceId: string, filterName: string): string {
     return namingHelpers.suggestName(filterName, (name: string) =>
-      this.getObsFilter(sourceId, name),
+      this.sourcesService.getSource(sourceId).getObsInput().findFilter(name),
     );
   }
 
