@@ -8,6 +8,7 @@ import {
 } from 'components/obs/inputs/ObsInput';
 import { EOrderMovement } from 'obs-studio-node';
 import { $t } from 'services/i18n';
+import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../obs-api';
@@ -164,7 +165,7 @@ export class SourceFiltersService extends Service {
 
   suggestName(sourceId: string, filterName: string): string {
     return namingHelpers.suggestName(filterName, (name: string) =>
-      this.getObsFilter(sourceId, name),
+      this.findObsFilter(sourceId, name),
     );
   }
 
@@ -219,7 +220,7 @@ export class SourceFiltersService extends Service {
 
   getPropertiesFormData(sourceId: string, filterName: string): TObsFormData {
     if (!filterName) return [];
-    const filter = this.getObsFilter(sourceId, filterName);
+    const filter = this.findObsFilter(sourceId, filterName);
     if (!filter) {
       SentryReport.error('SourceFiltersService', 'getPropertiesFormData', new Error('Filter not found'), {
         extra: { sourceId, filterName },
@@ -278,7 +279,15 @@ export class SourceFiltersService extends Service {
     });
   }
 
-  private getObsFilter(sourceId: string, filterName: string): obs.IFilter {
+  /** フィルターを検索する。見つからない場合は undefined を返す（存在チェック用） */
+  private findObsFilter(sourceId: string, filterName: string): obs.IFilter | undefined {
     return this.sourcesService.getSource(sourceId).getObsInput().findFilter(filterName);
+  }
+
+  /** フィルターを取得する。見つからない場合は例外を投げる（操作用） */
+  private getObsFilter(sourceId: string, filterName: string): obs.IFilter {
+    const filter = this.findObsFilter(sourceId, filterName);
+    assertObsObjectDefined(filter, 'SourceFiltersService', 'getObsFilter', { sourceId, filterName });
+    return filter;
   }
 }

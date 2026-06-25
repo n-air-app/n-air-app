@@ -1,6 +1,14 @@
 import * as Sentry from '@sentry/vue';
+import FakeTimers from '@sinonjs/fake-timers';
 
-import { getLastObsOp, markObsOp, runObsOp, setObsOpObserver } from './sentry-obs-breadcrumb';
+import {
+  assertObsObjectDefined,
+  getLastObsOp,
+  markObsOp,
+  resetNullReportState,
+  runObsOp,
+  setObsOpObserver,
+} from './sentry-obs-breadcrumb';
 import { SentryReport } from './sentry-report';
 
 jest.mock('@sentry/vue', () => ({
@@ -148,5 +156,136 @@ describe('runObsOp', () => {
   test('fn が成功しても SentryReport.error は呼ばれない', () => {
     runObsOp('FooService', 'barMethod', () => {});
     expect(SentryReport.error).not.toHaveBeenCalled();
+  });
+});
+
+describe('assertObsObjectDefined', () => {
+  let clock: FakeTimers.Clock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetNullReportState();
+    clock = FakeTimers.install();
+  });
+
+  afterEach(() => {
+    clock.uninstall();
+  });
+
+  test('defined な値は throw せず SentryReport.message を呼ばない', () => {
+    const val = { obs: 'object' };
+    expect(() => assertObsObjectDefined(val, 'ScenesService', 'getObsScene')).not.toThrow();
+    expect(SentryReport.message).not.toHaveBeenCalled();
+  });
+
+  test('undefined のとき throw し SentryReport.message が呼ばれる', () => {
+    expect(() =>
+      assertObsObjectDefined(undefined, 'ScenesService', 'getObsScene', { sceneId: 'scene1' }),
+    ).toThrow('Expected OBS object to be defined in ScenesService.getObsScene');
+    expect(SentryReport.message).toHaveBeenCalledWith(
+      'ScenesService',
+      'getObsScene',
+      'OBS object was null/undefined in ScenesService.getObsScene',
+      {
+        level: 'error',
+        fingerprint: ['ScenesService', 'getObsScene', 'obs', 'null'],
+        extra: { sceneId: 'scene1', reportCount: 1 },
+      },
+    );
+  });
+
+  test('null のとき throw し SentryReport.message が呼ばれる', () => {
+    expect(() =>
+      assertObsObjectDefined(null, 'SourcesService', 'getObsInput', { sourceId: 'src1' }),
+    ).toThrow('Expected OBS object to be defined in SourcesService.getObsInput');
+    expect(SentryReport.message).toHaveBeenCalledTimes(1);
+  });
+
+  test('extra を指定しない場合は extra に reportCount のみ付与される', () => {
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    expect(SentryReport.message).toHaveBeenCalledWith(
+      'FooService',
+      'barMethod',
+      expect.any(String),
+      expect.objectContaining({ extra: { reportCount: 1 } }),
+    );
+  });
+
+  test('60 秒窓内の連続呼び出しでは throw は毎回・message は 1 回だけ', () => {
+    // 1 回目（60秒経過なしの時刻 0）
+    clock.tick(0);
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    // 2 回目（窓内）
+    clock.tick(1000);
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+
+    expect(SentryReport.message).toHaveBeenCalledTimes(1);
+  });
+
+  test('60 秒窓を超えると再度 message が送信される', () => {
+    // 1 回目
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    expect(SentryReport.message).toHaveBeenCalledTimes(1);
+
+    // 60 秒経過
+    clock.tick(60_000);
+    // 2 回目
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    expect(SentryReport.message).toHaveBeenCalledTimes(2);
+  });
+
+  test('セッション内上限 (5 件) に達すると以降は message を送信しない', () => {
+    for (let i = 0; i < 5; i++) {
+      clock.tick(60_000); // 60 秒ずつ進めて throttle をリセット
+      expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    }
+    expect(SentryReport.message).toHaveBeenCalledTimes(5);
+
+    // 6 回目: 上限到達済みなので message は呼ばれない
+    clock.tick(60_000);
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    expect(SentryReport.message).toHaveBeenCalledTimes(5); // 変わらない
+  });
+
+  test('上限到達の最後の message には reportCapReached: true が付与される', () => {
+    for (let i = 0; i < 4; i++) {
+      clock.tick(60_000);
+      expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    }
+    // 5 回目（上限ぴったり）
+    clock.tick(60_000);
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+
+    const calls = (SentryReport.message as jest.Mock).mock.calls;
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall[3].extra).toMatchObject({ reportCount: 5, reportCapReached: true });
+  });
+
+  test('異なる service/method キーは独立してカウントされる', () => {
+    // key1 を 1 回
+    expect(() =>
+      assertObsObjectDefined(undefined, 'FooService', 'method1'),
+    ).toThrow();
+    // key2 を 1 回（窓内でも別キーなので送信される）
+    expect(() =>
+      assertObsObjectDefined(undefined, 'FooService', 'method2'),
+    ).toThrow();
+
+    expect(SentryReport.message).toHaveBeenCalledTimes(2);
+  });
+
+  test('resetNullReportState 後は新規セッションとして報告される', () => {
+    // 上限まで消費
+    for (let i = 0; i < 5; i++) {
+      clock.tick(60_000);
+      expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    }
+    expect(SentryReport.message).toHaveBeenCalledTimes(5);
+
+    // リセット後は再び送信される
+    resetNullReportState();
+    clock.tick(60_000);
+    expect(() => assertObsObjectDefined(undefined, 'FooService', 'barMethod')).toThrow();
+    expect(SentryReport.message).toHaveBeenCalledTimes(6);
   });
 });
