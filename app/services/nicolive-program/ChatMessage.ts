@@ -37,6 +37,8 @@ export const NotificationTypeTable = [
   'visited',
   'supporterRegistered',
   'userLevelUp',
+  'userFollow',
+  'creatorSupportGoalAchievement',
 ] as const;
 
 export type NotificationType = (typeof NotificationTypeTable)[number] | 'unknown';
