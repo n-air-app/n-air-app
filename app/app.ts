@@ -270,16 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Return nothing - vue-i18n will use the key itself as fallback text
       }) as any, // 型定義と実装が異なっているのでanyに飛ばす
+      // vue-i18n v9 legacy mode: 警告を抑制（OBSの動的キーで大量に出るため）
+      // legacy modeのオプション名は silentTranslationWarn / silentFallbackWarn
       silentTranslationWarn: true,
-      // vue-i18n v9: fallback警告を抑制（OBSの動的キーで大量に出るため）
-      missingWarn: false,
-      fallbackWarn: false,
+      silentFallbackWarn: true,
     });
-
-    // legacy: true モードでは createI18n オプションだけでは fallbackWarn が効かない場合があるため
-    // global インスタンスにも直接設定する
-    (i18n.global as any).fallbackWarn = false;
-    (i18n.global as any).missingWarn = false;
 
     I18nService.setVuei18nInstance(i18n.global);
 
