@@ -2,7 +2,7 @@ import * as remote from '@electron/remote';
 import { $t } from 'services/i18n';
 import { SentryReport } from 'util/sentry-report';
 
-import { FailedResult, NotLoggedInError } from './NicoliveClient';
+import { FailedResult, FailureKind, NotLoggedInError, RequestRoute } from './NicoliveClient';
 
 export class NicoliveFailure {
   constructor(
@@ -11,16 +11,25 @@ export class NicoliveFailure {
     public reason: string,
     public additionalMessage: string = '',
     public errorCode: string = '',
+    /** API 呼び出し経路（診断用） */
+    public route?: RequestRoute,
+    /** API 呼び出し失敗の種別（診断用） */
+    public failureKind?: FailureKind,
   ) {}
 
   static fromClientError(method: string, res: FailedResult) {
+    const route = res.diag?.route;
+    const failureKind = res.diag?.failureKind;
+
     if (res.value instanceof NotLoggedInError) {
       console.error(res.value);
-      return new this('logic', method, 'not_logged_in');
+      return new this('logic', method, 'not_logged_in', '', '', route, 'not_logged_in');
     }
     if (res.value instanceof Error) {
       console.error(res.value);
-      return new this('network_error', method, 'network_error');
+      // json_parse は Error だが network_error と区別して reason に残す
+      const kind = failureKind ?? 'network_error';
+      return new this('network_error', method, kind, '', '', route, kind);
     }
     const { errorCode, errorMessage } = res.value.meta;
     const additionalMessage = `${errorCode ?? ''}${errorMessage ? `: ${errorMessage}` : ''}`;
@@ -30,6 +39,8 @@ export class NicoliveFailure {
       res.value.meta.status.toString(10),
       additionalMessage,
       errorCode,
+      route,
+      failureKind,
     );
   }
 

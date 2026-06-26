@@ -5,6 +5,7 @@ import { Service } from 'services/core/service';
 import { getCookieDomain, transformUrl } from 'services/dev-hosts';
 import { HostsService } from 'services/hosts';
 import { isOk, NicoliveClient } from 'services/nicolive-program/NicoliveClient';
+import { NicoliveFailure } from 'services/nicolive-program/NicoliveFailure';
 import { SettingsService } from 'services/settings';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
@@ -13,6 +14,7 @@ import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import { fetchViaMainProcess } from 'util/fetchViaMainProcess';
 import { RequestError } from 'util/RequestError';
 import { authorizedHeaders, handleErrors } from 'util/requests';
+import { SentryReport } from 'util/sentry-report';
 import { sleep } from 'util/sleep';
 
 import { IPlatformService, IStreamingSetting } from '.';
@@ -189,19 +191,37 @@ export class NiconicoService extends Service implements IPlatformService {
     });
   }
 
+  /** setupStreamSettings の Sentry 報告を抑制するための 2 段 quota ガード状態 */
+  private static readonly SETUP_REPORT_WINDOW_MS = 60_000;
+  private static readonly SETUP_REPORT_MAX_PER_KEY = 5;
+  private static readonly setupReportState = new Map<string, { count: number; last: number | null }>();
+
   /**
    * 有効な番組が選択されていれば、stream URL/key を設定し、その値を返す。
    * そうでなければ、ダイアログを出して選択を促すか、配信していない旨返す。
    * @param programId ユーザーが選択した番組ID(省略は未選択)
+   * @returns 成功時は IStreamingSetting。失敗時は空 setting を返し、failure を lastSetupFailure に保持する。
    */
+  lastSetupFailure: NicoliveFailure | null = null;
+
   async setupStreamSettings(programId: string): Promise<IStreamingSetting> {
+    this.lastSetupFailure = null;
     try {
       // 直接returnしてしまうとcatchできないので一度awaitで受ける
       const result = await this._setupStreamSettings(programId);
       return result;
     } catch (e) {
-      console.error('NiconicoService.setupStreamSettings(1)', e.toString());
       // APIのレスポンスに番組状態が反映されるのが遅れる場合があるので、少し待ってリトライ
+      // 1回目失敗はbreadcrumbのみ(issue化しない)
+      Sentry.addBreadcrumb({
+        category: 'streaming',
+        message: 'setupStreamSettings(1) failed',
+        data: {
+          programId,
+          step: e instanceof NicoliveFailure ? e.method : 'unknown',
+          error: e instanceof Error ? e.message : String(e),
+        },
+      });
       await sleep(3000);
     }
 
@@ -209,29 +229,108 @@ export class NiconicoService extends Service implements IPlatformService {
       const result = await this._setupStreamSettings(programId);
       return result;
     } catch (e) {
-      // リトライは1回だけ
-      console.error('NiconicoService.setupStreamSettings(2)', e.toString());
+      // リトライは1回だけ — 失敗種別を構造化してSentryに報告する
+      const failure = e instanceof NicoliveFailure
+        ? e
+        : new NicoliveFailure('network_error', 'unknown', 'unknown');
+      this.lastSetupFailure = failure;
+
+      const step = failure.method;
+      const failureKind = failure.failureKind ?? failure.reason;
+      const httpStatus = failure.type === 'http_error' ? failure.reason : '';
+      const errorCode = failure.errorCode ?? '';
+      const route = failure.route ?? 'renderer';
+
       Sentry.addBreadcrumb({
         category: 'streaming',
-        message: 'setupStreamSettings failed',
+        message: 'setupStreamSettings(2) failed',
         data: {
           programId,
-          error: e instanceof Error ? e.message : String(e),
-          isNetworkError: e instanceof TypeError,
+          step,
+          failureKind,
+          route,
+          httpStatus,
+          errorCode,
         },
       });
+
+      // 2段quotaガード: セッション内最大5件、60秒に1件
+      const quotaKey = `setupStreamSettings:${step}:${failureKind}`;
+      const state = NiconicoService.setupReportState.get(quotaKey) ?? { count: 0, last: null };
+      const now = Date.now();
+      if (
+        state.count < NiconicoService.SETUP_REPORT_MAX_PER_KEY
+        && (state.last === null || now - state.last >= NiconicoService.SETUP_REPORT_WINDOW_MS)
+      ) {
+        state.count += 1;
+        state.last = now;
+        NiconicoService.setupReportState.set(quotaKey, state);
+        const capReached = state.count >= NiconicoService.SETUP_REPORT_MAX_PER_KEY;
+
+        SentryReport.message(
+          'NiconicoService',
+          'setupStreamSettings',
+          // NOISE文字列を含まない固定書式(beforeSendに捕捉されないよう network_error にアンダースコアを使用)
+          `setupStreamSettings failed at ${step} (${failureKind})`,
+          {
+            level: 'error',
+            fingerprint: ['NiconicoService', 'setupStreamSettings', step, failureKind, httpStatus],
+            tags: {
+              diagnostic: 'stream-setup',
+              'stream.setup.step': step,
+              'stream.setup.failureKind': failureKind,
+              'stream.setup.route': route,
+              ...(httpStatus ? { 'stream.setup.httpStatus': httpStatus } : {}),
+              ...(errorCode ? { 'stream.setup.errorCode': errorCode } : {}),
+            },
+            extra: {
+              programId,
+              errorMessage: e instanceof Error ? e.message : String(e),
+              additionalMessage: failure.additionalMessage,
+              reportCount: state.count,
+              ...(capReached ? { reportCapReached: true } : {}),
+            },
+          },
+        );
+      }
+
       return NiconicoService.emptyStreamingSetting();
     }
   }
 
+  /**
+   * ストリーム設定を試みる。失敗した場合は NicoliveFailure を throw する。
+   * ステップを特定するために fetchIngestInfo, fetchMaxQuality, setSettings を個別に扱う。
+   */
   private async _setupStreamSettings(programId: string): Promise<IStreamingSetting> {
-    const [stream, quality] = await Promise.all([
+    // Promise.allSettled で並列取得し、失敗したステップを特定する
+    const [streamResult, qualityResult] = await Promise.allSettled([
       this.client.fetchIngestInfo(programId),
       this.client.fetchMaxQuality(programId),
     ]);
-    if (!isOk(stream)) {
-      return Promise.reject(stream.value);
+
+    // ingest 情報の取得失敗はリトライ対象かつ致命的
+    if (streamResult.status === 'rejected') {
+      const err = streamResult.reason;
+      throw err instanceof NicoliveFailure
+        ? err
+        : new NicoliveFailure('network_error', 'fetchIngestInfo', 'network_error');
     }
+    const stream = streamResult.value;
+    if (!isOk(stream)) {
+      throw NicoliveFailure.fromClientError('fetchIngestInfo', stream);
+    }
+
+    // quality の取得失敗は致命的でない(fetchMaxQuality は内部でfallback値を返す)
+    // rejected になることは基本ないが、念のため breadcrumb に残す
+    if (qualityResult.status === 'rejected') {
+      Sentry.addBreadcrumb({
+        category: 'streaming',
+        message: 'fetchMaxQuality rejected (non-fatal)',
+        data: { programId, error: String(qualityResult.reason) },
+      });
+    }
+    const quality = qualityResult.status === 'fulfilled' ? qualityResult.value : undefined;
 
     const url = stream.value.rtmp.tcUrl;
     const key = stream.value.rtmp.streamName;
@@ -253,7 +352,18 @@ export class NiconicoService extends Service implements IPlatformService {
         }
       });
     });
-    this.settingsService.setSettings('Stream', settings);
+
+    try {
+      this.settingsService.setSettings('Stream', settings);
+    } catch (e) {
+      // setSettings 失敗は NicoliveFailure でラップしてステップを明示する
+      throw new NicoliveFailure(
+        'network_error',
+        'setSettings',
+        'set_settings_failed',
+        e instanceof Error ? e.message : String(e),
+      );
+    }
 
     // 有効な番組が選択されているので stream keyを返す
     return NiconicoService.createStreamingSetting(url, key, quality);

@@ -88,6 +88,12 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
     {
       sampleRate: /* isPreview ? */ 1.0 /* : 0.1 */,
       beforeSend(event) {
+        // 診断目的で構造化して送るイベントは NOISE チェックより前に通す
+        // (tags.diagnostic が設定されているものは意図的に送っているので除外しない)
+        if ((event.tags as Record<string, unknown>)?.diagnostic) {
+          return event;
+        }
+
         // quota 対策: ユーザー側ネット環境起因またはアプリバグに起因しないノイズを除外する
         const NOISE_PATTERNS = [
           /Failed to make IPC call/,

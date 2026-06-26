@@ -40,7 +40,10 @@
   "notBroadcastingCreateProgram": "Create a program",
   "broadcastStatusFetchingError": {
     "default": "Failed to get information on streaming server.  Please check your internet connection.",
-    "httpError": "Failed to get information on streaming server. ({requestURL}: {statusText})"
+    "httpError": "Failed to get information on streaming server. ({requestURL}: {statusText})",
+    "networkError": "Failed to start streaming. Please check your internet connection and try again.",
+    "serverError": "An error occurred on the niconico side while preparing to stream (code: {statusCode}). Please wait a moment and try again.",
+    "settingsError": "Failed to save streaming settings. Please restart N Air and try again."
   },
   "bitrateFetchingError": {
     "title": "Failed to get bitrate",
