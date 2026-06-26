@@ -27,6 +27,7 @@ import { RtvcStateService } from '../../services/rtvcStateService';
 import { CustomcastUsageService } from '../custom-cast-usage';
 import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
 import { IStreamingSetting } from '../platforms';
+import { NiconicoService } from '../platforms/niconico';
 import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';
 
@@ -254,15 +255,40 @@ export class StreamingService
         const setting = await this.userService.updateStreamSettings(programId);
         const streamKey = setting.key;
         if (streamKey === '') {
+          const failure = this.userService.platform.type === 'niconico'
+            ? NiconicoService.instance().lastSetupFailure
+            : null;
+
           Sentry.addBreadcrumb({
             category: 'streaming',
             message: 'streamKey is empty',
-            data: { programId },
+            data: {
+              programId,
+              failureStep: failure?.method ?? 'unknown',
+              failureKind: failure?.failureKind ?? failure?.reason ?? 'unknown',
+              failureRoute: failure?.route ?? 'unknown',
+            },
           });
+
+          // 失敗種別に応じてメッセージを出し分ける
+          let message: string;
+          if (!failure || (failure.type === 'network_error' && failure.reason === 'network_error')) {
+            message = $t('streaming.broadcastStatusFetchingError.networkError');
+          } else if (failure.type === 'network_error' && failure.reason === 'set_settings_failed') {
+            message = $t('streaming.broadcastStatusFetchingError.settingsError');
+          } else if (failure.type === 'http_error') {
+            const statusCode = failure.reason;
+            message = $t('streaming.broadcastStatusFetchingError.serverError', { statusCode });
+          } else if (failure.type === 'logic' && failure.reason === 'not_logged_in') {
+            message = $t('streaming.invalidSessionError');
+          } else {
+            message = $t('streaming.broadcastStatusFetchingError.default');
+          }
+
           await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
             title: $t('streaming.streamingError'),
             type: 'warning',
-            message: $t('streaming.broadcastStatusFetchingError.default'),
+            message,
             buttons: ['Close'],
           });
           return;

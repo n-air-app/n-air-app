@@ -71,14 +71,16 @@ test('fetchFilters/失敗', async () => {
   (instance as any).UPDATE_FILTERS = UPDATE_FILTERS;
 
   await expect(instance.fetchFilters()).rejects.toMatchInlineSnapshot(`
-          NicoliveFailure {
-            "additionalMessage": "ERROR_CODE: simple description",
-            "errorCode": "ERROR_CODE",
-            "method": "fetchFilters",
-            "reason": "400",
-            "type": "http_error",
-          }
-        `);
+NicoliveFailure {
+  "additionalMessage": "ERROR_CODE: simple description",
+  "errorCode": "ERROR_CODE",
+  "failureKind": undefined,
+  "method": "fetchFilters",
+  "reason": "400",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
 
   expect(UPDATE_FILTERS).toHaveBeenCalledTimes(0);
 });
@@ -139,14 +141,16 @@ test('addFilters/失敗', async () => {
   (instance as any).UPDATE_FILTERS = UPDATE_FILTERS;
 
   await expect(instance.addFilter({ type: 'word', body: '810' })).rejects.toMatchInlineSnapshot(`
-                    NicoliveFailure {
-                      "additionalMessage": "ERROR_CODE: simple description",
-                      "errorCode": "ERROR_CODE",
-                      "method": "addFilters",
-                      "reason": "400",
-                      "type": "http_error",
-                    }
-                `);
+NicoliveFailure {
+  "additionalMessage": "ERROR_CODE: simple description",
+  "errorCode": "ERROR_CODE",
+  "failureKind": undefined,
+  "method": "addFilters",
+  "reason": "400",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
 
   expect(UPDATE_FILTERS).toHaveBeenCalledTimes(0);
 });
@@ -191,14 +195,16 @@ test('deleteFilters/失敗', async () => {
   (instance as any).UPDATE_FILTERS = UPDATE_FILTERS;
 
   await expect(instance.deleteFilters([114514])).rejects.toMatchInlineSnapshot(`
-                    NicoliveFailure {
-                      "additionalMessage": "ERROR_CODE: simple description",
-                      "errorCode": "ERROR_CODE",
-                      "method": "deleteFilters",
-                      "reason": "400",
-                      "type": "http_error",
-                    }
-                `);
+NicoliveFailure {
+  "additionalMessage": "ERROR_CODE: simple description",
+  "errorCode": "ERROR_CODE",
+  "failureKind": undefined,
+  "method": "deleteFilters",
+  "reason": "400",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
 
   expect(UPDATE_FILTERS).toHaveBeenCalledTimes(0);
 });
