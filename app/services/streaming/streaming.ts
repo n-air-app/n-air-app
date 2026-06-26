@@ -265,7 +265,7 @@ export class StreamingService
             data: {
               programId,
               failureStep: failure?.method ?? 'unknown',
-              failureKind: failure?.failureKind ?? 'unknown',
+              failureKind: failure?.failureKind ?? failure?.reason ?? 'unknown',
               failureRoute: failure?.route ?? 'unknown',
             },
           });

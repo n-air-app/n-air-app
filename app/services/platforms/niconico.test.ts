@@ -343,18 +343,23 @@ describe('setupStreamSettings 失敗時の診断報告', () => {
     // NiconicoService.setupReportState をリセット（静的フィールド）
     (NiconicoService as any).setupReportState.clear();
 
-    // 7 回失敗させる
-    for (let i = 0; i < 7; i++) {
-      await instance.setupStreamSettings('lv12345');
+    // fake-timers で Date.now() を制御し、60秒窓ガードを回避して5件上限を確認する
+    const FakeTimers = require('@sinonjs/fake-timers');
+    const clock = FakeTimers.install({ now: 0, toFake: ['Date'] });
+    try {
+      for (let i = 0; i < 7; i++) {
+        // 各回で60秒以上進めて窓ガードをリセットし、件数上限(5件)だけを検証する
+        clock.tick(61_000);
+        await instance.setupStreamSettings('lv12345');
+      }
+    } finally {
+      clock.uninstall();
     }
 
-    // quota ガードにより最大 5 回しか送信されない
-    expect((SentryReport.message as jest.Mock).mock.calls.length).toBeLessThanOrEqual(5);
+    // quota ガードにより 5 回だけ送信される
+    expect((SentryReport.message as jest.Mock).mock.calls.length).toBe(5);
     // 5 回目の呼び出しに reportCapReached が付く
-    const lastCall = (SentryReport.message as jest.Mock).mock.calls[4];
-    if (lastCall) {
-      const opts = lastCall[3];
-      expect(opts.extra?.reportCapReached).toBe(true);
-    }
+    const fifthCall = (SentryReport.message as jest.Mock).mock.calls[4];
+    expect(fifthCall[3].extra?.reportCapReached).toBe(true);
   });
 });
