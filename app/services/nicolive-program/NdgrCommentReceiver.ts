@@ -151,24 +151,31 @@ function convertSimpleNotificationToMessageResponse(
   };
 }
 
+// "ACHIRVEMENT" is a typo in the upstream proto definition (missing 'E'); do not correct it here.
+const simpleNotificationV2TypeMap = {
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.UNKNOWN]: 'unknown',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.ICHIBA]: 'ichiba',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.EMOTION]: 'emotion',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.CRUISE]: 'cruise',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.PROGRAM_EXTENDED]:
+    'programExtended',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.RANKING_IN]: 'rankingIn',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.VISITED]: 'visited',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.SUPPORTER_REGISTERED]:
+    'supporterRegistered',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.USER_LEVEL_UP]:
+    'userLevelUp',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.USER_FOLLOW]:
+    'userFollow',
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.CREATOR_SUPPORT_GOAL_ACHIRVEMENT]:
+    'creatorSupportGoalAchievement',
+} as const;
+
 function convertSimpleNotificationV2ToMessageResponse(
   common: CommonComponent,
   notification: dwango.nicolive.chat.data.atoms.ISimpleNotificationV2,
 ): MessageResponse | undefined {
-  const types = {
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.UNKNOWN]: 'unknown',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.ICHIBA]: 'ichiba',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.EMOTION]: 'emotion',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.CRUISE]: 'cruise',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.PROGRAM_EXTENDED]:
-      'programExtended',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.RANKING_IN]: 'rankingIn',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.VISITED]: 'visited',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.SUPPORTER_REGISTERED]:
-      'supporterRegistered',
-    [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.USER_LEVEL_UP]:
-      'userLevelUp',
-  } as const;
+  const types = simpleNotificationV2TypeMap;
   let type: NotificationType = 'unknown';
   if (notification.type in types) {
     type = types[notification.type as keyof typeof types] as NotificationType;

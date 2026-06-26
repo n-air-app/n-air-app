@@ -19,8 +19,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.29.7)(@types/babel__core@7.20.5)
       '@n-air-app/nicolive-comment-protobuf':
-        specifier: 2026.116.121242
-        version: 2026.116.121242
+        specifier: 2026.616.161033
+        version: 2026.616.161033
       '@sentry/electron':
         specifier: 7.13.0
         version: 7.13.0
@@ -1369,8 +1369,8 @@ packages:
   '@n-air-app/n-voice-package@1.0.2':
     resolution: {integrity: sha512-E9TsrIhqoX8p6ZGeg9j0s3+fIZMoQONxlPt2nw1ctZGpMnK4O5IO6hug9wWg5oLG4C3gYV763Yem7p8NIb2EqQ==, tarball: https://npm.pkg.github.com/download/@n-air-app/n-voice-package/1.0.2/3ad9bb4da017848de7a399c171bb971a5f987e52}
 
-  '@n-air-app/nicolive-comment-protobuf@2026.116.121242':
-    resolution: {integrity: sha512-KF8t1jNeETZOSpp50UhHkdAcq2LNgOWtqIyW9mKT2HnIKdN/Sw/EHEqI9csGK1/pbtPHjjt2MosunUvteUO5PA==, tarball: https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2026.116.121242/36407e5ae0a52bebe93c8f581aa46c886054721f}
+  '@n-air-app/nicolive-comment-protobuf@2026.616.161033':
+    resolution: {integrity: sha512-HfNaAjWhzW4N835fiCnKNMKandzeQiiq1yVFQKAYZOMAKk6oMW2tTAtWU20dbfUWy9Q41feHbfqlTTZurDJvIw==, tarball: https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2026.616.161033/af36971e3c70fe424835e350f7bd8ed24f9502f0}
 
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
@@ -8676,7 +8676,7 @@ snapshots:
       - '@types/babel__core'
       - supports-color
 
-  '@n-air-app/nicolive-comment-protobuf@2026.116.121242':
+  '@n-air-app/nicolive-comment-protobuf@2026.616.161033':
     dependencies:
       protobufjs: 8.6.3
 

@@ -25,27 +25,21 @@ export function classify(chat: MessageResponse) {
   if (isNotificationMessage(chat)) {
     switch (chat.notification.type) {
       case 'ichiba':
-        return 'system' as const;
       case 'quote':
+      case 'cruise':
+      case 'unknown':
         return 'system' as const;
       case 'emotion':
         return 'emotion' as const;
-      case 'cruise':
-        return 'system' as const;
       case 'programExtended':
-        return 'info' as const;
       case 'rankingIn':
-        return 'info' as const;
       case 'rankingUpdated':
-        return 'info' as const;
       case 'visited':
-        return 'info' as const;
       case 'supporterRegistered':
-        return 'info' as const;
       case 'userLevelUp':
+      case 'userFollow':
+      case 'creatorSupportGoalAchievement':
         return 'info' as const;
-      case 'unknown':
-        return 'system' as const;
     }
   }
   if (isGiftMessage(chat)) return 'gift' as const;
