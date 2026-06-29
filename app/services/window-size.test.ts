@@ -443,7 +443,7 @@ describe('updateWindowSize', () => {
       setAlwaysOnTop: jest.fn(),
     } as unknown as MainWindowOperation;
 
-    WindowSizeService.updateWindowSize(win, PanelState.COMPACT, PanelState.INACTIVE, {
+    WindowSizeService.updateWindowSize(win, 'COMPACT' as PanelState, 'INACTIVE' as PanelState, {
       widthOffset: undefined,
       backupX: undefined,
       backupY: undefined,
