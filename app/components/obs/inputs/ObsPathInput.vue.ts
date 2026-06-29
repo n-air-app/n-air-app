@@ -28,10 +28,10 @@ const ObsPathInput = defineComponent({
         properties: [],
       };
       if (this.value.type === 'OBS_PROPERTY_FILE') {
-        options.properties.push('openFile');
+        options.properties!.push('openFile');
       }
       if (this.value.type === 'OBS_PROPERTY_PATH') {
-        options.properties.push('openDirectory');
+        options.properties!.push('openDirectory');
       }
       const { filePaths } = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), options);
       if (filePaths[0]) {

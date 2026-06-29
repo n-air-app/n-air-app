@@ -15,16 +15,17 @@ const ObsFontInput = defineComponent({
   data() {
     return {
       testingAnchor: `Form/Font/${this.value.name}`,
-      isGoogleFont: !!this.value.value.path,
+      isGoogleFont: !!this.value.value?.path,
     };
   },
   computed: {
     googleFont(): IGoogleFont {
+      const value = this.value.value;
       return {
-        path: this.value.value.path,
-        face: this.value.value.face,
-        flags: this.value.value.flags,
-        size: String(this.value.value.size),
+        path: value?.path,
+        face: value?.face ?? '',
+        flags: value?.flags ?? 0,
+        size: String(value?.size ?? ''),
       };
     },
   },

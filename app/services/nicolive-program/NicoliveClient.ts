@@ -95,6 +95,7 @@ type Quality = {
 export function parseMaxQuality(maxQuality: string, fallback: Quality): Quality {
   try {
     const match = maxQuality.match(/(\d+([.]\d+)?)([Mk])bps(\d+)p((\d+([.]\d+)?)fps)?/);
+    if (!match) return fallback;
 
     return {
       bitrate: parseFloat(match[1]) * (match[3] === 'M' ? 1000 : 1),
@@ -233,7 +234,7 @@ export class NicoliveClient {
       // No Content ならvalueをnullとして返す
       return {
         ok: true,
-        value: null,
+        value: null as unknown as ResultType,
         serverDateMs,
       };
     }
@@ -593,7 +594,7 @@ export class NicoliveClient {
     return this.createProgramPromise;
   }
 
-  private editProgramWindow: Electron.BrowserWindow = null;
+  private editProgramWindow: Electron.BrowserWindow | null = null;
   private editProgramId = '';
 
   /** 番組編集画面を開いて結果を返す */
@@ -725,7 +726,7 @@ export class NicoliveClient {
     appSession.webRequest.onBeforeSendHeaders(
       { urls: [NicoliveClient.userFollowEndpoint('*')] },
       (details, callback) => {
-        details.requestHeaders['Origin'] = null;
+        delete details.requestHeaders['Origin'];
         callback({ cancel: false, requestHeaders: details.requestHeaders });
       },
     );
@@ -858,7 +859,7 @@ export class NicoliveClient {
   }
 }
 
-export function parseServerDateMs(dateHeader: string): number {
+export function parseServerDateMs(dateHeader: string | null): number | undefined {
   if (dateHeader !== null) {
     try {
       return DateTime.fromHTTP(dateHeader).toMillis();

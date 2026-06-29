@@ -22,7 +22,7 @@ export default defineComponent({
   },
   computed: {
     isSimpleCategory(): boolean {
-      return ['Stream', 'Audio', 'Video', 'General', 'Output'].includes(this.category);
+      return ['Stream', 'Audio', 'Video', 'General', 'Output'].includes(this.category || '');
     },
   },
   methods: {
@@ -30,6 +30,7 @@ export default defineComponent({
       this.collapsedGroups[index] = !this.collapsedGroups[index];
     },
     onFormInput(groupIndex: number, newParameters: any) {
+      if (!this.value) return;
       // prop を直接変更せず、新しい配列を作って emit する
       const newValue = toRaw(this.value).map((group: ISettingsSubCategory, i: number) =>
         i === groupIndex ? { ...toRaw(group), parameters: newParameters } : toRaw(group),
@@ -37,7 +38,7 @@ export default defineComponent({
       this.$emit('input', newValue);
     },
     onInputHandler() {
-      this.$emit('input', this.value);
+      this.$emit('input', this.value ?? []);
     },
     hasAnyVisibleSettings(category: ISettingsSubCategory) {
       return !!category.parameters.find((setting) => setting.visible);

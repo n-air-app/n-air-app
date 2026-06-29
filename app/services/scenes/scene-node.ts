@@ -69,7 +69,7 @@ export abstract class SceneItemNode implements ISceneItemNode {
     this.parentId = '';
   }
 
-  getParent(): SceneItemFolder {
+  getParent(): SceneItemFolder | null {
     return this.getScene().getFolder(this.parentId);
   }
 
@@ -99,25 +99,25 @@ export abstract class SceneItemNode implements ISceneItemNode {
     return this.getScene().getNodes()[nodeInd + 1];
   }
 
-  getPrevSiblingNode(): TSceneNode {
+  getPrevSiblingNode(): TSceneNode | null | undefined {
     const siblingsIds = this.parentId
-      ? this.getParent().getNestedNodesIds()
+      ? this.getParent()!.getNestedNodesIds()
       : this.getScene().getRootNodesIds();
 
     const childInd = siblingsIds.indexOf(this.id);
     if (childInd !== 0) return this.getScene().getNode(siblingsIds[childInd - 1]);
   }
 
-  getNextSiblingNode(): TSceneNode {
+  getNextSiblingNode(): TSceneNode | null | undefined {
     const siblingsIds = this.parentId
-      ? this.getParent().getNestedNodesIds()
+      ? this.getParent()!.getNestedNodesIds()
       : this.getScene().getRootNodesIds();
 
     const childInd = siblingsIds.indexOf(this.id);
     if (childInd !== 0) return this.getScene().getNode(siblingsIds[childInd + 1]);
   }
 
-  getPrevItem(): SceneItem {
+  getPrevItem(): SceneItem | null {
     let nodeInd = this.getNodeIndex();
     const nodes = this.getScene().getNodes();
     while (nodeInd--) {
@@ -126,13 +126,14 @@ export abstract class SceneItemNode implements ISceneItemNode {
     return null;
   }
 
-  getNextItem(): SceneItem {
+  getNextItem(): SceneItem | null {
     let nodeInd = this.getNodeIndex();
     const nodes = this.getScene().getNodes();
     while (nodeInd++) {
       if (!nodes[nodeInd]) return null;
       if (nodes[nodeInd].isItem()) return nodes[nodeInd] as SceneItem;
     }
+    return null;
   }
 
   /**

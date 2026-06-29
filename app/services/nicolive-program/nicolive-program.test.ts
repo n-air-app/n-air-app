@@ -212,7 +212,7 @@ test.each([
   setup();
   const { instance } = setupInstance();
 
-  let resolved: (value: string) => void;
+  let resolved!: (value: string) => void;
   const promise = new Promise<string>((r) => {
     resolved = r;
   });
@@ -1094,7 +1094,7 @@ test('serverClockOffsetSec に基づいて correctedNowMs が計算される', a
     value: {
       status: 'end',
       rooms: [],
-    } as ProgramInfo['data'],
+    } as unknown as ProgramInfo['data'],
     serverDateMs: SERVER_NOW,
   });
   expect(calcServerClockOffsetSec({ serverDateMs: SERVER_NOW }, CLIENT_NOW)).toBe(OFFSET);

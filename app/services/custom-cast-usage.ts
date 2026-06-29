@@ -38,7 +38,7 @@ export class CustomcastUsageService extends StatefulService<ICustomcastUsageStat
   }
 
   isCustomcastSourceId(sourceId: string): boolean {
-    const sourceDetails = this.sourcesService.getSource(sourceId).getComparisonDetails();
+    const sourceDetails = this.sourcesService.getSource(sourceId)!.getComparisonDetails();
     return sourceDetails.propertiesManager === 'custom-cast-ndi';
   }
 

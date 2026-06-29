@@ -152,7 +152,7 @@ export default defineComponent({
     },
 
     removeScene(id?: string) {
-      this.makeActive(id || this.activeSceneId);
+      this.makeActive(id || this.activeSceneId!);
       const name = ScenesService.instance().activeScene.name;
       remote.dialog
         .showMessageBox(remote.getCurrentWindow(), {
@@ -165,7 +165,7 @@ export default defineComponent({
         })
         .then(({ response: cancel }) => {
           if (cancel) return;
-          if (!ScenesService.instance().removeScene(this.activeSceneId)) {
+          if (!ScenesService.instance().removeScene(this.activeSceneId!)) {
             alert($t('scenes.mustHaveLeastOnceScene'));
           }
         });

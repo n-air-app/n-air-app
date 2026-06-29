@@ -24,8 +24,8 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
   @Inject() private nicoliveProgramService: NicoliveProgramService;
   @Inject() private windowsService: WindowsService;
 
-  private ndgrClient: NdgrClient;
-  private ndgrSubscription: Subscription;
+  private ndgrClient: NdgrClient | null = null;
+  private ndgrSubscription: Subscription | null = null;
 
   private client = new NicoliveClient({});
 
@@ -107,14 +107,14 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
           switch (msg.message.moderatorUpdated.operation) {
             case dwango.nicolive.chat.data.atoms.ModeratorUpdated.ModeratorOperation.ADD:
               {
-                const userId = msg.message.moderatorUpdated.operator.userId;
+                const userId = msg.message.moderatorUpdated.operator?.userId;
                 if (userId) {
                   this.addModeratorCache(userId.toString());
                 }
               }
               break;
             case dwango.nicolive.chat.data.atoms.ModeratorUpdated.ModeratorOperation.DELETE: {
-              const userId = msg.message.moderatorUpdated.operator.userId;
+              const userId = msg.message.moderatorUpdated.operator?.userId;
               if (userId) {
                 this.removeModeratorCache(userId.toString());
               }
@@ -127,6 +127,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
               {
                 const { ssngId, type, source, updatedAt, operator } = ssngUpdated;
                 if (ssngId) {
+                  if (type == null) return;
                   let ssngType: FilterRecord['type'];
                   try {
                     ssngType = convertSSNGType(type);
@@ -145,8 +146,8 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
                   const record: FilterRecord = {
                     id: toNumber(ssngId),
                     type: ssngType,
-                    body: source,
-                    createdAt: toISO8601(updatedAt),
+                    body: source ?? '',
+                    createdAt: updatedAt ? toISO8601(updatedAt) : '',
                     ...(operator?.userId ? { userId: toNumber(operator.userId) } : {}),
                     ...(operator?.nickname ? { userName: operator.nickname } : {}),
                   };
@@ -157,8 +158,9 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
 
             case dwango.nicolive.chat.data.atoms.SSNGUpdated.SSNGOperation.DELETE:
               {
+                if (ssngUpdated.ssngId == null) break;
                 const ssngId = toNumber(ssngUpdated.ssngId);
-                const userName = ssngUpdated.operator?.nickname;
+                const userName = ssngUpdated.operator?.nickname ?? undefined;
                 const userId = ssngUpdated.operator?.userId
                   ? toNumber(ssngUpdated.operator.userId)
                   : undefined;
@@ -175,7 +177,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
               break;
 
             default:
-              if (this.registerUnknownSSNGOperation(ssngUpdated.operation)) {
+              if (ssngUpdated.operation != null && this.registerUnknownSSNGOperation(ssngUpdated.operation)) {
                 console.warn('Unknown SSNG operation:', ssngUpdated.operation, ssngUpdated);
                 SentryReport.message('NicoliveModeratorsService', 'onSSNGOperation', 'Unknown SSNG operation', {
                   level: 'warning',
@@ -212,7 +214,8 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     if (this.ndgrClient) {
       this.ndgrClient.dispose();
       this.ndgrClient = null;
-      this.ndgrSubscription.unsubscribe();
+      this.ndgrSubscription?.unsubscribe();
+      this.ndgrSubscription = null;
     }
   }
 
@@ -266,7 +269,7 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     }
   }
 
-  private resolveConfirmPromise: (result: boolean) => void | undefined = undefined;
+  private resolveConfirmPromise: ((result: boolean) => void) | undefined = undefined;
 
   closeConfirmWindow(result: boolean) {
     if (!this.resolveConfirmPromise) return;

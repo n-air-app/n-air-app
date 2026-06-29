@@ -23,7 +23,7 @@ export default defineComponent({
 
   mounted() {
     if (this.options.renameId) {
-      this.name = ScenesService.instance().activeScene.getFolder(this.options.renameId).name;
+      this.name = ScenesService.instance().activeScene.getFolder(this.options.renameId)?.name ?? '';
     } else {
       this.name = ScenesService.instance().suggestName($t('sources.newFolderName'));
     }
@@ -35,11 +35,12 @@ export default defineComponent({
         this.error = $t('sources.sourceNameIsRequired');
       } else if (this.options.renameId) {
         const folder = ScenesService.instance().activeScene.getFolder(this.options.renameId);
-        folder.setName(this.name);
+        folder?.setName(this.name);
         WindowsService.instance().closeChildWindow();
       } else {
         const scene = ScenesService.instance().activeScene;
         const newFolder = ScenesService.instance().activeScene.createFolder(this.name);
+        if (!newFolder) return;
 
         if (this.options.itemsToGroup) {
           ScenesService.instance().activeScene

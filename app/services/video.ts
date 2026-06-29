@@ -32,8 +32,8 @@ export class Display {
   outputRegion: IRectangle;
   isDestroyed = false;
 
-  trackingInitialTimeout: ReturnType<typeof setTimeout>;
-  trackingInterval: number;
+  trackingInitialTimeout: ReturnType<typeof setTimeout> | null;
+  trackingInterval: number | null;
   currentPosition: IRectangle = {
     x: 0,
     y: 0,
@@ -46,7 +46,7 @@ export class Display {
 
   private readonly selectionSubscription: Subscription;
 
-  sourceId: string;
+  sourceId: string | undefined;
   renderingMode: number;
 
   boundDestroy: any;
@@ -62,7 +62,7 @@ export class Display {
       ? options.renderingMode
       : obs.ERenderingMode.OBS_MAIN_RENDERING;
 
-    const electronWindow = remote.BrowserWindow.fromId(this.electronWindowId);
+    const electronWindow = remote.BrowserWindow.fromId(this.electronWindowId)!;
 
     this.videoService.createOBSDisplay(
       this.electronWindowId,
@@ -271,7 +271,7 @@ export class VideoService extends Service {
     renderingMode: number,
     sourceId?: string,
   ) {
-    const electronWindow = remote.BrowserWindow.fromId(electronWindowId);
+    const electronWindow = remote.BrowserWindow.fromId(electronWindowId)!;
     const context = this.videoSettingsService.contexts.horizontal;
 
     if (sourceId) {
@@ -280,7 +280,7 @@ export class VideoService extends Service {
         sourceId,
         name,
         false,
-        context,
+        context as obs.IVideo,
       );
     } else {
       obs.NodeObs.OBS_content_createDisplay(
@@ -288,7 +288,7 @@ export class VideoService extends Service {
         name,
         renderingMode,
         false,
-        context,
+        context as obs.IVideo,
       );
     }
   }

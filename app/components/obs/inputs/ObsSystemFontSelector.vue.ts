@@ -40,11 +40,13 @@ export default defineComponent({
   },
   computed: {
     selectedFamily(): { family: string; fonts: IFontDescriptor[] } {
-      return this.fontsToFamily(this.fontsByFamily[this.value.value.face]);
+      return this.fontsToFamily(this.fontsByFamily[this.value.value?.face ?? '']);
     },
     selectedFont(): IFontDescriptor | undefined {
+      const value = this.value.value;
+      if (!value) return undefined;
       return this.selectedFamily.fonts.find((font: IFontDescriptor) => {
-        return this.value.value.flags === this.getFlagsFromFont(font);
+        return value.flags === this.getFlagsFromFont(font);
       });
     },
     fontsByFamily(): Dictionary<IFontDescriptor[]> {
@@ -105,7 +107,7 @@ export default defineComponent({
       fontObj.path = '';
       const fontRef = (this.$refs.font as IFontSelect);
       if (fontObj.face === undefined) fontObj.face = fontRef.value.family;
-      if (fontObj.size === undefined) fontObj.size = this.value.value.size;
+      if (fontObj.size === undefined) fontObj.size = this.value.value?.size;
       if (fontObj.flags === undefined) fontObj.flags = this.getFlagsFromFont(fontRef.value);
       this.emitInput({ ...this.value, value: fontObj });
     },

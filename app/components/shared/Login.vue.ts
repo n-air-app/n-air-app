@@ -61,7 +61,7 @@ export default defineComponent({
     },
 
     openUserPage() {
-      remote.shell.openExternal(this.userPageURL);
+      remote.shell.openExternal(this.userPageURL ?? '');
     },
   },
 });

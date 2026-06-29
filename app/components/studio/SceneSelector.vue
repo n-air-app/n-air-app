@@ -29,7 +29,7 @@
 
           <template #reference>
             <button class="scene-collections__toggle">
-              <span class="scene-name">{{ activeCollection.name }}</span
+              <span class="scene-name">{{ activeCollection?.name }}</span
               ><i class="icon-drop-down-arrow" />
             </button>
           </template>

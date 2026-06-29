@@ -36,10 +36,10 @@ export default defineComponent({
   },
   methods: {
     getSceneName(sceneId: string): string {
-      return ScenesService.instance().getScene(sceneId).name;
+      return ScenesService.instance().getScene(sceneId)!.name;
     },
     getSourceName(sourceId: string): string {
-      return SourcesService.instance().getSource(sourceId).name;
+      return SourcesService.instance().getSource(sourceId)!.name;
     },
   },
 });

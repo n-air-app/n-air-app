@@ -8,10 +8,10 @@ export const VoicevoxURL = 'http://localhost:50021';
 
 export class VoicevoxSynthesizer implements ISpeechSynthesizer {
   private speakingPromise: Promise<void> | null = null;
-  private speakingResolve: () => void | null = null;
+  private speakingResolve: (() => void) | null = null;
   private speakingCounter: number = 0;
 
-  private audio?: HTMLAudioElement = null;
+  private audio: HTMLAudioElement | null = null;
   private canceled = false;
 
   async playAudioAndWait(blob: Blob): Promise<void> {
@@ -89,7 +89,7 @@ export class VoicevoxSynthesizer implements ISpeechSynthesizer {
         })
         .finally(() => {
           if (--this.speakingCounter === 0) {
-            this.speakingResolve();
+            this.speakingResolve?.();
             this.speakingPromise = null;
             this.speakingResolve = null;
           }

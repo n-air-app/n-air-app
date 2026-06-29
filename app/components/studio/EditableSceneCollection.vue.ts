@@ -22,7 +22,7 @@ export default defineComponent({
 
   computed: {
     needsRename() {
-      return this.collection.needsRename;
+      return this.collection?.needsRename ?? false;
     },
 
     collection() {
@@ -30,7 +30,7 @@ export default defineComponent({
     },
 
     modified() {
-      return DateTime.fromISO(this.collection.modified).toRelative();
+      return this.collection ? DateTime.fromISO(this.collection.modified).toRelative() : '';
     },
 
     isActive() {
@@ -50,7 +50,7 @@ export default defineComponent({
   },
 
   mounted() {
-    if (this.collection.needsRename) this.startRenaming();
+    if (this.collection?.needsRename) this.startRenaming();
   },
 
   methods: {
@@ -59,13 +59,16 @@ export default defineComponent({
     },
 
     makeActive() {
+      if (!this.collection) return;
       SceneCollectionsService.instance().load(this.collection.id);
     },
 
     duplicate() {
+      if (!this.collection) return;
       this.duplicating = true;
 
       setTimeout(() => {
+        if (!this.collection) return;
         SceneCollectionsService.instance()
           .duplicate(this.collection.name, this.collection.id)
           .then(() => {
@@ -78,6 +81,7 @@ export default defineComponent({
     },
 
     startRenaming() {
+      if (!this.collection) return;
       this.renaming = true;
       this.editableName = this.collection.name;
       this.$nextTick(() => (this.$refs.rename as HTMLInputElement).focus());
@@ -93,6 +97,7 @@ export default defineComponent({
     },
 
     remove() {
+      if (!this.collection) return;
       remote.dialog
         .showMessageBox(remote.getCurrentWindow(), {
           type: 'warning',

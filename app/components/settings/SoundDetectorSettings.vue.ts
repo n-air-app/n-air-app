@@ -75,13 +75,13 @@ export default defineComponent({
         return {
           description: '入力音声ソース',
           name: 'audioWatchSource',
-          value: sourceId,
+          value: sourceId ?? '',
           enabled: this.soundDetectorEnabled,
           options,
         };
       },
       set(model: IObsListInput<string>) {
-        SoundDetectorService.instance().updateSourceId(model.value);
+        SoundDetectorService.instance().updateSourceId(model.value ?? null);
       },
     },
     soundThresholdDbModel: {
@@ -89,7 +89,7 @@ export default defineComponent({
         return {
           description: '一時停止する最低音量(dB)',
           name: 'soundThresholdDb',
-          value: SoundDetectorService.instance().state.soundThresholdDb,
+          value: SoundDetectorService.instance().state.soundThresholdDb ?? 0,
           minVal: -60,
           maxVal: 0,
           stepVal: 1,
@@ -98,7 +98,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        SoundDetectorService.instance().updateSoundThresholdDb(model.value);
+        SoundDetectorService.instance().updateSoundThresholdDb(model.value ?? 0);
       },
     },
     resumeSilenceMsModel: {
@@ -106,7 +106,7 @@ export default defineComponent({
         return {
           description: '読み上げ再開までの時間(ms)',
           name: 'resumeSilenceMs',
-          value: SoundDetectorService.instance().state.resumeSilenceMs,
+          value: SoundDetectorService.instance().state.resumeSilenceMs ?? 0,
           minVal: 100,
           maxVal: 10000,
           stepVal: 100,
@@ -115,7 +115,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        SoundDetectorService.instance().updateResumeSilenceMs(model.value);
+        SoundDetectorService.instance().updateResumeSilenceMs(model.value ?? 0);
       },
     },
     soundDetectedSpeechActionModel: {

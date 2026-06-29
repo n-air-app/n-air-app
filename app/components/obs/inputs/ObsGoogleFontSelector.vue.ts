@@ -40,7 +40,7 @@ export default defineComponent({
       this.$emit('input', eventData);
     },
     updateSelectionFromPath() {
-      FontLibraryService.instance().lookupFontInfo(this.value.path).then((info: any) => {
+      FontLibraryService.instance().lookupFontInfo(this.value.path ?? '').then((info: any) => {
         this.selectedFamily = info.family;
         this.selectedStyle = info.style;
         this.updateStyles();

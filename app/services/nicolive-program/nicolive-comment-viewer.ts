@@ -239,7 +239,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
       next: () => {
         this.updateMessages((chat) => ({
           ...chat,
-          isModerator: this.nicoliveModeratorsService.isModerator(chat.value.user_id),
+          isModerator: this.nicoliveModeratorsService.isModerator(chat.value.user_id ?? ''),
         }));
       },
     });
@@ -290,7 +290,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     this.systemMessages.next(message);
   }
 
-  lastSubscription: Subscription = null;
+  lastSubscription: Subscription | null = null;
   nextConfigLoaded: Subject<void> = new Subject();
   private onNextConfig({ viewUri }: MessageServerConfig): void {
     this.unsubscribe();
@@ -355,7 +355,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
         if (this.state.messages.length > 0) {
           this.updateMessages((chat) => ({
             ...chat,
-            isSupporter: isSupporter(chat.value.user_id),
+            isSupporter: isSupporter(chat.value.user_id ?? ''),
           }));
         }
       });
@@ -369,7 +369,9 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
 
     const { isSupporter } = this.startUpdateSupporters(SUPPORTERS_REFRESH_INTERVAL, closer);
 
-    const clientSubject = this.client.connect();
+    const client = this.client;
+    if (!client) return;
+    const clientSubject = client.connect();
 
     this.lastSubscription = merge(
       clientSubject.pipe(
@@ -493,7 +495,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
         }),
         endWith(makeEmulatedChat('サーバーとの接続が終了しました')),
         finalize(() => {
-          this.client.close();
+          client.close();
           // コメント接続が終了したらモデレーター情報の監視も終了する
           closer.next();
         }),
@@ -597,7 +599,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
             && c.value.no
             && !(c.value.user_id && this.nicoliveProgramService.isBroadcaster(c.value.user_id)), // 放送者の通常コメントは除外
         );
-        if (firstCommentWithName && isWrappedChat(firstCommentWithName)) {
+        if (firstCommentWithName && isWrappedChat(firstCommentWithName) && firstCommentWithName.value.no != null) {
           this.nicoliveProgramService.checkNameplateHint(firstCommentWithName.value.no);
         }
       }

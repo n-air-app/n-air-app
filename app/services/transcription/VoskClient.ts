@@ -180,7 +180,7 @@ export class VoskClient implements ITranscriber {
     });
     let stdoutBuffer = '';
     let stderrBuffer = '';
-    this._voskCliProcess.stdout.on('data', (data) => {
+    this._voskCliProcess.stdout!.on('data', (data) => {
       stdoutBuffer += data.toString();
       const lines = stdoutBuffer.split('\n');
       stdoutBuffer = lines.pop() || ''; // Keep the last incomplete line
@@ -200,7 +200,7 @@ export class VoskClient implements ITranscriber {
         }
       }
     });
-    this._voskCliProcess.stderr.on('data', (data) => {
+    this._voskCliProcess.stderr!.on('data', (data) => {
       stderrBuffer += data.toString();
       const lines = stderrBuffer.split('\n');
       stderrBuffer = lines.pop() || ''; // Keep the last incomplete line
@@ -242,7 +242,7 @@ export class VoskClient implements ITranscriber {
       this.activateVoskCliProcess();
 
       const client = new CommandLineClient(
-        this._voskCliProcess,
+        this._voskCliProcess!,
         (...args: unknown[]) => {
           console.log(...args);
         },
@@ -264,7 +264,7 @@ export class VoskClient implements ITranscriber {
       });
     }
 
-    return this.transcribe$.asObservable();
+    return this.transcribe$!.asObservable();
   }
 
   async stopTranscription() {

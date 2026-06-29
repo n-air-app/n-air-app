@@ -56,7 +56,7 @@ const ObsColorInput = defineComponent({
   },
   computed: {
     obsColor(): IColor {
-      const rgba = Utils.intToRgba(this.value.value);
+      const rgba = Utils.intToRgba(this.value.value ?? 0);
       return {
         r: rgba.r,
         g: rgba.g,
@@ -69,7 +69,7 @@ const ObsColorInput = defineComponent({
       return Math.floor(alpha * 255).toString(16).padStart(2, '0');
     },
     hexColor(): string {
-      const rgba = Utils.intToRgba(this.value.value);
+      const rgba = Utils.intToRgba(this.value.value ?? 0);
       return this.intTo2hexDigit(rgba.r) + this.intTo2hexDigit(rgba.g) + this.intTo2hexDigit(rgba.b);
     },
     hexARGB(): string {

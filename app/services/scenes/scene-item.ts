@@ -152,7 +152,7 @@ export class SceneItem extends SceneItemNode {
     const newSettings = merge({}, this.state, patch);
 
     if (changed.transform) {
-      const changedTransform = Utils.getChangedParams(this.state.transform, patch.transform);
+      const changedTransform = Utils.getChangedParams(this.state.transform, patch.transform ?? {});
 
       if (changedTransform.position) {
         obsSceneItem.position = toRaw(newSettings.transform.position);
@@ -216,7 +216,7 @@ export class SceneItem extends SceneItemNode {
   }
 
   remove() {
-    this.scenesService.getScene(this.sceneId).removeItem(this.sceneItemId);
+    this.scenesService.getScene(this.sceneId)!.removeItem(this.sceneItemId);
   }
 
   nudgeLeft() {
@@ -272,7 +272,7 @@ export class SceneItem extends SceneItemNode {
     const display = 'horizontal';
     const context = this.videoSettingsService.contexts.horizontal;
     const obsSceneItem = this.getObsSceneItem();
-    obsSceneItem.video = context as obs.IVideo;
+    if (context) obsSceneItem.video = context;
 
     this.UPDATE({
       sceneItemId: this.sceneItemId,
@@ -288,7 +288,7 @@ export class SceneItem extends SceneItemNode {
       blendingMode: customSceneItem.blendingMode,
       blendingMethod: customSceneItem.blendingMethod,
       display,
-      output: context,
+      output: context ?? undefined,
       position: obsSceneItem.position,
     });
   }
@@ -382,7 +382,8 @@ export class SceneItem extends SceneItemNode {
     const source = this.getSource();
     if (source.type !== 'scene') return;
     const scene = this.scenesService.getScene(source.sourceId);
-    const rect = scene.getSelection().selectAll().getBoundingRect();
+    const rect = scene!.getSelection().selectAll().getBoundingRect();
+    if (!rect) return;
     const { width, height } = this.source.getObsInput();
     this.setTransform({
       position: {

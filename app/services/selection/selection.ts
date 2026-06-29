@@ -218,7 +218,7 @@ export class Selection {
   // SELECTION METHODS
 
   getScene(): Scene {
-    return this.scenesService.getScene(this.sceneId);
+    return this.scenesService.getScene(this.sceneId)!;
   }
 
   add(itemsList: TNodesList): Selection {
@@ -349,7 +349,7 @@ export class Selection {
       });
   }
 
-  getLastSelected(): TSceneNode {
+  getLastSelected(): TSceneNode | null {
     return this.getScene().getNode(this.state.lastSelectedId);
   }
 
@@ -361,7 +361,7 @@ export class Selection {
     return this.state.selectedIds.length;
   }
 
-  getBoundingRect(): IRectangle {
+  getBoundingRect(): IRectangle | null {
     const items = this.getVisualItems();
     if (!items.length) return null;
 
@@ -389,7 +389,9 @@ export class Selection {
 
   getInverted(): TSceneNode[] {
     const scene = this.getScene();
-    return this.getInvertedIds().map((id) => scene.getNode(id));
+    return this.getInvertedIds()
+      .map((id) => scene.getNode(id))
+      .filter((n): n is TSceneNode => n !== null);
   }
 
   invert(): Selection {
@@ -414,10 +416,10 @@ export class Selection {
 
   copyTo(sceneId: string, folderId?: string, duplicateSources = false): TSceneNode[] {
     const insertedNodes: TSceneNode[] = [];
-    const scene = this.scenesService.getScene(sceneId);
+    const scene = this.scenesService.getScene(sceneId)!;
     const foldersMap: Dictionary<string> = {};
-    let prevInsertedNode: TSceneNode;
-    let insertedNode: TSceneNode;
+    let prevInsertedNode: TSceneNode | null;
+    let insertedNode: TSceneNode | null;
 
     const sourcesMap: Dictionary<Source> = {};
     const notDuplicatedSources: Source[] = [];
@@ -436,28 +438,33 @@ export class Selection {
     this.getNodes().forEach((sceneNode) => {
       if (sceneNode.isFolder()) {
         insertedNode = scene.createFolder(sceneNode.name);
-        foldersMap[sceneNode.id] = insertedNode.id;
-        insertedNodes.push(insertedNode);
+        if (insertedNode) {
+          foldersMap[sceneNode.id] = insertedNode.id;
+          insertedNodes.push(insertedNode);
+        }
       } else if (sceneNode.isItem()) {
-        insertedNode = scene.addSource(
+        const addedItem = scene.addSource(
           sourcesMap[sceneNode.sourceId]
             ? sourcesMap[sceneNode.sourceId].sourceId
             : sceneNode.sourceId,
         );
-        insertedNode.setSettings(sceneNode.getSettings());
-        insertedNodes.push(insertedNode);
+        if (addedItem) {
+          addedItem.setSettings(sceneNode.getSettings());
+          insertedNodes.push(addedItem);
+        }
+        insertedNode = addedItem;
       }
 
       const newParentId = foldersMap[sceneNode.parentId] || '';
-      if (newParentId) {
+      if (newParentId && insertedNode) {
         insertedNode.setParent(newParentId);
       }
 
-      if (prevInsertedNode && prevInsertedNode.parentId === newParentId) {
+      if (prevInsertedNode && prevInsertedNode.parentId === newParentId && insertedNode) {
         insertedNode.placeAfter(prevInsertedNode.id);
       }
 
-      prevInsertedNode = insertedNode;
+      if (insertedNode) prevInsertedNode = insertedNode;
     });
 
     return insertedNodes;
@@ -465,10 +472,11 @@ export class Selection {
 
   moveTo(sceneId: string, folderId?: string): TSceneNode[] {
     if (this.sceneId === sceneId) {
-      if (!folderId) return;
+      if (!folderId) return [];
       this.getRootNodes()
         .reverse()
         .forEach((sceneNode) => sceneNode.setParent(folderId));
+      return [];
     } else {
       const insertedItems = this.copyTo(sceneId, folderId);
       this.remove();
@@ -513,7 +521,7 @@ export class Selection {
   /**
    * Returns the closest common parent folder for selection if exists
    */
-  getClosestParent(): SceneItemFolder {
+  getClosestParent(): SceneItemFolder | null {
     const rootNodes = this.getRootNodes();
     const paths: string[][] = [];
 
@@ -533,6 +541,7 @@ export class Selection {
         return this.getScene().getFolder(closestParentId);
       }
     }
+    return null;
   }
 
   canGroupIntoFolder(): boolean {

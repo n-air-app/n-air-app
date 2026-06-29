@@ -6,6 +6,7 @@ import {
   inputValuesToObsValues,
   IObsInput,
   IObsListInput,
+  IObsListOption,
   obsValuesToInputValues,
   TObsFormData,
   TObsValue,
@@ -534,7 +535,7 @@ export class SettingsService
     };
   }
 
-  getRecordingSettings(): RecordingSettings {
+  getRecordingSettings(): RecordingSettings | undefined {
     const output = this.getSettingsFormData('Output');
     const outputMode = this.getOutputMode(output);
     switch (outputMode) {
@@ -671,7 +672,7 @@ export class SettingsService
     return undefined;
   }
 
-  findSettingValue(settings: ISettingsSubCategory[], category: string, setting: string): TObsValue {
+  findSettingValue(settings: ISettingsSubCategory[], category: string, setting: string): TObsValue | undefined {
     const param = this.findSetting(settings, category, setting);
     if (param) {
       if (typeof param.value !== 'undefined') {
@@ -747,7 +748,7 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
+        options: ([{ description: $t('settings.disabled'), value: null }] as unknown as IObsListOption<TObsValue>[]).concat(
           audioDevices
             .filter((device) => device.type === 'output')
             .map((device) => {
@@ -773,7 +774,7 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
+        options: ([{ description: $t('settings.disabled'), value: null }] as unknown as IObsListOption<TObsValue>[]).concat(
           audioDevices
             .filter((device) => device.type === 'input')
             .map((device) => {
@@ -799,7 +800,7 @@ export class SettingsService
     if (categoryName === 'Output' || categoryName === 'Video' || categoryName === 'Stream') {
       markObsOp('SettingsService', 'setSettings', { category: categoryName });
     }
-    if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()]);
+    if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()!]);
     if (categoryName === 'Developer') return this.setDeveloperSettings(settingsData);
 
     const dataToSave: {

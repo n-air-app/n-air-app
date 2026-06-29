@@ -177,7 +177,7 @@ export class SourcesNode extends Node<ISchema, {}> {
 
     /* This should never happen */
     if (!settings.custom_font) {
-      const source = this.sourcesService.getSource(item.id);
+      const source = this.sourcesService.getSource(item.id)!;
       source.updateSettings({ font: settings.font });
       return;
     }
@@ -185,7 +185,7 @@ export class SourcesNode extends Node<ISchema, {}> {
     const fontInfo = fi.getFontInfo(settings.custom_font);
 
     if (!fontInfo) {
-      const source = this.sourcesService.getSource(item.id);
+      const source = this.sourcesService.getSource(item.id)!;
       source.updateSettings({ font: settings.font });
       return;
     }
@@ -194,7 +194,7 @@ export class SourcesNode extends Node<ISchema, {}> {
 
     settings['font']['flags'] = (fontInfo.italic ? obs.EFontStyle.Italic : 0) | (fontInfo.bold ? obs.EFontStyle.Bold : 0);
 
-    const source = this.sourcesService.getSource(item.id);
+    const source = this.sourcesService.getSource(item.id)!;
     source.updateSettings({ font: settings.font });
   }
 
@@ -295,7 +295,7 @@ export class SourcesNode extends Node<ISchema, {}> {
             propertiesManagerSettings: sourceInfo.propertiesManagerSettings || {},
           });
 
-          const newSource = this.sourcesService.getSource(sourceInfo.id);
+          const newSource = this.sourcesService.getSource(sourceInfo.id)!;
           if (newSource.async && newSource.video) {
             if (sourceInfo.deinterlaceMode !== undefined) {
               newSource.setDeinterlaceMode(sourceInfo.deinterlaceMode);
@@ -305,7 +305,7 @@ export class SourcesNode extends Node<ISchema, {}> {
             }
           }
 
-          const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager);
+          const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager ?? 'default');
 
           if (useAudio && obsInput.audioMixers) {
             const audioSource = this.audioService.getSource(sourceInfo.id);

@@ -84,7 +84,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     this.nicoliveProgramStateService.updated.subscribe({
       next: (persistentState) => {
         if ('panelOpened' in persistentState) {
-          this.setState({ panelOpened: persistentState.panelOpened });
+          this.setState({ panelOpened: persistentState.panelOpened ?? null });
         }
       },
     });
@@ -168,9 +168,9 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     isCompact,
     isNavigating,
   }: {
-    panelOpened: boolean;
-    isLoggedIn: boolean;
-    isCompact: boolean;
+    panelOpened: boolean | null;
+    isLoggedIn: boolean | null;
+    isCompact: boolean | null;
     isNavigating: boolean;
   }): PanelState | null {
     if (panelOpened === null || isLoggedIn === null) return null;
@@ -201,7 +201,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
         const nextBackupSize = WindowSizeService.updateWindowSize(
           WindowSizeService.mainWindowOperation,
           prevPanelState,
-          nextPanelState,
+          nextPanelState!,
           prevBackupSize,
         );
         if (prevPanelState && nextBackupSize !== undefined) {
@@ -218,7 +218,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
         WindowSizeService.updateWindowSize(
           WindowSizeService.mainWindowOperation,
           prevPanelState,
-          nextPanelState,
+          nextPanelState!,
           prevBackupSize,
         );
       }
@@ -237,7 +237,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
 
   static updateWindowSize(
     win: MainWindowOperation,
-    prevState: PanelState,
+    prevState: PanelState | null,
     nextState: PanelState,
     sizeState: BackupSizeInfo | undefined,
   ): BackupSizeInfo {
@@ -263,11 +263,11 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     let nextWidth = width;
     let nextMaximize = lastMaximized;
     const nextBackupSize: BackupSizeInfo = {
-      widthOffset: sizeState?.widthOffset,
-      backupX: sizeState?.backupX,
-      backupY: sizeState?.backupY,
-      backupHeight: sizeState?.backupHeight,
-      maximized: sizeState?.maximized,
+      widthOffset: sizeState?.widthOffset ?? 0,
+      backupX: sizeState?.backupX ?? 0,
+      backupY: sizeState?.backupY ?? 0,
+      backupHeight: sizeState?.backupHeight ?? 0,
+      maximized: sizeState?.maximized ?? false,
     };
 
     if (onInit) {

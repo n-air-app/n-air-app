@@ -6,8 +6,8 @@ import { defineComponent, PropType } from 'vue';
 
 export const CommentBase = defineComponent({
   props: {
-    chat: { type: Object as PropType<WrappedChatWithComponent> },
-    getFormattedLiveTime: { type: Function as PropType<(chat: ChatMessage) => string> },
+    chat: { type: Object as PropType<WrappedChatWithComponent>, required: true as const },
+    getFormattedLiveTime: { type: Function as PropType<(chat: ChatMessage) => string>, required: true as const },
   },
   computed: {
     computedContent(): string {

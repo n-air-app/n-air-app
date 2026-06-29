@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { defineComponent, PropType } from 'vue';
 
 interface ISlTreeNodeModel<TDataType = any> {
@@ -125,10 +124,10 @@ export default defineComponent({
     nodes(): ISlTreeNode[] {
       if (this.isRoot) {
         const nodeModels = this.copy(this.currentValue);
-        return this.getNodes(nodeModels);
+        return this.getNodes(nodeModels).filter((node: ISlTreeNode | null): node is ISlTreeNode => node !== null);
       }
 
-      return this.getParent().nodes[this.parentInd].children;
+      return this.getParent().nodes[this.parentInd!].children;
     },
     /**
    * gaps is using for nodes indentation
@@ -171,7 +170,7 @@ export default defineComponent({
       this.getParent().setCursorPosition(pos);
     },
 
-    getNodes(nodeModels: ISlTreeNodeModel[], parentPath: number[] = [], isVisible = true): ISlTreeNode[] {
+    getNodes(nodeModels: ISlTreeNodeModel[], parentPath: number[] = [], isVisible = true): (ISlTreeNode | null)[] {
       return nodeModels.map((nodeModel, ind) => {
         const nodePath = parentPath.concat(ind);
         return this.getNode(nodePath, nodeModel, nodeModels, isVisible);
@@ -205,7 +204,9 @@ export default defineComponent({
         // define the all ISlTreeNodeModel props
         title: nodeModel.title,
         isLeaf: !!nodeModel.isLeaf,
-        children: nodeModel.children ? this.getNodes(nodeModel.children, path, isExpanded) : [],
+        children: nodeModel.children
+          ? this.getNodes(nodeModel.children, path, isExpanded).filter((node: ISlTreeNode | null): node is ISlTreeNode => node !== null)
+          : [],
         isSelected: !!nodeModel.isSelected,
         isExpanded,
         isVisible,
@@ -226,11 +227,13 @@ export default defineComponent({
 
     isVisible(path: number[]): boolean {
       if (path.length < 2) return true;
-      let nodeModels = this.currentValue;
+      let nodeModels: ISlTreeNodeModel[] | undefined = this.currentValue;
 
       for (let i = 0; i < path.length - 1; i++) {
+        if (!nodeModels) return false;
         const ind = path[i];
-        const nodeModel = nodeModels[ind];
+        const nodeModel: ISlTreeNodeModel | undefined = nodeModels[ind];
+        if (!nodeModel) return false;
         const isExpanded = nodeModel.isExpanded === void 0 ? true : !!nodeModel.isExpanded;
         if (!isExpanded) return false;
         nodeModels = nodeModel.children;
@@ -303,7 +306,7 @@ export default defineComponent({
 
       this.traverse((node: ISlTreeNode, nodeModel: ISlTreeNodeModel) => {
         if (shiftSelectionMode) {
-          if (node.pathStr === selectedNode.pathStr || node.pathStr === this.lastSelectedNode.pathStr) {
+          if (node.pathStr === selectedNode.pathStr || node.pathStr === this.lastSelectedNode!.pathStr) {
             nodeModel.isSelected = node.isSelectable;
             shiftSelectionStarted = !shiftSelectionStarted;
           }
@@ -356,6 +359,7 @@ export default defineComponent({
       $dragInfo.style.left = dragInfoLeft + 'px';
 
       const cursorPosition = this.getCursorPositionFromCoords(event.clientX, event.clientY);
+      if (!cursorPosition) return;
       const destNode = cursorPosition.node;
       const placement = cursorPosition.placement;
 
@@ -391,16 +395,15 @@ export default defineComponent({
       }
     },
 
-    getCursorPositionFromCoords(x: number, y: number): ICursorPosition {
+    getCursorPositionFromCoords(x: number, y: number): ICursorPosition | null {
       const $target = document.elementFromPoint(x, y) as HTMLElement;
       const $nodeItem = $target?.getAttribute('path') ? $target : this.getClosetElementWithPath($target);
-      let destNode: ISlTreeNode;
+      let destNode: ISlTreeNode | null;
       let placement: 'before' | 'inside' | 'after';
 
       if ($nodeItem) {
-        if (!$nodeItem) return;
-
         destNode = this.getNode(JSON.parse($nodeItem.getAttribute('path')!));
+        if (!destNode) return null;
 
         const nodeHeight = ($nodeItem as HTMLElement).offsetHeight;
         const edgeSize = this.edgeSize;
@@ -427,6 +430,7 @@ export default defineComponent({
           placement = 'before';
           destNode = this.getFirstNode();
         }
+        if (!destNode) return null;
       }
 
       return { node: destNode, placement };
@@ -443,9 +447,11 @@ export default defineComponent({
       const $root = this.getRoot().$el;
       const rootRect = $root.getBoundingClientRect();
       if (event.clientY >= rootRect.bottom) {
-        this.setCursorPosition({ node: this.nodes.slice(-1)[0], placement: 'after' });
+        const lastNode = this.nodes.slice(-1)[0];
+        if (lastNode) this.setCursorPosition({ node: lastNode, placement: 'after' });
       } else if (event.clientY < rootRect.top) {
-        this.setCursorPosition({ node: this.getFirstNode(), placement: 'before' });
+        const firstNode = this.getFirstNode();
+        if (firstNode) this.setCursorPosition({ node: firstNode, placement: 'before' });
       }
     },
 
@@ -721,8 +727,8 @@ export default defineComponent({
         const nodeModel = nodeModels[nodeInd];
         const itemPath = parentPath.concat(nodeInd);
         const node = this.getNode(itemPath, nodeModel, nodeModels);
-        shouldStop = cb(node, nodeModel, nodeModels) === false;
-        nodes.push(node);
+        shouldStop = cb(node!, nodeModel, nodeModels) === false;
+        nodes.push(node!);
 
         if (shouldStop) break;
 

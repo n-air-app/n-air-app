@@ -67,11 +67,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       const audioSourceAdded = this.sourcesService.sourceAdded.pipe(
         filter((sourceModel) => {
           const source = this.sourcesService.getSource(sourceModel.sourceId);
+          if (!source) return false;
           return source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
         }),
       );
       const audioSourceRemoved = this.sourcesService.sourceRemoved.pipe(
-        filter((source) => source.audio),
+        filter((source) => !!source && source.audio),
       );
 
       merge(audioSourceAdded, this.audioSourceUpdated, audioSourceRemoved)
@@ -83,6 +84,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
     this.sourcesService.sourceAdded.subscribe((sourceModel) => {
       const source = this.sourcesService.getSource(sourceModel.sourceId);
+      if (!source) return;
       const useAudio = source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
       if (!useAudio) return;
       this.createAudioSource(source);
@@ -93,7 +95,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
       const obsSource = this.sourcesService.getSource(source.sourceId);
       const formData = obsSource
-        .getPropertiesFormData()
+        ?.getPropertiesFormData()
         .find((data) => data.name === 'reroute_audio');
       if (formData) {
         this.UPDATE_AUDIO_SOURCE(source.sourceId, {
@@ -105,7 +107,10 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       const useAudio = source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
 
       if (!audioSource && useAudio) {
-        this.createAudioSource(this.sourcesService.getSource(source.sourceId));
+        const sourceToCreate = this.sourcesService.getSource(source.sourceId);
+        if (sourceToCreate) {
+          this.createAudioSource(sourceToCreate);
+        }
         return;
       }
 
@@ -162,12 +167,14 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     };
   }
 
-  getSource(sourceId: string): AudioSource {
+  getSource(sourceId: string): AudioSource | undefined {
     return this.state.audioSources[sourceId] ? new AudioSource(sourceId) : undefined;
   }
 
   getSources(): AudioSource[] {
-    return Object.keys(this.state.audioSources).map((sourceId) => this.getSource(sourceId));
+    return Object.keys(this.state.audioSources)
+      .map((sourceId) => this.getSource(sourceId))
+      .filter((source): source is AudioSource => source !== undefined);
   }
 
   /**
@@ -186,10 +193,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const audioSources = this.getSources();
     for (const audioSource of audioSources) {
       try {
-        if (sourceType && audioSource.source.type !== sourceType) {
+        const source = audioSource.source;
+        if (!source) continue;
+        if (sourceType && source.type !== sourceType) {
           continue;
         }
-        const obsInput = audioSource.source.getObsInput();
+        const obsInput = source.getObsInput();
         const obsDeviceId = obsInput?.settings?.device_id;
         if (obsDeviceId === deviceId) {
           return audioSource;
@@ -232,7 +241,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     return globalSources
       .concat(sceneSources)
       .map((sceneSource: ISource) => this.getSource(sceneSource.sourceId))
-      .filter((item) => item);
+      .filter((item): item is AudioSource => item !== undefined);
   }
 
   unhideAllSourcesForCurrentScene() {
@@ -242,8 +251,8 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   fetchFaderDetails(sourceId: string): IFader {
-    const source = this.sourcesService.getSource(sourceId);
-    const obsFader = this.sourceData[source.sourceId].fader;
+    const source = this.sourcesService.getSource(sourceId)!;
+    const obsFader = this.sourceData[source.sourceId]!.fader!;
 
     return {
       db: obsFader.db || 0,
@@ -253,7 +262,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   generateAudioSourceData(sourceId: string): IAudioSource {
-    const source = this.sourcesService.getSource(sourceId);
+    const source = this.sourcesService.getSource(sourceId)!;
     const obsSource = source.getObsInput();
 
     const fader = this.fetchFaderDetails(sourceId);
@@ -313,7 +322,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   setSettings(sourceId: string, patch: Partial<IAudioSource>) {
-    const obsInput = this.sourcesService.getSourceById(sourceId).getObsInput();
+    const obsInput = this.sourcesService.getSourceById(sourceId)!.getObsInput();
 
     // Fader is ignored by this method.  Use setFader instead
     const { fader: _fader, ...newPatch } = patch;
@@ -326,7 +335,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
         obsInput.syncOffset = AudioService.msToTimeSpec(value);
       } else if (name === 'forceMono') {
         const value = newPatch[name];
-        if (this.getSource(sourceId).forceMono !== value) {
+        if (this.getSource(sourceId)!.forceMono !== value) {
           value
             ? (obsInput.flags = obsInput.flags | obs.ESourceFlags.ForceMono)
             : (obsInput.flags -= obs.ESourceFlags.ForceMono);
@@ -346,7 +355,7 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
   }
 
   setFader(sourceId: string, patch: Partial<IFader>) {
-    const obsFader = this.sourceData[sourceId].fader;
+    const obsFader = this.sourceData[sourceId]!.fader!;
 
     if (patch.deflection) obsFader.deflection = patch.deflection;
     if (patch.mul) obsFader.mul = patch.mul;
@@ -361,16 +370,17 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
 
   private createAudioSource(source: Source) {
     this.sourceData[source.sourceId] = {};
+    const sourceData = this.sourceData[source.sourceId]!;
 
     const obsVolmeter = obs.VolmeterFactory.create(obs.EFaderType.IEC);
     obsVolmeter.attach(source.getObsInput());
-    this.sourceData[source.sourceId].volmeter = obsVolmeter;
+    sourceData.volmeter = obsVolmeter;
 
     const obsFader = obs.FaderFactory.create(obs.EFaderType.IEC);
     obsFader.attach(source.getObsInput());
-    this.sourceData[source.sourceId].fader = obsFader;
+    sourceData.fader = obsFader;
 
-    this.sourceData[source.sourceId].stream = new Subject<IVolmeter>();
+    sourceData.stream = new Subject<IVolmeter>();
     this.ADD_AUDIO_SOURCE(this.generateAudioSourceData(source.sourceId));
     this.audioSourcesChanged.next();
   }
@@ -422,14 +432,14 @@ export class AudioSource implements IAudioSourceApi {
   private audioSourceState: IAudioSource;
 
   constructor(sourceId: string) {
-    this.audioSourceState = this.audioService.state.audioSources[sourceId];
+    this.audioSourceState = this.audioService.state.audioSources[sourceId]!;
     const sourceState = this.sourcesService.state.sources[sourceId] ?? null;
     Utils.applyProxy(this, this.audioSourceState);
     Utils.applyProxy(this, sourceState);
   }
 
   getModel(): IAudioSource & ISource {
-    return { ...this.source.state, ...this.audioSourceState };
+    return { ...this.source!.state, ...this.audioSourceState };
   }
 
   getSettingsForm(): TObsFormData {

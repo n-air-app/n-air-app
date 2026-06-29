@@ -239,7 +239,7 @@ describe('refreshWindowSize', () => {
 
 describe('updateWindowSize', () => {
   const states = ['INACTIVE', 'OPENED', 'CLOSED'] as (PanelState | null)[];
-  const stateName = {
+  const stateName: Record<string, string> = {
     null: '初期',
     INACTIVE: '未ログイン',
     OPENED: 'パネル展開',
@@ -268,7 +268,7 @@ describe('updateWindowSize', () => {
   }));
 
   for (const suite of initSuites) {
-    test(`${stateName[suite.prev]}→${stateName[suite.next]} 最小幅より${
+    test(`${stateName[String(suite.prev)]}→${stateName[suite.next]} 最小幅より${
       suite.smallerThanMinWidth ? '小さい' : '大きい'
     }`, () => {
       setup();
@@ -279,7 +279,7 @@ describe('updateWindowSize', () => {
         : WINDOW_MIN_WIDTH[suite.next] || BASE_WIDTH;
 
       const win = {
-        getMinimumSize: () => [WINDOW_MIN_WIDTH[suite.prev], BASE_HEIGHT],
+        getMinimumSize: () => [suite.prev ? WINDOW_MIN_WIDTH[suite.prev] : 0, BASE_HEIGHT],
         getSize: () => [WIDTH, BASE_HEIGHT],
         setMinimumSize: jest.fn(),
         setMaximumSize: jest.fn(),
@@ -397,9 +397,10 @@ describe('updateWindowSize', () => {
       const { WINDOW_MIN_WIDTH } = WindowSizeService;
 
       const win = {
-        getMinimumSize: () => [WINDOW_MIN_WIDTH[suite.prev], BASE_HEIGHT],
+        getMinimumSize: () => [suite.prev ? WINDOW_MIN_WIDTH[suite.prev] : 0, BASE_HEIGHT],
         getPosition: () => [0, 0],
-        getSize: () => [WINDOW_MIN_WIDTH[suite.prev] + WIDTH_DIFF, BASE_HEIGHT],
+        setPosition: jest.fn(),
+        getSize: () => [(suite.prev ? WINDOW_MIN_WIDTH[suite.prev] : 0) + WIDTH_DIFF, BASE_HEIGHT],
         setMinimumSize: jest.fn(),
         setMaximumSize: jest.fn(),
         setSize: jest.fn(),
@@ -484,7 +485,7 @@ describe('isAlwaysOnTop', () => {
       nextExpected,
     ) => {
       const programState: Partial<IState> = {
-        panelOpened: initPanelOpened,
+        panelOpened: initPanelOpened ?? undefined,
       };
       const programStateSubject = new BehaviorSubject(programState);
 
@@ -520,17 +521,17 @@ describe('isAlwaysOnTop', () => {
       if (initPanelOpened !== nextPanelOpened) {
         instance.nicoliveProgramStateService.state = {
           ...instance.nicoliveProgramStateService.state,
-          panelOpened: nextPanelOpened,
+          panelOpened: nextPanelOpened ?? false,
         };
-        programStateSubject.next({ panelOpened: nextPanelOpened });
+        programStateSubject.next({ panelOpened: nextPanelOpened ?? undefined });
         expect(instance.state.panelOpened).toBe(nextPanelOpened);
       }
       if (initCompactMode !== nextCompactMode) {
-        nextState({ compactMode: nextCompactMode });
-        expect(instance.state.isCompact).toBe(nextCompactMode);
+        nextState({ compactMode: nextCompactMode ?? undefined });
+        expect(instance.state.isCompact).toBe(nextCompactMode ?? null);
       }
       if (initCompactAlwaysOnTop !== nextCompactAlwaysOnTop) {
-        nextState({ compactAlwaysOnTop: nextCompactAlwaysOnTop });
+        nextState({ compactAlwaysOnTop: nextCompactAlwaysOnTop ?? undefined });
       }
       expect(instance.state.isAlwaysOnTop).toBe(nextExpected);
     },

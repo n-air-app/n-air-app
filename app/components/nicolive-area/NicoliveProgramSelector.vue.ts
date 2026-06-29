@@ -85,7 +85,7 @@ export default defineComponent({
         NicoliveProgramSelectorService.instance().state;
       switch (navItemStep) {
         case 'providerTypeSelect':
-          return this.getProviderTypeProgramText(selectedProviderType) || this.BLANK;
+          return selectedProviderType ? this.getProviderTypeProgramText(selectedProviderType) : this.BLANK;
         case 'channelSelect':
           return selectedChannel?.name || this.BLANK;
         case 'programSelect':
@@ -121,7 +121,7 @@ export default defineComponent({
     ok(): void {
       StreamingService.instance().toggleStreamingAsync({
         nicoliveProgramSelectorResult: {
-          providerType: NicoliveProgramSelectorService.instance().state.selectedProviderType,
+          providerType: NicoliveProgramSelectorService.instance().state.selectedProviderType!,
           channelProgramId:
             NicoliveProgramSelectorService.instance().state.selectedChannelProgram?.id ?? undefined,
         },

@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import { $t } from 'services/i18n';
-import { ISceneItemNode, ScenesService, TSceneNode } from 'services/scenes';
+import { ISceneItemNode, SceneItemFolder, ScenesService, TSceneNode } from 'services/scenes';
 import { SelectionService } from 'services/selection/selection';
 import { SourcesService } from 'services/sources';
 import { EditMenu } from 'util/menus/EditMenu';
@@ -63,7 +63,7 @@ export default defineComponent({
             isLeaf: sceneNode.isItem(),
             isExpanded: this.expandedFoldersIds.indexOf(sceneNode.id) !== -1,
             data: sceneNode.getModel(),
-            children: sceneNode.isFolder() ? getSlVueTreeNodes(sceneNode.getNodes()) : null,
+            children: sceneNode.isFolder() ? getSlVueTreeNodes(sceneNode.getNodes()) : undefined,
           };
         });
       };
@@ -89,7 +89,9 @@ export default defineComponent({
       if (!isLeaf) {
         return 'icon-folder';
       }
-      const sourceDetails = SourcesService.instance().getSource(sourceId).getComparisonDetails();
+      const source = SourcesService.instance().getSource(sourceId);
+      if (!source) return 'icon-file';
+      const sourceDetails = source.getComparisonDetails();
       switch (sourceDetails.propertiesManager) {
         case 'nvoice-character':
           return (sourceIconMap as Dictionary<string>)[(sourceDetails.nVoiceCharacterType || 'near') as string];
@@ -109,7 +111,7 @@ export default defineComponent({
     addFolder() {
       if (ScenesService.instance().activeScene) {
         let itemsToGroup: string[] = [];
-        let parentId: string;
+        let parentId: string | undefined;
         if (SelectionService.instance().canGroupIntoFolder()) {
           itemsToGroup = SelectionService.instance().getIds();
           const parent = SelectionService.instance().getClosestParent();
@@ -120,6 +122,7 @@ export default defineComponent({
     },
 
     showContextMenuForNode(node: ISlTreeNode<ISceneItemNode>, event: MouseEvent) {
+      if (!node.data) return;
       // 右クリックしたノードが未選択なら単体選択し直す。
       // 既に選択に含まれていれば（複数選択含む）選択を維持する。
       if (!SelectionService.instance().isSelected(node.data.id)) {
@@ -129,6 +132,7 @@ export default defineComponent({
     },
 
     sourcePropertiesForNode(node: ISlTreeNode<ISceneItemNode>, ev: MouseEvent) {
+      if (!node.data) return;
       this.makeActive([node], ev);
       this.sourceProperties();
     },
@@ -143,7 +147,7 @@ export default defineComponent({
         event && event.stopPropagation();
         return;
       }
-      const sceneNode = this.scene.getNode(sceneNodeId);
+      const sceneNode = sceneNodeId ? this.scene.getNode(sceneNodeId) : null;
       const menuOptions = sceneNode
         ? {
           selectedSceneId: this.scene.id,
@@ -182,9 +186,13 @@ export default defineComponent({
         Sentry.captureMessage('handleSort: treeNodesToMove is not an array', { level: 'warning', extra: { treeNodesToMove } });
         return;
       }
-      const nodesToMove = this.scene.getSelection(treeNodesToMove.map((node) => node.data.id));
+      const nodesToMove = this.scene.getSelection(
+        treeNodesToMove.map((node) => node.data?.id).filter((id): id is string => !!id),
+      );
 
+      if (!position.node.data?.id) return;
       const destNode = this.scene.getNode(position.node.data.id);
+      if (!destNode) return;
 
       if (position.placement === 'before') {
         nodesToMove.placeBefore(destNode.id);
@@ -197,12 +205,13 @@ export default defineComponent({
     },
 
     makeActive(treeNodes: ISlTreeNode<ISceneItemNode>[], ev: MouseEvent) {
-      const ids = treeNodes.map((treeNode) => treeNode.data.id);
+      const ids = treeNodes.map((treeNode) => treeNode.data?.id).filter((id): id is string => !!id);
       SelectionService.instance().select(ids);
     },
 
     toggleFolder(treeNode: ISlTreeNode<ISceneItemNode>) {
-      const nodeId = treeNode.data.id;
+      const nodeId = treeNode.data?.id;
+      if (!nodeId) return;
       if (treeNode.isExpanded) {
         this.expandedFoldersIds.splice(this.expandedFoldersIds.indexOf(nodeId), 1);
       } else {
@@ -212,7 +221,7 @@ export default defineComponent({
 
     canShowActions(sceneNodeId: string) {
       const node = this.scene.getNode(sceneNodeId);
-      return node.isItem() || node.getNestedItems().length;
+      return node?.isItem() || (!node?.isItem() && (node as SceneItemFolder).getNestedItems().length > 0);
     },
 
     toggleVisibility(sceneNodeId: string) {

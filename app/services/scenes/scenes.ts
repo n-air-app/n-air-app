@@ -196,8 +196,8 @@ export class ScenesService extends StatefulService<IScenesState> {
     this.sourcesService.addSource(obsScene.source, name, { sourceId: id });
 
     if (options.duplicateSourcesFromScene) {
-      const oldScene = this.getScene(options.duplicateSourcesFromScene);
-      const newScene = this.getScene(id);
+      const oldScene = this.getScene(options.duplicateSourcesFromScene)!;
+      const newScene = this.getScene(id)!;
 
       oldScene
         .getItems()
@@ -214,7 +214,7 @@ export class ScenesService extends StatefulService<IScenesState> {
     return this.getScene(id);
   }
 
-  removeScene(id: string, force = false): IScene {
+  removeScene(id: string, force = false): IScene | null {
     if (!force && Object.keys(this.state.scenes).length < 2) {
       return null;
     }
@@ -329,9 +329,9 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   get scenes(): Scene[] {
-    return this.state.displayOrder.map((id) => {
-      return this.getScene(id);
-    });
+    return this.state.displayOrder
+      .map((id) => this.getScene(id))
+      .filter((s): s is Scene => s !== null);
   }
 
   get activeSceneId(): string {
@@ -339,7 +339,7 @@ export class ScenesService extends StatefulService<IScenesState> {
   }
 
   get activeScene(): Scene {
-    return this.getScene(this.state.activeSceneId);
+    return this.getScene(this.state.activeSceneId)!;
   }
 
   suggestName(name: string): string {

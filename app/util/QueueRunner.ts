@@ -32,7 +32,7 @@ export class QueueRunner {
     label: string;
   }[] = [];
   private preparing: {
-    preparing: Promise<StartFunc>;
+    preparing: Promise<StartFunc | null>;
     cancel: boolean;
     label: string;
   } | null = null;
@@ -66,7 +66,7 @@ export class QueueRunner {
     }
   }
   private finishNotifier = new WaitNotify();
-  private logCallback: (obj: { state: string; label: string }) => void;
+  private logCallback: ((obj: { state: string; label: string }) => void) | undefined;
 
   constructor(
     options: {
@@ -74,7 +74,7 @@ export class QueueRunner {
     } = {},
   ) {
     this.logCallback = options.log || undefined;
-    this.stateSubject = new BehaviorSubject({
+    this.stateSubject = new BehaviorSubject<QueueRunnerState>({
       length: this.length,
       state: this.state,
       disabled: this.disabled,
@@ -112,8 +112,8 @@ export class QueueRunner {
           if (this.preparing?.cancel) {
             this.log('prepare canceled', label);
             if (start) {
-              const { cancel } = await start();
-              cancel();
+              const record = await start();
+              if (record) record.cancel();
             }
             return null;
           } else {
@@ -165,7 +165,7 @@ export class QueueRunner {
       });
       this.runningState = {
         cancel: async () => {
-          this.runningState.cancel = async () => {
+          this.runningState!.cancel = async () => {
             await running2;
           };
           earlyCancel = true;
@@ -197,7 +197,7 @@ export class QueueRunner {
               this.log('running', label);
               this.runningState = {
                 cancel: async () => {
-                  this.runningState.cancel = async () => {
+                  this.runningState!.cancel = async () => {
                     await running2;
                   };
                   await cancel();
@@ -304,7 +304,7 @@ export class QueueRunner {
    * @param label デバッグ表示用のラベル
    */
   add(prepare: PrepareFunc, label: string) {
-    if (prepare) {
+    if (prepare !== undefined) {
       this.queue.push({ prepare, label });
       this.notifyStateChange();
     }

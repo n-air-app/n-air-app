@@ -47,7 +47,7 @@ export default defineComponent({
     },
 
     title(): string {
-      return WindowsService.instance().state.main.title;
+      return WindowsService.instance().state.main.title ?? '';
     },
 
     page(): string {
@@ -95,8 +95,8 @@ export default defineComponent({
 
   methods: {
     async onDropHandler(event: DragEvent) {
-      const files = event.dataTransfer.files;
-      if (!ScenesService.instance().activeScene) {
+      const files = event.dataTransfer?.files;
+      if (!files || !ScenesService.instance().activeScene) {
         SentryReport.message('MainWindow', 'onDropHandler', 'Attempted to add files to a scene when no scene was active', { level: 'warning' });
         return;
       }
@@ -105,6 +105,7 @@ export default defineComponent({
       let fi = files.length;
       while (fi--) {
         const file = files.item(fi);
+        if (!file) continue;
         if (!file.path) {
           unavailableFiles.push(file.name);
           continue;

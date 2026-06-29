@@ -177,7 +177,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     this.addSource(obsInput, name, options);
 
-    return this.getSource(id);
+    return this.getSource(id)!;
   }
 
   addSource(obsInput: obs.IInput, name: string, options: ISourceAddOptions = {}) {
@@ -197,7 +197,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       isTemporary: options.isTemporary,
       propertiesManagerType: managerType,
     });
-    const source = this.getSource(id);
+    const source = this.getSource(id)!;
     const muted = obsInput.muted;
     this.UPDATE_SOURCE({ id, muted });
     this.updateSourceFlags(source.state, obsInput.outputFlags, true);
@@ -217,7 +217,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     this.sourceAdded.next(source.state);
     if (options.audioSettings) {
-      this.audioService.getSource(id).setSettings(options.audioSettings);
+      this.audioService.getSource(id)?.setSettings(options.audioSettings);
     }
   }
 
@@ -232,7 +232,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
      * otherwise OBS thinks it's still attached
      * and won't release it. */
     if (source.channel !== undefined) {
-      obs.Global.setOutputSource(source.channel, null);
+      obs.Global.setOutputSource(source.channel, null as unknown as obs.ISource);
     }
 
     if (source.type === 'nair-rtvc-source') this.rtvcStateService.didRemoveSource(source);
@@ -272,7 +272,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const types = getKeys(SUPPORTED_EXT);
     for (const type of types) {
       if (!(SUPPORTED_EXT[type] as readonly string[]).includes(ext)) continue;
-      let settings: Dictionary<TObsValue>;
+      let settings: Dictionary<TObsValue> | undefined;
       if (type === 'image_source') {
         settings = { file: path };
       } else if (type === 'browser_source') {
@@ -574,7 +574,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
   // Utility functions / getters
 
-  getSourceById(id: string): Source {
+  getSourceById(id: string): Source | undefined {
     return this.getSource(id);
   }
 
@@ -582,23 +582,27 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const sourceModels = Object.values(this.state.sources).filter((source) => {
       return source.name === name;
     });
-    return sourceModels.map((sourceModel) => this.getSource(sourceModel.sourceId));
+    return sourceModels
+      .map((sourceModel) => this.getSource(sourceModel.sourceId))
+      .filter((s): s is Source => s !== undefined);
   }
 
   getSourcesByType(type: TSourceType): Source[] {
     const sourceModels = Object.values(this.state.sources).filter((source) => {
       return source.type === type;
     });
-    return sourceModels.map((sourceModel) => this.getSource(sourceModel.sourceId));
+    return sourceModels
+      .map((sourceModel) => this.getSource(sourceModel.sourceId))
+      .filter((s): s is Source => s !== undefined);
   }
 
   get sources(): Source[] {
-    return Object.values(this.state.sources).map((sourceModel) =>
-      this.getSource(sourceModel.sourceId),
-    );
+    return Object.values(this.state.sources)
+      .map((sourceModel) => this.getSource(sourceModel.sourceId))
+      .filter((s): s is Source => s !== undefined);
   }
 
-  getSource(id: string): Source {
+  getSource(id: string): Source | undefined {
     return this.state.sources[id] || this.state.temporarySources[id] ? new Source(id) : undefined;
   }
 

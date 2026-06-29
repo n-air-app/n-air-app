@@ -144,7 +144,7 @@ export class TranscriptionSourceService extends Service {
     const scene = this.scenesService.activeScene;
     if (!scene) return [];
     return scene.getItems().filter((item) => {
-      const sourceDetails = this.sourcesService.getSource(item.sourceId).getComparisonDetails();
+      const sourceDetails = this.sourcesService.getSource(item.sourceId)!.getComparisonDetails();
       return sourceDetails.propertiesManager === 'text_transcription';
     });
   }
@@ -169,7 +169,7 @@ export class TranscriptionSourceService extends Service {
     const items = this.getTranscriptionItemsInActiveScene();
     for (const item of items) {
       // ソースの設定を更新
-      const source = this.sourcesService.getSource(item.sourceId);
+      const source = this.sourcesService.getSource(item.sourceId)!;
       source.updateSettings({ chatlog_lines: params.normalizedLines, extents_cy: params.height });
 
       // アイテムの位置を更新

@@ -60,7 +60,7 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
       return;
     }
 
-    const source = this.sourcesService.getSource(sourceId);
+    const source = this.sourcesService.getSource(sourceId)!;
     const display = getDisplayFromSource(source, 'startCropping');
     if (!display) {
       return;
@@ -103,9 +103,9 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
     }
 
     const sceneItem = new SceneItem(
-      this.state.sceneId,
-      this.state.sceneItemId,
-      this.state.sourceId,
+      this.state.sceneId!,
+      this.state.sceneItemId!,
+      this.state.sourceId!,
     );
     const rect = new ScalableRectangle(sceneItem.getRectangle());
 

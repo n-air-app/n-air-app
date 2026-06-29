@@ -28,11 +28,11 @@ export enum ETransitionType {
 interface ITransitionsState {
   transitions: ITransition[];
   connections: ITransitionConnection[];
-  defaultTransitionId: string;
+  defaultTransitionId: string | null;
   studioMode: boolean;
 }
 
-interface ITransition {
+export interface ITransition {
   id: string;
   name: string;
   type: ETransitionType;
@@ -71,13 +71,13 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * This transition is used to render the left (EDIT) display
    * while in studio mode
    */
-  studioModeTransition: obs.ITransition;
+  studioModeTransition: obs.ITransition | null = null;
 
   /**
    * This is a duplicate of the current scene that is rendered
    * to the output while editing is taking place in studio mode.
    */
-  sceneDuplicate: obs.IScene;
+  sceneDuplicate: obs.IScene | null = null;
 
   /**
    * Used to prevent studio mode transitions before the current
@@ -132,7 +132,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     // Immediately switch to the duplicated scene
     this.getCurrentTransition().set(this.sceneDuplicate);
 
-    this.studioModeTransition.set(currentScene);
+    this.studioModeTransition!.set(currentScene);
   }
 
   disableStudioMode() {
@@ -160,14 +160,14 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     this.sceneDuplicate = currentScene.duplicate(uuidv4(), obs.ESceneDupType.Copy);
 
     // TODO: Make this a dropdown box
-    const transition = this.getDefaultTransition();
+    const transition = this.getDefaultTransition()!;
     const obsTransition = this.obsTransitions[transition.id];
 
     obsTransition.set(this.getCurrentTransition().getActiveSource());
     obs.Global.setOutputSource(0, obsTransition);
-    obsTransition.start(transition.duration, this.sceneDuplicate);
+    obsTransition.start(transition.duration, this.sceneDuplicate!);
 
-    oldDuplicate.release();
+    oldDuplicate!.release();
 
     setTimeout(() => (this.studioModeLocked = false), transition.duration);
   }
@@ -210,9 +210,9 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   transition(sceneAId: string, sceneBId: string) {
     if (this.state.studioMode) {
-      const scene = this.scenesService.getScene(sceneBId);
-      this.studioModeTransition.set(scene.getObsScene());
-      return;
+      const scene = this.scenesService.getScene(sceneBId)!;
+    this.studioModeTransition!.set(scene.getObsScene());
+    return;
     }
 
     // We should almost always have a valid transition by this point
@@ -221,12 +221,12 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     // place when we try to transition.
     this.ensureTransition();
 
-    const obsScene = this.scenesService.getScene(sceneBId).getObsScene();
+    const obsScene = this.scenesService.getScene(sceneBId)!.getObsScene();
     const transition = this.getConnectedTransition(sceneAId, sceneBId);
     const obsTransition = this.obsTransitions[transition.id];
 
     if (sceneAId) {
-      obsTransition.set(this.scenesService.getScene(sceneAId).getObsScene());
+      obsTransition.set(this.scenesService.getScene(sceneAId)!.getObsScene());
       obs.Global.setOutputSource(0, obsTransition);
       obsTransition.start(transition.duration, obsScene);
     } else {
@@ -248,16 +248,16 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     });
 
     if (matchedConnection && this.getTransition(matchedConnection.transitionId)) {
-      return this.getTransition(matchedConnection.transitionId);
+      return this.getTransition(matchedConnection.transitionId)!;
     }
 
-    return this.getDefaultTransition();
+    return this.getDefaultTransition()!;
   }
 
   shutdown() {
     Object.values(this.obsTransitions).forEach((tran) => tran.release());
     this.releaseStudioModeObjects();
-    obs.Global.setOutputSource(0, null);
+    obs.Global.setOutputSource(0, null as unknown as obs.ISource);
   }
 
   /**
@@ -399,13 +399,13 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
    * earlier in the order.
    */
   isConnectionRedundant(id: string) {
-    const connection = this.getConnection(id);
+    const connection = this.getConnection(id)!;
 
     const match = this.state.connections.find((conn) => {
       return conn.fromSceneId === connection.fromSceneId && conn.toSceneId === connection.toSceneId;
     });
 
-    return match.id !== connection.id;
+    return match!.id !== connection.id;
   }
 
   getConnection(id: string) {
@@ -478,7 +478,7 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
     if (connection) {
       getKeys(patch).forEach((key) => {
-        connection[key] = patch[key];
+        (connection as unknown as Record<string, unknown>)[key] = patch[key];
       });
     }
   }

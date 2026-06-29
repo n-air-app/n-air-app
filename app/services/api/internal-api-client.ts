@@ -108,10 +108,10 @@ export class InternalApiClient {
           const mutations = response.mutations;
 
           // commit all mutations caused by the api-request now
-          mutations.forEach((mutation) => commitMutation(mutation));
+          mutations?.forEach((mutation) => commitMutation(mutation));
           // we'll still receive already committed mutations from async IPC event
           // mark them as ignored
-          this.skippedMutationsCount += mutations.length;
+          this.skippedMutationsCount += mutations?.length ?? 0;
 
           if (result && result._type === 'SUBSCRIPTION') {
             if (result.emitter === 'PROMISE') {
@@ -180,12 +180,14 @@ export class InternalApiClient {
     ipcRenderer.on(
       'services-message',
       (event: Electron.Event, message: IJsonRpcResponse<IJsonRpcEvent>) => {
+        const result = message.result;
+
         // handle only `EVENT` messages here
-        if (message.result._type !== 'EVENT') return;
+        if (!result || result._type !== 'EVENT') return;
 
         // handle promise reject/resolve
-        if (message.result.emitter === 'PROMISE') {
-          const promisePayload = message.result;
+        if (result.emitter === 'PROMISE') {
+          const promisePayload = result;
           if (promisePayload) {
             // skip the promise result if this promise has been created from another window
             if (!promises[promisePayload.resourceId]) return;
@@ -196,11 +198,11 @@ export class InternalApiClient {
             callback(promisePayload.data);
             delete promises[promisePayload.resourceId];
           }
-        } else if (message.result.emitter === 'STREAM') {
+        } else if (result.emitter === 'STREAM') {
           // handle RXJS events
-          const resourceId = message.result.resourceId;
+          const resourceId = result.resourceId;
           if (!this.subscriptions[resourceId]) return;
-          this.subscriptions[resourceId].next(message.result.data);
+          this.subscriptions[resourceId].next(result.data);
         }
       },
     );
