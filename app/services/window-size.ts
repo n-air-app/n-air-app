@@ -30,11 +30,11 @@ export enum PanelState {
 }
 
 type BackupSizeInfo = {
-  widthOffset: number;
-  backupX: number;
-  backupY: number;
-  backupHeight: number;
-  maximized: boolean;
+  widthOffset: number | undefined;
+  backupX: number | undefined;
+  backupY: number | undefined;
+  backupHeight: number | undefined;
+  maximized: boolean | undefined;
 };
 
 const MWOpKey = 'mainwindow-operation';
@@ -263,11 +263,11 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     let nextWidth = width;
     let nextMaximize = lastMaximized;
     const nextBackupSize: BackupSizeInfo = {
-      widthOffset: sizeState?.widthOffset ?? 0,
-      backupX: sizeState?.backupX ?? 0,
-      backupY: sizeState?.backupY ?? 0,
-      backupHeight: sizeState?.backupHeight ?? 0,
-      maximized: sizeState?.maximized ?? false,
+      widthOffset: sizeState?.widthOffset,
+      backupX: sizeState?.backupX,
+      backupY: sizeState?.backupY,
+      backupHeight: sizeState?.backupHeight,
+      maximized: sizeState?.maximized,
     };
 
     if (onInit) {
@@ -289,8 +289,8 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
           nextWidth = nextMinWidth;
           nextMaximize = false;
         } else {
-          nextWidth = Math.max(nextBackupSize.widthOffset, nextMinWidth);
-          nextMaximize = nextBackupSize.maximized;
+          nextWidth = Math.max(nextBackupSize.widthOffset ?? nextMinWidth, nextMinWidth);
+          nextMaximize = nextBackupSize.maximized ?? false;
         }
       }
     }

@@ -32,11 +32,11 @@ export class CustomizationService
     compactModeTab: 'niconico',
     compactModeStudioController: 'scenes',
     compactModeNewComment: false,
-    fullModeWidthOffset: 0,
-    compactBackupPositionX: 0,
-    compactBackupPositionY: 0,
-    compactBackupHeight: 0,
-    compactMaximized: false,
+    fullModeWidthOffset: undefined,
+    compactBackupPositionX: undefined,
+    compactBackupPositionY: undefined,
+    compactBackupHeight: undefined,
+    compactMaximized: undefined,
     autoCompactMode: false,
     showAutoCompactDialog: true,
     compactAlwaysOnTop: false,
@@ -145,11 +145,11 @@ export class CustomizationService
   }
 
   setFullModeWidthOffset(state: {
-    fullModeWidthOffset: number;
-    compactBackupPositionX: number;
-    compactBackupPositionY: number;
-    compactBackupHeight: number;
-    compactMaximized: boolean;
+    fullModeWidthOffset: number | undefined;
+    compactBackupPositionX: number | undefined;
+    compactBackupPositionY: number | undefined;
+    compactBackupHeight: number | undefined;
+    compactMaximized: boolean | undefined;
   }) {
     this.setSettings(state);
   }

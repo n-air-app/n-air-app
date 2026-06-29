@@ -422,6 +422,37 @@ describe('updateWindowSize', () => {
       expect(win.setMaximizable).toHaveBeenCalledWith(suite.next !== 'COMPACT');
     });
   }
+
+  test('保存された位置がない状態で COMPACT を切り替えても位置を復元しない', () => {
+    setup();
+    const { WindowSizeService } = target();
+    const { WINDOW_MIN_WIDTH } = WindowSizeService;
+
+    const win = {
+      getMinimumSize: () => [WINDOW_MIN_WIDTH.COMPACT, BASE_HEIGHT],
+      getPosition: () => [100, 200],
+      setPosition: jest.fn(),
+      getSize: () => [WINDOW_MIN_WIDTH.COMPACT, BASE_HEIGHT],
+      setMinimumSize: jest.fn(),
+      setMaximumSize: jest.fn(),
+      setSize: jest.fn(),
+      isMaximized: () => false,
+      maximize: jest.fn(),
+      unmaximize: jest.fn(),
+      setMaximizable: jest.fn(),
+      setAlwaysOnTop: jest.fn(),
+    } as unknown as MainWindowOperation;
+
+    WindowSizeService.updateWindowSize(win, PanelState.COMPACT, PanelState.INACTIVE, {
+      widthOffset: undefined,
+      backupX: undefined,
+      backupY: undefined,
+      backupHeight: undefined,
+      maximized: undefined,
+    });
+
+    expect(win.setPosition).not.toHaveBeenCalled();
+  });
 });
 
 describe('isAlwaysOnTop', () => {
