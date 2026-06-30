@@ -341,7 +341,11 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       }
     });
 
-    this.UPDATE_AUDIO_SOURCE(sourceId, newPatch);
+    // undefined 値を除去してから state を更新（undefined で上書きしないため）
+    const cleanPatch = Object.fromEntries(
+      Object.entries(newPatch).filter(([, v]) => v !== undefined),
+    ) as Partial<IAudioSource>;
+    this.UPDATE_AUDIO_SOURCE(sourceId, cleanPatch);
     this.audioSourceUpdated.next(this.state.audioSources[sourceId]);
   }
 

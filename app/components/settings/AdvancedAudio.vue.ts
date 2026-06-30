@@ -2,20 +2,20 @@ import { propertyComponentForType } from 'components/obs/inputs/Components';
 import { TObsValue } from 'components/obs/inputs/ObsInput';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import { AudioService, IAudioSourceApi } from 'services/audio';
-import { defineComponent } from 'vue';
+import { defineComponent, onUnmounted, ref } from 'vue';
 
 export default defineComponent({
   name: 'AdvancedAudio',
   components: { ModalLayout },
-  data() {
-    return {
-      propertyComponentForType,
-    };
-  },
-  computed: {
-    audioSources() {
-      return AudioService.instance().getSourcesForCurrentScene();
-    },
+  setup() {
+    const audioSources = ref(AudioService.instance().getSourcesForCurrentScene());
+
+    const subscription = AudioService.instance().audioSourceUpdated.subscribe(() => {
+      audioSources.value = AudioService.instance().getSourcesForCurrentScene();
+    });
+    onUnmounted(() => subscription.unsubscribe());
+
+    return { audioSources, propertyComponentForType };
   },
   methods: {
     sourceName(audioSource: IAudioSourceApi): string {

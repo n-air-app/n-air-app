@@ -1,5 +1,5 @@
 import { default as Utils, EBit } from 'services/utils';
-import { defineComponent, PropType } from 'vue';
+import { computed, defineComponent, PropType } from 'vue';
 
 import { IObsBitmaskInput, TObsType } from './ObsInput';
 
@@ -10,26 +10,20 @@ const ObsBitMaskInput = defineComponent({
     category: { type: String },
     subCategory: { type: String },
   },
+  setup(props) {
+    const flags = computed(() =>
+      Utils.numberToBinnaryArray(props.value.value, props.value.size).reverse(),
+    );
+    return { flags };
+  },
   data() {
     return {
       testingAnchor: `Form/BitMask/${this.value.name}`,
-      flags: [] as EBit[],
     };
-  },
-  watch: {
-    value() {
-      this.updateFlags();
-    },
-  },
-  mounted() {
-    this.updateFlags();
   },
   methods: {
     emitInput(eventData: IObsBitmaskInput) {
       this.$emit('input', eventData);
-    },
-    updateFlags() {
-      this.flags = Utils.numberToBinnaryArray(this.value.value, this.value.size).reverse();
     },
     onCheckboxChange(event: Event) {
       const el = event.target as HTMLInputElement;
@@ -37,8 +31,9 @@ const ObsBitMaskInput = defineComponent({
       this.onChangeHandler(index, el.checked);
     },
     onChangeHandler(index: number, state: boolean) {
-      this.flags[index] = Number(state);
-      const value = Utils.binnaryArrayToNumber(this.flags.reverse());
+      const newFlags = this.flags.slice() as EBit[];
+      newFlags[index] = Number(state) as EBit;
+      const value = Utils.binnaryArrayToNumber(newFlags.slice().reverse());
       this.emitInput({ ...this.value, value });
     },
   },
