@@ -5,6 +5,7 @@ import { IObsBitmaskInput, TObsType } from './ObsInput';
 
 const ObsBitMaskInput = defineComponent({
   name: 'ObsBitMaskInput',
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsBitmaskInput>, required: true as const },
     category: { type: String },
@@ -38,7 +39,7 @@ const ObsBitMaskInput = defineComponent({
     },
     onChangeHandler(index: number, state: boolean) {
       this.flags[index] = Number(state);
-      const value = Utils.binnaryArrayToNumber(this.flags.reverse());
+      const value = Utils.binnaryArrayToNumber([...this.flags].reverse());
       this.emitInput({ ...this.value, value });
     },
   },
