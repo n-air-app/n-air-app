@@ -55,7 +55,7 @@
   "dependencies": {
     "@electron/remote": "2.1.3",
     "@n-air-app/n-voice-package": "^1.0.2",
-    "@n-air-app/nicolive-comment-protobuf": "2026.616.161033",
+    "@n-air-app/nicolive-comment-protobuf": "2026.629.180145",
     "@sentry/electron": "7.13.0",
     "@sentry/vue": "10.50.0",
     "@vue/compiler-sfc": "^3.5.38",
