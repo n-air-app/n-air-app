@@ -19,8 +19,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(@babel/core@7.29.7)(@types/babel__core@7.20.5)
       '@n-air-app/nicolive-comment-protobuf':
-        specifier: 2026.616.161033
-        version: 2026.616.161033
+        specifier: 2026.629.180145
+        version: 2026.629.180145
       '@sentry/electron':
         specifier: 7.13.0
         version: 7.13.0
@@ -1369,8 +1369,8 @@ packages:
   '@n-air-app/n-voice-package@1.0.2':
     resolution: {integrity: sha512-E9TsrIhqoX8p6ZGeg9j0s3+fIZMoQONxlPt2nw1ctZGpMnK4O5IO6hug9wWg5oLG4C3gYV763Yem7p8NIb2EqQ==, tarball: https://npm.pkg.github.com/download/@n-air-app/n-voice-package/1.0.2/3ad9bb4da017848de7a399c171bb971a5f987e52}
 
-  '@n-air-app/nicolive-comment-protobuf@2026.616.161033':
-    resolution: {integrity: sha512-HfNaAjWhzW4N835fiCnKNMKandzeQiiq1yVFQKAYZOMAKk6oMW2tTAtWU20dbfUWy9Q41feHbfqlTTZurDJvIw==, tarball: https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2026.616.161033/af36971e3c70fe424835e350f7bd8ed24f9502f0}
+  '@n-air-app/nicolive-comment-protobuf@2026.629.180145':
+    resolution: {integrity: sha512-rNpZOzVc4LG+9OCHVLTpBtevgJHNsTWkyOrVu7fE6dSxj9Hnm+acoDrifZUi36eCEI4YzqVkz7Y7GjZmyXISNg==, tarball: https://npm.pkg.github.com/download/@n-air-app/nicolive-comment-protobuf/2026.629.180145/fa7b544da6a9925092959373e6490908700e6e89}
 
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
@@ -3918,6 +3918,10 @@ packages:
 
   fs-extra@11.3.5:
     resolution: {integrity: sha512-eKpRKAovdpZtR1WopLHxlBWvAgPny3c4gX1G5Jhwmmw4XJj0ifSD5qB5TOo8hmA0wlRKDAOAhEE1yVPgs6Fgcg==}
+    engines: {node: '>=14.14'}
+
+  fs-extra@11.3.6:
+    resolution: {integrity: sha512-w8ZNZr2mKIc7qeNaQ9AVPT1+iFaI+Avd4xudVOvdDJ8VytREi1Ft5Ih7hd9jjehod8vAM5GMsfQ/TpPf4EyoEA==}
     engines: {node: '>=14.14'}
 
   fs-extra@7.0.1:
@@ -8243,7 +8247,7 @@ snapshots:
     dependencies:
       cross-dirname: 0.1.0
       debug: 4.4.3
-      fs-extra: 11.3.5
+      fs-extra: 11.3.6
       minimist: 1.2.8
       postject: 1.0.0-alpha.6
     transitivePeerDependencies:
@@ -8676,7 +8680,7 @@ snapshots:
       - '@types/babel__core'
       - supports-color
 
-  '@n-air-app/nicolive-comment-protobuf@2026.616.161033':
+  '@n-air-app/nicolive-comment-protobuf@2026.629.180145':
     dependencies:
       protobufjs: 8.6.3
 
@@ -11894,6 +11898,13 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 6.2.1
       universalify: 2.0.1
+
+  fs-extra@11.3.6:
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 6.2.1
+      universalify: 2.0.1
+    optional: true
 
   fs-extra@7.0.1:
     dependencies:

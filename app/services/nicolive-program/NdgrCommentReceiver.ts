@@ -167,7 +167,7 @@ const simpleNotificationV2TypeMap = {
     'userLevelUp',
   [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.USER_FOLLOW]:
     'userFollow',
-  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.CREATOR_SUPPORT_GOAL_ACHIRVEMENT]:
+  [dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.CREATOR_SUPPORT_GOAL_ACHIEVEMENT]:
     'creatorSupportGoalAchievement',
 } as const;
 
