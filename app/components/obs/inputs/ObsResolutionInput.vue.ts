@@ -5,6 +5,7 @@ import { IObsListInput, IObsListOption, TObsType, TObsValue } from './ObsInput';
 
 const ObsResolutionInput = defineComponent({
   name: 'ObsResolutionInput',
+  emits: ['input'],
   components: { Dropdown },
   props: {
     value: { type: Object as PropType<IObsListInput<TObsValue>>, required: true as const },
