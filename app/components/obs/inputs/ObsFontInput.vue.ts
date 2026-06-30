@@ -6,6 +6,7 @@ import ObsSystemFontSelector from './ObsSystemFontSelector.vue';
 
 const ObsFontInput = defineComponent({
   name: 'ObsFontInput',
+  emits: ['input'],
   components: { GoogleFontSelector, SystemFontSelector: ObsSystemFontSelector },
   props: {
     value: { type: Object as PropType<IObsInput<IObsFont>>, required: true as const },

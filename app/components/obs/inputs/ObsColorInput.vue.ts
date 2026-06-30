@@ -41,6 +41,7 @@ interface IColor {
 
 const ObsColorInput = defineComponent({
   name: 'ObsColorInput',
+  emits: ['input'],
   components: { ColorPicker },
   props: {
     value: { type: Object as PropType<IObsInput<number>>, required: true as const },
