@@ -325,7 +325,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
   }
 
   private invalidate() {
-    this.registeredHotkeys = null as unknown as Hotkey[];
+    this.registeredHotkeys = null;
   }
 
   private updateRegisteredHotkeys() {

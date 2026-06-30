@@ -410,8 +410,8 @@ export class Scene {
         rotation: item.rotation || 0,
         streamVisible: true,
         recordingVisible: true,
-        scaleFilter: item.scaleFilter!,
-        blendingMode: item.blendingMode!,
+        scaleFilter: item.scaleFilter ?? EScaleType.Disable,
+        blendingMode: item.blendingMode ?? EBlendingMode.Normal,
         blendingMethod: item.blendingMethod,
         display: item.display,
       });

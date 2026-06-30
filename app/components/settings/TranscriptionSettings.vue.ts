@@ -348,7 +348,7 @@ export default defineComponent({
         return {
           name: 'transcriptionTextFileMaxLine',
           description: $t('settings.transcription.textFile.maxLine'),
-          value: TranscriptionService.instance().state.textFileMaxLine ?? 100,
+          value: TranscriptionService.instance().state.textFileMaxLine ?? TranscriptionService.defaultState.textFileMaxLine,
           enabled: true,
           minVal: 1,
           maxVal: 10000,
@@ -356,7 +356,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance().setTextFileMaxLine(model.value ?? 100);
+        TranscriptionService.instance().setTextFileMaxLine(model.value ?? TranscriptionService.defaultState.textFileMaxLine);
       },
     },
     textFileLineTimeToLiveModel: {

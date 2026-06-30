@@ -89,7 +89,7 @@ export default defineComponent({
         return {
           description: '一時停止する最低音量(dB)',
           name: 'soundThresholdDb',
-          value: SoundDetectorService.instance().state.soundThresholdDb ?? 0,
+          value: SoundDetectorService.instance().state.soundThresholdDb ?? SoundDetectorService.defaultState.soundThresholdDb,
           minVal: -60,
           maxVal: 0,
           stepVal: 1,
@@ -98,7 +98,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        SoundDetectorService.instance().updateSoundThresholdDb(model.value ?? 0);
+        SoundDetectorService.instance().updateSoundThresholdDb(model.value ?? SoundDetectorService.defaultState.soundThresholdDb);
       },
     },
     resumeSilenceMsModel: {
@@ -106,7 +106,7 @@ export default defineComponent({
         return {
           description: '読み上げ再開までの時間(ms)',
           name: 'resumeSilenceMs',
-          value: SoundDetectorService.instance().state.resumeSilenceMs ?? 0,
+          value: SoundDetectorService.instance().state.resumeSilenceMs ?? SoundDetectorService.defaultState.resumeSilenceMs,
           minVal: 100,
           maxVal: 10000,
           stepVal: 100,
@@ -115,7 +115,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        SoundDetectorService.instance().updateResumeSilenceMs(model.value ?? 0);
+        SoundDetectorService.instance().updateResumeSilenceMs(model.value ?? SoundDetectorService.defaultState.resumeSilenceMs);
       },
     },
     soundDetectedSpeechActionModel: {

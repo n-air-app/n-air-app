@@ -211,8 +211,8 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   transition(sceneAId: string, sceneBId: string) {
     if (this.state.studioMode) {
       const scene = this.scenesService.getScene(sceneBId)!;
-    this.studioModeTransition!.set(scene.getObsScene());
-    return;
+      this.studioModeTransition!.set(scene.getObsScene());
+      return;
     }
 
     // We should almost always have a valid transition by this point
