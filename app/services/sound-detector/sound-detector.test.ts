@@ -169,7 +169,7 @@ function prepare(
 
 describe('SoundDetectorService', () => {
   // FakeTimersを使って時間を操作する
-  let clock: FakeTimers.InstalledClock;
+  let clock: FakeTimers.Clock;
   beforeEach(() => {
     clock = FakeTimers.install();
   });

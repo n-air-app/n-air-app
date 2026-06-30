@@ -29,7 +29,7 @@ export default defineComponent({
       return WindowsService.instance().state[this.windowId].isFullScreen;
     },
 
-    sourceId(): string {
+    sourceId(): string | undefined {
       return WindowsService.instance().getWindowOptions(this.windowId).sourceId;
     },
 

@@ -2,12 +2,7 @@
   <div class="main" data-test="Connect">
     <div class="onboarding-step">
       <NAirLogo class="onboarding-logo" />
-      <div class="onboarding-title" v-if="isSecurityUpgrade">Re-Authorize</div>
-      <div class="onboarding-desc" v-if="isSecurityUpgrade">
-        {{ $t('onboarding.secutityUpgrade') }}
-        <a @click="contactSupport">{{ $t('onboarding.contactSupport') }}</a>
-      </div>
-      <div class="onboarding-desc" v-else>{{ $t('onboarding.urgeToSignIn') }}</div>
+      <div class="onboarding-desc">{{ $t('onboarding.urgeToSignIn') }}</div>
       <div class="signup-buttons">
         <button
           class="button button--accent button--niconico"
@@ -22,7 +17,6 @@
         @click="skipOnboarding"
         class="link link--skip"
         :disabled="loadingState"
-        v-if="!isSecurityUpgrade"
         data-test="Skip"
       >
         {{ $t('onboarding.skipConnect') }}

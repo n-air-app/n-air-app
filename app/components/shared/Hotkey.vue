@@ -17,7 +17,8 @@
             :placeholder="String(focusedIndex === index ? $t('hotkeys.inputPlaceholderFocused') : $t('hotkeys.inputPlaceholder'))"
             @focus="handleFocus(index)"
             @blur="handleBlur(index)"
-            @keydown="e => handleKeydown(e, index)"
+            :data-index="index"
+            @keydown="onKeydownFromEvent"
           />
           <i class="Hotkey-control icon-plus" @click="addBinding(index)" />
           <i class="Hotkey-control icon-minus" @click="removeBinding(index)" />

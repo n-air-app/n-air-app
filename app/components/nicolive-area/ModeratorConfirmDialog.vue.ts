@@ -5,6 +5,12 @@ import Util from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
 
+interface ModeratorConfirmDialogParams {
+  userName: string;
+  userId: string;
+  operation: 'add' | 'remove';
+}
+
 export default defineComponent({
   name: 'ModeratorConfirmDialog',
 
@@ -12,11 +18,11 @@ export default defineComponent({
 
   data() {
     const windowId = Util.getCurrentUrlParams().windowId;
-    const queryParams = WindowsService.instance().getWindowOptions(windowId) as any;
+    const queryParams = WindowsService.instance().getWindowOptions(windowId) as ModeratorConfirmDialogParams;
     return {
       user: {
-        userName: queryParams.userName as string,
-        userId: queryParams.userId as string,
+        userName: queryParams.userName,
+        userId: queryParams.userId,
       },
       isClosing: false,
     };
@@ -27,8 +33,8 @@ export default defineComponent({
       return Util.getCurrentUrlParams().windowId;
     },
 
-    queryParams() {
-      return WindowsService.instance().getWindowOptions(this.windowId);
+    queryParams(): ModeratorConfirmDialogParams {
+      return WindowsService.instance().getWindowOptions(this.windowId) as ModeratorConfirmDialogParams;
     },
 
     userName(): string {
@@ -36,7 +42,7 @@ export default defineComponent({
     },
 
     operation(): 'add' | 'remove' {
-      return (this.queryParams as any).operation as 'add' | 'remove';
+      return this.queryParams.operation;
     },
   },
 

@@ -41,6 +41,7 @@ interface IColor {
 
 const ObsColorInput = defineComponent({
   name: 'ObsColorInput',
+  emits: ['input'],
   components: { ColorPicker },
   props: {
     value: { type: Object as PropType<IObsInput<number>>, required: true as const },
@@ -107,8 +108,8 @@ const ObsColorInput = defineComponent({
       document.removeEventListener('mousedown', this.onDocumentMouseDown);
     },
     onDocumentMouseDown(event: MouseEvent) {
-      const menu = this.$refs.colorPickerMenu as any;
-      if (menu && menu.$el && menu.$el.contains(event.target as Node)) {
+      const menu = this.$refs.colorPickerMenu as InstanceType<typeof ColorPicker> | undefined;
+      if (menu && menu.$el && (menu.$el as HTMLElement).contains(event.target as Node)) {
         return;
       }
       const el = this.$el as HTMLElement;

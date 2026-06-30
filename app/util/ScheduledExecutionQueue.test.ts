@@ -3,7 +3,7 @@ import * as FakeTimers from '@sinonjs/fake-timers';
 import { ScheduledExecutionQueue } from './ScheduledExecutionQueue';
 
 describe('ScheduledExecutionQueue', () => {
-  let clock: FakeTimers.InstalledClock;
+  let clock: FakeTimers.Clock;
   let processor: jest.Mock<Promise<boolean>, [string]>;
   let queue: ScheduledExecutionQueue<string>;
 

@@ -42,18 +42,14 @@
               class="studio-controls-selector"
               :draggable="false"
               @dblclick="addExisting"
-              @select="
-                sourceId => {
-                  selectedSourceId = sourceId;
-                }
-              "
+              @select="onSelectSource"
               :activeItems="selectedSourceId ? [selectedSourceId] : []"
               :items="existingSources"
             >
             </selector>
           </div>
           <div class="small-6 columns">
-            <display v-if="selectedSource" :sourceId="selectedSource.id" />
+            <display v-if="selectedSource" :sourceId="selectedSource.sourceId" />
           </div>
         </div>
         <div v-else class="row">

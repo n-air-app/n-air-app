@@ -10,7 +10,7 @@
         :step="actualInterval"
         :disabled="disabled"
         :style="{ '--slider-percent': sliderPercent + '%' }"
-        @input="updateValue(parseFloat($event.target.value))"
+        @input="updateValue($event)"
         ref="slider"
       />
       <div
@@ -30,7 +30,8 @@
       :min="min"
       :max="max"
       :step="interval"
-      @change="updateValue(parseFloat($event.target.value))"
+      @change="updateValue($event)"
+
       @keydown="handleKeydown"
     />
   </div>

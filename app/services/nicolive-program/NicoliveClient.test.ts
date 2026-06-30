@@ -95,9 +95,11 @@ test('wrapResultは結果が200でないときレスポンス全体を返す', a
   fetchMock.get(dummyURL, { body: JSON.stringify(dummyErrorBody), status: 404 });
   const res = await fetch(dummyURL);
 
-  await expect(NicoliveClient.wrapResult(res)).resolves.toEqual({
+  // diag フィールドが追加されるため toMatchObject で検証
+  await expect(NicoliveClient.wrapResult(res)).resolves.toMatchObject({
     ok: false,
     value: dummyErrorBody,
+    diag: { route: 'renderer', httpStatus: 404, failureKind: 'http_error' },
   });
   expect(fetchMock.callHistory.done()).toBe(true);
 });
@@ -106,12 +108,11 @@ test('wrapResultはbodyがJSONでなければSyntaxErrorをwrapして返す', as
   fetchMock.get(dummyURL, 'invalid json');
   const res = await fetch(dummyURL);
 
-  await expect(NicoliveClient.wrapResult(res)).resolves.toMatchInlineSnapshot(`
-    {
-      "ok": false,
-      "value": [SyntaxError: Unexpected token 'i', "invalid json" is not valid JSON],
-    }
-  `);
+  // diag フィールドが追加されるため toMatchObject で検証
+  const result = await NicoliveClient.wrapResult(res);
+  expect(result.ok).toBe(false);
+  expect((result as any).value).toBeInstanceOf(SyntaxError);
+  expect((result as any).diag).toMatchObject({ route: 'renderer', failureKind: 'json_parse' });
   expect(fetchMock.callHistory.done()).toBe(true);
 });
 
@@ -448,7 +449,8 @@ describe('NicoliveClient.wrapResult', () => {
   )('%p ok:%p expect:%p', async (_label, ok, value, response) => {
     const res = await NicoliveClient.wrapResult<string>(response);
     console.log(res);
-    expect(res).toEqual({
+    // diag フィールドが失敗時に追加されるため toMatchObject で検証
+    expect(res).toMatchObject({
       ok,
       ...(ok ? { serverDateMs } : {}),
       value,
@@ -483,7 +485,8 @@ describe('NicoliveClient.deleteComment', () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
     {
       const res = client.deleteComment('lv1', '1');
-      await expect(res).resolves.toEqual({ ok, serverDateMs: undefined, value });
+      // diag フィールドが失敗時に追加されるため toMatchObject で検証
+      await expect(res).resolves.toMatchObject({ ok, value });
       expect(fetchViaMainProcess).toHaveBeenCalledWith(expect.anything(), expect.anything());
     }
   });

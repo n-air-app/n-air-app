@@ -7,6 +7,7 @@ import OpenDialogOptions = Electron.OpenDialogOptions;
 
 const ObsPathInput = defineComponent({
   name: 'ObsPathInput',
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsPathInputValue>, required: true as const },
     category: { type: String },

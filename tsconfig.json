@@ -30,6 +30,6 @@
     "strictPropertyInitialization": false,
     "useUnknownInCatchVariables": true
   },
-  "exclude": ["node_modules", "**/*.vue"],
-  "include": ["./app/**/*.ts", "./app/**/*.tsx", "./app/**/*.d.ts"]
+  "exclude": ["node_modules"],
+  "include": ["./app/**/*.ts", "./app/**/*.tsx", "./app/**/*.d.ts", "./app/**/*.vue"]
 }

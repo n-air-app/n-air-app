@@ -20,11 +20,12 @@ import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
+import { FilterRecord } from 'services/nicolive-program/ResponseTypes';
 import { isWrappedChat, WrappedChatWithComponent } from 'services/nicolive-program/WrappedChat';
 import { WindowsService } from 'services/windows';
-import { defineComponent } from 'vue';
+import { Component, defineComponent } from 'vue';
 
-const componentMap: { [type in ChatComponentType]: any } = {
+const componentMap: { [type in ChatComponentType]: Component } = {
   common: CommonComment,
   nicoad: NicoadComment,
   gift: GiftComment,
@@ -80,12 +81,12 @@ export default defineComponent({
       return WindowsService.instance().getChildWindowQueryParams().userId as string;
     },
 
-    isPremium() {
-      return WindowsService.instance().getChildWindowQueryParams().isPremium;
+    isPremium(): boolean {
+      return WindowsService.instance().getChildWindowQueryParams().isPremium as boolean;
     },
 
-    isSupporter() {
-      return WindowsService.instance().getChildWindowQueryParams().isSupporter;
+    isSupporter(): boolean {
+      return WindowsService.instance().getChildWindowQueryParams().isSupporter as boolean;
     },
 
     comments(): WrappedChatWithComponent[] {
@@ -198,7 +199,7 @@ export default defineComponent({
           type: 'user',
           body: this.userId,
         })
-        .catch((e: any) => {
+        .catch((e: unknown) => {
           if (e instanceof NicoliveFailure) {
             openErrorDialogFromFailure(e);
           }
@@ -207,14 +208,14 @@ export default defineComponent({
 
     async unBlockUser() {
       const filterRecord = NicoliveCommentFilterService.instance().state.filters.find(
-        (filter: any) => filter.type === 'user' && filter.body === this.userId,
+        (filter: FilterRecord) => filter.type === 'user' && filter.body === this.userId,
       );
       if (!filterRecord) {
         console.warn('unBlockUser: block user filter not found', this.userId);
         return;
       }
 
-      await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]).catch((e: any) => {
+      await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]).catch((e: unknown) => {
         if (e instanceof NicoliveFailure) {
           openErrorDialogFromFailure(e);
         }

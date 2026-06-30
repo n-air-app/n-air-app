@@ -3,6 +3,7 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'ObsFontSizeSelector',
+  emits: ['input'],
   components: { Dropdown },
   props: {
     value: { type: Number },

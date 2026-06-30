@@ -4,6 +4,7 @@ import isEqual from 'lodash/isEqual';
 import { ScenesService } from 'services/scenes';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
+import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 
 import * as obs from '../../../obs-api';
 import { Inject, mutation, ServiceHelper } from '../core';
@@ -42,7 +43,9 @@ export class Source implements ISourceApi {
     scenesService: ScenesService;
 
   getObsInput(): obs.IInput {
-    return obs.InputFactory.fromName(this.sourceId);
+    const input = obs.InputFactory.fromName(this.sourceId);
+    assertObsObjectDefined(input, 'SourcesService', 'getObsInput', { sourceId: this.sourceId });
+    return input;
   }
 
   getModel() {

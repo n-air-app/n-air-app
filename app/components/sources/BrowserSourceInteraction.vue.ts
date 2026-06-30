@@ -19,7 +19,7 @@ export default defineComponent({
   computed: {
     sourceId(): string {
       const windowId = Utils.getCurrentUrlParams().windowId;
-      return WindowsService.instance().getWindowOptions(windowId).sourceId;
+      return WindowsService.instance().getWindowOptions(windowId).sourceId as string;
     },
 
     source() {
