@@ -99,7 +99,7 @@ describe('RootNode.save()', () => {
 describe('RootNode.load() - forward compatibility & rescale', () => {
   test('保存解像度と現在の解像度が異なる場合、現在の解像度を維持しrescaleAllScenesを呼ぶ', async () => {
     const videoService = {
-      baseResolution: { width: 1920, height: 1080 },
+      baseResolution: { width: 1280, height: 720 },
       setBaseResolution: jest.fn(),
     };
     const videoSettingsService = {
@@ -145,6 +145,7 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
 
     await node.load();
 
+    expect(node.videoService.setBaseResolution).not.toHaveBeenCalled();
     expect(scenesService.rescaleAllScenes).not.toHaveBeenCalled();
   });
 

@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { SettingsService } from 'services/settings';
 import { getKeys } from 'util/getKeys';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
 
 import { EColorSpace, EFPSType, ERangeType, EScaleType, EVideoFormat, IVideo, IVideoInfo, Video, VideoFactory } from '../../../obs-api';
 import { mutation, StatefulService } from '../core/stateful-service';
@@ -45,6 +46,18 @@ export enum ESettingsVideoProperties {
 }
 export function invalidFps(num: number, den: number) {
   return num / den > 1000 || num / den < 1;
+}
+
+/**
+ * 2つの IVideoInfo が全フィールドで一致するかどうかを判定する。
+ * refrectLegacy で不要な SetVideoContext 呼び出しを抑制するために使用。
+ */
+export function isVideoInfoEqual(a: IVideoInfo | null | undefined, b: IVideoInfo | null | undefined): boolean {
+  if (a == null || b == null) return a == null && b == null;
+  const aKeys = getKeys(a);
+  const bKeys = getKeys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((key) => a[key] === b[key]);
 }
 
 export class VideoSettingsService extends StatefulService<IVideoSetting> {
@@ -232,7 +245,7 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     }
 
     // legacySettings を video に反映（この時点で outputWidth/outputHeight は非ゼロ）
-     this.contexts.horizontal!.video = this.contexts.horizontal!.legacySettings;
+    this.contexts.horizontal!.video = this.contexts.horizontal!.legacySettings;
 
     if (invalidFps(this.contexts[display]!.video.fpsNum, this.contexts[display]!.video.fpsDen)) {
       this.createDefaultFps(display);
@@ -303,7 +316,24 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
       outputHeight: legacySettings.outputHeight || legacySettings.baseHeight || 720,
     };
 
-    this.contexts[display]!.video = safeSettings;
+    // A案: 値が実際に変化した場合のみ video context を更新する。
+    // osn 0.26.28 では配信中に SetVideoContext を呼ぶと IPC エラーが発生するため、
+    // 同値再設定（シーンコレクション切替などで解像度が変わらない場合）をスキップする。
+    const current = this.contexts[display]!.video;
+    if (!isVideoInfoEqual(current, safeSettings)) {
+      // C案: try/catch で囲み、osn の video context エラーを warn 格下げする安全網。
+      // A案で同値ケースは除外済みのため、ここに来るのは値が実際に変化した場合のみ。
+      try {
+        this.contexts[display]!.video = safeSettings;
+      } catch (e) {
+        markObsOp('VideoSettingsService', 'refrectLegacy', {
+          display,
+          error: e instanceof Error ? e.message : String(e),
+        });
+        console.warn('[VideoSettingsService] refrectLegacy: failed to set video context:', e);
+        // 配信中の video context 再設定エラーはダイアログを出さず warn 格下げとする
+      }
+    }
 
     getKeys(safeSettings).forEach((key) => {
       this.SET_VIDEO_SETTING(key, safeSettings[key], 'horizontal');
