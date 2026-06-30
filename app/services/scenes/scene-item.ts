@@ -5,6 +5,7 @@ import { ISource, SourcesService, TSourceType } from 'services/sources';
 import { VideoService } from 'services/video';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { CenteringAxis, ScalableRectangle } from 'util/ScalableRectangle';
+import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { toRaw } from 'vue';
 
 import * as obs from '../../../obs-api';
@@ -123,7 +124,12 @@ export class SceneItem extends SceneItemNode {
   }
 
   getObsSceneItem(): obs.ISceneItem {
-    return this.getScene().getObsScene().findItem(this.obsSceneItemId);
+    const item = this.getScene().getObsScene().findItem(this.obsSceneItemId);
+    assertObsObjectDefined(item, 'ScenesService', 'getObsSceneItem', {
+      sceneId: this.sceneId,
+      obsSceneItemId: this.obsSceneItemId,
+    });
+    return item;
   }
 
   getSettings(): ISceneItemSettings {

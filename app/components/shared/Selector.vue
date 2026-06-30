@@ -1,8 +1,8 @@
 <template>
   <ul
     class="selector-list"
-    @contextmenu="handleContextMenu()"
-    @dragover.self="ev => { ev.preventDefault(); if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move'; }"
+    @contextmenu="handleContextMenu"
+    @dragover.self="onDragOverSelf"
     @drop.self="onDropAtEnd"
     data-test="Selector"
   >
@@ -15,13 +15,14 @@
         'sortable-chosen': draggable && draggingIndex === index,
       }"
       :draggable="draggable"
-      @dragstart="ev => onDragStart(ev, index)"
-      @dragover="ev => onDragOver(ev, index)"
-      @drop="ev => onDropAtIndex(ev, draggingIndex)"
+      :data-index="index"
+      @dragstart="onDragStartFromEvent"
+      @dragover="onDragOverFromEvent"
+      @drop="onDropFromEvent"
       @dragend="onDragEnd"
-      @contextmenu.stop="ev => handleContextMenu(ev, index)"
-      @click="ev => handleSelect(ev, index)"
-      @dblclick="ev => handleDoubleClick(ev, index)"
+      @contextmenu.stop="onContextMenuFromEvent"
+      @click="onClickFromEvent"
+      @dblclick="onDblClickFromEvent"
     >
       <div class="selector-item-text" :data-test="item.name">
         <span class="layer-icon"><i class="icon-studio-mode" /></span>

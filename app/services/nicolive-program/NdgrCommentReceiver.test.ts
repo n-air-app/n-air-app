@@ -298,6 +298,40 @@ describe('convertChunkedMessageToMessageResponse', () => {
       expected: { chat: { date, date_usec, content: 'test', mail: 'blue' } },
     },
     {
+      title: 'simpleNotificationV2 userFollow',
+      msg: {
+        message: {
+          simpleNotificationV2: {
+            type: dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType.USER_FOLLOW,
+            message: 'userFollowMessage',
+          },
+        },
+      },
+      expected: {
+        notification: { date, date_usec, type: 'userFollow', message: 'userFollowMessage' },
+      },
+    },
+    {
+      title: 'simpleNotificationV2 creatorSupportGoalAchievement',
+      msg: {
+        message: {
+          simpleNotificationV2: {
+            type: dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType
+              .CREATOR_SUPPORT_GOAL_ACHIEVEMENT,
+            message: 'goalAchievedMessage',
+          },
+        },
+      },
+      expected: {
+        notification: {
+          date,
+          date_usec,
+          type: 'creatorSupportGoalAchievement',
+          message: 'goalAchievedMessage',
+        },
+      },
+    },
+    {
       title: 'ichiba',
       msg: { message: { simpleNotification: { ichiba: 'ichiba' } } },
       expected: { notification: { date, date_usec, type: 'ichiba', message: 'ichiba' } },

@@ -27,6 +27,7 @@ import { RtvcStateService } from '../../services/rtvcStateService';
 import { CustomcastUsageService } from '../custom-cast-usage';
 import { NVoiceCharacterUsageService } from '../nvoice-character-usage';
 import { IStreamingSetting } from '../platforms';
+import { NiconicoService } from '../platforms/niconico';
 import { SoundDetectorService } from '../sound-detector/sound-detector';
 import { SubStreamService } from '../substream/SubStreamService';
 
@@ -254,15 +255,40 @@ export class StreamingService
         const setting = await this.userService.updateStreamSettings(programId);
         const streamKey = setting.key;
         if (streamKey === '') {
+          const failure = this.userService.platform.type === 'niconico'
+            ? NiconicoService.instance().lastSetupFailure
+            : null;
+
           Sentry.addBreadcrumb({
             category: 'streaming',
             message: 'streamKey is empty',
-            data: { programId },
+            data: {
+              programId,
+              failureStep: failure?.method ?? 'unknown',
+              failureKind: failure?.failureKind ?? failure?.reason ?? 'unknown',
+              failureRoute: failure?.route ?? 'unknown',
+            },
           });
+
+          // 失敗種別に応じてメッセージを出し分ける
+          let message: string;
+          if (!failure || (failure.type === 'network_error' && failure.reason === 'network_error')) {
+            message = $t('streaming.broadcastStatusFetchingError.networkError');
+          } else if (failure.type === 'network_error' && failure.reason === 'set_settings_failed') {
+            message = $t('streaming.broadcastStatusFetchingError.settingsError');
+          } else if (failure.type === 'http_error') {
+            const statusCode = failure.reason;
+            message = $t('streaming.broadcastStatusFetchingError.serverError', { statusCode });
+          } else if (failure.type === 'logic' && failure.reason === 'not_logged_in') {
+            message = $t('streaming.invalidSessionError');
+          } else {
+            message = $t('streaming.broadcastStatusFetchingError.default');
+          }
+
           await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
             title: $t('streaming.streamingError'),
             type: 'warning',
-            message: $t('streaming.broadcastStatusFetchingError.default'),
+            message,
             buttons: ['Close'],
           });
           return;
@@ -733,6 +759,7 @@ export class StreamingService
     console.debug('OBS Output signal: ', info);
 
     const time = new Date().toISOString();
+    const outputCodeName = info.code ? (OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code)) : undefined;
 
     if (info.type === EOBSOutputType.Streaming) {
       const time = new Date().toISOString();
@@ -773,7 +800,7 @@ export class StreamingService
           category: 'streaming.signal',
           message: 'stop',
           level: 'info',
-          data: { code: info.code, error: info.error },
+          data: { code: info.code, outputCode: outputCodeName, error: info.error },
         });
         this.SET_STREAMING_STATUS(EStreamingState.Offline, time);
         this.streamingStatusChange.next(EStreamingState.Offline);
@@ -795,7 +822,7 @@ export class StreamingService
           category: 'streaming.signal',
           message: 'reconnect',
           level: 'warning',
-          data: { code: info.code, error: info.error, reconnectCount: this.reconnectCount },
+          data: { code: info.code, outputCode: outputCodeName, error: info.error, reconnectCount: this.reconnectCount },
         });
       } else if (info.signal === EOBSOutputSignal.ReconnectSuccess) {
         const durationMs =
@@ -850,9 +877,9 @@ export class StreamingService
     if (info.code) {
       if (
         info.signal !== EOBSOutputSignal.Reconnect &&
-        info.signal !== EOBSOutputSignal.ReconnectSuccess
+        info.signal !== EOBSOutputSignal.ReconnectSuccess &&
+        info.code !== obs.EOutputCode.Disconnected
       ) {
-        const outputCodeName = OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code);
         SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${outputCodeName}`, {
           level: 'warning',
           fingerprint: ['StreamingService', 'outputCode'],

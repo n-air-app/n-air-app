@@ -2,12 +2,14 @@ import TocSection from 'components/shared/TocSection.vue';
 import { ISettingsSubCategory } from 'services/settings';
 import { defineComponent, PropType, toRaw } from 'vue';
 
-import GenericForm from './GenericForm.vue';
+import GenericFormGroupItem from './GenericFormGroupItem.vue';
 
 export default defineComponent({
   name: 'GenericFormGroups',
-  components: { GenericForm, TocSection },
-  emits: ['input'],
+  components: { GenericFormGroupItem, TocSection },
+  emits: {
+    input: (_value: ISettingsSubCategory[]) => true,
+  },
   props: {
     value: { type: Array as PropType<ISettingsSubCategory[]> },
     category: { type: String },

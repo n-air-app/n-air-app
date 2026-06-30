@@ -105,7 +105,7 @@ export default defineComponent({
     // ドロップダウンの選択肢（文字列配列またはオブジェクト配列）
     // オブジェクト配列を使う場合は label と trackBy の指定が必須
     options: {
-      type: Array as PropType<any[]>,
+      type: Array as PropType<unknown[]>,
       required: true,
     },
     // オプションからラベル（表示テキスト）を取得するプロパティ名

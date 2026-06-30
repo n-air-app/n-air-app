@@ -1319,10 +1319,12 @@ function initialize(crashHandler) {
       } catch (e) {
         // cause チェーンとURLを文字列化してrendererに伝搬する
         // (Electron の IPC シリアライズでは cause が失われるため)
+        // [MAIN_FETCH_FAIL code=...] 接頭辞は renderer 側 wrapFetchError が機械可読に経路を判別するために使用する
+        const causeCode = e.cause?.code ?? '';
         const cause = e.cause
           ? `${e.cause.name}: ${e.cause.message} (code: ${e.cause.code})`
           : undefined;
-        throw new Error(`${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
+        throw new Error(`[MAIN_FETCH_FAIL code=${causeCode}] ${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
       }
     },
   );

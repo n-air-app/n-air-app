@@ -88,6 +88,12 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
     {
       sampleRate: /* isPreview ? */ 1.0 /* : 0.1 */,
       beforeSend(event) {
+        // 診断目的で構造化して送るイベントは NOISE チェックより前に通す
+        // (tags.diagnostic が設定されているものは意図的に送っているので除外しない)
+        if ((event.tags as Record<string, unknown>)?.diagnostic) {
+          return event;
+        }
+
         // quota 対策: ユーザー側ネット環境起因またはアプリバグに起因しないノイズを除外する
         const NOISE_PATTERNS = [
           /Failed to make IPC call/,
@@ -270,16 +276,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Return nothing - vue-i18n will use the key itself as fallback text
       }) as any, // 型定義と実装が異なっているのでanyに飛ばす
+      // vue-i18n v9 legacy mode: 警告を抑制（OBSの動的キーで大量に出るため）
+      // legacy modeのオプション名は silentTranslationWarn / silentFallbackWarn
       silentTranslationWarn: true,
-      // vue-i18n v9: fallback警告を抑制（OBSの動的キーで大量に出るため）
-      missingWarn: false,
-      fallbackWarn: false,
+      silentFallbackWarn: true,
     });
-
-    // legacy: true モードでは createI18n オプションだけでは fallbackWarn が効かない場合があるため
-    // global インスタンスにも直接設定する
-    (i18n.global as any).fallbackWarn = false;
-    (i18n.global as any).missingWarn = false;
 
     I18nService.setVuei18nInstance(i18n.global);
 

@@ -35,6 +35,11 @@ export default defineComponent({
   },
 
   methods: {
+    onKeydownFromEvent(e: KeyboardEvent) {
+      const index = Number((e.currentTarget as HTMLElement).dataset.index);
+      this.handleKeydown(e, index);
+    },
+
     handleFocus(index: number) {
       this.focusedIndex = index;
     },

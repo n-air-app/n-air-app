@@ -27,12 +27,18 @@ test('エモーション', () => {
   expect(classify({ notification: { type: 'emotion', message: 'args' } })).toBe('emotion');
 });
 
-test.each<NotificationType>(['programExtended', 'rankingIn', 'rankingUpdated', 'visited'])(
-  'info: %s',
-  (type) => {
-    expect(classify({ notification: { type, message: '' } })).toBe('info');
-  },
-);
+test.each<NotificationType>([
+  'programExtended',
+  'rankingIn',
+  'rankingUpdated',
+  'visited',
+  'supporterRegistered',
+  'userLevelUp',
+  'userFollow',
+  'creatorSupportGoalAchievement',
+])('info: %s', (type) => {
+  expect(classify({ notification: { type, message: '' } })).toBe('info');
+});
 
 test.each<NotificationType>(['ichiba', 'quote', 'cruise'])('system: %s', (type) => {
   expect(classify({ notification: { type, message: '' } })).toBe('system');

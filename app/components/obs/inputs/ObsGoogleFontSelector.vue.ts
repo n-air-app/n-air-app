@@ -9,6 +9,7 @@ import { IGoogleFont } from './ObsInput';
 
 export default defineComponent({
   name: 'GoogleFontSelector',
+  emits: ['input'],
   components: { Dropdown, FontSizeSelector: ObsFontSizeSelector },
   props: {
     value: { type: Object as PropType<IGoogleFont>, required: true as const },

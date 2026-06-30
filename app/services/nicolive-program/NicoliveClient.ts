@@ -54,9 +54,21 @@ type SucceededResult<T> = {
   serverDateMs?: number;
 };
 
+/** main process 経由か renderer 直送かを示す経路種別 */
+export type RequestRoute = 'main' | 'renderer';
+
+/** API 呼び出し失敗の種別 */
+export type FailureKind = 'network_error' | 'http_error' | 'json_parse' | 'not_logged_in';
+
 export type FailedResult = {
   ok: false;
   value: CommonErrorResponse | Error;
+  /** 診断メタ — 失敗した経路・種別・ステータスを構造化して保持する */
+  diag?: {
+    route: RequestRoute;
+    httpStatus?: number;
+    failureKind: FailureKind;
+  };
 };
 
 /**
@@ -213,6 +225,7 @@ export class NicoliveClient {
 
   static async wrapResult<ResultType>(
     res: Response | MainProcessFetchResponse,
+    route: RequestRoute = 'renderer',
   ): Promise<WrappedResult<ResultType>> {
     const dateHeader = new Headers(res.headers).get('Date');
     const serverDateMs = parseServerDateMs(dateHeader);
@@ -236,6 +249,7 @@ export class NicoliveClient {
       return {
         ok: false,
         value: e as Error,
+        diag: { route, httpStatus: res.status, failureKind: 'json_parse' },
       };
     }
 
@@ -252,13 +266,25 @@ export class NicoliveClient {
     return {
       ok: false,
       value: obj as CommonErrorResponse,
+      diag: { route, httpStatus: res.status, failureKind: 'http_error' },
     };
   }
 
-  static async wrapFetchError(err: Error): Promise<FailedResult> {
+  /** main.js の fetch handler が投げる [MAIN_FETCH_FAIL code=ECODE] 接頭辞のパターン */
+  private static readonly MAIN_FETCH_FAIL_RE = /^\[MAIN_FETCH_FAIL code=([^\]]*)\]/;
+
+  static async wrapFetchError(err: Error, route: RequestRoute = 'renderer'): Promise<FailedResult> {
+    // main 経由 fetch の失敗は [MAIN_FETCH_FAIL code=...] 接頭辞で判別できる
+    const isMainFail = NicoliveClient.MAIN_FETCH_FAIL_RE.test(err.message);
+    const effectiveRoute: RequestRoute = isMainFail ? 'main' : route;
+
+    const failureKind: FailureKind =
+      err instanceof NotLoggedInError ? 'not_logged_in' : 'network_error';
+
     return {
       ok: false,
       value: err,
+      diag: { route: effectiveRoute, failureKind },
     };
   }
 
@@ -287,6 +313,7 @@ export class NicoliveClient {
   ): Promise<WrappedResult<T>> {
     // Origin リクエストヘッダーを付けるには main process で fetch を使う必要がある
     const viaMainProcess = options.headers && 'Origin' in options.headers;
+    const route: RequestRoute = viaMainProcess ? 'main' : 'renderer';
 
     const headers: HeadersInit = {};
     // renderer process だと cookieが取れないので、main process で取ってきて付ける
@@ -299,9 +326,9 @@ export class NicoliveClient {
     });
     try {
       const resp = await (viaMainProcess ? fetchViaMainProcess : fetch)(url, requestInit);
-      return NicoliveClient.wrapResult<T>(resp);
+      return NicoliveClient.wrapResult<T>(resp, route);
     } catch (err) {
-      return NicoliveClient.wrapFetchError(err as Error);
+      return NicoliveClient.wrapFetchError(err as Error, route);
     }
   }
 

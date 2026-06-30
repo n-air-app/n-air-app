@@ -16,12 +16,6 @@ export default defineComponent({
     };
   },
 
-  computed: {
-    isSecurityUpgrade(): boolean {
-      return OnboardingService.instance().options.isSecurityUpgrade;
-    },
-  },
-
   methods: {
     authPlatform(platform: TPlatform) {
       this.loadingState = true;

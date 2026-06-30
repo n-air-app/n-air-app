@@ -9,7 +9,6 @@ import {
   selectionSteps as _selectionSteps,
   steps as _steps,
   TProviderType,
-  TSelectionStep,
   TStep,
 } from 'services/nicolive-program/nicolive-program-selector';
 import { StreamingService } from 'services/streaming';
@@ -81,7 +80,7 @@ export default defineComponent({
       );
     },
 
-    getSelectedValueForDisplay(navItemStep: TSelectionStep): string {
+    getSelectedValueForDisplay(navItemStep: TStep): string {
       const { selectedProviderType, selectedChannel, selectedChannelProgram } =
         NicoliveProgramSelectorService.instance().state;
       switch (navItemStep) {
@@ -91,6 +90,8 @@ export default defineComponent({
           return selectedChannel?.name || this.BLANK;
         case 'programSelect':
           return selectedChannelProgram?.title || this.BLANK;
+        default:
+          return this.BLANK;
       }
     },
 

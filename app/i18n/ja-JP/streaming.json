@@ -40,7 +40,10 @@
   "notBroadcastingCreateProgram": "番組を作成する",
   "broadcastStatusFetchingError": {
     "default": "配信に必要な情報を取得できませんでした。インターネットの接続状態を確認してください。",
-    "httpError": "配信に必要な情報を取得できませんでした。（{requestURL}: {statusText}）"
+    "httpError": "配信に必要な情報を取得できませんでした。（{requestURL}: {statusText}）",
+    "networkError": "配信を開始できませんでした。インターネット接続を確認して、もう一度お試しください。",
+    "serverError": "配信の準備中にニコニコ側でエラーが発生しました（コード: {statusCode}）。しばらく待ってから再度お試しください。",
+    "settingsError": "配信設定の保存に失敗しました。N Air を再起動してお試しください。"
   },
   "bitrateFetchingError": {
     "title": "ビットレート取得失敗",

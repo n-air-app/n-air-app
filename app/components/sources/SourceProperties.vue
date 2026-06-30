@@ -5,7 +5,7 @@
     :cancel-handler="cancel"
     :fixedSectionHeight="200"
   >
-    <template #fixed><display v-if="source" :sourceId="source.id" /></template>
+    <template #fixed><display v-if="source" :sourceId="source.sourceId" /></template>
     <template #content>
       <component
         v-if="propertiesManagerUI"

@@ -14,6 +14,7 @@ interface ISelectorSortEventData {
 
 const ObsEditableListProperty = defineComponent({
   name: 'ObsEditableListProperty',
+  emits: ['input'],
   components: { Selector },
   props: {
     value: { type: Object as PropType<IObsEditableListInputValue>, required: true as const },

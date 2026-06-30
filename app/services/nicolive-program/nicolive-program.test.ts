@@ -257,14 +257,16 @@ test('fetchProgramで結果が空ならエラー', async () => {
     .mockResolvedValue({ ok: true, value: [] });
 
   await expect(instance.fetchProgram()).rejects.toMatchInlineSnapshot(`
-                              NicoliveFailure {
-                                "additionalMessage": "",
-                                "errorCode": "",
-                                "method": "fetchProgram",
-                                "reason": "no_suitable_program",
-                                "type": "logic",
-                              }
-                        `);
+NicoliveFailure {
+  "additionalMessage": "",
+  "errorCode": "",
+  "failureKind": undefined,
+  "method": "fetchProgram",
+  "reason": "no_suitable_program",
+  "route": undefined,
+  "type": "logic",
+}
+`);
   expect(instance.client.fetchProgramSchedules).toHaveBeenCalledTimes(1);
   expect(setState).toHaveBeenCalledTimes(3);
   expect(setState.mock.calls).toMatchInlineSnapshot(`
@@ -414,14 +416,16 @@ test('fetchProgramで番組があったが取りに行ったらエラー', async
   });
 
   await expect(instance.fetchProgram()).rejects.toMatchInlineSnapshot(`
-                              NicoliveFailure {
-                                "additionalMessage": "",
-                                "errorCode": "",
-                                "method": "fetchProgram",
-                                "reason": "404",
-                                "type": "http_error",
-                              }
-                        `);
+NicoliveFailure {
+  "additionalMessage": "",
+  "errorCode": "",
+  "failureKind": undefined,
+  "method": "fetchProgram",
+  "reason": "404",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
   expect(instance.client.fetchProgramSchedules).toHaveBeenCalledTimes(1);
   expect(instance.client.fetchProgram).toHaveBeenCalledTimes(1);
   expect(setState).toHaveBeenCalledTimes(2);
@@ -542,14 +546,16 @@ test('refreshProgram:失敗', async () => {
     .mockResolvedValue({ ok: false, value });
 
   await expect(instance.refreshProgram()).rejects.toMatchInlineSnapshot(`
-                              NicoliveFailure {
-                                "additionalMessage": "",
-                                "errorCode": "",
-                                "method": "fetchProgram",
-                                "reason": "500",
-                                "type": "http_error",
-                              }
-                        `);
+NicoliveFailure {
+  "additionalMessage": "",
+  "errorCode": "",
+  "failureKind": undefined,
+  "method": "fetchProgram",
+  "reason": "500",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
   expect(instance.client.fetchProgram).toHaveBeenCalledTimes(1);
   expect(instance.client.fetchProgram).toHaveBeenCalledWith('lv1');
   expect(setState).not.toHaveBeenCalled();
@@ -601,14 +607,16 @@ test('endProgram:失敗', async () => {
     .mockResolvedValue({ ok: false, value });
 
   await expect(instance.endProgram()).rejects.toMatchInlineSnapshot(`
-                              NicoliveFailure {
-                                "additionalMessage": "",
-                                "errorCode": "",
-                                "method": "endProgram",
-                                "reason": "500",
-                                "type": "http_error",
-                              }
-                        `);
+NicoliveFailure {
+  "additionalMessage": "",
+  "errorCode": "",
+  "failureKind": undefined,
+  "method": "endProgram",
+  "reason": "500",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
   expect(instance.client.endProgram).toHaveBeenCalledTimes(1);
   expect(instance.client.endProgram).toHaveBeenCalledWith('lv1');
   expect(setState).toHaveBeenCalledTimes(2);
@@ -668,14 +676,16 @@ test('extendProgram:失敗', async () => {
     .mockResolvedValue({ ok: false, value });
 
   await expect(instance.extendProgram()).rejects.toMatchInlineSnapshot(`
-                              NicoliveFailure {
-                                "additionalMessage": "",
-                                "errorCode": "",
-                                "method": "extendProgram",
-                                "reason": "500",
-                                "type": "http_error",
-                              }
-                        `);
+NicoliveFailure {
+  "additionalMessage": "",
+  "errorCode": "",
+  "failureKind": undefined,
+  "method": "extendProgram",
+  "reason": "500",
+  "route": undefined,
+  "type": "http_error",
+}
+`);
   expect(instance.client.extendProgram).toHaveBeenCalledTimes(1);
   expect(instance.client.extendProgram).toHaveBeenCalledWith('lv1');
   expect(setState).toHaveBeenCalledTimes(2);
