@@ -291,6 +291,10 @@ describe('setupStreamSettings 失敗時の診断報告', () => {
     expect(message).toContain('setSettings');
     expect(opts.tags['stream.setup.step']).toBe('setSettings');
     expect(opts.fingerprint).toContain('setSettings');
+    // catchされる e は Error を継承しない NicoliveFailure なので、
+    // String(e) の "[object Object]" ではなく元のnative例外メッセージが入ること
+    expect(opts.extra.errorMessage).toContain('Failed to save settings');
+    expect(opts.extra.errorMessage).not.toBe('[object Object]');
   });
 
   test('2回目失敗でのみSentryReport.messageが呼ばれ、1回目(リトライ前)は呼ばれない', async () => {

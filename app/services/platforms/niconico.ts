@@ -241,6 +241,19 @@ export class NiconicoService extends Service implements IPlatformService {
       const errorCode = failure.errorCode ?? '';
       const route = failure.route ?? 'renderer';
 
+      // NicoliveFailure は Error を継承していないため、String(e) では
+      // "[object Object]" になってしまう。e が NicoliveFailure の場合は
+      // 既に additionalMessage に元の native例外メッセージが入っているので
+      // そちらを使う
+      let errorMessage: string;
+      if (e instanceof NicoliveFailure) {
+        errorMessage = failure.additionalMessage;
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = String(e);
+      }
+
       Sentry.addBreadcrumb({
         category: 'streaming',
         message: 'setupStreamSettings(2) failed',
@@ -285,7 +298,7 @@ export class NiconicoService extends Service implements IPlatformService {
             },
             extra: {
               programId,
-              errorMessage: e instanceof Error ? e.message : String(e),
+              errorMessage,
               additionalMessage: failure.additionalMessage,
               reportCount: state.count,
               ...(capReached ? { reportCapReached: true } : {}),
