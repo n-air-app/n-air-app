@@ -234,8 +234,9 @@ export class NicoliveClient {
     try {
       return JSON.parse(body);
     } catch (e) {
-      console.warn(`${context}: non-json body`, body);
-      throw new Error(`${context}: response is not valid JSON (status=${res.status})`);
+      // body全文をログに出すとupstream障害時にログ/IPC転送量が増えるため先頭のみ
+      console.warn(`${context}: non-json body`, body.slice(0, 200));
+      throw new Error(`${context}: response is not valid JSON (status=${res.status})`, { cause: e });
     }
   }
 

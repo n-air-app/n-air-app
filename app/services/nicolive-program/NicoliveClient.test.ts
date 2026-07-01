@@ -142,6 +142,8 @@ describe('非JSONレスポンスの安全な取り扱い', () => {
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchOnairUserProgram/);
+    // 元のSyntaxErrorがcauseとして保持され、調査時に読めること
+    expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test('fetchKonomiTagsはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
