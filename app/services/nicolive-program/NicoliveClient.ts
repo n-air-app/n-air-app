@@ -223,6 +223,22 @@ export class NicoliveClient {
     };
   }
 
+  /**
+   * res.json() を直接呼ぶと、サーバーやプロキシがエラー時にプレーンテキスト
+   * (例: "upstream connect error or disconnect/reset before headers") を返した場合、
+   * SyntaxError が catch されずに伝播してクラッシュ扱いになる。
+   * 代わりに本メソッドで text() → JSON.parse を行い、非JSON応答を明示的なエラーに変換する。
+   */
+  private static async parseJsonOrThrow(res: Response, context: string): Promise<any> {
+    const body = await res.text();
+    try {
+      return JSON.parse(body);
+    } catch (e) {
+      console.warn(`${context}: non-json body`, body);
+      throw new Error(`${context}: response is not valid JSON (status=${res.status})`);
+    }
+  }
+
   static async wrapResult<ResultType>(
     res: Response | MainProcessFetchResponse,
     route: RequestRoute = 'renderer',
@@ -467,10 +483,9 @@ export class NicoliveClient {
     const userSession = await this.fetchSession();
     headers.append('X-niconico-session', userSession);
     const request = new Request(url, { headers });
-    return await fetch(request)
-      .then(handleErrors)
-      .then((response) => response.json())
-      .then((json) => json.data);
+    const response = await fetch(request).then(handleErrors);
+    const json = await NicoliveClient.parseJsonOrThrow(response, 'fetchOnairUserProgram');
+    return json.data;
   }
 
   /**
@@ -685,7 +700,7 @@ export class NicoliveClient {
       ),
     );
     if (res.ok) {
-      const json = (await res.json()) as KonomiTags;
+      const json = (await NicoliveClient.parseJsonOrThrow(res, 'fetchKonomiTags')) as KonomiTags;
       return json.konomi_tags;
     }
     throw new Error(`fetchKonomiTags failed: ${res.status} ${res.statusText}`);
@@ -708,7 +723,7 @@ export class NicoliveClient {
       }),
     );
     if (res.ok) {
-      const json = await res.json();
+      const json = await NicoliveClient.parseJsonOrThrow(res, 'fetchUserFollow');
       console.info('fetchUserFollow', json);
       if (isValidUserFollowStatusResponse(json)) {
         return json.data.following;
@@ -766,7 +781,9 @@ export class NicoliveClient {
       }),
     );
     if (!res.ok) {
-      console.info('unFollowUser', userId, res, await res.json());
+      // ログ目的なのでJSONパースは不要 — body がプレーンテキストの場合に
+      // res.json() が SyntaxError を投げて本来のエラーを潰してしまうのを避ける
+      console.info('unFollowUser', userId, res, await res.text());
       throw new Error(`unFollowUser failed: ${res.status} ${res.statusText}`);
     }
   }
