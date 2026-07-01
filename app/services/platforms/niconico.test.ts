@@ -236,6 +236,10 @@ describe('setupStreamSettings 失敗時の診断報告', () => {
     expect(opts.tags['diagnostic']).toBe('stream-setup');
     expect(opts.fingerprint).toContain('fetchIngestInfo');
     expect(opts.fingerprint).toContain('network_error');
+    // NicoliveFailure.fromClientError の network_error 分岐は additionalMessage を
+    // 常に空文字にするため、errorMessage が空文字にならず type:reason で
+    // 最低限の診断情報が残ることを確認する
+    expect(opts.extra.errorMessage).toBe('network_error:network_error');
   });
 
   test('fetchIngestInfo が http_error(503) で失敗した場合、fingerprint に httpStatus が含まれる', async () => {
