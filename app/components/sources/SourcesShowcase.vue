@@ -72,6 +72,14 @@
           <template #media><WasapiInputCaptureIcon /></template>
         </add-source-info>
 
+        <add-source-info
+          v-if="inspectedSource === 'wasapi_output_capture'"
+          sourceType="wasapi_output_capture"
+          key="25"
+        >
+          <template #media><WasapiOutputIcon /></template>
+        </add-source-info>
+
         <add-source-info v-if="inspectedSource === 'ndi_source'" sourceType="ndi_source" key="13">
           <template #media><NdiSourceIcon /></template>
         </add-source-info>
