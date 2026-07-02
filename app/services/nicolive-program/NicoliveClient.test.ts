@@ -11,6 +11,13 @@ jest.mock('services/i18n', () => ({
 jest.mock('util/menus/Menu', () => ({}));
 jest.mock('@electron/remote', () => ({
   BrowserWindow: jest.fn(),
+  session: {
+    defaultSession: {
+      webRequest: {
+        onBeforeSendHeaders: jest.fn(),
+      },
+    },
+  },
 }));
 const fetchViaMainProcess = jest
   .fn<Promise<MainProcessFetchResponse>, [string, RequestInit]>()
@@ -114,6 +121,72 @@ test('wrapResultはbodyがJSONでなければSyntaxErrorをwrapして返す', as
   expect((result as any).value).toBeInstanceOf(SyntaxError);
   expect((result as any).diag).toMatchObject({ route: 'renderer', failureKind: 'json_parse' });
   expect(fetchMock.callHistory.done()).toBe(true);
+});
+
+// upstream(プロキシ等)障害時、レスポンスがプレーンテキスト
+// (例: "upstream connect error or disconnect/reset before headers") で返ってくることがある。
+// .json() を直接呼ぶと catch されない SyntaxError が伝播しクラッシュ扱いになるため、
+// 明示的な Error に変換されることを確認する。
+const upstreamErrorBody = 'upstream connect error or disconnect/reset before headers';
+
+describe('非JSONレスポンスの安全な取り扱い', () => {
+  test('fetchOnairUserProgramはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    fetchMock.get(
+      `${NicoliveClient.live2BaseURL}/unama/tool/v2/onairs/user`,
+      { body: upstreamErrorBody, status: 200 },
+    );
+
+    let error: unknown;
+    await client.fetchOnairUserProgram().catch((e) => { error = e; });
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/fetchOnairUserProgram/);
+    // 元のSyntaxErrorがcauseとして保持され、調査時に読めること
+    expect((error as Error).cause).toBeInstanceOf(SyntaxError);
+  });
+
+  test('fetchKonomiTagsはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    fetchMock.post(
+      `${NicoliveClient.live2ApiBaseURL}/api/v1/konomiTags/GetFollowing`,
+      { body: upstreamErrorBody, status: 200 },
+    );
+
+    let error: unknown;
+    await client.fetchKonomiTags(String(userID)).catch((e) => { error = e; });
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/fetchKonomiTags/);
+  });
+
+  test('fetchUserFollowはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    fetchMock.get(
+      NicoliveClient.userFollowEndpoint(String(userID)),
+      { body: upstreamErrorBody, status: 200 },
+    );
+
+    let error: unknown;
+    await client.fetchUserFollow(String(userID)).catch((e) => { error = e; });
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/fetchUserFollow/);
+  });
+
+  test('unFollowUserは失敗レスポンスがJSONでなくてもSyntaxErrorを投げず本来のエラーメッセージを返す', async () => {
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    fetchMock.delete(
+      NicoliveClient.userFollowEndpoint(String(userID)),
+      { body: upstreamErrorBody, status: 502 },
+    );
+
+    let error: unknown;
+    await client.unFollowUser(String(userID)).catch((e) => { error = e; });
+    expect(error).not.toBeInstanceOf(SyntaxError);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toMatch(/unFollowUser failed: 502/);
+  });
 });
 
 interface Suite {
