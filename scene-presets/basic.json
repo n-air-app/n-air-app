@@ -124,14 +124,12 @@
         "type": "dshow_input",
         "settings": {
           "active": true,
-          "audio_device_id": "マイク配列 (Realtek Audio):",
           "audio_output_mode": 0,
           "buffering": 0,
           "color_range": "partial",
           "color_space": "default",
           "frame_interval": -1,
           "last_resolution": "1280x720",
-          "last_video_device_id": "Integrated Webcam:\\\\?\\usb#22vid_0bda&pid_568c&mi_00#226&5e1df6&0&0000#22{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global",
           "res_type": 0,
           "video_format": 0
         },

@@ -219,6 +219,57 @@ export class Scene {
       });
   }
 
+  /**
+   * fixupSceneItemWhenReady にタイムアウトと安定待ちを追加したもの。
+   * デバイス起動直後は width/height が連続して変化することがあり、変化した直後の
+   * 値に対して transform を書き込んでもOBS側にすぐ反映されないことがあるため、
+   * 最後の変化から debounceMs 経過して値が安定するまで待ってから callback を呼ぶ。
+   * デバイスが起動せずサイズが確定しないまま購読が残り続けることも防ぐ。
+   */
+  fixupSceneItemWhenReadyWithTimeout(
+    sourceId: string,
+    callback: () => void,
+    onTimeout: () => void,
+    timeoutMs = 15000,
+    debounceMs = 500,
+  ) {
+    if (!sourceId || !callback) return;
+
+    let settled = false;
+    let debounceId: ReturnType<typeof setTimeout> | null = null;
+
+    const timeoutId = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      if (debounceId) clearTimeout(debounceId);
+      subscription.unsubscribe();
+      onTimeout();
+    }, timeoutMs);
+
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+      callback();
+    };
+
+    const source = this.sourcesService.getSourceById(sourceId);
+    if (source?.width && source?.height) {
+      debounceId = setTimeout(settle, debounceMs);
+    }
+
+    const subscription = this.sourcesService.sourceUpdated
+      .pipe(filter((patch) => patch.sourceId === sourceId))
+      .subscribe((patch) => {
+        if (settled) return;
+        if (debounceId) clearTimeout(debounceId);
+        if (patch.width && patch.height) {
+          debounceId = setTimeout(settle, debounceMs);
+        }
+      });
+  }
+
   addFile(path: string, folderId?: string): TSceneNode {
     let fstat: fs.Stats;
     try {

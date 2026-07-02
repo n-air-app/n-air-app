@@ -339,6 +339,24 @@ export class SceneItem extends SceneItemNode {
     this.setRect(rect);
   }
 
+  /**
+   * 指定した矩形にアスペクト比を保って中央フィットさせる
+   */
+  fitToRect(targetRect: { x: number; y: number; width: number; height: number }) {
+    // ソースの実サイズがまだ確定していない(0x0)場合や、targetRectがゼロサイズの場合、
+    // フィット計算がNaN/Infinityまたはスケール0になり、それがそのままOBSに書き込まれて
+    // 表示が壊れるため中断する
+    if (!this.width || !this.height || !targetRect.width || !targetRect.height) {
+      console.warn(
+        `fitToRect: source ${this.sourceId} size (${this.width}x${this.height}) or targetRect (${targetRect.width}x${targetRect.height}) is not ready, skipping`,
+      );
+      return;
+    }
+    const rect = this.getRectangle();
+    rect.fitTo(new ScalableRectangle(targetRect));
+    this.setRect(rect);
+  }
+
   centerOnScreen() {
     const rect = this.getRectangle();
     rect.centerOn(this.videoService.getScreenRectangle());

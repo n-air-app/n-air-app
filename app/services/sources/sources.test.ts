@@ -176,3 +176,75 @@ describe('createSource', () => {
     }).toThrow('InputFactory.create returned no input for type=window_capture');
   });
 });
+
+describe('fixSourceSettings', () => {
+  function createFakeWebcam(videoDeviceId: string | undefined) {
+    return {
+      getSettings: jest.fn().mockReturnValue({ video_device_id: videoDeviceId }),
+      updateSettings: jest.fn(),
+      getPropertiesFormData: jest.fn(),
+    };
+  }
+
+  test('video_device_id が空文字の場合、先頭デバイスで補完する', () => {
+    setup();
+    mockGetVideoDevices.mockReturnValue([{ id: 'video_device_0', name: 'Webcam' }]);
+
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+
+    const webcam = createFakeWebcam('');
+    instance.getSourcesByType = jest.fn().mockReturnValue([webcam]);
+
+    instance.fixSourceSettings();
+
+    expect(webcam.updateSettings).toHaveBeenCalledWith({ video_device_id: 'video_device_0' });
+    expect(webcam.getPropertiesFormData).toHaveBeenCalled();
+  });
+
+  test('video_device_id が未設定 (undefined) の場合、先頭デバイスで補完する', () => {
+    setup();
+    mockGetVideoDevices.mockReturnValue([{ id: 'video_device_0', name: 'Webcam' }]);
+
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+
+    const webcam = createFakeWebcam(undefined);
+    instance.getSourcesByType = jest.fn().mockReturnValue([webcam]);
+
+    instance.fixSourceSettings();
+
+    expect(webcam.updateSettings).toHaveBeenCalledWith({ video_device_id: 'video_device_0' });
+  });
+
+  test('video_device_id に有効な値が既にある場合は補完しない', () => {
+    setup();
+    mockGetVideoDevices.mockReturnValue([{ id: 'video_device_0', name: 'Webcam' }]);
+
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+
+    const webcam = createFakeWebcam('existing_device_id');
+    instance.getSourcesByType = jest.fn().mockReturnValue([webcam]);
+
+    instance.fixSourceSettings();
+
+    expect(webcam.updateSettings).not.toHaveBeenCalled();
+    expect(webcam.getPropertiesFormData).toHaveBeenCalled();
+  });
+
+  test('デバイスが1つも無い場合は何もしない', () => {
+    setup();
+    mockGetVideoDevices.mockReturnValue([]);
+
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+
+    const webcam = createFakeWebcam('');
+    instance.getSourcesByType = jest.fn().mockReturnValue([webcam]);
+
+    instance.fixSourceSettings();
+
+    expect(webcam.updateSettings).not.toHaveBeenCalled();
+  });
+});
