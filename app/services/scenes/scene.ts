@@ -1,14 +1,15 @@
 import * as fs from 'fs';
 
 import uniqBy from 'lodash/uniqBy';
-import { filter } from 'rxjs/operators';
+import { filter, startWith } from 'rxjs/operators';
 import { mutation, ServiceHelper } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { TSceneNodeInfo } from 'services/scene-collections/nodes/scene-items';
 import { Selection, SelectionService, TNodesList } from 'services/selection';
 import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
-import { Source, SourcesService, TSourceType } from 'services/sources';
+import { ISource, Source, SourcesService, TSourceType } from 'services/sources';
 import Utils, { uuidv4 } from 'services/utils';
+import { observeUntilStable } from 'util/observeUntilStable';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
@@ -235,39 +236,17 @@ export class Scene {
   ) {
     if (!sourceId || !callback) return;
 
-    let settled = false;
-    let debounceId: ReturnType<typeof setTimeout> | null = null;
+    const currentSource = this.sourcesService.getSourceById(sourceId);
+    const source$ = this.sourcesService.sourceUpdated.pipe(
+      filter((patch) => patch.sourceId === sourceId),
+      startWith(currentSource ? currentSource.getModel() : undefined),
+    );
 
-    const timeoutId = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      if (debounceId) clearTimeout(debounceId);
-      subscription.unsubscribe();
-      onTimeout();
-    }, timeoutMs);
-
-    const settle = () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeoutId);
-      subscription.unsubscribe();
-      callback();
-    };
-
-    const source = this.sourcesService.getSourceById(sourceId);
-    if (source?.width && source?.height) {
-      debounceId = setTimeout(settle, debounceMs);
-    }
-
-    const subscription = this.sourcesService.sourceUpdated
-      .pipe(filter((patch) => patch.sourceId === sourceId))
-      .subscribe((patch) => {
-        if (settled) return;
-        if (debounceId) clearTimeout(debounceId);
-        if (patch.width && patch.height) {
-          debounceId = setTimeout(settle, debounceMs);
-        }
-      });
+    observeUntilStable<ISource | undefined>(
+      source$,
+      (source) => !!(source?.width && source?.height),
+      { timeoutMs, debounceMs },
+    ).then(callback, onTimeout);
   }
 
   addFile(path: string, folderId?: string): TSceneNode {
