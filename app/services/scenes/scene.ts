@@ -232,7 +232,7 @@ export class Scene {
     callback: () => void,
     onTimeout: () => void,
     timeoutMs = 15000,
-    debounceMs = 500,
+    debounceMs = 200,
   ) {
     if (!sourceId || !callback) return;
 
