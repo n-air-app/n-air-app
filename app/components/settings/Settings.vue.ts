@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import { CategoryIcons } from 'components/settings/CategoryIcons';
 import CommentSettings from 'components/settings/CommentSettings.vue';
@@ -14,6 +15,8 @@ import TableOfContents from 'components/shared/TableOfContents.vue';
 import { TocManager } from 'components/shared/TocManager';
 import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
+import { $t } from 'services/i18n';
+import { ScenesService } from 'services/scenes';
 import {
   ISettingsSubCategory,
   SettingsCategory,
@@ -164,7 +167,7 @@ export default defineComponent({
       const anchor = WindowsService.instance().state.child.anchor;
       return anchor || undefined;
     },
-    save(settingsData: ISettingsSubCategory[]) {
+    async save(settingsData: ISettingsSubCategory[]) {
       // Vue 3 の reactive proxy を剥がしてから IPC 経由の OBS API に渡す
       function deepToRaw(val: any): any {
         const raw = toRaw(val);
@@ -176,8 +179,63 @@ export default defineComponent({
         }
         return result;
       }
-      SettingsService.instance().setSettings(this.categoryName, deepToRaw(settingsData));
-      this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+
+      const settingsService = SettingsService.instance();
+      const category = this.categoryName;
+
+      // キャンバス解像度(Base)を変更しようとしているかどうかを保存前に確認しておく
+      let baseResolutionChange: { oldBase: string; newBase: string } | null = null;
+      if (category === 'Video') {
+        const oldBase = settingsService.findSettingValue(this.settingsData, 'Untitled', 'Base') as string;
+        const newBase = settingsService.findSettingValue(settingsData, 'Untitled', 'Base') as string;
+        if (oldBase && newBase && oldBase !== newBase) {
+          baseResolutionChange = { oldBase, newBase };
+        }
+      }
+
+      let rescale = false;
+      if (baseResolutionChange) {
+        const choice = await this.confirmRescaleSceneItems(
+          baseResolutionChange.oldBase,
+          baseResolutionChange.newBase,
+        );
+        if (choice === 'cancel') {
+          // キャンバス解像度の変更自体を取りやめる。表示を保存前の値に戻す
+          this.settingsData = settingsService.getSettingsFormData(category);
+          return;
+        }
+        rescale = choice === 'yes';
+      }
+
+      settingsService.setSettings(category, deepToRaw(settingsData));
+      this.settingsData = settingsService.getSettingsFormData(category);
+
+      if (rescale) {
+        const [oldWidth, oldHeight] = baseResolutionChange.oldBase.split('x').map(Number);
+        const [newWidth, newHeight] = baseResolutionChange.newBase.split('x').map(Number);
+        ScenesService.instance().rescaleAllScenes(newWidth / oldWidth, newHeight / oldHeight);
+      }
+    },
+    /**
+     * キャンバス解像度(Base)の変更前に、既存シーンのレイアウトを維持するため
+     * 全シーンアイテムを新しい解像度に合わせて拡大／縮小するかどうかを確認する。
+     * 'yes' = 拡大／縮小する, 'no' = 変更のみ行う(レイアウトは左上に詰まる), 'cancel' = 解像度変更自体を取りやめる
+     */
+    async confirmRescaleSceneItems(oldBase: string, newBase: string): Promise<'yes' | 'no' | 'cancel'> {
+      const [oldWidth, oldHeight] = oldBase.split('x').map(Number);
+      const [newWidth, newHeight] = newBase.split('x').map(Number);
+      if (!oldWidth || !oldHeight || !newWidth || !newHeight) return 'no';
+
+      const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'question',
+        buttons: [$t('common.yes'), $t('common.no'), $t('common.cancel')],
+        title: $t('common.confirm'),
+        message: $t('settings.rescaleSceneItemsConfirm', { oldBase, newBase }),
+        noLink: true,
+        cancelId: 2,
+        defaultId: 2,
+      });
+      return (['yes', 'no', 'cancel'] as const)[response];
     },
     done() {
       WindowsService.instance().closeChildWindow();

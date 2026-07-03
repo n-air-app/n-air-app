@@ -259,6 +259,23 @@ export class ScenesService extends StatefulService<IScenesState> {
     this.scenes.forEach((scene) => scene.setLockOnAllItems(locked));
   }
 
+  /**
+   * 全シーンの全アイテムの position/scale を指定の倍率でスケールする。
+   * キャンバス解像度(Base)の変更に合わせて既存のレイアウトを保つために使う。
+   * crop/rotation はソース元画像基準のため変更しない。
+   */
+  rescaleAllScenes(factorX: number, factorY: number) {
+    this.scenes.forEach((scene) => {
+      scene.getItems().forEach((item) => {
+        const { position, scale } = item.transform;
+        item.setTransform({
+          position: { x: position.x * factorX, y: position.y * factorY },
+          scale: { x: scale.x * factorX, y: scale.y * factorY },
+        });
+      });
+    });
+  }
+
   getSourceScenes(sourceId: string): Scene[] {
     const resultScenes: Scene[] = [];
     this.scenes.forEach((scene) => {
