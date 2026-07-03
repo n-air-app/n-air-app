@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import GenericFormGroups from 'components/obs/inputs/GenericFormGroups.vue';
 import { CategoryIcons } from 'components/settings/CategoryIcons';
 import CommentSettings from 'components/settings/CommentSettings.vue';
@@ -44,6 +45,13 @@ const CATEGORIES_WITH_TOC: string[] = [
 
 // ニコニコログインが必要なカテゴリ
 const CATEGORIES_REQUIRING_LOGIN: SettingsCategory[] = ['Comment', 'CommentSpeech'];
+
+// 'Base'/'Output' の解像度設定値('WIDTHxHEIGHT'形式)をパースする。不正な形式ならnull
+function parseResolution(value: string): IVec2 | null {
+  const [width, height] = value.split('x').map(Number);
+  if (!width || !height) return null;
+  return { x: width, y: height };
+}
 
 export default defineComponent({
   name: 'Settings',
@@ -184,20 +192,24 @@ export default defineComponent({
       const category = this.categoryName;
 
       // キャンバス解像度(Base)を変更しようとしているかどうかを保存前に確認しておく
-      let baseResolutionChange: { oldBase: string; newBase: string } | null = null;
+      let baseResolutionChange: { old: IVec2; new: IVec2 } | null = null;
       if (category === 'Video') {
         const oldBase = settingsService.findSettingValue(this.settingsData, 'Untitled', 'Base') as string;
         const newBase = settingsService.findSettingValue(settingsData, 'Untitled', 'Base') as string;
         if (oldBase && newBase && oldBase !== newBase) {
-          baseResolutionChange = { oldBase, newBase };
+          const oldSize = parseResolution(oldBase);
+          const newSize = parseResolution(newBase);
+          if (oldSize && newSize) {
+            baseResolutionChange = { old: oldSize, new: newSize };
+          }
         }
       }
 
       let rescale = false;
       if (baseResolutionChange) {
         const choice = await this.confirmRescaleSceneItems(
-          baseResolutionChange.oldBase,
-          baseResolutionChange.newBase,
+          `${baseResolutionChange.old.x}x${baseResolutionChange.old.y}`,
+          `${baseResolutionChange.new.x}x${baseResolutionChange.new.y}`,
         );
         if (choice === 'cancel') {
           // キャンバス解像度の変更自体を取りやめる。表示を保存前の値に戻す
@@ -211,9 +223,18 @@ export default defineComponent({
       this.settingsData = settingsService.getSettingsFormData(category);
 
       if (rescale) {
-        const [oldWidth, oldHeight] = baseResolutionChange.oldBase.split('x').map(Number);
-        const [newWidth, newHeight] = baseResolutionChange.newBase.split('x').map(Number);
-        ScenesService.instance().rescaleAllScenes(newWidth / oldWidth, newHeight / oldHeight);
+        const { old: oldSize, new: newSize } = baseResolutionChange;
+        try {
+          ScenesService.instance().rescaleAllScenes(newSize.x / oldSize.x, newSize.y / oldSize.y);
+        } catch (e: unknown) {
+          // キャンバス解像度は既に変更済みのため、失敗してもロールバックはしない。
+          // 一部のシーンアイテムだけリスケールされた状態になり得るのでユーザーに知らせる
+          Sentry.captureException(e);
+          remote.dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+            type: 'error',
+            message: $t('settings.rescaleSceneItemsFailed'),
+          });
+        }
       }
     },
     /**
@@ -222,10 +243,6 @@ export default defineComponent({
      * 'yes' = 拡大／縮小する, 'no' = 変更のみ行う(レイアウトは左上に詰まる), 'cancel' = 解像度変更自体を取りやめる
      */
     async confirmRescaleSceneItems(oldBase: string, newBase: string): Promise<'yes' | 'no' | 'cancel'> {
-      const [oldWidth, oldHeight] = oldBase.split('x').map(Number);
-      const [newWidth, newHeight] = newBase.split('x').map(Number);
-      if (!oldWidth || !oldHeight || !newWidth || !newHeight) return 'no';
-
       const { response } = await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'question',
         buttons: [$t('common.yes'), $t('common.no'), $t('common.cancel')],

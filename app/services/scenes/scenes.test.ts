@@ -3,6 +3,7 @@
  *
  * キャンバス解像度(Base)変更時に既存シーンのレイアウトを保つため、
  * 全シーンの全アイテムの position/scale を倍率でスケールする処理を検証する。
+ * 90/270度回転アイテムでは scale のX/Y倍率を入れ替える必要があるため、そのケースも検証する。
  */
 import { createSetupFunction } from 'util/test-setup';
 
@@ -118,12 +119,57 @@ describe('ScenesService.rescaleAllScenes', () => {
       configurable: true,
     });
 
-    // 720p(1280x720) -> 1080p(1920x1080)
-    instance.rescaleAllScenes(1920 / 1280, 1080 / 720);
+    // X/Y で異なる倍率(浮動小数点誤差を避けるため両方とも正確に表現できる値を使う)
+    instance.rescaleAllScenes(1.5, 1.25);
 
     expect(item.setTransform).toHaveBeenCalledWith({
-      position: { x: 192, y: 108 },
-      scale: { x: 1.5, y: 1.5 },
+      position: { x: 192, y: 90 },
+      scale: { x: 1.5, y: 1.25 },
+    });
+  });
+
+  test('90度/270度回転しているアイテムは scale のX/Y倍率が入れ替わって適用される', () => {
+    setup();
+
+    const { ScenesService } = require('./scenes');
+    const instance = ScenesService.instance();
+
+    const item90 = {
+      transform: {
+        position: { x: 100, y: 50 },
+        scale: { x: 1, y: 2 },
+        crop: { top: 0, right: 0, bottom: 0, left: 0 },
+        rotation: 90,
+      },
+      setTransform: jest.fn(),
+    };
+    const item270 = {
+      transform: {
+        position: { x: 10, y: 20 },
+        scale: { x: 3, y: 4 },
+        crop: { top: 0, right: 0, bottom: 0, left: 0 },
+        rotation: 270,
+      },
+      setTransform: jest.fn(),
+    };
+    const scene = { getItems: jest.fn().mockReturnValue([item90, item270]) };
+
+    Object.defineProperty(instance, 'scenes', {
+      value: [scene],
+      configurable: true,
+    });
+
+    instance.rescaleAllScenes(2, 3);
+
+    // position はキャンバス座標系そのままなので factorX/factorY をそのまま適用
+    // scale はアイテムのローカル座標系基準なので、90/270度回転時はX/Y倍率を入れ替えて適用
+    expect(item90.setTransform).toHaveBeenCalledWith({
+      position: { x: 200, y: 150 },
+      scale: { x: 3, y: 4 },
+    });
+    expect(item270.setTransform).toHaveBeenCalledWith({
+      position: { x: 20, y: 60 },
+      scale: { x: 9, y: 8 },
     });
   });
 
