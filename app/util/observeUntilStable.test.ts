@@ -1,5 +1,5 @@
 import * as FakeTimers from '@sinonjs/fake-timers';
-import { Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { observeUntilStable } from './observeUntilStable';
 
@@ -94,6 +94,27 @@ describe('observeUntilStable', () => {
     source$.next(1);
     await clock.tickAsync(500);
     expect(onResolve).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it('source$がsubscribe中に同期的にエラーを出してもReferenceErrorにならずrejectする', async () => {
+    const onError = jest.fn();
+    await observeUntilStable(throwError(() => new Error('boom')), (v: number) => v > 0, {
+      timeoutMs: 15000,
+      debounceMs: 500,
+    }).catch(onError);
+
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0].message).toBe('boom');
+  });
+
+  it('isReadyを満たす値を出さずにsource$がcompleteした場合はrejectする', async () => {
+    const onError = jest.fn();
+    await observeUntilStable(of(0), (v: number) => v > 0, {
+      timeoutMs: 15000,
+      debounceMs: 500,
+    }).catch(onError);
+
     expect(onError).toHaveBeenCalledTimes(1);
   });
 });
