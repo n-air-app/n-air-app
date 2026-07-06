@@ -23,7 +23,7 @@
       "webRoot": "${workspaceRoot}",
       "sourceMaps": true,
       "sourceMapPathOverrides": {
-        "webpack://n-air-app/../../${workspaceRoot}/app/*": "${workspaceRoot}/app/*"
+        "webpack://n-air-app/./*": "${workspaceRoot}/*"
       },
       "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
     }

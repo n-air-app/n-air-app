@@ -217,7 +217,19 @@ module.exports = function (env, argv) {
           },
           {
             test: /\.ts$/,
-            use: ['babel-loader', 'ts-loader'],
+            use: [
+              {
+                loader: 'ts-loader',
+                options: {
+                  transpileOnly: false,
+                  compilerOptions: {
+                    sourceMap: true,
+                    inlineSources: !isProduction,
+                    sourceRoot: '',
+                  },
+                },
+              },
+            ],
             exclude: /node_modules|vue\/src/,
           },
           {
