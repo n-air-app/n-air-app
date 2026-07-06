@@ -81,7 +81,7 @@ export interface ISettingsState {
 
 declare type TSettingsFormData = Dictionary<ISettingsSubCategory[]>;
 
-const niconicoResolutions = ['1280x720', '800x450', '512x288', '640x360'];
+const niconicoResolutions = ['1920x1080', '1280x720', '800x450', '512x288', '640x360'];
 
 const niconicoResolutionValues = niconicoResolutions.map((res) => ({
   [res]: res,

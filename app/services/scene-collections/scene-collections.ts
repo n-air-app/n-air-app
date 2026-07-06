@@ -12,13 +12,12 @@ import { Service } from 'services/core/service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { HotkeysService } from 'services/hotkeys';
 import { $t } from 'services/i18n';
-import { ScenesService } from 'services/scenes';
+import { SceneItem, ScenesService } from 'services/scenes';
 import { SettingsService } from 'services/settings';
 import { SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
-import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { SentryReport } from 'util/sentry-report';
 
@@ -59,6 +58,10 @@ const DEFAULT_COLLECTION_NAME = 'Scenes';
 // 内側に収める
 const WEBCAM_FIT_MARGIN_RATIO = 0.98;
 
+// Webカメラソースのsettingsにlast_resolutionが無い/パースできない場合のフォールバック
+// (basic.jsonのプリセットWebカメラの作成時解像度)
+const DEFAULT_WEBCAM_RESOLUTION = { width: 1280, height: 720 };
+
 interface ISceneCollectionsManifest {
   activeId: string;
   collections: ISceneCollectionsManifestEntry[];
@@ -86,7 +89,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   @Inject() transitionsService: TransitionsService;
   @Inject() dismissablesService: DismissablesService;
   @Inject() settingsService: SettingsService;
-  @Inject() videoService: VideoService;
 
   collectionAdded = new Subject<ISceneCollectionsManifestEntry>();
   collectionRemoved = new Subject<ISceneCollectionsManifestEntry>();
@@ -136,8 +138,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       await this.installPresetSceneCollection();
     } else if (!this.appService.obsConfigExisted) {
       // basic.ini がなかった場合(キャッシュクリア後など)、OBS がデフォルト値(1920x1080)で
-      // 初期化するため、N Air のデフォルト解像度(1280x720)に戻す
-      this.ensureCanvasResolution('1280x720');
+      // 初期化するため、N Air のデフォルト解像度(1920x1080)に合わせる
+      this.ensureCanvasResolution('1920x1080');
     }
 
     // 読み込んだソース情報を環境に合わせて更新する
@@ -167,8 +169,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     // 既存scene を消す
     this.scenesService.removeAllScenes();
 
-    // キャンバス解像度を 1280x720 に変更する
-    this.ensureCanvasResolution('1280x720');
+    // キャンバス解像度を 1920x1080 に変更する
+    this.ensureCanvasResolution('1920x1080');
 
     // this.load() を参考に
 
@@ -200,7 +202,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
   /**
    * プリセットのWebカメラ(dshow_input)シーンアイテムについて、実解像度が判明した
-   * タイミングでプリセットが意図した枠(キャンバス1280x720基準のscaleから復元)に
+   * タイミングでプリセットが意図した枠(作成時のカメラ解像度基準のscaleから復元)に
    * アスペクト比を保って中央フィットさせる。全アイテムの処理が完了(またはタイムアウト)
    * した時点で1回だけ保存し、フィット結果を永続化する。
    */
@@ -225,8 +227,16 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     webcamItems.forEach((item) => {
       const scene = item.getScene();
       const sceneItemId = item.sceneItemId;
-      const rawWidth = this.videoService.baseWidth * item.transform.scale.x;
-      const rawHeight = this.videoService.baseHeight * item.transform.scale.y;
+      // transform.scaleは「プリセット作成時のカメラ解像度 × scale = 意図した表示サイズ」
+      // という関係であり、キャンバス解像度とは無関係(キャンバス解像度を変更しても
+      // カメラの実解像度が変わらなければ意図した表示サイズも変わらない)。
+      // このためキャンバス解像度(videoService.baseWidth/baseHeight)ではなく、
+      // basic.jsonにWebカメラのsettingsとして保存されているlast_resolution
+      // (プリセット作成時にそのカメラで確認された解像度)を基準に復元する。
+      // last_resolutionが無い/パースできない場合はDEFAULT_WEBCAM_RESOLUTIONにフォールバックする。
+      const { width: presetWidth, height: presetHeight } = this.getWebcamPresetResolution(item);
+      const rawWidth = presetWidth * item.transform.scale.x;
+      const rawHeight = presetHeight * item.transform.scale.y;
       // プリセットの背景画像(ネオン枠)の透過窓は元のtransformが示す枠よりわずかに
       // 小さいため、中心を保ったまま少し縮小してネオン枠の内側に収める
       const width = rawWidth * WEBCAM_FIT_MARGIN_RATIO;
@@ -249,6 +259,23 @@ export class SceneCollectionsService extends Service implements ISceneCollection
         onOneSettled,
       );
     });
+  }
+
+  /**
+   * Webカメラ(dshow_input)ソースのsettingsに保存されているlast_resolution
+   * ("WIDTHxHEIGHT"形式)から、プリセット作成時のカメラ解像度を復元する。
+   * last_resolutionが無い/パースできない場合はDEFAULT_WEBCAM_RESOLUTIONを返す。
+   */
+  private getWebcamPresetResolution(item: SceneItem): { width: number; height: number } {
+    const lastResolution = item.getSource().getSettings().last_resolution;
+    const match = typeof lastResolution === 'string' && /^(\d+)x(\d+)$/.exec(lastResolution);
+    if (!match) return DEFAULT_WEBCAM_RESOLUTION;
+
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (!width || !height) return DEFAULT_WEBCAM_RESOLUTION;
+
+    return { width, height };
   }
 
   /**

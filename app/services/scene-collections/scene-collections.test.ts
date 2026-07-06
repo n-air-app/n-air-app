@@ -4,6 +4,7 @@
  */
 
 import * as Sentry from '@sentry/vue';
+import { createSetupFunction } from 'util/test-setup';
 
 // Mock dependencies
 jest.mock('@sentry/vue', () => ({
@@ -287,5 +288,132 @@ describe('SceneCollectionsService', () => {
       expect(mockSetTag).toHaveBeenCalledWith('sceneCollections.lastLoadStatus', 'ok');
       expect(mockSetTag).toHaveBeenCalledWith('sceneCollections.loadErrorCount', '0');
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ensureCanvasResolution のテスト
+// ─────────────────────────────────────────────────────────────────────────────
+
+jest.mock('services/core/stateful-service');
+jest.mock('services/core/injector');
+jest.mock('services/core/service-helper', () => ({
+  ServiceHelper: () => () => {},
+}));
+jest.mock('services/core/service-initialization-observer', () => ({
+  InitAfter: () => () => {},
+}));
+jest.mock('../../../obs-api', () => ({
+  InputFactory: { types: jest.fn().mockReturnValue([]) },
+  NodeObs: { RegisterSourceCallback: jest.fn() },
+  Global: { setOutputSource: jest.fn() },
+  ESourceOutputFlags: { Audio: 1, Video: 2, Async: 4, DoNotDuplicate: 8 },
+}));
+
+/** settingsService のモックを生成するヘルパー */
+function makeSettingsServiceMock(currentBase: string) {
+  const mockSetting = { value: currentBase };
+  return {
+    getSettingsFormData: jest.fn().mockReturnValue([{ parameters: [mockSetting] }]),
+    findSetting: jest.fn().mockReturnValue(mockSetting),
+    setSettings: jest.fn(),
+    setSettingValue: jest.fn(),
+  };
+}
+
+describe('SceneCollectionsService - ensureCanvasResolution', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  test('initialize(): obsConfigExisted=false のとき setSettingValue で 1920x1080 が設定される', async () => {
+    const mockSettings = makeSettingsServiceMock('1280x720');
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SettingsService: mockSettings,
+        ScenesService: { scenes: [{ getItems: () => [{}] }] },
+        AppService: { obsConfigExisted: false },
+        SourcesService: { fixSourceSettings: jest.fn() },
+        SceneCollectionsStateService: {
+          activeCollection: null,
+          collections: [],
+          loadManifestFile: jest.fn().mockResolvedValue(undefined),
+        },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.migrate = jest.fn().mockResolvedValue(undefined);
+    instance.create = jest.fn().mockResolvedValue(undefined);
+
+    await instance.initialize();
+
+    expect(mockSettings.setSettingValue).toHaveBeenCalledWith('Video', 'Base', '1920x1080');
+  });
+
+  test('initialize(): obsConfigExisted=true のとき setSettingValue は呼ばれない', async () => {
+    const mockSettings = makeSettingsServiceMock('1280x720');
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SettingsService: mockSettings,
+        ScenesService: { scenes: [{ getItems: () => [{}] }] },
+        AppService: { obsConfigExisted: true },
+        SourcesService: { fixSourceSettings: jest.fn() },
+        SceneCollectionsStateService: {
+          activeCollection: null,
+          collections: [],
+          loadManifestFile: jest.fn().mockResolvedValue(undefined),
+        },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.migrate = jest.fn().mockResolvedValue(undefined);
+    instance.create = jest.fn().mockResolvedValue(undefined);
+
+    await instance.initialize();
+
+    expect(mockSettings.setSettingValue).not.toHaveBeenCalled();
+  });
+
+  test('installPresetSceneCollection(): setSettingValue で 1920x1080 が設定される', async () => {
+    const mockSettings = makeSettingsServiceMock('1280x720');
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SettingsService: mockSettings,
+        ScenesService: { removeAllScenes: jest.fn() },
+        HotkeysService: { bindHotkeys: jest.fn() },
+        DismissablesService: { dismiss: jest.fn() },
+        SceneCollectionsStateService: {
+          readCollectionFile: jest.fn().mockReturnValue('{}'),
+        },
+      },
+    });
+    setupFn();
+
+    jest.mock('./parse', () => ({
+      parse: jest.fn().mockReturnValue({ load: jest.fn().mockResolvedValue(undefined) }),
+    }));
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.startLoadingOperation = jest.fn();
+    instance.finishLoadingOperation = jest.fn();
+    instance.save = jest.fn().mockResolvedValue(undefined);
+    instance.scheduleWebcamFitForPreset = jest.fn();
+
+    await instance.installPresetSceneCollection();
+
+    expect(mockSettings.setSettingValue).toHaveBeenCalledWith('Video', 'Base', '1920x1080');
   });
 });
