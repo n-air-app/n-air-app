@@ -136,8 +136,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       await this.installPresetSceneCollection();
     } else if (!this.appService.obsConfigExisted) {
       // basic.ini がなかった場合(キャッシュクリア後など)、OBS がデフォルト値(1920x1080)で
-      // 初期化するため、N Air のデフォルト解像度(1280x720)に戻す
-      this.ensureCanvasResolution('1280x720');
+      // 初期化するため、N Air のデフォルト解像度(1920x1080)に合わせる
+      this.ensureCanvasResolution('1920x1080');
     }
 
     // 読み込んだソース情報を環境に合わせて更新する
@@ -167,8 +167,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     // 既存scene を消す
     this.scenesService.removeAllScenes();
 
-    // キャンバス解像度を 1280x720 に変更する
-    this.ensureCanvasResolution('1280x720');
+    // キャンバス解像度を 1920x1080 に変更する
+    this.ensureCanvasResolution('1920x1080');
 
     // this.load() を参考に
 
