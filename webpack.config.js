@@ -224,7 +224,7 @@ module.exports = function (env, argv) {
                   transpileOnly: false,
                   compilerOptions: {
                     sourceMap: true,
-                    inlineSources: true,
+                    inlineSources: !isProduction,
                     sourceRoot: '',
                   },
                 },
