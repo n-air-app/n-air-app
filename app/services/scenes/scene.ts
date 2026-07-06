@@ -1,14 +1,15 @@
 import * as fs from 'fs';
 
 import uniqBy from 'lodash/uniqBy';
-import { filter } from 'rxjs/operators';
+import { filter, startWith } from 'rxjs/operators';
 import { mutation, ServiceHelper } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { TSceneNodeInfo } from 'services/scene-collections/nodes/scene-items';
 import { Selection, SelectionService, TNodesList } from 'services/selection';
 import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
-import { Source, SourcesService, TSourceType } from 'services/sources';
+import { ISource, Source, SourcesService, TSourceType } from 'services/sources';
 import Utils, { uuidv4 } from 'services/utils';
+import { observeUntilStable } from 'util/observeUntilStable';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
@@ -217,6 +218,35 @@ export class Scene {
           subscription.unsubscribe();
         }
       });
+  }
+
+  /**
+   * fixupSceneItemWhenReady にタイムアウトと安定待ちを追加したもの。
+   * デバイス起動直後は width/height が連続して変化することがあり、変化した直後の
+   * 値に対して transform を書き込んでもOBS側にすぐ反映されないことがあるため、
+   * 最後の変化から debounceMs 経過して値が安定するまで待ってから callback を呼ぶ。
+   * デバイスが起動せずサイズが確定しないまま購読が残り続けることも防ぐ。
+   */
+  fixupSceneItemWhenReadyWithTimeout(
+    sourceId: string,
+    callback: () => void,
+    onTimeout: () => void,
+    timeoutMs = 15000,
+    debounceMs = 200,
+  ) {
+    if (!sourceId || !callback) return;
+
+    const currentSource = this.sourcesService.getSourceById(sourceId);
+    const source$ = this.sourcesService.sourceUpdated.pipe(
+      filter((patch) => patch.sourceId === sourceId),
+      startWith(currentSource ? currentSource.getModel() : undefined),
+    );
+
+    observeUntilStable<ISource | undefined>(
+      source$,
+      (source) => !!(source?.width && source?.height),
+      { timeoutMs, debounceMs },
+    ).then(callback, onTimeout);
   }
 
   addFile(path: string, folderId?: string): TSceneNode {

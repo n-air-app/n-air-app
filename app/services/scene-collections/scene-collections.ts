@@ -18,6 +18,7 @@ import { SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
 import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
+import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { SentryReport } from 'util/sentry-report';
 
@@ -53,6 +54,11 @@ export const NODE_TYPES = {
 
 const DEFAULT_COLLECTION_NAME = 'Scenes';
 
+// プリセット背景画像のネオン枠(透過窓)は、プリセットに保存されたWebカメラの
+// transformが示す枠よりわずかに小さいため、フィット時に少し縮小してネオン枠の
+// 内側に収める
+const WEBCAM_FIT_MARGIN_RATIO = 0.98;
+
 interface ISceneCollectionsManifest {
   activeId: string;
   collections: ISceneCollectionsManifestEntry[];
@@ -80,6 +86,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   @Inject() transitionsService: TransitionsService;
   @Inject() dismissablesService: DismissablesService;
   @Inject() settingsService: SettingsService;
+  @Inject() videoService: VideoService;
 
   collectionAdded = new Subject<ISceneCollectionsManifestEntry>();
   collectionRemoved = new Subject<ISceneCollectionsManifestEntry>();
@@ -180,10 +187,68 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
     await this.save();
 
+    // Webカメラの実解像度が判明した時点で、プリセットが意図した枠にアスペクト比を
+    // 保ったまま中央フィットさせる(カメラ解像度がプリセット作成時と異なると
+    // 保存済みのscaleそのままでは表示サイズが崩れるため)
+    this.scheduleWebcamFitForPreset();
+
     this.finishLoadingOperation();
 
     // dismiss initial scene collections help tip if not yet(since its position is overlapped)
     this.dismissablesService.dismiss(EDismissable.SceneCollectionsHelpTip);
+  }
+
+  /**
+   * プリセットのWebカメラ(dshow_input)シーンアイテムについて、実解像度が判明した
+   * タイミングでプリセットが意図した枠(キャンバス1280x720基準のscaleから復元)に
+   * アスペクト比を保って中央フィットさせる。全アイテムの処理が完了(またはタイムアウト)
+   * した時点で1回だけ保存し、フィット結果を永続化する。
+   */
+  private scheduleWebcamFitForPreset() {
+    // プリセット(basic.json)には複数シーンがあり、Webカメラを含むシーンが必ずしも
+    // アクティブシーンではないため、全シーンを対象にする。
+    // このメソッドは removeAllScenes() 後に root.load() で作られた直後のシーンのみが
+    // 存在する状態で呼ばれる(呼び出し元の installPresetSceneCollection は「シーンが1つ
+    // かつ空」の場合にしか呼ばれないため、ユーザーが既に配置したシーンアイテムに対して
+    // このメソッドが実行されることはない)
+    const webcamItems = this.scenesService.scenes.flatMap((scene) =>
+      scene.getItems().filter((item) => item.type === 'dshow_input'),
+    );
+    if (webcamItems.length === 0) return;
+
+    let remaining = webcamItems.length;
+    const onOneSettled = () => {
+      remaining -= 1;
+      if (remaining === 0) this.save();
+    };
+
+    webcamItems.forEach((item) => {
+      const scene = item.getScene();
+      const sceneItemId = item.sceneItemId;
+      const rawWidth = this.videoService.baseWidth * item.transform.scale.x;
+      const rawHeight = this.videoService.baseHeight * item.transform.scale.y;
+      // プリセットの背景画像(ネオン枠)の透過窓は元のtransformが示す枠よりわずかに
+      // 小さいため、中心を保ったまま少し縮小してネオン枠の内側に収める
+      const width = rawWidth * WEBCAM_FIT_MARGIN_RATIO;
+      const height = rawHeight * WEBCAM_FIT_MARGIN_RATIO;
+      const targetRect = {
+        x: item.transform.position.x + (rawWidth - width) / 2,
+        y: item.transform.position.y + (rawHeight - height) / 2,
+        width,
+        height,
+      };
+
+      scene.fixupSceneItemWhenReadyWithTimeout(
+        item.sourceId,
+        () => {
+          // コールバック実行時点のwidth/heightを確実に反映させるため、
+          // ループ内で作られた古いインスタンスではなく再取得したインスタンスを使う
+          scene.getItem(sceneItemId)?.fitToRect(targetRect);
+          onOneSettled();
+        },
+        onOneSettled,
+      );
+    });
   }
 
   /**
