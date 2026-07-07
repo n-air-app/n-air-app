@@ -4,6 +4,7 @@
  */
 
 import * as Sentry from '@sentry/vue';
+import { ISceneCollectionsManifestEntry } from 'services/scene-collections/scene-collections-api';
 import { createSetupFunction } from 'util/test-setup';
 
 // Mock dependencies
@@ -415,5 +416,137 @@ describe('SceneCollectionsService - ensureCanvasResolution', () => {
     await instance.installPresetSceneCollection();
 
     expect(mockSettings.setSettingValue).toHaveBeenCalledWith('Video', 'Base', '1920x1080');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// exportCollection / importCollection のテスト
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('SceneCollectionsService - exportCollection / importCollection', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  test('importCollection(): 不正なJSONの場合は例外を投げ、ファイル書き込みを行わない', async () => {
+    const mockStateService = {
+      ensureDirectory: jest.fn().mockResolvedValue(undefined),
+      writeDataToCollectionFile: jest.fn(),
+      ADD_COLLECTION: jest.fn(),
+    };
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: mockStateService,
+      },
+    });
+    setupFn();
+
+    // './parse' はファイル内の別テストで常に成功するようモック済みのため、
+    // このテストでは一度だけ例外を投げさせる
+    const { parse } = require('./parse');
+    parse.mockImplementationOnce(() => {
+      throw new SyntaxError('Unexpected token in JSON');
+    });
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    await expect(instance.importCollection('test', 'not valid json')).rejects.toThrow();
+
+    expect(mockStateService.writeDataToCollectionFile).not.toHaveBeenCalled();
+    expect(mockStateService.ADD_COLLECTION).not.toHaveBeenCalled();
+  });
+
+  test('importCollection(): 正常なJSONの場合はファイルに書き込み、ADD_COLLECTIONを呼ぶ', async () => {
+    const mockStateService = {
+      collections: [] as ISceneCollectionsManifestEntry[],
+      ensureDirectory: jest.fn().mockResolvedValue(undefined),
+      writeDataToCollectionFile: jest.fn(),
+      ADD_COLLECTION: jest.fn(),
+    };
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: mockStateService,
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.getCollection = jest.fn().mockReturnValue({ id: 'new-id', name: 'test' });
+    instance.collectionAdded = { next: jest.fn() };
+
+    const data = JSON.stringify({ nodeType: 'RootNode' });
+    const result = await instance.importCollection('test', data);
+
+    expect(mockStateService.ensureDirectory).toHaveBeenCalled();
+    expect(mockStateService.writeDataToCollectionFile).toHaveBeenCalledWith(
+      expect.any(String),
+      data,
+    );
+    expect(mockStateService.ADD_COLLECTION).toHaveBeenCalledWith(
+      expect.any(String),
+      'test',
+      expect.any(String),
+    );
+    expect(instance.collectionAdded.next).toHaveBeenCalled();
+    expect(result).toEqual({ id: 'new-id', name: 'test' });
+  });
+
+  test('exportCollection(): activeCollectionと異なるidの場合はsaveを呼ばずファイルを読み込んで書き出す', async () => {
+    const mockStateService = {
+      activeCollection: { id: 'active-id' },
+      readCollectionFile: jest.fn().mockResolvedValue('{"foo":"bar"}'),
+    };
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: mockStateService,
+      },
+    });
+    setupFn();
+
+    const fs = require('fs');
+    jest.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.save = jest.fn().mockResolvedValue(undefined);
+
+    await instance.exportCollection('other-id', '/tmp/export.json');
+
+    expect(instance.save).not.toHaveBeenCalled();
+    expect(mockStateService.readCollectionFile).toHaveBeenCalledWith('other-id');
+    expect(fs.promises.writeFile).toHaveBeenCalledWith('/tmp/export.json', '{"foo":"bar"}');
+  });
+
+  test('exportCollection(): activeCollectionと同じidの場合はsaveを呼ぶ', async () => {
+    const mockStateService = {
+      activeCollection: { id: 'active-id' },
+      readCollectionFile: jest.fn().mockResolvedValue('{"foo":"bar"}'),
+    };
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: mockStateService,
+      },
+    });
+    setupFn();
+
+    const fs = require('fs');
+    jest.spyOn(fs.promises, 'writeFile').mockResolvedValue(undefined);
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.save = jest.fn().mockResolvedValue(undefined);
+
+    await instance.exportCollection('active-id', '/tmp/export.json');
+
+    expect(instance.save).toHaveBeenCalled();
   });
 });

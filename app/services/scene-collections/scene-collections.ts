@@ -502,6 +502,35 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   }
 
   /**
+   * Exports a scene collection's JSON data to the given file path.
+   * @param id the id of the collection to export
+   * @param destPath the destination file path
+   */
+  async exportCollection(id: string, destPath: string) {
+    if (this.activeCollection?.id === id) await this.save();
+    const data = await this.stateService.readCollectionFile(id);
+    await fs.promises.writeFile(destPath, data);
+  }
+
+  /**
+   * Imports a scene collection from JSON data and adds it to the collections list.
+   * Does not switch to the imported collection.
+   * @param name the name to give the imported collection
+   * @param data the JSON data of the collection to import
+   */
+  async importCollection(name: string, data: string): Promise<ISceneCollectionsManifestEntry> {
+    parse(data, NODE_TYPES);
+
+    const id: string = uuidv4();
+    await this.stateService.ensureDirectory();
+    this.stateService.writeDataToCollectionFile(id, data);
+    this.stateService.ADD_COLLECTION(id, this.suggestName(name), new Date().toISOString());
+    this.collectionAdded.next(this.getCollection(id));
+
+    return this.getCollection(id);
+  }
+
+  /**
    * Based on the provided name, suggest a new name that does
    * not conflict with any current name.
    *

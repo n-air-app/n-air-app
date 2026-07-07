@@ -24,6 +24,9 @@
       </div>
     </template>
     <template #controls>
+      <button class="button button--secondary" @click="importFromFile">
+        {{ $t('scenes.importSceneCollectionFromFile') }}
+      </button>
       <button class="button button--secondary" @click="importFromOBS" :disabled="!canImportFromOBS">
         {{ $t('onboarding.importFromObs') }}
       </button>
