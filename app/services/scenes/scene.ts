@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import uniqBy from 'lodash/uniqBy';
-import { filter, startWith } from 'rxjs/operators';
+import { filter, startWith } from 'rxjs';
 import { mutation, ServiceHelper } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { TSceneNodeInfo } from 'services/scene-collections/nodes/scene-items';
