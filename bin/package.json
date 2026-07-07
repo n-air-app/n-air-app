@@ -10,7 +10,7 @@
     "webfont": "node generate-webfont.js"
   },
   "dependencies": {
-    "@octokit/rest": "^20.1.1",
+    "@octokit/rest": "^22.0.1",
     "luxon": "^3.5.0"
   },
   "devDependencies": {
