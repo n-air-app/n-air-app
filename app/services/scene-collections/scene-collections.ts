@@ -519,7 +519,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * @param data the JSON data of the collection to import
    */
   async importCollection(name: string, data: string): Promise<ISceneCollectionsManifestEntry> {
-    parse(data, NODE_TYPES);
+    const root = parse(data, NODE_TYPES);
+    if (!(root instanceof RootNode)) {
+      throw new Error('This file is not a valid N Air scene collection.');
+    }
 
     const id: string = uuidv4();
     await this.stateService.ensureDirectory();
