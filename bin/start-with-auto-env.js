@@ -13,5 +13,7 @@ childProcess.stderr.pipe(process.stderr);
 
 childProcess.on('close', (code) => {
   process.exitCode = code;
-  process.stdin.unref();
+  if (typeof process.stdin.unref === 'function') {
+    process.stdin.unref();
+  }
 });
