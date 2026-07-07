@@ -169,7 +169,7 @@ export async function focusWindow(winIdOrRegexp: string | RegExp): Promise<boole
       }
     } catch (e) {
       // Window may have been closed during iteration, skip it
-      console.log(`focusWindow: Error switching to window ${ind}:`, e.message);
+      console.log(`focusWindow: Error switching to window ${ind}:`, e instanceof Error ? e.message : e);
       continue;
     }
   }

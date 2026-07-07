@@ -252,7 +252,7 @@ module.exports = function (env, argv) {
                 loader: 'postcss-loader',
                 options: {
                   postcssOptions: {
-                    plugins: [require('autoprefixer')({ grid: true })],
+                    plugins: [require('autoprefixer')()],
                   },
                 },
               },
@@ -273,7 +273,7 @@ module.exports = function (env, argv) {
                 loader: 'postcss-loader',
                 options: {
                   postcssOptions: {
-                    plugins: [require('autoprefixer')({ grid: true })],
+                    plugins: [require('autoprefixer')()],
                   },
                 },
               },
