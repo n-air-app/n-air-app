@@ -1,5 +1,4 @@
-import { Observable, Subscription } from 'rxjs';
-import { debounceTime, filter, take, timeout } from 'rxjs/operators';
+import { debounceTime, filter, Observable, Subscription, take, timeout } from 'rxjs';
 
 /**
  * source$ の中から isReady を満たす値を待ち、最後にその値が来てから

@@ -1,19 +1,25 @@
-import { EMPTY, interval, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import {
   bufferTime,
   catchError,
   distinctUntilChanged,
+  EMPTY,
   endWith,
   filter,
   finalize,
   groupBy,
   ignoreElements,
+  interval,
   map,
+  merge,
   mergeMap,
+  Observable,
+  of,
   startWith,
+  Subject,
+  Subscription,
   takeUntil,
   tap,
-} from 'rxjs/operators';
+} from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
