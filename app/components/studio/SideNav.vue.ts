@@ -23,10 +23,6 @@ export default defineComponent({
     StreamingStatus,
   },
 
-  props: {
-
-  },
-
   data() {
     return {
       slideOpen: false,
