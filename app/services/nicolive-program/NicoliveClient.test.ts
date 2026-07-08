@@ -565,4 +565,37 @@ describe('NicoliveClient.deleteComment', () => {
   });
 });
 
+describe('NicoliveClient.wrapFetchError', () => {
+  test('renderer 直送の失敗は route=renderer / errorCode なし', async () => {
+    const res = await NicoliveClient.wrapFetchError(new Error('fetch failed'), 'renderer');
+    expect(res.ok).toBe(false);
+    expect(res.diag).toMatchObject({ route: 'renderer', failureKind: 'network_error' });
+    expect(res.diag?.errorCode).toBeUndefined();
+  });
+
+  test('main 経由の証明書エラーは MAIN_FETCH_FAIL マーカーから errorCode を取り出し route=main になる', async () => {
+    // Electron IPC は main 側 Error に `Error invoking remote method 'fetch': Error: ` の接頭辞を付けるため、
+    // 行頭ではなく message 途中にマーカーが現れる。それでも code を取り出せることを確認する
+    const message =
+      "Error invoking remote method 'fetch': Error: [MAIN_FETCH_FAIL code=SELF_SIGNED_CERT_IN_CHAIN]"
+      + ' fetch failed [url: https://live2.nicovideo.jp/unama/api/v4/ingest_info?nicoliveProgramId=lv1, cause: ...]';
+    const res = await NicoliveClient.wrapFetchError(new Error(message), 'renderer');
+    expect(res.ok).toBe(false);
+    expect(res.diag).toMatchObject({
+      route: 'main',
+      failureKind: 'network_error',
+      errorCode: 'SELF_SIGNED_CERT_IN_CHAIN',
+    });
+  });
+
+  test('main 経由でも code が空文字なら errorCode は undefined', async () => {
+    const res = await NicoliveClient.wrapFetchError(
+      new Error('[MAIN_FETCH_FAIL code=] fetch failed [url: https://x, cause: no cause]'),
+      'renderer',
+    );
+    expect(res.diag).toMatchObject({ route: 'main', failureKind: 'network_error' });
+    expect(res.diag?.errorCode).toBeUndefined();
+  });
+});
+
 // TODO add test for konomiTags, userFollow APIs
