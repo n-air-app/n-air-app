@@ -33,6 +33,9 @@
       <span @click.stop="duplicate">{{ $t('common.duplicate') }}</span>
     </a>
     <i class="icon-spinner icon-spin" v-else />
+    <a class="editable-scene-collection--action link link--underlined">
+      <span @click.stop="exportCollection">{{ $t('scenes.exportSceneCollection') }}</span>
+    </a>
     <a
       class="editable-scene-collection--action editable-scene-collection--action-delete link link--underlined"
     >
