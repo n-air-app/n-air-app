@@ -24,7 +24,7 @@ export default defineComponent({
   },
 
   props: {
-    locked: { type: Boolean },
+
   },
 
   data() {

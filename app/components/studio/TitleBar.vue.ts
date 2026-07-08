@@ -11,7 +11,7 @@ export default defineComponent({
 
   props: {
     title: { type: String },
-    resizable: { type: Boolean },
+    resizable: { type: Boolean, default: true },
   },
 
   computed: {

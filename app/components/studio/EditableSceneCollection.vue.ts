@@ -8,8 +8,8 @@ export default defineComponent({
   name: 'EditableSceneCollection',
 
   props: {
-    collectionId: { type: String },
-    selected: { type: Boolean },
+    collectionId: { type: String, required: true as const },
+
   },
 
   data() {
