@@ -230,6 +230,6 @@ describe('clampResolutionToCanvas', () => {
   });
 
   test('falls back to the smallest resolution when nothing fits the canvas', () => {
-    expect(clampResolutionToCanvas({ w: 1280, h: 720 }, 640, 360)).toEqual({ w: 512, h: 288 });
+    expect(clampResolutionToCanvas({ w: 1280, h: 720 }, 320, 180)).toEqual({ w: 512, h: 288 });
   });
 });
