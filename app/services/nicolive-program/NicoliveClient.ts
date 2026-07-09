@@ -68,8 +68,30 @@ export type FailedResult = {
     route: RequestRoute;
     httpStatus?: number;
     failureKind: FailureKind;
+    /** fetch 失敗時の Node.js/OpenSSL エラーコード(例: SELF_SIGNED_CERT_IN_CHAIN)。主に main 経路で取得できる */
+    errorCode?: string;
   };
 };
+
+/**
+ * TLS 証明書の検証失敗を示す Node.js/OpenSSL のエラーコード群。
+ * これらは主にユーザー環境(ウイルス対策ソフトや社内プロキシによる SSL 傍受、
+ * 証明書の期限切れ・時刻ずれ等)に起因し、通常の「ネットワークエラー」とは
+ * 区別して原因をユーザーに提示する。
+ */
+export const CERTIFICATE_ERROR_CODES = new Set<string>([
+  'SELF_SIGNED_CERT_IN_CHAIN',
+  'DEPTH_ZERO_SELF_SIGNED_CERT',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+  'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+  'CERT_HAS_EXPIRED',
+  'CERT_NOT_YET_VALID',
+  'ERR_TLS_CERT_ALTNAME_INVALID',
+]);
+
+export function isCertificateErrorCode(code: string | undefined | null): boolean {
+  return typeof code === 'string' && code !== '' && CERTIFICATE_ERROR_CODES.has(code);
+}
 
 /**
  * JSONで結果が返ってくることまでを信用したEitherのようなもの
@@ -287,13 +309,21 @@ export class NicoliveClient {
     };
   }
 
-  /** main.js の fetch handler が投げる [MAIN_FETCH_FAIL code=ECODE] 接頭辞のパターン */
-  private static readonly MAIN_FETCH_FAIL_RE = /^\[MAIN_FETCH_FAIL code=([^\]]*)\]/;
+  /**
+   * main.js の fetch handler が投げる [MAIN_FETCH_FAIL code=ECODE] マーカーのパターン。
+   * Electron IPC は main 側 Error を renderer に伝搬する際
+   * `Error invoking remote method 'fetch': Error: [MAIN_FETCH_FAIL code=...] ...` のように
+   * 接頭辞を付けるため、行頭アンカーは付けず message 中のどこにあってもマッチさせる。
+   */
+  private static readonly MAIN_FETCH_FAIL_RE = /\[MAIN_FETCH_FAIL code=([^\]]*)\]/;
 
   static async wrapFetchError(err: Error, route: RequestRoute = 'renderer'): Promise<FailedResult> {
     // main 経由 fetch の失敗は [MAIN_FETCH_FAIL code=...] 接頭辞で判別できる
-    const isMainFail = NicoliveClient.MAIN_FETCH_FAIL_RE.test(err.message);
+    const mainFailMatch = NicoliveClient.MAIN_FETCH_FAIL_RE.exec(err.message);
+    const isMainFail = mainFailMatch !== null;
     const effectiveRoute: RequestRoute = isMainFail ? 'main' : route;
+    // 接頭辞に埋め込まれた Node.js/OpenSSL のエラーコードを取り出す(空文字の場合あり)
+    const errorCode = mainFailMatch?.[1] || undefined;
 
     const failureKind: FailureKind =
       err instanceof NotLoggedInError ? 'not_logged_in' : 'network_error';
@@ -301,7 +331,7 @@ export class NicoliveClient {
     return {
       ok: false,
       value: err,
-      diag: { route: effectiveRoute, failureKind },
+      diag: { route: effectiveRoute, failureKind, errorCode },
     };
   }
 
