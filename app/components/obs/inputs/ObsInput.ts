@@ -64,7 +64,7 @@ export interface IObsButtonInputValue extends IObsInput<boolean> {
 
 export interface IObsListInput<TValue> extends IObsInput<TValue> {
   options: IObsListOption<TValue>[];
-  /** raw OBS list values, present only when passed through from the native OBS response */
+  /** raw OBS list values; optional because not every list is backed by native OBS data */
   values?: Dictionary<TValue>[];
 }
 
