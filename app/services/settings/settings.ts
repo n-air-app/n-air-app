@@ -274,16 +274,26 @@ export class SettingsService
 
     // We inject niconico specific resolutions
     if (categoryName === 'Video') {
-      const outputSettings = this.findSetting(settings, 'Untitled', 'Output');
+      const outputSettings = this.findSetting(settings, 'Untitled', 'Output') as
+        | IObsListInput<TObsValue>
+        | undefined;
 
       if (outputSettings) {
         // filter resolutions if duplicated in the meaning of value
-        const output = outputSettings as unknown as { values: { [key: string]: string }[] };
-        output.values = output.values.filter((x) => {
+        outputSettings.values = (outputSettings.values ?? []).filter((x) => {
           // one item has only one key-value pair
-          return !Object.keys(x).some((y) => niconicoResolutions.includes(x[y]));
+          return !Object.keys(x).some((y) => niconicoResolutions.includes(x[y] as string));
         });
-        output.values.unshift(...niconicoResolutionValues);
+        outputSettings.values.unshift(...niconicoResolutionValues);
+        outputSettings.options = outputSettings.options.filter(
+          (x) => !niconicoResolutions.includes(x.value as string),
+        );
+        outputSettings.options.unshift(
+          ...niconicoResolutions.map((res) => ({
+            value: res,
+            description: $t(`settings.Video['Untitled']['Output']['${res}']`, { fallback: res }),
+          })),
+        );
       }
     }
 
@@ -335,17 +345,17 @@ export class SettingsService
         parameterApplyServiceSettings.visible = false;
       }
 
-      const aBitrate = parameters.find((parameter: any) => {
-        return parameter.name === 'ABitrate';
-      }) as any;
+      const aBitrate = parameters.find((parameter) => parameter.name === 'ABitrate') as
+        | IObsListInput<TObsValue>
+        | undefined;
       if (aBitrate) {
-        aBitrate.values = aBitrate.values.filter((x: { [key: string]: string }) => {
-          return !Object.keys(x).some((y) => niconicoAudioBitrates.includes(x[y]));
+        aBitrate.values = (aBitrate.values ?? []).filter((x) => {
+          return !Object.keys(x).some((y) => niconicoAudioBitrates.includes(x[y] as string));
         });
         aBitrate.values.unshift(...niconicoAudioBitrateValues);
-        aBitrate.options = aBitrate.options.filter((x: { value: string; description: string }) => {
-          return !niconicoAudioBitrates.includes(x.value);
-        });
+        aBitrate.options = aBitrate.options.filter(
+          (x) => !niconicoAudioBitrates.includes(x.value as string),
+        );
         aBitrate.options.unshift(...niconicoAudioBitrateOptions);
       }
     }
