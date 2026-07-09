@@ -6,7 +6,7 @@ export default defineComponent({
   name: 'HelpTip',
 
   props: {
-    dismissableKey: { type: String as () => EDismissable },
+    dismissableKey: { type: String as () => EDismissable, required: true as const },
     mode: { type: String, default: 'scene-selector' },
   },
 
