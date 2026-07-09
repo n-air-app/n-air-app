@@ -487,8 +487,13 @@ export class StreamingService
       fps: streamingSetting.quality.fps,
       useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
     });
-    if (Object.keys(settings.delta).length > 0 || mustShowDialog) {
-      if (this.customizationService.showOptimizationDialogForNiconico || mustShowDialog || this.isRecording) {
+    if (Object.keys(settings.delta).length > 0 || mustShowDialog || settings.canvasResolutionWarning) {
+      if (
+        this.customizationService.showOptimizationDialogForNiconico
+        || mustShowDialog
+        || this.isRecording
+        || settings.canvasResolutionWarning
+      ) {
         this.windowsService.showWindow({
           componentName: 'OptimizeForNiconico',
           title: $t('streaming.optimizationForNiconico.title'),
