@@ -42,6 +42,9 @@ export default defineComponent({
     isRecording(): boolean {
       return StreamingService.instance().isRecording;
     },
+    canvasResolutionWarning(): OptimizedSettings['canvasResolutionWarning'] {
+      return this.settings.canvasResolutionWarning;
+    },
   },
   methods: {
     setDoNotShowAgain(model: IObsInput<boolean>) {

@@ -6,6 +6,14 @@
         <i class="icon-warning-circle"></i>
         {{ $t('streaming.optimizationForNiconico.recordingWarning') }}
       </p>
+      <p v-if="canvasResolutionWarning" class="alert" data-variant="light" data-type="caution">
+        <i class="icon-warning-circle"></i>
+        {{ $t('streaming.optimizationForNiconico.canvasResolutionWarning', {
+          canvas: canvasResolutionWarning.canvas,
+          applied: canvasResolutionWarning.appliedResolution,
+          recommended: canvasResolutionWarning.recommendedResolution,
+        }) }}
+      </p>
       <ul class="optimize-category-list">
         <li
           class="optimize-category-list-item"

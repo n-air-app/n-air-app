@@ -452,6 +452,12 @@ export interface OptimizedSettings {
       newValue?: string;
     }[],
   ][];
+  /** キャンバス解像度により配信解像度が推奨より下げられた場合の警告情報 */
+  canvasResolutionWarning?: {
+    canvas: string;
+    recommendedResolution: string;
+    appliedResolution: string;
+  };
 }
 
 /**
