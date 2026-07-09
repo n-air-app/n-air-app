@@ -218,6 +218,11 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     return Boolean(this.state.programID);
   }
 
+  /** 番組情報をクリアして hasProgram を false にする */
+  clearProgram(): void {
+    this.setState(NicoliveProgramService.programInitialState);
+  }
+
   get isProgramExtendable(): boolean {
     return NicoliveProgramService.isProgramExtendable(this.state);
   }

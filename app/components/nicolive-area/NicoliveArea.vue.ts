@@ -82,25 +82,38 @@ export default defineComponent({
       NicoliveProgramService.instance().togglePanelOpened();
     },
 
-    async createProgram(): Promise<void> {
-      try {
-        await NicoliveProgramService.instance().createProgram();
-      } catch (e) {
-        console.error(e);
-      }
-    },
-
-    async fetchProgram(): Promise<void> {
-      if (this.isFetching) throw new Error('fetchProgram is running');
+    async prepareProgram(): Promise<void> {
+      if (this.isFetching) throw new Error('prepareProgram is running');
       try {
         this.isFetching = true;
-        await NicoliveProgramService.instance().fetchProgram();
-      } catch (caught) {
-        if (caught instanceof NicoliveFailure) {
-          await openErrorDialogFromFailure(caught);
-        } else {
-          throw caught;
+        let needsCreate = false;
+        try {
+          await NicoliveProgramService.instance().fetchProgram();
+          // fetchProgram 成功後でも status が end の場合は終了済み番組を掴んでいる
+          // (N Air で手動終了した直後はスケジュール API がまだ onAir を返すことがある)
+          // programID がセットされたままだと hasProgram=true でパネルが切り替わるためクリアする
+          if (NicoliveProgramService.instance().state.status === 'end') {
+            NicoliveProgramService.instance().clearProgram();
+            needsCreate = true;
+          }
+        } catch (caught) {
+          if (
+            caught instanceof NicoliveFailure
+            && caught.type === 'logic'
+            && caught.reason === 'no_suitable_program'
+          ) {
+            needsCreate = true;
+          } else if (caught instanceof NicoliveFailure) {
+            await openErrorDialogFromFailure(caught);
+          } else {
+            throw caught;
+          }
         }
+        if (needsCreate) {
+          await NicoliveProgramService.instance().createProgram();
+        }
+      } catch (e) {
+        console.error(e);
       } finally {
         this.isFetching = false;
       }
