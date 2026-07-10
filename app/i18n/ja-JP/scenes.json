@@ -19,6 +19,7 @@
   "unknownComponentSkipped": "未知のデータ ({nodeType}) をスキップしました",
   "schemaVersionTooNew": "{nodeType} は新しい形式 (v{found}) です。一部の設定は反映されません (対応 v{supported})",
   "formatVersionTooNew": "このシーンコレクションは新しいバージョンのN Air (形式バージョン {found}) で保存されています。このバージョンが対応するのは v{supported} までのため、一部の設定が正しく反映されない場合があります",
+  "rescaleFailed": "キャンバス解像度の変更に合わせたシーンアイテムの自動調整に失敗しました",
   "projectorPrefix": "全画面表示",
   "defaultTitle": "",
   "manageAll": "シーンコレクションの管理",

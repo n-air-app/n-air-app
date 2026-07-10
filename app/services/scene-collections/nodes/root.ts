@@ -174,7 +174,7 @@ export class RootNode extends Node<ISchema, {}> {
         console.error('Failed to rescale scene items:', e);
         this.addLoadError({
           type: 'format',
-          name: 'Rescale',
+          name: $t('scenes.rescaleFailed'),
           error: e instanceof Error ? e : new Error(String(e)),
         });
       }

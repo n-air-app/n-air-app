@@ -797,7 +797,7 @@ describe('SceneCollectionsService - fetchSceneCollectionsSchema forward-compat',
             sceneItems: [{ sceneItemId: 'item-1', sourceId: 'source-1' }],
           },
         ],
-        sources: [{ id: 'source-1', name: 'Source 1', type: 'browser_source', channel: 0 }],
+        sources: [{ sourceId: 'source-1', name: 'Source 1', type: 'browser_source', channel: 0 }],
       },
     ]);
   });

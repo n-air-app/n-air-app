@@ -644,7 +644,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
             sources: sourceItems.map((sourceData: ISourceInfo) => {
               return {
-                id: sourceData.id,
+                sourceId: sourceData.id,
                 name: sourceData.name,
                 type: sourceData.type,
                 channel: sourceData.channel,

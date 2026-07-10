@@ -161,6 +161,11 @@ describe('ArrayNode error collection', () => {
     const errors = node.getLoadErrors();
     expect(errors).toHaveLength(1);
     expect(errors[0].type).toBe('format');
+    // The reported name identifies which node class dropped items, so the
+    // partial-load warning dialog doesn't show an unattributed "2
+    // unrecognized item(s)" line when multiple node types are affected.
+    expect(errors[0].name).toContain('TestArrayNode');
+    expect(errors[0].name).toContain('2');
     expect(node.getItems({})).toHaveLength(2);
     expect(node.getItems({})[0].name).toBe('Item 1');
     expect(node.getItems({})[1].name).toBe('Item 2');

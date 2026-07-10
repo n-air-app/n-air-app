@@ -19,6 +19,7 @@
   "unknownComponentSkipped": "Skipped unknown data ({nodeType})",
   "schemaVersionTooNew": "{nodeType} uses a newer format (v{found}); some settings may not be loaded (supported up to v{supported})",
   "formatVersionTooNew": "This scene collection was saved by a newer version of N Air (format version {found}). This version supports up to v{supported}, so some settings may not be loaded correctly.",
+  "rescaleFailed": "Failed to automatically adjust scene items for the canvas resolution change",
   "projectorPrefix": "Projector",
   "defaultTitle": "Output",
   "manageAll": "Manage All",
