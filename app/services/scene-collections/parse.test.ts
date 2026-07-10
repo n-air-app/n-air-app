@@ -3,13 +3,15 @@ import { IParseWarning, parse } from './parse';
 jest.mock('electron', () => ({}));
 jest.mock('@electron/remote', () => ({}));
 
+type IFakeSchema = Record<string, unknown>;
+
 // Minimal stand-ins for real Node subclasses, just enough to exercise
 // parse()'s reviver logic without pulling in the DI container.
 class FakeNode {
   schemaVersion = 2;
-  data: any;
+  data: IFakeSchema;
 
-  fromJSON(obj: any) {
+  fromJSON(obj: IFakeSchema) {
     const clone = { ...obj };
     delete clone.schemaVersion;
     delete clone.nodeType;
@@ -19,9 +21,9 @@ class FakeNode {
 
 class FakeArrayNode {
   schemaVersion = 1;
-  data: any;
+  data: IFakeSchema;
 
-  fromJSON(obj: any) {
+  fromJSON(obj: IFakeSchema) {
     const clone = { ...obj };
     delete clone.schemaVersion;
     delete clone.nodeType;
@@ -29,7 +31,7 @@ class FakeArrayNode {
   }
 }
 
-const NODE_TYPES: Dictionary<any> = {
+const NODE_TYPES: Dictionary<typeof FakeNode | typeof FakeArrayNode> = {
   FakeNode,
   FakeArrayNode,
 };

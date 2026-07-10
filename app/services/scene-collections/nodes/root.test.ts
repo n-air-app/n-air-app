@@ -1,4 +1,8 @@
+import { ILoadError } from './node';
 import { CURRENT_FORMAT_VERSION, NAIR_SCENE_COLLECTION_FORMAT_ID, RootNode } from './root';
+import { ScenesNode } from './scenes';
+import { SourcesNode } from './sources';
+import { TransitionsNode } from './transitions';
 
 jest.mock('electron', () => ({}));
 jest.mock('@electron/remote', () => ({}));
@@ -9,40 +13,60 @@ jest.mock('services/scenes', () => ({ ScenesService: class {} }));
 jest.mock('services/settings-v2/video', () => ({ VideoSettingsService: class {} }));
 jest.mock('services/video', () => ({ VideoService: class {} }));
 
+// Minimal shape of each injected service RootNode actually calls, so tests
+// don't need to depend on the real (heavy, OBS-backed) implementations.
+type IVideoServiceStub = Pick<RootNode['videoService'], 'baseResolution' | 'setBaseResolution'>;
+type IVideoSettingsServiceStub = Pick<RootNode['videoSettingsService'], 'baseResolutions'>;
+type IScenesServiceStub = Pick<RootNode['scenesService'], 'rescaleAllScenes'>;
+
 function createNode(overrides: {
-  videoService?: any;
-  videoSettingsService?: any;
-  scenesService?: any;
+  videoService?: Partial<IVideoServiceStub>;
+  videoSettingsService?: Partial<IVideoSettingsServiceStub>;
+  scenesService?: Partial<IScenesServiceStub>;
 }) {
   const node = new RootNode();
-  (node as any).videoService = overrides.videoService ?? {
+  node.videoService = {
     baseResolution: { width: 1920, height: 1080 },
     setBaseResolution: jest.fn(),
-  };
-  (node as any).videoSettingsService = overrides.videoSettingsService ?? {
+    ...overrides.videoService,
+  } as RootNode['videoService'];
+  node.videoSettingsService = {
     baseResolutions: { horizontal: { baseWidth: 1920, baseHeight: 1080 } },
-  };
-  (node as any).scenesService = overrides.scenesService ?? { rescaleAllScenes: jest.fn() };
+    ...overrides.videoSettingsService,
+  } as RootNode['videoSettingsService'];
+  node.scenesService = {
+    rescaleAllScenes: jest.fn(),
+    ...overrides.scenesService,
+  } as RootNode['scenesService'];
   return node;
 }
 
-function stubChildNodes(node: RootNode, dataOverrides: Partial<RootNode['data']> = {}) {
+// Minimal shape of a child node RootNode.load() interacts with: it only
+// calls load() and getLoadErrors() on each of them.
+interface IChildNodeStub {
+  load: jest.Mock<Promise<void>, any[]>;
+  getLoadErrors: jest.Mock<ILoadError[], []>;
+}
+
+function makeChildNodeStub(): IChildNodeStub {
+  return {
+    load: jest.fn().mockResolvedValue(undefined),
+    getLoadErrors: jest.fn((): ILoadError[] => []),
+  };
+}
+
+function stubChildNodes(
+  node: RootNode,
+  dataOverrides: Omit<Partial<RootNode['data']>, 'sources'> & { sources?: IChildNodeStub } = {},
+) {
+  const { sources: sourcesOverride, ...rest } = dataOverrides;
   node.data = {
-    sources: {
-      load: jest.fn().mockResolvedValue(undefined),
-      getLoadErrors: jest.fn((): any[] => []),
-    },
-    scenes: {
-      load: jest.fn().mockResolvedValue(undefined),
-      getLoadErrors: jest.fn((): any[] => []),
-    },
-    transitions: {
-      load: jest.fn().mockResolvedValue(undefined),
-      getLoadErrors: jest.fn((): any[] => []),
-    },
+    sources: (sourcesOverride ?? makeChildNodeStub()) as unknown as SourcesNode,
+    scenes: makeChildNodeStub() as unknown as ScenesNode,
+    transitions: makeChildNodeStub() as unknown as TransitionsNode,
     hotkeys: undefined,
-    ...dataOverrides,
-  } as any;
+    ...rest,
+  } as RootNode['data'];
 }
 
 describe('RootNode.save()', () => {
@@ -54,11 +78,15 @@ describe('RootNode.save()', () => {
 
     // Avoid depending on the real Sources/Scenes/Transitions/Hotkeys node
     // classes (which pull in obs-studio-node etc.) by stubbing their save().
-    const stub = { save: jest.fn().mockResolvedValue(undefined) };
-    jest.spyOn(require('./sources'), 'SourcesNode').mockImplementation(() => stub as any);
-    jest.spyOn(require('./scenes'), 'ScenesNode').mockImplementation(() => stub as any);
-    jest.spyOn(require('./transitions'), 'TransitionsNode').mockImplementation(() => stub as any);
-    jest.spyOn(require('./hotkeys'), 'HotkeysNode').mockImplementation(() => stub as any);
+    const save = jest.fn().mockResolvedValue(undefined);
+    jest.spyOn(require('./sources'), 'SourcesNode')
+      .mockImplementation(() => ({ save }) as unknown as SourcesNode);
+    jest.spyOn(require('./scenes'), 'ScenesNode')
+      .mockImplementation(() => ({ save }) as unknown as ScenesNode);
+    jest.spyOn(require('./transitions'), 'TransitionsNode')
+      .mockImplementation(() => ({ save }) as unknown as TransitionsNode);
+    jest.spyOn(require('./hotkeys'), 'HotkeysNode')
+      .mockImplementation(() => ({ save }) as unknown as import('./hotkeys').HotkeysNode);
 
     await node.save();
 
@@ -84,7 +112,7 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
       formatId: NAIR_SCENE_COLLECTION_FORMAT_ID,
       formatVersion: CURRENT_FORMAT_VERSION,
       baseResolution: { width: 1280, height: 720 },
-    } as any);
+    });
 
     await node.load();
 
@@ -113,7 +141,7 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
     const scenesService = { rescaleAllScenes: jest.fn() };
     const node = createNode({ videoSettingsService, scenesService });
 
-    stubChildNodes(node, { baseResolution: { width: 1920, height: 1080 } } as any);
+    stubChildNodes(node, { baseResolution: { width: 1920, height: 1080 } });
 
     await node.load();
 
@@ -123,7 +151,7 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
   test('formatVersionが現在のCURRENT_FORMAT_VERSIONより大きい場合はformat警告を追加するが読み込みは継続する', async () => {
     const node = createNode({});
 
-    stubChildNodes(node, { formatVersion: CURRENT_FORMAT_VERSION + 1 } as any);
+    stubChildNodes(node, { formatVersion: CURRENT_FORMAT_VERSION + 1 });
 
     await node.load();
 
@@ -145,7 +173,7 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
     };
     const node = createNode({ videoSettingsService, scenesService });
 
-    stubChildNodes(node, { baseResolution: { width: 1280, height: 720 } } as any);
+    stubChildNodes(node, { baseResolution: { width: 1280, height: 720 } });
 
     await expect(node.load()).resolves.toBeUndefined();
 
@@ -157,7 +185,7 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
   test('formatVersionが現在以下の場合はformat警告を追加しない', async () => {
     const node = createNode({});
 
-    stubChildNodes(node, { formatVersion: CURRENT_FORMAT_VERSION } as any);
+    stubChildNodes(node, { formatVersion: CURRENT_FORMAT_VERSION });
 
     await node.load();
 
@@ -170,9 +198,9 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
     stubChildNodes(node, {
       sources: {
         load: jest.fn().mockRejectedValue(new Error('sources boom')),
-        getLoadErrors: jest.fn((): any[] => []),
+        getLoadErrors: jest.fn((): ILoadError[] => []),
       },
-    } as any);
+    });
 
     await node.load();
 
@@ -182,10 +210,16 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
   });
 });
 
+// RootNode.migrate() reads/writes this.data before it necessarily matches
+// the current ISchema shape (that's the whole point of migrating an older
+// file), including the legacy `transition` (singular) field that predates
+// `transitions`. This type captures exactly that pre-migration shape.
+type IPreMigrationData = Partial<RootNode['data']> & { transition?: unknown };
+
 describe('RootNode.migrate()', () => {
   test('version<=2 のファイルはformatId/formatVersionを補完し、baseResolutionは補完しない', () => {
     const node = createNode({});
-    node.data = { transitions: {} } as any;
+    node.data = { transitions: {} } as IPreMigrationData as RootNode['data'];
 
     node.migrate(2);
 
@@ -197,18 +231,21 @@ describe('RootNode.migrate()', () => {
   test('version===1 は旧transitionフィールドをtransitionsへリネームしつつformatメタも補完する', () => {
     const node = createNode({});
     const legacyTransition = { schemaVersion: 1 };
-    node.data = { transition: legacyTransition } as any;
+    node.data = { transition: legacyTransition } as IPreMigrationData as RootNode['data'];
 
     node.migrate(1);
 
-    expect((node.data as any).transitions).toBe(legacyTransition);
+    expect(node.data.transitions).toBe(legacyTransition);
     expect(node.data.formatId).toBe(NAIR_SCENE_COLLECTION_FORMAT_ID);
     expect(node.data.formatVersion).toBe(CURRENT_FORMAT_VERSION);
   });
 
   test('既にformatId/formatVersionを持つ場合は上書きしない', () => {
     const node = createNode({});
-    node.data = { formatId: 'custom', formatVersion: 42 } as any;
+    node.data = {
+      formatId: 'custom',
+      formatVersion: 42,
+    } as IPreMigrationData as RootNode['data'];
 
     node.migrate(2);
 

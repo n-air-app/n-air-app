@@ -143,14 +143,16 @@ describe('ArrayNode error collection', () => {
   });
 
   test('should skip null/undefined holes left by parse() skipping an unknown nodeType, and report them', async () => {
-    node.data = {
-      items: [
-        { id: '1', name: 'Item 1' },
-        null as any,
-        { id: '2', name: 'Item 2' },
-        undefined as any,
-      ],
-    };
+    // parse() leaves holes as null/undefined in the array; TSchema itself
+    // never legitimately contains them, so the array element type is
+    // widened here rather than typing ITestItemSchema as nullable.
+    const items: (ITestItemSchema | null | undefined)[] = [
+      { id: '1', name: 'Item 1' },
+      null,
+      { id: '2', name: 'Item 2' },
+      undefined,
+    ];
+    node.data = { items: items as ITestItemSchema[] };
 
     await node.load({});
 
