@@ -802,3 +802,80 @@ describe('SceneCollectionsService - fetchSceneCollectionsSchema forward-compat',
     ]);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// load(id): 前方互換の警告が実際に「アプリを終了させず、部分読み込み警告ダイアログ
+// を表示する」という公開エントリポイントのフルパスで確認できることを担保する。
+// 手動での実機確認（未知nodeType/schemaVersion過大なファイルを読む）の代替。
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('SceneCollectionsService - load() forward-compat warning dialog (実機確認の代替)', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  test('未知nodeType/schemaVersion過大な部分エラーがある読み込みは、致命エラーダイアログではなく警告ダイアログのみを表示し、アプリを終了しない', async () => {
+    const mockRoot = {
+      load: jest.fn().mockResolvedValue(undefined),
+      getLoadErrors: jest.fn().mockReturnValue([]),
+    };
+
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockImplementation((data: string, nodeTypes: any, onWarn?: any) => {
+        onWarn?.({ kind: 'unknownNodeType', nodeType: 'SomeFutureNode' });
+        onWarn?.({
+          kind: 'schemaVersionTooNew',
+          nodeType: 'SourcesNode',
+          schemaVersion: 99,
+          maxKnownVersion: 3,
+        });
+        return mockRoot;
+      }),
+    }));
+
+    const mockDialog = require('@electron/remote').dialog;
+    const mockApp = require('@electron/remote').app;
+    mockDialog.showMessageBoxSync.mockClear();
+    mockApp.quit.mockClear();
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        HotkeysService: { bindHotkeys: jest.fn() },
+        ScenesService: { scenes: [{ id: 'scene-1' }] }, // 空でなければ「シーンが0件」エラーにならない
+        SceneCollectionsStateService: {
+          activeCollection: null,
+          collections: [{ id: 'collection-1', name: 'Collection 1' }],
+          collectionFileExists: jest.fn().mockResolvedValue(true),
+          readCollectionFile: jest.fn().mockReturnValue('{}'),
+          writeDataToCollectionFile: jest.fn(),
+        },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    // load() 自体の対象外の副作用（保存、ロード中フラグ管理、コレクション切り替え通知）
+    // をスタブし、対象の"未知データを読んでも継続する"挙動のみを検証する
+    instance.startLoadingOperation = jest.fn();
+    instance.finishLoadingOperation = jest.fn();
+    instance.deloadCurrentApplicationState = jest.fn().mockResolvedValue(undefined);
+    instance.setActiveCollection = jest.fn().mockResolvedValue(undefined);
+
+    await instance.load('collection-1');
+
+    // 致命エラーではないので、終了ダイアログは出ず、アプリも終了しない
+    expect(mockApp.quit).not.toHaveBeenCalled();
+
+    // 部分読み込み警告ダイアログ(type: 'warning')が表示され、未知データの旨が含まれる
+    const warningCalls = mockDialog.showMessageBoxSync.mock.calls.filter(
+      ([opts]: [any]) => opts.type === 'warning',
+    );
+    expect(warningCalls).toHaveLength(1);
+    const errorCalls = mockDialog.showMessageBoxSync.mock.calls.filter(
+      ([opts]: [any]) => opts.type === 'error',
+    );
+    expect(errorCalls).toHaveLength(0);
+  });
+});
