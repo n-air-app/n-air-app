@@ -141,4 +141,28 @@ describe('ArrayNode error collection', () => {
     await node.load({});
     expect(node.getLoadErrors()).toEqual([]);
   });
+
+  test('should skip null/undefined holes left by parse() skipping an unknown nodeType, and report them', async () => {
+    node.data = {
+      items: [
+        { id: '1', name: 'Item 1' },
+        null as any,
+        { id: '2', name: 'Item 2' },
+        undefined as any,
+      ],
+    };
+
+    await node.load({});
+
+    // The holes are dropped before loadItem()/beforeLoad() ever see them,
+    // but reported as a single 'format' load error rather than silently
+    // (a stray null unrelated to a parse-time skip should still be
+    // visible to the user).
+    const errors = node.getLoadErrors();
+    expect(errors).toHaveLength(1);
+    expect(errors[0].type).toBe('format');
+    expect(node.getItems({})).toHaveLength(2);
+    expect(node.getItems({})[0].name).toBe('Item 1');
+    expect(node.getItems({})[1].name).toBe('Item 2');
+  });
 });
