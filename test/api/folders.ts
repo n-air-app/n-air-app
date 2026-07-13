@@ -15,8 +15,8 @@ afterAppStart(async (t) => {
   const client = await getApiClient();
   sceneBuilder = new SceneBuilder(client);
   scene = sceneBuilder.scene;
-  getNode = (name) => scene.getNodeByName(name);
-  getNodeId = (name) => scene.getNodeByName(name).id;
+  getNode = (name) => scene.getNodeByName(name)!;
+  getNodeId = (name) => scene.getNodeByName(name)!.id;
 });
 
 test('Place after and place before', async (t) => {

@@ -88,7 +88,7 @@ export class SceneBuilder {
       const currentLineLevel = foldersStack.length;
       const currentFolder = foldersStack.slice(-1)[0];
       if (currentFolder) {
-        currentFolder.children.push(node);
+        currentFolder.children!.push(node);
       } else {
         result.push(node);
       }
@@ -111,13 +111,13 @@ export class SceneBuilder {
     return result;
   }
 
-  private parseLine(line: string): ISceneBuilderNode {
+  private parseLine(line: string): ISceneBuilderNode | null {
     if (!line.trim()) return null;
     const isItem = line.indexOf(':') !== -1;
     if (isItem) {
       const [fullMatch, name, delemiter, sourceType] = line.match(
         /([a-zA-Z_ .\-\d]+)(:)([a-zA-Z_ \d]*)/,
-      );
+      )!;
       return {
         name: name.trim(),
         type: 'item',
@@ -147,7 +147,7 @@ export class SceneBuilder {
   }
 
   getSceneSchema(folderId?: string): ISceneBuilderNode[] {
-    const nodes = folderId ? this.scene.getFolder(folderId).getNodes() : this.scene.getRootNodes();
+    const nodes = folderId ? this.scene.getFolder(folderId)!.getNodes() : this.scene.getRootNodes();
 
     return nodes.map((sceneNode) => {
       if (sceneNode.isFolder()) {
@@ -182,7 +182,7 @@ export class SceneBuilder {
         sketch += `${node.name}: ${node.sourceType}\n`;
       } else if (node.type === 'folder') {
         sketch += `${node.name}\n`;
-        sketch = this.getSketch(node.children, sketch, level + 1);
+        sketch = this.getSketch(node.children!, sketch, level + 1);
       }
     });
 
@@ -194,10 +194,10 @@ export class SceneBuilder {
       let sceneNode: SceneItemNode;
 
       if (node.type === 'item') {
-        sceneNode = this.scene.createAndAddSource(node.name, node.sourceType);
+        sceneNode = this.scene.createAndAddSource(node.name, node.sourceType as TSourceType)!;
       } else {
-        sceneNode = this.scene.createFolder(node.name);
-        if (node.children.length) this.buildNodes(node.children, sceneNode.id);
+        sceneNode = this.scene.createFolder(node.name)!;
+        if (node.children!.length) this.buildNodes(node.children!, sceneNode.id);
       }
 
       node.id = sceneNode.id;

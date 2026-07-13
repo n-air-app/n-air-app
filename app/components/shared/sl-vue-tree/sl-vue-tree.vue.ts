@@ -209,7 +209,7 @@ export default defineComponent({
           : [],
         isSelected: !!nodeModel.isSelected,
         isExpanded,
-        isVisible,
+        isVisible: isVisible ?? undefined,
         isDraggable,
         isSelectable,
         data: nodeModel.data !== void 0 ? nodeModel.data : {},
@@ -220,7 +220,7 @@ export default defineComponent({
         level: path.length,
         ind,
         isFirstChild: ind === 0,
-        isLastChild: ind === siblings.length - 1,
+        isLastChild: siblings ? ind === siblings.length - 1 : false,
       };
       return node;
     },
@@ -723,11 +723,11 @@ export default defineComponent({
 
       const nodes = [];
 
-      for (let nodeInd = 0; nodeInd < nodeModels.length; nodeInd++) {
-        const nodeModel = nodeModels[nodeInd];
+      for (let nodeInd = 0; nodeInd < nodeModels!.length; nodeInd++) {
+        const nodeModel = nodeModels![nodeInd];
         const itemPath = parentPath.concat(nodeInd);
         const node = this.getNode(itemPath, nodeModel, nodeModels);
-        shouldStop = cb(node!, nodeModel, nodeModels) === false;
+        shouldStop = cb(node!, nodeModel, nodeModels!) === false;
         nodes.push(node!);
 
         if (shouldStop) break;

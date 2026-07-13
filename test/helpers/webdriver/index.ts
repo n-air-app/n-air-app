@@ -62,7 +62,7 @@ class Application {
   stop() {
     if (!this.process) return;
     this.process.kill();
-    this.process = null;
+    this.process = null as unknown as ChildProcess.ChildProcess;
   }
 
   async waitForChromedriver() {

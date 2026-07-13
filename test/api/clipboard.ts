@@ -30,8 +30,8 @@ afterAppStart(async (t) => {
   sceneCollectionsService = client.getResource('SceneCollectionsService');
   sourceFiltersService = client.getResource('SourceFiltersService');
   sceneBuilder = new SceneBuilder(client);
-  getNode = (name) => sceneBuilder.scene.getNodeByName(name);
-  getNodeId = (name) => sceneBuilder.scene.getNodeByName(name).id;
+  getNode = (name) => sceneBuilder.scene.getNodeByName(name)!;
+  getNodeId = (name) => sceneBuilder.scene.getNodeByName(name)!.id;
 });
 
 test('Simple copy/paste', async (t) => {
@@ -172,7 +172,7 @@ test('Copy/paste scenes between scene collections', async (t) => {
   `);
 
   const scene1 = scenesService.getScenes()[0];
-  const scene2 = scenesService.createScene('Scene2');
+  const scene2 = scenesService.createScene('Scene2')!;
   scene2.makeActive();
 
   sceneBuilder.build(`
@@ -202,7 +202,7 @@ test('Copy/paste scenes between scene collections', async (t) => {
 
   scenesService
     .getScenes()
-    .find((scene) => scene.name === 'Scene2')
+    .find((scene) => scene.name === 'Scene2')!
     .makeActive();
 
   t.true(

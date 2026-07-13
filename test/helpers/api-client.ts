@@ -11,7 +11,7 @@ const PIPE_NAME = 'n-air-app';
 const PIPE_PATH = '\\\\.\\pipe\\' + PIPE_NAME;
 const PROMISE_TIMEOUT = 20000;
 
-let clientInstance: ApiClient = null;
+let clientInstance: ApiClient | null = null;
 
 export type TConnectionStatus = 'disconnected' | 'pending' | 'connected';
 
@@ -88,8 +88,8 @@ export class ApiClient {
 
   disconnect() {
     this.socket.end();
-    this.resolveConnection = null;
-    this.rejectConnection = null;
+    this.resolveConnection = null as unknown as Function;
+    this.rejectConnection = null as unknown as Function;
   }
 
   getConnectionStatus(): TConnectionStatus {
