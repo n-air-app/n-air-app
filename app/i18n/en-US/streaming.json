@@ -54,7 +54,8 @@
   "optimizationForNiconico": {
     "title": "Optimize simple settings",
     "description": "Optimize simple settings to deliver Nicolive.",
-    "recordingWarning": "Cannot optimize while recording. Start streaming without optimization, or stop recording and start streaming again."
+    "recordingWarning": "Cannot optimize while recording. Start streaming without optimization, or stop recording and start streaming again.",
+    "canvasResolutionWarning": "Streaming resolution was limited to {applied} to match your canvas resolution ({canvas}). To stream at higher quality ({recommended}), increase the canvas resolution in Settings > Video."
   },
   "nicoliveProgramSelector": {
     "title": "Select a program",
