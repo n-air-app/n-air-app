@@ -84,15 +84,20 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
    * The below conditionals are to prevent undefined errors on app startup
    */
   get baseResolutions() {
-    const [widthStr, heightStr] = this.settingsService.state.Video.Base.split('x');
-    const baseWidth = widthStr ? parseInt(widthStr, 10) : 1920;
-    const baseHeight = heightStr ? parseInt(heightStr, 10) : 1080;
+    // this.state.horizontal は migrateSettings() で補正済みの値を持つ。
+    // settingsService.state.Video.Base（OBS raw 値）は初回起動時に '0x0' を返すことがあるため使わない。
+    const stateWidth = this.state.horizontal?.baseWidth;
+    const stateHeight = this.state.horizontal?.baseHeight;
+    if (!stateWidth || !stateHeight) {
+      console.warn('[VideoSettingsService] baseResolutions: state is not ready, using fallback. state=', this.state.horizontal);
+    }
+    const baseWidth = stateWidth || 1920;
+    const baseHeight = stateHeight || 1080;
 
     return {
       horizontal: { baseWidth, baseHeight },
       // vertical: { baseWidth, baseHeight },
     };
-
     // // const videoSettings = this.dualOutputService.views.videoSettings;
     // const [widthStr, heightStr] = this.settingsService.views.values.Video.Base.split('x');
 

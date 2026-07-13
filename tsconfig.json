@@ -1,12 +1,13 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["dom", "es7", "es2017", "ES2020", "ES2022"],
+    "target": "es2022",
+    "lib": ["dom", "ES2022"],
     "module": "es2015",
     "moduleResolution": "node",
     "isolatedModules": false,
     "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -16,7 +17,6 @@
     "sourceRoot": "/",
     "allowJs": false,
     "emitDecoratorMetadata": false,
-    "downlevelIteration": true,
     "baseUrl": "./app",
     "jsx": "preserve",
     "skipLibCheck": true,

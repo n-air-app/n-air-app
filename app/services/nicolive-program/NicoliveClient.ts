@@ -68,8 +68,30 @@ export type FailedResult = {
     route: RequestRoute;
     httpStatus?: number;
     failureKind: FailureKind;
+    /** fetch 失敗時の Node.js/OpenSSL エラーコード(例: SELF_SIGNED_CERT_IN_CHAIN)。主に main 経路で取得できる */
+    errorCode?: string;
   };
 };
+
+/**
+ * TLS 証明書の検証失敗を示す Node.js/OpenSSL のエラーコード群。
+ * これらは主にユーザー環境(ウイルス対策ソフトや社内プロキシによる SSL 傍受、
+ * 証明書の期限切れ・時刻ずれ等)に起因し、通常の「ネットワークエラー」とは
+ * 区別して原因をユーザーに提示する。
+ */
+export const CERTIFICATE_ERROR_CODES = new Set<string>([
+  'SELF_SIGNED_CERT_IN_CHAIN',
+  'DEPTH_ZERO_SELF_SIGNED_CERT',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+  'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+  'CERT_HAS_EXPIRED',
+  'CERT_NOT_YET_VALID',
+  'ERR_TLS_CERT_ALTNAME_INVALID',
+]);
+
+export function isCertificateErrorCode(code: string | undefined | null): boolean {
+  return typeof code === 'string' && code !== '' && CERTIFICATE_ERROR_CODES.has(code);
+}
 
 /**
  * JSONで結果が返ってくることまでを信用したEitherのようなもの
@@ -224,6 +246,23 @@ export class NicoliveClient {
     };
   }
 
+  /**
+   * res.json() を直接呼ぶと、サーバーやプロキシがエラー時にプレーンテキスト
+   * (例: "upstream connect error or disconnect/reset before headers") を返した場合、
+   * SyntaxError が catch されずに伝播してクラッシュ扱いになる。
+   * 代わりに本メソッドで text() → JSON.parse を行い、非JSON応答を明示的なエラーに変換する。
+   */
+  private static async parseJsonOrThrow(res: Response, context: string): Promise<any> {
+    const body = await res.text();
+    try {
+      return JSON.parse(body);
+    } catch (e) {
+      // body全文をログに出すとupstream障害時にログ/IPC転送量が増えるため先頭のみ
+      console.warn(`${context}: non-json body`, body.slice(0, 200));
+      throw new Error(`${context}: response is not valid JSON (status=${res.status})`, { cause: e });
+    }
+  }
+
   static async wrapResult<ResultType>(
     res: Response | MainProcessFetchResponse,
     route: RequestRoute = 'renderer',
@@ -271,13 +310,21 @@ export class NicoliveClient {
     };
   }
 
-  /** main.js の fetch handler が投げる [MAIN_FETCH_FAIL code=ECODE] 接頭辞のパターン */
-  private static readonly MAIN_FETCH_FAIL_RE = /^\[MAIN_FETCH_FAIL code=([^\]]*)\]/;
+  /**
+   * main.js の fetch handler が投げる [MAIN_FETCH_FAIL code=ECODE] マーカーのパターン。
+   * Electron IPC は main 側 Error を renderer に伝搬する際
+   * `Error invoking remote method 'fetch': Error: [MAIN_FETCH_FAIL code=...] ...` のように
+   * 接頭辞を付けるため、行頭アンカーは付けず message 中のどこにあってもマッチさせる。
+   */
+  private static readonly MAIN_FETCH_FAIL_RE = /\[MAIN_FETCH_FAIL code=([^\]]*)\]/;
 
   static async wrapFetchError(err: Error, route: RequestRoute = 'renderer'): Promise<FailedResult> {
     // main 経由 fetch の失敗は [MAIN_FETCH_FAIL code=...] 接頭辞で判別できる
-    const isMainFail = NicoliveClient.MAIN_FETCH_FAIL_RE.test(err.message);
+    const mainFailMatch = NicoliveClient.MAIN_FETCH_FAIL_RE.exec(err.message);
+    const isMainFail = mainFailMatch !== null;
     const effectiveRoute: RequestRoute = isMainFail ? 'main' : route;
+    // 接頭辞に埋め込まれた Node.js/OpenSSL のエラーコードを取り出す(空文字の場合あり)
+    const errorCode = mainFailMatch?.[1] || undefined;
 
     const failureKind: FailureKind =
       err instanceof NotLoggedInError ? 'not_logged_in' : 'network_error';
@@ -285,7 +332,7 @@ export class NicoliveClient {
     return {
       ok: false,
       value: err,
-      diag: { route: effectiveRoute, failureKind },
+      diag: { route: effectiveRoute, failureKind, errorCode },
     };
   }
 
@@ -468,10 +515,9 @@ export class NicoliveClient {
     const userSession = await this.fetchSession();
     headers.append('X-niconico-session', userSession);
     const request = new Request(url, { headers });
-    return await fetch(request)
-      .then(handleErrors)
-      .then((response) => response.json())
-      .then((json) => json.data);
+    const response = await fetch(request).then(handleErrors);
+    const json = await NicoliveClient.parseJsonOrThrow(response, 'fetchOnairUserProgram');
+    return json.data;
   }
 
   /**
@@ -686,7 +732,7 @@ export class NicoliveClient {
       ),
     );
     if (res.ok) {
-      const json = (await res.json()) as KonomiTags;
+      const json = (await NicoliveClient.parseJsonOrThrow(res, 'fetchKonomiTags')) as KonomiTags;
       return json.konomi_tags;
     }
     throw new Error(`fetchKonomiTags failed: ${res.status} ${res.statusText}`);
@@ -709,7 +755,7 @@ export class NicoliveClient {
       }),
     );
     if (res.ok) {
-      const json = await res.json();
+      const json = await NicoliveClient.parseJsonOrThrow(res, 'fetchUserFollow');
       console.info('fetchUserFollow', json);
       if (isValidUserFollowStatusResponse(json)) {
         return json.data.following;
@@ -767,7 +813,9 @@ export class NicoliveClient {
       }),
     );
     if (!res.ok) {
-      console.info('unFollowUser', userId, res, await res.json());
+      // ログ目的なのでJSONパースは不要 — body がプレーンテキストの場合に
+      // res.json() が SyntaxError を投げて本来のエラーを潰してしまうのを避ける
+      console.info('unFollowUser', userId, res, await res.text());
       throw new Error(`unFollowUser failed: ${res.status} ${res.statusText}`);
     }
   }

@@ -671,6 +671,8 @@
   "cacheManagement": "Management of the cache",
   "noticeIpcError": "OBS module is not responding. Restart the app?",
   "noticeIpcErrorDetail": "Communication with OBS has been disconnected. Restarting may resolve the issue.",
+  "rescaleSceneItemsConfirm": "You are about to change the base (canvas) resolution from {oldBase} to {newBase}. Do you want to scale all scene items to match the new resolution and keep the existing layout?\nChoosing \"No\" will change the resolution without adjusting the layout.\nChoosing \"Cancel\" will keep the current resolution.",
+  "rescaleSceneItemsFailed": "An error occurred while scaling scene items. Some scene items may have been rescaled and others may not.",
   "noticeWhileStreaming": "Some settings cannot be changed while streaming.",
   "noticeLoginRequired": "This feature is for niconico live comments only. Please log in to your niconico account to use it.",
   "noticeForStreaming": "The URL/stream key will be set automatically according to the niconico account you are logged in to on N Air when you start streaming.",

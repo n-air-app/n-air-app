@@ -5,6 +5,7 @@ import { IObsButtonInputValue, TObsType } from './ObsInput';
 
 const ObsButtonInput = defineComponent({
   name: 'ObsButtonInput',
+  emits: ['input'],
   props: {
     value: { type: Object as PropType<IObsButtonInputValue>, required: true as const },
     category: { type: String },

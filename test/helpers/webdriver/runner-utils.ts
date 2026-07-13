@@ -67,7 +67,7 @@ export const testFn: TestFn<ITestContext> = new Proxy(avaTest, {
       return;
     }
     pendingTests.push(testName);
-    return target.apply(thisArg, args);
+    return (target as (...args: unknown[]) => unknown).apply(thisArg, args);
   },
 });
 

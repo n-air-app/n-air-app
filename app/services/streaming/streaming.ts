@@ -275,8 +275,20 @@ export class StreamingService
 
           // 失敗種別に応じてメッセージを出し分ける
           let message: string;
-          if (!failure || (failure.type === 'network_error' && failure.reason === 'network_error')) {
-            message = $t('streaming.broadcastStatusFetchingError.networkError');
+          if (failure && failure.type === 'network_error' && failure.reason === 'certificate_error') {
+            // TLS 証明書の検証失敗。原因(セキュリティソフト/プロキシ/端末時刻等)は code だけでは
+            // 断定できないため、中立的なヒント + 切り分け用の原因コードを提示する
+            message = $t('streaming.broadcastStatusFetchingError.certificateError', {
+              errorCode: failure.errorCode || 'unknown',
+            });
+          } else if (!failure || (failure.type === 'network_error' && failure.reason === 'network_error')) {
+            // 接続系エラー全般。原因コード(ENOTFOUND/ETIMEDOUT/ECONNRESET 等)が取れていれば
+            // 切り分けのために併記する
+            message = failure?.errorCode
+              ? $t('streaming.broadcastStatusFetchingError.networkErrorWithCode', {
+                errorCode: failure.errorCode,
+              })
+              : $t('streaming.broadcastStatusFetchingError.networkError');
           } else if (failure.type === 'network_error' && failure.reason === 'set_settings_failed') {
             message = $t('streaming.broadcastStatusFetchingError.settingsError');
           } else if (failure.type === 'http_error') {
@@ -478,8 +490,13 @@ export class StreamingService
       fps: streamingSetting.quality.fps,
       useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
     });
-    if (Object.keys(settings.delta).length > 0 || mustShowDialog) {
-      if (this.customizationService.showOptimizationDialogForNiconico || mustShowDialog || this.isRecording) {
+    if (Object.keys(settings.delta).length > 0 || mustShowDialog || settings.canvasResolutionWarning) {
+      if (
+        this.customizationService.showOptimizationDialogForNiconico
+        || mustShowDialog
+        || this.isRecording
+        || settings.canvasResolutionWarning
+      ) {
         this.windowsService.showWindow({
           componentName: 'OptimizeForNiconico',
           title: $t('streaming.optimizationForNiconico.title'),

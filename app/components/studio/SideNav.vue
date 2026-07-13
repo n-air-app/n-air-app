@@ -6,7 +6,7 @@
           <i v-if="isCompactMode" class="icon-full-mode" :title="$t('common.fullMode')" />
           <i v-if="!isCompactMode" class="icon-compact-mode" :title="$t('common.compactMode')" />
           <help-tip
-            v-if="isCompactMode"
+            v-if="isCompactMode && compactModeTab !== 'studio'"
             :dismissable-key="CompactModeToggleHelpTipDismissable"
             mode="compact-mode-toggle"
           >

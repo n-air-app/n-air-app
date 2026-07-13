@@ -1,5 +1,4 @@
-import { Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';

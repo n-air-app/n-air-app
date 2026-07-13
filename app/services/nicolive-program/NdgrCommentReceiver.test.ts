@@ -317,7 +317,7 @@ describe('convertChunkedMessageToMessageResponse', () => {
         message: {
           simpleNotificationV2: {
             type: dwango.nicolive.chat.data.atoms.SimpleNotificationV2.NotificationType
-              .CREATOR_SUPPORT_GOAL_ACHIRVEMENT,
+              .CREATOR_SUPPORT_GOAL_ACHIEVEMENT,
             message: 'goalAchievedMessage',
           },
         },

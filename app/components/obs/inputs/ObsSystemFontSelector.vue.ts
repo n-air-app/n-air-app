@@ -26,6 +26,7 @@ interface IFontSelect extends HTMLElement {
 
 export default defineComponent({
   name: 'ObsSystemFontSelector',
+  emits: ['input'],
   components: { Dropdown, FontSizeSelector: ObsFontSizeSelector },
   props: {
     value: { type: Object as PropType<IObsInput<IObsFont>>, required: true as const },

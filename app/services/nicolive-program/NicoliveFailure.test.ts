@@ -35,7 +35,10 @@ function prepare(codeExists: string) {
 }
 
 test('4xxで未定義文言だったら400にフォールバックする', async () => {
-  jest.doMock('./NicoliveClient', () => ({ NotLoggedInError: class {} }));
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
   const { showMessageBox, NicoliveFailure, openErrorDialogFromFailure } = prepare('400');
   const failure = NicoliveFailure.fromClientError('method', {
     ok: false,
@@ -96,7 +99,10 @@ test('errorCodeがなかったらstatusCode さらに x00 を使う', async () =
 });
 
 test('network_error タイプの場合は Sentry に送信しないが dialog は表示する', async () => {
-  jest.doMock('./NicoliveClient', () => ({ NotLoggedInError: class {} }));
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
   const { showMessageBox, sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
   const failure = NicoliveFailure.fromClientError('method', {
     ok: false,
@@ -108,8 +114,46 @@ test('network_error タイプの場合は Sentry に送信しないが dialog �
   expect(showMessageBox).toHaveBeenCalled();
 });
 
+test('証明書エラーコードの場合は reason=certificate_error / errorCode を保持し network_error 扱いになる', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: (code: string) => code === 'SELF_SIGNED_CERT_IN_CHAIN',
+  }));
+  const { NicoliveFailure } = prepare('network_error');
+  const failure = NicoliveFailure.fromClientError('fetchIngestInfo', {
+    ok: false,
+    value: new Error('[MAIN_FETCH_FAIL code=SELF_SIGNED_CERT_IN_CHAIN] fetch failed'),
+    diag: { route: 'main', failureKind: 'network_error', errorCode: 'SELF_SIGNED_CERT_IN_CHAIN' },
+  });
+
+  // Sentry で環境要因を区別できるよう errorCode が残る。type は network_error のまま(Sentry送信は抑制)
+  expect(failure.type).toBe('network_error');
+  expect(failure.reason).toBe('certificate_error');
+  expect(failure.errorCode).toBe('SELF_SIGNED_CERT_IN_CHAIN');
+});
+
+test('certificate_error は method 個別文言が無くても network_error 文言にフォールバックし空ダイアログにならない', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: (code: string) => code === 'SELF_SIGNED_CERT_IN_CHAIN',
+  }));
+  const { showMessageBox, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const failure = NicoliveFailure.fromClientError('fetchIngestInfo', {
+    ok: false,
+    value: new Error('[MAIN_FETCH_FAIL code=SELF_SIGNED_CERT_IN_CHAIN] fetch failed'),
+    diag: { route: 'main', failureKind: 'network_error', errorCode: 'SELF_SIGNED_CERT_IN_CHAIN' },
+  });
+
+  await openErrorDialogFromFailure(failure);
+  // fallbackChain の末尾 network_error に到達して文言が引けている(空でない)
+  expect(showMessageBox.mock.calls[0][1].message).toBe('message');
+});
+
 test('http_error タイプの場合は Sentry に送信する', async () => {
-  jest.doMock('./NicoliveClient', () => ({ NotLoggedInError: class {} }));
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
   const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('500');
   const failure = NicoliveFailure.fromClientError('method', {
     ok: false,

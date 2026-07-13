@@ -42,6 +42,8 @@
     "default": "Failed to get information on streaming server.  Please check your internet connection.",
     "httpError": "Failed to get information on streaming server. ({requestURL}: {statusText})",
     "networkError": "Failed to start streaming. Please check your internet connection and try again.",
+    "networkErrorWithCode": "Failed to get information required for streaming (code: {errorCode}). Please check your internet connection and try again.",
+    "certificateError": "Could not establish a secure connection to the streaming server (code: {errorCode}). The SSL certificate on the connection path could not be verified. This can be caused by security software or a proxy intercepting traffic, or by an incorrect date/time setting on your device.",
     "serverError": "An error occurred on the niconico side while preparing to stream (code: {statusCode}). Please wait a moment and try again.",
     "settingsError": "Failed to save streaming settings. Please restart N Air and try again."
   },
@@ -52,7 +54,8 @@
   "optimizationForNiconico": {
     "title": "Optimize simple settings",
     "description": "Optimize simple settings to deliver Nicolive.",
-    "recordingWarning": "Cannot optimize while recording. Start streaming without optimization, or stop recording and start streaming again."
+    "recordingWarning": "Cannot optimize while recording. Start streaming without optimization, or stop recording and start streaming again.",
+    "canvasResolutionWarning": "Streaming resolution was limited to {applied} to match your canvas resolution ({canvas}). To stream at higher quality ({recommended}), increase the canvas resolution in Settings > Video."
   },
   "nicoliveProgramSelector": {
     "title": "Select a program",
