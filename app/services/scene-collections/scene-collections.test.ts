@@ -7,6 +7,8 @@ import * as Sentry from '@sentry/vue';
 import { ISceneCollectionsManifestEntry } from 'services/scene-collections/scene-collections-api';
 import { createSetupFunction } from 'util/test-setup';
 
+import { IParseWarning } from './parse';
+
 // Mock dependencies
 jest.mock('@sentry/vue', () => ({
   withScope: jest.fn(),
@@ -583,5 +585,304 @@ describe('SceneCollectionsService - exportCollection / importCollection', () => 
     await instance.exportCollection('active-id', '/tmp/export.json');
 
     expect(instance.save).toHaveBeenCalled();
+  });
+
+  test('importCollection(): formatIdがN Air形式と異なる場合は例外を投げる', async () => {
+    const mockStateService = {
+      ensureDirectory: jest.fn().mockResolvedValue(undefined),
+      writeDataToCollectionFile: jest.fn(),
+      ADD_COLLECTION: jest.fn(),
+    };
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: mockStateService,
+      },
+    });
+    setupFn();
+
+    // RootNodeのインスタンスだが formatId が N Air のものと異なる（別形式に分岐したファイル）
+    const { RootNode } = require('./nodes/root');
+    const fakeRoot = Object.create(RootNode.prototype);
+    fakeRoot.data = { formatId: 'some-other-format' };
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockReturnValue(fakeRoot),
+    }));
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    await expect(instance.importCollection('test', '{}')).rejects.toThrow();
+
+    expect(mockStateService.writeDataToCollectionFile).not.toHaveBeenCalled();
+    expect(mockStateService.ADD_COLLECTION).not.toHaveBeenCalled();
+  });
+
+  test('importCollection(): formatIdが無い旧形式ファイルは許容される', async () => {
+    const mockStateService = {
+      collections: [] as ISceneCollectionsManifestEntry[],
+      ensureDirectory: jest.fn().mockResolvedValue(undefined),
+      writeDataToCollectionFile: jest.fn(),
+      ADD_COLLECTION: jest.fn(),
+    };
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: mockStateService,
+      },
+    });
+    setupFn();
+
+    // formatId フィールド自体が無い（Streamlabs OBS由来、またはformatId導入前のN Airファイル）
+    const { RootNode } = require('./nodes/root');
+    const fakeRoot = Object.create(RootNode.prototype);
+    fakeRoot.data = { sources: {}, scenes: {} };
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockReturnValue(fakeRoot),
+    }));
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    instance.getCollection = jest.fn().mockReturnValue({ id: 'new-id', name: 'test' });
+    instance.collectionAdded = { next: jest.fn() };
+
+    const result = await instance.importCollection('test', '{}');
+
+    expect(mockStateService.writeDataToCollectionFile).toHaveBeenCalled();
+    expect(mockStateService.ADD_COLLECTION).toHaveBeenCalled();
+    expect(result).toEqual({ id: 'new-id', name: 'test' });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// loadDataIntoApplicationState: parse() の前方互換警告が ILoadError に合流するか
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('SceneCollectionsService - loadDataIntoApplicationState forward-compat warnings', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  test('parse()のonWarnコールバックによる警告がroot.getLoadErrors()の結果に合流する', async () => {
+    const mockRoot = {
+      load: jest.fn().mockResolvedValue(undefined),
+      getLoadErrors: jest.fn().mockReturnValue([
+        { type: 'source', name: 'Failed Source', error: new Error('boom') },
+      ]),
+    };
+
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockImplementation((
+        data: string,
+        nodeTypes: unknown,
+        onWarn?: (warning: IParseWarning) => void,
+      ) => {
+        onWarn?.({ kind: 'unknownNodeType', nodeType: 'SomeFutureNode' });
+        onWarn?.({
+          kind: 'schemaVersionTooNew',
+          nodeType: 'SourcesNode',
+          schemaVersion: 99,
+          maxKnownVersion: 3,
+        });
+        return mockRoot;
+      }),
+    }));
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        HotkeysService: { bindHotkeys: jest.fn() },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    const loadErrors = await instance['loadDataIntoApplicationState']('{}');
+
+    // 既存のload error（root.getLoadErrors()由来）+ parse警告2件、致命エラーにはならない
+    expect(loadErrors).toHaveLength(3);
+    expect(loadErrors[0]).toEqual({
+      type: 'source',
+      name: 'Failed Source',
+      error: expect.any(Error),
+    });
+    expect(loadErrors[1].type).toBe('format');
+    expect(loadErrors[2].type).toBe('format');
+  });
+
+  test('警告が無い場合はroot.getLoadErrors()の結果のみが返る', async () => {
+    const mockRoot = {
+      load: jest.fn().mockResolvedValue(undefined),
+      getLoadErrors: jest.fn().mockReturnValue([]),
+    };
+
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockReturnValue(mockRoot),
+    }));
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        HotkeysService: { bindHotkeys: jest.fn() },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    const loadErrors = await instance['loadDataIntoApplicationState']('{}');
+
+    expect(loadErrors).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// fetchSceneCollectionsSchema: parse()が残すholeを個別要素レベルで防御する
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('SceneCollectionsService - fetchSceneCollectionsSchema forward-compat', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  test('scenes/sources配列内にholeがあっても例外を投げず、hole以外の要素は結果に含まれる', async () => {
+    const mockRoot = {
+      data: {
+        scenes: {
+          data: {
+            items: [
+              null, // 未知nodeTypeによりparse()が残したhole
+              {
+                id: 'scene-1',
+                name: 'Scene 1',
+                sceneItems: { data: { items: [null, { id: 'item-1', sourceId: 'source-1' }] } },
+              },
+            ],
+          },
+        },
+        sources: {
+          data: {
+            items: [
+              undefined, // 未知nodeTypeによりparse()が残したhole
+              { id: 'source-1', name: 'Source 1', type: 'browser_source', channel: 0 },
+            ],
+          },
+        },
+      },
+    };
+
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockReturnValue(mockRoot),
+    }));
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        SceneCollectionsStateService: {
+          collections: [{ id: 'collection-1', name: 'Collection 1' }],
+          readCollectionFile: jest.fn().mockReturnValue('{}'),
+        },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    const result = await instance.fetchSceneCollectionsSchema();
+
+    expect(result).toEqual([
+      {
+        id: 'collection-1',
+        name: 'Collection 1',
+        scenes: [
+          {
+            id: 'scene-1',
+            name: 'Scene 1',
+            sceneItems: [{ sceneItemId: 'item-1', sourceId: 'source-1' }],
+          },
+        ],
+        sources: [{ sourceId: 'source-1', name: 'Source 1', type: 'browser_source', channel: 0 }],
+      },
+    ]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// load(id): 前方互換の警告が実際に「アプリを終了させず、部分読み込み警告ダイアログ
+// を表示する」という公開エントリポイントのフルパスで確認できることを担保する。
+// 手動での実機確認（未知nodeType/schemaVersion過大なファイルを読む）の代替。
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('SceneCollectionsService - load() forward-compat warning dialog (実機確認の代替)', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  test('未知nodeType/schemaVersion過大な部分エラーがある読み込みは、致命エラーダイアログではなく警告ダイアログのみを表示し、アプリを終了しない', async () => {
+    const mockRoot = {
+      load: jest.fn().mockResolvedValue(undefined),
+      getLoadErrors: jest.fn().mockReturnValue([]),
+    };
+
+    jest.doMock('./parse', () => ({
+      parse: jest.fn().mockImplementation((
+        data: string,
+        nodeTypes: unknown,
+        onWarn?: (warning: IParseWarning) => void,
+      ) => {
+        onWarn?.({ kind: 'unknownNodeType', nodeType: 'SomeFutureNode' });
+        onWarn?.({
+          kind: 'schemaVersionTooNew',
+          nodeType: 'SourcesNode',
+          schemaVersion: 99,
+          maxKnownVersion: 3,
+        });
+        return mockRoot;
+      }),
+    }));
+
+    const mockDialog = require('@electron/remote').dialog;
+    const mockApp = require('@electron/remote').app;
+    mockDialog.showMessageBoxSync.mockClear();
+    mockApp.quit.mockClear();
+
+    const setupFn = createSetupFunction({
+      injectee: {
+        HotkeysService: { bindHotkeys: jest.fn() },
+        ScenesService: { scenes: [{ id: 'scene-1' }] }, // 空でなければ「シーンが0件」エラーにならない
+        SceneCollectionsStateService: {
+          activeCollection: null,
+          collections: [{ id: 'collection-1', name: 'Collection 1' }],
+          collectionFileExists: jest.fn().mockResolvedValue(true),
+          readCollectionFile: jest.fn().mockReturnValue('{}'),
+          writeDataToCollectionFile: jest.fn(),
+        },
+      },
+    });
+    setupFn();
+
+    const { SceneCollectionsService } = require('./scene-collections');
+    const instance = SceneCollectionsService.instance();
+
+    // load() 自体の対象外の副作用（保存、ロード中フラグ管理、コレクション切り替え通知）
+    // をスタブし、対象の"未知データを読んでも継続する"挙動のみを検証する
+    instance.startLoadingOperation = jest.fn();
+    instance.finishLoadingOperation = jest.fn();
+    instance.deloadCurrentApplicationState = jest.fn().mockResolvedValue(undefined);
+    instance.setActiveCollection = jest.fn().mockResolvedValue(undefined);
+
+    await instance.load('collection-1');
+
+    // 致命エラーではないので、終了ダイアログは出ず、アプリも終了しない
+    expect(mockApp.quit).not.toHaveBeenCalled();
+
+    // 部分読み込み警告ダイアログ(type: 'warning')が表示され、未知データの旨が含まれる
+    const dialogCalls: { type: string }[][] = mockDialog.showMessageBoxSync.mock.calls;
+    const warningCalls = dialogCalls.filter(([opts]) => opts.type === 'warning');
+    expect(warningCalls).toHaveLength(1);
+    const errorCalls = dialogCalls.filter(([opts]) => opts.type === 'error');
+    expect(errorCalls).toHaveLength(0);
   });
 });

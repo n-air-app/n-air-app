@@ -31,13 +31,13 @@ import {
 } from '.';
 import { HotkeysNode } from './nodes/hotkeys';
 import { ILoadError } from './nodes/node';
-import { RootNode } from './nodes/root';
+import { NAIR_SCENE_COLLECTION_FORMAT_ID, RootNode } from './nodes/root';
 import { SceneFiltersNode } from './nodes/scene-filters';
 import { ISceneItemInfo, SceneItemsNode } from './nodes/scene-items';
 import { ISceneSchema, ScenesNode } from './nodes/scenes';
 import { ISourceInfo, SourcesNode } from './nodes/sources';
 import { TransitionsNode } from './nodes/transitions';
-import { parse } from './parse';
+import { IParseWarning, parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
 
 export const NODE_TYPES = {
@@ -523,6 +523,17 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     if (!(root instanceof RootNode)) {
       throw new Error('This file is not a valid N Air scene collection.');
     }
+    // A formatId is only ever absent on files predating this field
+    // (including ones originally written by Streamlabs OBS, which never
+    // had it) -- those are accepted and migrated. A *present but
+    // different* formatId means the file diverged into some other format
+    // that happens to reuse our node type names, which we reject outright.
+    if (
+      root.data?.formatId !== undefined
+      && root.data.formatId !== NAIR_SCENE_COLLECTION_FORMAT_ID
+    ) {
+      throw new Error('This file is not a valid N Air scene collection.');
+    }
 
     const id: string = uuidv4();
     await this.stateService.ensureDirectory();
@@ -603,27 +614,37 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
       promises.push(
         new Promise<ISceneCollectionSchema>((resolve) => {
+          // parse() may have skipped unknown nodeTypes (from a newer app
+          // version), leaving `undefined` holes in these arrays (this
+          // method reads root.data directly instead of calling root.load(),
+          // so ArrayNode's own hole-filtering never runs here). Defend
+          // against both missing containers and individual holes instead
+          // of throwing.
           const root = parse(data, NODE_TYPES);
+          const sceneItems = (root?.data?.scenes?.data?.items ?? []).filter(Boolean);
+          const sourceItems = (root?.data?.sources?.data?.items ?? []).filter(Boolean);
           const collectionSchema: ISceneCollectionSchema = {
             id: collection.id,
             name: collection.name,
 
-            scenes: root.data.scenes.data.items.map((sceneData: ISceneSchema) => {
+            scenes: sceneItems.map((sceneData: ISceneSchema) => {
               return {
                 id: sceneData.id,
                 name: sceneData.name,
-                sceneItems: sceneData.sceneItems.data.items.map((sceneItemData) => {
-                  return {
-                    sceneItemId: sceneItemData.id,
-                    sourceId: (sceneItemData as ISceneItemInfo).sourceId,
-                  };
-                }),
+                sceneItems: (sceneData.sceneItems?.data?.items ?? [])
+                  .filter(Boolean)
+                  .map((sceneItemData) => {
+                    return {
+                      sceneItemId: sceneItemData.id,
+                      sourceId: (sceneItemData as ISceneItemInfo).sourceId,
+                    };
+                  }),
               };
             }),
 
-            sources: root.data.sources.data.items.map((sourceData: ISourceInfo) => {
+            sources: sourceItems.map((sourceData: ISourceInfo) => {
               return {
-                id: sourceData.id,
+                sourceId: sourceData.id,
                 name: sourceData.name,
                 type: sourceData.type,
                 channel: sourceData.channel,
@@ -695,10 +716,29 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * @returns Array of load errors that occurred during loading
    */
   private async loadDataIntoApplicationState(data: string): Promise<ILoadError[]> {
-    const root = parse(data, NODE_TYPES);
+    const parseWarnings: IParseWarning[] = [];
+    const root = parse(data, NODE_TYPES, (warning) => parseWarnings.push(warning));
     await root.load();
     this.hotkeysService.bindHotkeys();
-    return root.getLoadErrors();
+    const loadErrors = root.getLoadErrors();
+    parseWarnings.forEach((warning) => loadErrors.push(this.parseWarningToLoadError(warning)));
+    return loadErrors;
+  }
+
+  /**
+   * Converts a parse()-level forward-compatibility warning (unknown
+   * nodeType or schemaVersion too new) into an ILoadError so it surfaces
+   * through the same partial-load warning dialog as other load errors.
+   */
+  private parseWarningToLoadError(warning: IParseWarning): ILoadError {
+    const name = warning.kind === 'unknownNodeType'
+      ? $t('scenes.unknownComponentSkipped', { nodeType: warning.nodeType })
+      : $t('scenes.schemaVersionTooNew', {
+        nodeType: warning.nodeType,
+        found: warning.schemaVersion,
+        supported: warning.maxKnownVersion,
+      });
+    return { type: 'format', name, error: new Error(name) };
   }
 
   /**
