@@ -22,6 +22,7 @@ export class CustomcastUsageService extends StatefulService<ICustomcastUsageStat
   @Inject() private nicoliveProgramService: NicoliveProgramService;
 
   init() {
+    super.init();
     this.reset();
 
     this.scenesService.sceneSwitched.subscribe(() => {
@@ -43,7 +44,12 @@ export class CustomcastUsageService extends StatefulService<ICustomcastUsageStat
   }
 
   containsCustomcastInActiveScene(): boolean {
-    for (const item of this.scenesService.activeScene.getItems()) {
+    // 配信開始直後やシーンコレクション切替中などはactiveSceneが一時的にnullになりうる。
+    // その場合は使用なしとして扱う(実害が軽微なためSentry報告はしない)。
+    const activeScene = this.scenesService.activeScene;
+    if (!activeScene) return false;
+
+    for (const item of activeScene.getItems()) {
       if (this.isCustomcastSourceId(item.sourceId)) {
         return true;
       }
