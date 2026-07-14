@@ -402,9 +402,13 @@ export class Scene {
    * Makes sure all scene items are in the correct order in OBS.
    */
   private reconcileNodeOrderWithObs() {
-    const obsItems = this.getObsScene().getItems().reverse();
+    const obsScene = this.getObsScene();
     this.getItems().forEach((item, index) => {
-      const currentIndex = obsItems.findIndex((obsItem) => obsItem.id === item.obsSceneItemId);
+      // moveItem実行後はOBS側の並びが変わるため、都度取り直す必要がある。
+      const currentIndex = obsScene
+        .getItems()
+        .reverse()
+        .findIndex((obsItem) => obsItem.id === item.obsSceneItemId);
       // stateとOBS側のアイテム集合が一時的にズレている(ドラッグ操作中の削除・
       // シーン切替との競合など)と対応するOBS側アイテムが見つからないことがある。
       // その場合はこのアイテムの並び替えのみスキップして処理を継続する。
@@ -415,7 +419,7 @@ export class Scene {
         });
         return;
       }
-      this.getObsScene().moveItem(currentIndex, index);
+      obsScene.moveItem(currentIndex, index);
     });
   }
 

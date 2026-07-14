@@ -5,7 +5,6 @@
  * OBSネイティブ側のアイテム集合が一時的にズレたとき、対応するOBS側アイテムが
  * 見つからないアイテムはスキップして処理を継続することを検証する (N-AIR-APP-FWY, G8M)。
  */
-import * as Sentry from '@sentry/vue';
 import { createSetupFunction } from 'util/test-setup';
 
 jest.mock('@sentry/vue', () => ({
@@ -91,7 +90,9 @@ function prepare({
   const scene = new Scene(sceneId);
   jest.spyOn(scene, 'getObsScene').mockReturnValue(obsScene);
 
-  return { scene, obsScene };
+  const Sentry = require('@sentry/vue');
+
+  return { scene, obsScene, Sentry };
 }
 
 describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
@@ -109,7 +110,7 @@ describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
   });
 
   test('対応するOBS側アイテムが見つからないアイテムはスキップし、他のアイテムは処理を継続する', () => {
-    const { scene, obsScene } = prepare({
+    const { scene, obsScene, Sentry } = prepare({
       itemIds: [
         { sceneItemId: 'item1', sourceId: 'source1', obsSceneItemId: 1 },
         { sceneItemId: 'item2', sourceId: 'source2', obsSceneItemId: 999 }, // OBS側に存在しない
@@ -121,7 +122,10 @@ describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
     // item1のみmoveItemが呼ばれる (item2はスキップ)
     expect(obsScene.moveItem).toHaveBeenCalledTimes(1);
     expect(obsScene.moveItem).toHaveBeenCalledWith(0, 0);
-    expect(Sentry.captureMessage).not.toHaveBeenCalled(); // SentryReportはwithScope経由
+    // スキップしたことがSentryに報告される
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      'OBS scene item not found for obsSceneItemId, skipping moveItem',
+    );
   });
 
   test('対応するOBS側アイテムが1件も見つからない場合でもクラッシュしない', () => {
