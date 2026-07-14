@@ -6,7 +6,14 @@ interface SchemaAnnotation {
 }
 
 export interface ILoadError {
-  type: 'source' | 'scene' | 'sceneItem' | 'transition' | 'hotkey' | 'filter'; // 'filter' is currently unused (filter errors are logged as warnings only)
+  type:
+    | 'source'
+    | 'scene'
+    | 'sceneItem'
+    | 'transition'
+    | 'hotkey'
+    | 'filter' // 'filter' is currently unused (filter errors are logged as warnings only)
+    | 'format'; // structural warnings from parse() (unknown nodeType, schemaVersion too new)
   id?: string;
   name: string;
   error: Error;

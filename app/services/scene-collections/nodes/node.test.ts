@@ -86,6 +86,7 @@ describe('Node error collection', () => {
       'transition',
       'hotkey',
       'filter',
+      'format',
     ];
 
     errorTypes.forEach((type) => {
