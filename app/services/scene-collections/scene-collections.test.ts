@@ -7,6 +7,8 @@ import * as Sentry from '@sentry/vue';
 import { ISceneCollectionsManifestEntry } from 'services/scene-collections/scene-collections-api';
 import { createSetupFunction } from 'util/test-setup';
 
+import { IParseWarning } from './parse';
+
 // Mock dependencies
 jest.mock('@sentry/vue', () => ({
   withScope: jest.fn(),
@@ -671,7 +673,11 @@ describe('SceneCollectionsService - loadDataIntoApplicationState forward-compat 
     };
 
     jest.doMock('./parse', () => ({
-      parse: jest.fn().mockImplementation((data: string, nodeTypes: any, onWarn?: any) => {
+      parse: jest.fn().mockImplementation((
+        data: string,
+        nodeTypes: unknown,
+        onWarn?: (warning: IParseWarning) => void,
+      ) => {
         onWarn?.({ kind: 'unknownNodeType', nodeType: 'SomeFutureNode' });
         onWarn?.({
           kind: 'schemaVersionTooNew',
@@ -821,7 +827,11 @@ describe('SceneCollectionsService - load() forward-compat warning dialog (実機
     };
 
     jest.doMock('./parse', () => ({
-      parse: jest.fn().mockImplementation((data: string, nodeTypes: any, onWarn?: any) => {
+      parse: jest.fn().mockImplementation((
+        data: string,
+        nodeTypes: unknown,
+        onWarn?: (warning: IParseWarning) => void,
+      ) => {
         onWarn?.({ kind: 'unknownNodeType', nodeType: 'SomeFutureNode' });
         onWarn?.({
           kind: 'schemaVersionTooNew',
@@ -869,13 +879,10 @@ describe('SceneCollectionsService - load() forward-compat warning dialog (実機
     expect(mockApp.quit).not.toHaveBeenCalled();
 
     // 部分読み込み警告ダイアログ(type: 'warning')が表示され、未知データの旨が含まれる
-    const warningCalls = mockDialog.showMessageBoxSync.mock.calls.filter(
-      ([opts]: [any]) => opts.type === 'warning',
-    );
+    const dialogCalls: { type: string }[][] = mockDialog.showMessageBoxSync.mock.calls;
+    const warningCalls = dialogCalls.filter(([opts]) => opts.type === 'warning');
     expect(warningCalls).toHaveLength(1);
-    const errorCalls = mockDialog.showMessageBoxSync.mock.calls.filter(
-      ([opts]: [any]) => opts.type === 'error',
-    );
+    const errorCalls = dialogCalls.filter(([opts]) => opts.type === 'error');
     expect(errorCalls).toHaveLength(0);
   });
 });
