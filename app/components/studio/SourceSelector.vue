@@ -22,7 +22,6 @@
 
     <tree-view
       :value="nodes"
-      ref="slVueTree"
       @select="makeActive"
       @drop="handleSort"
       @toggle="toggleFolder"

@@ -16,7 +16,6 @@
 
         <tree-view
           :value="nodes"
-          ref="slVueTree"
           @select="makeActive"
           @drop="handleSort"
           :allowMultiselect="false"

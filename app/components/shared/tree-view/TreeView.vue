@@ -130,6 +130,7 @@
   left: calc(var(--depth) * 24px + 12px);
   z-index: 1;
   height: 1px;
+  pointer-events: none;
 
   &::before {
     position: absolute;
