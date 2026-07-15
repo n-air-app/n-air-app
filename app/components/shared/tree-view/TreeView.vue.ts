@@ -33,7 +33,7 @@ export default defineComponent({
       return {
         'tree-view-cursor-hover': cursor,
         'tree-view-cursor-inside': cursor && this.cursorPosition?.placement === 'inside',
-        'tree-view-dragging': this.draggingNodes.some((candidate) => candidate.pathStr === node.pathStr),
+        'tree-view-dragging': this.draggingNodes.some((candidate: ITreeNode<unknown>) => candidate.pathStr === node.pathStr),
         'tree-view-node-is-leaf': node.isLeaf,
         'tree-view-node-is-folder': !node.isLeaf,
       };
@@ -63,7 +63,7 @@ export default defineComponent({
       if (!node.isDraggable) { event.preventDefault(); return; }
       this.dragStarted = true;
       this.draggingNodes = node.isSelected
-        ? this.allNodes.filter((candidate) => candidate.isSelected && candidate.isDraggable)
+        ? this.allNodes.filter((candidate: ITreeNode<unknown>) => candidate.isSelected && candidate.isDraggable)
         : [node];
       event.dataTransfer?.setData('text/plain', node.pathStr);
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
@@ -87,7 +87,7 @@ export default defineComponent({
       event.preventDefault();
       event.stopPropagation();
       const position = this.cursorPosition;
-      if (position && this.draggingNodes.length && !this.draggingNodes.some((node) => isSameOrDescendant(node, position.node))) {
+      if (position && this.draggingNodes.length && !this.draggingNodes.some((node: ITreeNode<unknown>) => isSameOrDescendant(node, position.node))) {
         this.$emit('drop', this.draggingNodes, position, event);
       }
       this.stopDrag();
