@@ -188,6 +188,12 @@ export default defineComponent({
       }
       const nodesToMove = this.scene.getSelection(treeNodesToMove.map((node) => node.data.id));
 
+      if (position.parentNode !== undefined) {
+        nodesToMove.moveWithinTree(position.parentNode?.data.id || '', position.beforeNode?.data.id);
+        SelectionService.instance().select(nodesToMove.getIds());
+        return;
+      }
+
       const destNode = this.scene.getNode(position.node.data.id);
 
       if (position.placement === 'before') {

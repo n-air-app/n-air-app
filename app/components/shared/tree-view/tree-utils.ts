@@ -1,4 +1,4 @@
-import { ITreeNode, ITreeNodeModel, TDropPlacement } from './types';
+import { ITreeCursorPosition, ITreeNode, ITreeNodeModel, TDropPlacement } from './types';
 
 export function buildTreeNodes<TData>(models: ITreeNodeModel<TData>[], parentPath: number[] = []): ITreeNode<TData>[] {
   return models.map((model, ind) => {
@@ -42,6 +42,53 @@ export function getDropPlacement(isLeaf: boolean, offsetY: number, height: numbe
   if (offsetY <= edgeSize) return 'before';
   if (offsetY >= height - edgeSize) return 'after';
   return 'inside';
+}
+
+function getNodeByPath<TData>(nodes: ITreeNode<TData>[], path: number[]): ITreeNode<TData> | null {
+  return nodes.find((node) => node.pathStr === JSON.stringify(path)) || null;
+}
+
+/** 表示行とポインターの階層から、移動後の親・兄弟位置とライン位置を一意に決める。 */
+export function resolveDropPosition<TData>(
+  allNodes: ITreeNode<TData>[],
+  visibleNodes: ITreeNode<TData>[],
+  node: ITreeNode<TData>,
+  placement: TDropPlacement,
+  desiredLevel: number,
+): ITreeCursorPosition<TData> {
+  if (placement === 'inside') {
+    return {
+      node,
+      placement,
+      parentNode: node,
+      beforeNode: node.children[0] || null,
+    };
+  }
+
+  const level = Math.max(1, Math.min(desiredLevel, node.level));
+  const boundaryNode = level < node.level
+    ? getNodeByPath(allNodes, node.path.slice(0, level)) || node
+    : node;
+  const parentNode = getNodeByPath(allNodes, boundaryNode.path.slice(0, -1));
+  const siblings = parentNode ? parentNode.children : allNodes.filter((candidate) => candidate.level === 1);
+  const boundaryIndex = siblings.findIndex((candidate) => candidate.pathStr === boundaryNode.pathStr);
+  const beforeNode = placement === 'before' ? boundaryNode : siblings[boundaryIndex + 1] || null;
+
+  let lineNode = boundaryNode;
+  if (placement === 'after') {
+    const descendants = visibleNodes.filter((candidate) => isSameOrDescendant(boundaryNode, candidate));
+    lineNode = descendants[descendants.length - 1] || boundaryNode;
+  }
+
+  return {
+    node: beforeNode || boundaryNode,
+    placement: beforeNode ? 'before' : 'after',
+    parentNode,
+    beforeNode,
+    lineNode,
+    linePlacement: placement,
+    lineLevel: boundaryNode.level,
+  };
 }
 
 export function selectNodes<TData>(

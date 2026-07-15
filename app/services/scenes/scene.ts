@@ -30,6 +30,7 @@ import {
   SceneItemFolder,
 } from './index';
 import { ScenesService } from './scenes';
+import { resolveTreeMove } from './tree-order';
 
 export type TSceneNode = SceneItem | SceneItemFolder;
 
@@ -388,6 +389,14 @@ export class Scene {
     this.reconcileNodeOrderWithObs();
   }
 
+  /** ノードとその子孫を一塊のまま、指定した親の兄弟列へ移動する。 */
+  moveNodes(nodeIds: string[], parentId = '', beforeNodeId?: string) {
+    const result = resolveTreeMove(this.state.nodes, nodeIds, parentId, beforeNodeId);
+    if (!result) return;
+    this.MOVE_NODES(result.order, result.rootNodeIds, result.parentId);
+    this.reconcileNodeOrderWithObs();
+  }
+
   /**
    * Makes sure all scene items are in the correct order in OBS.
    */
@@ -644,5 +653,13 @@ export class Scene {
         return item.id === id;
       });
     });
+  }
+
+  @mutation()
+  private MOVE_NODES(order: string[], rootNodeIds: string[], parentId: string) {
+    this.state.nodes.forEach((node) => {
+      if (rootNodeIds.includes(node.id)) node.parentId = parentId;
+    });
+    this.state.nodes = order.map((id) => this.state.nodes.find((node) => node.id === id));
   }
 }

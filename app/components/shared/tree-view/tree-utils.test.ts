@@ -1,4 +1,4 @@
-import { buildTreeNodes, flattenTree, getDropPlacement, isSameOrDescendant, selectNodes } from './tree-utils';
+import { buildTreeNodes, flattenTree, getDropPlacement, isSameOrDescendant, resolveDropPosition, selectNodes } from './tree-utils';
 
 const models = [
   { title: 'folder', isExpanded: true, children: [{ title: 'child', isLeaf: true }] },
@@ -27,6 +27,32 @@ describe('TreeViewの操作', () => {
     expect(isSameOrDescendant(folder, folder)).toBe(true);
     expect(isSameOrDescendant(folder, folder.children[0])).toBe(true);
     expect(isSameOrDescendant(folder.children[0], folder)).toBe(false);
+  });
+
+  it('子をルートへ出す位置を次のルートノードの直前として解決する', () => {
+    const nodes = buildTreeNodes([
+      { title: 'folder', children: [{ title: 'a', isLeaf: true }, { title: 'b', isLeaf: true }] },
+      { title: 'c', isLeaf: true },
+    ]);
+    const visible = flattenTree(nodes, true);
+    const position = resolveDropPosition(visible, visible, nodes[0].children[0], 'after', 1);
+    expect(position.parentNode).toBeNull();
+    expect(position.beforeNode?.title).toBe('c');
+    expect(position.lineNode?.title).toBe('b');
+    expect(position.lineLevel).toBe(1);
+  });
+
+  it('ネストした子を指定した祖先階層の末尾へ出す', () => {
+    const nodes = buildTreeNodes([{
+      title: 'folder1',
+      children: [{ title: 'folder2', children: [{ title: 'a', isLeaf: true }] }],
+    }]);
+    const visible = flattenTree(nodes, true);
+    const position = resolveDropPosition(visible, visible, nodes[0].children[0].children[0], 'after', 2);
+    expect(position.parentNode?.title).toBe('folder1');
+    expect(position.beforeNode).toBeNull();
+    expect(position.lineNode?.title).toBe('a');
+    expect(position.lineLevel).toBe(2);
   });
 
   it('ツリー順で追加選択と範囲選択を行う', () => {

@@ -650,6 +650,11 @@ export class Selection {
       .forEach((node) => node.placeAfter(sceneNodeId));
   }
 
+  /** 親変更と兄弟順の変更を中間状態なしで適用する。 */
+  moveWithinTree(parentId: string, beforeNodeId?: string) {
+    this.getScene().moveNodes(this.getRootNodes().map((node) => node.id), parentId, beforeNodeId);
+  }
+
   placeBefore(sceneNodeId: string) {
     this.getRootNodes().forEach((node) => node.placeBefore(sceneNodeId));
   }
