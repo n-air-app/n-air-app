@@ -326,6 +326,16 @@ export class Scene {
     const sourceNode = this.getNode(sourceNodeId);
     const destNode = this.getNode(destNodeId);
 
+    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
+    // 渡されることがある。その場合は並び替えをスキップする。
+    if (!sourceNode) {
+      SentryReport.message('Scene', 'placeAfter', 'sourceNode not found, skipping reorder', {
+        level: 'warning',
+        extra: { sceneId: this.id, sourceNodeId, destNodeId },
+      });
+      return;
+    }
+
     if (destNode && destNode.id === sourceNode.id) return;
 
     const destNodeIsParentForSourceNode = destNode && destNode.id === sourceNode.parentId;
@@ -392,23 +402,50 @@ export class Scene {
    * Makes sure all scene items are in the correct order in OBS.
    */
   private reconcileNodeOrderWithObs() {
+    const obsScene = this.getObsScene();
     this.getItems().forEach((item, index) => {
-      const currentIndex = this.getObsScene()
+      // moveItem実行後はOBS側の並びが変わるため、都度取り直す必要がある。
+      const currentIndex = obsScene
         .getItems()
         .reverse()
         .findIndex((obsItem) => obsItem.id === item.obsSceneItemId);
-      this.getObsScene().moveItem(currentIndex, index);
+      // stateとOBS側のアイテム集合が一時的にズレている(ドラッグ操作中の削除・
+      // シーン切替との競合など)と対応するOBS側アイテムが見つからないことがある。
+      // その場合はこのアイテムの並び替えのみスキップして処理を継続する。
+      if (currentIndex === -1) {
+        SentryReport.message('Scene', 'reconcileNodeOrderWithObs', 'OBS scene item not found for obsSceneItemId, skipping moveItem', {
+          level: 'warning',
+          extra: { sceneId: this.id, sceneItemId: item.id, obsSceneItemId: item.obsSceneItemId, index },
+        });
+        return;
+      }
+      obsScene.moveItem(currentIndex, index);
     });
   }
 
   placeBefore(sourceNodeId: string, destNodeId: string) {
     const destNode = this.getNode(destNodeId);
+    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
+    // 渡されることがある。その場合は並び替えをスキップする。
+    if (!destNode) {
+      SentryReport.message('Scene', 'placeBefore', 'destNode not found, skipping reorder', {
+        level: 'warning',
+        extra: { sceneId: this.id, sourceNodeId, destNodeId },
+      });
+      return;
+    }
     const newDestNode = destNode.getPrevSiblingNode();
     if (newDestNode) {
       this.placeAfter(sourceNodeId, newDestNode.id);
     } else if (destNode.parentId) {
       const sourceNode = this.getNode(sourceNodeId);
-      assertIsDefined(sourceNode);
+      if (!sourceNode) {
+        SentryReport.message('Scene', 'placeBefore', 'sourceNode not found, skipping reorder', {
+          level: 'warning',
+          extra: { sceneId: this.id, sourceNodeId, destNodeId },
+        });
+        return;
+      }
       sourceNode.setParent(destNode.parentId); // place to the top of folder
     } else {
       this.placeAfter(sourceNodeId); // place to the top of scene
