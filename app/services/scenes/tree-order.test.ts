@@ -42,4 +42,12 @@ describe('シーンツリーの並び替え', () => {
   it('複数選択の表示順を保つ', () => {
     expect(resolveTreeMove(nodes, ['a', 'b'], '', 'c')?.order).toEqual(['folder', 'a', 'b', 'c']);
   });
+
+  it('親と子孫が同時に指定された場合は親だけを移動対象のルートにする', () => {
+    expect(resolveTreeMove(nodes, ['folder', 'a'], '', 'c')).toEqual({
+      order: ['folder', 'a', 'b', 'c'],
+      rootNodeIds: ['folder'],
+      parentId: '',
+    });
+  });
 });

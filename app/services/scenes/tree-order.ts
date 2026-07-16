@@ -17,7 +17,18 @@ export function resolveTreeMove(
   beforeNodeId?: string,
 ): ITreeMoveResult | null {
   const existingIds = new Set(nodes.map((node) => node.id));
-  const rootNodeIds = nodeIds.filter((id) => existingIds.has(id));
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const selectedIds = new Set(nodeIds.filter((id) => existingIds.has(id)));
+  const rootNodeIds = [...selectedIds].filter((id) => {
+    const visitedIds = new Set<string>();
+    let ancestorId = nodesById.get(id)?.parentId;
+    while (ancestorId && !visitedIds.has(ancestorId)) {
+      if (selectedIds.has(ancestorId)) return false;
+      visitedIds.add(ancestorId);
+      ancestorId = nodesById.get(ancestorId)?.parentId;
+    }
+    return true;
+  });
   if (!rootNodeIds.length) return null;
   if (parentId && !existingIds.has(parentId)) return null;
   if (beforeNodeId) {

@@ -329,6 +329,7 @@ export class Scene {
         level: 'warning',
         extra: { sceneId: this.id, missingNodeIds, missingParentId, missingBeforeNodeId },
       });
+      return;
     }
 
     const result = resolveTreeMove(this.state.nodes, nodeIds, parentId, beforeNodeId);
