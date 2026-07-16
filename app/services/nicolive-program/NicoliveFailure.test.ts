@@ -168,3 +168,80 @@ test('http_error タイプの場合は Sentry に送信する', async () => {
     expect.objectContaining({ level: 'warning' }),
   );
 });
+
+test('json_parse は type=network_error でも Sentry に送信される(fingerprint集約・diagnosticタグ付き)', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const failure = NicoliveFailure.fromClientError('fetchProgramSchedules', {
+    ok: false,
+    value: new SyntaxError('Unexpected token'),
+    diag: { route: 'renderer', failureKind: 'json_parse' },
+  });
+  expect(failure.type).toBe('network_error');
+  expect(failure.failureKind).toBe('json_parse');
+
+  await openErrorDialogFromFailure(failure);
+  expect(sentryMessage).toHaveBeenCalledWith(
+    'NicoliveProgram',
+    'openErrorDialogFromFailure',
+    expect.stringContaining('fetchProgramSchedules'),
+    expect.objectContaining({
+      level: 'warning',
+      fingerprint: ['NicoliveProgram', 'json_parse', 'fetchProgramSchedules'],
+      tags: expect.objectContaining({
+        diagnostic: 'json-parse',
+        'failure.method': 'fetchProgramSchedules',
+        'failure.failureKind': 'json_parse',
+      }),
+    }),
+  );
+});
+
+test('json_parse の連打は2段quotaガードで抑制される(セッション内1件・60秒窓)', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const makeFailure = () =>
+    NicoliveFailure.fromClientError('fetchProgramSchedules', {
+      ok: false,
+      value: new SyntaxError('Unexpected token'),
+      diag: { route: 'renderer', failureKind: 'json_parse' },
+    });
+
+  await openErrorDialogFromFailure(makeFailure());
+  await openErrorDialogFromFailure(makeFailure());
+  await openErrorDialogFromFailure(makeFailure());
+
+  // MAX_PER_KEY=1 のため、同一 method の2回目以降は60秒窓内は送信されない
+  expect(sentryMessage).toHaveBeenCalledTimes(1);
+});
+
+test('json_parse でない network_error(certificate_error 等)は従来どおり送信されない', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: (code: string) => code === 'SELF_SIGNED_CERT_IN_CHAIN',
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const failure = NicoliveFailure.fromClientError('fetchIngestInfo', {
+    ok: false,
+    value: new Error('[MAIN_FETCH_FAIL code=SELF_SIGNED_CERT_IN_CHAIN] fetch failed'),
+    diag: { route: 'main', failureKind: 'network_error', errorCode: 'SELF_SIGNED_CERT_IN_CHAIN' },
+  });
+
+  await openErrorDialogFromFailure(failure);
+  expect(sentryMessage).not.toHaveBeenCalled();
+});
