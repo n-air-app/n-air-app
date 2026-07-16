@@ -187,22 +187,7 @@ export default defineComponent({
         return;
       }
       const nodesToMove = this.scene.getSelection(treeNodesToMove.map((node) => node.data.id));
-
-      if (position.parentNode !== undefined) {
-        nodesToMove.moveWithinTree(position.parentNode?.data.id || '', position.beforeNode?.data.id);
-        SelectionService.instance().select(nodesToMove.getIds());
-        return;
-      }
-
-      const destNode = this.scene.getNode(position.node.data.id);
-
-      if (position.placement === 'before') {
-        nodesToMove.placeBefore(destNode.id);
-      } else if (position.placement === 'after') {
-        nodesToMove.placeAfter(destNode.id);
-      } else if (position.placement === 'inside') {
-        nodesToMove.setParent(destNode.id);
-      }
+      nodesToMove.moveWithinTree(position.parentNode?.data.id || '', position.beforeNode?.data.id);
       SelectionService.instance().select(nodesToMove.getIds());
     },
 

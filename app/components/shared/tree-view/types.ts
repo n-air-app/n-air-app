@@ -26,9 +26,9 @@ export interface ITreeCursorPosition<TData = unknown> {
   node: ITreeNode<TData>;
   placement: TDropPlacement;
   /** 移動後の親。null はルート階層を表す。 */
-  parentNode?: ITreeNode<TData> | null;
+  parentNode: ITreeNode<TData> | null;
   /** この兄弟ノードの直前へ挿入する。null は親階層の末尾を表す。 */
-  beforeNode?: ITreeNode<TData> | null;
+  beforeNode: ITreeNode<TData> | null;
   /** ラインを描画する行。 */
   lineNode?: ITreeNode<TData>;
   /** ラインを行の上下どちらへ描画するか。 */
