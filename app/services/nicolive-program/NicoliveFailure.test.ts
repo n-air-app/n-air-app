@@ -169,7 +169,7 @@ test('http_error タイプの場合は Sentry に送信する', async () => {
   );
 });
 
-test('json_parse は type=network_error でも Sentry に送信される(fingerprint集約・diagnosticタグ付き)', async () => {
+test('json_parse は type=network_error でも Sentry に送信される(サンプリングに当選した場合。fingerprint集約・diagnosticタグ付き)', async () => {
   jest.doMock('./NicoliveClient', () => ({
     NotLoggedInError: class {},
     isCertificateErrorCode: () => false,
@@ -186,7 +186,12 @@ test('json_parse は type=network_error でも Sentry に送信される(fingerp
   expect(failure.type).toBe('network_error');
   expect(failure.failureKind).toBe('json_parse');
 
-  await openErrorDialogFromFailure(failure);
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0); // 必ずサンプリングに当選させる
+  try {
+    await openErrorDialogFromFailure(failure);
+  } finally {
+    randomSpy.mockRestore();
+  }
   expect(sentryMessage).toHaveBeenCalledWith(
     'NicoliveProgram',
     'openErrorDialogFromFailure',
@@ -203,7 +208,31 @@ test('json_parse は type=network_error でも Sentry に送信される(fingerp
   );
 });
 
-test('json_parse の連打は2段quotaガードで抑制される(セッション内1件・60秒窓)', async () => {
+test('json_parse はサンプリングで外れると送信されない', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const failure = NicoliveFailure.fromClientError('fetchProgramSchedules', {
+    ok: false,
+    value: new SyntaxError('Unexpected token'),
+    diag: { route: 'renderer', failureKind: 'json_parse' },
+  });
+
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.99); // 必ずサンプリングから外す
+  try {
+    await openErrorDialogFromFailure(failure);
+  } finally {
+    randomSpy.mockRestore();
+  }
+  expect(sentryMessage).not.toHaveBeenCalled();
+});
+
+test('json_parse の連打はサンプリングに当選してもセッション内1件で抑制される', async () => {
   jest.doMock('./NicoliveClient', () => ({
     NotLoggedInError: class {},
     isCertificateErrorCode: () => false,
@@ -219,11 +248,16 @@ test('json_parse の連打は2段quotaガードで抑制される(セッショ�
       diag: { route: 'renderer', failureKind: 'json_parse' },
     });
 
-  await openErrorDialogFromFailure(makeFailure());
-  await openErrorDialogFromFailure(makeFailure());
-  await openErrorDialogFromFailure(makeFailure());
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0); // 毎回サンプリングに当選させる
+  try {
+    await openErrorDialogFromFailure(makeFailure());
+    await openErrorDialogFromFailure(makeFailure());
+    await openErrorDialogFromFailure(makeFailure());
+  } finally {
+    randomSpy.mockRestore();
+  }
 
-  // MAX_PER_KEY=1 のため、同一 method の2回目以降は60秒窓内は送信されない
+  // MAX_PER_KEY=1 のため、サンプリングに当選し続けても2回目以降は送信されない
   expect(sentryMessage).toHaveBeenCalledTimes(1);
 });
 

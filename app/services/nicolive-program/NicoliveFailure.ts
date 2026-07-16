@@ -91,36 +91,30 @@ function fallbackToX00(reason: string): string {
 
 /**
  * json_parse (サーバー障害等でupstreamが非JSON応答を返す異常) の Sentry 報告を
- * 抑制するための 2 段 quota ガード状態。
+ * 抑制するための quota ガード状態。
  * AWS障害等で全ユーザーが同時多発するケースを想定し、既存の他ガード(5件/60秒)より
- * 強く絞る: セッション内 1 件・60 秒に 1 件。
+ * 強く絞る: セッション内 1 件まで、かつ確率サンプリング(10%)を通ったものだけ報告する。
+ * サンプリングで外れた場合はカウントを消費せず、次回発生時に再度抽選の機会を残す。
  */
-const JSON_PARSE_REPORT_WINDOW_MS = 60_000;
 const JSON_PARSE_REPORT_MAX_PER_KEY = 1;
-const jsonParseReportState = new Map<string, { count: number; last: number | null }>();
+const JSON_PARSE_REPORT_SAMPLE_RATE = 0.1;
+const jsonParseReportCount = new Map<string, number>();
 
 /** テスト用: json_parse の報告状態をリセットする */
 export function resetJsonParseReportState(): void {
-  jsonParseReportState.clear();
+  jsonParseReportCount.clear();
 }
 
 export async function openErrorDialogFromFailure(failure: NicoliveFailure): Promise<void> {
   // json_parse は type: 'network_error' に分類されるため、以下の通常の
   // network_error 除外(ユーザー側ネット切断は送信しない)から漏れて未報告になっていた。
   // サーバー側異常(upstream が非JSON応答を返す)であり切り分けたいため、
-  // 2段quotaガード(セッション内1件・60秒に1件) + fingerprint集約を通してのみ報告する。
+  // quotaガード(セッション内1件・確率サンプリング) + fingerprint集約を通してのみ報告する。
   if (failure.failureKind === 'json_parse') {
     const quotaKey = failure.method;
-    const state = jsonParseReportState.get(quotaKey) ?? { count: 0, last: null };
-    const now = Date.now();
-    if (
-      state.count < JSON_PARSE_REPORT_MAX_PER_KEY
-      && (state.last === null || now - state.last >= JSON_PARSE_REPORT_WINDOW_MS)
-    ) {
-      state.count += 1;
-      state.last = now;
-      jsonParseReportState.set(quotaKey, state);
-      const capReached = state.count >= JSON_PARSE_REPORT_MAX_PER_KEY;
+    const count = jsonParseReportCount.get(quotaKey) ?? 0;
+    if (count < JSON_PARSE_REPORT_MAX_PER_KEY && Math.random() < JSON_PARSE_REPORT_SAMPLE_RATE) {
+      jsonParseReportCount.set(quotaKey, count + 1);
 
       SentryReport.message(
         'NicoliveProgram',
@@ -135,7 +129,7 @@ export async function openErrorDialogFromFailure(failure: NicoliveFailure): Prom
             'failure.failureKind': 'json_parse',
             ...(failure.route ? { 'failure.route': failure.route } : {}),
           },
-          extra: { failure, reportCount: state.count, ...(capReached ? { reportCapReached: true } : {}) },
+          extra: { failure, sampleRate: JSON_PARSE_REPORT_SAMPLE_RATE },
         },
       );
     }
