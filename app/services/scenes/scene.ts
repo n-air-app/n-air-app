@@ -319,14 +319,20 @@ export class Scene {
 
   /** ノードとその子孫を一塊のまま、指定した親の兄弟列へ移動する。 */
   moveNodes(nodeIds: string[], parentId = '', beforeNodeId?: string) {
-    const result = resolveTreeMove(this.state.nodes, nodeIds, parentId, beforeNodeId);
-    if (!result) {
-      SentryReport.message('Scene', 'moveNodes', 'Invalid tree move, skipping reorder', {
+    const existingIds = new Set(this.state.nodes.map((node) => node.id));
+    const missingNodeIds = nodeIds.filter((id) => !existingIds.has(id));
+    const missingParentId = parentId && !existingIds.has(parentId) ? parentId : undefined;
+    const missingBeforeNodeId = beforeNodeId && !existingIds.has(beforeNodeId) ? beforeNodeId : undefined;
+
+    if (missingNodeIds.length || missingParentId || missingBeforeNodeId) {
+      SentryReport.message('Scene', 'moveNodes', 'Tree move references missing nodes', {
         level: 'warning',
-        extra: { sceneId: this.id, nodeIds, parentId, beforeNodeId },
+        extra: { sceneId: this.id, missingNodeIds, missingParentId, missingBeforeNodeId },
       });
-      return;
     }
+
+    const result = resolveTreeMove(this.state.nodes, nodeIds, parentId, beforeNodeId);
+    if (!result) return;
     this.MOVE_NODES(result.order, result.rootNodeIds, result.parentId);
     this.reconcileNodeOrderWithObs();
   }
