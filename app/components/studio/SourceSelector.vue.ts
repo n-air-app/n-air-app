@@ -186,6 +186,9 @@ export default defineComponent({
         Sentry.captureMessage('handleSort: treeNodesToMove is not an array', { level: 'warning', extra: { treeNodesToMove } });
         return;
       }
+      // シーンコレクション切替中などはactiveSceneが一時的にnullになりうる。
+      if (!this.scene) return;
+
       const nodesToMove = this.scene.getSelection(treeNodesToMove.map((node) => node.data.id));
       nodesToMove.moveWithinTree(position.parentNode?.data.id || '', position.beforeNode?.data.id);
       SelectionService.instance().select(nodesToMove.getIds());
