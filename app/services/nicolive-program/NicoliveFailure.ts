@@ -93,7 +93,8 @@ function fallbackToX00(reason: string): string {
  * json_parse (サーバー障害等でupstreamが非JSON応答を返す異常) の Sentry 報告を
  * 抑制するための quota ガード状態。
  * AWS障害等で全ユーザーが同時多発するケースを想定し、既存の他ガード(5件/60秒)より
- * 強く絞る: セッション内 1 件まで、かつ確率サンプリング(10%)を通ったものだけ報告する。
+ * 強く絞る: method ごとにセッション内 1 件まで、かつ確率サンプリング(10%)を
+ * 通ったものだけ報告する。
  * サンプリングで外れた場合はカウントを消費せず、次回発生時に再度抽選の機会を残す。
  */
 const JSON_PARSE_REPORT_MAX_PER_KEY = 1;
@@ -109,7 +110,8 @@ export async function openErrorDialogFromFailure(failure: NicoliveFailure): Prom
   // json_parse は type: 'network_error' に分類されるため、以下の通常の
   // network_error 除外(ユーザー側ネット切断は送信しない)から漏れて未報告になっていた。
   // サーバー側異常(upstream が非JSON応答を返す)であり切り分けたいため、
-  // quotaガード(セッション内1件・確率サンプリング) + fingerprint集約を通してのみ報告する。
+  // quotaガード(method ごとにセッション内1件・確率サンプリング) + fingerprint集約を
+  // 通してのみ報告する。
   if (failure.failureKind === 'json_parse') {
     const quotaKey = failure.method;
     const count = jsonParseReportCount.get(quotaKey) ?? 0;
