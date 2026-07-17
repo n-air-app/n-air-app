@@ -186,13 +186,20 @@ export default defineComponent({
         Sentry.captureMessage('handleSort: treeNodesToMove is not an array', { level: 'warning', extra: { treeNodesToMove } });
         return;
       }
+      // シーンコレクション切替中などはactiveSceneが一時的にnullになりうる。
+      if (!this.scene) return;
+
       const nodesToMove = this.scene.getSelection(
         treeNodesToMove.map((node) => node.data?.id).filter((id): id is string => !!id),
       );
 
       if (!position.node.data?.id) return;
       const destNode = this.scene.getNode(position.node.data.id);
-      if (!destNode) return;
+      // ドラッグ中に対象ノードが削除されるなどでdestNodeが見つからない場合がある。
+      if (!destNode) {
+        Sentry.captureMessage('handleSort: destNode not found', { level: 'warning', extra: { destNodeId: position.node.data.id } });
+        return;
+      }
 
       if (position.placement === 'before') {
         nodesToMove.placeBefore(destNode.id);
