@@ -168,3 +168,114 @@ test('http_error タイプの場合は Sentry に送信する', async () => {
     expect.objectContaining({ level: 'warning' }),
   );
 });
+
+test('json_parse は type=network_error でも Sentry に送信される(サンプリングに当選した場合。fingerprint集約・diagnosticタグ付き)', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const failure = NicoliveFailure.fromClientError('fetchProgramSchedules', {
+    ok: false,
+    value: new SyntaxError('Unexpected token'),
+    diag: { route: 'renderer', failureKind: 'json_parse' },
+  });
+  expect(failure.type).toBe('network_error');
+  expect(failure.failureKind).toBe('json_parse');
+
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0); // 必ずサンプリングに当選させる
+  try {
+    await openErrorDialogFromFailure(failure);
+  } finally {
+    randomSpy.mockRestore();
+  }
+  expect(sentryMessage).toHaveBeenCalledWith(
+    'NicoliveProgram',
+    'openErrorDialogFromFailure',
+    expect.stringContaining('fetchProgramSchedules'),
+    expect.objectContaining({
+      level: 'warning',
+      fingerprint: ['NicoliveProgram', 'json_parse', 'fetchProgramSchedules'],
+      tags: expect.objectContaining({
+        diagnostic: 'json-parse',
+        'failure.method': 'fetchProgramSchedules',
+        'failure.failureKind': 'json_parse',
+      }),
+    }),
+  );
+});
+
+test('json_parse はサンプリングで外れると送信されない', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const failure = NicoliveFailure.fromClientError('fetchProgramSchedules', {
+    ok: false,
+    value: new SyntaxError('Unexpected token'),
+    diag: { route: 'renderer', failureKind: 'json_parse' },
+  });
+
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.99); // 必ずサンプリングから外す
+  try {
+    await openErrorDialogFromFailure(failure);
+  } finally {
+    randomSpy.mockRestore();
+  }
+  expect(sentryMessage).not.toHaveBeenCalled();
+});
+
+test('json_parse の連打はサンプリングに当選してもセッション内1件で抑制される', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: () => false,
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const makeFailure = () =>
+    NicoliveFailure.fromClientError('fetchProgramSchedules', {
+      ok: false,
+      value: new SyntaxError('Unexpected token'),
+      diag: { route: 'renderer', failureKind: 'json_parse' },
+    });
+
+  const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0); // 毎回サンプリングに当選させる
+  try {
+    await openErrorDialogFromFailure(makeFailure());
+    await openErrorDialogFromFailure(makeFailure());
+    await openErrorDialogFromFailure(makeFailure());
+  } finally {
+    randomSpy.mockRestore();
+  }
+
+  // MAX_PER_KEY=1 のため、サンプリングに当選し続けても2回目以降は送信されない
+  expect(sentryMessage).toHaveBeenCalledTimes(1);
+});
+
+test('json_parse でない network_error(certificate_error 等)は従来どおり送信されない', async () => {
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError: class {},
+    isCertificateErrorCode: (code: string) => code === 'SELF_SIGNED_CERT_IN_CHAIN',
+  }));
+  const { sentryMessage, NicoliveFailure, openErrorDialogFromFailure } = prepare('network_error');
+  const { resetJsonParseReportState } = require('./NicoliveFailure');
+  resetJsonParseReportState();
+
+  const failure = NicoliveFailure.fromClientError('fetchIngestInfo', {
+    ok: false,
+    value: new Error('[MAIN_FETCH_FAIL code=SELF_SIGNED_CERT_IN_CHAIN] fetch failed'),
+    diag: { route: 'main', failureKind: 'network_error', errorCode: 'SELF_SIGNED_CERT_IN_CHAIN' },
+  });
+
+  await openErrorDialogFromFailure(failure);
+  expect(sentryMessage).not.toHaveBeenCalled();
+});
