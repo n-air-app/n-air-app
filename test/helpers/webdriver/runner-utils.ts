@@ -169,6 +169,10 @@ export async function killElectronInstances() {
 // for these to fully exit, or fs.rmSync can fail with EBUSY on Windows.
 const LOCK_HOLDING_IMAGE_NAMES = ['crash-handler-process.exe', 'obs64.exe'];
 
+function isLockHoldingTask(task: any) {
+  return LOCK_HOLDING_IMAGE_NAMES.includes(task.imageName) && !ignoreTaskPIDs.includes(task.pid);
+}
+
 export async function waitForLogFileHandlesReleased() {
   const interval = 100;
   const timeout = 5000;
@@ -177,9 +181,7 @@ export async function waitForLogFileHandlesReleased() {
 
   do {
     const tasks = await tasklist();
-    const lockHoldingTasks = tasks.filter((task: any) =>
-      LOCK_HOLDING_IMAGE_NAMES.includes(task.imageName),
-    );
+    const lockHoldingTasks = tasks.filter(isLockHoldingTask);
 
     if (lockHoldingTasks.length === 0) {
       return;
