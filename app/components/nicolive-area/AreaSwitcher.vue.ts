@@ -15,7 +15,7 @@ export default defineComponent({
   components: { Popper },
 
   props: {
-    contents: { type: Array as () => IArea[] },
+    contents: { type: Array as () => IArea[], required: true as const },
   },
 
   data() {

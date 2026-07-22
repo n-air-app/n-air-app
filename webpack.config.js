@@ -217,7 +217,19 @@ module.exports = function (env, argv) {
           },
           {
             test: /\.ts$/,
-            use: ['babel-loader', 'ts-loader'],
+            use: [
+              {
+                loader: 'ts-loader',
+                options: {
+                  transpileOnly: false,
+                  compilerOptions: {
+                    sourceMap: true,
+                    inlineSources: !isProduction,
+                    sourceRoot: '',
+                  },
+                },
+              },
+            ],
             exclude: /node_modules|vue\/src/,
           },
           {
@@ -240,7 +252,7 @@ module.exports = function (env, argv) {
                 loader: 'postcss-loader',
                 options: {
                   postcssOptions: {
-                    plugins: [require('autoprefixer')({ grid: true })],
+                    plugins: [require('autoprefixer')()],
                   },
                 },
               },
@@ -261,7 +273,7 @@ module.exports = function (env, argv) {
                 loader: 'postcss-loader',
                 options: {
                   postcssOptions: {
-                    plugins: [require('autoprefixer')({ grid: true })],
+                    plugins: [require('autoprefixer')()],
                   },
                 },
               },

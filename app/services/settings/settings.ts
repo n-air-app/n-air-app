@@ -32,7 +32,7 @@ import { Inject } from '../core/injector';
 import { VideoSettingsService } from '../settings-v2';
 import Utils from '../utils';
 
-import { getBestSettingsForNiconico } from './niconico-optimization';
+import { getBestSettingsForNiconico, getRecommendedResolutionForHeight } from './niconico-optimization';
 import {
   ISettingsAccessor,
   OptimizationKey,
@@ -81,7 +81,7 @@ export interface ISettingsState {
 
 declare type TSettingsFormData = Dictionary<ISettingsSubCategory[]>;
 
-const niconicoResolutions = ['1280x720', '800x450', '512x288', '640x360'];
+const niconicoResolutions = ['1920x1080', '1280x720', '800x450', '512x288', '640x360'];
 
 const niconicoResolutionValues = niconicoResolutions.map((res) => ({
   [res]: res,
@@ -582,7 +582,20 @@ export class SettingsService
     useHardwareEncoder?: boolean;
   }): OptimizedSettings {
     const accessor = new SettingsKeyAccessor(this);
-    const best = getBestSettingsForNiconico(options, accessor);
+    const { baseResolution } = this.getStreamEncoderSettings();
+    const [baseWidthStr, baseHeightStr] = (baseResolution ?? '').split('x');
+    const baseWidth = parseInt(baseWidthStr, 10);
+    const baseHeight = parseInt(baseHeightStr, 10);
+    const hasValidBase = Number.isFinite(baseWidth) && Number.isFinite(baseHeight)
+      && baseWidth > 0 && baseHeight > 0;
+
+    const best = getBestSettingsForNiconico(
+      {
+        ...options,
+        ...(hasValidBase ? { baseWidth, baseHeight } : {}),
+      },
+      accessor,
+    );
     const opt = new Optimizer(accessor, best);
 
     const current = opt.getCurrentSettings();
@@ -590,11 +603,25 @@ export class SettingsService
     // 最適化の必要な値を抽出する
     const delta: OptimizeSettings = Object.assign({}, ...Optimizer.getDifference(current, best));
 
+    let canvasResolutionWarning: OptimizedSettings['canvasResolutionWarning'];
+    if (hasValidBase) {
+      const recommended = getRecommendedResolutionForHeight(options.height);
+      const recommendedResolution = `${recommended.w}x${recommended.h}`;
+      if (best.quality && best.quality !== recommendedResolution) {
+        canvasResolutionWarning = {
+          canvas: baseResolution,
+          recommendedResolution,
+          appliedResolution: best.quality,
+        };
+      }
+    }
+
     return {
       current,
       best,
       delta,
       info: opt.optimizeInfo(current, delta),
+      canvasResolutionWarning,
     };
   }
 

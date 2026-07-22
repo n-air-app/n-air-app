@@ -833,6 +833,7 @@ const createInjecteeForOptimizeTest = ({
   showOptimizationDialogForNiconico = true,
   optimizeWithHardwareEncoder = false,
   diffDelta = { encoder: EncoderFamily.x264 } as OptimizedSettings['delta'],
+  canvasResolutionWarning = undefined as OptimizedSettings['canvasResolutionWarning'],
 } = {}) => {
   const injectee = createInjectee({
     isNiconicoLoggedIn: true,
@@ -856,6 +857,7 @@ const createInjecteeForOptimizeTest = ({
         current: {},
         delta: diffDelta,
         info: [],
+        canvasResolutionWarning,
       })),
       optimizeForNiconico: jest.fn(),
     },
@@ -968,6 +970,41 @@ test('optimizeForNiconicoAndStartStreaming: 差分なし・録画中でもtoggle
   expect(showWindow).not.toHaveBeenCalled();
   expect(injectee.SettingsService.optimizeForNiconico).not.toHaveBeenCalled();
   expect(instance.toggleStreaming).toHaveBeenCalledTimes(1);
+});
+
+test('optimizeForNiconicoAndStartStreaming: 差分なし・canvasResolutionWarningあり・ダイアログ無効でもshowWindowを呼ぶ', async () => {
+  const injectee = createInjecteeForOptimizeTest({
+    diffDelta: {},
+    showOptimizationDialogForNiconico: false,
+    canvasResolutionWarning: {
+      canvas: '1280x720',
+      recommendedResolution: '1920x1080',
+      appliedResolution: '1280x720',
+    },
+  });
+  setup({
+    injectee,
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+        recordingStatus: ERecordingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+  instance.toggleStreaming = jest.fn();
+
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+
+  showWindow.mockClear();
+  await instance.toggleStreamingAsync();
+
+  expect(showWindow).toHaveBeenCalledTimes(1);
+  expect(injectee.SettingsService.optimizeForNiconico).not.toHaveBeenCalled();
+  expect(instance.toggleStreaming).not.toHaveBeenCalled();
 });
 
 test('logStreamEndがstreamingTrackIdが設定されている場合にstream_endを送信する', () => {

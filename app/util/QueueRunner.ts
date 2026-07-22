@@ -1,5 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 
 import { WaitNotify } from './WaitNotify';
 

@@ -1,14 +1,15 @@
 import * as fs from 'fs';
 
 import uniqBy from 'lodash/uniqBy';
-import { filter } from 'rxjs/operators';
+import { filter, startWith } from 'rxjs';
 import { mutation, ServiceHelper } from 'services/core';
 import { Inject } from 'services/core/injector';
 import { TSceneNodeInfo } from 'services/scene-collections/nodes/scene-items';
 import { Selection, SelectionService, TNodesList } from 'services/selection';
 import { TDisplayType, VideoSettingsService } from 'services/settings-v2';
-import { Source, SourcesService, TSourceType } from 'services/sources';
+import { ISource, Source, SourcesService, TSourceType } from 'services/sources';
 import Utils, { uuidv4 } from 'services/utils';
+import { observeUntilStable } from 'util/observeUntilStable';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
@@ -219,6 +220,35 @@ export class Scene {
       });
   }
 
+  /**
+   * fixupSceneItemWhenReady にタイムアウトと安定待ちを追加したもの。
+   * デバイス起動直後は width/height が連続して変化することがあり、変化した直後の
+   * 値に対して transform を書き込んでもOBS側にすぐ反映されないことがあるため、
+   * 最後の変化から debounceMs 経過して値が安定するまで待ってから callback を呼ぶ。
+   * デバイスが起動せずサイズが確定しないまま購読が残り続けることも防ぐ。
+   */
+  fixupSceneItemWhenReadyWithTimeout(
+    sourceId: string,
+    callback: () => void,
+    onTimeout: () => void,
+    timeoutMs = 15000,
+    debounceMs = 200,
+  ) {
+    if (!sourceId || !callback) return;
+
+    const currentSource = this.sourcesService.getSourceById(sourceId);
+    const source$ = this.sourcesService.sourceUpdated.pipe(
+      filter((patch) => patch.sourceId === sourceId),
+      startWith(currentSource ? currentSource.getModel() : undefined),
+    );
+
+    observeUntilStable<ISource | undefined>(
+      source$,
+      (source) => !!(source?.width && source?.height),
+      { timeoutMs, debounceMs },
+    ).then(callback, onTimeout);
+  }
+
   addFile(path: string, folderId?: string): TSceneNode {
     let fstat: fs.Stats;
     try {
@@ -296,6 +326,16 @@ export class Scene {
     const sourceNode = this.getNode(sourceNodeId);
     const destNode = this.getNode(destNodeId);
 
+    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
+    // 渡されることがある。その場合は並び替えをスキップする。
+    if (!sourceNode) {
+      SentryReport.message('Scene', 'placeAfter', 'sourceNode not found, skipping reorder', {
+        level: 'warning',
+        extra: { sceneId: this.id, sourceNodeId, destNodeId },
+      });
+      return;
+    }
+
     if (destNode && destNode.id === sourceNode.id) return;
 
     const destNodeIsParentForSourceNode = destNode && destNode.id === sourceNode.parentId;
@@ -362,23 +402,50 @@ export class Scene {
    * Makes sure all scene items are in the correct order in OBS.
    */
   private reconcileNodeOrderWithObs() {
+    const obsScene = this.getObsScene();
     this.getItems().forEach((item, index) => {
-      const currentIndex = this.getObsScene()
+      // moveItem実行後はOBS側の並びが変わるため、都度取り直す必要がある。
+      const currentIndex = obsScene
         .getItems()
         .reverse()
         .findIndex((obsItem) => obsItem.id === item.obsSceneItemId);
-      this.getObsScene().moveItem(currentIndex, index);
+      // stateとOBS側のアイテム集合が一時的にズレている(ドラッグ操作中の削除・
+      // シーン切替との競合など)と対応するOBS側アイテムが見つからないことがある。
+      // その場合はこのアイテムの並び替えのみスキップして処理を継続する。
+      if (currentIndex === -1) {
+        SentryReport.message('Scene', 'reconcileNodeOrderWithObs', 'OBS scene item not found for obsSceneItemId, skipping moveItem', {
+          level: 'warning',
+          extra: { sceneId: this.id, sceneItemId: item.id, obsSceneItemId: item.obsSceneItemId, index },
+        });
+        return;
+      }
+      obsScene.moveItem(currentIndex, index);
     });
   }
 
   placeBefore(sourceNodeId: string, destNodeId: string) {
     const destNode = this.getNode(destNodeId);
+    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
+    // 渡されることがある。その場合は並び替えをスキップする。
+    if (!destNode) {
+      SentryReport.message('Scene', 'placeBefore', 'destNode not found, skipping reorder', {
+        level: 'warning',
+        extra: { sceneId: this.id, sourceNodeId, destNodeId },
+      });
+      return;
+    }
     const newDestNode = destNode.getPrevSiblingNode();
     if (newDestNode) {
       this.placeAfter(sourceNodeId, newDestNode.id);
     } else if (destNode.parentId) {
       const sourceNode = this.getNode(sourceNodeId);
-      assertIsDefined(sourceNode);
+      if (!sourceNode) {
+        SentryReport.message('Scene', 'placeBefore', 'sourceNode not found, skipping reorder', {
+          level: 'warning',
+          extra: { sceneId: this.id, sourceNodeId, destNodeId },
+        });
+        return;
+      }
       sourceNode.setParent(destNode.parentId); // place to the top of folder
     } else {
       this.placeAfter(sourceNodeId); // place to the top of scene

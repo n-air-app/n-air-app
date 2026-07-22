@@ -12,7 +12,7 @@ export default defineComponent({
   components: { Slider, MixerVolmeter },
 
   props: {
-    audioSource: { type: Object as PropType<AudioSource> },
+    audioSource: { type: Object as PropType<AudioSource>, required: true as const },
   },
 
   computed: {

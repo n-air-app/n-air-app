@@ -230,7 +230,8 @@ export class NiconicoService extends Service implements IPlatformService {
       return result;
     } catch (e) {
       // リトライは1回だけ — 失敗種別を構造化してSentryに報告する
-      const failure = e instanceof NicoliveFailure
+      const isNicoliveFailure = e instanceof NicoliveFailure;
+      const failure = isNicoliveFailure
         ? e
         : new NicoliveFailure('network_error', 'unknown', 'unknown');
       this.lastSetupFailure = failure;
@@ -240,6 +241,21 @@ export class NiconicoService extends Service implements IPlatformService {
       const httpStatus = failure.type === 'http_error' ? failure.reason : '';
       const errorCode = failure.errorCode ?? '';
       const route = failure.route ?? 'renderer';
+
+      // NicoliveFailure は Error を継承していないため、String(e) では
+      // "[object Object]" になってしまう。e が NicoliveFailure の場合は
+      // additionalMessage に元の native例外メッセージが入っていることが多いが、
+      // NicoliveFailure.fromClientError の network_error/json_parse/not_logged_in
+      // 分岐では additionalMessage が常に空文字になる(元のメッセージを保持しない)ため、
+      // その場合は type/reason で最低限の診断情報を残す
+      let errorMessage: string;
+      if (isNicoliveFailure) {
+        errorMessage = failure.additionalMessage || `${failure.type}:${failure.reason}`;
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = String(e);
+      }
 
       Sentry.addBreadcrumb({
         category: 'streaming',
@@ -285,7 +301,7 @@ export class NiconicoService extends Service implements IPlatformService {
             },
             extra: {
               programId,
-              errorMessage: e instanceof Error ? e.message : String(e),
+              errorMessage,
               additionalMessage: failure.additionalMessage,
               reportCount: state.count,
               ...(capReached ? { reportCapReached: true } : {}),

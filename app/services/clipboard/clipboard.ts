@@ -331,26 +331,34 @@ export class ClipboardService
   private beforeCollectionSwitchHandler() {
     // save nodes to unloaded clipboard
     if (!this.hasItemsInUnloadedClipboard() && this.hasItems()) {
-      let sourcesInfo: Dictionary<ISourceInfo> = {};
-      const scenes = this.scenesService.activeScene.getNestedScenes();
-      const scenesNodes: IScenesNodes = { current: [] };
+      // シーンコレクション切替のタイミング次第でactiveSceneや
+      // itemsSceneIdに対応するシーンが既に見つからない(null)ことがある。
+      // その場合はクリップボードの退避を諦めてスキップする。
+      const activeScene = this.scenesService.activeScene;
+      const itemsScene = this.scenesService.getScene(this.state.itemsSceneId);
 
-      scenes.forEach((scene) => {
-        const sceneInfo = this.getSceneInfo(scene, sourcesInfo);
-        scenesNodes[scene.id] = sceneInfo.sceneNodes;
+      if (activeScene && itemsScene) {
+        let sourcesInfo: Dictionary<ISourceInfo> = {};
+        const scenes = activeScene.getNestedScenes();
+        const scenesNodes: IScenesNodes = { current: [] };
+
+        scenes.forEach((scene) => {
+          const sceneInfo = this.getSceneInfo(scene, sourcesInfo);
+          scenesNodes[scene.id] = sceneInfo.sceneNodes;
+          sourcesInfo = sceneInfo.sources;
+        });
+
+        const sceneInfo = this.getSceneInfo(
+          itemsScene,
+          sourcesInfo,
+          this.state.sceneNodesIds,
+        );
+
+        scenesNodes.current = sceneInfo.sceneNodes;
         sourcesInfo = sceneInfo.sources;
-      });
 
-      const sceneInfo = this.getSceneInfo(
-        this.scenesService.getScene(this.state.itemsSceneId),
-        sourcesInfo,
-        this.state.sceneNodesIds,
-      );
-
-      scenesNodes.current = sceneInfo.sceneNodes;
-      sourcesInfo = sceneInfo.sources;
-
-      this.SET_UNLOADED_CLIPBOARD_NODES(sourcesInfo, scenesNodes);
+        this.SET_UNLOADED_CLIPBOARD_NODES(sourcesInfo, scenesNodes);
+      }
     }
 
     if (!this.hasFiltersInUnloadedClipboard() && this.hasFilters()) {

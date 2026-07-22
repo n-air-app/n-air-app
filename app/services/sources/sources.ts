@@ -341,8 +341,18 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   fixSourceSettings() {
-    // fix webcam sources's video_device_id
-    this.getSourcesByType('dshow_input').forEach((webcam) => {
+    // fix webcam sources's video_device_id:
+    // シーンプリセットや別環境から読み込まれた dshow_input は video_device_id が
+    // 空/未設定のままのことがあり、その場合デバイスが選択されず映像が表示されない。
+    // 有効な device_id が設定されているソースには一切手を加えない。
+    const webcams = this.getSourcesByType('dshow_input');
+    if (webcams.length === 0) return;
+    const devices = obs.NodeObs.OBS_settings_getVideoDevices();
+    webcams.forEach((webcam) => {
+      const deviceId = webcam.getSettings().video_device_id;
+      if ((deviceId === undefined || deviceId === '') && devices.length > 0) {
+        webcam.updateSettings({ video_device_id: devices[0].id });
+      }
       webcam.getPropertiesFormData();
     });
   }

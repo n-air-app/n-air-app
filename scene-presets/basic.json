@@ -124,14 +124,12 @@
         "type": "dshow_input",
         "settings": {
           "active": true,
-          "audio_device_id": "マイク配列 (Realtek Audio):",
           "audio_output_mode": 0,
           "buffering": 0,
           "color_range": "partial",
           "color_space": "default",
           "frame_interval": -1,
           "last_resolution": "1280x720",
-          "last_video_device_id": "Integrated Webcam:\\\\?\\usb#22vid_0bda&pid_568c&mi_00#226&5e1df6&0&0000#22{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global",
           "res_type": 0,
           "video_format": 0
         },
@@ -265,8 +263,8 @@
               "sourceId": "image_source_f0ec48b4-a492-4706-9f3f-1320e44516d0",
               "x": 0,
               "y": 0,
-              "scaleX": 1,
-              "scaleY": 1,
+              "scaleX": 1.5,
+              "scaleY": 1.5,
               "visible": true,
               "crop": {
                 "top": 0,
@@ -285,10 +283,10 @@
             {
               "id": "72e5b99b-75dd-47b5-957d-0698021426a8",
               "sourceId": "dshow_input_a1a3e9c4-493b-4b96-a217-19c37f014628",
-              "x": 268.6504004970529,
-              "y": 169.9474397544256,
-              "scaleX": 0.5813714295309904,
-              "scaleY": 0.5813714295309904,
+              "x": 402.9756007455794,
+              "y": 254.9211596316384,
+              "scaleX": 0.8720571442964856,
+              "scaleY": 0.8720571442964856,
               "visible": true,
               "crop": {
                 "top": 0,
@@ -307,10 +305,10 @@
             {
               "id": "dad6e13e-5191-4e41-841f-dc4812113b2c",
               "sourceId": "image_source_9c0f1fc5-e10b-4117-ad05-817c44e6a904",
-              "x": 22.161290322580648,
-              "y": 42.34605736721562,
-              "scaleX": 0.9008035753808822,
-              "scaleY": 0.9008035753808822,
+              "x": 33.241935483870972,
+              "y": 63.51908605082343,
+              "scaleX": 1.3512053630713233,
+              "scaleY": 1.3512053630713233,
               "visible": true,
               "crop": {
                 "top": 0,
@@ -329,10 +327,10 @@
             {
               "id": "463c8340-7bc5-40c9-949f-ad2d9f2fbd77",
               "sourceId": "text_gdiplus_487b9fe0-6a73-4eda-b3ad-31110e26d8e0",
-              "x": 534,
-              "y": 644.9173877140703,
-              "scaleX": 1,
-              "scaleY": 1,
+              "x": 801,
+              "y": 967.3760815711055,
+              "scaleX": 1.5,
+              "scaleY": 1.5,
               "visible": true,
               "crop": {
                 "top": 0,
@@ -351,10 +349,10 @@
             {
               "id": "6a8c43db-cbd0-405a-bb41-6199f7f4848c",
               "sourceId": "image_source_7f92d474-3887-48a7-a96b-6d3cde692f81",
-              "x": 475,
-              "y": 651.5081206496519,
-              "scaleX": 1,
-              "scaleY": 1,
+              "x": 712.5,
+              "y": 977.2621809744779,
+              "scaleX": 1.5,
+              "scaleY": 1.5,
               "visible": true,
               "crop": {
                 "top": 0,
@@ -385,10 +383,10 @@
             {
               "id": "7ca865d8-6c31-4e0a-830d-86a52975d1d7",
               "sourceId": "image_source_452bc18f-fcc6-4ca6-b70c-c8126fbc8c5a",
-              "x": 776.9328474752733,
-              "y": 39.564195753233776,
-              "scaleX": 1.06752910164254,
-              "scaleY": 1.06752910164254,
+              "x": 1165.39927121291,
+              "y": 59.346293629850664,
+              "scaleX": 1.6012936524638100,
+              "scaleY": 1.6012936524638100,
               "visible": true,
               "crop": {
                 "top": 0,
@@ -407,10 +405,10 @@
             {
               "id": "8e462f67-86ba-4957-9dba-b7934593314f",
               "sourceId": "text_gdiplus_63fcf6f6-7648-404e-bdbf-8bef1d393e8c",
-              "x": 862.713170223842,
-              "y": 187.7596903429955,
-              "scaleX": 1,
-              "scaleY": 1,
+              "x": 1294.069755335763,
+              "y": 281.63953551449325,
+              "scaleX": 1.5,
+              "scaleY": 1.5,
               "visible": true,
               "crop": {
                 "top": 0,
