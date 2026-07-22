@@ -8,8 +8,8 @@ export default defineComponent({
   name: 'EditableSceneCollection',
 
   props: {
-    collectionId: { type: String },
-    selected: { type: Boolean },
+    collectionId: { type: String, required: true as const },
+
   },
 
   data() {
@@ -109,6 +109,24 @@ export default defineComponent({
           if (cancel) return;
           SceneCollectionsService.instance().delete(this.collectionId);
         });
+    },
+
+    async exportCollection() {
+      const { filePath, canceled } = await remote.dialog.showSaveDialog(remote.getCurrentWindow(), {
+        defaultPath: `${this.collection.name}.json`,
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+      if (canceled || !filePath) return;
+
+      try {
+        await SceneCollectionsService.instance().exportCollection(this.collectionId, filePath);
+      } catch (e) {
+        remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+          type: 'error',
+          title: $t('scenes.exportSceneCollectionErrorTitle'),
+          message: $t('scenes.exportSceneCollectionError'),
+        });
+      }
     },
   },
 });

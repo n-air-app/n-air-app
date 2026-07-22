@@ -1,6 +1,5 @@
 import { dwango } from '@n-air-app/nicolive-comment-protobuf';
-import { Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { distinctUntilChanged, map, Subject, Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { WindowsService } from 'services/windows';

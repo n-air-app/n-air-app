@@ -13,8 +13,8 @@ import {
   initializeTasks,
   killElectronInstances,
   testFn,
-  waitForCrashHandlerExit,
   waitForElectronInstancesExist,
+  waitForLogFileHandlesReleased,
 } from './runner-utils';
 
 export const test = testFn; // the overridden "test" function
@@ -281,9 +281,10 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
     await killElectronInstances();
 
-    // Wait for crash-handler-process.exe to exit before attempting cleanup
-    // This ensures crash-handler.log is closed before fs.rmSync attempts deletion
-    await waitForCrashHandlerExit();
+    // Wait for crash-handler-process.exe and obs64.exe to exit before attempting
+    // cleanup. This ensures crash-handler.log and node-obs/logs/*.txt are closed
+    // before fs.rmSync attempts deletion.
+    await waitForLogFileHandlesReleased();
 
     appIsRunning = false;
 

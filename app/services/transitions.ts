@@ -122,11 +122,21 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
   enableStudioMode() {
     if (this.state.studioMode) return;
 
+    // シーンコレクション切替中などは activeScene が一時的に null になりうる。
+    // その場合はstudioModeを開始せずに終了する。
+    const activeScene = this.scenesService.activeScene;
+    if (!activeScene) {
+      SentryReport.message('TransitionsService', 'enableStudioMode', 'activeScene is null, skip entering studio mode', {
+        level: 'warning',
+      });
+      return;
+    }
+
     this.SET_STUDIO_MODE(true);
     this.studioModeChanged.next(true);
 
     if (!this.studioModeTransition) this.createStudioModeTransition();
-    const currentScene = this.scenesService.activeScene.getObsScene();
+    const currentScene = activeScene.getObsScene();
     this.sceneDuplicate = currentScene.duplicate(uuidv4(), obs.ESceneDupType.Copy);
 
     // Immediately switch to the duplicated scene
@@ -141,7 +151,16 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
     this.SET_STUDIO_MODE(false);
     this.studioModeChanged.next(false);
 
-    this.getCurrentTransition().set(this.scenesService.activeScene.getObsScene());
+    // シーンコレクション切替中などは activeScene が一時的に null になりうる。
+    // その場合はtransitionへの反映をスキップし、studioMode解除自体は完了させる。
+    const activeScene = this.scenesService.activeScene;
+    if (activeScene) {
+      this.getCurrentTransition().set(activeScene.getObsScene());
+    } else {
+      SentryReport.message('TransitionsService', 'disableStudioMode', 'activeScene is null, skip transition update', {
+        level: 'warning',
+      });
+    }
     this.releaseStudioModeObjects();
   }
 
@@ -210,7 +229,16 @@ export class TransitionsService extends StatefulService<ITransitionsState> {
 
   transition(sceneAId: string, sceneBId: string) {
     if (this.state.studioMode) {
+      // studioModeTransitionが未生成/解放済み、またはsceneBIdに対応するシーンが
+      // 見つからない（シーンコレクション切替中など）場合は反映をスキップする。
       const scene = this.scenesService.getScene(sceneBId);
+      if (!this.studioModeTransition || !scene) {
+        SentryReport.message('TransitionsService', 'transition', 'studioModeTransition or scene is null, skip transition', {
+          level: 'warning',
+          extra: { hasStudioModeTransition: !!this.studioModeTransition, hasScene: !!scene },
+        });
+        return;
+      }
       this.studioModeTransition.set(scene.getObsScene());
       return;
     }

@@ -12,7 +12,7 @@ import { Service } from 'services/core/service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { HotkeysService } from 'services/hotkeys';
 import { $t } from 'services/i18n';
-import { ScenesService } from 'services/scenes';
+import { SceneItem, ScenesService } from 'services/scenes';
 import { SettingsService } from 'services/settings';
 import { SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
@@ -31,13 +31,13 @@ import {
 } from '.';
 import { HotkeysNode } from './nodes/hotkeys';
 import { ILoadError } from './nodes/node';
-import { RootNode } from './nodes/root';
+import { NAIR_SCENE_COLLECTION_FORMAT_ID, RootNode } from './nodes/root';
 import { SceneFiltersNode } from './nodes/scene-filters';
 import { ISceneItemInfo, SceneItemsNode } from './nodes/scene-items';
 import { ISceneSchema, ScenesNode } from './nodes/scenes';
 import { ISourceInfo, SourcesNode } from './nodes/sources';
 import { TransitionsNode } from './nodes/transitions';
-import { parse } from './parse';
+import { IParseWarning, parse } from './parse';
 import { SceneCollectionsStateService, ScenePresetId } from './state';
 
 export const NODE_TYPES = {
@@ -52,6 +52,15 @@ export const NODE_TYPES = {
 };
 
 const DEFAULT_COLLECTION_NAME = 'Scenes';
+
+// プリセット背景画像のネオン枠(透過窓)は、プリセットに保存されたWebカメラの
+// transformが示す枠よりわずかに小さいため、フィット時に少し縮小してネオン枠の
+// 内側に収める
+const WEBCAM_FIT_MARGIN_RATIO = 0.98;
+
+// Webカメラソースのsettingsにlast_resolutionが無い/パースできない場合のフォールバック
+// (basic.jsonのプリセットWebカメラの作成時解像度)
+const DEFAULT_WEBCAM_RESOLUTION = { width: 1280, height: 720 };
 
 interface ISceneCollectionsManifest {
   activeId: string;
@@ -129,8 +138,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       await this.installPresetSceneCollection();
     } else if (!this.appService.obsConfigExisted) {
       // basic.ini がなかった場合(キャッシュクリア後など)、OBS がデフォルト値(1920x1080)で
-      // 初期化するため、N Air のデフォルト解像度(1280x720)に戻す
-      this.ensureCanvasResolution('1280x720');
+      // 初期化するため、N Air のデフォルト解像度(1920x1080)に合わせる
+      this.ensureCanvasResolution('1920x1080');
     }
 
     // 読み込んだソース情報を環境に合わせて更新する
@@ -160,8 +169,8 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     // 既存scene を消す
     this.scenesService.removeAllScenes();
 
-    // キャンバス解像度を 1280x720 に変更する
-    this.ensureCanvasResolution('1280x720');
+    // キャンバス解像度を 1920x1080 に変更する
+    this.ensureCanvasResolution('1920x1080');
 
     // this.load() を参考に
 
@@ -180,10 +189,93 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
     await this.save();
 
+    // Webカメラの実解像度が判明した時点で、プリセットが意図した枠にアスペクト比を
+    // 保ったまま中央フィットさせる(カメラ解像度がプリセット作成時と異なると
+    // 保存済みのscaleそのままでは表示サイズが崩れるため)
+    this.scheduleWebcamFitForPreset();
+
     this.finishLoadingOperation();
 
     // dismiss initial scene collections help tip if not yet(since its position is overlapped)
     this.dismissablesService.dismiss(EDismissable.SceneCollectionsHelpTip);
+  }
+
+  /**
+   * プリセットのWebカメラ(dshow_input)シーンアイテムについて、実解像度が判明した
+   * タイミングでプリセットが意図した枠(作成時のカメラ解像度基準のscaleから復元)に
+   * アスペクト比を保って中央フィットさせる。全アイテムの処理が完了(またはタイムアウト)
+   * した時点で1回だけ保存し、フィット結果を永続化する。
+   */
+  private scheduleWebcamFitForPreset() {
+    // プリセット(basic.json)には複数シーンがあり、Webカメラを含むシーンが必ずしも
+    // アクティブシーンではないため、全シーンを対象にする。
+    // このメソッドは removeAllScenes() 後に root.load() で作られた直後のシーンのみが
+    // 存在する状態で呼ばれる(呼び出し元の installPresetSceneCollection は「シーンが1つ
+    // かつ空」の場合にしか呼ばれないため、ユーザーが既に配置したシーンアイテムに対して
+    // このメソッドが実行されることはない)
+    const webcamItems = this.scenesService.scenes.flatMap((scene) =>
+      scene.getItems().filter((item) => item.type === 'dshow_input'),
+    );
+    if (webcamItems.length === 0) return;
+
+    let remaining = webcamItems.length;
+    const onOneSettled = () => {
+      remaining -= 1;
+      if (remaining === 0) this.save();
+    };
+
+    webcamItems.forEach((item) => {
+      const scene = item.getScene();
+      const sceneItemId = item.sceneItemId;
+      // transform.scaleは「プリセット作成時のカメラ解像度 × scale = 意図した表示サイズ」
+      // という関係であり、キャンバス解像度とは無関係(キャンバス解像度を変更しても
+      // カメラの実解像度が変わらなければ意図した表示サイズも変わらない)。
+      // このためキャンバス解像度(videoService.baseWidth/baseHeight)ではなく、
+      // basic.jsonにWebカメラのsettingsとして保存されているlast_resolution
+      // (プリセット作成時にそのカメラで確認された解像度)を基準に復元する。
+      // last_resolutionが無い/パースできない場合はDEFAULT_WEBCAM_RESOLUTIONにフォールバックする。
+      const { width: presetWidth, height: presetHeight } = this.getWebcamPresetResolution(item);
+      const rawWidth = presetWidth * item.transform.scale.x;
+      const rawHeight = presetHeight * item.transform.scale.y;
+      // プリセットの背景画像(ネオン枠)の透過窓は元のtransformが示す枠よりわずかに
+      // 小さいため、中心を保ったまま少し縮小してネオン枠の内側に収める
+      const width = rawWidth * WEBCAM_FIT_MARGIN_RATIO;
+      const height = rawHeight * WEBCAM_FIT_MARGIN_RATIO;
+      const targetRect = {
+        x: item.transform.position.x + (rawWidth - width) / 2,
+        y: item.transform.position.y + (rawHeight - height) / 2,
+        width,
+        height,
+      };
+
+      scene.fixupSceneItemWhenReadyWithTimeout(
+        item.sourceId,
+        () => {
+          // コールバック実行時点のwidth/heightを確実に反映させるため、
+          // ループ内で作られた古いインスタンスではなく再取得したインスタンスを使う
+          scene.getItem(sceneItemId)?.fitToRect(targetRect);
+          onOneSettled();
+        },
+        onOneSettled,
+      );
+    });
+  }
+
+  /**
+   * Webカメラ(dshow_input)ソースのsettingsに保存されているlast_resolution
+   * ("WIDTHxHEIGHT"形式)から、プリセット作成時のカメラ解像度を復元する。
+   * last_resolutionが無い/パースできない場合はDEFAULT_WEBCAM_RESOLUTIONを返す。
+   */
+  private getWebcamPresetResolution(item: SceneItem): { width: number; height: number } {
+    const lastResolution = item.getSource().getSettings().last_resolution;
+    const match = typeof lastResolution === 'string' && /^(\d+)x(\d+)$/.exec(lastResolution);
+    if (!match) return DEFAULT_WEBCAM_RESOLUTION;
+
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (!width || !height) return DEFAULT_WEBCAM_RESOLUTION;
+
+    return { width, height };
   }
 
   /**
@@ -410,6 +502,49 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   }
 
   /**
+   * Exports a scene collection's JSON data to the given file path.
+   * @param id the id of the collection to export
+   * @param destPath the destination file path
+   */
+  async exportCollection(id: string, destPath: string) {
+    if (this.activeCollection?.id === id) await this.save();
+    const data = await this.stateService.readCollectionFile(id);
+    await fs.promises.writeFile(destPath, data);
+  }
+
+  /**
+   * Imports a scene collection from JSON data and adds it to the collections list.
+   * Does not switch to the imported collection.
+   * @param name the name to give the imported collection
+   * @param data the JSON data of the collection to import
+   */
+  async importCollection(name: string, data: string): Promise<ISceneCollectionsManifestEntry> {
+    const root = parse(data, NODE_TYPES);
+    if (!(root instanceof RootNode)) {
+      throw new Error('This file is not a valid N Air scene collection.');
+    }
+    // A formatId is only ever absent on files predating this field
+    // (including ones originally written by Streamlabs OBS, which never
+    // had it) -- those are accepted and migrated. A *present but
+    // different* formatId means the file diverged into some other format
+    // that happens to reuse our node type names, which we reject outright.
+    if (
+      root.data?.formatId !== undefined
+      && root.data.formatId !== NAIR_SCENE_COLLECTION_FORMAT_ID
+    ) {
+      throw new Error('This file is not a valid N Air scene collection.');
+    }
+
+    const id: string = uuidv4();
+    await this.stateService.ensureDirectory();
+    this.stateService.writeDataToCollectionFile(id, data);
+    this.stateService.ADD_COLLECTION(id, this.suggestName(name), new Date().toISOString());
+    this.collectionAdded.next(this.getCollection(id));
+
+    return this.getCollection(id);
+  }
+
+  /**
    * Based on the provided name, suggest a new name that does
    * not conflict with any current name.
    *
@@ -479,27 +614,37 @@ export class SceneCollectionsService extends Service implements ISceneCollection
 
       promises.push(
         new Promise<ISceneCollectionSchema>((resolve) => {
+          // parse() may have skipped unknown nodeTypes (from a newer app
+          // version), leaving `undefined` holes in these arrays (this
+          // method reads root.data directly instead of calling root.load(),
+          // so ArrayNode's own hole-filtering never runs here). Defend
+          // against both missing containers and individual holes instead
+          // of throwing.
           const root = parse(data, NODE_TYPES);
+          const sceneItems = (root?.data?.scenes?.data?.items ?? []).filter(Boolean);
+          const sourceItems = (root?.data?.sources?.data?.items ?? []).filter(Boolean);
           const collectionSchema: ISceneCollectionSchema = {
             id: collection.id,
             name: collection.name,
 
-            scenes: root.data.scenes.data.items.map((sceneData: ISceneSchema) => {
+            scenes: sceneItems.map((sceneData: ISceneSchema) => {
               return {
                 id: sceneData.id,
                 name: sceneData.name,
-                sceneItems: sceneData.sceneItems.data.items.map((sceneItemData) => {
-                  return {
-                    sceneItemId: sceneItemData.id,
-                    sourceId: (sceneItemData as ISceneItemInfo).sourceId,
-                  };
-                }),
+                sceneItems: (sceneData.sceneItems?.data?.items ?? [])
+                  .filter(Boolean)
+                  .map((sceneItemData) => {
+                    return {
+                      sceneItemId: sceneItemData.id,
+                      sourceId: (sceneItemData as ISceneItemInfo).sourceId,
+                    };
+                  }),
               };
             }),
 
-            sources: root.data.sources.data.items.map((sourceData: ISourceInfo) => {
+            sources: sourceItems.map((sourceData: ISourceInfo) => {
               return {
-                id: sourceData.id,
+                sourceId: sourceData.id,
                 name: sourceData.name,
                 type: sourceData.type,
                 channel: sourceData.channel,
@@ -571,10 +716,29 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * @returns Array of load errors that occurred during loading
    */
   private async loadDataIntoApplicationState(data: string): Promise<ILoadError[]> {
-    const root = parse(data, NODE_TYPES);
+    const parseWarnings: IParseWarning[] = [];
+    const root = parse(data, NODE_TYPES, (warning) => parseWarnings.push(warning));
     await root.load();
     this.hotkeysService.bindHotkeys();
-    return root.getLoadErrors();
+    const loadErrors = root.getLoadErrors();
+    parseWarnings.forEach((warning) => loadErrors.push(this.parseWarningToLoadError(warning)));
+    return loadErrors;
+  }
+
+  /**
+   * Converts a parse()-level forward-compatibility warning (unknown
+   * nodeType or schemaVersion too new) into an ILoadError so it surfaces
+   * through the same partial-load warning dialog as other load errors.
+   */
+  private parseWarningToLoadError(warning: IParseWarning): ILoadError {
+    const name = warning.kind === 'unknownNodeType'
+      ? $t('scenes.unknownComponentSkipped', { nodeType: warning.nodeType })
+      : $t('scenes.schemaVersionTooNew', {
+        nodeType: warning.nodeType,
+        found: warning.schemaVersion,
+        supported: warning.maxKnownVersion,
+      });
+    return { type: 'format', name, error: new Error(name) };
   }
 
   /**

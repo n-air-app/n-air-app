@@ -90,8 +90,11 @@ export interface ProgramInfo {
     }[];
     /** ストリーム設定 */
     streamSetting: {
-      /** 配信最高画質 */
-      maxQuality: '6Mbps720p' | '2Mbps450p' | '1Mbps450p' | '384kbps288p' | '192kbps288p';
+      /**
+       * 配信最高画質。`parseMaxQuality` でパースする文字列で、書式や値は将来変わり得る。
+       * 例: '8Mbps1080p60fps', '6Mbps720p', '2Mbps450p', '1Mbps450p', '384kbps288p', '192kbps288p'
+       */
+      maxQuality: string;
       /** 配信の向き */
       orientation: 'Landscape' | 'Portrait';
     };

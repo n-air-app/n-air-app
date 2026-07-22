@@ -26,6 +26,29 @@ export abstract class ArrayNode<TSchema, TContext, TItem> extends Node<
 
   async load(context: TContext): Promise<void> {
     this.clearLoadErrors();
+
+    // Items skipped by parse() due to an unknown nodeType become holes
+    // (null/undefined) in the array. Drop them before subclasses'
+    // beforeLoad()/loadItem() see them (some getItemInfo() overrides would
+    // themselves throw on a null item), and report the drop as a single
+    // load error so it isn't silently lost -- this also covers a stray
+    // null unrelated to a parse-time skip (e.g. hand-edited JSON).
+    if (this.data.items) {
+      const originalLength = this.data.items.length;
+      this.data.items = this.data.items.filter((item) => item != null);
+      const droppedCount = originalLength - this.data.items.length;
+      if (droppedCount > 0) {
+        const name = `${this.constructor.name}: ${droppedCount} unrecognized item(s)`;
+        this.addLoadError({
+          type: 'format',
+          name,
+          error: new Error(
+            `${droppedCount} item(s) in ${this.constructor.name} could not be recognized and were skipped.`,
+          ),
+        });
+      }
+    }
+
     await this.beforeLoad(context);
 
     const afterLoadItemsCallbacks: (void | (() => Promise<void>))[] = [];

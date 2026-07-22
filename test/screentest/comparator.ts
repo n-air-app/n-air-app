@@ -2,7 +2,7 @@ import { getConfig, getConfigsVariations } from './utils';
 
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
-const pixelmatch = require('pixelmatch');
+const pixelmatch = require('pixelmatch').default;
 
 const CONFIG = getConfig();
 const branches = process.argv.slice(2, 4);

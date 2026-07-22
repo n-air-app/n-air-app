@@ -11,7 +11,7 @@ export default defineComponent({
     input: (_value: ISettingsSubCategory[]) => true,
   },
   props: {
-    value: { type: Array as PropType<ISettingsSubCategory[]> },
+    value: { type: Array as PropType<ISettingsSubCategory[]>, default: (): ISettingsSubCategory[] => [] },
     category: { type: String },
     isLoggedIn: { type: Boolean },
   },

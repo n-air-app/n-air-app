@@ -1,6 +1,6 @@
 import { TObsFormData, TObsValue } from 'components/obs/inputs/ObsInput';
 
-import { getBestSettingsForNiconico } from './niconico-optimization';
+import { clampResolutionToCanvas, getBestSettingsForNiconico } from './niconico-optimization';
 import {
   EncoderFamily,
   ISettingsAccessor,
@@ -189,5 +189,47 @@ describe('getBestSettingsForNiconico', () => {
       audioBitrate: '192',
       videoBitrate: 6000 - 192,
     });
+  });
+
+  test('does not clamp quality when baseWidth/baseHeight are not given (backward compatibility)', () => {
+    const settings = getBestSettingsForNiconico(
+      { bitrate: 6000, height: 1080, fps: 30, useHardwareEncoder: false },
+      accessor,
+    );
+    expect(settings.quality).toBe('1920x1080');
+  });
+
+  test('clamps quality to canvas resolution when it is smaller than the recommended resolution', () => {
+    const settings = getBestSettingsForNiconico(
+      {
+        bitrate: 6000, height: 1080, fps: 30, useHardwareEncoder: false, baseWidth: 1280, baseHeight: 720,
+      },
+      accessor,
+    );
+    expect(settings.quality).toBe('1280x720');
+  });
+
+  test('does not clamp quality when canvas resolution is large enough', () => {
+    const settings = getBestSettingsForNiconico(
+      {
+        bitrate: 6000, height: 1080, fps: 30, useHardwareEncoder: false, baseWidth: 1920, baseHeight: 1080,
+      },
+      accessor,
+    );
+    expect(settings.quality).toBe('1920x1080');
+  });
+});
+
+describe('clampResolutionToCanvas', () => {
+  test('clamps to the largest recommended resolution that fits the canvas', () => {
+    expect(clampResolutionToCanvas({ w: 1920, h: 1080 }, 1280, 720)).toEqual({ w: 1280, h: 720 });
+  });
+
+  test('returns the recommended resolution unchanged when it fits the canvas', () => {
+    expect(clampResolutionToCanvas({ w: 1280, h: 720 }, 1920, 1080)).toEqual({ w: 1280, h: 720 });
+  });
+
+  test('falls back to the smallest resolution when nothing fits the canvas', () => {
+    expect(clampResolutionToCanvas({ w: 1280, h: 720 }, 320, 180)).toEqual({ w: 512, h: 288 });
   });
 });

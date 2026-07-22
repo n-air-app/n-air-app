@@ -10,7 +10,6 @@ export default defineComponent({
     paddingSize: { type: Number, default: 0 },
     drawUI: { type: Boolean, default: false },
     renderingMode: { type: Number },
-    clickHandler: { type: Boolean },
   },
 
   data() {

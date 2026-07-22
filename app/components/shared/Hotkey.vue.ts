@@ -13,7 +13,7 @@ export default defineComponent({
   name: 'HotkeyComponent',
 
   props: {
-    hotkey: { type: Object as () => Hotkey },
+    hotkey: { type: Object as () => Hotkey, required: true as const },
   },
 
   data() {

@@ -23,10 +23,6 @@ export default defineComponent({
     StreamingStatus,
   },
 
-  props: {
-    locked: { type: Boolean },
-  },
-
   data() {
     return {
       slideOpen: false,
