@@ -81,7 +81,12 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
     this.SET_WINDOW_ID(windowId);
 
     const windowObj = this.windowsService.getWindow(windowId);
-    windowObj.on('close', () => this.endCropping());
+    windowObj.on('close', () => {
+      // 自発的に閉じた（レンダラー側window.close()等）ウィンドウなので、
+      // setter経由での再度のclose()呼び出しを避けるため先に参照を外す
+      this._currentWindow = null;
+      this.endCropping();
+    });
 
     this.currentWindow = windowObj;
   }
