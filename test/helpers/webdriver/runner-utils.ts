@@ -141,7 +141,11 @@ async function getRawElectronTasks() {
   const tasks = await tasklist();
   return tasks.filter(
     (task: any) =>
-      task.imageName === 'electron.exe' || task.imageName === 'crash-handler-process.exe',
+      task.imageName === 'electron.exe' ||
+      task.imageName === 'crash-handler-process.exe' ||
+      // obs64.exe holds an open handle on node-obs/logs/*.txt until it exits;
+      // without waiting for it, cleanup can hit EBUSY on Windows.
+      task.imageName === 'obs64.exe',
   );
 }
 
@@ -160,7 +164,16 @@ export async function killElectronInstances() {
   tasks.forEach((task: any) => kill(task.pid));
 }
 
-export async function waitForCrashHandlerExit() {
+// Processes that keep an open handle on files under the cache dir (e.g.
+// node-obs/logs/*.txt, crash-handler.log) until they exit. Cleanup must wait
+// for these to fully exit, or fs.rmSync can fail with EBUSY on Windows.
+const LOCK_HOLDING_IMAGE_NAMES = ['crash-handler-process.exe', 'obs64.exe'];
+
+function isLockHoldingTask(task: any) {
+  return LOCK_HOLDING_IMAGE_NAMES.includes(task.imageName) && !ignoreTaskPIDs.includes(task.pid);
+}
+
+export async function waitForLogFileHandlesReleased() {
   const interval = 100;
   const timeout = 5000;
 
@@ -168,11 +181,9 @@ export async function waitForCrashHandlerExit() {
 
   do {
     const tasks = await tasklist();
-    const crashHandlerTasks = tasks.filter(
-      (task: any) => task.imageName === 'crash-handler-process.exe',
-    );
+    const lockHoldingTasks = tasks.filter(isLockHoldingTask);
 
-    if (crashHandlerTasks.length === 0) {
+    if (lockHoldingTasks.length === 0) {
       return;
     }
 
@@ -180,9 +191,7 @@ export async function waitForCrashHandlerExit() {
     timeLeft -= interval;
   } while (timeLeft > 0);
 
-  console.warn(
-    `Warning: crash-handler-process.exe still running after ${timeout}ms timeout`,
-  );
+  console.warn(`Warning: ${LOCK_HOLDING_IMAGE_NAMES.join('/')} still running after ${timeout}ms timeout`);
 }
 
 export async function waitForElectronInstancesExist() {
