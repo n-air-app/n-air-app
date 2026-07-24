@@ -119,4 +119,16 @@ describe('captureIpcRequestError', () => {
     expect(mockScope.setLevel).toHaveBeenCalledWith('warning');
     expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'ObsBackendIpcLost']);
   });
+
+  test('OBSバックエンドIPC切断エラーは breadcrumb の level も warning になる', () => {
+    captureIpcRequestError('SourcesService', 'getAvailableSourcesTypesList', false, undefined, {
+      code: -32000,
+      message: 'INTERNAL_SERVER_ERROR Failed to make IPC call, verify IPC status.',
+    });
+    expect(Sentry.addBreadcrumb).toHaveBeenCalledWith({
+      category: 'ipc.request',
+      message: 'SourcesService.getAvailableSourcesTypesList failed (code: -32000)',
+      level: 'warning',
+    });
+  });
 });

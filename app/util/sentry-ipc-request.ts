@@ -17,14 +17,13 @@ export function captureIpcRequestError(
 ): IpcRequestError {
   const method = String(methodName);
   const err = new IpcRequestError(serviceName, method, rpcError);
+  const isObsBackendIpcLost = OBS_BACKEND_IPC_LOST_RE.test(rpcError.message ?? '');
 
   Sentry.addBreadcrumb({
     category: 'ipc.request',
     message: `${serviceName}.${method} failed (code: ${rpcError.code})`,
-    level: 'error',
+    level: isObsBackendIpcLost ? 'warning' : 'error',
   });
-
-  const isObsBackendIpcLost = OBS_BACKEND_IPC_LOST_RE.test(rpcError.message ?? '');
 
   const tags: Record<string, string> = {
     isHelper: String(isHelper),
