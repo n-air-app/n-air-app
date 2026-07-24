@@ -84,6 +84,8 @@ export interface ISourcesServiceApi {
 export interface ISourceAddOptions<TPropertiesManagerSettings = Dictionary<any>> {
   channel?: number;
   sourceId?: string; // A new ID will be generated if one is not specified
+  deinterlaceMode?: obs.EDeinterlaceMode;
+  deinterlaceFieldOrder?: obs.EDeinterlaceFieldOrder;
   propertiesManager?: TPropertiesManager;
   propertiesManagerSettings?: Dictionary<any>;
   audioSettings?: Partial<IAudioSource>;

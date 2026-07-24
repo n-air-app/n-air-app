@@ -60,6 +60,8 @@ export interface ISourceInfo {
 export class SourcesNode extends Node<ISchema, {}> {
   schemaVersion = 3;
 
+  reportLoadTiming?: (name: string, duration: number) => void;
+
   @Inject() private fontLibraryService: FontLibraryService;
   @Inject() private sourcesService: SourcesService;
   @Inject() private audioService: AudioService;
@@ -223,6 +225,17 @@ export class SourcesNode extends Node<ISchema, {}> {
     this.clearLoadErrors();
     this.sanitizeSources();
 
+    const timings = new Map<string, number>();
+    const sourceCreationTimings = new Map<string, number>();
+    const measure = <T>(name: string, operation: () => T): T => {
+      const startedAt = performance.now();
+      try {
+        return operation();
+      } finally {
+        timings.set(name, (timings.get(name) ?? 0) + performance.now() - startedAt);
+      }
+    };
+
     // This ensures we have bound the source size callback
     // before creating any sources in OBS.
     this.sourcesService;
@@ -237,42 +250,58 @@ export class SourcesNode extends Node<ISchema, {}> {
 
       // Try to create the OBS input source
       try {
-        const settings = applyPathConvertForPreset(sourceInfo.type, sourceInfo.settings);
-        obsInput = obs.InputFactory.create(sourceInfo.type, sourceInfo.id, settings);
+        const startedAt = performance.now();
+        try {
+          const settings = applyPathConvertForPreset(sourceInfo.type, sourceInfo.settings);
+          obsInput = obs.InputFactory.create(sourceInfo.type, sourceInfo.id, settings);
+        } finally {
+          const duration = performance.now() - startedAt;
+          timings.set('inputs-created', (timings.get('inputs-created') ?? 0) + duration);
+          sourceCreationTimings.set(
+            sourceInfo.type,
+            (sourceCreationTimings.get(sourceInfo.type) ?? 0) + duration,
+          );
+        }
 
         // Apply basic source properties (equivalent to createSources lines 1563-1570)
-        if (obsInput.audioMixers) {
-          obsInput.muted = sourceInfo.muted || false;
-          obsInput.volume = sourceInfo.volume != null ? sourceInfo.volume : 1;
-          obsInput.syncOffset = { sec: 0, nsec: 0 };
-        }
+        measure('basic-properties-applied', () => {
+          if (obsInput!.audioMixers) {
+            obsInput!.muted = sourceInfo.muted || false;
+            obsInput!.volume = sourceInfo.volume != null ? sourceInfo.volume : 1;
+            obsInput!.syncOffset = { sec: 0, nsec: 0 };
+          }
 
-        obsInput.deinterlaceMode = sourceInfo.deinterlaceMode || obs.EDeinterlaceMode.Disable;
-        obsInput.deinterlaceFieldOrder = sourceInfo.deinterlaceFieldOrder || obs.EDeinterlaceFieldOrder.Top;
+          obsInput!.deinterlaceMode =
+            sourceInfo.deinterlaceMode ?? obs.EDeinterlaceMode.Disable;
+          obsInput!.deinterlaceFieldOrder =
+            sourceInfo.deinterlaceFieldOrder ?? obs.EDeinterlaceFieldOrder.Top;
+        });
 
         // Create and add filters (equivalent to createSources lines 1573-1589)
-        if (sourceInfo.filters && Array.isArray(sourceInfo.filters.items)) {
-          sourceInfo.filters.items.forEach((filterInfo) => {
-            try {
-              const obsFilter = obs.FilterFactory.create(
-                filterInfo.type,
-                filterInfo.name,
-                filterInfo.settings,
-              );
-              if (obsFilter) {
-                obsFilter.enabled = filterInfo.enabled === undefined ? true : filterInfo.enabled;
-                obsInput!.addFilter(obsFilter);
-                obsFilter.release();
+        measure('filters-created', () => {
+          if (sourceInfo.filters && Array.isArray(sourceInfo.filters.items)) {
+            sourceInfo.filters.items.forEach((filterInfo) => {
+              try {
+                const obsFilter = obs.FilterFactory.create(
+                  filterInfo.type,
+                  filterInfo.name,
+                  filterInfo.settings,
+                );
+                if (obsFilter) {
+                  obsFilter.enabled = filterInfo.enabled === undefined ? true : filterInfo.enabled;
+                  obsInput!.addFilter(obsFilter);
+                  obsFilter.release();
+                }
+              } catch (filterError) {
+                console.warn(
+                  `Failed to create filter "${filterInfo.name}" for source "${sourceInfo.name}":`,
+                  filterError,
+                );
+                // Note: filter errors are not added to loadErrors as they are less critical
               }
-            } catch (filterError) {
-              console.warn(
-                `Failed to create filter "${filterInfo.name}" for source "${sourceInfo.name}":`,
-                filterError,
-              );
-              // Note: filter errors are not added to loadErrors as they are less critical
-            }
-          });
-        }
+            });
+          }
+        });
       } catch (e) {
         console.warn(`Failed to create input for source "${sourceInfo.name}":`, e);
         this.addLoadError({
@@ -289,42 +318,39 @@ export class SourcesNode extends Node<ISchema, {}> {
       // If source creation succeeded, add it to the service and configure it
       if (obsInput) {
         try {
-          this.sourcesService.addSource(obsInput, sourceInfo.name, {
-            channel: sourceInfo.channel,
-            propertiesManager: sourceInfo.propertiesManager,
-            propertiesManagerSettings: sourceInfo.propertiesManagerSettings || {},
+          measure('sources-added', () => {
+            this.sourcesService.addSource(obsInput!, sourceInfo.name, {
+              channel: sourceInfo.channel,
+              deinterlaceMode: sourceInfo.deinterlaceMode,
+              deinterlaceFieldOrder: sourceInfo.deinterlaceFieldOrder,
+              propertiesManager: sourceInfo.propertiesManager,
+              propertiesManagerSettings: sourceInfo.propertiesManagerSettings || {},
+            });
           });
 
-          const newSource = this.sourcesService.getSource(sourceInfo.id);
-          if (newSource.async && newSource.video) {
-            if (sourceInfo.deinterlaceMode !== undefined) {
-              newSource.setDeinterlaceMode(sourceInfo.deinterlaceMode);
-            }
-            if (sourceInfo.deinterlaceFieldOrder !== undefined) {
-              newSource.setDeinterlaceFieldOrder(sourceInfo.deinterlaceFieldOrder);
-            }
-          }
+          const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager ?? 'default');
 
-          const useAudio = !isNoAudioPropertiesManagerType(sourceInfo.propertiesManager);
-
-          if (useAudio && obsInput.audioMixers) {
-            const audioSource = this.audioService.getSource(sourceInfo.id);
-            if (!audioSource) {
-              // maybe the source was removed after the last save
-              if (Utils.isDevMode()) {
-                console.warn(`Audio source ${sourceInfo.id} not found in AudioService. ignore.`);
+          measure('source-audio-settings-applied', () => {
+            if (useAudio && obsInput!.audioMixers) {
+              const audioSource = this.audioService.getSource(sourceInfo.id);
+              if (!audioSource) {
+                // maybe the source was removed after the last save
+                if (Utils.isDevMode()) {
+                  console.warn(`Audio source ${sourceInfo.id} not found in AudioService. ignore.`);
+                }
+                Sentry.captureEvent({
+                  message: 'Audio source not found in AudioService',
+                  level: 'warning',
+                  tags: {
+                    sourceId: sourceInfo.id,
+                  },
+                  extra: {
+                    audioSources: Object.keys(this.audioService.state.audioSources),
+                  },
+                });
+                return;
               }
-              Sentry.captureEvent({
-                message: 'Audio source not found in AudioService',
-                level: 'warning',
-                tags: {
-                  sourceId: sourceInfo.id,
-                },
-                extra: {
-                  audioSources: Object.keys(this.audioService.state.audioSources),
-                },
-              });
-            } else {
+
               audioSource.setMul(sourceInfo.volume != null ? sourceInfo.volume : 1);
 
               // マイグレーション: 音声を持つべきソースでaudioMixers=0の場合、デフォルト値に修正
@@ -372,7 +398,7 @@ export class SourcesNode extends Node<ISchema, {}> {
               });
               audioSource.setHidden(!!sourceInfo.mixerHidden);
             }
-          }
+          });
 
           if (sourceInfo.hotkeys) {
             promises.push(sourceInfo.hotkeys.load({ sourceId: sourceInfo.id }));
@@ -391,8 +417,22 @@ export class SourcesNode extends Node<ISchema, {}> {
       }
     });
 
+    timings.forEach((duration, name) => {
+      this.reportLoadTiming?.(`scene-collections-source-${name}`, duration);
+    });
+    sourceCreationTimings.forEach((duration, sourceType) => {
+      this.reportLoadTiming?.(`scene-collections-source-created-${sourceType}`, duration);
+    });
+
+    const hotkeysStartedAt = performance.now();
     return new Promise((resolve) => {
-      Promise.all(promises).then(() => resolve());
+      Promise.all(promises).then(() => {
+        this.reportLoadTiming?.(
+          'scene-collections-source-hotkeys-loaded',
+          performance.now() - hotkeysStartedAt,
+        );
+        resolve();
+      });
     });
   }
 

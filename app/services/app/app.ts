@@ -85,8 +85,10 @@ export class AppService extends StatefulService<IAppState> {
   readonly pid = require('process').pid;
 
   async load() {
-    UsageStatisticsService.instance().recordEvent({ event: 'boot' });
-    return this.runInLoadingMode(async () => {
+    const loadStartedAt = performance.now();
+    electron.ipcRenderer.send('startup-milestone', 'app-load-started');
+    const willOnboard = this.onboardingService.willOnboardOnStartup();
+    const result = await this.runInLoadingMode(async () => {
       if (Utils.isDevMode()) {
         electron.ipcRenderer.on('showErrorAlert', () => {
           this.SET_ERROR_ALERT(true);
@@ -108,11 +110,13 @@ export class AppService extends StatefulService<IAppState> {
       // the apps to already be in place when their sources are created.
       // await this.platformAppsService.initialize();
 
-      // パッチノートはOBS/シーンに依存しないため、シーン初期化前に表示判定する
-      const willOnboard = this.onboardingService.willOnboardOnStartup();
-      this.patchNotesService.showPatchNotesIfRequired(willOnboard);
-
+      const sceneCollectionsStartedAt = performance.now();
       await this.sceneCollectionsService.initialize();
+      electron.ipcRenderer.send(
+        'startup-milestone',
+        'scene-collections-initialized',
+        `${Math.round(performance.now() - sceneCollectionsStartedAt)}ms`,
+      );
 
       this.startMonitoringStudioMode();
       this.onboardingService.startOnboardingIfRequired();
@@ -128,14 +132,33 @@ export class AppService extends StatefulService<IAppState> {
       this.ipcServerService.listen();
       this.tcpServerService.listen();
 
-      this.informationsService;
-
-      this.transcriptionService;
-
       this.crashReporterService.endStartup();
 
       this.protocolLinksService.start(this.state.argv);
     });
+    electron.ipcRenderer.send(
+      'startup-milestone',
+      'app-interactive',
+      `${Math.round(performance.now() - loadStartedAt)}ms`,
+    );
+    this.initializeDeferredServices(willOnboard);
+    return result;
+  }
+
+  /** 操作開始に必須でないサービスを、初期画面の描画を妨げないタイミングで初期化する。 */
+  private initializeDeferredServices(willOnboard: boolean) {
+    window.requestAnimationFrame(() => window.setTimeout(() => {
+      const startedAt = performance.now();
+      UsageStatisticsService.instance().recordEvent({ event: 'boot' });
+      this.patchNotesService.showPatchNotesIfRequired(willOnboard);
+      this.informationsService;
+      this.transcriptionService;
+      electron.ipcRenderer.send(
+        'startup-milestone',
+        'deferred-services-initialized',
+        `${Math.round(performance.now() - startedAt)}ms`,
+      );
+    }, 0));
   }
 
   private shutdownHandler() {

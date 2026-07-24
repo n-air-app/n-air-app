@@ -24,50 +24,32 @@
       .logo-svg {
         width: 200px;
         height: auto;
-        margin-bottom: 60px;
+        margin-bottom: 48px;
         color: #9eeaf9;
       }
 
-      .text {
+      .status {
         color: #ffffff;
-        font-size: 16px;
-        opacity: 0.7;
-        margin-bottom: 40px;
+        font-size: 14px;
+        opacity: 0.82;
+        margin-bottom: 18px;
+        min-height: 20px;
       }
 
-      .loading-dots {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        justify-content: center;
+      .progress-track {
+        width: 240px;
+        height: 3px;
+        overflow: hidden;
+        border-radius: 2px;
+        background: rgb(255 255 255 / 14%);
       }
 
-      .loading-dots .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #9eeaf9;
-        animation: pulse 1.4s ease-in-out infinite;
-      }
-
-      .loading-dots .dot:nth-child(1) {
-        animation-delay: 0s;
-      }
-
-      .loading-dots .dot:nth-child(2) {
-        animation-delay: 0.15s;
-      }
-
-      .loading-dots .dot:nth-child(3) {
-        animation-delay: 0.3s;
-      }
-
-      .loading-dots .dot:nth-child(4) {
-        animation-delay: 0.45s;
-      }
-
-      .loading-dots .dot:nth-child(5) {
-        animation-delay: 0.6s;
+      .progress-bar {
+        width: 12%;
+        height: 100%;
+        border-radius: inherit;
+        background: #9eeaf9;
+        transition: width 300ms ease-out;
       }
 
       .version {
@@ -80,18 +62,6 @@
         opacity: 0.5;
       }
 
-      @keyframes pulse {
-        0%,
-        80%,
-        100% {
-          opacity: 0.3;
-          transform: scale(0.8);
-        }
-        40% {
-          opacity: 1;
-          transform: scale(1.2);
-        }
-      }
     </style>
   </head>
   <body>
@@ -126,15 +96,14 @@
         fill="currentColor"
       ></path>
     </svg>
-    <div class="loading-dots">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
+    <div class="status" id="status">起動準備中…</div>
+    <div class="progress-track">
+      <div class="progress-bar" id="progress"></div>
     </div>
     <div class="version" id="version"></div>
     <script>
+      const { ipcRenderer } = require('electron');
+
       // Display version information from environment variable
       // Note: nodeIntegration is enabled for this window to access process.env
       const version = process.env.NAIR_VERSION || '';
@@ -144,6 +113,13 @@
       } else {
         console.log('Version element or version not found', { version, versionElement });
       }
+
+      ipcRenderer.on('splash-status', (_event, { status, progress }) => {
+        const statusElement = document.getElementById('status');
+        const progressElement = document.getElementById('progress');
+        if (statusElement) statusElement.textContent = status;
+        if (progressElement) progressElement.style.width = `${progress}%`;
+      });
     </script>
   </body>
 </html>

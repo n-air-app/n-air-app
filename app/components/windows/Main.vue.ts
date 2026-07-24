@@ -33,7 +33,6 @@ export default defineComponent({
   },
 
   mounted() {
-    remote.getCurrentWindow().show();
     WindowSizeService.instance(); // manage compact mode
   },
 

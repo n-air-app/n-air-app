@@ -36,6 +36,9 @@ interface ISchema {
 export class RootNode extends Node<ISchema, {}> {
   schemaVersion = 3;
 
+  measureLoadStep?: (name: string, operation: () => Promise<void>) => Promise<void>;
+  reportLoadTiming?: (name: string, duration: number) => void;
+
   @Inject() videoService: VideoService;
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() scenesService: ScenesService;
@@ -88,68 +91,81 @@ export class RootNode extends Node<ISchema, {}> {
 
     const wh = this.videoSettingsService.baseResolutions.horizontal;
     const targetResolution = { width: wh.baseWidth, height: wh.baseHeight };
-    this.videoService.setBaseResolution(targetResolution);
+    await this.runLoadStep('scene-collections-resolution-initialized', async () => {
+      this.videoService.setBaseResolution(targetResolution);
+    });
 
     // Load transitions
-    try {
-      await this.data.transitions.load();
-      // Collect errors from transitions
-      const transitionErrors = this.data.transitions.getLoadErrors();
-      transitionErrors.forEach((err) => this.addLoadError(err));
-    } catch (e) {
-      console.error('Failed to load transitions:', e);
-      this.addLoadError({
-        type: 'transition',
-        name: 'Transitions',
-        error: e instanceof Error ? e : new Error(String(e)),
-      });
-    }
-
-    // Load sources
-    try {
-      await this.data.sources.load({});
-      // Collect errors from sources
-      const sourceErrors = this.data.sources.getLoadErrors();
-      sourceErrors.forEach((err) => this.addLoadError(err));
-    } catch (e) {
-      console.error('Failed to load sources:', e);
-      this.addLoadError({
-        type: 'source',
-        name: 'Sources',
-        error: e instanceof Error ? e : new Error(String(e)),
-      });
-    }
-
-    // Load scenes
-    try {
-      await this.data.scenes.load({});
-      // Collect errors from scenes
-      const sceneErrors = this.data.scenes.getLoadErrors();
-      sceneErrors.forEach((err) => this.addLoadError(err));
-    } catch (e) {
-      console.error('Failed to load scenes:', e);
-      this.addLoadError({
-        type: 'scene',
-        name: 'Scenes',
-        error: e instanceof Error ? e : new Error(String(e)),
-      });
-    }
-
-    // Load hotkeys
-    if (this.data.hotkeys) {
+    await this.runLoadStep('scene-collections-transitions-loaded', async () => {
       try {
-        await this.data.hotkeys.load({});
-        // Collect errors from hotkeys
-        const hotkeyErrors = this.data.hotkeys.getLoadErrors();
-        hotkeyErrors.forEach((err) => this.addLoadError(err));
+        await this.data.transitions.load();
+        // Collect errors from transitions
+        const transitionErrors = this.data.transitions.getLoadErrors();
+        transitionErrors.forEach((err) => this.addLoadError(err));
       } catch (e) {
-        console.error('Failed to load hotkeys:', e);
+        console.error('Failed to load transitions:', e);
         this.addLoadError({
-          type: 'hotkey',
-          name: 'Hotkeys',
+          type: 'transition',
+          name: 'Transitions',
           error: e instanceof Error ? e : new Error(String(e)),
         });
       }
+    });
+
+    // Load sources
+    await this.runLoadStep('scene-collections-sources-loaded', async () => {
+      this.data.sources.reportLoadTiming = this.reportLoadTiming;
+      try {
+        await this.data.sources.load({});
+        // Collect errors from sources
+        const sourceErrors = this.data.sources.getLoadErrors();
+        sourceErrors.forEach((err) => this.addLoadError(err));
+      } catch (e) {
+        console.error('Failed to load sources:', e);
+        this.addLoadError({
+          type: 'source',
+          name: 'Sources',
+          error: e instanceof Error ? e : new Error(String(e)),
+        });
+      } finally {
+        this.data.sources.reportLoadTiming = undefined;
+      }
+    });
+
+    // Load scenes
+    await this.runLoadStep('scene-collections-scenes-loaded', async () => {
+      try {
+        await this.data.scenes.load({});
+        // Collect errors from scenes
+        const sceneErrors = this.data.scenes.getLoadErrors();
+        sceneErrors.forEach((err) => this.addLoadError(err));
+      } catch (e) {
+        console.error('Failed to load scenes:', e);
+        this.addLoadError({
+          type: 'scene',
+          name: 'Scenes',
+          error: e instanceof Error ? e : new Error(String(e)),
+        });
+      }
+    });
+
+    // Load hotkeys
+    if (this.data.hotkeys) {
+      await this.runLoadStep('scene-collections-node-hotkeys-loaded', async () => {
+        try {
+          await this.data.hotkeys!.load({});
+          // Collect errors from hotkeys
+          const hotkeyErrors = this.data.hotkeys!.getLoadErrors();
+          hotkeyErrors.forEach((err) => this.addLoadError(err));
+        } catch (e) {
+          console.error('Failed to load hotkeys:', e);
+          this.addLoadError({
+            type: 'hotkey',
+            name: 'Hotkeys',
+            error: e instanceof Error ? e : new Error(String(e)),
+          });
+        }
+      });
     }
 
     // Rescale scene items to fit the current canvas resolution if the
@@ -165,20 +181,26 @@ export class RootNode extends Node<ISchema, {}> {
       && (savedResolution.width !== targetResolution.width
         || savedResolution.height !== targetResolution.height)
     ) {
-      try {
-        this.scenesService.rescaleAllScenes(
-          targetResolution.width / savedResolution.width,
-          targetResolution.height / savedResolution.height,
-        );
-      } catch (e) {
-        console.error('Failed to rescale scene items:', e);
-        this.addLoadError({
-          type: 'format',
-          name: $t('scenes.rescaleFailed'),
-          error: e instanceof Error ? e : new Error(String(e)),
-        });
-      }
+      await this.runLoadStep('scene-collections-scenes-rescaled', async () => {
+        try {
+          this.scenesService.rescaleAllScenes(
+            targetResolution.width / savedResolution.width,
+            targetResolution.height / savedResolution.height,
+          );
+        } catch (e) {
+          console.error('Failed to rescale scene items:', e);
+          this.addLoadError({
+            type: 'format',
+            name: $t('scenes.rescaleFailed'),
+            error: e instanceof Error ? e : new Error(String(e)),
+          });
+        }
+      });
     }
+  }
+
+  private runLoadStep(name: string, operation: () => Promise<void>): Promise<void> {
+    return this.measureLoadStep ? this.measureLoadStep(name, operation) : operation();
   }
 
   migrate(version: number) {

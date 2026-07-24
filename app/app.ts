@@ -19,7 +19,7 @@ import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
-import { createApp } from 'vue';
+import { createApp, nextTick } from 'vue';
 import { createI18n, type Locale, type Path } from 'vue-i18n';
 
 import * as obs from '../obs-api';
@@ -30,6 +30,13 @@ import { WindowsService } from './services/windows';
 import { createStore } from './store';
 
 const { ipcRenderer } = electron;
+
+function logStartupMilestone(name: string, startedAt?: number) {
+  const detail = startedAt === undefined ? undefined : `${Math.round(performance.now() - startedAt)}ms`;
+  ipcRenderer.send('startup-milestone', name, detail);
+}
+
+logStartupMilestone('bundle-evaluated');
 
 import * as remote from '@electron/remote';
 
@@ -169,8 +176,12 @@ const showDialog = (message: string): void => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  logStartupMilestone('dom-content-loaded');
+  const storeStartedAt = performance.now();
   createStore().then(async (store) => {
+    logStartupMilestone('store-ready', storeStartedAt);
     const windowsService: WindowsService = WindowsService.instance();
+    let mainAppService: AppService | null = null;
 
     if (Utils.isMainWindow()) {
       // Services
@@ -202,12 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
         path.join(appService.appDataDirectory, 'basic.ini'),
       );
 
+      ipcRenderer.on('closeWindow', () => windowsService.closeMainWindow());
+      logStartupMilestone('obs-api-initialize-started');
+      const obsStartedAt = performance.now();
       const apiResult = obs.NodeObs.OBS_API_initAPI(
         'en-US',
         appService.appDataDirectory,
         remote.process.env.NAIR_VERSION,
         SENTRY_MINIDUMP_URL,
       );
+      logStartupMilestone('obs-api-initialized', obsStartedAt);
 
       if (apiResult !== obs.EVideoCodes.Success) {
         const message = apiInitErrorResultToMessage(apiResult);
@@ -222,8 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      ipcRenderer.on('closeWindow', () => windowsService.closeMainWindow());
-      AppService.instance().load();
+      mainAppService = appService;
     } else {
       if (Utils.isChildWindow()) {
         ipcRenderer.on('closeWindow', () => windowsService.closeChildWindow());
@@ -232,7 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // setup vue-i18n plugin
     const i18nService: I18nService = I18nService.instance();
+    const i18nStartedAt = performance.now();
     await i18nService.load(); // load translations from a disk
+    logStartupMilestone('i18n-loaded', i18nStartedAt);
     const notFoundKeys = new Set<string>();
 
     // load notFoundKeys from file
@@ -322,6 +338,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     app.mount('#app');
+    await nextTick();
+
+    if (mainAppService) {
+      // メイン画面の外枠とローダーを描画してから、重いシーン復元を開始する。
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+      });
+      logStartupMilestone('main-shell-rendered');
+      await mainAppService.load();
+      await nextTick();
+    }
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => logStartupMilestone('vue-mounted'));
+    });
 
     Sentry.getCurrentScope().setTag('windowId', windowId);
 

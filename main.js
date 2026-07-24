@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Set Up Environment Variables
 ////////////////////////////////////////////////////////////////////////////////
+const startupStartedAt = Date.now();
 const pjson = require('./package.json');
 
 if (pjson.env === 'production') {
@@ -383,6 +384,48 @@ function initialize(crashHandler) {
   const logFile = path.join(app.getPath('userData'), 'app.log');
   const maxLogBytes = 131072;
 
+  const {
+    createSplashWindow,
+    closeSplashWindow,
+    updateSplashStatus,
+  } = require('./splash/splash-window');
+
+  const splashProgressByMilestone = {
+    'electron-ready': ['N Airを起動しています…', 20],
+    'start-app': ['設定を読み込んでいます…', 32],
+    'main-window-created': ['画面を準備しています…', 45],
+    'renderer:bundle-evaluated': ['配信機能を準備しています…', 58],
+    'renderer:obs-api-initialize-started': ['配信機能を起動しています…', 70],
+    'renderer:obs-api-initialized': ['配信画面を読み込んでいます…', 88],
+    'renderer:app-load-started': ['シーンとソースを復元しています…', 90],
+    'renderer:scene-collections-initialized': ['起動の準備を整えています…', 95],
+  };
+
+  function logStartupMilestone(name, detail = '') {
+    const elapsed = Date.now() - startupStartedAt;
+    console.log(`[STARTUP] +${elapsed}ms ${name}${detail ? ` (${detail})` : ''}`);
+    const splashProgress = splashProgressByMilestone[name];
+    if (splashProgress) updateSplashStatus(...splashProgress);
+  }
+
+  logStartupMilestone('main-initialize');
+
+  ipcMain.on('startup-milestone', (event, name, detail) => {
+    logStartupMilestone(`renderer:${name}`, detail);
+
+    if (
+      name === 'main-shell-rendered' &&
+      mainWindow &&
+      !mainWindow.isDestroyed() &&
+      event.sender === mainWindow.webContents &&
+      !mainWindow.isVisible()
+    ) {
+      mainWindow.show();
+      closeSplashWindow();
+      logStartupMilestone('main-window-shown');
+    }
+  });
+
   ipcMain.on('logmsg', (e, msg) => {
     logFromRemote(msg.level, msg.sender, msg.message);
   });
@@ -675,9 +718,6 @@ function initialize(crashHandler) {
     console.log('Sentry disabled, SENTRY_DSN = ', sentryDefs.DSN);
   }
 
-  // Import splash window functions
-  const { createSplashWindow, closeSplashWindow } = require('./splash/splash-window');
-
   // Safely send IPC messages to a BrowserWindow or WebContents.
   // During dev hot reload, the render frame may be disposed while the window is still alive.
   // BrowserWindow.isDestroyed() does not catch this — only the frame is replaced, not the window.
@@ -697,6 +737,7 @@ function initialize(crashHandler) {
   }
 
   async function startApp() {
+    logStartupMilestone('start-app');
     if (process.argv.includes('--clearCookies')) {
       SentryElectron.captureEvent({
         message: 'clearCookies',
@@ -713,6 +754,7 @@ function initialize(crashHandler) {
     } else {
       await recollectUserSessionCookie();
     }
+    logStartupMilestone('cookies-ready');
     const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
     let crashHandlerLogPath = '';
     if (process.env.NODE_ENV !== 'production' || !!process.env.SLOBS_PREVIEW) {
@@ -783,6 +825,7 @@ function initialize(crashHandler) {
         ...(devHostsPartition ? { partition: devHostsPartition } : {}),
       },
     });
+    logStartupMilestone('main-window-created');
 
     remote.enable(mainWindow.webContents);
     mainWindowState.manage(mainWindow); // maximize: false なのでリスナー登録のみ
@@ -798,13 +841,9 @@ function initialize(crashHandler) {
       setTimeout(() => openDevTools(), 100);
     }
 
-    // Close splash when main window content is loaded
+    // Vueの初回描画が完了するまではスプラッシュを維持する。
     mainWindow.webContents.once('did-finish-load', () => {
-      // Give Vue a moment to render before showing
-      setTimeout(() => {
-        mainWindow.show();
-        closeSplashWindow();
-      }, 100);
+      logStartupMilestone('main-window-did-finish-load');
     });
 
     // Ensure splash is closed on error
@@ -1040,8 +1079,10 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
+    logStartupMilestone('electron-ready');
     // Show splash window immediately (skip in test environment)
     createSplashWindow();
+    updateSplashStatus(...splashProgressByMilestone['electron-ready']);
 
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
     setTimeout(() => {
@@ -1059,7 +1100,7 @@ function initialize(crashHandler) {
     // スプラッシュ表示を確実にするため、Updaterを少し遅延起動
     setTimeout(() => {
       if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
-        new Updater(startApp).run();
+        new Updater(startApp, logStartupMilestone).run();
       } else {
         startApp();
       }

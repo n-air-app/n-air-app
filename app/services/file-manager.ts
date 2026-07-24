@@ -37,8 +37,8 @@ export class FileManagerService extends Service {
   async exists(filePath: string): Promise<boolean> {
     const truePath = path.resolve(filePath);
 
-    if (this.files[truePath]) return Promise.resolve(true);
-    return this.fileExists(truePath);
+    if (this.files[truePath]) return true;
+    return fs.existsSync(truePath);
   }
 
   write(filePath: string, data: string) {
@@ -169,16 +169,6 @@ export class FileManagerService extends Service {
         });
       }
     }
-  }
-
-  /**
-   * Checks if a file exists
-   * @param string a path to the file
-   */
-  private fileExists(filePath: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      fs.exists(filePath, (exists) => resolve(exists));
-    });
   }
 
   /**

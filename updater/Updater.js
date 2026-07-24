@@ -7,6 +7,8 @@ const semver = require('semver');
 const path = require('path');
 const electron = require('electron');
 
+const UPDATE_CHECK_TIMEOUT_MS = 2000;
+
 class Updater {
   // startApp is a callback that will start the app.  Ideally this
   // would have been done with a promise, but electron tries to quit
@@ -15,13 +17,15 @@ class Updater {
   // the auto updater.  Pre-initializing the mainWindow is now a
   // good option either, since then closing the auto updater will
   // orphan the main process in the background.
-  constructor(startApp) {
+  constructor(startApp, logStartupMilestone = () => {}) {
     this.startApp = startApp;
+    this.logStartupMilestone = logStartupMilestone;
   }
 
   run() {
     this.updateState = {};
     this.cancellationToken = undefined;
+    this.continuingToApp = false;
 
     this.bindListeners();
 
@@ -35,12 +39,22 @@ class Updater {
       autoUpdater.forceDevUpdateConfig = true;
     }
 
+    this.logStartupMilestone('update-check-started');
+    this.updateCheckTimeout = setTimeout(() => {
+      this.logStartupMilestone('update-check-timeout', `${UPDATE_CHECK_TIMEOUT_MS}ms`);
+      this.skipUpdateAndContinue();
+    }, UPDATE_CHECK_TIMEOUT_MS);
+
     autoUpdater
       .checkForUpdates()
       .then((result) => {
         // Store cancellationToken from checkForUpdates result
         if (result && result.cancellationToken) {
           this.cancellationToken = result.cancellationToken;
+          if (this.continuingToApp) {
+            this.cancellationToken.cancel();
+            this.cancellationToken = null;
+          }
         }
       })
       .catch(() => {
@@ -51,10 +65,20 @@ class Updater {
   }
 
   async skipUpdateAndContinue() {
+    if (this.continuingToApp) return;
+    this.continuingToApp = true;
+    clearTimeout(this.updateCheckTimeout);
+    this.logStartupMilestone('update-check-finished');
+
+    if (this.cancellationToken) {
+      this.cancellationToken.cancel();
+      this.cancellationToken = null;
+    }
+
     // Closing the only window would normally quit the app, so ensure it doesn't.
     electron.app.once('will-quit', (e) => e.preventDefault());
     this.finished = true;
-    this.browserWindow.close();
+    if (!this.browserWindow.isDestroyed()) this.browserWindow.close();
     await this.startApp();
   }
 
@@ -81,6 +105,9 @@ class Updater {
 
   bindListeners() {
     autoUpdater.on('update-available', (info) => {
+      if (this.continuingToApp) return;
+      clearTimeout(this.updateCheckTimeout);
+      this.logStartupMilestone('update-available');
       this.updateState.asking = true;
       this.updateState.releaseNotes = this.textToLines(info.releaseNotes);
       this.updateState.releaseDate = info.releaseDate;
@@ -105,6 +132,7 @@ isUnskippable: ${this.updateState.isUnskippable}`);
     });
 
     autoUpdater.on('update-not-available', () => {
+      this.logStartupMilestone('update-not-available');
       this.skipUpdateAndContinue();
     });
 
@@ -135,8 +163,9 @@ isUnskippable: ${this.updateState.isUnskippable}`);
     });
 
     autoUpdater.on('error', () => {
-      this.updateState.error = true;
-      this.pushState();
+      if (this.continuingToApp) return;
+      this.logStartupMilestone('update-check-error');
+      this.skipUpdateAndContinue();
     });
 
     ipcMain.on('autoUpdate-getState', () => {

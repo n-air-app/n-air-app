@@ -2,6 +2,7 @@ const { BrowserWindow } = require('electron');
 const path = require('node:path');
 
 let splashWindow = null;
+let latestStatus = { status: '起動準備中…', progress: 12 };
 
 function createSplashWindow() {
   // Close existing splash window if it exists (for test app restarts)
@@ -25,6 +26,10 @@ function createSplashWindow() {
     },
   });
 
+  splashWindow.webContents.once('did-finish-load', () => {
+    if (!splashWindow || splashWindow.isDestroyed()) return;
+    splashWindow.webContents.send('splash-status', latestStatus);
+  });
   splashWindow.loadFile(path.join(__dirname, 'index.html'));
   splashWindow.show();
 }
@@ -36,7 +41,19 @@ function closeSplashWindow() {
   }
 }
 
+function updateSplashStatus(status, progress) {
+  latestStatus = { status, progress };
+  if (
+    !splashWindow ||
+    splashWindow.isDestroyed() ||
+    splashWindow.webContents.isLoadingMainFrame()
+  ) return;
+
+  splashWindow.webContents.send('splash-status', latestStatus);
+}
+
 module.exports = {
   createSplashWindow,
   closeSplashWindow,
+  updateSplashStatus,
 };

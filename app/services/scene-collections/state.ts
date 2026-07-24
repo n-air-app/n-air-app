@@ -28,6 +28,8 @@ export const ScenePresetId = 'preset/basic';
 export class SceneCollectionsStateService extends StatefulService<ISceneCollectionsManifest> {
   @Inject() fileManagerService: FileManagerService;
 
+  reportLoadTiming?: (name: string, duration: number) => void;
+
   static initialState: ISceneCollectionsManifest = {
     activeId: null,
     collections: [],
@@ -45,11 +47,23 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
    * Loads the manifest file into the state for this service.
    */
   async loadManifestFile() {
-    await this.ensureDirectory();
+    const measure = async <T>(name: string, operation: () => Promise<T> | T): Promise<T> => {
+      const startedAt = performance.now();
+      try {
+        return await operation();
+      } finally {
+        this.reportLoadTiming?.(name, performance.now() - startedAt);
+      }
+    };
+
+    await measure('scene-collections-manifest-directory-ensured', () => this.ensureDirectory());
 
     let sceneCollectionsManifest: ISceneCollectionsManifest | null = null;
     try {
-      sceneCollectionsManifest = await this._loadManifestFile();
+      sceneCollectionsManifest = await measure(
+        'scene-collections-manifest-primary-read',
+        () => this._loadManifestFile(),
+      );
     } catch (e) {
       const scope = new Sentry.Scope();
       scope.setTag('service', 'SceneCollectionsStateService');
@@ -58,7 +72,10 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
 
       try {
         // バックアップから読み込み
-        sceneCollectionsManifest = await this._loadManifestFile(true);
+        sceneCollectionsManifest = await measure(
+          'scene-collections-manifest-backup-read',
+          () => this._loadManifestFile(true),
+        );
 
         // sentryに結果を送信（元のエラーはbreadcrumbで拾う）
         if (sceneCollectionsManifest) {
@@ -75,11 +92,17 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
     }
 
     if (sceneCollectionsManifest) {
-      this.LOAD_STATE(sceneCollectionsManifest);
+      await measure('scene-collections-manifest-state-loaded', () => {
+        this.LOAD_STATE(sceneCollectionsManifest!);
+      });
     }
 
-    await this.flushManifestFile();
-    await this.flushManifestFile(true);
+    await measure('scene-collections-manifest-primary-flush-scheduled', () =>
+      this.flushManifestFile(),
+    );
+    await measure('scene-collections-manifest-backup-flush-scheduled', () =>
+      this.flushManifestFile(true),
+    );
   }
 
   private async _loadManifestFile(backup?: boolean): Promise<ISceneCollectionsManifest | null> {
@@ -181,22 +204,9 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
    * Creates the scene collections directory if it doesn't exist
    */
   async ensureDirectory() {
-    const exists = await new Promise((resolve) => {
-      fs.exists(this.collectionsDirectory, (exists) => resolve(exists));
-    });
+    if (fs.existsSync(this.collectionsDirectory)) return;
 
-    if (!exists) {
-      await new Promise<void>((resolve, reject) => {
-        fs.mkdir(this.collectionsDirectory, (err) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-
-          resolve();
-        });
-      });
-    }
+    await fs.promises.mkdir(this.collectionsDirectory, { recursive: true });
   }
 
   get collectionsDirectory() {

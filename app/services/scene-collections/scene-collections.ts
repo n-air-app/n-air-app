@@ -3,6 +3,7 @@ import path from 'path';
 
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
+import electron from 'electron';
 import { Subject } from 'rxjs';
 import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
@@ -107,45 +108,94 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    */
   private collectionLoaded = false;
 
+  /** 起動時のシーンコレクション初期化について、段階別計測中かどうか。 */
+  private measuringInitialization = false;
+
   /**
    * Does not use the standard init function so we can have asynchronous
    * initialization.
    */
   async initialize() {
-    await this.migrate();
-    await this.stateService.loadManifestFile();
-    if (this.activeCollection) {
-      await this.load(this.activeCollection.id);
-    } else if (this.collections.length > 0) {
-      let latestId = this.collections[0].id;
-      let latestModified = this.collections[0].modified;
+    this.measuringInitialization = true;
+    try {
+      await this.measureInitializationStep('scene-collections-migration', () => this.migrate());
+      this.stateService.reportLoadTiming = (name, duration) =>
+        this.reportInitializationTiming(name, duration);
+      try {
+        await this.measureInitializationStep(
+          'scene-collections-manifest-loaded',
+          () => this.stateService.loadManifestFile(),
+        );
+      } finally {
+        this.stateService.reportLoadTiming = undefined;
+      }
+      await this.measureInitializationStep('scene-collections-active-loaded', async () => {
+        if (this.activeCollection) {
+          await this.load(this.activeCollection.id);
+        } else if (this.collections.length > 0) {
+          let latestId = this.collections[0].id;
+          let latestModified = this.collections[0].modified;
 
-      this.collections.forEach((collection) => {
-        if (collection.modified > latestModified) {
-          latestModified = collection.modified;
-          latestId = collection.id;
+          this.collections.forEach((collection) => {
+            if (collection.modified > latestModified) {
+              latestModified = collection.modified;
+              latestId = collection.id;
+            }
+          });
+
+          await this.load(latestId);
+        } else {
+          await this.create();
         }
       });
 
-      await this.load(latestId);
-    } else {
-      await this.create();
+      await this.measureInitializationStep('scene-collections-preset-checked', async () => {
+        const scenes = this.scenesService.scenes;
+        if (
+          this.collections.length === 1
+          && scenes.length === 1
+          && scenes[0].getItems().length === 0
+        ) {
+          // シーンが一つで空であるため、シーンプリセットをインストールする
+          await this.installPresetSceneCollection();
+        } else if (!this.appService.obsConfigExisted) {
+          // basic.ini がなかった場合(キャッシュクリア後など)、OBS がデフォルト値(1920x1080)で
+          // 初期化するため、N Air のデフォルト解像度(1920x1080)に合わせる
+          this.ensureCanvasResolution('1920x1080');
+        }
+      });
+
+      // 読み込んだソース情報を環境に合わせて更新する
+      await this.measureInitializationStep('scene-collections-source-settings-fixed', async () => {
+        this.sourcesService.fixSourceSettings();
+      });
+
+      this.initialized = true;
+    } finally {
+      this.measuringInitialization = false;
     }
+  }
 
-    const scenes = this.scenesService.scenes;
-    if (this.collections.length === 1 && scenes.length === 1 && scenes[0].getItems().length === 0) {
-      // シーンが一つで空であるため、シーンプリセットをインストールする
-      await this.installPresetSceneCollection();
-    } else if (!this.appService.obsConfigExisted) {
-      // basic.ini がなかった場合(キャッシュクリア後など)、OBS がデフォルト値(1920x1080)で
-      // 初期化するため、N Air のデフォルト解像度(1920x1080)に合わせる
-      this.ensureCanvasResolution('1920x1080');
+  /** 起動時のみ処理時間を計測し、メインプロセスの起動ログへ送る。 */
+  private async measureInitializationStep<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    if (!this.measuringInitialization) return operation();
+
+    const startedAt = performance.now();
+    try {
+      return await operation();
+    } finally {
+      electron.ipcRenderer.send(
+        'startup-milestone',
+        name,
+        `${Math.round(performance.now() - startedAt)}ms`,
+      );
     }
+  }
 
-    // 読み込んだソース情報を環境に合わせて更新する
-    this.sourcesService.fixSourceSettings();
-
-    this.initialized = true;
+  /** すでに計測済みの起動処理時間をメインプロセスの起動ログへ送る。 */
+  private reportInitializationTiming(name: string, duration: number) {
+    if (!this.measuringInitialization) return;
+    electron.ipcRenderer.send('startup-milestone', name, `${Math.round(duration)}ms`);
   }
 
   /** キャンバス解像度を指定の値に設定する */
@@ -323,7 +373,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    */
   async load(id: string): Promise<void> {
     this.startLoadingOperation();
-    await this.deloadCurrentApplicationState();
+    await this.measureInitializationStep(
+      'scene-collections-current-state-unloaded',
+      () => this.deloadCurrentApplicationState(),
+    );
 
     const collection = this.getCollection(id);
     const collectionName = collection ? collection.name : id;
@@ -331,8 +384,14 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     let loadErrors: ILoadError[] = [];
 
     try {
-      await this.setActiveCollection(id);
-      loadErrors = await this.readCollectionDataAndLoadIntoApplicationState(id);
+      await this.measureInitializationStep(
+        'scene-collections-active-selected',
+        () => this.setActiveCollection(id),
+      );
+      loadErrors = await this.measureInitializationStep(
+        'scene-collections-data-loaded',
+        () => this.readCollectionDataAndLoadIntoApplicationState(id),
+      );
     } catch (e) {
       SentryReport.error('SceneCollectionsService', 'load', e, {
         tags: { collectionId: id, collectionName },
@@ -677,7 +736,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * @returns Array of load errors that occurred during loading
    */
   private async readCollectionDataAndLoadIntoApplicationState(id: string): Promise<ILoadError[]> {
-    const exists = await this.stateService.collectionFileExists(id);
+    const exists = await this.measureInitializationStep(
+      'scene-collections-file-checked',
+      () => this.stateService.collectionFileExists(id),
+    );
     if (!exists) return [];
 
     let data: string;
@@ -687,7 +749,10 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       data = this.stateService.readCollectionFile(id);
       if (data == null) throw new Error('Got blank data from collection file');
 
-      loadErrors = await this.loadDataIntoApplicationState(data);
+      loadErrors = await this.measureInitializationStep(
+        'scene-collections-application-state-loaded',
+        () => this.loadDataIntoApplicationState(data),
+      );
     } catch (e) {
       // Check for a backup and load it
       const exists = await this.stateService.collectionFileExists(id, true);
@@ -704,7 +769,9 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     }
 
     // Everything was successful, write a backup
-    this.stateService.writeDataToCollectionFile(id, data, true);
+    await this.measureInitializationStep('scene-collections-backup-written', async () => {
+      this.stateService.writeDataToCollectionFile(id, data, true);
+    });
     this.collectionLoaded = true;
 
     return loadErrors;
@@ -717,9 +784,25 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    */
   private async loadDataIntoApplicationState(data: string): Promise<ILoadError[]> {
     const parseWarnings: IParseWarning[] = [];
-    const root = parse(data, NODE_TYPES, (warning) => parseWarnings.push(warning));
-    await root.load();
-    this.hotkeysService.bindHotkeys();
+    const root = await this.measureInitializationStep(
+      'scene-collections-data-parsed',
+      async () => parse(data, NODE_TYPES, (warning) => parseWarnings.push(warning)),
+    );
+    if (this.measuringInitialization) {
+      root.measureLoadStep = (name: string, operation: () => Promise<void>) =>
+        this.measureInitializationStep(name, operation);
+      root.reportLoadTiming = (name: string, duration: number) =>
+        this.reportInitializationTiming(name, duration);
+    }
+    try {
+      await this.measureInitializationStep('scene-collections-nodes-loaded', () => root.load());
+    } finally {
+      root.measureLoadStep = undefined;
+      root.reportLoadTiming = undefined;
+    }
+    await this.measureInitializationStep('scene-collections-hotkeys-bound', async () => {
+      this.hotkeysService.bindHotkeys();
+    });
     const loadErrors = root.getLoadErrors();
     parseWarnings.forEach((warning) => loadErrors.push(this.parseWarningToLoadError(warning)));
     return loadErrors;
