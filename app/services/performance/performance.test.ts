@@ -277,7 +277,8 @@ describe('Zero Bandwidth Alert', () => {
     const instance = PerformanceService.instance();
     // PerformanceService.init() は StatefulService.init() をオーバーライドしており、
     // mock 環境では state が自動初期化されないため明示的に設定する
-    instance.state = PerformanceService.initialState;
+    // (SET_PERFORMANCE_STATS が破壊的更新するため initialState 自体ではなくコピーを渡す)
+    instance.state = { ...PerformanceService.initialState };
     const obs = require('../../../obs-api');
     obs.NodeObs.OBS_API_getPerformanceStatistics = jest.fn(() => ({
       CPU: 0,
