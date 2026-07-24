@@ -303,7 +303,7 @@ export class OutputSettingsService extends Service {
 
     const quality = this.settingsService.findValidListValue(output, 'Recording', 'RecQuality');
 
-    let bitrate: number = 0;
+    let bitrate = 15000;
 
     if (mode === 'Simple') {
       // convert Quality to Bitrate in the Simple mode
@@ -323,7 +323,11 @@ export class OutputSettingsService extends Service {
           break;
       }
     } else {
-      bitrate = (this.settingsService.findSettingValue(output, 'Recording', 'Recbitrate') as number) || 0;
+      bitrate = (this.settingsService.findSettingValue(
+        output,
+        'Recording',
+        'Recbitrate',
+      ) as number | undefined) ?? 15000;
     }
 
     return {
