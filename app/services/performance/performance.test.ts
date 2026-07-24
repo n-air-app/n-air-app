@@ -247,3 +247,85 @@ describe('Init and Streaming State', () => {
     expect(instance.historicalSkippedFrames).toEqual([]);
   });
 });
+
+describe('Zero Bandwidth Alert', () => {
+  function setupLiveStreaming() {
+    const setupLocal = createSetupFunction({
+      injectee: {
+        CustomizationService: {
+          pollingPerformanceStatistics: true,
+        },
+        VideoSettingsService: {
+          contexts: {
+            horizontal: {
+              skippedFrames: 0,
+              encodedFrames: 0,
+            },
+          },
+        },
+        StreamingService: {
+          streamingStatusChange: {
+            subscribe: jest.fn(),
+          },
+          state: { streamingStatus: 'live', streamingStatusTime: null },
+        },
+      },
+    });
+    setupLocal();
+
+    const { PerformanceService } = require('./performance');
+    const instance = PerformanceService.instance();
+    // PerformanceService.init() は StatefulService.init() をオーバーライドしており、
+    // mock 環境では state が自動初期化されないため明示的に設定する
+    // (SET_PERFORMANCE_STATS が破壊的更新するため initialState 自体ではなくコピーを渡す)
+    instance.state = { ...PerformanceService.initialState };
+    const obs = require('../../../obs-api');
+    obs.NodeObs.OBS_API_getPerformanceStatistics = jest.fn(() => ({
+      CPU: 0,
+      numberDroppedFrames: 0,
+      percentageDroppedFrames: 0,
+      streamingBandwidth: 0,
+      frameRate: 0,
+    }));
+    return instance;
+  }
+
+  test('ZERO_BANDWIDTH_THRESHOLD は 30 秒相当 (15 サンプル) に設定されている', () => {
+    setup();
+    const { PerformanceService } = require('./performance');
+    const instance = PerformanceService.instance();
+    expect(instance.ZERO_BANDWIDTH_THRESHOLD).toBe(15);
+  });
+
+  test('閾値未達では streaming bandwidth stuck アラートを送信しない', () => {
+    const instance = setupLiveStreaming();
+    const { SentryReport } = require('util/sentry-report');
+    const messageSpy = jest.spyOn(SentryReport, 'message');
+
+    for (let i = 0; i < instance.ZERO_BANDWIDTH_THRESHOLD - 1; i++) {
+      instance.update();
+    }
+
+    expect(messageSpy).not.toHaveBeenCalledWith(
+      'PerformanceService',
+      'update',
+      'streaming bandwidth stuck at 0kbps',
+      expect.anything(),
+    );
+  });
+
+  test('閾値到達で streaming bandwidth stuck アラートを1回だけ送信する', () => {
+    const instance = setupLiveStreaming();
+    const { SentryReport } = require('util/sentry-report');
+    const messageSpy = jest.spyOn(SentryReport, 'message');
+
+    for (let i = 0; i < instance.ZERO_BANDWIDTH_THRESHOLD + 5; i++) {
+      instance.update();
+    }
+
+    const bandwidthCalls = messageSpy.mock.calls.filter(
+      ([, , message]) => message === 'streaming bandwidth stuck at 0kbps',
+    );
+    expect(bandwidthCalls.length).toBe(1);
+  });
+});
