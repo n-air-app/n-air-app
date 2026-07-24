@@ -110,13 +110,13 @@ describe('captureIpcRequestError', () => {
     expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'FooService', 'barMethod']);
   });
 
-  test('メインウィンドウ応答不能エラーは warning に降格され専用 fingerprint になる', () => {
+  test('OBSバックエンドIPC切断エラーは warning に降格され専用 fingerprint になる', () => {
     captureIpcRequestError('SourcesService', 'getAvailableSourcesTypesList', false, undefined, {
       code: -32000,
       message: 'INTERNAL_SERVER_ERROR Failed to make IPC call, verify IPC status.',
     });
-    expect(mockScope.setTag).toHaveBeenCalledWith('ipc.mainErrorKind', 'mainWindowUnreachable');
+    expect(mockScope.setTag).toHaveBeenCalledWith('ipc.mainErrorKind', 'obsBackendIpcLost');
     expect(mockScope.setLevel).toHaveBeenCalledWith('warning');
-    expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'MainWindowUnreachable']);
+    expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'ObsBackendIpcLost']);
   });
 });
