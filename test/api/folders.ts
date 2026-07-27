@@ -19,7 +19,7 @@ afterAppStart(async (t) => {
   getNodeId = (name) => scene.getNodeByName(name).id;
 });
 
-test('Place after and place before', async (t) => {
+test('Move nodes at root', async (t) => {
   sceneBuilder.build(`
     Folder1
     Item1:
@@ -27,8 +27,8 @@ test('Place after and place before', async (t) => {
     Folder2
   `);
 
-  getNode('Item1').placeBefore(getNodeId('Folder1'));
-  getNode('Item2').placeAfter(getNodeId('Folder2'));
+  scene.moveNodes([getNodeId('Item1')], '', getNodeId('Folder1'));
+  scene.moveNodes([getNodeId('Item2')]);
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -40,7 +40,7 @@ test('Place after and place before', async (t) => {
   );
 });
 
-test('Place item after non-empty folder', async (t) => {
+test('Move item around non-empty folder', async (t) => {
   sceneBuilder.build(`
     Item1:
     Item2:
@@ -50,9 +50,8 @@ test('Place item after non-empty folder', async (t) => {
     Folder2
   `);
 
-  getNode('Item1').placeAfter(getNodeId('Folder1'));
+  scene.moveNodes([getNodeId('Item1')], '', getNodeId('Folder2'));
   getNode('Item2').setParent(getNodeId('Folder1'));
-  getNode('Item2').placeAfter(getNodeId('Folder1'));
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -138,7 +137,7 @@ test('Move multiple items', async (t) => {
   `);
 
   const selection = scene.getSelection([getNodeId('Item1'), getNodeId('Item2')]);
-  selection.placeAfter(getNodeId('Folder3'));
+  selection.moveWithinTree('');
 
   t.true(
     sceneBuilder.isEqualTo(`

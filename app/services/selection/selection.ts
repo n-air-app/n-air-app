@@ -100,8 +100,6 @@ export class SelectionService extends StatefulService<ISelectionState> {
   setBlendingMethod: (method: EBlendingMethod) => void;
 
   // SCENE NODES METHODS
-  placeAfter: (sceneNodeId: string) => void;
-  placeBefore: (sceneNodeId: string) => void;
   setParent: (folderId: string) => void;
 
   @shortcut('Delete')
@@ -416,7 +414,7 @@ export class Selection {
     const insertedNodes: TSceneNode[] = [];
     const scene = this.scenesService.getScene(sceneId);
     const foldersMap: Dictionary<string> = {};
-    let prevInsertedNode: TSceneNode;
+    const insertionAnchors: Dictionary<string | null> = {};
     let insertedNode: TSceneNode;
 
     const sourcesMap: Dictionary<Source> = {};
@@ -449,15 +447,12 @@ export class Selection {
       }
 
       const newParentId = foldersMap[sceneNode.parentId] || '';
-      if (newParentId) {
-        insertedNode.setParent(newParentId);
+      if (!(newParentId in insertionAnchors)) {
+        insertionAnchors[newParentId] = scene
+          .getModel()
+          .nodes.find((node) => (node.parentId || '') === newParentId && node.id !== insertedNode.id)?.id || null;
       }
-
-      if (prevInsertedNode && prevInsertedNode.parentId === newParentId) {
-        insertedNode.placeAfter(prevInsertedNode.id);
-      }
-
-      prevInsertedNode = insertedNode;
+      scene.moveNodes([insertedNode.id], newParentId, insertionAnchors[newParentId] || undefined);
     });
 
     return insertedNodes;
@@ -644,14 +639,9 @@ export class Selection {
     return { sceneId: this.sceneId, ...this.state };
   }
 
-  placeAfter(sceneNodeId: string) {
-    this.getRootNodes()
-      .reverse()
-      .forEach((node) => node.placeAfter(sceneNodeId));
-  }
-
-  placeBefore(sceneNodeId: string) {
-    this.getRootNodes().forEach((node) => node.placeBefore(sceneNodeId));
+  /** 親変更と兄弟順の変更を中間状態なしで適用する。 */
+  moveWithinTree(parentId: string, beforeNodeId?: string) {
+    this.getScene().moveNodes(this.getRootNodes().map((node) => node.id), parentId, beforeNodeId);
   }
 
   setParent(sceneNodeId: string) {

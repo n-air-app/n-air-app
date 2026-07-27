@@ -14,9 +14,8 @@
           ></i>
         </div>
 
-        <sl-vue-tree
+        <tree-view
           :value="nodes"
-          ref="slVueTree"
           @select="makeActive"
           @drop="handleSort"
           :allowMultiselect="false"
@@ -39,7 +38,7 @@
               <span class="item-title" :data-test="node.title">{{ node.title }}</span>
             </div>
           </template>
-        </sl-vue-tree>
+        </tree-view>
 
         <div class="content">
           <div v-if="selectedFilterName">
@@ -57,8 +56,6 @@
 <script lang="ts" src="./SourceFilters.vue.ts"></script>
 
 <style lang="less" scoped>
-@import url('../shared/sl-vue-tree/sl-vue-tree-dark.css');
-
 .content {
   flex-grow: 1;
   padding: 16px;
@@ -70,19 +67,6 @@
   align-content: stretch;
   align-items: stretch;
   height: 100%;
-}
-
-.side-menu {
-  background-color: transparent;
-
-  & > .sl-vue-tree-toggle {
-    display: none;
-  }
-
-  :deep(.sl-vue-tree-node-item) {
-    padding: 0 16px;
-    background-color: transparent;
-  }
 }
 
 .controls {

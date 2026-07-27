@@ -30,6 +30,7 @@ import {
   SceneItemFolder,
 } from './index';
 import { ScenesService } from './scenes';
+import { resolveTreeMove } from './tree-order';
 
 export type TSceneNode = SceneItem | SceneItemFolder;
 
@@ -127,10 +128,6 @@ export class Scene {
 
   getRootNodes(): TSceneNode[] {
     return this.getNodes().filter((node) => !node.parentId);
-  }
-
-  getRootNodesIds(): string[] {
-    return this.getRootNodes().map((node) => node.id);
   }
 
   getNodesIds(): string[] {
@@ -295,7 +292,6 @@ export class Scene {
     if (!sceneFolder) return;
     if (sceneFolder.isSelected()) sceneFolder.deselect();
     sceneFolder.getSelection().remove();
-    sceneFolder.detachParent();
     this.REMOVE_NODE_FROM_SCENE(folderId);
   }
 
@@ -308,7 +304,6 @@ export class Scene {
     if (!sceneItem) return;
     const sceneItemModel = sceneItem.getModel();
     if (sceneItem.isSelected()) sceneItem.deselect();
-    sceneItem.detachParent();
     sceneItem.getObsSceneItem().remove();
     this.REMOVE_NODE_FROM_SCENE(sceneItemId);
     this.scenesService.itemRemoved.next(sceneItemModel);
@@ -322,79 +317,24 @@ export class Scene {
     this.getItems().forEach((item) => item.setSettings({ locked }));
   }
 
-  placeAfter(sourceNodeId: string, destNodeId?: string) {
-    const sourceNode = this.getNode(sourceNodeId);
-    const destNode = this.getNode(destNodeId);
+  /** ノードとその子孫を一塊のまま、指定した親の兄弟列へ移動する。 */
+  moveNodes(nodeIds: string[], parentId = '', beforeNodeId?: string) {
+    const existingIds = new Set(this.state.nodes.map((node) => node.id));
+    const missingNodeIds = nodeIds.filter((id) => !existingIds.has(id));
+    const missingParentId = parentId && !existingIds.has(parentId) ? parentId : undefined;
+    const missingBeforeNodeId = beforeNodeId && !existingIds.has(beforeNodeId) ? beforeNodeId : undefined;
 
-    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
-    // 渡されることがある。その場合は並び替えをスキップする。
-    if (!sourceNode) {
-      SentryReport.message('Scene', 'placeAfter', 'sourceNode not found, skipping reorder', {
+    if (missingNodeIds.length || missingParentId || missingBeforeNodeId) {
+      SentryReport.message('Scene', 'moveNodes', 'Tree move references missing nodes', {
         level: 'warning',
-        extra: { sceneId: this.id, sourceNodeId, destNodeId },
+        extra: { sceneId: this.id, missingNodeIds, missingParentId, missingBeforeNodeId },
       });
       return;
     }
 
-    if (destNode && destNode.id === sourceNode.id) return;
-
-    const destNodeIsParentForSourceNode = destNode && destNode.id === sourceNode.parentId;
-
-    let destFolderId = '';
-
-    if (destNode) {
-      if (destNode.isItem()) {
-        destFolderId = destNode.parentId;
-      } else {
-        if (destNode.id === sourceNode.parentId) {
-          destFolderId = destNode.id;
-        } else {
-          destFolderId = destNode.parentId;
-        }
-      }
-    }
-
-    if (sourceNode.parentId !== destFolderId) {
-      sourceNode.setParent(destFolderId);
-    }
-
-    const itemsToMove: SceneItem[] = sourceNode.isFolder()
-      ? sourceNode.getNestedItems()
-      : [sourceNode];
-
-    // move nodes
-
-    const sceneNodesIds = this.getNodesIds();
-    const nodesToMoveIds: string[] = sourceNode.sceneNodeType === 'folder'
-      ? [sourceNode.id].concat((sourceNode as SceneItemFolder).getNestedNodesIds())
-      : [sourceNode.id];
-    const firstNodeIndex = this.getNode(nodesToMoveIds[0]).getNodeIndex();
-
-    let newNodeIndex = 0;
-
-    if (destNode) {
-      const destNodeIndex = destNode.getNodeIndex();
-
-      newNodeIndex = destNode.isFolder() && !destNodeIsParentForSourceNode
-        ? destNodeIndex + destNode.getNestedNodes().length + 1
-        : destNodeIndex + 1;
-
-      if (destNodeIndex > firstNodeIndex) {
-        // Adjust for moved items
-        newNodeIndex -= nodesToMoveIds.length;
-      }
-    }
-
-    sceneNodesIds.splice(firstNodeIndex, nodesToMoveIds.length);
-    sceneNodesIds.splice(newNodeIndex, 0, ...nodesToMoveIds);
-
-    this.SET_NODES_ORDER(sceneNodesIds);
-
-    this.reconcileNodeOrderWithObs();
-  }
-
-  setNodesOrder(order: string[]) {
-    this.SET_NODES_ORDER(order);
+    const result = resolveTreeMove(this.state.nodes, nodeIds, parentId, beforeNodeId);
+    if (!result) return;
+    this.MOVE_NODES(result.order, result.rootNodeIds, result.parentId);
     this.reconcileNodeOrderWithObs();
   }
 
@@ -421,35 +361,6 @@ export class Scene {
       }
       obsScene.moveItem(currentIndex, index);
     });
-  }
-
-  placeBefore(sourceNodeId: string, destNodeId: string) {
-    const destNode = this.getNode(destNodeId);
-    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
-    // 渡されることがある。その場合は並び替えをスキップする。
-    if (!destNode) {
-      SentryReport.message('Scene', 'placeBefore', 'destNode not found, skipping reorder', {
-        level: 'warning',
-        extra: { sceneId: this.id, sourceNodeId, destNodeId },
-      });
-      return;
-    }
-    const newDestNode = destNode.getPrevSiblingNode();
-    if (newDestNode) {
-      this.placeAfter(sourceNodeId, newDestNode.id);
-    } else if (destNode.parentId) {
-      const sourceNode = this.getNode(sourceNodeId);
-      if (!sourceNode) {
-        SentryReport.message('Scene', 'placeBefore', 'sourceNode not found, skipping reorder', {
-          level: 'warning',
-          extra: { sceneId: this.id, sourceNodeId, destNodeId },
-        });
-        return;
-      }
-      sourceNode.setParent(destNode.parentId); // place to the top of folder
-    } else {
-      this.placeAfter(sourceNodeId); // place to the top of scene
-    }
   }
 
   addSources(nodes: TSceneNodeInfo[]) {
@@ -674,12 +585,17 @@ export class Scene {
   }
 
   @mutation()
-  private SET_NODES_ORDER(order: string[]) {
-    // TODO: This is O(n^2)
+  private MOVE_NODES(order: string[], rootNodeIds: string[], parentId: string) {
+    const rootIds = new Set(rootNodeIds);
+    const nodesById = new Map(this.state.nodes.map((node) => [node.id, node]));
+
+    this.state.nodes.forEach((node) => {
+      if (rootIds.has(node.id)) node.parentId = parentId;
+    });
     this.state.nodes = order.map((id) => {
-      return this.state.nodes.find((item) => {
-        return item.id === id;
-      });
+      const node = nodesById.get(id);
+      assertIsDefined(node);
+      return node;
     });
   }
 }
