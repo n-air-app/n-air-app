@@ -100,8 +100,6 @@ export class SelectionService extends StatefulService<ISelectionState> {
   setBlendingMethod: (method: EBlendingMethod) => void;
 
   // SCENE NODES METHODS
-  placeAfter: (sceneNodeId: string) => void;
-  placeBefore: (sceneNodeId: string) => void;
   setParent: (folderId: string) => void;
 
   @shortcut('Delete')
@@ -418,8 +416,7 @@ export class Selection {
     const insertedNodes: TSceneNode[] = [];
     const scene = this.scenesService.getScene(sceneId)!;
     const foldersMap: Dictionary<string> = {};
-    let prevInsertedNode: TSceneNode | null;
-    let insertedNode: TSceneNode | null;
+    const insertionAnchors: Dictionary<string | null> = {};
 
     const sourcesMap: Dictionary<Source> = {};
     const notDuplicatedSources: Source[] = [];
@@ -436,6 +433,7 @@ export class Selection {
 
     // copy items and folders structure
     this.getNodes().forEach((sceneNode) => {
+      let insertedNode: TSceneNode | null = null;
       if (sceneNode.isFolder()) {
         insertedNode = scene.createFolder(sceneNode.name);
         if (insertedNode) {
@@ -455,16 +453,14 @@ export class Selection {
         insertedNode = addedItem;
       }
 
+      if (!insertedNode) return;
       const newParentId = foldersMap[sceneNode.parentId] || '';
-      if (newParentId && insertedNode) {
-        insertedNode.setParent(newParentId);
+      if (!(newParentId in insertionAnchors)) {
+        insertionAnchors[newParentId] = scene
+          .getModel()
+          .nodes.find((node) => (node.parentId || '') === newParentId && node.id !== insertedNode.id)?.id || null;
       }
-
-      if (prevInsertedNode && prevInsertedNode.parentId === newParentId && insertedNode) {
-        insertedNode.placeAfter(prevInsertedNode.id);
-      }
-
-      if (insertedNode) prevInsertedNode = insertedNode;
+      scene.moveNodes([insertedNode.id], newParentId, insertionAnchors[newParentId] || undefined);
     });
 
     return insertedNodes;
@@ -653,14 +649,9 @@ export class Selection {
     return { sceneId: this.sceneId, ...this.state };
   }
 
-  placeAfter(sceneNodeId: string) {
-    this.getRootNodes()
-      .reverse()
-      .forEach((node) => node.placeAfter(sceneNodeId));
-  }
-
-  placeBefore(sceneNodeId: string) {
-    this.getRootNodes().forEach((node) => node.placeBefore(sceneNodeId));
+  /** 親変更と兄弟順の変更を中間状態なしで適用する。 */
+  moveWithinTree(parentId: string, beforeNodeId?: string) {
+    this.getScene().moveNodes(this.getRootNodes().map((node) => node.id), parentId, beforeNodeId);
   }
 
   setParent(sceneNodeId: string) {

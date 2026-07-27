@@ -8,7 +8,8 @@ import { SourcesService } from 'services/sources';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
 
-import SlVueTree, { ICursorPosition, ISlTreeNodeModel } from '../shared/sl-vue-tree';
+import TreeView from '../shared/tree-view/TreeView.vue';
+import { ITreeCursorPosition, ITreeNodeModel } from '../shared/tree-view/types';
 
 interface IFilterNodeData {
   visible: boolean;
@@ -23,7 +24,7 @@ export default defineComponent({
     NavItem,
     GenericForm,
     Display,
-    SlVueTree,
+    TreeView,
   },
 
   data() {
@@ -125,8 +126,8 @@ export default defineComponent({
     },
 
     handleSort(
-      nodes: ISlTreeNodeModel<IFilterNodeData>[],
-      position: ICursorPosition<IFilterNodeData>,
+      nodes: ITreeNodeModel<IFilterNodeData>[],
+      position: ITreeCursorPosition<IFilterNodeData>,
     ): void {
       if (!Array.isArray(nodes)) return;
       const sourceNode = nodes[0];

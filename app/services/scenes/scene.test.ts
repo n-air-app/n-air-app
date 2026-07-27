@@ -1,5 +1,5 @@
 /**
- * Scene.reconcileNodeOrderWithObs (setNodesOrder経由) のテスト
+ * Scene.reconcileNodeOrderWithObs (moveNodes経由) のテスト
  *
  * ドラッグ操作中の削除・シーン切替との競合などでVuex state上のアイテムと
  * OBSネイティブ側のアイテム集合が一時的にズレたとき、対応するOBS側アイテムが
@@ -95,7 +95,7 @@ function prepare({
   return { scene, obsScene, Sentry };
 }
 
-describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
+describe('Scene.reconcileNodeOrderWithObs (via moveNodes)', () => {
   test('全アイテムに対応するOBS側アイテムがある場合、すべてmoveItemされる', () => {
     const { scene, obsScene } = prepare({
       itemIds: [
@@ -105,7 +105,7 @@ describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
       obsItemIds: [2, 1],
     });
 
-    expect(() => scene.setNodesOrder(['item1', 'item2'])).not.toThrow();
+    expect(() => scene.moveNodes(['item1'], '', 'item2')).not.toThrow();
     expect(obsScene.moveItem).toHaveBeenCalledTimes(2);
   });
 
@@ -118,7 +118,7 @@ describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
       obsItemIds: [1],
     });
 
-    expect(() => scene.setNodesOrder(['item1', 'item2'])).not.toThrow();
+    expect(() => scene.moveNodes(['item1'], '', 'item2')).not.toThrow();
     // item1のみmoveItemが呼ばれる (item2はスキップ)
     expect(obsScene.moveItem).toHaveBeenCalledTimes(1);
     expect(obsScene.moveItem).toHaveBeenCalledWith(0, 0);
@@ -136,7 +136,7 @@ describe('Scene.reconcileNodeOrderWithObs (via setNodesOrder)', () => {
       obsItemIds: [],
     });
 
-    expect(() => scene.setNodesOrder(['item1'])).not.toThrow();
+    expect(() => scene.moveNodes(['item1'])).not.toThrow();
     expect(obsScene.moveItem).not.toHaveBeenCalled();
   });
 });

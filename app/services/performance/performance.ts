@@ -63,7 +63,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
   private zeroBandwidthSamples = 0;
   private zeroBandwidthAlertSent = false;
   private zeroBandwidthStartedAt: number | null = null;
-  private readonly ZERO_BANDWIDTH_THRESHOLD = 8; // 8 × 2s = 16s
+  private readonly ZERO_BANDWIDTH_THRESHOLD = 15; // 15 × 2s = 30s
 
   // 移動平均用の履歴配列
   private historicalDroppedFrames: number[] = [];

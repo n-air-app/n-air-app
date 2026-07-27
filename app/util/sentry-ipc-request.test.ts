@@ -99,4 +99,36 @@ describe('captureIpcRequestError', () => {
     expect(result.methodName).toBe('Symbol(myMethod)');
     expect(mockScope.setTag).toHaveBeenCalledWith('method', 'Symbol(myMethod)');
   });
+
+  test('通常の rpcError では ipc.mainErrorKind が other になり level は error のまま', () => {
+    captureIpcRequestError('FooService', 'barMethod', false, undefined, {
+      code: -32603,
+      message: 'some other error',
+    });
+    expect(mockScope.setTag).toHaveBeenCalledWith('ipc.mainErrorKind', 'other');
+    expect(mockScope.setLevel).toHaveBeenCalledWith('error');
+    expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'FooService', 'barMethod']);
+  });
+
+  test('OBSバックエンドIPC切断エラーは warning に降格され専用 fingerprint になる', () => {
+    captureIpcRequestError('SourcesService', 'getAvailableSourcesTypesList', false, undefined, {
+      code: -32000,
+      message: 'INTERNAL_SERVER_ERROR Failed to make IPC call, verify IPC status.',
+    });
+    expect(mockScope.setTag).toHaveBeenCalledWith('ipc.mainErrorKind', 'obsBackendIpcLost');
+    expect(mockScope.setLevel).toHaveBeenCalledWith('warning');
+    expect(mockScope.setFingerprint).toHaveBeenCalledWith(['IpcRequestError', 'ObsBackendIpcLost']);
+  });
+
+  test('OBSバックエンドIPC切断エラーは breadcrumb の level も warning になる', () => {
+    captureIpcRequestError('SourcesService', 'getAvailableSourcesTypesList', false, undefined, {
+      code: -32000,
+      message: 'INTERNAL_SERVER_ERROR Failed to make IPC call, verify IPC status.',
+    });
+    expect(Sentry.addBreadcrumb).toHaveBeenCalledWith({
+      category: 'ipc.request',
+      message: 'SourcesService.getAvailableSourcesTypesList failed (code: -32000)',
+      level: 'warning',
+    });
+  });
 });
