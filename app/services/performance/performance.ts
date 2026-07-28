@@ -89,9 +89,10 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     this.intervalId = window.setInterval(() => this.update(), STATS_UPDATE_INTERVAL);
 
     // IPC 切断後はポーリングしても必ず失敗し、2秒ごとに Sentry ノイズを生むだけなので停止する。
-    // SettingsService 側で先に検知された場合もここで止まる
     this.ipcLostSubscription = this.obsIpcHealthService.ipcLost.subscribe(() => this.stop());
 
+    // init() より前に切断が検知されていた場合にもポーリングを止める
+    if (this.obsIpcHealthService.isLost) this.stop();
     // 配信状態の変化を監視して履歴をリセット
     this.streamingService.streamingStatusChange.subscribe((status) => {
       if (status === EStreamingState.Live) {
