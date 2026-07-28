@@ -298,6 +298,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   stop() {
     window.clearInterval(this.intervalId);
+    this.ipcLostSubscription?.unsubscribe();
   }
 
   /**

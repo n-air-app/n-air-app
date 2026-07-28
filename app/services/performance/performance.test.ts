@@ -238,8 +238,9 @@ describe('Init and Streaming State', () => {
     expect(instance.historicalSkippedFrames).toEqual([]);
   });
 
-  test('init() で ipcLost を subscribe し、通知を受けると clearInterval される', () => {
-    const ipcLostSubscribe = jest.fn();
+  test('init() で ipcLost を subscribe し、通知を受けるとポーリングと購読を停止する', () => {
+    const unsubscribe = jest.fn();
+    const ipcLostSubscribe = jest.fn((_callback: () => void) => ({ unsubscribe }));
     const setupWithMock = createSetupFunction({
       injectee: makeInjectee({
         ObsIpcHealthService: {
@@ -262,6 +263,7 @@ describe('Init and Streaming State', () => {
     ipcLostCallback();
 
     expect(clearIntervalSpy).toHaveBeenCalledWith(intervalIdBefore);
+    expect(unsubscribe).toHaveBeenCalled();
     clearIntervalSpy.mockRestore();
   });
 });
