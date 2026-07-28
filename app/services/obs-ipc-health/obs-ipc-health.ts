@@ -51,7 +51,7 @@ export class ObsIpcHealthService extends Service {
       extra: { source, lastObsOp: getLastObsOp() },
     });
 
-    this.ipcLost.next(source);
+    this.ipcLostSubject.next(source);
 
     this.offerRestart().catch(() => {});
   }
