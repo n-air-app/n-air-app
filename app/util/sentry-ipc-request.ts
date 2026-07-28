@@ -1,12 +1,8 @@
 import * as Sentry from '@sentry/vue';
 
 import { IpcRequestError } from './ipc-request-error';
+import { isObsBackendIpcLostMessage } from './obs-ipc-error';
 import { SentryReport } from './sentry-report';
-
-// obs-studio-node が OBS バックエンドプロセスと通信する独自ネイティブ IPC が切断された際の
-// main プロセス側エラー文言（Electron の IPC とは無関係。詳細: n-air-app#1380）。
-// アプリ側に再接続機構がなく既知の未解決issueのため、原因不明の他エラーとは分離・降格する。
-const OBS_BACKEND_IPC_LOST_RE = /Failed to make IPC call, verify IPC status\./;
 
 export function captureIpcRequestError(
   serviceName: string,
@@ -17,7 +13,9 @@ export function captureIpcRequestError(
 ): IpcRequestError {
   const method = String(methodName);
   const err = new IpcRequestError(serviceName, method, rpcError);
-  const isObsBackendIpcLost = OBS_BACKEND_IPC_LOST_RE.test(rpcError.message ?? '');
+  // OBS バックエンドIPC切断（既知の未解決issue: n-air-app#1380）は原因不明の他エラーとは
+  // 分離・降格する。アプリ側に再接続機構がない
+  const isObsBackendIpcLost = isObsBackendIpcLostMessage(rpcError.message);
 
   Sentry.addBreadcrumb({
     category: 'ipc.request',

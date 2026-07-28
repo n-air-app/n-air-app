@@ -41,6 +41,7 @@ export { NicoliveProgramStateService } from 'services/nicolive-program/state';
 export { NVoiceCharacterService } from 'services/nvoice-character';
 export { NVoiceCharacterUsageService } from 'services/nvoice-character-usage';
 export { ObsImporterService } from 'services/obs-importer';
+export { ObsIpcHealthService } from 'services/obs-ipc-health';
 export { OnboardingService } from 'services/onboarding';
 export { PatchNotesService } from 'services/patch-notes';
 export { PerformanceService } from 'services/performance';

@@ -1,6 +1,5 @@
 import fs from 'fs';
 
-import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import {
   inputValuesToObsValues,
@@ -18,11 +17,13 @@ import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
+import { ObsIpcHealthService } from 'services/obs-ipc-health';
 import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import { IpcRequestError } from 'util/ipc-request-error';
+import { isObsBackendIpcLost } from 'util/obs-ipc-error';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 import { toRaw } from 'vue';
@@ -132,6 +133,7 @@ export class SettingsService
   @Inject() private windowsService: WindowsService;
   @Inject() private appService: AppService;
   @Inject() private userService: UserService;
+  @Inject() private obsIpcHealthService: ObsIpcHealthService;
 
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private dismissablesService: DismissablesService;
@@ -213,29 +215,15 @@ export class SettingsService
       this.settingsFormDataCache.set(categoryName, result);
       return result;
     } catch (e) {
-      if (e instanceof IpcRequestError) {
+      // 生のネイティブ例外（メインウィンドウでの直接呼び出し）と IpcRequestError（RPC 越し）の
+      // 両方を拾う。instanceof IpcRequestError は rpcError.message が空でも RPC 失敗なら
+      // 従来通り縮退させるために残す
+      if (isObsBackendIpcLost(e) || e instanceof IpcRequestError) {
         this.obsIpcError = true;
-        this.offerRestart().catch(() => {});
+        this.obsIpcHealthService.notifyIpcLost('SettingsService.getSettingsFormData');
         return this.settingsFormDataCache.get(categoryName) ?? [];
       }
       throw e;
-    }
-  }
-
-  private async offerRestart(): Promise<void> {
-    const parentWindow = this.windowsService.getWindow('child') ?? remote.getCurrentWindow();
-    const choice = await remote.dialog.showMessageBox(parentWindow, {
-      type: 'error',
-      buttons: [$t('common.yes'), $t('common.no')],
-      title: $t('common.confirm'),
-      message: $t('settings.noticeIpcError'),
-      detail: $t('settings.noticeIpcErrorDetail'),
-      noLink: true,
-      cancelId: 1,
-      defaultId: 0,
-    });
-    if (choice.response === 0) {
-      this.appService.relaunch();
     }
   }
 

@@ -1,11 +1,14 @@
 import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
+import { Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CustomizationService } from 'services/customization';
+import { ObsIpcHealthService } from 'services/obs-ipc-health';
 import { VideoSettingsService } from 'services/settings-v2/video';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { getKeys } from 'util/getKeys';
+import { isObsBackendIpcLost } from 'util/obs-ipc-error';
 import { getLastObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 
@@ -41,6 +44,8 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
   private videoSettingsService: VideoSettingsService;
   @Inject()
   private streamingService: StreamingService;
+  @Inject()
+  private obsIpcHealthService: ObsIpcHealthService;
 
   static initialState: IPerformanceState = {
     CPU: 0,
@@ -59,6 +64,8 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   private intervalId: number;
   private statsFailed: boolean = false;
+  private frameStatsFailed: boolean = false;
+  private ipcLostSubscription: Subscription;
 
   private zeroBandwidthSamples = 0;
   private zeroBandwidthAlertSent = false;
@@ -80,6 +87,10 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   init() {
     this.intervalId = window.setInterval(() => this.update(), STATS_UPDATE_INTERVAL);
+
+    // IPC 切断後はポーリングしても必ず失敗し、2秒ごとに Sentry ノイズを生むだけなので停止する。
+    // SettingsService 側で先に検知された場合もここで止まる
+    this.ipcLostSubscription = this.obsIpcHealthService.ipcLost.subscribe(() => this.stop());
 
     // 配信状態の変化を監視して履歴をリセット
     this.streamingService.streamingStatusChange.subscribe((status) => {
@@ -129,6 +140,12 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
         percentageSkippedFrames: this.state.percentageSkippedFrames || 0,
       };
     } catch (e) {
+      if (isObsBackendIpcLost(e)) {
+        // 復旧不能な切断。ObsIpcHealthService 側で1度だけ Sentry 報告＋ダイアログを出すので、
+        // ここでは個別の SentryReport / breadcrumb を積まない
+        this.obsIpcHealthService.notifyIpcLost('PerformanceService.getState');
+        return null;
+      }
       if (this.statsFailed) {
         // Sentryイベント数削減のため、2回目以降はbreadcrumbsに記録する
         Sentry.addBreadcrumb({
@@ -174,11 +191,18 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
       })
       .reduce((sum, usage) => sum + usage);
 
-    // OBS からフレーム統計を取得
-    const currentLaggedFrames = obs.Global.laggedFrames;
-    const currentRenderedFrames = obs.Global.totalFrames;
-    const currentSkippedFrames = this.videoSettingsService.contexts.horizontal?.skippedFrames || 0;
-    const currentEncodedFrames = this.videoSettingsService.contexts.horizontal?.encodedFrames || 0;
+    // OBS からフレーム統計を取得。取得できない場合は前回値を流用し、
+    // 差分0として残りの統計（CPU / 帯域）の更新を継続する
+    const frames = this.readFrameStats() ?? {
+      lagged: this.state.numberLaggedFrames,
+      rendered: this.state.numberRenderedFrames,
+      skipped: this.state.numberSkippedFrames,
+      encoded: this.state.numberEncodedFrames,
+    };
+    const currentLaggedFrames = frames.lagged;
+    const currentRenderedFrames = frames.rendered;
+    const currentSkippedFrames = frames.skipped;
+    const currentEncodedFrames = frames.encoded;
 
     // 差分ファクターの計算（前回からの変化量）
     const framesLagged = currentLaggedFrames - this.state.numberLaggedFrames;
@@ -273,6 +297,40 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
 
   stop() {
     window.clearInterval(this.intervalId);
+  }
+
+  /**
+   * OBS からフレーム統計（ラグ・レンダリング・スキップ・エンコード数）を取得する。
+   * 取得に失敗した場合は null を返す（呼び出し元で前回値へフォールバックする）。
+   */
+  private readFrameStats(): {
+    lagged: number;
+    rendered: number;
+    skipped: number;
+    encoded: number;
+  } | null {
+    try {
+      const stats = {
+        lagged: obs.Global.laggedFrames,
+        rendered: obs.Global.totalFrames,
+        skipped: this.videoSettingsService.contexts.horizontal?.skippedFrames || 0,
+        encoded: this.videoSettingsService.contexts.horizontal?.encodedFrames || 0,
+      };
+      this.frameStatsFailed = false;
+      return stats;
+    } catch (e) {
+      if (isObsBackendIpcLost(e)) {
+        this.obsIpcHealthService.notifyIpcLost('PerformanceService.readFrameStats');
+        return null;
+      }
+      if (!this.frameStatsFailed) {
+        this.frameStatsFailed = true;
+        SentryReport.error('PerformanceService', 'readFrameStats', e, {
+          extra: { lastObsOp: getLastObsOp() },
+        });
+      }
+      return null;
+    }
   }
 
   /**
