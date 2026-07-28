@@ -271,14 +271,20 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
    * removeSource 内の OBS 呼び出しを個別に保護する。
    * 失敗しても state 更新まで到達させるため、報告のうえ握りつぶす。
    */
-  private tryObsStep(step: string, sourceId: string, fn: () => void): void {
+  private tryObsStep(
+    step: string,
+    sourceId: string,
+    fn: () => void,
+    opts?: { methodName?: string },
+  ): void {
+    const methodName = opts?.methodName ?? 'removeSource';
     try {
       fn();
     } catch (e) {
-      SentryReport.error('SourcesService', 'removeSource', e, {
+      SentryReport.error('SourcesService', methodName, e, {
         level: 'warning',
-        fingerprint: ['SourcesService', 'removeSource', step],
-        tags: { 'removeSource.step': step },
+        fingerprint: ['SourcesService', methodName, step],
+        tags: { [`${methodName}.step`]: step },
         extra: { sourceId, lastObsOp: getLastObsOp() },
       });
     }
@@ -620,7 +626,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
   reset() {
     for (const id of Object.keys(this.propertiesManagers)) {
-      this.tryObsStep('resetManagerDestroy', id, () => this.propertiesManagers[id].manager.destroy());
+      this.tryObsStep('resetManagerDestroy', id, () => this.propertiesManagers[id].manager.destroy(), { methodName: 'reset' });
     }
     this.propertiesManagers = {};
     this.RESET_SOURCES();
