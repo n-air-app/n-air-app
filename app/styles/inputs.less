@@ -50,6 +50,62 @@ textarea {
   }
 }
 
+.number-input-container {
+  &.disabled {
+    .input-label,
+    .number-input {
+      opacity: @opacity-disabled;
+    }
+
+    .arrows {
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.number-input {
+  position: relative;
+
+  input {
+    padding-right: 32px;
+  }
+
+  .arrows {
+    .absolute(0, 8px, 0, auto);
+
+    width: 30px;
+    color: var(--color-text);
+    cursor: pointer;
+    .transition();
+
+    .arrow {
+      display: flex !important;
+
+      i {
+        position: relative;
+        font-size: @font-size1;
+      }
+
+      &:hover {
+        color: var(--color-text-light);
+      }
+
+      &:active {
+        color: var(--color-text-active);
+      }
+
+      &.arrow-up {
+        .absolute(6px, 4px, auto, auto);
+      }
+
+      &.arrow-down {
+        .absolute(auto, 4px, 6px, auto);
+      }
+    }
+  }
+}
+
 .input-container {
   position: relative;
   display: flex;
