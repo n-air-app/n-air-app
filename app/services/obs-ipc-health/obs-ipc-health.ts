@@ -25,8 +25,9 @@ export class ObsIpcHealthService extends Service {
   @Inject() private windowsService: WindowsService;
 
   /** IPC 切断が検知されたときに1度だけ発火する。引数は検知元の識別子 */
-  ipcLost = new Subject<string>();
+  private readonly ipcLostSubject = new Subject<string>();
 
+  readonly ipcLost = this.ipcLostSubject.asObservable();
   private lost = false;
 
   get isLost(): boolean {
