@@ -28,10 +28,10 @@ const ObsIntInput = defineComponent({
       if (this.value.type === 'OBS_PROPERTY_UINT' && Number(formattedValue) < 0) {
         formattedValue = '0';
       }
-      if (this.value.minVal !== undefined && Number(value) < this.value.minVal) {
+      if (this.value.minVal !== undefined && Number(formattedValue) < this.value.minVal) {
         formattedValue = String(this.value.minVal);
       }
-      if (this.value.maxVal !== undefined && Number(value) > this.value.maxVal) {
+      if (this.value.maxVal !== undefined && Number(formattedValue) > this.value.maxVal) {
         formattedValue = String(this.value.maxVal);
       }
       const input = (this.$refs.input as HTMLInputElement);

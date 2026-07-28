@@ -13,11 +13,11 @@
           ref="input"
           type="text"
           :value="value.value"
-          @mousewheel="onMouseWheelHandler"
+          @wheel="onMouseWheelHandler"
           :disabled="value.enabled == false"
           @change="updateValue($event)"
         />
-        <div class="arrows" @mousewheel="onMouseWheelHandler">
+        <div class="arrows" @wheel="onMouseWheelHandler">
           <div class="arrow arrow-up" @click="increment">
             <i class="icon-drop-up-arrow"></i>
           </div>

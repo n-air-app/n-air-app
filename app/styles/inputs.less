@@ -57,9 +57,13 @@ textarea {
       opacity: @opacity-disabled;
     }
 
+    .number-input,
+    input:disabled {
+      cursor: not-allowed;
+    }
+
     .arrows {
       pointer-events: none;
-      cursor: not-allowed;
     }
   }
 }
