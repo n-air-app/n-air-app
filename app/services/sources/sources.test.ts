@@ -16,7 +16,16 @@ const mockMarkObsOp = jest.fn();
 jest.mock('util/sentry-obs-breadcrumb', () => ({
   markObsOp: mockMarkObsOp,
   setObsOpObserver: jest.fn(),
-  getLastObsOp: jest.fn(),
+  getLastObsOp: jest.fn(() => 'test'),
+}));
+
+const mockSentryReportError = jest.fn();
+const mockSentryReportMessage = jest.fn();
+jest.mock('util/sentry-report', () => ({
+  SentryReport: {
+    error: (...args: any[]) => mockSentryReportError(...args),
+    message: (...args: any[]) => mockSentryReportMessage(...args),
+  },
 }));
 
 // OBS ネイティブモジュールのモック（sources.ts は '../../../obs-api' で import している）
@@ -73,6 +82,7 @@ const setup = createSetupFunction({
     UserService: {},
     RtvcStateService: {
       didAddSource: jest.fn(),
+      didRemoveSource: jest.fn(),
     },
   },
 });
@@ -174,6 +184,191 @@ describe('createSource', () => {
     expect(() => {
       instance.createSource('テストソース', 'window_capture', {});
     }).toThrow('InputFactory.create returned no input for type=window_capture');
+  });
+});
+
+describe('removeSource', () => {
+  function setupRemoveSourceInstance(sourceOverrides: any = {}) {
+    setup();
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+    // SourcesService.init() は StatefulService.init() をオーバーライドしており、
+    // mock 環境では state が自動初期化されないため明示的に設定する
+    instance.state = { sources: {}, temporarySources: {} };
+
+    const releaseMock = jest.fn();
+    const fakeSourceState = {
+      sourceId: 'test-source-id',
+      name: 'test-source-id',
+      type: 'browser_source',
+      channel: undefined,
+      ...sourceOverrides,
+    };
+    const fakeSource = {
+      ...fakeSourceState,
+      state: fakeSourceState,
+      getObsInput: () => ({ release: releaseMock }),
+    };
+
+    instance.state.sources['test-source-id'] = fakeSourceState;
+    instance.getSource = jest.fn((id: string) => (id === 'test-source-id' ? fakeSource : undefined));
+    instance.propertiesManagers = {
+      'test-source-id': { manager: { destroy: jest.fn() }, type: 'default' },
+    };
+    instance.sourceRemoved = { next: jest.fn() };
+
+    return { instance, fakeSource, releaseMock };
+  }
+
+  test('正常時は propertiesManagers から削除され sourceRemoved が発火する', () => {
+    const { instance, fakeSource } = setupRemoveSourceInstance();
+
+    instance.removeSource('test-source-id');
+
+    expect(instance.propertiesManagers['test-source-id']).toBeUndefined();
+    expect(instance.state.sources['test-source-id']).toBeUndefined();
+    expect(instance.sourceRemoved.next).toHaveBeenCalledWith(fakeSource.state);
+  });
+
+  test('存在しない id では Source not found を throw する', () => {
+    const { instance } = setupRemoveSourceInstance();
+    instance.getSource = jest.fn().mockReturnValue(undefined);
+
+    expect(() => instance.removeSource('unknown-id')).toThrow('Source unknown-id not found');
+  });
+
+  test('nair-rtvc-source の場合 didRemoveSource が呼ばれる', () => {
+    const { instance } = setupRemoveSourceInstance({ type: 'nair-rtvc-source' });
+
+    instance.removeSource('test-source-id');
+
+    expect(instance.rtvcStateService.didRemoveSource).toHaveBeenCalled();
+  });
+
+  test('propertiesManagers にエントリが無くても REMOVE_SOURCE / sourceRemoved まで到達する', () => {
+    const { instance } = setupRemoveSourceInstance();
+    instance.propertiesManagers = {}; // エントリ欠落を再現
+
+    instance.removeSource('test-source-id');
+
+    expect(instance.state.sources['test-source-id']).toBeUndefined();
+    expect(instance.sourceRemoved.next).toHaveBeenCalled();
+  });
+
+  test('propertiesManagers 欠落時は SentryReport.message で警告する', () => {
+    const { instance } = setupRemoveSourceInstance();
+    instance.propertiesManagers = {};
+
+    instance.removeSource('test-source-id');
+
+    expect(mockSentryReportMessage).toHaveBeenCalledWith(
+      'SourcesService',
+      'removeSource',
+      'propertiesManager missing on removeSource',
+      expect.objectContaining({
+        fingerprint: ['SourcesService', 'removeSource', 'managerMissing'],
+      }),
+    );
+  });
+
+  test('manager.destroy() が throw しても REMOVE_SOURCE まで到達する', () => {
+    const { instance } = setupRemoveSourceInstance();
+    instance.propertiesManagers['test-source-id'].manager.destroy = jest.fn(() => {
+      throw new Error('destroy failed');
+    });
+
+    instance.removeSource('test-source-id');
+
+    expect(instance.state.sources['test-source-id']).toBeUndefined();
+    expect(instance.sourceRemoved.next).toHaveBeenCalled();
+  });
+
+  test('release() が throw しても REMOVE_SOURCE まで到達する', () => {
+    const { instance, releaseMock } = setupRemoveSourceInstance();
+    releaseMock.mockImplementation(() => {
+      throw new Error('release failed');
+    });
+
+    instance.removeSource('test-source-id');
+
+    expect(instance.state.sources['test-source-id']).toBeUndefined();
+    expect(instance.sourceRemoved.next).toHaveBeenCalled();
+  });
+
+  test('channel が設定されたソースで setOutputSource が throw しても REMOVE_SOURCE まで到達する', () => {
+    const { instance } = setupRemoveSourceInstance({ channel: 1 });
+    const obs = require('../../../obs-api');
+    obs.Global.setOutputSource.mockImplementation(() => {
+      throw new Error('Failed to make IPC call, verify IPC status.');
+    });
+
+    instance.removeSource('test-source-id');
+
+    expect(instance.state.sources['test-source-id']).toBeUndefined();
+    expect(instance.sourceRemoved.next).toHaveBeenCalled();
+
+    obs.Global.setOutputSource.mockReset();
+  });
+
+  test('各ステップの失敗は step ごとの fingerprint で SentryReport.error される', () => {
+    const { instance, releaseMock } = setupRemoveSourceInstance();
+    releaseMock.mockImplementation(() => {
+      throw new Error('release failed');
+    });
+
+    instance.removeSource('test-source-id');
+
+    expect(mockSentryReportError).toHaveBeenCalledWith(
+      'SourcesService',
+      'removeSource',
+      expect.anything(),
+      expect.objectContaining({
+        fingerprint: ['SourcesService', 'removeSource', 'release'],
+      }),
+    );
+  });
+});
+
+describe('reset', () => {
+  test('reset() で propertiesManagers が空になり各 manager の destroy が呼ばれる', () => {
+    setup();
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+    instance.state = { sources: {}, temporarySources: {} };
+
+    const destroyA = jest.fn();
+    const destroyB = jest.fn();
+    instance.propertiesManagers = {
+      a: { manager: { destroy: destroyA }, type: 'default' },
+      b: { manager: { destroy: destroyB }, type: 'default' },
+    };
+
+    instance.reset();
+
+    expect(destroyA).toHaveBeenCalled();
+    expect(destroyB).toHaveBeenCalled();
+    expect(instance.propertiesManagers).toEqual({});
+  });
+
+  test('manager.destroy() が throw しても propertiesManagers は空になる', () => {
+    setup();
+    const { SourcesService } = require('./sources');
+    const instance = SourcesService.instance();
+    instance.state = { sources: {}, temporarySources: {} };
+
+    instance.propertiesManagers = {
+      a: {
+        manager: {
+          destroy: jest.fn(() => {
+            throw new Error('destroy failed');
+          }),
+        },
+        type: 'default',
+      },
+    };
+
+    expect(() => instance.reset()).not.toThrow();
+    expect(instance.propertiesManagers).toEqual({});
   });
 });
 

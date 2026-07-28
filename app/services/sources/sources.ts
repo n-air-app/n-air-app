@@ -16,7 +16,8 @@ import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
 import namingHelpers from 'util/NamingHelpers';
-import { markObsOp } from 'util/sentry-obs-breadcrumb';
+import { getLastObsOp, markObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -232,16 +233,61 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
      * otherwise OBS thinks it's still attached
      * and won't release it. */
     if (source.channel !== undefined) {
-      obs.Global.setOutputSource(source.channel, null);
+      this.tryObsStep('resetChannel', id, () => obs.Global.setOutputSource(source.channel, null));
     }
 
     if (source.type === 'nair-rtvc-source') this.rtvcStateService.didRemoveSource(source);
 
-    source.getObsInput().release();
-    this.propertiesManagers[id].manager.destroy();
+    this.tryObsStep('release', id, () => source.getObsInput().release());
+
+    const activeManager = this.propertiesManagers[id];
+    if (activeManager) {
+      this.tryObsStep('managerDestroy', id, () => activeManager.manager.destroy());
+    } else {
+      // propertiesManagers の欠落経路: addSource が ADD_SOURCE 後・propertiesManagers[id] 代入前で
+      // throw した場合、シーンコレクション読込の部分失敗、reset()/RESET_SOURCES() が
+      // propertiesManagers を掃除しないケースなど
+      SentryReport.message(
+        'SourcesService',
+        'removeSource',
+        'propertiesManager missing on removeSource',
+        {
+          level: 'warning',
+          fingerprint: ['SourcesService', 'removeSource', 'managerMissing'],
+          tags: { diagnostic: 'source-manager-missing', 'source.type': source.type },
+          extra: { sourceId: id, lastObsOp: getLastObsOp() },
+        },
+      );
+    }
     delete this.propertiesManagers[id];
+
+    // OBS 側の解放に失敗しても state からは必ず外す。
+    // 残すと同じソースを二度と削除できなくなる（#1380）
     this.REMOVE_SOURCE(id);
     this.sourceRemoved.next(source.state);
+  }
+
+  /**
+   * removeSource 内の OBS 呼び出しを個別に保護する。
+   * 失敗しても state 更新まで到達させるため、報告のうえ握りつぶす。
+   */
+  private tryObsStep(
+    step: string,
+    sourceId: string,
+    fn: () => void,
+    opts?: { methodName?: string },
+  ): void {
+    const methodName = opts?.methodName ?? 'removeSource';
+    try {
+      fn();
+    } catch (e) {
+      SentryReport.error('SourcesService', methodName, e, {
+        level: 'warning',
+        fingerprint: ['SourcesService', methodName, step],
+        tags: { [`${methodName}.step`]: step },
+        extra: { sourceId, lastObsOp: getLastObsOp() },
+      });
+    }
   }
 
   addFile(path: string): Source | null {
@@ -579,6 +625,10 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   }
 
   reset() {
+    for (const id of Object.keys(this.propertiesManagers)) {
+      this.tryObsStep('resetManagerDestroy', id, () => this.propertiesManagers[id].manager.destroy(), { methodName: 'reset' });
+    }
+    this.propertiesManagers = {};
     this.RESET_SOURCES();
   }
 
