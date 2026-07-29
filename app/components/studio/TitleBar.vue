@@ -10,7 +10,13 @@
         @click="maximize"
         v-if="!isCompactMode && resizable !== false"
       />
-      <i class="link icon-close-square titlebar-action" data-test="titlebar-close" @click="close" />
+      <i
+        class="link icon-close-square titlebar-action"
+        :class="{ 'titlebar-action--disabled': !closable }"
+        :aria-disabled="!closable"
+        data-test="titlebar-close"
+        @click="close"
+      />
     </div>
   </div>
 </template>
@@ -98,6 +104,12 @@
   &:not(:disabled):hover {
     color: var(--color-titlebar-action-hover);
   }
+}
+
+.titlebar-action--disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.4;
 }
 
 .dev-hosts-badge {

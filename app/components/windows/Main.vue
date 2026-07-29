@@ -5,7 +5,7 @@
     @drop="onDropHandler"
     :class="{ isCompactMode: isCompactMode }"
   >
-    <title-bar class="main-title" :title="title" />
+    <title-bar class="main-title" :title="title" :closable="!applicationLoading" />
     <div class="main-contents">
       <side-nav v-if="page !== 'Onboarding'"></side-nav>
       <div class="main-middle" v-if="showMainMiddle">

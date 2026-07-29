@@ -12,6 +12,7 @@ export default defineComponent({
   props: {
     title: { type: String },
     resizable: { type: Boolean, default: true },
+    closable: { type: Boolean, default: true },
   },
 
   computed: {
@@ -52,6 +53,8 @@ export default defineComponent({
     },
 
     close() {
+      if (!this.closable) return;
+
       if (Utils.isMainWindow() && StreamingService.instance().isStreaming) {
         if (!confirm($t('streaming.endStreamInStreamingConfirm'))) return;
       }
