@@ -110,6 +110,9 @@ export class AppService extends StatefulService<IAppState> {
       // the apps to already be in place when their sources are created.
       // await this.platformAppsService.initialize();
 
+      // 初期化中の Studio 操作を防ぐため、シーン復元前にパッチノートを表示判定する。
+      this.patchNotesService.showPatchNotesIfRequired(willOnboard);
+
       const sceneCollectionsStartedAt = performance.now();
       await this.sceneCollectionsService.initialize();
       electron.ipcRenderer.send(
@@ -141,16 +144,15 @@ export class AppService extends StatefulService<IAppState> {
       'app-interactive',
       `${Math.round(performance.now() - loadStartedAt)}ms`,
     );
-    this.initializeDeferredServices(willOnboard);
+    this.initializeDeferredServices();
     return result;
   }
 
   /** 操作開始に必須でないサービスを、初期画面の描画を妨げないタイミングで初期化する。 */
-  private initializeDeferredServices(willOnboard: boolean) {
+  private initializeDeferredServices() {
     window.requestAnimationFrame(() => window.setTimeout(() => {
       const startedAt = performance.now();
       UsageStatisticsService.instance().recordEvent({ event: 'boot' });
-      this.patchNotesService.showPatchNotesIfRequired(willOnboard);
       this.informationsService;
       this.transcriptionService;
       electron.ipcRenderer.send(
