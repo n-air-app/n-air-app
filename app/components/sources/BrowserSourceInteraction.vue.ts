@@ -1,5 +1,6 @@
 import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
+import { Subscription } from 'rxjs';
 import { SourcesService } from 'services/sources';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
@@ -13,6 +14,7 @@ export default defineComponent({
   data() {
     return {
       currentRegion: { x: 0, y: 0, width: 1, height: 1 } as IRectangle,
+      sourceRemovedSub: null as Subscription | null,
     };
   },
 
@@ -29,6 +31,17 @@ export default defineComponent({
 
   mounted(): void {
     (this.$refs.eventDiv as HTMLDivElement).focus();
+
+    // ソースが削除されたら display の500msポーリングを止めるため window を閉じる（#1380）
+    this.sourceRemovedSub = SourcesService.instance().sourceRemoved.subscribe((source) => {
+      if (source.sourceId === this.sourceId) {
+        WindowsService.instance().closeChildWindow();
+      }
+    });
+  },
+
+  unmounted(): void {
+    this.sourceRemovedSub?.unsubscribe();
   },
 
   methods: {

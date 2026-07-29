@@ -230,6 +230,18 @@ describe('removeSource', () => {
     expect(instance.sourceRemoved.next).toHaveBeenCalledWith(fakeSource.state);
   });
 
+  test('sourceRemoved.next には REMOVE_SOURCE 前のスナップショットが渡される（state delete 後の評価順バグ回避）', () => {
+    const { instance } = setupRemoveSourceInstance({ audio: true });
+
+    instance.removeSource('test-source-id');
+
+    // REMOVE_SOURCE で state.sources から削除された後でも、
+    // next に渡された値には削除前の内容（sourceId / audio）が正しく残っていること
+    expect(instance.sourceRemoved.next).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'test-source-id', audio: true }),
+    );
+  });
+
   test('存在しない id では Source not found を throw する', () => {
     const { instance } = setupRemoveSourceInstance();
     instance.getSource = jest.fn().mockReturnValue(undefined);
