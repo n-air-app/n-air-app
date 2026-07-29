@@ -2,34 +2,21 @@
 // be required by the main electron process.
 
 const { autoUpdater } = require('electron-updater');
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { BrowserWindow, ipcMain } = require('electron');
 const semver = require('semver');
 const path = require('path');
-const electron = require('electron');
-
-const UPDATE_CHECK_TIMEOUT_MS = 2000;
 
 class Updater {
-  // startApp is a callback that will start the app.  Ideally this
-  // would have been done with a promise, but electron tries to quit
-  // when the last window is closed, so the hand-off has to be
-  // synchronous.  Otherwise, electron will quit as soon as we close
-  // the auto updater.  Pre-initializing the mainWindow is now a
-  // good option either, since then closing the auto updater will
-  // orphan the main process in the background.
-  constructor(startApp, logStartupMilestone = () => {}) {
-    this.startApp = startApp;
+  constructor(logStartupMilestone = () => {}, onUpdaterClosed = () => {}) {
     this.logStartupMilestone = logStartupMilestone;
+    this.onUpdaterClosed = onUpdaterClosed;
   }
 
   run() {
     this.updateState = {};
     this.cancellationToken = undefined;
-    this.continuingToApp = false;
 
     this.bindListeners();
-
-    this.browserWindow = this.initWindow();
 
     autoUpdater.autoDownload = false;
 
@@ -40,10 +27,6 @@ class Updater {
     }
 
     this.logStartupMilestone('update-check-started');
-    this.updateCheckTimeout = setTimeout(() => {
-      this.logStartupMilestone('update-check-timeout', `${UPDATE_CHECK_TIMEOUT_MS}ms`);
-      this.skipUpdateAndContinue();
-    }, UPDATE_CHECK_TIMEOUT_MS);
 
     autoUpdater
       .checkForUpdates()
@@ -51,23 +34,16 @@ class Updater {
         // Store cancellationToken from checkForUpdates result
         if (result && result.cancellationToken) {
           this.cancellationToken = result.cancellationToken;
-          if (this.continuingToApp) {
-            this.cancellationToken.cancel();
-            this.cancellationToken = null;
-          }
         }
       })
       .catch(() => {
-        // This usually means there is no internet connection.
-        // In this case, we shouldn't prevent starting the app.
-        this.skipUpdateAndContinue();
+        // The error event normally handles failures, but also finish here in case it is not emitted.
+        this.closeUpdater();
       });
   }
 
-  async skipUpdateAndContinue() {
-    if (this.continuingToApp) return;
-    this.continuingToApp = true;
-    clearTimeout(this.updateCheckTimeout);
+  closeUpdater() {
+    if (this.finished) return;
     this.logStartupMilestone('update-check-finished');
 
     if (this.cancellationToken) {
@@ -75,11 +51,9 @@ class Updater {
       this.cancellationToken = null;
     }
 
-    // Closing the only window would normally quit the app, so ensure it doesn't.
-    electron.app.once('will-quit', (e) => e.preventDefault());
     this.finished = true;
-    if (!this.browserWindow.isDestroyed()) this.browserWindow.close();
-    await this.startApp();
+    if (this.browserWindow && !this.browserWindow.isDestroyed()) this.browserWindow.close();
+    this.onUpdaterClosed();
   }
 
   // PRIVATE
@@ -105,8 +79,6 @@ class Updater {
 
   bindListeners() {
     autoUpdater.on('update-available', (info) => {
-      if (this.continuingToApp) return;
-      clearTimeout(this.updateCheckTimeout);
       this.logStartupMilestone('update-available');
       this.updateState.asking = true;
       this.updateState.releaseNotes = this.textToLines(info.releaseNotes);
@@ -122,6 +94,7 @@ class Updater {
 newVersion: ${info.version}
 isUnskippable: ${this.updateState.isUnskippable}`);
       // cancellationToken is now obtained from checkForUpdates() result
+      this.browserWindow = this.initWindow();
       this.pushState();
     });
 
@@ -133,7 +106,7 @@ isUnskippable: ${this.updateState.isUnskippable}`);
 
     autoUpdater.on('update-not-available', () => {
       this.logStartupMilestone('update-not-available');
-      this.skipUpdateAndContinue();
+      this.closeUpdater();
     });
 
     autoUpdater.on('download-progress', (progress) => {
@@ -152,8 +125,7 @@ isUnskippable: ${this.updateState.isUnskippable}`);
         this.cancellationToken.cancel();
         this.cancellationToken = null;
       }
-      this.finished = true;
-      this.skipUpdateAndContinue();
+      this.closeUpdater();
     });
 
     autoUpdater.on('update-downloaded', () => {
@@ -163,9 +135,8 @@ isUnskippable: ${this.updateState.isUnskippable}`);
     });
 
     autoUpdater.on('error', () => {
-      if (this.continuingToApp) return;
       this.logStartupMilestone('update-check-error');
-      this.skipUpdateAndContinue();
+      this.closeUpdater();
     });
 
     ipcMain.on('autoUpdate-getState', () => {
@@ -184,7 +155,7 @@ isUnskippable: ${this.updateState.isUnskippable}`);
       useContentSize: true,
       title: `${process.env.NAIR_PRODUCT_NAME} - Ver: ${process.env.NAIR_VERSION}`,
       frame: true,
-      closable: true,
+      closable: !this.updateState.isUnskippable,
       resizable: false,
       show: false,
     });
@@ -198,12 +169,16 @@ isUnskippable: ${this.updateState.isUnskippable}`);
     });
 
     browserWindow.on('closed', () => {
-      // Prevent leaving a zombie process
       if (this.cancellationToken) {
         this.cancellationToken.cancel();
         this.cancellationToken = null;
       }
-      if (!this.finished) app.quit();
+      this.browserWindow = null;
+      if (!this.finished) {
+        this.finished = true;
+        this.logStartupMilestone('update-check-finished');
+        this.onUpdaterClosed();
+      }
     });
 
     if (process.env.NODE_ENV !== 'production') {
@@ -216,7 +191,7 @@ isUnskippable: ${this.updateState.isUnskippable}`);
   }
 
   pushState() {
-    if (!this.browserWindow.isDestroyed()) {
+    if (this.browserWindow && !this.browserWindow.isDestroyed()) {
       this.browserWindow.send('autoUpdate-pushState', this.updateState);
     }
   }

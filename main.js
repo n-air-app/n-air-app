@@ -410,6 +410,24 @@ function initialize(crashHandler) {
 
   logStartupMilestone('main-initialize');
 
+  let mainShellRendered = false;
+  let updateCheckFinished = process.env.NODE_ENV !== 'production' &&
+    !process.env.NAIR_FORCE_AUTO_UPDATE;
+
+  function showMainWindowWhenReady() {
+    if (
+      mainShellRendered &&
+      updateCheckFinished &&
+      mainWindow &&
+      !mainWindow.isDestroyed() &&
+      !mainWindow.isVisible()
+    ) {
+      mainWindow.show();
+      closeSplashWindow();
+      logStartupMilestone('main-window-shown');
+    }
+  }
+
   ipcMain.on('startup-milestone', (event, name, detail) => {
     logStartupMilestone(`renderer:${name}`, detail);
 
@@ -417,12 +435,10 @@ function initialize(crashHandler) {
       name === 'main-shell-rendered' &&
       mainWindow &&
       !mainWindow.isDestroyed() &&
-      event.sender === mainWindow.webContents &&
-      !mainWindow.isVisible()
+      event.sender === mainWindow.webContents
     ) {
-      mainWindow.show();
-      closeSplashWindow();
-      logStartupMilestone('main-window-shown');
+      mainShellRendered = true;
+      showMainWindowWhenReady();
     }
   });
 
@@ -1097,13 +1113,15 @@ function initialize(crashHandler) {
       }
     }, 0);
 
-    // スプラッシュ表示を確実にするため、Updaterを少し遅延起動
+    // アプリの起動を更新確認でブロックしない。
     setTimeout(() => {
       if (process.env.NODE_ENV === 'production' || process.env.NAIR_FORCE_AUTO_UPDATE) {
-        new Updater(startApp, logStartupMilestone).run();
-      } else {
-        startApp();
+        new Updater(logStartupMilestone, () => {
+          updateCheckFinished = true;
+          showMainWindowWhenReady();
+        }).run();
       }
+      startApp();
     }, 0);
   });
 
