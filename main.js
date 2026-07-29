@@ -1080,7 +1080,7 @@ function initialize(crashHandler) {
 
   app.on('ready', () => {
     logStartupMilestone('electron-ready');
-    // Show splash window immediately (skip in test environment)
+    // Show splash window immediately
     createSplashWindow();
     updateSplashStatus(...splashProgressByMilestone['electron-ready']);
 

@@ -10,13 +10,13 @@
         @click="maximize"
         v-if="!isCompactMode && resizable !== false"
       />
-      <i
+      <button
+        type="button"
         class="link icon-close-square titlebar-action"
-        :class="{ 'titlebar-action--disabled': !closable }"
-        :aria-disabled="!closable"
+        :disabled="!closable"
         data-test="titlebar-close"
         @click="close"
-      />
+      ></button>
     </div>
   </div>
 </template>
@@ -97,19 +97,21 @@
   .margin-right();
 
   display: inline-block;
+  padding: 0;
   font-size: @font-size4;
   color: var(--color-titlebar-action);
   cursor: pointer;
+  background: transparent;
+  border: 0;
 
   &:not(:disabled):hover {
     color: var(--color-titlebar-action-hover);
   }
-}
 
-.titlebar-action--disabled {
-  pointer-events: none;
-  cursor: default;
-  opacity: 0.4;
+  &:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
 }
 
 .dev-hosts-badge {
