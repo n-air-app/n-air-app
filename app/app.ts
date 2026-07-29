@@ -19,6 +19,8 @@ import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 import { createApp } from 'vue';
 import { createI18n, type Locale, type Path } from 'vue-i18n';
 
@@ -141,6 +143,32 @@ document.addEventListener('auxclick', (event) => event.preventDefault());
 
 const locale = remote.app.getLocale();
 
+// obs-studio-node の EIPCError (node_modules/obs-studio-node/module.d.ts) をローカルに複製したもの。
+// const enum のため実行時に値が存在せず、かつ obs-api/obs-api.d.ts の re-export にも無いので、
+// 直接 import せずここに数値を持つ。NORMAL_EXIT が成功値 (0)。
+const EIPC_NORMAL_EXIT = 0;
+const IPC_ERROR_NAMES: Record<number, string> = {
+  0: 'NORMAL_EXIT',
+  252: 'VERSION_MISMATCH',
+  253: 'OTHER_ERROR',
+  254: 'MISSING_DEPENDENCY',
+  259: 'STILL_RUNNING',
+};
+
+export const ipcHostErrorToMessage = (hostResult: number): string => {
+  // 前回起動の obs64.exe がまだ終了していないケース。実際に起こりうる最有力パターンなので専用文言にする
+  if (hostResult === 259 /* STILL_RUNNING */) {
+    if (locale === 'ja') {
+      return '前回の終了処理が完了していません。しばらく待ってから、もう一度起動してください。';
+    }
+    return 'The previous instance has not finished shutting down yet. Please wait a moment and try again.';
+  }
+  if (locale === 'ja') {
+    return 'OBSサーバーの起動に失敗しました。しばらく待ってから、もう一度起動してください。';
+  }
+  return 'Failed to start the OBS server. Please wait a moment and try again.';
+};
+
 export const apiInitErrorResultToMessage = (resultCode: obs.EVideoCodes) => {
   switch (resultCode) {
     case obs.EVideoCodes.NotSupported: {
@@ -181,7 +209,50 @@ document.addEventListener('DOMContentLoaded', () => {
       window['obs'] = obs;
 
       // Host a new OBS server instance
-      obs.IPC.host(remote.process.env.IPC_UUID);
+      markObsOp('AppStartup', 'ipcHost');
+      let hostResult: unknown;
+      let hostThrown: unknown;
+      try {
+        hostResult = obs.IPC.host(remote.process.env.IPC_UUID);
+      } catch (e) {
+        hostThrown = e;
+      }
+
+      if (hostThrown || (typeof hostResult === 'number' && hostResult !== EIPC_NORMAL_EXIT)) {
+        const hostResultName =
+          typeof hostResult === 'number'
+            ? IPC_ERROR_NAMES[hostResult] ?? String(hostResult)
+            : 'thrown';
+
+        SentryReport.error('AppStartup', 'ipcHost', hostThrown ?? new Error('obs.IPC.host() failed'), {
+          level: 'error',
+          // app.ts の beforeSend が /Failed to make IPC call/ を NOISE として捨てるため、
+          // 意図的に送るこのイベントには diagnostic タグが必須
+          tags: { diagnostic: 'obs-ipc-host-failed', 'ipc.hostResult': hostResultName },
+          fingerprint: ['AppStartup', 'ipcHostFailed'],
+          extra: { hostResult, hostThrown },
+        });
+
+        showDialog(ipcHostErrorToMessage(typeof hostResult === 'number' ? hostResult : -1));
+
+        electron.ipcRenderer.send('shutdownComplete');
+        return;
+      } else if (typeof hostResult !== 'number') {
+        // native の実装が number を返さないケースが実在するか実測するための情報収集。
+        // 起動不能リグレッションを避けるため成功扱いにフォールバックする
+        SentryReport.message(
+          'AppStartup',
+          'ipcHost',
+          'obs.IPC.host() returned a non-number value',
+          {
+            level: 'info',
+            tags: { diagnostic: 'obs-ipc-host-non-number-result' },
+            fingerprint: ['AppStartup', 'ipcHostNonNumberResult'],
+            extra: { hostResult },
+          },
+        );
+      }
+
       obs.NodeObs.SetWorkingDirectory(
         path.join(
           remote.app.getAppPath().replace('app.asar', 'app.asar.unpacked'),
