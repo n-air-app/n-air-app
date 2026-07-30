@@ -62,6 +62,8 @@ export default defineComponent({
     },
 
     onWheel(e: WheelEvent): void {
+      // ソース削除直後、windowが閉じるまでの短い間 source が undefined になりうる（#1380）
+      if (!this.source) return;
       this.source.mouseWheel(this.eventLocationInSourceSpace(e), {
         x: e.deltaX,
         y: e.deltaY,
@@ -69,25 +71,30 @@ export default defineComponent({
     },
 
     onMousedown(e: MouseEvent): void {
+      if (!this.source) return;
       this.source.mouseClick(e.button, this.eventLocationInSourceSpace(e), false);
     },
 
     onMouseup(e: MouseEvent): void {
+      if (!this.source) return;
       this.source.mouseClick(e.button, this.eventLocationInSourceSpace(e), true);
     },
 
     onMousemove(e: MouseEvent): void {
+      if (!this.source) return;
       const pos = this.eventLocationInSourceSpace(e);
       if (pos.x < 0 || pos.y < 0) return;
       this.source.mouseMove(pos);
     },
 
     onKeydown(e: KeyboardEvent): void {
+      if (!this.source) return;
       if (this.isModifierPress(e)) return;
       this.source.keyInput(e.key, e.keyCode, false, this.getModifiers(e));
     },
 
     onKeyup(e: KeyboardEvent): void {
+      if (!this.source) return;
       if (this.isModifierPress(e)) return;
       this.source.keyInput(e.key, e.keyCode, true, this.getModifiers(e));
     },
