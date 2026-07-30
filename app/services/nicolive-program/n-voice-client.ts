@@ -19,9 +19,9 @@ async function playAudio(
   volume: number = 1.0,
 ): Promise<{ cancel: () => void; pause: () => void; resume: () => void; done: Promise<void> }> {
   const url = URL.createObjectURL(new Blob([new Uint8Array(buffer)]));
-  let cancel: () => void;
-  let pause: () => void;
-  let resume: () => void;
+  let cancel: () => void = () => {};
+  let pause: () => void = () => {};
+  let resume: () => void = () => {};
 
   let completed = false;
   const done = new Promise<void>((resolve, reject) => {
@@ -165,10 +165,11 @@ export class NVoiceClientService
       let checkPointTime = startTime;
       let checkPointOffset = 0;
       let paused: Promise<void> | null = null;
-      let resolvePaused: () => void = null;
+      let resolvePaused: (() => void) | null = null;
       const { cancel, pause, resume, done } = await playAudio(wave, options.volume);
       let phonemeCancel = false;
       if (options.phonemeCallback) {
+        const phonemeCallback = options.phonemeCallback;
         const phonemeLoop = async () => {
           for (const label of labels) {
             if (paused) {
@@ -185,9 +186,9 @@ export class NVoiceClientService
                 break;
               }
             }
-            options.phonemeCallback(label.phoneme);
+            phonemeCallback(label.phoneme);
           }
-          options.phonemeCallback(''); // done
+          phonemeCallback(''); // done
         };
         phonemeLoop();
       }

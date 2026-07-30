@@ -73,7 +73,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
           transitionId: connection.transitionId,
         };
       }),
-      defaultTransitionId: this.transitionsService.state.defaultTransitionId,
+      defaultTransitionId: this.transitionsService.state.defaultTransitionId ?? '',
     };
   }
 
@@ -111,7 +111,7 @@ export class TransitionsNode extends Node<ISchema, {}> {
     if (version === 1) {
       const data: Dictionary<any> = this.data;
       const transition: ITransition = {
-        id: null,
+        id: '',
         name: 'Global Transition',
         type: data['type'],
         duration: data['duration'],

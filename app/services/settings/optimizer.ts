@@ -506,7 +506,7 @@ class OptKeyProperty {
         'name',
       );
     }
-    this.lookupValueName = keyDescription.lookupValueName;
+    this.lookupValueName = keyDescription.lookupValueName ?? false;
   }
 
   get label(): string {
@@ -522,7 +522,7 @@ class OptKeyProperty {
     if (v === undefined) {
       const path = i18nPath('settings', this.category, this.subCategory, this.setting);
       console.warn(`OptKeyProperty: value(undefined): ${path}`);
-      return;
+      return '';
     }
     if (this.lookupValueName) {
       const t = i18nPath('settings', this.category, this.subCategory, this.setting, v);
@@ -557,7 +557,7 @@ export function* iterateKeyDescriptions(
         newItem.dependents = [];
         yield newItem;
         for (const dependent of item.dependents) {
-          if (dependent.values.includes(values[item.key])) {
+          if (dependent.values.includes(values[item.key] as TObsValue)) {
             yield* iterateKeyDescriptions(values, dependent.params);
           }
         }
@@ -690,7 +690,7 @@ export class SettingsKeyAccessor {
     if (reload || !this.categoryCache.has(category)) {
       this.categoryCache.set(category, this.accessor.getSettingsFormData(category));
     }
-    return this.categoryCache.get(category);
+    return this.categoryCache.get(category)!;
   }
 
   private updateCategory(category: SettingsCategory) {
@@ -731,14 +731,14 @@ export class SettingsKeyAccessor {
   /**
    * 実際の設定値を取得する
    */
-  private findValue(i: KeyDescription): TObsValue {
+  private findValue(i: KeyDescription): TObsValue | undefined {
     return this.accessor.findSettingValue(this.getCategory(i.category), i.subCategory, i.setting);
   }
 
   /**
    * 実際の設定値の選択肢を含む情報を取得する(更新時にもこれを使う)
    */
-  private findSetting(i: KeyDescription): IObsInput<TObsValue> | IObsListInput<TObsValue> {
+  private findSetting(i: KeyDescription): IObsInput<TObsValue> | IObsListInput<TObsValue> | undefined {
     return this.accessor.findSetting(this.getCategory(i.category), i.subCategory, i.setting);
   }
 
@@ -841,7 +841,7 @@ export class SettingsKeyAccessor {
   getSetting(
     key: OptimizationKey,
     keyDescriptions: KeyDescription[] = AllKeyDescriptions,
-  ): (IObsInput<TObsValue> | IObsListInput<TObsValue>) & { options?: { value: any }[] } {
+  ): ((IObsInput<TObsValue> | IObsListInput<TObsValue>) & { options?: { value: any }[] }) | undefined {
     for (const kv of this.getSettings(keyDescriptions)) {
       if (kv[0] === key) {
         return kv[1];
@@ -859,15 +859,16 @@ export class SettingsKeyAccessor {
         // 一致しない枝まで降りて誤った設定先に書いてしまうのを防ぐ。
         const targetValue = values.hasOwnProperty(key) ? values[key] : this.findValue(item);
         for (const dependent of item.dependents) {
-          if (dependent.values.includes(targetValue) && isDependOnItems(values, dependent.params)) {
-            this.setValue(item, targetValue);
+          if (targetValue !== undefined && dependent.values.includes(targetValue as TObsValue) && isDependOnItems(values, dependent.params)) {
+            this.setValue(item, targetValue as TObsValue);
             this.setValues(values, dependent.params);
           }
         }
-        this.setValue(item, targetValue);
+        if (targetValue !== undefined) this.setValue(item, targetValue as TObsValue);
       } else {
         if (values.hasOwnProperty(key)) {
-          this.setValue(item, values[key]);
+          const v = values[key];
+          if (v !== undefined) this.setValue(item, v as TObsValue);
         }
       }
     }
@@ -966,7 +967,7 @@ export class Optimizer {
       if (!map.has(category)) {
         map.set(category, [item]);
       } else {
-        map.get(category).push(item);
+        map.get(category)!.push(item);
       }
     }
     return Array.from(map);

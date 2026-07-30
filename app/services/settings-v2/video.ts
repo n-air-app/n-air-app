@@ -18,8 +18,8 @@ const displays = ['horizontal'] as const;
 export type TDisplayType = (typeof displays)[number];
 
 export interface IVideoSetting {
-  horizontal: IVideoInfo;
-  //  vertical: IVideoInfo;
+  horizontal: IVideoInfo | null;
+  //  vertical: IVideoInfo | null;
 }
 
 export interface IVideoSettingFormatted {
@@ -52,8 +52,8 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
   @Inject() settingsService: SettingsService;
 
   initialState = {
-    horizontal: null as IVideoInfo,
-    //  vertical: null as IVideoInfo,
+    horizontal: null as IVideoInfo | null,
+    //  vertical: null as IVideoInfo | null,
   };
 
   establishedContext = new Subject<void>();
@@ -69,8 +69,8 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
   }
 
   contexts = {
-    horizontal: null as IVideo,
-    //    vertical: null as IVideo,
+    horizontal: null as IVideo | null,
+    //    vertical: null as IVideo | null,
   };
 
   get values() {
@@ -201,7 +201,7 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
    * @param display - Optional, the context's display name
    */
   migrateSettings(display: TDisplayType = 'horizontal') {
-    this.contexts.horizontal.video = this.contexts.horizontal.legacySettings;
+    this.contexts.horizontal!.video = this.contexts.horizontal!.legacySettings;
     /**
      * If this is the first time starting the app set default settings for horizontal context
      */
@@ -218,11 +218,11 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     //   this.contexts[display].video = settings;
     // }
 
-    if (invalidFps(this.contexts[display].video.fpsNum, this.contexts[display].video.fpsDen)) {
+    if (invalidFps(this.contexts[display]!.video.fpsNum, this.contexts[display]!.video.fpsDen)) {
       this.createDefaultFps(display);
     }
 
-    this.SET_VIDEO_CONTEXT(display, this.contexts[display].video);
+    this.SET_VIDEO_CONTEXT(display, this.contexts[display]!.video);
   }
 
   /**
@@ -241,10 +241,10 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     this.contexts[display] = VideoFactory.create();
     this.migrateSettings(display);
 
-    this.contexts[display].video = this.state[display];
-    this.contexts[display].legacySettings = this.state[display];
-    Video.video = this.state.horizontal;
-    Video.legacySettings = this.state.horizontal;
+    this.contexts[display]!.video = this.state[display]!;
+    this.contexts[display]!.legacySettings = this.state[display]!;
+    Video.video = this.state.horizontal!;
+    Video.legacySettings = this.state.horizontal!;
 
     return !!this.contexts[display];
   }
@@ -255,8 +255,8 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
   }
 
   private updateObsSettingsImpl(display: TDisplayType = 'horizontal') {
-    this.contexts[display].video = this.state[display];
-    this.contexts[display].legacySettings = this.state[display];
+    this.contexts[display]!.video = this.state[display]!;
+    this.contexts[display]!.legacySettings = this.state[display]!;
   }
 
   private debouncedUpdateObsSettings = debounce(this.updateObsSettingsImpl, 200);
@@ -275,8 +275,8 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
 
   // 現状settingsの情報はlegacyにあるのでそれを反映させる
   refrectLegacy(display: TDisplayType = 'horizontal') {
-    const legacySettings = this.contexts[display].legacySettings;
-    this.contexts[display].video = legacySettings;
+    const legacySettings = this.contexts[display]!.legacySettings;
+    this.contexts[display]!.video = legacySettings;
 
     getKeys(legacySettings).forEach((key) => {
       this.SET_VIDEO_SETTING(key, legacySettings[key], 'horizontal');
@@ -295,11 +295,11 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     displays.forEach((display) => {
       if (this.contexts[display]) {
         // save settings as legacy settings
-        this.contexts[display].legacySettings = this.state[display];
+        this.contexts[display].legacySettings = this.state[display]!;
 
         // destroy context
         this.contexts[display].destroy();
-        this.contexts[display] = null as IVideo;
+        this.contexts[display] = null;
         this.DESTROY_VIDEO_CONTEXT(display);
       }
     });
@@ -307,15 +307,15 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
 
   @mutation()
   DESTROY_VIDEO_CONTEXT(display: TDisplayType = 'horizontal') {
-    this.state[display] = null as IVideoInfo;
+    this.state[display] = null;
   }
 
   @mutation()
   SET_VIDEO_SETTING(key: string, value: unknown, display: TDisplayType = 'horizontal') {
     this.state[display] = {
-      ...this.state[display],
+      ...this.state[display]!,
       [key]: value,
-    };
+    } as IVideoInfo;
   }
 
   @mutation()
@@ -329,6 +329,6 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
 
   @mutation()
   REMOVE_CONTEXT(display: TDisplayType) {
-    this.state[display] = null as IVideoInfo;
+    this.state[display] = null;
   }
 }

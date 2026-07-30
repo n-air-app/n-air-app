@@ -11,7 +11,7 @@ import {
 
 export class JsonrpcService extends Service implements IJsonrpcServiceApi {
   static createError(
-    requestOrRequestId: string | IJsonRpcRequest,
+    requestOrRequestId: string | IJsonRpcRequest | null,
     options: { code: E_JSON_RPC_ERROR; message?: string },
   ): IJsonRpcResponse<any> {
     /* eslint-disable */
@@ -55,7 +55,7 @@ export class JsonrpcService extends Service implements IJsonrpcServiceApi {
 
   static createResponse<TResult>(
     requestOrRequestId: string | IJsonRpcRequest,
-    result: TResult = null,
+    result: TResult = null as unknown as TResult,
   ): IJsonRpcResponse<TResult> {
     /* eslint-disable */
     const id =
@@ -72,14 +72,14 @@ export class JsonrpcService extends Service implements IJsonrpcServiceApi {
     data: any;
     isRejected?: boolean;
   }): IJsonRpcResponse<IJsonRpcEvent> {
-    return this.createResponse<IJsonRpcEvent>(null, {
+    return this.createResponse<IJsonRpcEvent>(null as unknown as string, {
       _type: 'EVENT',
       ...options,
     });
   }
 
   createError(
-    requestOrRequestId: string | IJsonRpcRequest,
+    requestOrRequestId: string | IJsonRpcRequest | null,
     options: { code: E_JSON_RPC_ERROR; message?: string },
   ): IJsonRpcResponse<any> {
     // eslint-disable-next-line

@@ -61,7 +61,7 @@ export abstract class SceneItemNode implements ISceneItemNode {
     scene.moveNodes([this.id], parentId, beforeNodeId);
   }
 
-  getParent(): SceneItemFolder {
+  getParent(): SceneItemFolder | null {
     return this.getScene().getFolder(this.parentId);
   }
 
@@ -83,7 +83,7 @@ export abstract class SceneItemNode implements ISceneItemNode {
     return this.getScene().getNodes()[nodeInd + 1];
   }
 
-  getPrevItem(): SceneItem {
+  getPrevItem(): SceneItem | null {
     let nodeInd = this.getNodeIndex();
     const nodes = this.getScene().getNodes();
     while (nodeInd--) {
@@ -92,13 +92,14 @@ export abstract class SceneItemNode implements ISceneItemNode {
     return null;
   }
 
-  getNextItem(): SceneItem {
+  getNextItem(): SceneItem | null {
     let nodeInd = this.getNodeIndex();
     const nodes = this.getScene().getNodes();
     while (nodeInd++) {
       if (!nodes[nodeInd]) return null;
       if (nodes[nodeInd].isItem()) return nodes[nodeInd] as SceneItem;
     }
+    return null;
   }
 
   /**

@@ -181,7 +181,7 @@ export async function openErrorDialogFromFailure(failure: NicoliveFailure): Prom
     });
   };
   return openErrorDialog({
-    title: buildMessage('title'),
-    message: buildMessage('message', { additionalMessage: failure.additionalMessage }),
+    title: buildMessage('title') ?? '',
+    message: buildMessage('message', { additionalMessage: failure.additionalMessage }) ?? '',
   });
 }

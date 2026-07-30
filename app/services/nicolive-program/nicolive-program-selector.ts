@@ -137,13 +137,13 @@ export class NicoliveProgramSelectorService extends StatefulService<INicolivePro
     });
     try {
       const programs = await this.fetchOnairChannelPrograms(id);
-      const candidateProgramIds = programs.filter(Boolean);
+      const candidateProgramIds = programs.filter((p): p is string => !!p);
       const candidatePrograms = (
         await Promise.all(
           candidateProgramIds.map(async (programId) => {
             const programResult = await this.client.fetchProgram(programId);
             if (isOk(programResult)) {
-              return { id: programId, title: programResult.value.title };
+              return { id: programId, title: programResult.value.title ?? '' };
             } else if (
               programResult.value instanceof Error
               || programResult.value.meta.status !== 404
@@ -155,7 +155,7 @@ export class NicoliveProgramSelectorService extends StatefulService<INicolivePro
             return undefined;
           }),
         )
-      ).filter(Boolean);
+      ).filter((p): p is { id: string; title: string } => p !== undefined);
       this.SET_STATE({
         candidatePrograms,
         isLoading: false,
@@ -181,7 +181,7 @@ export class NicoliveProgramSelectorService extends StatefulService<INicolivePro
    * @param step
    */
   isCompletedOrCurrentStep(step: TStep): boolean {
-    if (this.isStepToSkip(step, this.state.selectedProviderType)) {
+    if (this.state.selectedProviderType && this.isStepToSkip(step, this.state.selectedProviderType)) {
       return false;
     }
     return stepsMap[this.state.currentStep] >= stepsMap[step];
@@ -192,7 +192,7 @@ export class NicoliveProgramSelectorService extends StatefulService<INicolivePro
    * @param step
    */
   isCompletedStep(step: TStep): boolean {
-    if (this.isStepToSkip(step, this.state.selectedProviderType)) {
+    if (this.state.selectedProviderType && this.isStepToSkip(step, this.state.selectedProviderType)) {
       return false;
     }
     return stepsMap[this.state.currentStep] > stepsMap[step];

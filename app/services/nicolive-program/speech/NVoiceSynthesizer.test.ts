@@ -7,11 +7,11 @@ import { NVoiceSynthesizer } from './NVoiceSynthesizer';
 describe('NVoiceSynthesizer', () => {
   test('speakText', async () => {
     const cancelMock = jest.fn(async () => {});
-    let resolvePrepare: () => void;
+    let resolvePrepare!: () => void;
     const preparePromise = new Promise<void>((resolve) => {
       resolvePrepare = resolve;
     });
-    let resolveSpeaking: () => void;
+    let resolveSpeaking!: () => void;
     const speakingPromise = new Promise<void>((resolve) => {
       resolveSpeaking = resolve;
     });
@@ -52,7 +52,7 @@ describe('NVoiceSynthesizer', () => {
       const optionsArg = talkMock.mock.calls[0][1];
       expect(optionsArg.speed).toEqual(1 / speech.rate);
       expect(optionsArg.volume).toEqual(speech.volume);
-      expect(optionsArg.maxTime).toEqual(speech.nVoice.maxTime);
+      expect(optionsArg.maxTime).toEqual(speech.nVoice?.maxTime);
     }
 
     resolvePrepare();
@@ -65,7 +65,7 @@ describe('NVoiceSynthesizer', () => {
     resolveSpeaking();
     await sleep(0);
     expect(onend).toHaveBeenCalledTimes(1);
-    await result.running;
+    await result!.running;
   });
 
   test.todo('cancel');

@@ -253,9 +253,12 @@ export class StreamingService
         }
 
         const setting = await this.userService.updateStreamSettings(programId);
+        if (!setting) {
+          return this.showNotBroadcastingMessageBoxForNicolive('no_program_id');
+        }
         const streamKey = setting.key;
         if (streamKey === '') {
-          const failure = this.userService.platform.type === 'niconico'
+          const failure = this.userService.platform?.type === 'niconico'
             ? NiconicoService.instance().lastSetupFailure
             : null;
 
@@ -368,7 +371,7 @@ export class StreamingService
       if (shouldConfirm && !confirm(confirmText)) return;
 
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
-      const horizontalContext = this.videoSettingsService.contexts.horizontal;
+      const horizontalContext = this.videoSettingsService.contexts.horizontal!;
       runObsOp('StreamingService', 'startStreaming', () => {
         obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
         obs.NodeObs.OBS_service_startStreaming();
@@ -674,7 +677,7 @@ export class StreamingService
     const voicevoxFilter = (src: SynthesizerSelector, value: string) =>
       src === 'voicevox' ? value : '';
 
-    const event: TUsageEvent = {
+    const event: TUsageEvent & Record<string, any> = {
       event: eventType,
       platform: extractPlatform(settings.streamingURL),
       stream_track_id: streamingTrackId,
@@ -693,8 +696,8 @@ export class StreamingService
       advanced:
         settings.outputMode === 'Advanced'
           ? {
-            rate_control: settings.audio.rateControl,
-            profile: settings.profile,
+            rate_control: settings.audio.rateControl ?? 'CBR',
+            profile: settings.profile ?? 'main',
           }
           : undefined,
       encoder: {
@@ -776,7 +779,7 @@ export class StreamingService
     console.debug('OBS Output signal: ', info);
 
     const time = new Date().toISOString();
-    const outputCodeName = info.code ? (OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code)) : undefined;
+    const outputCodeName = info.code ? (OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code)) : '';
 
     if (info.type === EOBSOutputType.Streaming) {
       const time = new Date().toISOString();

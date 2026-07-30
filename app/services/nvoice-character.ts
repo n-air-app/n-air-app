@@ -40,7 +40,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
   init() {
     this.sourcesService.sourceAdded.subscribe((sourceModel) => {
       if (sourceModel.propertiesManagerType === 'nvoice-character') {
-        const source = this.sourcesService.getSource(sourceModel.sourceId);
+        const source = this.sourcesService.getSource(sourceModel.sourceId)!;
 
         this.ADD_CHARACTER_SOURCE({
           sourceId: sourceModel.sourceId,
@@ -52,7 +52,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
       if (sourceModel.propertiesManagerType === 'nvoice-character') {
         if (sourceModel.propertiesManagerType === 'nvoice-character') {
           if (!this.state.characterSources[sourceModel.sourceId]) {
-            const source = this.sourcesService.getSource(sourceModel.sourceId);
+            const source = this.sourcesService.getSource(sourceModel.sourceId)!;
             this.ADD_CHARACTER_SOURCE({
               sourceId: sourceModel.sourceId,
               type: source.getPropertiesManagerSettings().nVoiceCharacterType,
@@ -77,7 +77,7 @@ export class NVoiceCharacterService extends StatefulService<INVoiceCharacterSour
     if (this.state.port === port) return;
     this.SET_PORT(port);
     for (const sourceId of Object.keys(this.state.characterSources)) {
-      const source = this.sourcesService.getSource(sourceId);
+      const source = this.sourcesService.getSource(sourceId)!;
       const type = source.getPropertiesManagerSettings().nVoiceCharacterType;
       const url = this.getUrl(type, port);
       // URLを更新する

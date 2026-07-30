@@ -10,7 +10,7 @@ export class PhonemeServer {
       const server = createServer();
       server.listen(() => {
         const address = server.address();
-        if (typeof address === 'object') {
+        if (address !== null && typeof address === 'object') {
           console.log('PhonemeServer: socket.io listening on', address.port);
           onPortAssigned(address.port);
         }

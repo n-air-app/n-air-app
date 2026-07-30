@@ -8,7 +8,7 @@ import Util from 'services/utils';
 import { notes } from './notes';
 
 interface IPatchNotesState {
-  lastVersionSeen: string;
+  lastVersionSeen: string | null;
 }
 
 export interface IPatchNotes {

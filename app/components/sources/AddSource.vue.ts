@@ -28,7 +28,7 @@ export default defineComponent({
     const sources = SourcesService.instance().getSources().filter((source) => {
       const comparison = {
         type: sourceType as TSourceType,
-        propertiesManager: sourceAddOptions.propertiesManager,
+        propertiesManager: sourceAddOptions.propertiesManager!,
       };
       return (
         source.isSameType(
@@ -58,7 +58,7 @@ export default defineComponent({
     },
 
     selectedSource() {
-      return SourcesService.instance().getSource(this.selectedSourceId);
+      return this.selectedSourceId ? SourcesService.instance().getSource(this.selectedSourceId) : undefined;
     },
   },
 
@@ -66,7 +66,7 @@ export default defineComponent({
     if (this.sourceAddOptions.propertiesManager === 'custom-cast-ndi') {
       this.name = SourcesService.instance().suggestName($t('source-props.custom_cast_ndi_source.name'));
     } else if (this.sourceAddOptions.propertiesManager === 'nvoice-character') {
-      const type = this.sourceAddOptions.propertiesManagerSettings.nVoiceCharacterType || 'near';
+      const type = this.sourceAddOptions.propertiesManagerSettings?.nVoiceCharacterType || 'near';
       this.name = SourcesService.instance().suggestName($t(`source-props.${type}.name`));
     } else {
       const sourceType = this.sourceType
@@ -74,7 +74,7 @@ export default defineComponent({
           .getAvailableSourcesTypesList()
           .find((sourceTypeDef) => sourceTypeDef.value === this.sourceType);
 
-      this.name = SourcesService.instance().suggestName(this.sourceType && sourceType.description);
+      this.name = SourcesService.instance().suggestName(sourceType?.description ?? '');
     }
 
     if (this.sourceType === 'scene') this.canAddNew = false;
@@ -88,6 +88,7 @@ export default defineComponent({
     },
 
     addExisting(): void {
+      if (!this.selectedSourceId) return;
       const scene = ScenesService.instance().activeScene;
       if (!scene.canAddSource(this.selectedSourceId)) {
         // for now only a scene-source can be a problem

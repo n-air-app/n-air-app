@@ -371,7 +371,7 @@ class TooltipManager {
 /**
  * modifiersから配置位置を取得
  */
-function getPlacement(modifiers: Record<string, boolean>): TooltipPlacement {
+function getPlacement(modifiers: Partial<Record<string, boolean>>): TooltipPlacement {
   if (modifiers.top) return 'top';
   if (modifiers.bottom) return 'bottom';
   if (modifiers.left) return 'left';

@@ -2,7 +2,7 @@ import * as inputComponents from 'components/obs/inputs';
 import GenericForm from 'components/obs/inputs/GenericForm.vue';
 import { IObsInput, IObsListInput, TObsFormData } from 'components/obs/inputs/ObsInput';
 import { $t } from 'services/i18n';
-import { ETransitionType, TransitionsService } from 'services/transitions';
+import { ETransitionType, ITransition, TransitionsService } from 'services/transitions';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -16,7 +16,7 @@ export default defineComponent({
   },
   data() {
     return {
-      localType: TransitionsService.instance().getTransition(this.transitionId).type as ETransitionType,
+      localType: TransitionsService.instance().getTransition(this.transitionId)!.type as ETransitionType,
       properties: TransitionsService.instance().getPropertiesFormData(this.transitionId),
     };
   },
@@ -31,8 +31,8 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<ETransitionType>) {
-        this.localType = model.value;
-        TransitionsService.instance().changeTransitionType(this.transitionId, model.value);
+        this.localType = model.value!;
+        TransitionsService.instance().changeTransitionType(this.transitionId, model.value!);
         this.properties = TransitionsService.instance().getPropertiesFormData(this.transitionId);
       },
     },
@@ -45,7 +45,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TransitionsService.instance().setDuration(this.transitionId, model.value);
+        TransitionsService.instance().setDuration(this.transitionId, model.value!);
       },
     },
     nameModel: {
@@ -57,11 +57,11 @@ export default defineComponent({
         };
       },
       set(name: IObsInput<string>) {
-        TransitionsService.instance().renameTransition(this.transitionId, name.value);
+        TransitionsService.instance().renameTransition(this.transitionId, name.value!);
       },
     },
-    transition() {
-      return TransitionsService.instance().getTransition(this.transitionId);
+    transition(): ITransition {
+      return TransitionsService.instance().getTransition(this.transitionId)!;
     },
   },
   methods: {

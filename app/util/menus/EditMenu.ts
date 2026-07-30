@@ -40,7 +40,7 @@ export class EditMenu extends Menu {
 
   // @ts-expect-error: ts2729: use before initialization
   private scene = this.scenesService.getScene(this.options.selectedSceneId);
-  private source: Source;
+  private source: Source | undefined;
 
   constructor(private options: IEditMenuOptions) {
     super();
@@ -68,9 +68,9 @@ export class EditMenu extends Menu {
         label: $t('sources.interactiveCrop'),
         enabled: true,
         click: () => {
-          const sceneId = this.scene.id;
-          const sceneItemId = this.options.sceneNodeId;
-          const sourceId = this.source.sourceId;
+          const sceneId = this.scene!.id;
+          const sceneItemId = this.options.sceneNodeId!;
+          const sourceId = this.source!.sourceId;
           this.monitorCaptureCroppingService.startCropping(sceneId, sceneItemId, sourceId);
         },
       });
@@ -210,7 +210,7 @@ export class EditMenu extends Menu {
       ) {
         this.append({
           label: $t('common.Interact'),
-          click: () => this.sourcesService.showInteractWindow(this.source.sourceId),
+          click: () => this.sourcesService.showInteractWindow(this.source!.sourceId),
         });
       }
     }
@@ -219,7 +219,7 @@ export class EditMenu extends Menu {
       this.append({
         id: 'Rename',
         label: $t('common.rename'),
-        click: () => this.sourcesService.showRenameSource(this.source.sourceId),
+        click: () => this.sourcesService.showRenameSource(this.source!.sourceId),
       });
 
       this.append({ type: 'separator' });
@@ -309,7 +309,7 @@ export class EditMenu extends Menu {
         id: 'Hide',
         label: $t('common.hide'),
         click: () => {
-          this.audioService.getSource(this.source.sourceId).setHidden(true);
+          this.audioService.getSource(this.source!.sourceId)?.setHidden(true);
         },
       });
 
@@ -322,11 +322,11 @@ export class EditMenu extends Menu {
   }
 
   private showFilters() {
-    this.sourceFiltersService.showSourceFilters(this.source.sourceId);
+    this.sourceFiltersService.showSourceFilters(this.source!.sourceId);
   }
 
   private showProperties() {
-    this.sourcesService.showSourceProperties(this.source.sourceId);
+    this.sourcesService.showSourceProperties(this.source!.sourceId);
   }
 
   private transformSubmenu() {
@@ -338,7 +338,7 @@ export class EditMenu extends Menu {
   }
 
   private deinterlaceSubmenu() {
-    return new DeinterlaceMenu(this.source);
+    return new DeinterlaceMenu(this.source!);
   }
 
   private scaleFilteringSubmenu() {

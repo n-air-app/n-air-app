@@ -110,7 +110,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
     });
   }
 
-  private getState(): IPerformanceState {
+  private getState(): IPerformanceState | null {
     if (!this.customizationService.pollingPerformanceStatistics) {
       return {
         CPU: 0,
@@ -151,7 +151,7 @@ export class PerformanceService extends StatefulService<IPerformanceState> {
         // Sentryイベント数削減のため、2回目以降はbreadcrumbsに記録する
         Sentry.addBreadcrumb({
           category: 'performance.getState',
-          message: e.toString(),
+          message: String(e),
           level: 'warning',
           data: {
             errorName: e instanceof Error ? e.name : typeof e,

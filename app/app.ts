@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let hostResult: unknown;
       let hostThrown: unknown;
       try {
-        hostResult = obs.IPC.host(remote.process.env.IPC_UUID);
+        hostResult = obs.IPC.host(remote.process.env.IPC_UUID!);
       } catch (e) {
         hostThrown = e;
       }
@@ -252,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
           },
         );
       }
-
       obs.NodeObs.SetWorkingDirectory(
         path.join(
           remote.app.getAppPath().replace('app.asar', 'app.asar.unpacked'),
@@ -276,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const apiResult = obs.NodeObs.OBS_API_initAPI(
         'en-US',
         appService.appDataDirectory,
-        remote.process.env.NAIR_VERSION,
+        remote.process.env.NAIR_VERSION!,
         SENTRY_MINIDUMP_URL,
       );
 

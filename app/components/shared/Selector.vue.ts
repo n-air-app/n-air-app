@@ -10,7 +10,7 @@ export default defineComponent({
 
   props: {
     items: { type: Array as () => ISelectorItem[] },
-    activeItems: { type: Array as () => string[] },
+    activeItems: { type: Array as () => string[], required: true as const },
     draggable: { type: Boolean, default: true },
   },
 

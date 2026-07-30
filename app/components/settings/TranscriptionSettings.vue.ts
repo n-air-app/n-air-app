@@ -149,7 +149,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TranscriptionService.instance().setModelName(model.value);
+        TranscriptionService.instance().setModelName(model.value ?? '');
       },
     },
     isDownloadButtonEnabled(): boolean {
@@ -176,7 +176,7 @@ export default defineComponent({
             description: $t('settings.transcription.audioSource'),
             name: 'transcriptionAudioSource',
             value: TranscriptionService.instance().state.audioDeviceId ?? '',
-            options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: null }],
+            options: [{ description: $t('settings.transcription.noAudioSourceFound'), value: '' }],
             enabled: false,
           };
         }
@@ -193,7 +193,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<string>) {
-        TranscriptionService.instance().setAudioDeviceId(model.value);
+        TranscriptionService.instance().setAudioDeviceId(model.value ?? '');
       },
     },
     commentEnabled: {
@@ -209,7 +209,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentPostDelay',
           description: $t('settings.transcription.comment.postDelay'),
-          value: TranscriptionService.instance().state.commentPostDelay,
+          value: TranscriptionService.instance().state.commentPostDelay ?? 0,
           enabled: true,
           minVal: 0,
           maxVal: 10000,
@@ -217,7 +217,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance().setCommentPostDelay(model.value);
+        TranscriptionService.instance().setCommentPostDelay(model.value ?? 0);
       },
     },
     commentVposOffsetModel: {
@@ -225,7 +225,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentVposOffset',
           description: $t('settings.transcription.comment.vposOffset'),
-          value: TranscriptionService.instance().state.commentVposOffset,
+          value: TranscriptionService.instance().state.commentVposOffset ?? 0,
           enabled: true,
           minVal: -10000,
           maxVal: 10000,
@@ -233,7 +233,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance().setCommentVposOffset(model.value);
+        TranscriptionService.instance().setCommentVposOffset(model.value ?? 0);
       },
     },
     commentPositionModel: {
@@ -241,7 +241,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentPosition',
           description: $t('settings.transcription.comment.positionLabel'),
-          value: TranscriptionService.instance().state.commentPosition,
+          value: TranscriptionService.instance().state.commentPosition ?? TranscriptionService.defaultState.commentPosition,
           enabled: true,
           options: COMMENT_POSITIONS.map((position) => ({
             description:
@@ -254,7 +254,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentPosition>) {
-        TranscriptionService.instance().setCommentPosition(model.value);
+        TranscriptionService.instance().setCommentPosition(model.value ?? TranscriptionService.defaultState.commentPosition);
       },
     },
     commentSizeModel: {
@@ -262,7 +262,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentSize',
           description: $t('settings.transcription.comment.sizeLabel'),
-          value: TranscriptionService.instance().state.commentSize,
+          value: TranscriptionService.instance().state.commentSize ?? TranscriptionService.defaultState.commentSize,
           enabled: true,
           options: COMMENT_SIZES.map((size) => ({
             description:
@@ -275,7 +275,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentSize>) {
-        TranscriptionService.instance().setCommentSize(model.value);
+        TranscriptionService.instance().setCommentSize(model.value ?? TranscriptionService.defaultState.commentSize);
       },
     },
     commentFontModel: {
@@ -283,7 +283,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentFont',
           description: $t('settings.transcription.comment.fontLabel'),
-          value: TranscriptionService.instance().state.commentFont,
+          value: TranscriptionService.instance().state.commentFont ?? TranscriptionService.defaultState.commentFont,
           enabled: true,
           options: COMMENT_FONTS.map((font) => ({
             description: $t(`settings.transcription.comment.font.${font}`),
@@ -292,7 +292,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentFont>) {
-        TranscriptionService.instance().setCommentFont(model.value);
+        TranscriptionService.instance().setCommentFont(model.value ?? TranscriptionService.defaultState.commentFont);
       },
     },
     commentColorModel: {
@@ -300,7 +300,7 @@ export default defineComponent({
         return {
           name: 'transcriptionCommentColor',
           description: $t('settings.transcription.comment.colorLabel'),
-          value: TranscriptionService.instance().state.commentColor,
+          value: TranscriptionService.instance().state.commentColor ?? TranscriptionService.defaultState.commentColor,
           enabled: true,
           options: COMMENT_COLORS.map((color) => ({
             description:
@@ -313,7 +313,7 @@ export default defineComponent({
         };
       },
       set(model: IObsListInput<CommentColor>) {
-        TranscriptionService.instance().setCommentColor(model.value);
+        TranscriptionService.instance().setCommentColor(model.value ?? TranscriptionService.defaultState.commentColor);
       },
     },
     textFileEnabledModel: {
@@ -326,7 +326,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<boolean>) {
-        TranscriptionService.instance().setTextFileEnabled(model.value);
+        TranscriptionService.instance().setTextFileEnabled(model.value ?? false);
       },
     },
     textFilePathModel: {
@@ -340,7 +340,7 @@ export default defineComponent({
         };
       },
       set(model: IObsPathInputValue) {
-        TranscriptionService.instance().setTextFilePath(model.value);
+        TranscriptionService.instance().setTextFilePath(model.value ?? '');
       },
     },
     textFileMaxLineModel: {
@@ -348,7 +348,7 @@ export default defineComponent({
         return {
           name: 'transcriptionTextFileMaxLine',
           description: $t('settings.transcription.textFile.maxLine'),
-          value: TranscriptionService.instance().state.textFileMaxLine,
+          value: TranscriptionService.instance().state.textFileMaxLine ?? TranscriptionService.defaultState.textFileMaxLine,
           enabled: true,
           minVal: 1,
           maxVal: 10000,
@@ -356,7 +356,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance().setTextFileMaxLine(model.value);
+        TranscriptionService.instance().setTextFileMaxLine(model.value ?? TranscriptionService.defaultState.textFileMaxLine);
       },
     },
     textFileLineTimeToLiveModel: {
@@ -364,7 +364,7 @@ export default defineComponent({
         return {
           name: 'transcriptionTextFileLineTimeToLive',
           description: $t('settings.transcription.textFile.lineTimeToLive'),
-          value: TranscriptionService.instance().state.textFileLineTimeToLive,
+          value: TranscriptionService.instance().state.textFileLineTimeToLive ?? 5000,
           enabled: true,
           minVal: 500,
           maxVal: 60000,
@@ -372,7 +372,7 @@ export default defineComponent({
         };
       },
       set(model: IObsInput<number>) {
-        TranscriptionService.instance().setTextFileLineTimeToLive(model.value);
+        TranscriptionService.instance().setTextFileLineTimeToLive(model.value ?? 5000);
       },
     },
   },
@@ -408,7 +408,7 @@ export default defineComponent({
   },
   methods: {
     isNiconicoLoggedIn(): boolean {
-      return UserService.instance().isNiconicoLoggedIn();
+      return UserService.instance().isNiconicoLoggedIn() ?? false;
     },
     openHelp() {
       const url = 'https://qa.nicovideo.jp/faq/show/24942?site_domain=default';

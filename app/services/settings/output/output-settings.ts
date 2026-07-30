@@ -164,6 +164,8 @@ export function obsEncoderToEncoderFamily(
     case EObsSimpleEncoder.amd:
     case EObsAdvancedEncoder.amd_amf_h264:
       return EEncoderFamily.amd;
+    default:
+      return EEncoderFamily.x264;
   }
 }
 
@@ -234,7 +236,7 @@ export class OutputSettingsService extends Service {
       preset = [
         this.settingsService.findValidListValue(output, 'Streaming', 'QualityPreset'),
         this.settingsService.findValidListValue(output, 'Streaming', 'AMDPreset'),
-      ].find((item) => item !== undefined);
+      ].find((item) => item !== undefined) ?? '';
     } else {
       preset = [
         this.settingsService.findValidListValue(output, 'Streaming', 'preset'),
@@ -242,7 +244,7 @@ export class OutputSettingsService extends Service {
         this.settingsService.findValidListValue(output, 'Streaming', 'NVENCPreset'),
         this.settingsService.findValidListValue(output, 'Streaming', 'QSVPreset'),
         this.settingsService.findValidListValue(output, 'Streaming', 'target_usage'),
-      ].find((item) => item !== undefined);
+      ].find((item) => item !== undefined) ?? '';
     }
 
     const bitrate: number = (this.settingsService.findSettingValue(output, 'Streaming', 'bitrate') as number)
@@ -301,7 +303,7 @@ export class OutputSettingsService extends Service {
 
     const quality = this.settingsService.findValidListValue(output, 'Recording', 'RecQuality');
 
-    let bitrate: number;
+    let bitrate = 15000;
 
     if (mode === 'Simple') {
       // convert Quality to Bitrate in the Simple mode
@@ -321,7 +323,11 @@ export class OutputSettingsService extends Service {
           break;
       }
     } else {
-      this.settingsService.findSettingValue(output, 'Recording', 'Recbitrate');
+      bitrate = (this.settingsService.findSettingValue(
+        output,
+        'Recording',
+        'Recbitrate',
+      ) as number | undefined) ?? 15000;
     }
 
     return {

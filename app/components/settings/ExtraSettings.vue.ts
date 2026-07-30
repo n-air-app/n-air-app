@@ -39,7 +39,7 @@ export default defineComponent({
       return {
         name: 'optimize_for_niconico',
         description: $t('settings.optimizeForNiconico'),
-        value: CustomizationService.instance().state.optimizeForNiconico,
+        value: CustomizationService.instance().state.optimizeForNiconico ?? false,
         enabled: !this.isStreaming,
       };
     },
@@ -47,7 +47,7 @@ export default defineComponent({
       return {
         name: 'show_optimization_dialog_for_niconico',
         description: $t('settings.showOptimizationDialogForNiconico'),
-        value: CustomizationService.instance().state.showOptimizationDialogForNiconico,
+        value: CustomizationService.instance().state.showOptimizationDialogForNiconico ?? false,
         enabled: !this.isStreaming,
       };
     },
@@ -55,7 +55,7 @@ export default defineComponent({
       return {
         name: 'optimize_with_hardware_encoder',
         description: $t('settings.optimizeWithHardwareEncoder'),
-        value: CustomizationService.instance().state.optimizeWithHardwareEncoder,
+        value: CustomizationService.instance().state.optimizeWithHardwareEncoder ?? false,
         enabled: !this.isStreaming,
       };
     },
@@ -63,28 +63,28 @@ export default defineComponent({
       return {
         name: 'polling_performance_statistics',
         description: $t('settings.pollingPerformanceStatistics'),
-        value: CustomizationService.instance().pollingPerformanceStatistics,
+        value: CustomizationService.instance().pollingPerformanceStatistics ?? false,
       };
     },
     autoCompactModel(): IObsInput<boolean> {
       return {
         name: 'auto_compact',
         description: $t('settings.autoCompact.setting'),
-        value: CustomizationService.instance().state.autoCompactMode,
+        value: CustomizationService.instance().state.autoCompactMode ?? false,
       };
     },
     showAutoCompactDialogModel(): IObsInput<boolean> {
       return {
         name: 'show_auto_compact_confirm_dialog',
         description: $t('settings.autoCompact.showDialog'),
-        value: CustomizationService.instance().state.showAutoCompactDialog,
+        value: CustomizationService.instance().state.showAutoCompactDialog ?? false,
       };
     },
     compactAlwaysOnTopModel(): IObsInput<boolean> {
       return {
         name: 'compact_mode_always_on_top',
         description: $t('settings.compactAlwaysOnTop'),
-        value: CustomizationService.instance().state.compactAlwaysOnTop,
+        value: CustomizationService.instance().state.compactAlwaysOnTop ?? false,
       };
     },
   },
@@ -93,25 +93,25 @@ export default defineComponent({
       electron.clipboard.writeText(text);
     },
     setOptimizeForNiconico(model: IObsInput<boolean>) {
-      CustomizationService.instance().setOptimizeForNiconico(model.value);
+      CustomizationService.instance().setOptimizeForNiconico(model.value ?? false);
     },
     setShowOptimizationDialogForNiconico(model: IObsInput<boolean>) {
-      CustomizationService.instance().setShowOptimizationDialogForNiconico(model.value);
+      CustomizationService.instance().setShowOptimizationDialogForNiconico(model.value ?? false);
     },
     setOptimizeWithHardwareEncoder(model: IObsInput<boolean>) {
-      CustomizationService.instance().setOptimizeWithHardwareEncoder(model.value);
+      CustomizationService.instance().setOptimizeWithHardwareEncoder(model.value ?? false);
     },
     setPollingPerformanceStatistics(model: IObsInput<boolean>) {
-      CustomizationService.instance().setPollingPerformanceStatistics(model.value);
+      CustomizationService.instance().setPollingPerformanceStatistics(model.value ?? false);
     },
     setAutoCompact(model: IObsInput<boolean>) {
-      CustomizationService.instance().setAutoCompatMode(model.value);
+      CustomizationService.instance().setAutoCompatMode(model.value ?? false);
     },
     setShowAutoCompactDialog(model: IObsInput<boolean>) {
-      CustomizationService.instance().setShowAutoCompactDialog(model.value);
+      CustomizationService.instance().setShowAutoCompactDialog(model.value ?? false);
     },
     setCompactAlwaysOnTop(model: IObsInput<boolean>) {
-      CustomizationService.instance().setCompactAlwaysOnTop(model.value);
+      CustomizationService.instance().setCompactAlwaysOnTop(model.value ?? false);
     },
     showCacheDir() {
       remote.shell.openPath(remote.app.getPath('userData'));
@@ -132,7 +132,7 @@ export default defineComponent({
       }
     },
     isNiconicoLoggedIn(): boolean {
-      return UserService.instance().isNiconicoLoggedIn();
+      return UserService.instance().isNiconicoLoggedIn() ?? false;
     },
     goToOnboarding() {
       WindowsService.instance().closeChildWindow();

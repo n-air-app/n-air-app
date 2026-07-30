@@ -4,7 +4,7 @@ import * as net from 'net';
 
 export class NamedPipeClient {
   name = '';
-  client: net.Socket = undefined;
+  client: net.Socket | undefined = undefined;
   lastPromise: Promise<any> = Promise.resolve();
   private buffer = '';
 
@@ -109,7 +109,7 @@ export class NamedPipeClient {
       }, 1000);
 
       this.queue.set(id, { resolve, reject, timeout });
-      this.client.write(JSON.stringify({ id, fn, arg }) + '\n');
+      this.client!.write(JSON.stringify({ id, fn, arg }) + '\n');
     });
   }
 

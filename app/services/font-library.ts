@@ -51,23 +51,23 @@ export class FontLibraryService extends Service {
     return Promise.resolve(this.manifest);
   }
 
-  findFamily(family: string): Promise<IFontFamily> {
+  findFamily(family: string): Promise<IFontFamily | undefined> {
     return this.getManifest().then((manifest) => {
       return manifest.families.find((fam) => fam.name === family);
     });
   }
 
-  findStyle(family: string, style: string): Promise<IFontStyle> {
+  findStyle(family: string, style: string): Promise<IFontStyle | undefined> {
     return this.findFamily(family).then((fam) => {
-      return fam.styles.find((sty) => sty.name === style);
+      return fam?.styles.find((sty) => sty.name === style);
     });
   }
 
   // Finds family and style info about a given font path
   lookupFontInfo(fontPath: string): Promise<{ family: string; style: string }> {
     return this.getManifest().then((manifest) => {
-      let family: string;
-      let style: string;
+      let family!: string;
+      let style!: string;
 
       const file = path.parse(fontPath).base;
 
@@ -90,12 +90,12 @@ export class FontLibraryService extends Service {
   downloadFont(file: string): Promise<string> {
     const fontPath = this.libraryPath(file);
 
-    if (this.fontDownloadPromises[file]) return this.fontDownloadPromises[file];
+    if (this.fontDownloadPromises[file] !== undefined) return this.fontDownloadPromises[file]!;
 
     // Don't re-download the font if we have already downloaded it
     if (fs.existsSync(fontPath)) {
       this.fontDownloadPromises[file] = Promise.resolve(fontPath);
-      return this.fontDownloadPromises[file];
+      return this.fontDownloadPromises[file]!;
     }
 
     this.fontDownloadPromises[file] = new Promise((resolve) => {

@@ -194,44 +194,44 @@ const HOTKEY_ACTIONS: Dictionary<IHotkeyAction[]> = {
       name: 'TOGGLE_SOURCE_VISIBILITY_SHOW',
       description: (sceneItemId) => {
         const sceneItem = getScenesService().getSceneItem(sceneItemId);
-        return $t('hotkeys.showSource', { sourcename: sceneItem.source.name });
+        return $t('hotkeys.showSource', { sourcename: sceneItem!.source.name });
       },
-      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).video,
-      isActive: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).visible,
-      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).setVisibility(true),
+      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.video,
+      isActive: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.visible,
+      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.setVisibility(true),
     },
 
     {
       name: 'TOGGLE_SOURCE_VISIBILITY_HIDE',
       description: (sceneItemId) => {
         const sceneItem = getScenesService().getSceneItem(sceneItemId);
-        return $t('hotkeys.hideSource', { sourcename: sceneItem.source.name });
+        return $t('hotkeys.hideSource', { sourcename: sceneItem!.source.name });
       },
-      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).video,
-      isActive: (sceneItemId) => !getScenesService().getSceneItem(sceneItemId).visible,
-      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).setVisibility(false),
+      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.video,
+      isActive: (sceneItemId) => !getScenesService().getSceneItem(sceneItemId)!.visible,
+      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.setVisibility(false),
     },
 
     {
       name: 'PUSH_TO_SOURCE_SHOW',
       description: (sceneItemId) => {
         const sceneItem = getScenesService().getSceneItem(sceneItemId);
-        return $t('hotkeys.pushToSourceShow', { sourcename: sceneItem.source.name });
+        return $t('hotkeys.pushToSourceShow', { sourcename: sceneItem!.source.name });
       },
-      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).video,
-      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).setVisibility(true),
-      up: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).setVisibility(false),
+      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.video,
+      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.setVisibility(true),
+      up: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.setVisibility(false),
     },
 
     {
       name: 'PUSH_TO_SOURCE_HIDE',
       description: (sceneItemId) => {
         const sceneItem = getScenesService().getSceneItem(sceneItemId);
-        return $t('hotkeys.pushToSourceHide', { sourcename: sceneItem.source.name });
+        return $t('hotkeys.pushToSourceHide', { sourcename: sceneItem!.source.name });
       },
-      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).video,
-      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).setVisibility(false),
-      up: (sceneItemId) => getScenesService().getSceneItem(sceneItemId).setVisibility(true),
+      shouldApply: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.video,
+      down: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.setVisibility(false),
+      up: (sceneItemId) => getScenesService().getSceneItem(sceneItemId)!.setVisibility(true),
     },
   ],
 
@@ -240,29 +240,29 @@ const HOTKEY_ACTIONS: Dictionary<IHotkeyAction[]> = {
       name: 'TOGGLE_MUTE',
       description: () => $t('hotkeys.mute'),
       down: (sourceId) => getSourcesService().setMuted(sourceId, true),
-      isActive: (sourceId) => getSourcesService().getSource(sourceId)?.muted,
-      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio,
+      isActive: (sourceId) => getSourcesService().getSource(sourceId)?.muted ?? false,
+      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio ?? false,
     },
     {
       name: 'TOGGLE_UNMUTE',
       description: () => $t('hotkeys.unmute'),
       down: (sourceId) => getSourcesService().setMuted(sourceId, false),
-      isActive: (sourceId) => !getSourcesService().getSource(sourceId)?.muted,
-      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio,
+      isActive: (sourceId) => !(getSourcesService().getSource(sourceId)?.muted ?? false),
+      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio ?? false,
     },
     {
       name: 'PUSH_TO_MUTE',
       description: () => $t('hotkeys.pushToMute'),
       down: (sourceId) => getSourcesService().setMuted(sourceId, true),
       up: (sourceId) => getSourcesService().setMuted(sourceId, false),
-      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio,
+      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio ?? false,
     },
     {
       name: 'PUSH_TO_TALK',
       description: () => $t('hotkeys.pushToTalk'),
       down: (sourceId) => getSourcesService().setMuted(sourceId, false),
       up: (sourceId) => getSourcesService().setMuted(sourceId, true),
-      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio,
+      shouldApply: (sourceId) => getSourcesService().getSource(sourceId)?.audio ?? false,
     },
   ],
 };
@@ -309,7 +309,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
   /**
    * Memoizes the currently registered hotkeys
    */
-  private registeredHotkeys: Hotkey[];
+  private registeredHotkeys: Hotkey[] | null = null;
 
   init() {
     this.scenesService.sceneAdded.subscribe(() => this.invalidate());
@@ -375,7 +375,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
       const hotkey = hotkeys.find((blankHotkey) => {
         return this.getHotkey(blankHotkey).isSameHotkey(savedHotkey);
       });
-      if (hotkey) hotkey.bindings = [].concat(savedHotkey.bindings);
+      if (hotkey) hotkey.bindings = ([] as IBinding[]).concat(savedHotkey.bindings);
     });
 
     this.registeredHotkeys = hotkeys.map((hotkeyModel) => this.getHotkey(hotkeyModel));
@@ -387,7 +387,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
 
   getHotkeys(): Hotkey[] {
     if (!this.registeredHotkeys) this.updateRegisteredHotkeys();
-    return this.registeredHotkeys.filter((hotkey) => hotkey.shouldApply);
+    return this.registeredHotkeys!.filter((hotkey) => hotkey.shouldApply);
   }
 
   getHotkeysSet(): IHotkeysSet {
@@ -462,8 +462,8 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
 
   getSceneItemsHotkeys(sceneId: string): Hotkey[] {
     const scene = this.scenesService.getScene(sceneId);
-    const sceneItemsIds = scene.nodes.map((item) => item.id);
-    return this.getHotkeys().filter((hotkey) => sceneItemsIds.includes(hotkey.sceneItemId));
+    const sceneItemsIds = scene!.nodes.map((item) => item.id);
+    return this.getHotkeys().filter((hotkey) => hotkey.sceneItemId !== undefined && sceneItemsIds.includes(hotkey.sceneItemId));
   }
 
   getSceneItemHotkeys(sceneItemId: string): Hotkey[] {
@@ -510,7 +510,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
       this.keyListenerService.register({
         ...binding,
         eventType: 'registerKeydown',
-        callback: () => hotkeys.forEach((hotkey) => hotkey.action.downHandler()),
+        callback: () => hotkeys.forEach((hotkey) => hotkey.action.downHandler!()),
       });
     });
 
@@ -520,7 +520,7 @@ export class HotkeysService extends StatefulService<IHotkeysServiceState> {
       this.keyListenerService.register({
         ...binding,
         eventType: 'registerKeyup',
-        callback: () => hotkeys.forEach((hotkey) => hotkey.action.upHandler()),
+        callback: () => hotkeys.forEach((hotkey) => hotkey.action.upHandler!()),
       });
     });
   }
@@ -573,11 +573,11 @@ export class Hotkey implements IHotkey {
       this.type = 'GENERAL';
     }
 
-    const entityId = this.sourceId || this.sceneId || this.sceneItemId;
+    const entityId = this.sourceId || this.sceneId || this.sceneItemId || '';
 
     this.action = this.getAction(entityId);
     this.description = this.action.description(entityId);
-    this.shouldApply = this.action.shouldApply(entityId);
+    this.shouldApply = this.action.shouldApply!(entityId);
   }
 
   isSameHotkey(other: IHotkey) {
@@ -610,7 +610,7 @@ export class Hotkey implements IHotkey {
     // or not to execute each action.
     if (up) {
       action.upHandler = () => {
-        if (!action.isActive(entityId)) {
+        if (!action.isActive!(entityId)) {
           setTimeout(() => up(entityId), 0);
         }
       };
@@ -618,12 +618,12 @@ export class Hotkey implements IHotkey {
 
     if (down) {
       action.downHandler = () => {
-        if (!action.isActive(entityId)) {
+        if (!action.isActive!(entityId)) {
           setTimeout(() => down(entityId), 0);
         }
       };
     }
 
-    return action;
+    return action as IHotkeyAction;
   }
 }

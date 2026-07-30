@@ -84,10 +84,10 @@ export default defineComponent({
       }
     });
 
-    if (PeriodicUpdateSources.includes(this.source.type)) {
+    if (this.source && PeriodicUpdateSources.includes(this.source.type)) {
       this.refreshTimer = window.setInterval(() => {
         const source = SourcesService.instance().getSource(this.sourceId);
-        source.setPropertiesFormData([this.properties[0]]);
+        source!.setPropertiesFormData([this.properties[0]]);
         this.refresh();
       }, PeriodicUpdateInterval);
     }
@@ -98,20 +98,20 @@ export default defineComponent({
     if (this.refreshTimer) {
       window.clearInterval(this.refreshTimer);
     }
-    this.sourceRemovedSub.unsubscribe();
-    this.sourceUpdatedSub.unsubscribe();
+    this.sourceRemovedSub?.unsubscribe();
+    this.sourceUpdatedSub?.unsubscribe();
     WindowsService.instance().requireWaitWindowCleanup(this.windowId, false);
   },
 
   methods: {
     onInputHandler(properties: TObsFormData, changedIndex: number): void {
       const source = SourcesService.instance().getSource(this.sourceId);
-      source.setPropertiesFormData([properties[changedIndex]]);
+      source!.setPropertiesFormData([properties[changedIndex]]);
       this.tainted = true;
     },
 
     refresh(): void {
-      this.properties = this.source.getPropertiesFormData();
+      this.properties = this.source?.getPropertiesFormData() ?? [];
     },
 
     closeWindow(): void {
@@ -125,7 +125,7 @@ export default defineComponent({
     cancel(): void {
       if (this.tainted) {
         const source = SourcesService.instance().getSource(this.sourceId);
-        source.setPropertiesFormData(this.initialProperties);
+        source!.setPropertiesFormData(this.initialProperties);
       }
       this.closeWindow();
     },

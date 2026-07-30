@@ -36,10 +36,9 @@ export default defineComponent({
     const sourceId = windowOptions.sourceId;
     const filters = SourceFiltersService.instance().getFilters(sourceId);
     const selectedFilterName = windowOptions.selectedFilterName || (filters[0] && filters[0].name) || null;
-    const properties = SourceFiltersService.instance().getPropertiesFormData(
-      sourceId,
-      selectedFilterName,
-    );
+    const properties = selectedFilterName
+      ? SourceFiltersService.instance().getPropertiesFormData(sourceId, selectedFilterName)
+      : [];
     return {
       windowOptions,
       sourceId,
@@ -56,7 +55,7 @@ export default defineComponent({
     },
 
     sourceDisplayName(): string {
-      return SourcesService.instance().getSource(this.sourceId).name;
+      return SourcesService.instance().getSource(this.sourceId)?.name ?? '';
     },
 
     nodes() {
@@ -76,10 +75,9 @@ export default defineComponent({
   watch: {
     selectedFilterName: {
       handler(): void {
-        this.properties = SourceFiltersService.instance().getPropertiesFormData(
-          this.sourceId,
-          this.selectedFilterName,
-        );
+        this.properties = this.selectedFilterName
+          ? SourceFiltersService.instance().getPropertiesFormData(this.sourceId, this.selectedFilterName)
+          : [];
       },
     },
   },
@@ -104,6 +102,7 @@ export default defineComponent({
     },
 
     save(): void {
+      if (!this.selectedFilterName) return;
       SourceFiltersService.instance().setPropertiesFormData(
         this.sourceId,
         this.selectedFilterName,
@@ -124,6 +123,7 @@ export default defineComponent({
     },
 
     removeFilter(): void {
+      if (!this.selectedFilterName) return;
       SourceFiltersService.instance().remove(this.sourceId, this.selectedFilterName);
       this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
       this.selectedFilterName = (this.filters[0] && this.filters[0].name) || null;
@@ -131,6 +131,7 @@ export default defineComponent({
 
     toggleVisibility(filterName: string): void {
       const sourceFilter = this.filters.find((filter: ISourceFilter) => filter.name === filterName);
+      if (!sourceFilter) return;
       SourceFiltersService.instance().setVisibility(
         this.sourceId,
         sourceFilter.name,
@@ -140,7 +141,7 @@ export default defineComponent({
     },
 
     makeActive(filterDescr: any[]): void {
-      this.selectedFilterName = filterDescr[0].title;
+      this.selectedFilterName = filterDescr[0]?.title ?? null;
     },
 
     handleSort(
@@ -157,6 +158,7 @@ export default defineComponent({
       } else if (sourceInd > targetInd) {
         targetInd = position.placement === 'before' ? targetInd : targetInd + 1;
       }
+      if (!this.selectedFilterName) return;
       SourceFiltersService.instance().setOrder(
         this.sourceId,
         this.selectedFilterName,

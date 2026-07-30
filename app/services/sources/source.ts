@@ -133,7 +133,7 @@ export class Source implements ISourceApi {
     this.sourcesService.sourceUpdated.next(this.state);
   }
 
-  duplicate(newSourceId?: string): Source {
+  duplicate(newSourceId?: string): Source | null {
     if (this.doNotDuplicate) return null;
     return this.sourcesService.createSource(this.name, this.type, this.getSettings(), {
       sourceId: newSourceId,

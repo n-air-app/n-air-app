@@ -92,9 +92,9 @@ export class RootNode extends Node<ISchema, {}> {
 
     // Load transitions
     try {
-      await this.data.transitions.load();
+      await this.data!.transitions!.load();
       // Collect errors from transitions
-      const transitionErrors = this.data.transitions.getLoadErrors();
+      const transitionErrors = this.data!.transitions!.getLoadErrors();
       transitionErrors.forEach((err) => this.addLoadError(err));
     } catch (e) {
       console.error('Failed to load transitions:', e);

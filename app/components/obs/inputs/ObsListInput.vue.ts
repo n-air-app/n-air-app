@@ -33,7 +33,7 @@ const ObsListInput = defineComponent({
       this.$emit('input', eventData);
     },
     onInputHandler(option: IObsListOption<string>) {
-      this.emitInput({ ...this.value, value: option ? option.value : null });
+      this.emitInput({ ...this.value, value: option ? option.value : undefined });
     },
   },
 });

@@ -72,7 +72,7 @@ export default defineComponent({
         return this.tocManager.generateId();
       },
       registerTocSection: (section: TocSectionData): string => {
-        const categoryName = this.categoryName;
+        const categoryName = this.categoryName!;
         this.tocManager.register(categoryName, section);
         return categoryName;
       },
@@ -104,6 +104,7 @@ export default defineComponent({
     showLoginRequiredNotice(): boolean {
       return (
         !this.isLoggedIn
+        && !!this.categoryName
         && CATEGORIES_REQUIRING_LOGIN.includes(this.categoryName)
       );
     },
@@ -146,7 +147,7 @@ export default defineComponent({
     const initialCategory = this.getInitialCategoryName();
     this.tocManager.clearAll();
     this.categoryName = initialCategory;
-    this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+    this.settingsData = SettingsService.instance().getSettingsFormData(initialCategory);
     const anchor = this.getInitialAnchor();
     if (anchor) {
       this.$nextTick(() => {
@@ -172,13 +173,14 @@ export default defineComponent({
     },
     getInitialCategoryName(): SettingsCategory {
       const queryParams = WindowsService.instance().state.child.queryParams;
-      return queryParams?.categoryName || 'General';
+      return (queryParams?.categoryName as SettingsCategory | undefined) || 'General';
     },
-    getInitialAnchor(): string {
+    getInitialAnchor(): string | undefined {
       const anchor = WindowsService.instance().state.child.anchor;
       return anchor || undefined;
     },
     async save(settingsData: ISettingsSubCategory[]) {
+      if (!this.categoryName) return;
       // Vue 3 の reactive proxy を剥がしてから IPC 経由の OBS API に渡す
       function deepToRaw(val: any): any {
         const raw = toRaw(val);
@@ -226,7 +228,7 @@ export default defineComponent({
       this.settingsData = settingsService.getSettingsFormData(category);
 
       if (rescale) {
-        const { old: oldSize, new: newSize } = baseResolutionChange;
+        const { old: oldSize, new: newSize } = baseResolutionChange!;
         try {
           ScenesService.instance().rescaleAllScenes(newSize.x / oldSize.x, newSize.y / oldSize.y);
         } catch (e: unknown) {

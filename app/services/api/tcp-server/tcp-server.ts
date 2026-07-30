@@ -140,6 +140,7 @@ export class TcpServerService
     const addresses: IIPAddressDescription[] = [];
     Object.keys(ifaces).forEach((ifaceName) => {
       const iface = ifaces[ifaceName];
+      if (!iface) return;
       iface.forEach((interfaceInfo) => {
         addresses.push({
           interface: ifaceName,
@@ -330,10 +331,13 @@ export class TcpServerService
   }
 
   private onServiceEventHandler(event: IJsonRpcResponse<IJsonRpcEvent>) {
+    const result = event.result;
+    if (!result) return;
+
     // send event to subscribed clients
     Object.keys(this.clients).forEach((clientId) => {
       const client = this.clients[clientId];
-      const eventName = event.result.resourceId.split('.')[1];
+      const eventName = result.resourceId.split('.')[1];
 
       // these events will be sent to the client even if isRequestsHandlingStopped = true
       // this allows to send this event even if the app is in the loading state
@@ -347,7 +351,7 @@ export class TcpServerService
       const force = (whitelistedEvents as string[]).includes(eventName);
 
       const needToSendEvent =
-        client.listenAllSubscriptions || client.subscriptions.includes(event.result.resourceId);
+        client.listenAllSubscriptions || client.subscriptions.includes(result.resourceId);
       if (needToSendEvent) this.sendResponse(client, event, force);
     });
   }
@@ -363,7 +367,7 @@ export class TcpServerService
   private hadleTcpServerDirectives(client: IClient, request: IJsonRpcRequest) {
     // handle auth
     if (request.method === 'auth' && request.params.resource === 'TcpServerService') {
-      if (this.state.token && request.params.args[0] === this.state.token) {
+      if (this.state.token && request.params.args?.[0] === this.state.token) {
         this.authorizeClient(client);
         this.sendResponse(client, {
           jsonrpc: '2.0',

@@ -30,7 +30,7 @@ const ObsBitMaskInput = defineComponent({
       this.$emit('input', eventData);
     },
     updateFlags() {
-      this.flags = Utils.numberToBinnaryArray(this.value.value, this.value.size).reverse();
+      this.flags = Utils.numberToBinnaryArray(this.value.value ?? 0, this.value.size).reverse();
     },
     onCheckboxChange(event: Event) {
       const el = event.target as HTMLInputElement;

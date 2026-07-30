@@ -137,11 +137,12 @@ function parsePathFilters(filterStr: string): IElectronOpenDialogFilter[] {
 
   return filters.map((filter) => {
     const match = filter.match(/^(.*)\((.*)\)$/);
-    const desc = match[1].trim();
-    let types = match[2].split(' ');
+    const desc = match ? match[1].trim() : filter;
+    let types = match ? match[2].split(' ') : ['*'];
 
     types = types.map((type) => {
-      return type.match(/^\*\.(.+)$/)[1];
+      const typeMatch = type.match(/^\*\.(.+)$/);
+      return typeMatch ? typeMatch[1] : type;
     });
 
     // This is the format that electron file dialogs use
@@ -174,7 +175,7 @@ export function obsValuesToInputValues(
 
   for (const obsProp of obsProps) {
     let prop = { ...obsProp } as IObsInput<TObsValue>;
-    let valueObject: Dictionary<any>;
+    let valueObject: Dictionary<any> | undefined;
     let obsValue = obsProp.currentValue;
 
     if (options.valueGetter) {
@@ -272,13 +273,13 @@ export function obsValuesToInputValues(
         } as IObsPathInputValue;
       }
     } else if (obsProp.type === 'OBS_PROPERTY_FONT') {
-      prop.value = valueObject;
+      prop.value = valueObject!;
     } else if (obsProp.type === 'OBS_PROPERTY_EDITABLE_LIST') {
       prop = {
         ...prop,
-        value: valueObject,
-        filters: parsePathFilters(valueObject.filter),
-        defaultPath: valueObject.default_path,
+        value: valueObject!,
+        filters: parsePathFilters(valueObject!.filter),
+        defaultPath: valueObject!.default_path,
       } as IObsEditableListInputValue;
     }
 
@@ -317,7 +318,7 @@ export function inputValuesToObsValues(
     if (
       options.valueToObject
       && !['OBS_PROPERTY_FONT', 'OBS_PROPERTY_EDITABLE_LIST', 'OBS_PROPERTY_BUTTON'].includes(
-        prop.type,
+        prop.type!,
       )
     ) {
       obsProp.value = { value: obsProp.value };
@@ -335,12 +336,12 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
   const formData: TObsFormData = [];
   const obsProps = obsSource.properties;
 
-  if (!obsProps) return null;
-  if (!obsProps.count()) return null;
+  if (!obsProps) return [];
+  if (!obsProps.count()) return [];
 
   let obsProp = obsProps.first();
   do {
-    let obsType: TObsType;
+    let obsType: TObsType = 'OBS_PROPERTY_TEXT';
 
     switch (obsProp.type) {
       case obs.EPropertyType.Boolean:
@@ -441,7 +442,8 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
     }
 
     if (isFontProperty(obsProp)) {
-      (formItem as IObsInput<IObsFont>).value.path = obsSource.settings['custom_font'];
+      const fontValue = (formItem as IObsInput<IObsFont>).value;
+      if (fontValue) fontValue.path = obsSource.settings['custom_font'];
     }
 
     formData.push(formItem);
@@ -468,6 +470,7 @@ export function setPropertiesFormData(obsSource: obs.ISource, form: TObsFormData
   if (buttons.length !== 0) properties = obsSource.properties;
 
   for (const button of buttons) {
+    if (!properties) continue;
     const obsButtonProp = properties.get(button.name) as obs.IButtonProperty;
     obsButtonProp.buttonClicked(obsSource);
   }

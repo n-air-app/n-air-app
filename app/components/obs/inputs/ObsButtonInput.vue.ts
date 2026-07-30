@@ -22,7 +22,7 @@ const ObsButtonInput = defineComponent({
     },
     handleClick() {
       if (this.value.type === 'NAIR_PROPERTY_LINK_BUTTON') {
-        remote.shell.openExternal(this.value.url);
+        if (this.value.url) remote.shell.openExternal(this.value.url);
         return;
       }
       if (this.value.onClick) {
