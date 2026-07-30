@@ -90,15 +90,19 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     this.sourcesService.sourceUpdated.subscribe((source) => {
       const audioSource = this.getSource(source.sourceId);
 
-      const obsSource = this.sourcesService.getSource(source.sourceId);
-      const formData = obsSource
-        .getPropertiesFormData()
-        .find((data) => data.name === 'reroute_audio');
-      if (formData) {
-        this.UPDATE_AUDIO_SOURCE(source.sourceId, {
-          isControlledViaObs: !!formData.value,
-        });
-        this.audioSourcesChanged.next();
+      // reroute_audio は browser_source 専用プロパティ。従来は getPropertiesFormData() の
+      // 全プロパティ走査(1操作あたり数百回のnative呼び出し)で探していたが、settings の直接読みで
+      // 十分なため置き換える(#1380)。nvoice-character は reroute_audio を blacklist に
+      // 入れて隠しているため、従来通りスキップする(generateAudioSourceData と同じ判定)。
+      if (!isNoAudioPropertiesManagerType(source.propertiesManagerType)) {
+        const obsSource = this.sourcesService.getSource(source.sourceId);
+        const rerouteAudio = obsSource.getObsInput().settings?.reroute_audio;
+        if (rerouteAudio !== undefined) {
+          this.UPDATE_AUDIO_SOURCE(source.sourceId, {
+            isControlledViaObs: !!rerouteAudio,
+          });
+          this.audioSourcesChanged.next();
+        }
       }
 
       const useAudio = source.audio && !isNoAudioPropertiesManagerType(source.propertiesManagerType);
