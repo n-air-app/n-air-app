@@ -113,7 +113,7 @@ export default defineComponent({
     },
   },
   watch: {
-    streamingStatus() {
+    isStreaming() {
       if (!this.categoryName) return;
       this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
     },
