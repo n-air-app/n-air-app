@@ -13,6 +13,7 @@ export {
   EFontStyle,
   EFPSType,
   EInteractionFlags,
+  EIPCError,
   EMonitoringType,
   EMouseButtonType,
   ENumberType,

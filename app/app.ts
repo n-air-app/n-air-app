@@ -143,22 +143,17 @@ document.addEventListener('auxclick', (event) => event.preventDefault());
 
 const locale = remote.app.getLocale();
 
-// obs-studio-node の EIPCError (node_modules/obs-studio-node/module.d.ts) をローカルに複製したもの。
-// const enum のため実行時に値が存在せず、かつ obs-api/obs-api.d.ts の re-export にも無いので、
-// 直接 import せずここに数値を持つ。NORMAL_EXIT が成功値 (0)。
-const EIPC_NORMAL_EXIT = 0;
-const EIPC_STILL_RUNNING = 259;
 const IPC_ERROR_NAMES: Record<number, string> = {
-  0: 'NORMAL_EXIT',
-  252: 'VERSION_MISMATCH',
-  253: 'OTHER_ERROR',
-  254: 'MISSING_DEPENDENCY',
-  [EIPC_STILL_RUNNING]: 'STILL_RUNNING',
+  [obs.EIPCError.NORMAL_EXIT]: 'NORMAL_EXIT',
+  [obs.EIPCError.VERSION_MISMATCH]: 'VERSION_MISMATCH',
+  [obs.EIPCError.OTHER_ERROR]: 'OTHER_ERROR',
+  [obs.EIPCError.MISSING_DEPENDENCY]: 'MISSING_DEPENDENCY',
+  [obs.EIPCError.STILL_RUNNING]: 'STILL_RUNNING',
 };
 
 export const ipcHostErrorToMessage = (hostResult: number): string => {
   // 前回起動の obs64.exe がまだ終了していないケース。実際に起こりうる最有力パターンなので専用文言にする
-  if (hostResult === EIPC_STILL_RUNNING) {
+  if (hostResult === obs.EIPCError.STILL_RUNNING) {
     if (locale === 'ja') {
       return '前回の終了処理が完了していません。しばらく待ってから、もう一度起動してください。';
     }
@@ -219,7 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
         hostThrown = e;
       }
 
-      if (hostThrown || (typeof hostResult === 'number' && hostResult !== EIPC_NORMAL_EXIT)) {
+      if (
+        hostThrown ||
+        (typeof hostResult === 'number' && hostResult !== obs.EIPCError.NORMAL_EXIT)
+      ) {
         // 例外が投げられた場合は、たとえ hostResult が number であっても
         // その値は host() 呼び出しの結果を表していない可能性があるため 'thrown' を優先する
         const hostResultName = hostThrown
