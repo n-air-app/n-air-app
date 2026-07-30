@@ -228,6 +228,11 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     if (!source) throw new Error(`Source ${id} not found`);
 
+    // REMOVE_SOURCE で state からキーが delete された後に source.state を評価すると、
+    // Vuex の reactive proxy 越しの delete で invalidate される可能性があるため、
+    // 削除前にスナップショットを取っておく（#1380）
+    const removedState = { ...source.state };
+
     /* When we release sources, we need to make
      * sure we reset the channel it's set to,
      * otherwise OBS thinks it's still attached
@@ -264,7 +269,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     // OBS 側の解放に失敗しても state からは必ず外す。
     // 残すと同じソースを二度と削除できなくなる（#1380）
     this.REMOVE_SOURCE(id);
-    this.sourceRemoved.next(source.state);
+    this.sourceRemoved.next(removedState);
   }
 
   /**

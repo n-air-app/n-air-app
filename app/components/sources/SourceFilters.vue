@@ -1,6 +1,6 @@
 <template>
   <modal-layout :show-cancel="false" :done-handler="done" :fixedSectionHeight="250" bare-content>
-    <template #fixed><display :sourceId="sourceId" /></template>
+    <template #fixed><display v-if="source" :sourceId="sourceId" /></template>
 
     <template #content>
       <div class="container" data-test="SourceFilters">
