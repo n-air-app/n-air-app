@@ -3,6 +3,7 @@ import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import NavItem from 'components/shared/NavItem.vue';
 import NavMenu from 'components/shared/NavMenu.vue';
+import { Subscription } from 'rxjs';
 import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { SourcesService } from 'services/sources';
 import { WindowsService } from 'services/windows';
@@ -44,10 +45,15 @@ export default defineComponent({
       filters,
       selectedFilterName,
       properties,
+      sourceRemovedSub: null as Subscription | null,
     };
   },
 
   computed: {
+    source() {
+      return SourcesService.instance().getSource(this.sourceId);
+    },
+
     sourceDisplayName(): string {
       return SourcesService.instance().getSource(this.sourceId)?.name ?? '';
     },
@@ -74,6 +80,19 @@ export default defineComponent({
           : [];
       },
     },
+  },
+
+  mounted(): void {
+    // ソースが削除されたら display の500msポーリングを止めるため window を閉じる（#1380）
+    this.sourceRemovedSub = SourcesService.instance().sourceRemoved.subscribe((source) => {
+      if (source.sourceId === this.sourceId) {
+        WindowsService.instance().closeChildWindow();
+      }
+    });
+  },
+
+  unmounted(): void {
+    this.sourceRemovedSub?.unsubscribe();
   },
 
   methods: {

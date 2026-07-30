@@ -7,7 +7,7 @@ import { AppService } from 'services/app';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
 import { OnboardingService } from 'services/onboarding';
-import { StreamingService } from 'services/streaming';
+import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { UuidService } from 'services/uuid';
 import { WindowsService } from 'services/windows';
@@ -29,6 +29,9 @@ export default defineComponent({
     };
   },
   computed: {
+    isStreaming(): boolean {
+      return StreamingService.instance().state.streamingStatus !== EStreamingState.Offline;
+    },
     cacheId(): string {
       return UuidService.instance().uuid;
     },
@@ -37,7 +40,7 @@ export default defineComponent({
         name: 'optimize_for_niconico',
         description: $t('settings.optimizeForNiconico'),
         value: CustomizationService.instance().state.optimizeForNiconico ?? false,
-        enabled: StreamingService.instance().isStreaming === false,
+        enabled: !this.isStreaming,
       };
     },
     showOptimizationDialogForNiconicoModel(): IObsInput<boolean> {
@@ -45,7 +48,7 @@ export default defineComponent({
         name: 'show_optimization_dialog_for_niconico',
         description: $t('settings.showOptimizationDialogForNiconico'),
         value: CustomizationService.instance().state.showOptimizationDialogForNiconico ?? false,
-        enabled: StreamingService.instance().isStreaming === false,
+        enabled: !this.isStreaming,
       };
     },
     optimizeWithHardwareEncoderModel(): IObsInput<boolean> {
@@ -53,7 +56,7 @@ export default defineComponent({
         name: 'optimize_with_hardware_encoder',
         description: $t('settings.optimizeWithHardwareEncoder'),
         value: CustomizationService.instance().state.optimizeWithHardwareEncoder ?? false,
-        enabled: StreamingService.instance().isStreaming === false,
+        enabled: !this.isStreaming,
       };
     },
     pollingPerformanceStatisticsModel(): IObsInput<boolean> {
@@ -137,4 +140,3 @@ export default defineComponent({
     },
   },
 });
-

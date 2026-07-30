@@ -335,7 +335,6 @@ export function getPropertiesFormData(obsSource: obs.ISource): TObsFormData {
   const sourceType = obsSource.id;
   const formData: TObsFormData = [];
   const obsProps = obsSource.properties;
-  const obsSettings = obsSource.settings;
 
   if (!obsProps) return [];
   if (!obsProps.count()) return [];

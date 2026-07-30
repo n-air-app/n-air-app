@@ -149,19 +149,20 @@ describe('Display ライフサイクルガード', () => {
 });
 
 describe('VideoService OBSラッパー エラー格下げ', () => {
-  function setupVideoService() {
+  function setupVideoService(obsIpcHealthService = { notifyIpcLost: jest.fn() }) {
     const { __setup } = require('services/core/injector');
     __setup({
       SettingsService: { loadSettingsIntoStore: jest.fn() },
       VideoSettingsService: {},
+      ObsIpcHealthService: obsIpcHealthService,
     });
     const { VideoService } = require('./video');
-    return VideoService.instance();
+    return { instance: VideoService.instance(), obsIpcHealthService };
   }
 
   test('moveOBSDisplayが"Invalid key"エラーを投げてもwarnとして格下げされ伝播しない', () => {
     const obsApi = require('../../obs-api');
-    const instance = setupVideoService();
+    const { instance } = setupVideoService();
 
     obsApi.NodeObs.OBS_content_moveDisplay.mockImplementation(() => {
       throw new Error('Invalid key provided to moveDisplay: some-uuid');
@@ -178,7 +179,7 @@ describe('VideoService OBSラッパー エラー格下げ', () => {
 
   test('destroyOBSDisplayが"Failed to find key"エラーを投げてもwarnとして格下げされ伝播しない', () => {
     const obsApi = require('../../obs-api');
-    const instance = setupVideoService();
+    const { instance } = setupVideoService();
 
     obsApi.NodeObs.OBS_content_destroyDisplay.mockImplementation(() => {
       throw new Error('Failed to find key for destruction: some-uuid');
@@ -193,14 +194,92 @@ describe('VideoService OBSラッパー エラー格下げ', () => {
     warnSpy.mockRestore();
   });
 
+  test('setOBSDisplayShouldDrawUIが"Invalid key"エラーを投げてもwarnとして格下げされ伝播しない（一般化した正規表現の確認）', () => {
+    const obsApi = require('../../obs-api');
+    const { instance } = setupVideoService();
+
+    obsApi.NodeObs.OBS_content_setShouldDrawUI.mockImplementation(() => {
+      throw new Error('Invalid key provided to setShouldDrawUI: some-uuid');
+    });
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(() => instance.setOBSDisplayShouldDrawUI('some-uuid', true)).not.toThrow();
+    warnSpy.mockRestore();
+  });
+
   test('既知でないエラーはmoveOBSDisplayから再スローされる', () => {
     const obsApi = require('../../obs-api');
-    const instance = setupVideoService();
+    const { instance } = setupVideoService();
 
     obsApi.NodeObs.OBS_content_moveDisplay.mockImplementation(() => {
       throw new Error('OOM: out of memory');
     });
 
     expect(() => instance.moveOBSDisplay('some-uuid', 0, 0)).toThrow('OOM: out of memory');
+  });
+});
+
+describe('VideoService OBSラッパー IPC切断検知（#1380）', () => {
+  function setupVideoService(obsIpcHealthService = { notifyIpcLost: jest.fn() }) {
+    const { __setup } = require('services/core/injector');
+    __setup({
+      SettingsService: { loadSettingsIntoStore: jest.fn() },
+      VideoSettingsService: {},
+      ObsIpcHealthService: obsIpcHealthService,
+    });
+    const { VideoService } = require('./video');
+    return { instance: VideoService.instance(), obsIpcHealthService };
+  }
+
+  test('moveOBSDisplayがIPC切断エラーを投げるとnotifyIpcLostが呼ばれ再スローされない', () => {
+    const obsApi = require('../../obs-api');
+    const { instance, obsIpcHealthService } = setupVideoService();
+
+    obsApi.NodeObs.OBS_content_moveDisplay.mockImplementation(() => {
+      throw new Error('Failed to make IPC call, verify IPC status.');
+    });
+
+    expect(() => instance.moveOBSDisplay('some-uuid', 0, 0)).not.toThrow();
+    expect(obsIpcHealthService.notifyIpcLost).toHaveBeenCalledWith('VideoService.moveOBSDisplay');
+  });
+
+  test('destroyOBSDisplayが"Lost IPC Connection"を投げるとnotifyIpcLostが呼ばれる', () => {
+    const obsApi = require('../../obs-api');
+    const { instance, obsIpcHealthService } = setupVideoService();
+
+    obsApi.NodeObs.OBS_content_destroyDisplay.mockImplementation(() => {
+      throw new Error('Lost IPC Connection');
+    });
+
+    expect(() => instance.destroyOBSDisplay('some-uuid')).not.toThrow();
+    expect(obsIpcHealthService.notifyIpcLost).toHaveBeenCalledWith('VideoService.destroyOBSDisplay');
+  });
+
+  test('getOBSDisplayPreviewOffsetがIPC切断エラーを投げるとfallback値が返る', () => {
+    const obsApi = require('../../obs-api');
+    const { instance, obsIpcHealthService } = setupVideoService();
+
+    obsApi.NodeObs.OBS_content_getDisplayPreviewOffset.mockImplementation(() => {
+      throw new Error('Failed to make IPC call, verify IPC status.');
+    });
+
+    expect(instance.getOBSDisplayPreviewOffset('some-uuid')).toEqual({ x: 0, y: 0 });
+    expect(obsIpcHealthService.notifyIpcLost).toHaveBeenCalledWith(
+      'VideoService.getOBSDisplayPreviewOffset',
+    );
+  });
+
+  test('setOBSDisplayDrawGuideLinesがIPC切断エラーを投げるとnotifyIpcLostが呼ばれる', () => {
+    const obsApi = require('../../obs-api');
+    const { instance, obsIpcHealthService } = setupVideoService();
+
+    obsApi.NodeObs.OBS_content_setDrawGuideLines.mockImplementation(() => {
+      throw new Error('Failed to make IPC call, verify IPC status.');
+    });
+
+    expect(() => instance.setOBSDisplayDrawGuideLines('some-uuid', true)).not.toThrow();
+    expect(obsIpcHealthService.notifyIpcLost).toHaveBeenCalledWith(
+      'VideoService.setOBSDisplayDrawGuideLines',
+    );
   });
 });

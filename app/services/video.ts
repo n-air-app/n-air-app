@@ -1,7 +1,10 @@
 import * as remote from '@electron/remote';
+import * as Sentry from '@sentry/vue';
 import { Subscription } from 'rxjs';
 import { InitAfter } from 'services/core';
+import { ObsIpcHealthService } from 'services/obs-ipc-health';
 import { SelectionService } from 'services/selection';
+import { isObsBackendIpcLost } from 'util/obs-ipc-error';
 
 import * as obs from '../../obs-api';
 import { ScalableRectangle } from '../util/ScalableRectangle';
@@ -30,7 +33,6 @@ export class Display {
 
   outputRegionCallbacks: Function[];
   outputRegion: IRectangle;
-  isDestroyed = false;
 
   trackingInitialTimeout: ReturnType<typeof setTimeout> | null;
   trackingInterval: number | null;
@@ -216,6 +218,7 @@ export class Display {
 export class VideoService extends Service {
   @Inject() settingsService: SettingsService;
   @Inject() videoSettingsService: VideoSettingsService;
+  @Inject() private obsIpcHealthService: ObsIpcHealthService;
 
   init() {
     this.settingsService.loadSettingsIntoStore();
@@ -302,71 +305,82 @@ export class VideoService extends Service {
   }
 
   moveOBSDisplay(name: string, x: number, y: number) {
-    try {
-      obs.NodeObs.OBS_content_moveDisplay(name, x, y);
-    } catch (e) {
-      if (isKnownDisplayRaceError(e)) {
-        console.warn('[VideoService] moveOBSDisplay:', e.message);
-        return;
-      }
-      throw e;
-    }
+    this.tryDisplayOp('moveOBSDisplay', () => obs.NodeObs.OBS_content_moveDisplay(name, x, y), undefined);
   }
 
   resizeOBSDisplay(name: string, width: number, height: number) {
-    try {
-      obs.NodeObs.OBS_content_resizeDisplay(name, width, height);
-    } catch (e) {
-      if (isKnownDisplayRaceError(e)) {
-        console.warn('[VideoService] resizeOBSDisplay:', e.message);
-        return;
-      }
-      throw e;
-    }
+    this.tryDisplayOp(
+      'resizeOBSDisplay',
+      () => obs.NodeObs.OBS_content_resizeDisplay(name, width, height),
+      undefined,
+    );
   }
 
   destroyOBSDisplay(name: string) {
-    try {
-      obs.NodeObs.OBS_content_destroyDisplay(name);
-    } catch (e) {
-      if (isKnownDisplayRaceError(e)) {
-        console.warn('[VideoService] destroyOBSDisplay:', e.message);
-        return;
-      }
-      throw e;
-    }
+    this.tryDisplayOp('destroyOBSDisplay', () => obs.NodeObs.OBS_content_destroyDisplay(name), undefined);
   }
 
   getOBSDisplayPreviewOffset(name: string): IVec2 {
-    try {
-      return obs.NodeObs.OBS_content_getDisplayPreviewOffset(name);
-    } catch (e) {
-      if (isKnownDisplayRaceError(e)) {
-        console.warn('[VideoService] getOBSDisplayPreviewOffset:', e.message);
-        return { x: 0, y: 0 };
-      }
-      throw e;
-    }
+    return this.tryDisplayOp(
+      'getOBSDisplayPreviewOffset',
+      () => obs.NodeObs.OBS_content_getDisplayPreviewOffset(name),
+      { x: 0, y: 0 },
+    );
   }
 
   getOBSDisplayPreviewSize(name: string): { width: number; height: number } {
-    try {
-      return obs.NodeObs.OBS_content_getDisplayPreviewSize(name);
-    } catch (e) {
-      if (isKnownDisplayRaceError(e)) {
-        console.warn('[VideoService] getOBSDisplayPreviewSize:', e.message);
-        return { width: 0, height: 0 };
-      }
-      throw e;
-    }
+    return this.tryDisplayOp(
+      'getOBSDisplayPreviewSize',
+      () => obs.NodeObs.OBS_content_getDisplayPreviewSize(name),
+      { width: 0, height: 0 },
+    );
   }
 
   setOBSDisplayShouldDrawUI(name: string, drawUI: boolean) {
-    obs.NodeObs.OBS_content_setShouldDrawUI(name, drawUI);
+    this.tryDisplayOp(
+      'setOBSDisplayShouldDrawUI',
+      () => obs.NodeObs.OBS_content_setShouldDrawUI(name, drawUI),
+      undefined,
+    );
   }
 
   setOBSDisplayDrawGuideLines(name: string, drawGuideLines: boolean) {
-    obs.NodeObs.OBS_content_setDrawGuideLines(name, drawGuideLines);
+    this.tryDisplayOp(
+      'setOBSDisplayDrawGuideLines',
+      () => obs.NodeObs.OBS_content_setDrawGuideLines(name, drawGuideLines),
+      undefined,
+    );
+  }
+
+  /**
+   * display 系のネイティブ呼び出しを共通のエラーハンドリングで包む。
+   * - OBS バックエンドIPC切断（n-air-app#1380）: ObsIpcHealthService に通知して fallback を返す。
+   *   display のトラッキングは500ms間隔（PerformanceServiceの2秒より速い）なので、早期検知の入口になる。
+   * - 既知のdisplayレース（ウィンドウ破棄と操作のタイミング競合）: 従来通りwarnに格下げしてfallbackを返す。
+   * - それ以外は再スローする。
+   */
+  private tryDisplayOp<T>(method: string, fn: () => T, fallback: T): T {
+    try {
+      return fn();
+    } catch (e) {
+      if (isObsBackendIpcLost(e)) {
+        // 復旧不能な切断。ObsIpcHealthService 側で1度だけ Sentry 報告＋ダイアログを出すので、
+        // ここでは個別の SentryReport / breadcrumb を積まない
+        this.obsIpcHealthService.notifyIpcLost(`VideoService.${method}`);
+        return fallback;
+      }
+      if (isKnownDisplayRaceError(e)) {
+        console.warn(`[VideoService] ${method}:`, e.message);
+        // 正規表現で汎用的に拾っているため、本物のバグが握り潰されていないか観測可能にする
+        Sentry.addBreadcrumb({
+          category: 'video.displayRace',
+          message: `${method}: ${e.message}`,
+          level: 'info',
+        });
+        return fallback;
+      }
+      throw e;
+    }
   }
 }
 
@@ -376,8 +390,5 @@ export class VideoService extends Service {
  */
 function isKnownDisplayRaceError(e: unknown): e is Error {
   if (!(e instanceof Error)) return false;
-  return (
-    e.message.startsWith('Invalid key provided to moveDisplay:') ||
-    e.message.startsWith('Failed to find key for destruction:')
-  );
+  return /^(Invalid key provided to \w+:|Failed to find key for destruction:)/.test(e.message);
 }
