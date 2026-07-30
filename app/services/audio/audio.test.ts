@@ -133,6 +133,24 @@ describe('AudioService: sourceUpdated での reroute_audio 判定', () => {
     expect(changedSpy).not.toHaveBeenCalled();
   });
 
+  test('reroute_audio が null でもスキップする（generateAudioSourceData の == null 判定と揃える）', () => {
+    const { sourcesService, updateSpy, changedSpy } = setupInstance();
+
+    sourcesService.getSource.mockReturnValue({
+      getObsInput: () => makeObsInput({ reroute_audio: null }),
+    });
+
+    sourcesService.sourceUpdated.next({
+      sourceId: 'src1',
+      audio: false,
+      muted: false,
+      propertiesManagerType: 'default',
+    });
+
+    expect(updateSpy).not.toHaveBeenCalled();
+    expect(changedSpy).not.toHaveBeenCalled();
+  });
+
   test('propertiesManagerType が nvoice-character の場合はスキップする（blacklist差異の維持）', () => {
     const { sourcesService, updateSpy } = setupInstance();
 

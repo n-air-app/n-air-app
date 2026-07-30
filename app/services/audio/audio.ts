@@ -97,7 +97,9 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       if (!isNoAudioPropertiesManagerType(source.propertiesManagerType)) {
         const obsSource = this.sourcesService.getSource(source.sourceId);
         const rerouteAudio = obsSource.getObsInput().settings?.reroute_audio;
-        if (rerouteAudio !== undefined) {
+        // generateAudioSourceData() は null/undefined を「プロパティ未定義」として
+        // isControlledViaObs: true 扱いにしている(== null で判定)ため、ここも揃える
+        if (rerouteAudio != null) {
           this.UPDATE_AUDIO_SOURCE(source.sourceId, {
             isControlledViaObs: !!rerouteAudio,
           });
