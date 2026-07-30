@@ -18,12 +18,8 @@ import TocSection from 'components/shared/TocSection.vue';
 import { Subscription } from 'rxjs';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
-import {
-  ISettingsSubCategory,
-  SettingsCategory,
-  SettingsService,
-} from 'services/settings';
-import { StreamingService } from 'services/streaming';
+import { ISettingsSubCategory, SettingsCategory, SettingsService } from 'services/settings';
+import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import { defineComponent, toRaw } from 'vue';
@@ -99,8 +95,11 @@ export default defineComponent({
     };
   },
   computed: {
+    streamingStatus(): EStreamingState {
+      return StreamingService.instance().state.streamingStatus;
+    },
     isStreaming(): boolean {
-      return StreamingService.instance().isStreaming;
+      return this.streamingStatus !== EStreamingState.Offline;
     },
     showLoginRequiredNotice(): boolean {
       return (
@@ -114,6 +113,10 @@ export default defineComponent({
     },
   },
   watch: {
+    streamingStatus() {
+      if (!this.categoryName) return;
+      this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+    },
     categoryName(categoryName: SettingsCategory) {
       this.settingsData = SettingsService.instance().getSettingsFormData(categoryName);
       (this.$refs.settingsContainer as HTMLElement).scrollTop = 0;
