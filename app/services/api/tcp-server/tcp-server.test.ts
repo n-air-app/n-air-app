@@ -82,9 +82,19 @@ describe('TcpServerService', () => {
       expect(instance.shouldEnableTcp()).toBe(true);
     });
 
-    test('NAIR_ENABLE_TCP_API が設定されていれば true', () => {
+    test('NAIR_ENABLE_TCP_API=1 であれば true', () => {
       remoteEnv.NAIR_ENABLE_TCP_API = '1';
       expect(instance.shouldEnableTcp()).toBe(true);
+    });
+
+    test('NAIR_ENABLE_TCP_API=true であれば true', () => {
+      remoteEnv.NAIR_ENABLE_TCP_API = 'true';
+      expect(instance.shouldEnableTcp()).toBe(true);
+    });
+
+    test('NAIR_ENABLE_TCP_API=0 (無効化の意図と読める値) では false', () => {
+      remoteEnv.NAIR_ENABLE_TCP_API = '0';
+      expect(instance.shouldEnableTcp()).toBe(false);
     });
 
     test('state.tcp.enabled が true であれば true', () => {
@@ -207,6 +217,33 @@ describe('TcpServerService', () => {
       expect(socket.destroy).not.toHaveBeenCalled();
       expect(instance.internalApiService.executeServiceRequest).toHaveBeenCalledTimes(1);
       expect(socket.write).toHaveBeenCalled();
+    });
+
+    test('サービス呼び出しが例外を投げた場合、詳細を露出せず id を保持したエラーを返す', () => {
+      const socket = createSocket();
+      jest.spyOn(instance, 'isLocalClient').mockReturnValue(true);
+      instance.internalApiService.executeServiceRequest.mockImplementation(() => {
+        throw new Error('sensitive internal detail');
+      });
+
+      instance.onConnectionHandler(socket, { type: 'tcp' });
+      socket.emit(
+        'data',
+        Buffer.from(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            id: '42',
+            method: 'getScenes',
+            params: { resource: 'ScenesService', args: [] },
+          }) + '\n',
+        ),
+      );
+
+      expect(socket.destroy).not.toHaveBeenCalled();
+      expect(socket.write).toHaveBeenCalledTimes(1);
+      const sent = JSON.parse((socket.write.mock.calls[0][0] as string).trim());
+      expect(sent.id).toBe('42');
+      expect(JSON.stringify(sent.error)).not.toContain('sensitive internal detail');
     });
   });
 });

@@ -98,7 +98,7 @@ export class TcpServerService
     return (
       this.state.tcp.enabled ||
       Utils.isDevMode() ||
-      !!remote.process.env.NAIR_ENABLE_TCP_API
+      ['1', 'true'].includes(remote.process.env.NAIR_ENABLE_TCP_API ?? '')
     );
   }
 
@@ -376,11 +376,11 @@ export class TcpServerService
 
         this.sendResponse(client, response);
       } catch (e) {
+        console.error('TCP Server: error while processing the request', e);
         this.sendResponse(
           client,
-          this.jsonrpcService.createError(null, {
-            code: E_JSON_RPC_ERROR.INVALID_REQUEST,
-            message: `Error while processing the request: ${e}`,
+          this.jsonrpcService.createError(request, {
+            code: E_JSON_RPC_ERROR.INTERNAL_SERVER_ERROR,
           }),
         );
       }
