@@ -2,6 +2,7 @@ import WritableStream = NodeJS.WritableStream;
 import crypto from 'crypto';
 import os from 'os';
 
+import * as remote from '@electron/remote';
 import {
   E_JSON_RPC_ERROR,
   IJsonRpcEvent,
@@ -12,6 +13,7 @@ import {
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { SceneCollectionsService } from 'services/scene-collections';
 import { UsageStatisticsService } from 'services/usage-statistics';
+import Utils from 'services/utils';
 
 import { InternalApiService } from '../internal-api';
 
@@ -53,6 +55,9 @@ export class TcpServerService
   implements ITcpServerServiceApi {
   static defaultState: ITcpServersSettings = {
     token: '',
+    tcp: {
+      enabled: false,
+    },
     namedPipe: {
       enabled: true,
       pipeName: 'n-air-app',
@@ -81,9 +86,20 @@ export class TcpServerService
   }
 
   listen() {
-    this.listenConnections(this.createTcpServer());
+    // TCP (127.0.0.1:28194) は認証なしでローカルの任意のプロセス・ブラウザから
+    // 到達可能なため、本番ビルドではデフォルトで listen しない。
+    // 開発時のデバッグ用途や、明示的な設定・環境変数による opt-in は維持する。
+    if (this.shouldEnableTcp()) this.listenConnections(this.createTcpServer());
     if (this.state.namedPipe.enabled) this.listenConnections(this.createNamedPipeServer());
     if (this.state.websockets.enabled) this.listenConnections(this.createWebsoketsServer());
+  }
+
+  private shouldEnableTcp(): boolean {
+    return (
+      this.state.tcp.enabled ||
+      Utils.isDevMode() ||
+      !!remote.process.env.NAIR_ENABLE_TCP_API
+    );
   }
 
   /**
@@ -236,7 +252,21 @@ export class TcpServerService
     }
 
     socket.on('data', (data: any) => {
-      this.onRequestHandler(client, data.toString());
+      const dataString = data.toString();
+
+      // Defend against cross-protocol attacks: a webpage can send an HTTP
+      // request to this TCP socket (e.g. via fetch()/XHR to 127.0.0.1). Its
+      // request line/headers fail JSON-RPC parsing and are ignored by
+      // onRequestHandler, but nothing prevented a JSON-RPC line hidden in the
+      // request body from being executed. Detect the HTTP request line up
+      // front and destroy the connection before any parsing happens.
+      if (this.looksLikeHttpRequest(dataString)) {
+        console.debug('TCP Server: received an HTTP request, disconnecting client');
+        this.destroyClient(client);
+        return;
+      }
+
+      this.onRequestHandler(client, dataString);
     });
 
     socket.on('end', () => {
@@ -262,6 +292,22 @@ export class TcpServerService
     client.isAuthorized = true;
   }
 
+  private static readonly HTTP_METHOD_PREFIXES = [
+    'GET ',
+    'POST ',
+    'PUT ',
+    'HEAD ',
+    'DELETE ',
+    'OPTIONS ',
+    'PATCH ',
+    'CONNECT ',
+    'TRACE ',
+  ];
+
+  private looksLikeHttpRequest(data: string): boolean {
+    return TcpServerService.HTTP_METHOD_PREFIXES.some((prefix) => data.startsWith(prefix));
+  }
+
   private isLocalClient(client: IClient) {
     const localAddresses = this.getIPAddresses()
       .filter((addressDescr) => addressDescr.internal)
@@ -285,11 +331,25 @@ export class TcpServerService
     }
 
     const requests = data.split('\n');
-    requests.forEach((requestString) => {
-      if (!requestString) return;
-      try {
-        const request: IJsonRpcRequest = JSON.parse(requestString);
+    for (const requestString of requests) {
+      if (!requestString) continue;
 
+      let request: IJsonRpcRequest;
+      try {
+        request = JSON.parse(requestString);
+      } catch (e) {
+        // The received line isn't valid JSON-RPC. This happens when a raw HTTP
+        // request reaches this socket (e.g. a malicious webpage doing a
+        // cross-protocol attack via fetch()/XHR against 127.0.0.1). Disconnect
+        // immediately instead of responding with an error: continuing to parse
+        // the remaining lines would let an HTTP request body that happens to
+        // look like JSON-RPC get executed.
+        console.debug('TCP Server: received a non-JSON-RPC request, disconnecting client', e);
+        this.destroyClient(client);
+        return;
+      }
+
+      try {
         const errorMessage = this.validateRequest(request);
 
         if (errorMessage) {
@@ -298,11 +358,11 @@ export class TcpServerService
             message: errorMessage,
           });
           this.sendResponse(client, errorResponse);
-          return;
+          continue;
         }
 
         // some requests have to be handled by TcpServerService
-        if (this.hadleTcpServerDirectives(client, request)) return;
+        if (this.hadleTcpServerDirectives(client, request)) continue;
 
         const response = this.internalApiService.executeServiceRequest(request);
 
@@ -320,14 +380,11 @@ export class TcpServerService
           client,
           this.jsonrpcService.createError(null, {
             code: E_JSON_RPC_ERROR.INVALID_REQUEST,
-            message:
-              'Make sure that the request is valid json. ' +
-              'If request string contains multiple requests, ensure requests are separated ' +
-              'by a single newline character LF ( ASCII code 10)',
+            message: `Error while processing the request: ${e}`,
           }),
         );
       }
-    });
+    }
   }
 
   private onServiceEventHandler(event: IJsonRpcResponse<IJsonRpcEvent>) {
@@ -454,6 +511,17 @@ export class TcpServerService
     const client = this.clients[clientId];
     client.socket.end();
     delete this.clients[clientId];
+  }
+
+  /**
+   * Immediately terminates the connection without sending any response.
+   * Used when the client sent data that isn't a valid JSON-RPC request
+   * (see onRequestHandler), so no assumption about the protocol being spoken
+   * on this socket can be made anymore.
+   */
+  private destroyClient(client: IClient) {
+    (client.socket as any).destroy();
+    delete this.clients[client.id];
   }
 
   private log(...messages: any[]) {

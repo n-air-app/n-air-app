@@ -1,5 +1,8 @@
 export interface ITcpServersSettings {
   token: string;
+  tcp: {
+    enabled: boolean;
+  };
   namedPipe: {
     enabled: boolean;
     pipeName: string;
