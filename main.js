@@ -1316,7 +1316,8 @@ function initialize(crashHandler) {
         const text = await response.text();
         return {
           ok: response.ok,
-          headers: response.headers.entries(),
+          // iterator のままでは Electron IPC の構造化クローンで中身が失われるため配列化する
+          headers: [...response.headers.entries()],
           status: response.status,
           text,
         };

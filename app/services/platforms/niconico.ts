@@ -81,8 +81,9 @@ export class NiconicoService extends Service implements IPlatformService {
     // renderer の fetch では app 起点がクロスサイト扱いとなり、SameSite=Lax の
     // user_session が自動付与されない。logout と同様に cookie を明示して main 経由で送る。
     const { session } = remote.getCurrentWebContents();
+    // domain フィルタで取得（url: https://.nicovideo.jp は無効で取れないことがある）
     const cookies = await session.cookies.get({
-      url: `https://${getCookieDomain()}`,
+      domain: getCookieDomain(),
       name: 'user_session',
     });
     if (cookies.length < 1) {
@@ -145,7 +146,7 @@ export class NiconicoService extends Service implements IPlatformService {
     }
     const { session } = remote.getCurrentWebContents();
     const cookies = await session.cookies.get({
-      url: `https://${getCookieDomain()}`,
+      domain: getCookieDomain(),
       name: 'user_session',
     });
     if (cookies.length < 1) {

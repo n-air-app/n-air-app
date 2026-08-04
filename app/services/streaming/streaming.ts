@@ -179,7 +179,10 @@ export class StreamingService
   /**
    * 配信開始ボタンまたはショートカットキーによる配信開始(対話可能)
    *
-   * 現在ログインされているユーザーで、配信可能なチャンネルが存在する場合には、配信番組選択ウィンドウを開きます。
+   * ニコ生パネルで番組取得済み（test / onAir / reserved）のときは、その番組でそのまま配信開始する。
+   *
+   * パネル未取得かつ現在ログインされているユーザーで配信可能なチャンネルが存在する場合には、
+   * 配信番組選択ウィンドウを開きます。
    *
    * 配信番組選択ウィンドウで「配信開始」ボタンを押した時にもこのメソッドが呼ばれ、
    * options.nicoliveProgramSelectorResult に、ウィンドウで選ばれた配信種別と
@@ -215,37 +218,55 @@ export class StreamingService
         this.SET_PROGRAM_FETCHING(true);
         const broadcastableUserProgram = await this.client.fetchOnairUserProgram();
 
+        // ニコ生パネルで既に番組取得済みで、配信可能な状態ならそれを優先する
+        // （チャンネル配信権限がある場合でも種別ダイアログを挟まない）
+        const panelProgramId = this.nicoliveProgramService.state.programID;
+        const panelStatus = this.nicoliveProgramService.state.status;
+        const panelStreamable =
+          Boolean(panelProgramId)
+          && (panelStatus === 'test' || panelStatus === 'onAir' || panelStatus === 'reserved');
+
         // 配信番組選択ウィンドウ以外からの呼び出し時
         if (!opts.nicoliveProgramSelectorResult) {
-          const broadcastableChannelsResult = await this.client.fetchOnairChannels();
+          // パネル未取得のときだけチャンネル有無を見て選択 UI を出す
+          if (!panelStreamable) {
+            const broadcastableChannelsResult = await this.client.fetchOnairChannels();
 
-          // 配信可能チャンネルがある時
-          // エラー時は チャンネルがない時と同様の挙動とする
-          if (isOk(broadcastableChannelsResult) && broadcastableChannelsResult.value.length > 0) {
-            this.windowsService.showWindow({
-              title: $t('streaming.nicoliveProgramSelector.title'),
-              componentName: 'NicoliveProgramSelector',
-              size: {
-                width: 800,
-                height: 800,
-              },
-            });
-            return;
-          }
+            // 配信可能チャンネルがある時
+            // エラー時は チャンネルがない時と同様の挙動とする
+            // Array.isArray でガード: 認証失敗時などに data が配列以外でも length>0 になり得ないようにする
+            if (
+              isOk(broadcastableChannelsResult)
+              && Array.isArray(broadcastableChannelsResult.value)
+              && broadcastableChannelsResult.value.length > 0
+            ) {
+              this.windowsService.showWindow({
+                title: $t('streaming.nicoliveProgramSelector.title'),
+                componentName: 'NicoliveProgramSelector',
+                size: {
+                  width: 800,
+                  height: 800,
+                },
+              });
+              return;
+            }
 
-          // 配信可能チャンネルがなく、配信できるユーザー生放送もない場合
-          if (!broadcastableUserProgram.programId && !broadcastableUserProgram.nextProgramId) {
-            return this.showNotBroadcastingMessageBoxForNicolive('no_user_program');
+            // 配信可能チャンネルがなく、配信できるユーザー生放送もない場合
+            if (!broadcastableUserProgram.programId && !broadcastableUserProgram.nextProgramId) {
+              return this.showNotBroadcastingMessageBoxForNicolive('no_user_program');
+            }
           }
         }
 
-        // 配信番組選択ウィンドウでチャンネル番組が選ばれた時はそのチャンネル番組を, それ以外の場合は放送中のユーザー番組のIDを代入
-        // ユーザー番組については、即時番組があればそれを優先し、なければ予約番組の番組IDを採用する。
+        // 配信番組選択ウィンドウでチャンネル番組が選ばれた時はそのチャンネル番組を,
+        // それ以外は onairs/user → パネル取得済み番組の順で採用する
         const programId = opts.nicoliveProgramSelectorResult
             && opts.nicoliveProgramSelectorResult.providerType === 'channel'
             && opts.nicoliveProgramSelectorResult.channelProgramId
           ? opts.nicoliveProgramSelectorResult.channelProgramId
-          : broadcastableUserProgram.programId || broadcastableUserProgram.nextProgramId;
+          : broadcastableUserProgram.programId
+            || broadcastableUserProgram.nextProgramId
+            || (panelStreamable ? panelProgramId : undefined);
 
         // 配信番組選択ウィンドウでユーザー番組を選んだが、配信可能なユーザー番組がない場合
         if (!programId) {
