@@ -136,6 +136,17 @@ export class TcpServerService
     this.listen();
   }
 
+  /**
+   * Enables/disables the TCP transport and applies the change immediately,
+   * so a user toggling this in the settings window doesn't need to restart
+   * the app for it to take effect.
+   */
+  setTcpEnabled(enabled: boolean) {
+    this.stopListening();
+    this.setSettings({ tcp: { enabled } });
+    this.listen();
+  }
+
   getDefaultSettings(): ITcpServersSettings {
     return TcpServerService.defaultState;
   }
