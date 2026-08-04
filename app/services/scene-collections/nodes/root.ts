@@ -91,10 +91,12 @@ export class RootNode extends Node<ISchema, {}> {
     // Avoid reapplying an unchanged resolution. In osn 0.26.28 this can
     // reach SetVideoContext and fail while streaming, as well as trigger an
     // unnecessary OBS settings save.
-    const currentResolution = this.videoService.baseResolution;
+    // videoService.baseResolution is derived from baseResolutions above, so
+    // compare against the actual OBS video context instead.
+    const currentVideo = this.videoSettingsService.contexts.horizontal?.video;
     if (
-      currentResolution.width !== targetResolution.width
-      || currentResolution.height !== targetResolution.height
+      currentVideo?.baseWidth !== targetResolution.width
+      || currentVideo?.baseHeight !== targetResolution.height
     ) {
       this.videoService.setBaseResolution(targetResolution);
     }

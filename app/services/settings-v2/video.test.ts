@@ -1,5 +1,5 @@
 // stateful-service と injector は video.ts が import するものを先にモックする
-import { IVideoInfo } from '../../../obs-api';
+import type { IVideoInfo } from '../../../obs-api';
 
 jest.mock('services/core/stateful-service', () => ({
   StatefulService: class {

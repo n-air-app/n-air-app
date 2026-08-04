@@ -16,7 +16,17 @@ jest.mock('services/video', () => ({ VideoService: class {} }));
 // Minimal shape of each injected service RootNode actually calls, so tests
 // don't need to depend on the real (heavy, OBS-backed) implementations.
 type IVideoServiceStub = Pick<RootNode['videoService'], 'baseResolution' | 'setBaseResolution'>;
-type IVideoSettingsServiceStub = Pick<RootNode['videoSettingsService'], 'baseResolutions'>;
+type IVideoSettingsServiceStub = {
+  baseResolutions: RootNode['videoSettingsService']['baseResolutions'];
+  contexts: {
+    horizontal: {
+      video: {
+        baseWidth: number;
+        baseHeight: number;
+      };
+    } | null;
+  };
+};
 type IScenesServiceStub = Pick<RootNode['scenesService'], 'rescaleAllScenes'>;
 
 function createNode(overrides: {
@@ -32,6 +42,14 @@ function createNode(overrides: {
   } as RootNode['videoService'];
   node.videoSettingsService = {
     baseResolutions: { horizontal: { baseWidth: 1920, baseHeight: 1080 } },
+    contexts: {
+      horizontal: {
+        video: {
+          baseWidth: 1920,
+          baseHeight: 1080,
+        },
+      },
+    },
     ...overrides.videoSettingsService,
   } as RootNode['videoSettingsService'];
   node.scenesService = {
@@ -104,6 +122,11 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
     };
     const videoSettingsService = {
       baseResolutions: { horizontal: { baseWidth: 1920, baseHeight: 1080 } },
+      contexts: {
+        horizontal: {
+          video: { baseWidth: 1280, baseHeight: 720 },
+        },
+      },
     };
     const scenesService = { rescaleAllScenes: jest.fn() };
     const node = createNode({ videoService, videoSettingsService, scenesService });
@@ -121,6 +144,29 @@ describe('RootNode.load() - forward compatibility & rescale', () => {
     // Items are rescaled by target/saved
     expect(scenesService.rescaleAllScenes).toHaveBeenCalledWith(1920 / 1280, 1080 / 720);
     expect(node.getLoadErrors()).toEqual([]);
+  });
+
+  test('OBS video contextの解像度が現在の設定と同一の場合は再設定しない', async () => {
+    const videoService = {
+      // VideoService.baseResolution は設定値由来であり、OBS実値の比較には使わない。
+      baseResolution: { width: 1280, height: 720 },
+      setBaseResolution: jest.fn(),
+    };
+    const videoSettingsService = {
+      baseResolutions: { horizontal: { baseWidth: 1920, baseHeight: 1080 } },
+      contexts: {
+        horizontal: {
+          video: { baseWidth: 1920, baseHeight: 1080 },
+        },
+      },
+    };
+    const node = createNode({ videoService, videoSettingsService });
+
+    stubChildNodes(node);
+
+    await node.load();
+
+    expect(videoService.setBaseResolution).not.toHaveBeenCalled();
   });
 
   test('保存解像度が無い（旧フォーマット）場合はrescaleAllScenesを呼ばない', async () => {
