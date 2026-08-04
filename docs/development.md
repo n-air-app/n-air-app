@@ -24,6 +24,7 @@
 | `NAIR_DEBUG_CRASH_HANDLER` | `DEV_SERVER` 時にもクラッシュハンドラを有効化 |
 | `NAIR_FORCE_AUTO_UPDATE` | 非本番ビルドで自動更新を強制有効化 |
 | `NAIR_FAKE_PROGRAM` | フェイク番組モードを有効化（`DEV_SERVER` と組み合わせて使用） |
+| `NAIR_ENABLE_TCP_API` | 本番ビルドで TCP API (`127.0.0.1:28194`) を有効化（`1`/`true` のみ有効）。開発ビルドでは常に有効。一般ユーザー向けには設定画面「一般」タブの「TCP API を有効にする」トグルを使用 |
 | `NAIR_UPDATE_I18N_NOT_FOUND_KEYS` | 未翻訳キーを `i18n-not-found-keys.txt` に出力 |
 | `NDGR_SERVER` | モデレーター表示サーバー URL のオーバーライド |
 
