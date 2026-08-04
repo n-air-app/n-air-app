@@ -144,6 +144,34 @@ describe('TcpServerService', () => {
     });
   });
 
+  describe('setTcpEnabled', () => {
+    test('stopListening → setSettings({tcp:{enabled}}) → listen の順で呼ばれる', () => {
+      const callOrder: string[] = [];
+      jest.spyOn(instance, 'stopListening').mockImplementation(() => callOrder.push('stopListening'));
+      jest.spyOn(instance, 'setSettings').mockImplementation((settings: any) => {
+        callOrder.push('setSettings');
+        expect(settings).toEqual({ tcp: { enabled: true } });
+      });
+      jest.spyOn(instance, 'listen').mockImplementation(() => callOrder.push('listen'));
+
+      instance.setTcpEnabled(true);
+
+      expect(callOrder).toEqual(['stopListening', 'setSettings', 'listen']);
+    });
+
+    test('false を渡すと state.tcp.enabled が false になり listen が再実行される', () => {
+      instance.state = { ...instance.state, tcp: { enabled: true } };
+      jest.spyOn(instance, 'stopListening').mockImplementation(() => {});
+      jest.spyOn(instance, 'listen').mockImplementation(() => {});
+
+      instance.setTcpEnabled(false);
+
+      expect(instance.state.tcp.enabled).toBe(false);
+      expect(instance.stopListening).toHaveBeenCalled();
+      expect(instance.listen).toHaveBeenCalled();
+    });
+  });
+
   describe('onConnectionHandler / クロスプロトコル攻撃の遮断', () => {
     function createSocket() {
       const handlers: Record<string, Function> = {};

@@ -704,6 +704,8 @@
   "encoderPreset": "Encoder Preset",
   "pollingPerformanceStatistics": "Activate performance statistics(bitrate, FPS, dropped frames)",
   "pollingPerformanceStatisticsDescription": "If the streaming is unstable, try disabling this option.",
+  "enableTcpApi": "Enable TCP API",
+  "enableTcpApiDescription": "Allows external tools to control N Air via 127.0.0.1:28194. This also makes it accessible from untrusted local processes, so keep this off unless you use an external tool integration.",
   "compactMode": "Compact Mode",
   "autoCompact": {
     "title": "Compact Mode Automation Settings",
