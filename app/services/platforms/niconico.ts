@@ -78,13 +78,35 @@ export class NiconicoService extends Service implements IPlatformService {
     if (isFakeMode()) {
       return FakeUserAuth.platform.id; // dummy user ID
     }
-    const { url, init } = this.sessionsMeParams();
-    const response = await fetch(url, init);
+    // renderer の fetch では app 起点がクロスサイト扱いとなり、SameSite=Lax の
+    // user_session が自動付与されない。logout と同様に cookie を明示して main 経由で送る。
+    const { session } = remote.getCurrentWebContents();
+    const cookies = await session.cookies.get({
+      url: `https://${getCookieDomain()}`,
+      name: 'user_session',
+    });
+    if (cookies.length < 1) {
+      return '';
+    }
+    const { url, init } = this.sessionsMeParams('GET', {
+      Cookie: `user_session=${cookies[0].value}`,
+    });
+    const response = await fetchViaMainProcess(url, init);
     if (response.status === 400 || response.status === 401) {
       return '';
     }
-    const response_1 = await handleErrors(response); // !response.ok を例外にする
-    const json = await response_1.json();
+    if (!response.ok) {
+      // オフライン等は例外にし、validateLogin 側で LOGOUT しない
+      throw new RequestError(response.status, url, 'GET');
+    }
+    let json: unknown;
+    try {
+      json = JSON.parse(response.text);
+    } catch (e) {
+      // 200 だが HTML 等の場合は未ログインではなく一時エラー扱い（validateLogin で LOGOUT しない）
+      console.error('NiconicoService.getUserId: invalid JSON response', response.text);
+      throw new Error('NiconicoService.getUserId: invalid JSON response');
+    }
     if (isSessionsMeResponse(json)) {
       if ('user' in json) {
         return json.user.id.toString();
