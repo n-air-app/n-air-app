@@ -542,7 +542,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
       name,
       new Date().toISOString(),
     );
-    this.collectionUpdated.next(this.getCollection(id));
+    this.collectionUpdated.next(this.getCollection(id || this.activeCollection.id));
   }
 
   /**
@@ -658,7 +658,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
    * @param id the id of the collection
    */
   getCollection(id: string): ISceneCollectionsManifestEntry {
-    return this.collections.find((coll) => coll.id === id);
+    return this.collections.find((coll) => coll.id === id)!;
   }
 
   /**
@@ -724,7 +724,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   }
 
   get activeCollection() {
-    return this.stateService.activeCollection;
+    return this.stateService.activeCollection!;
   }
 
   /* PRIVATE ----------------------------------------------------- */
@@ -942,14 +942,14 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   private async insertCollection(id: string, name: string) {
     await this.saveCurrentApplicationStateAs(id);
     this.stateService.ADD_COLLECTION(id, name, new Date().toISOString());
-    this.collectionAdded.next(this.collections.find((coll) => coll.id === id));
+    this.collectionAdded.next(this.collections.find((coll) => coll.id === id)!);
   }
 
   /**
    * Deletes on the server and removes from the store
    */
   private async removeCollection(id: string) {
-    this.collectionRemoved.next(this.collections.find((coll) => coll.id === id));
+    this.collectionRemoved.next(this.collections.find((coll) => coll.id === id)!);
     this.stateService.DELETE_COLLECTION(id);
 
     // Currently we don't remove files on disk in case we need to recover them
@@ -957,7 +957,7 @@ export class SceneCollectionsService extends Service implements ISceneCollection
     // the system, we can start actually deleting files from disk.
   }
 
-  private autoSaveInterval: number;
+  private autoSaveInterval: number | null = null;
 
   private enableAutoSave() {
     if (this.autoSaveInterval) return;

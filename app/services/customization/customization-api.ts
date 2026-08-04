@@ -15,11 +15,11 @@ export interface ICustomizationServiceState {
   compactModeTab: TCompactModeTab;
   compactModeStudioController: TCompactModeStudioController;
   compactModeNewComment: boolean;
-  fullModeWidthOffset: number;
-  compactBackupPositionX: number;
-  compactBackupPositionY: number;
-  compactBackupHeight: number;
-  compactMaximized: boolean;
+  fullModeWidthOffset: number | undefined;
+  compactBackupPositionX: number | undefined;
+  compactBackupPositionY: number | undefined;
+  compactBackupHeight: number | undefined;
+  compactMaximized: boolean | undefined;
   autoCompactMode: boolean;
   showAutoCompactDialog: boolean;
   compactAlwaysOnTop: boolean;

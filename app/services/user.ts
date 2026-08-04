@@ -48,12 +48,12 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
   @mutation()
   private SET_PLATFORM_TOKEN(token: string) {
-    this.state.auth.platform.token = token;
+    this.state.auth!.platform.token = token;
   }
 
   @mutation()
   private SET_CHANNEL_ID(id: string) {
-    this.state.auth.platform.channelId = id;
+    this.state.auth!.platform.channelId = id;
   }
 
   userLogin = new Subject<IPlatformAuth>();
@@ -85,7 +85,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     if (!this.isLoggedIn()) return Promise.resolve();
 
     console.log('validateLogin: this.platform=' + JSON.stringify(this.platform));
-    const service = getPlatformService(this.platform.type);
+    const service = getPlatformService(this.platform!.type);
     if (service && service.isLoggedIn) {
       return service
         .isLoggedIn()
@@ -129,36 +129,36 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }
 
   get apiToken() {
-    if (this.isLoggedIn()) return this.state.auth.apiToken;
+    if (this.isLoggedIn()) return this.state.auth!.apiToken;
   }
 
   get platform() {
     if (this.isLoggedIn()) {
-      return this.state.auth.platform;
+      return this.state.auth!.platform;
     }
   }
 
   get username() {
     if (this.isLoggedIn()) {
-      return this.state.auth.platform.username;
+      return this.state.auth!.platform.username;
     }
   }
 
   get userIcon() {
     if (this.isLoggedIn()) {
-      return this.state.auth.platform.userIcon;
+      return this.state.auth!.platform.userIcon;
     }
   }
 
   get platformId() {
     if (this.isLoggedIn()) {
-      return this.state.auth.platform.id;
+      return this.state.auth!.platform.id;
     }
   }
 
   get platformUserPageURL() {
     if (this.isLoggedIn()) {
-      const platform = getPlatformService(this.state.auth.platform.type);
+      const platform = getPlatformService(this.state.auth!.platform.type);
       if (platform.getMyPageURL !== undefined) {
         return platform.getMyPageURL();
       }
@@ -168,13 +168,13 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
   get channelId() {
     if (this.isLoggedIn()) {
-      return this.state.auth.platform.channelId;
+      return this.state.auth!.platform.channelId;
     }
   }
 
   get isPremium() {
     if (this.isLoggedIn()) {
-      return this.state.auth.platform.isPremium;
+      return this.state.auth!.platform.isPremium;
     }
   }
 
@@ -185,7 +185,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
   private async login(service: IPlatformService, rawAuth: IPlatformAuth) {
     await ipcRenderer.invoke('recollectUserSessionCookie');
-    const isPremium = await service.isPremium(rawAuth.platform.token);
+    const isPremium = await service.isPremium!(rawAuth.platform.token);
     const auth = { ...rawAuth, platform: { ...rawAuth.platform, isPremium } };
     this.LOGIN(auth);
     this.userLogin.next(auth);
@@ -198,7 +198,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
 
     // TODO niconico専用なので抽象化する
     try {
-      await getPlatformService('niconico').logout();
+      await getPlatformService('niconico').logout!();
     } catch (e) {
       console.warn('NiconicoService.logout failed:', e);
     }
@@ -313,7 +313,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     if (!this.isLoggedIn()) return;
 
     this.startAuth({
-      platform: this.platform.type,
+      platform: this.platform!.type,
       onAuthFinish: () => { },
       onAuthClose: () => { },
     });
@@ -372,7 +372,7 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
   }
 
   async updateStreamSettings(programId: string): Promise<IStreamingSetting> {
-    return await getPlatformService(this.platform.type).setupStreamSettings(programId);
+    return await getPlatformService(this.platform!.type).setupStreamSettings(programId);
   }
 
   isNiconicoLoggedIn() {

@@ -103,7 +103,7 @@ export class HttpRelation {
       }
       return { result: await response.text() };
     } catch (e) {
-      return { error: e.toString() };
+      return { error: String(e) };
     }
   }
 

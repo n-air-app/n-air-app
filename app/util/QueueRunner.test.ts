@@ -12,7 +12,7 @@ class Task {
     return this._state;
   }
 
-  constructor(startCallback: (task: Task) => void = undefined) {
+  constructor(startCallback: ((task: Task) => void) | undefined = undefined) {
     const prepare = new Promise<boolean>((resolve) => {
       this.completePrepare = (skip) => {
         resolve(skip);

@@ -53,16 +53,16 @@ describe('WebSpeechSynthesizer', () => {
       if (numSpeak > 0) {
         const utterance = speakMock.mock.calls[0][0] as SpeechSynthesisUtterance;
         expect(utterance.text).toEqual(speech.text);
-        expect(utterance.pitch).toEqual(speech.webSpeech.pitch);
+        expect(utterance.pitch).toEqual(speech.webSpeech?.pitch);
         expect(utterance.rate).toEqual(speech.rate);
         expect(utterance.volume).toEqual(speech.volume);
 
         expect(onstart).toBeCalledTimes(0);
-        utterance.onstart({} as SpeechSynthesisEvent);
+        utterance.onstart!({} as SpeechSynthesisEvent);
         expect(onstart).toBeCalledTimes(1);
 
         expect(onend).toBeCalledTimes(0);
-        utterance.onend({} as SpeechSynthesisEvent);
+        utterance.onend!({} as SpeechSynthesisEvent);
         expect(onend).toBeCalledTimes(1);
       }
       const result = await running;

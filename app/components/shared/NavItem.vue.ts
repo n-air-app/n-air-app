@@ -61,7 +61,7 @@ export default defineComponent({
         this.expanded = !this.expanded;
         return;
       }
-      this.rootNavMenu.setValue(this.to);
+      this.rootNavMenu.setValue(this.to ?? '');
       event.stopPropagation();
     },
 

@@ -33,7 +33,7 @@
             @click="compactModeStudioController = 'scenes'"
             class="studio-controls-tab button--tab"
             :class="{ active: compactModeStudioController === 'scenes' }"
-          >{{ activeCollection.name }}</a
+          >{{ activeCollection?.name }}</a
           >
         </div>
         <scene-selector

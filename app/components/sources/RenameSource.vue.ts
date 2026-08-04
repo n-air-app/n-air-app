@@ -21,8 +21,8 @@ export default defineComponent({
   },
 
   mounted(): void {
-    const source = SourcesService.instance().getSource(this.options.sourceId);
-    this.name = source.name;
+    const source = SourcesService.instance().getSource(this.options.sourceId!);
+    this.name = source!.name;
   },
 
   methods: {
@@ -30,7 +30,7 @@ export default defineComponent({
       if (!this.name) {
         this.error = $t('sources.sourceNameIsRequired');
       } else {
-        SourcesService.instance().getSource(this.options.sourceId).setName(this.name);
+        SourcesService.instance().getSource(this.options.sourceId!)!.setName(this.name);
         WindowsService.instance().closeChildWindow();
       }
     },

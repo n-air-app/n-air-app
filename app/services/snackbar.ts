@@ -7,7 +7,7 @@ export interface SnackbarState {
     action: {
       label: string;
       onClick: () => void;
-    };
+    } | undefined;
     hideDelay: number;
   } | null;
 }
@@ -42,7 +42,7 @@ export class SnackbarService extends StatefulService<SnackbarState> {
               this.hide(); // Hide snackbar after action is clicked
             },
           }
-          : null,
+          : undefined,
         hideDelay: hideDelay || DEFAULT_HIDE_DELAY,
       },
     });

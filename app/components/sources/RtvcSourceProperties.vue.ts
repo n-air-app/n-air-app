@@ -186,7 +186,9 @@ export default defineComponent({
           ? this.initialMonitoringType
           : obs.EMonitoringType.MonitoringOnly;
         const monitoringType = this.isMonitor ? onValue : obs.EMonitoringType.None;
-        AudioService.instance().setSettings(this.sourceId, { monitoringType });
+        if (monitoringType !== null) {
+          AudioService.instance().setSettings(this.sourceId, { monitoringType });
+        }
         this.currentMonitoringType = monitoringType;
       },
     },
@@ -197,6 +199,7 @@ export default defineComponent({
           this.isSongMode ? PitchShiftModeValue.song : PitchShiftModeValue.talk,
         );
         // 値入れ直し
+        if (!this.draftState || !this.source) return;
         const p = RtvcStateService.instance().stateParamToCommonParam(this.draftState, this.currentIndex);
         RtvcStateService.instance().setSourcePropertiesByCommonParam(this.source, p);
       },
@@ -230,15 +233,15 @@ export default defineComponent({
 
     this.draftState = RtvcStateService.instance().getState();
 
-    this.device = this.getSourcePropertyValue('device') as number;
-    this.latency = this.getSourcePropertyValue('latency') as number;
+    this.device = (this.getSourcePropertyValue('device') ?? 0) as number;
+    this.latency = (this.getSourcePropertyValue('latency') ?? 0) as number;
 
     this.updateManualList();
 
     this.currentIndex = this.draftState.currentIndex;
     this.onChangeIndex();
 
-    this.isSongMode = (this.getSourcePropertyValue('pitch_shift_mode') as number) === PitchShiftModeValue.song;
+    this.isSongMode = ((this.getSourcePropertyValue('pitch_shift_mode') ?? 0) as number) === PitchShiftModeValue.song;
     this.tab = this.draftState.tab ?? 0;
   },
 
@@ -247,12 +250,12 @@ export default defineComponent({
     this.audio.pause();
 
     // モニタリング状態は元の値に戻す
-    if (this.initialMonitoringType !== this.currentMonitoringType) {
+    if (this.initialMonitoringType !== this.currentMonitoringType && this.initialMonitoringType !== null) {
       AudioService.instance().setSettings(this.sourceId, { monitoringType: this.initialMonitoringType });
     }
 
     if (this.canceled) {
-      this.source.setPropertiesFormData(this.initialProperties);
+      this.source?.setPropertiesFormData(this.initialProperties);
       return;
     }
 
@@ -262,6 +265,7 @@ export default defineComponent({
 
   methods: {
     updateManualList(): void {
+      if (!this.draftState) return;
       // add,delに反応しないのでコード側から変更指示
       this.manualList = this.draftState.manuals.map((a: StateParam['manuals'][number], num: number) => ({
         index: `manual/${num}`,
@@ -284,12 +288,13 @@ export default defineComponent({
     },
 
     onChangeIndex(): void {
+      if (!this.draftState || !this.source) return;
       const p = RtvcStateService.instance().stateParamToCommonParam(this.draftState, this.currentIndex);
 
       this.name = p.name;
       this.label = p.label;
       this.description = p.description;
-      this.image = p.image;
+      this.image = p.image ?? '';
 
       this.pitchShift = p.pitchShift;
       this.pitchShiftSong = p.pitchShiftSong;
@@ -320,6 +325,7 @@ export default defineComponent({
     },
 
     setParam(key: SetParamKey, value: any): void {
+      if (!this.draftState) return;
       const p = this.indexToModeNum(this.currentIndex);
       if (p.isManual) {
         (this.draftState.manuals[p.num] as any)[key] = value;
@@ -331,9 +337,9 @@ export default defineComponent({
       (this.draftState.presets[p.num] as any)[key] = value;
     },
 
-    getSourcePropertyValue(key: SourcePropKey): TObsValue {
+    getSourcePropertyValue(key: SourcePropKey): TObsValue | undefined {
       const p = this.properties.find((a: { name: string }) => a.name === key);
-      return p ? p.value as TObsValue : undefined;
+      return p ? (p.value as TObsValue) : undefined;
     },
 
     getSourcePropertyOptions(key: SourcePropKey): IObsListOption<number>[] {
@@ -347,6 +353,7 @@ export default defineComponent({
     },
 
     setSourcePropertyValue(key: SourcePropKey, value: TObsValue): void {
+      if (!this.source) return;
       RtvcStateService.instance().setSourceProperties(this.source, [{ key, value }]);
     },
 
@@ -392,6 +399,7 @@ export default defineComponent({
     },
 
     findNewManualImageNum(): number {
+      if (!this.draftState) return 0;
       for (let i = 0; i < RtvcStateService.instance().manualImages.length; i++) {
         if (!this.draftState.manuals.find((a: StateParam['manuals'][number]) => a.imageNum === i)) return i;
       }
@@ -399,6 +407,7 @@ export default defineComponent({
     },
 
     onAdd(): void {
+      if (!this.draftState) return;
       if (this.draftState.manuals.length >= this.manualMax) return;
       const newNum = this.manualList.reduce((v: number, a: { name: string }) => {
         const m = a.name.match(/(\d+)$/);
@@ -424,6 +433,7 @@ export default defineComponent({
     },
 
     async onDelete(index: string): Promise<void> {
+      if (!this.draftState) return;
       const num = this.getManualIndexNum(index);
       if (num < 0) return;
 
@@ -449,6 +459,7 @@ export default defineComponent({
     },
 
     onCopy(index: string): void {
+      if (!this.draftState) return;
       if (this.draftState.manuals.length >= this.manualMax) return;
       const num = this.getManualIndexNum(index);
       if (num < 0) return;

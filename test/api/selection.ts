@@ -18,8 +18,8 @@ afterAppStart(async (t) => {
   selectionService = client.getResource('SelectionService');
   sceneBuilder = new SceneBuilder(client);
   scene = sceneBuilder.scene;
-  getNode = (name) => scene.getNodeByName(name);
-  getNodeId = (name) => scene.getNodeByName(name).id;
+  getNode = (name) => scene.getNodeByName(name)!;
+  getNodeId = (name) => scene.getNodeByName(name)!.id;
 });
 
 test('Selection', async (t) => {
@@ -31,9 +31,9 @@ test('Selection', async (t) => {
   const numPresetItems = selection.getSize();
   selection.reset();
 
-  const color1 = scene.createAndAddSource('Color1', 'color_source');
-  const color2 = scene.createAndAddSource('Color2', 'color_source');
-  const color3 = scene.createAndAddSource('Color3', 'color_source');
+  const color1 = scene.createAndAddSource('Color1', 'color_source')!;
+  const color2 = scene.createAndAddSource('Color2', 'color_source')!;
+  const color3 = scene.createAndAddSource('Color3', 'color_source')!;
 
   selection.select(color2.sceneItemId);
 
@@ -91,8 +91,8 @@ test('Invalid selection', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const selection = client.getResource<SelectionService>('SelectionService');
-  const anotherScene = scenesService.createScene('Another scene');
-  const colorFromAnotherScene = anotherScene.createAndAddSource('MyColor', 'color_source');
+  const anotherScene = scenesService.createScene('Another scene')!;
+  const colorFromAnotherScene = anotherScene.createAndAddSource('MyColor', 'color_source')!;
   const [colorSource] = scenesService.activeScene.getItems();
 
   // invalid ids must be ignored

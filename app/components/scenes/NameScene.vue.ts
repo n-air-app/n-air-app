@@ -27,10 +27,10 @@ export default defineComponent({
     let name = '';
 
     if (this.options.rename) {
-      name = ScenesService.instance().getScene(this.options.rename).name;
+      name = ScenesService.instance().getScene(this.options.rename)?.name ?? '';
       this.name = name;
     } else if (this.options.sceneToDuplicate) {
-      name = ScenesService.instance().getScene(this.options.sceneToDuplicate).name;
+      name = ScenesService.instance().getScene(this.options.sceneToDuplicate)?.name ?? '';
     } else if (this.options.itemsToGroup) {
       name = $t('scenes.newSceneGroupName', {
         activeSceneName: ScenesService.instance().activeScene.name,
@@ -48,17 +48,23 @@ export default defineComponent({
       if (!this.name) {
         this.error = $t('scenes.nameIsRequired');
       } else if (this.options.rename) {
-        ScenesService.instance().getScene(this.options.rename).setName(this.name);
+        ScenesService.instance().getScene(this.options.rename)?.setName(this.name);
         WindowsService.instance().closeChildWindow();
       } else {
         const newScene = ScenesService.instance().createScene(this.name, {
           duplicateSourcesFromScene: this.options.sceneToDuplicate,
         });
+        if (!newScene) {
+          WindowsService.instance().closeChildWindow();
+          return;
+        }
         if (this.options.itemsToGroup) {
           activeScene.getSelection(this.options.itemsToGroup).moveTo(newScene.id);
           const sceneItem = activeScene.addSource(newScene.id);
-          SelectionService.instance().select(sceneItem.sceneItemId);
-          sceneItem.setContentCrop();
+          if (sceneItem) {
+            SelectionService.instance().select(sceneItem.sceneItemId);
+            sceneItem.setContentCrop();
+          }
         } else {
           newScene.makeActive();
         }

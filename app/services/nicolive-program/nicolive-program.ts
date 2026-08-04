@@ -313,7 +313,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
         throw NicoliveFailure.fromClientError('fetchProgram', programResponse);
       }
 
-      const password: string = await this.fetchProgramPassword(nicoliveProgramId);
+      const password: string | undefined = await this.fetchProgramPassword(nicoliveProgramId);
 
       const program = programResponse.value;
 
@@ -330,7 +330,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
       this.setState({
         programID: nicoliveProgramId,
         status: program.status,
-        title: program.title,
+        title: program.title ?? '',
         description: program.description,
         startTime: program.beginAt,
         vposBaseTime: program.vposBaseAt,
@@ -368,7 +368,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
 
     this.setState({
       status: program.status,
-      title: program.title,
+      title: program.title ?? '',
       description: program.description,
       startTime: program.beginAt,
       endTime: program.endAt,
@@ -380,7 +380,7 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
 
   async editProgram(): Promise<EditResult> {
     if (isFakeMode()) {
-      return;
+      return EditResult.OTHER;
     }
     const result = await this.client.editProgram(this.state.programID);
     if (result === 'EDITED') {
@@ -649,6 +649,6 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
   }
 
   isBroadcaster(userId: string): boolean {
-    return userId === this.userService.platform.id;
+    return userId === this.userService.platform?.id;
   }
 }

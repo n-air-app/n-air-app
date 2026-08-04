@@ -109,6 +109,7 @@ export default defineComponent({
     },
 
     drawVolmeter(peaks: number[]): void {
+      if (!this.ctx) return;
       this.ctx.fillStyle = ADVANCED_BG;
       this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
@@ -132,6 +133,7 @@ export default defineComponent({
     },
 
     drawChannelBackground(heightOffset: number): void {
+      if (!this.ctx) return;
       this.ctx.fillStyle = GREEN_BG;
       this.ctx.fillRect(0, heightOffset, this.warningPx, CHANNEL_HEIGHT);
       this.ctx.fillStyle = YELLOW_BG;
@@ -146,6 +148,7 @@ export default defineComponent({
     },
 
     drawPeakLevel(peak: number, peakPx: number, heightOffset: number): void {
+      if (!this.ctx) return;
       // Green level
       const greenLevel = Math.min(peakPx, this.warningPx);
       if (greenLevel <= 0) return;
@@ -168,6 +171,7 @@ export default defineComponent({
     },
 
     drawPeakHold(channel: number, heightOffset: number): void {
+      if (!this.ctx) return;
       const peakHold = this.peakHolds[channel];
 
       let color = GREEN;

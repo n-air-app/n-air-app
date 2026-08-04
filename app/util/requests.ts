@@ -50,15 +50,15 @@ export async function downloadFile(srcUrl: string, dstPath: string): Promise<voi
   return new Promise<void>((resolve, reject) => {
     fetch(srcUrl)
       .then(handleErrors)
-      .then(({ body }: { body: ReadableStream }) => {
-        const reader = body.getReader();
+      .then(({ body }: { body: ReadableStream | null }) => {
+        const reader = body!.getReader();
         let result = new Uint8Array(0);
         const readStream = ({ done, value }: { done: boolean; value?: Uint8Array }) => {
           if (done) {
             fs.writeFileSync(dstPath, result);
             resolve();
           } else {
-            result = concatUint8Arrays(result, value);
+            result = concatUint8Arrays(result, value!);
             reader.read().then(readStream);
           }
         };

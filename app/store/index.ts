@@ -91,7 +91,7 @@ plugins.push((store: Store<any>) => {
   ipcRenderer.send('vuex-register');
 });
 
-let store: Store<any> = null;
+let store: Store<any> | null = null;
 
 export function createStore(): Promise<Store<any>> {
   const statefulServiceModules: Dictionary<any> = {};
@@ -119,7 +119,7 @@ export function createStore(): Promise<Store<any>> {
 }
 
 export function commitMutation(mutation: IMutation) {
-  store.commit(
+  store!.commit(
     mutation.type,
     Object.assign({}, mutation.payload, {
       __vuexSyncIgnore: true,

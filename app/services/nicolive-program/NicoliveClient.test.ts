@@ -324,7 +324,7 @@ function setupMock() {
     browserWindow: BrowserWindow;
     openExternal: jest.Mock;
   } = {
-    browserWindow: null,
+    browserWindow: null as unknown as BrowserWindow,
     openExternal,
   };
   jest.doMock('@electron/remote', () => ({
@@ -535,7 +535,7 @@ describe('NicoliveClient.deleteComment', () => {
   setupMock();
   const error = new Error('error');
 
-  test.each<[boolean, string | Error, Promise<MainProcessFetchResponse>]>([
+  test.each<[boolean, string | Error | null, Promise<MainProcessFetchResponse>]>([
     [
       true,
       null,

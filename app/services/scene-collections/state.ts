@@ -11,7 +11,7 @@ import { getKeys } from 'util/getKeys';
 import { ISceneCollectionsManifestEntry } from '.';
 
 interface ISceneCollectionsManifest {
-  activeId: string;
+  activeId: string | null;
   collections: ISceneCollectionsManifestEntry[];
 }
 
@@ -112,7 +112,7 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
     const data = this.readCollectionFile('manifest', backup);
 
     const parsed = JSON.parse(data);
-    return this.checkAndRecoverManifest(parsed);
+    return (await this.checkAndRecoverManifest(parsed)) ?? null;
   }
 
   /**
@@ -122,7 +122,7 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
    */
   async checkAndRecoverManifest(
     obj: ISceneCollectionsManifest,
-  ): Promise<ISceneCollectionsManifest> {
+  ): Promise<ISceneCollectionsManifest | undefined> {
     // If there is no collections array, this is unrecoverable
     if (!Array.isArray(obj.collections)) return;
 
@@ -238,22 +238,22 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
 
   @mutation()
   SET_NEEDS_RENAME(id: string) {
-    this.state.collections.find((coll) => coll.id === id).needsRename = true;
+    this.state.collections.find((coll) => coll.id === id)!.needsRename = true;
   }
 
   @mutation()
   SET_MODIFIED(id: string, modified: string) {
-    this.state.collections.find((coll) => coll.id === id).modified = modified;
+    this.state.collections.find((coll) => coll.id === id)!.modified = modified;
   }
 
   @mutation()
   SET_SERVER_ID(id: string, serverId: number) {
-    this.state.collections.find((coll) => coll.id === id).serverId = serverId;
+    this.state.collections.find((coll) => coll.id === id)!.serverId = serverId;
   }
 
   @mutation()
   RENAME_COLLECTION(id: string, name: string, modified: string) {
-    const coll = this.state.collections.find((coll) => coll.id === id);
+    const coll = this.state.collections.find((coll) => coll.id === id)!;
     coll.name = name;
     coll.modified = modified;
     coll.needsRename = false;
@@ -261,7 +261,7 @@ export class SceneCollectionsStateService extends StatefulService<ISceneCollecti
 
   @mutation()
   DELETE_COLLECTION(id: string) {
-    this.state.collections.find((coll) => coll.id === id).deleted = true;
+    this.state.collections.find((coll) => coll.id === id)!.deleted = true;
   }
 
   @mutation()

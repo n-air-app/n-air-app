@@ -15,12 +15,13 @@ export interface INVoiceTalker {
       phonemeCallback?: (phoneme: string) => void;
     },
   ): Promise<
-    () => Promise<{
-      cancel: () => void;
-      pause: () => void;
-      resume: () => void;
-      speaking: Promise<void>;
-    } | null>
+    | (() => Promise<{
+        cancel: () => void;
+        pause: () => void;
+        resume: () => void;
+        speaking: Promise<void>;
+      } | null>)
+    | null
   >;
 }
 
@@ -37,8 +38,8 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
       try {
         const start = await this.nVoiceTalker.talk(speech.text, {
           speed: 1 / (speech.rate || 1),
-          volume: speech.volume,
-          maxTime: speech.nVoice?.maxTime,
+          volume: speech.volume ?? 1,
+          maxTime: speech.nVoice?.maxTime ?? 0,
           phonemeCallback: (phoneme: string) => {
             if (onPhoneme) {
               onPhoneme(phoneme);
@@ -80,6 +81,7 @@ export class NVoiceSynthesizer implements ISpeechSynthesizer {
           fingerprint: ['NVoiceSynthesizer', 'speakText', 'error'],
         });
         console.info(`NVoiceSynthesizer: text:${JSON.stringify(speech.text)} -> ${error}`);
+        return null;
       }
     };
   }

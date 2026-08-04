@@ -126,7 +126,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private voskCliPath: string;
   private modelBasePath: string;
   private modelsManager: VoskModelsManager;
-  private client: ITranscriber;
+  private client: ITranscriber | null = null;
   private downloadControllers: Map<string, AbortController> = new Map();
   private state$ = new BehaviorSubject<ITranscriptionServiceState>(
     TranscriptionService.defaultState,
@@ -175,7 +175,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   isVoskModelReady(): boolean {
     const state = this.state;
-    return (
+    return !!(
       state.voskModelName
       && this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded'
     );
@@ -226,7 +226,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           },
           { partialTimestamp: null, text: null },
         ),
-        filter((acc) => acc.text !== null),
+        filter((acc): acc is { partialTimestamp: number | null; text: TimestampedText } => acc.text !== null),
         map((acc) => acc.text),
       )
       .subscribe(this.textSubject$);
@@ -235,36 +235,39 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    merge(this.updateActiveness$, this.voskError$, this.audioDeviceMuted$)
-      .pipe(
-        map((): ActiveStatus => {
-          if (!this.state.enabled) return 'disabled';
+    merge(
+      this.updateActiveness$,
+      this.voskError$,
+      this.audioDeviceMuted$,
+    ).pipe(
+      map((): ActiveStatus => {
+        if (!this.state.enabled) return 'disabled';
 
-          const voskError = this.voskError$.value;
-          if (voskError === 'launchError') return 'voskLaunchError';
-          if (voskError === 'error') return 'voskError';
+        const voskError = this.voskError$.value;
+        if (voskError === 'launchError') return 'voskLaunchError';
+        if (voskError === 'error') return 'voskError';
 
-          if (this.audioDevices$.value.length === 0) return 'noAudioDevice';
+        if (this.audioDevices$.value.length === 0) return 'noAudioDevice';
 
-          // 選択中のモデルの状態を先にチェック
-          if (!this.state.voskModelName) return 'noVoskModel';
+        // 選択中のモデルの状態を先にチェック
+        if (!this.state.voskModelName) return 'noVoskModel';
 
-          const modelStatus = this.modelsManager.getVoskModelStatus(this.state.voskModelName);
-          if (modelStatus.state === 'load_error') return 'modelLoadError';
-          if (modelStatus.state !== 'downloaded') {
-            // 選択中のモデルがダウンロードされていない場合のみ、他のモデルの存在をチェック
-            if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
-            return 'noVoskModel';
-          }
+        const modelStatus = this.modelsManager.getVoskModelStatus(this.state.voskModelName);
+        if (modelStatus.state === 'load_error') return 'modelLoadError';
+        if (modelStatus.state !== 'downloaded') {
+          // 選択中のモデルがダウンロードされていない場合のみ、他のモデルの存在をチェック
+          if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
+          return 'noVoskModel';
+        }
 
-          if (this.audioDeviceMuted$.value) return 'muted';
+        if (this.audioDeviceMuted$.value) return 'muted';
 
-          return 'active';
-        }),
-        tap((status) => {
-          console.log('TranscriptionService activeStatus:', status);
-        }),
-      )
+        return 'active';
+      }),
+      tap((status) => {
+        console.log('TranscriptionService activeStatus:', status);
+      }),
+    )
       .subscribe(this.activeStatusSubject$);
 
     this.activeStatusSubject$
@@ -493,7 +496,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.deactivate();
   }
 
-  private subscription: Subscription;
+  private subscription: Subscription | null = null;
   private timerSubscriptions: Subscription[] = [];
 
   activate() {
@@ -509,13 +512,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     try {
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
-        modelPath: this.getModelPath(this.state.voskModelName),
+        modelPath: this.getModelPath(this.state.voskModelName!),
       });
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
+      this.client!.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
     } catch (err) {
       SentryReport.error('TranscriptionService', 'createClient', err, {
         tags: { voskModelName: this.state.voskModelName },
-        extra: { voskCliPath: this.voskCliPath, modelPath: this.getModelPath(this.state.voskModelName) },
+        extra: { voskCliPath: this.voskCliPath, modelPath: this.getModelPath(this.state.voskModelName!) },
       });
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
@@ -523,7 +526,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       return;
     }
 
-    this.subscription = this.client.startTranscription().subscribe({
+    this.subscription = this.client!.startTranscription().subscribe({
       next: (message) => {
         console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
@@ -620,11 +623,12 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     if (this.client) {
       // デバイスリストを更新したので、audioDeviceIndex も更新する(見つかるようになったかもしれない)
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
+      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
-      this.setAudioDeviceId(this.selectDefaultAudioDeviceId());
+      const defaultDeviceId = this.selectDefaultAudioDeviceId();
+      if (defaultDeviceId) this.setAudioDeviceId(defaultDeviceId);
     }
   }
 
@@ -649,7 +653,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
   }
 
-  getAudioDeviceIndex<T>(id: string, notFoundValue: T): number | T {
+  getAudioDeviceIndex<T>(id: string | null, notFoundValue: T): number | T {
     if (!id) {
       return notFoundValue;
     }
@@ -683,7 +687,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setState({ textFileEnabled });
   }
   getTextFilePath(): string {
-    return this.state.textFilePath;
+    return this.state.textFilePath ?? '';
   }
   setTextFilePath(textFilePath: string) {
     this.setState({ textFilePath });

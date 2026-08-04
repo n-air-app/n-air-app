@@ -181,7 +181,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     this.addSource(obsInput, name, options);
 
-    return this.getSource(id);
+    return this.getSource(id)!;
   }
 
   addSource(obsInput: obs.IInput, name: string, options: ISourceAddOptions = {}) {
@@ -203,7 +203,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
       deinterlaceMode: options.deinterlaceMode,
       deinterlaceFieldOrder: options.deinterlaceFieldOrder,
     });
-    const source = this.getSource(id);
+    const source = this.getSource(id)!;
     const muted = obsInput.muted;
     this.UPDATE_SOURCE({ id, muted });
     this.updateSourceFlags(source.state, obsInput.outputFlags, true);
@@ -223,7 +223,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     this.sourceAdded.next(source.state);
     if (options.audioSettings) {
-      this.audioService.getSource(id).setSettings(options.audioSettings);
+      this.audioService.getSource(id)?.setSettings(options.audioSettings);
     }
   }
 
@@ -233,12 +233,20 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
     if (!source) throw new Error(`Source ${id} not found`);
 
+    // REMOVE_SOURCE で state からキーが delete された後に source.state を評価すると、
+    // Vuex の reactive proxy 越しの delete で invalidate される可能性があるため、
+    // 削除前にスナップショットを取っておく（#1380）
+    const removedState = { ...source.state };
+
     /* When we release sources, we need to make
      * sure we reset the channel it's set to,
      * otherwise OBS thinks it's still attached
      * and won't release it. */
     if (source.channel !== undefined) {
-      this.tryObsStep('resetChannel', id, () => obs.Global.setOutputSource(source.channel, null));
+      const channel = source.channel;
+      this.tryObsStep('resetChannel', id, () =>
+        obs.Global.setOutputSource(channel, null as unknown as obs.ISource),
+      );
     }
 
     if (source.type === 'nair-rtvc-source') this.rtvcStateService.didRemoveSource(source);
@@ -269,7 +277,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     // OBS 側の解放に失敗しても state からは必ず外す。
     // 残すと同じソースを二度と削除できなくなる（#1380）
     this.REMOVE_SOURCE(id);
-    this.sourceRemoved.next(source.state);
+    this.sourceRemoved.next(removedState);
   }
 
   /**
@@ -323,7 +331,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const types = getKeys(SUPPORTED_EXT);
     for (const type of types) {
       if (!(SUPPORTED_EXT[type] as readonly string[]).includes(ext)) continue;
-      let settings: Dictionary<TObsValue>;
+      let settings: Dictionary<TObsValue> | undefined;
       if (type === 'image_source') {
         settings = { file: path };
       } else if (type === 'browser_source') {
@@ -639,7 +647,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
 
   // Utility functions / getters
 
-  getSourceById(id: string): Source {
+  getSourceById(id: string): Source | undefined {
     return this.getSource(id);
   }
 
@@ -647,23 +655,27 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     const sourceModels = Object.values(this.state.sources).filter((source) => {
       return source.name === name;
     });
-    return sourceModels.map((sourceModel) => this.getSource(sourceModel.sourceId));
+    return sourceModels
+      .map((sourceModel) => this.getSource(sourceModel.sourceId))
+      .filter((s): s is Source => s !== undefined);
   }
 
   getSourcesByType(type: TSourceType): Source[] {
     const sourceModels = Object.values(this.state.sources).filter((source) => {
       return source.type === type;
     });
-    return sourceModels.map((sourceModel) => this.getSource(sourceModel.sourceId));
+    return sourceModels
+      .map((sourceModel) => this.getSource(sourceModel.sourceId))
+      .filter((s): s is Source => s !== undefined);
   }
 
   get sources(): Source[] {
-    return Object.values(this.state.sources).map((sourceModel) =>
-      this.getSource(sourceModel.sourceId),
-    );
+    return Object.values(this.state.sources)
+      .map((sourceModel) => this.getSource(sourceModel.sourceId))
+      .filter((s): s is Source => s !== undefined);
   }
 
-  getSource(id: string): Source {
+  getSource(id: string): Source | undefined {
     return this.state.sources[id] || this.state.temporarySources[id] ? new Source(id) : undefined;
   }
 

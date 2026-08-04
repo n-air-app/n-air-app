@@ -23,7 +23,7 @@ test('Creating, fetching and removing scenes', async (t) => {
   t.is(scenesService.getScenes().length, 2);
   const scenesBefore = scenesService.getScenes().map((s) => s.name);
 
-  const scene2 = scenesService.createScene('Scene2');
+  const scene2 = scenesService.createScene('Scene2')!;
 
   t.is(scene2.name, 'Scene2');
 
@@ -50,7 +50,7 @@ test('Switching between scenes', async (t) => {
 
   const beforeActiveSceneId = scenesService.activeSceneId;
 
-  const scene2 = scenesService.createScene('Scene2');
+  const scene2 = scenesService.createScene('Scene2')!;
 
   t.is(beforeActiveSceneId, scenesService.activeSceneId);
 
@@ -67,10 +67,10 @@ test('Creating, fetching and removing scene-items', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
 
-  const scene = scenesService.getSceneByName(DefaultSceneName);
+  const scene = scenesService.getSceneByName(DefaultSceneName)!;
   const presetItemIds = scene.getItems().map((item) => item.id);
-  const image1 = scene.createAndAddSource('Image1', 'image_source');
-  const image2 = scene.createAndAddSource('Image2', 'image_source');
+  const image1 = scene.createAndAddSource('Image1', 'image_source')!;
+  const image2 = scene.createAndAddSource('Image2', 'image_source')!;
   t.is(image1['name'], 'Image1');
 
   let items = scene.getItems().filter((i) => !presetItemIds.includes(i.id));
@@ -95,12 +95,12 @@ test('Scenes events', async (t) => {
   scenesService.itemRemoved.subscribe(() => undefined);
   scenesService.itemUpdated.subscribe(() => undefined);
 
-  const scene2 = scenesService.createScene('Scene2');
+  const scene2 = scenesService.createScene('Scene2')!;
   event = await client.fetchNextEvent();
 
   t.is(event.data.name, 'Scene2');
 
-  const scene3 = scenesService.createScene('Scene3');
+  const scene3 = scenesService.createScene('Scene3')!;
   await client.fetchNextEvent();
 
   scenesService.makeSceneActive(scene2.id);
@@ -111,7 +111,7 @@ test('Scenes events', async (t) => {
   event = await client.fetchNextEvent();
   t.is(event.data.name, 'Scene3');
 
-  const image = scene2.createAndAddSource('image', 'image_source');
+  const image = scene2.createAndAddSource('image', 'image_source')!;
   event = await client.fetchNextEvent();
   t.is(event.data.sceneItemId, image.sceneItemId);
 
@@ -132,9 +132,9 @@ test('Creating nested scenes', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
 
-  const sceneA = scenesService.createScene('SceneA');
-  const sceneB = scenesService.createScene('SceneB');
-  const sceneC = scenesService.createScene('SceneC');
+  const sceneA = scenesService.createScene('SceneA')!;
+  const sceneB = scenesService.createScene('SceneB')!;
+  const sceneC = scenesService.createScene('SceneC')!;
 
   sceneA.addSource(sceneB.id);
   let sceneAItems = sceneA.getItems();
@@ -161,7 +161,7 @@ test('SceneItem.setSettings()', async (t) => {
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const scene = scenesService.activeScene;
 
-  const sceneItem = scene.createAndAddSource('MyColorSource', 'color_source');
+  const sceneItem = scene.createAndAddSource('MyColorSource', 'color_source')!;
 
   sceneItem.setTransform({ rotation: 90 });
 
@@ -194,7 +194,7 @@ test('SceneItem.resetTransform()', async (t) => {
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const scene = scenesService.activeScene;
 
-  const sceneItem = scene.createAndAddSource('MyColorSource', 'color_source');
+  const sceneItem = scene.createAndAddSource('MyColorSource', 'color_source')!;
 
   sceneItem.setTransform({
     position: { x: 100, y: 100 },

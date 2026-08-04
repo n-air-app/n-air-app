@@ -103,7 +103,7 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
     const [ownIds, moderatorIds] = ids.reduce(
       ([own, moderator], id) => {
         const record = this.findFilterCache(id);
-        if (this.isBroadcastersFilter(record)) {
+        if (record && this.isBroadcastersFilter(record)) {
           return [[...own, id], moderator];
         }
         return [own, [...moderator, id]];
@@ -139,7 +139,7 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
 
   private updateFilters(filters: FilterRecord[]) {
     // 登録日時降順にする
-    filters.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    filters.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
 
     this.UPDATE_FILTERS(filters);
     this.stateChangeSubject.next({ filters });

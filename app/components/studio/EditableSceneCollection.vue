@@ -17,7 +17,7 @@
         <i class="icon-times" @click.stop="cancelRename" v-if="!needsRename" />
       </div>
       <div v-else>
-        {{ collection.name }}
+        {{ collection?.name }}
       </div>
     </span>
     <span class="editable-scene-collection--active" v-if="isActive">

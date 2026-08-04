@@ -22,7 +22,7 @@ test('Creating, fetching and removing sources', async (t) => {
   t.truthy(sources.find((source) => source.name === 'MyColorSource1'));
   t.truthy(sources.find((source) => source.name === 'MyColorSource2'));
 
-  const colorItem1 = scene.addSource(colorSource1.sourceId);
+  const colorItem1 = scene.addSource(colorSource1.sourceId)!;
   let sceneItemNames = scene
     .getItems()
     .map((item) => item['name'])
@@ -31,7 +31,7 @@ test('Creating, fetching and removing sources', async (t) => {
   t.deepEqual(sceneItemNames, ['MyColorSource1', 'MyColorSource2']);
 
   scene.removeItem(colorItem1.sceneItemId);
-  colorItem2.remove();
+  colorItem2!.remove();
   sceneItemNames = scene.getItems().map((item) => item['name']);
 
   t.deepEqual(
@@ -55,7 +55,7 @@ test('Source events', async (t) => {
 
   t.is(event.data.name, 'audio1');
 
-  const item2 = scenesService.activeScene.createAndAddSource('audio2', 'wasapi_output_capture');
+  const item2 = scenesService.activeScene.createAndAddSource('audio2', 'wasapi_output_capture')!;
   event = await client.fetchNextEvent();
 
   t.is(event.data.name, 'audio2');

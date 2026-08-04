@@ -53,7 +53,7 @@ export abstract class RpcApi extends Service {
    * execute service requests and handle errors
    */
   executeServiceRequest(request: IJsonRpcRequest): IJsonRpcResponse<any> {
-    let response: IJsonRpcResponse<any>;
+    let response: IJsonRpcResponse<any> | undefined;
     this.requestErrors = []; // cleanup errors from previous request
     try {
       response = this.handleServiceRequest(request);
@@ -62,7 +62,7 @@ export abstract class RpcApi extends Service {
     }
 
     if (this.requestErrors.length) response = this.onErrorsHandler(request, this.requestErrors);
-    return response;
+    return response!;
   }
 
   /**
@@ -80,7 +80,7 @@ export abstract class RpcApi extends Service {
         .map((e) => {
           // errors with stack are uncaught errors
           // send the error's stack as a response
-          return e instanceof Error ? `${e.message} ${e.stack.toString()}` : e;
+          return e instanceof Error ? `${e.message} ${e.stack?.toString() ?? ''}` : e;
         })
         .join(';'),
     });
@@ -101,7 +101,7 @@ export abstract class RpcApi extends Service {
     // check that the resource and the called method exist
     // return JSON-RPC error if it's not true
     const resource = this.getResource(resourceId);
-    let errorResponse: IJsonRpcResponse<any>;
+    let errorResponse: IJsonRpcResponse<any> | undefined;
     if (!resource) {
       errorResponse = this.jsonrpc.createError(request, {
         code: E_JSON_RPC_ERROR.INVALID_PARAMS,
@@ -213,7 +213,7 @@ export abstract class RpcApi extends Service {
       for (const log of debugLog) {
         console.log(log); // DEBUG
       }
-      console.error(`* Error while serializing Observable: ${e.toString()}`); // DEBUG
+      console.error(`* Error while serializing Observable: ${(e as any).toString()}`); // DEBUG
     }
 
     // if payload is Promise, then subscribe to this promise
@@ -283,7 +283,7 @@ export abstract class RpcApi extends Service {
    * }
    *
    */
-  getResourceScheme(resourceId: string): Dictionary<string> {
+  getResourceScheme(resourceId: string): Dictionary<string> | null {
     const resource = this.getResource(resourceId);
     if (!resource) {
       this.requestErrors.push(`Resource not found: ${resourceId}`);

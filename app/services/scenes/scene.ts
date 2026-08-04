@@ -76,7 +76,7 @@ export class Scene {
     return scene;
   }
 
-  getNode(sceneNodeId: string): TSceneNode {
+  getNode(sceneNodeId: string): TSceneNode | null {
     const nodeModel = this.state.nodes.find(
       (sceneItemModel) => sceneItemModel.id === sceneNodeId,
     ) as ISceneItem;
@@ -90,12 +90,12 @@ export class Scene {
     return new SceneItemFolder(this.id, nodeModel.id);
   }
 
-  getItem(sceneItemId: string): SceneItem {
+  getItem(sceneItemId: string): SceneItem | null {
     const node = this.getNode(sceneItemId);
     return node && node.sceneNodeType === 'item' ? (node as SceneItem) : null;
   }
 
-  getFolder(sceneFolderId: string): SceneItemFolder {
+  getFolder(sceneFolderId: string): SceneItemFolder | null {
     const node = this.getNode(sceneFolderId);
     return node && node.sceneNodeType === 'folder' ? (node as SceneItemFolder) : null;
   }
@@ -103,7 +103,7 @@ export class Scene {
   /**
    * returns the first node with selected name
    */
-  getNodeByName(name: string): TSceneNode {
+  getNodeByName(name: string): TSceneNode | undefined {
     return this.getNodes().find((node) => node.name === name);
   }
 
@@ -111,19 +111,22 @@ export class Scene {
     return this.state.nodes
       .filter((node) => node.sceneNodeType === 'item')
       .map((item) => this.getItem(item.id))
-      .filter(Boolean);
+      .filter((item): item is SceneItem => item !== null);
   }
 
   getFolders(): SceneItemFolder[] {
     return this.state.nodes
       .filter((node) => node.sceneNodeType === 'folder')
-      .map((item) => this.getFolder(item.id));
+      .map((item) => this.getFolder(item.id))
+      .filter((f): f is SceneItemFolder => f !== null);
   }
 
   getNodes(): TSceneNode[] {
-    return this.state.nodes.map((node) => {
-      return node.sceneNodeType === 'folder' ? this.getFolder(node.id) : this.getItem(node.id);
-    });
+    return this.state.nodes
+      .map((node) => {
+        return node.sceneNodeType === 'folder' ? this.getFolder(node.id) : this.getItem(node.id);
+      })
+      .filter((n): n is TSceneNode => n !== null);
   }
 
   getRootNodes(): TSceneNode[] {
@@ -140,7 +143,7 @@ export class Scene {
 
   setName(newName: string) {
     const sceneSource = this.sourcesService.getSource(this.id);
-    sceneSource.setName(newName);
+    sceneSource!.setName(newName);
     this.SET_NAME(newName);
   }
 
@@ -149,7 +152,7 @@ export class Scene {
     type: TSourceType,
     settings?: Dictionary<any>,
     options: ISceneNodeAddOptions = {},
-  ): SceneItem {
+  ): SceneItem | null {
     const source = this.sourcesService.createSource(sourceName, type, settings);
     return this.addSource(source.sourceId, options);
   }
@@ -166,7 +169,7 @@ export class Scene {
 
     const display = 'horizontal';
     // assign context to scene item
-    const context = this.videoSettingsService.contexts.horizontal;
+    const context = this.videoSettingsService.contexts.horizontal as obs.IVideo | undefined;
 
     this.ADD_SOURCE_TO_SCENE(
       sceneItemId,
@@ -175,7 +178,7 @@ export class Scene {
       display,
       obsSceneItem.position,
     );
-    const sceneItem = this.getItem(sceneItemId);
+    const sceneItem = this.getItem(sceneItemId)!;
 
     sceneItem.loadAttributes();
     sceneItem.setSettings({ ...sceneItem.getSettings(), display, output: context });
@@ -246,7 +249,7 @@ export class Scene {
     ).then(callback, onTimeout);
   }
 
-  addFile(path: string, folderId?: string): TSceneNode {
+  addFile(path: string, folderId?: string): TSceneNode | null {
     let fstat: fs.Stats;
     try {
       fstat = fs.lstatSync(path);
@@ -260,16 +263,16 @@ export class Scene {
 
     if (fstat.isDirectory()) {
       const folder = this.createFolder(fname);
-      if (folderId) folder.setParent(folderId);
+      if (folderId) folder?.setParent(folderId);
       const files = fs.readdirSync(path).reverse();
-      files.forEach((filePath) => this.addFile(`${path}\\${filePath}`, folder.id));
+      files.forEach((filePath) => this.addFile(`${path}\\${filePath}`, folder?.id));
       return folder;
     }
 
     const source = this.sourcesService.addFile(path);
     if (!source) return null;
     const item = this.addSource(source.sourceId);
-    if (folderId) item.setParent(folderId);
+    if (folderId) item?.setParent(folderId);
     return item;
   }
 
@@ -295,7 +298,7 @@ export class Scene {
     this.REMOVE_NODE_FROM_SCENE(folderId);
   }
 
-  remove(force?: boolean): IScene {
+  remove(force?: boolean): IScene | null {
     return this.scenesService.removeScene(this.id, force);
   }
 
@@ -385,8 +388,8 @@ export class Scene {
         rotation: item.rotation || 0,
         streamVisible: true,
         recordingVisible: true,
-        scaleFilter: item.scaleFilter,
-        blendingMode: item.blendingMode,
+        scaleFilter: item.scaleFilter ?? EScaleType.Disable,
+        blendingMode: item.blendingMode ?? EBlendingMode.Normal,
         blendingMethod: item.blendingMethod,
         display: item.display,
       });
@@ -412,7 +415,7 @@ export class Scene {
           display,
           obsSceneItem.position,
         );
-        this.getItem(itemModel.id).loadItemAttributes(itemModel);
+        this.getItem(itemModel.id)!.loadItemAttributes(itemModel);
         itemIndex++;
       }
     });
@@ -431,7 +434,7 @@ export class Scene {
     // 同一scene上では1つだけ
     if (source.type === 'nair-rtvc-source') {
       for (const s of this.items) {
-        if (this.sourcesService.getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
+        if (this.sourcesService.getSourceById(s.sourceId)?.type === 'nair-rtvc-source') return false;
       }
     }
 
@@ -440,7 +443,7 @@ export class Scene {
     if (this.id === source.sourceId) return false;
 
     const sceneToAdd = this.scenesService.getScene(source.sourceId);
-    return !sceneToAdd.hasNestedScene(this.id);
+    return !sceneToAdd!.hasNestedScene(this.id);
   }
 
   hasNestedScene(sceneId: string) {
@@ -449,8 +452,8 @@ export class Scene {
       .map((sceneItem) => this.scenesService.getScene(sceneItem.sourceId));
 
     for (const childScene of childScenes) {
-      if (childScene.id === sceneId) return true;
-      if (childScene.hasNestedScene(sceneId)) return true;
+      if (childScene?.id === sceneId) return true;
+      if (childScene?.hasNestedScene(sceneId)) return true;
     }
 
     return false;
@@ -464,7 +467,7 @@ export class Scene {
     result
       .filter((sceneItem) => sceneItem.type === 'scene')
       .map((sceneItem) => {
-        return this.scenesService.getScene(sceneItem.sourceId).getNestedItems();
+        return this.scenesService.getScene(sceneItem.sourceId)?.getNestedItems() ?? [];
       })
       .forEach((sceneItems) => {
         result = result.concat(sceneItems);
@@ -496,6 +499,7 @@ export class Scene {
     const resultScenes: Scene[] = [];
 
     scenes.forEach((scene) => {
+      if (!scene) return;
       resultScenes.push(...scene.getNestedScenes());
       if (!resultScenes.find((foundScene) => foundScene.id === scene.id)) {
         resultScenes.push(scene);

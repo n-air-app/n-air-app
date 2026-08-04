@@ -86,7 +86,7 @@ export abstract class Node<TSchema, TContext> {
   fromJSON(obj: SchemaAnnotation & TSchema) {
     // TODO: Handle schema version migration here
 
-    const clone = Object.assign({}, obj);
+    const clone = Object.assign({}, obj) as Partial<SchemaAnnotation> & TSchema;
     const version = clone.schemaVersion;
 
     delete clone.schemaVersion;
@@ -94,6 +94,6 @@ export abstract class Node<TSchema, TContext> {
 
     this.data = clone;
 
-    this.migrate(version);
+    this.migrate(version ?? 0);
   }
 }

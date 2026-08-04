@@ -73,7 +73,7 @@ export class FileManagerService extends Service {
 
     // If this is the first read of this file, do a blocking synchronous read
     if (!file) {
-      let data: string;
+      let data = '';
 
       try {
         data = fs.readFileSync(truePath).toString();

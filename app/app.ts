@@ -19,6 +19,8 @@ import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
+import { markObsOp } from 'util/sentry-obs-breadcrumb';
+import { SentryReport } from 'util/sentry-report';
 import { createApp, nextTick } from 'vue';
 import { createI18n, type Locale, type Path } from 'vue-i18n';
 
@@ -148,6 +150,28 @@ document.addEventListener('auxclick', (event) => event.preventDefault());
 
 const locale = remote.app.getLocale();
 
+const IPC_ERROR_NAMES: Record<number, string> = {
+  [obs.EIPCError.NORMAL_EXIT]: 'NORMAL_EXIT',
+  [obs.EIPCError.VERSION_MISMATCH]: 'VERSION_MISMATCH',
+  [obs.EIPCError.OTHER_ERROR]: 'OTHER_ERROR',
+  [obs.EIPCError.MISSING_DEPENDENCY]: 'MISSING_DEPENDENCY',
+  [obs.EIPCError.STILL_RUNNING]: 'STILL_RUNNING',
+};
+
+export const ipcHostErrorToMessage = (hostResult: number): string => {
+  // 前回起動の obs64.exe がまだ終了していないケース。実際に起こりうる最有力パターンなので専用文言にする
+  if (hostResult === obs.EIPCError.STILL_RUNNING) {
+    if (locale === 'ja') {
+      return '前回の終了処理が完了していません。しばらく待ってから、もう一度起動してください。';
+    }
+    return 'The previous instance has not finished shutting down yet. Please wait a moment and try again.';
+  }
+  if (locale === 'ja') {
+    return 'OBSサーバーの起動に失敗しました。しばらく待ってから、もう一度起動してください。';
+  }
+  return 'Failed to start the OBS server. Please wait a moment and try again.';
+};
+
 export const apiInitErrorResultToMessage = (resultCode: obs.EVideoCodes) => {
   switch (resultCode) {
     case obs.EVideoCodes.NotSupported: {
@@ -192,7 +216,53 @@ document.addEventListener('DOMContentLoaded', () => {
       window['obs'] = obs;
 
       // Host a new OBS server instance
-      obs.IPC.host(remote.process.env.IPC_UUID);
+      markObsOp('AppStartup', 'ipcHost');
+      let hostResult: unknown;
+      let hostThrown: unknown;
+      try {
+        hostResult = obs.IPC.host(remote.process.env.IPC_UUID!);
+      } catch (e) {
+        hostThrown = e;
+      }
+
+      if (
+        hostThrown ||
+        (typeof hostResult === 'number' && hostResult !== obs.EIPCError.NORMAL_EXIT)
+      ) {
+        // 例外が投げられた場合は、たとえ hostResult が number であっても
+        // その値は host() 呼び出しの結果を表していない可能性があるため 'thrown' を優先する
+        const hostResultName = hostThrown
+          ? 'thrown'
+          : IPC_ERROR_NAMES[hostResult as number] ?? String(hostResult);
+
+        SentryReport.error('AppStartup', 'ipcHost', hostThrown ?? new Error('obs.IPC.host() failed'), {
+          level: 'error',
+          // app.ts の beforeSend が /Failed to make IPC call/ を NOISE として捨てるため、
+          // 意図的に送るこのイベントには diagnostic タグが必須
+          tags: { diagnostic: 'obs-ipc-host-failed', 'ipc.hostResult': hostResultName },
+          fingerprint: ['AppStartup', 'ipcHostFailed'],
+          extra: { hostResult, hostThrown },
+        });
+
+        showDialog(ipcHostErrorToMessage(typeof hostResult === 'number' ? hostResult : -1));
+
+        electron.ipcRenderer.send('shutdownComplete');
+        return;
+      } else if (typeof hostResult !== 'number') {
+        // native の実装が number を返さないケースが実在するか実測するための情報収集。
+        // 起動不能リグレッションを避けるため成功扱いにフォールバックする
+        SentryReport.message(
+          'AppStartup',
+          'ipcHost',
+          'obs.IPC.host() returned a non-number value',
+          {
+            level: 'info',
+            tags: { diagnostic: 'obs-ipc-host-non-number-result' },
+            fingerprint: ['AppStartup', 'ipcHostNonNumberResult'],
+            extra: { hostResult },
+          },
+        );
+      }
       obs.NodeObs.SetWorkingDirectory(
         path.join(
           remote.app.getAppPath().replace('app.asar', 'app.asar.unpacked'),
@@ -219,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const apiResult = obs.NodeObs.OBS_API_initAPI(
         'en-US',
         appService.appDataDirectory,
-        remote.process.env.NAIR_VERSION,
+        remote.process.env.NAIR_VERSION!,
         SENTRY_MINIDUMP_URL,
       );
       logStartupMilestone('obs-api-initialized', obsStartedAt);

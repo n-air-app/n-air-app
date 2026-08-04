@@ -54,7 +54,7 @@ export default defineComponent({
     setTypeAsName(): void {
       const name = this.availableTypes.find(({ type }: { type: string }) => {
         return type === this.form.type.value;
-      }).description;
+      })!.description;
       this.form.name.value = SourceFiltersService.instance().suggestName(this.sourceId, name);
     },
   },

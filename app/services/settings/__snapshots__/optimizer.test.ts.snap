@@ -22,13 +22,13 @@ exports[`SettingsKeyAccessor#optimizeInfo 1`] = `
         "name": "StreamEncoder",
       },
       {
-        "currentValue": undefined,
+        "currentValue": "",
         "key": "simpleUseAdvanced",
         "name": "UseAdvanced",
         "newValue": true,
       },
       {
-        "currentValue": undefined,
+        "currentValue": "",
         "key": "encoderPreset",
         "name": "Preset",
         "newValue": "ultrafast",

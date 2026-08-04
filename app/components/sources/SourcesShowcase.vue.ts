@@ -129,7 +129,7 @@ export default defineComponent({
 
     platform() {
       if (!this.loggedIn) return null;
-      return UserService.instance().platform.type;
+      return UserService.instance().platform?.type;
     },
 
     availableSources() {
@@ -143,8 +143,8 @@ export default defineComponent({
     readyToAdd(): boolean {
       if (this.inspectedSource === 'nair-rtvc-source') {
         // 同一scene上では1つだけ
-        for (const s of ScenesService.instance().activeScene.items) {
-          if (SourcesService.instance().getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
+        for (const s of ScenesService.instance().activeScene?.items ?? []) {
+          if (SourcesService.instance().getSourceById(s.sourceId)?.type === 'nair-rtvc-source') return false;
         }
       }
 

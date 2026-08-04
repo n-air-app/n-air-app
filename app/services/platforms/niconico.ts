@@ -153,11 +153,11 @@ export class NiconicoService extends Service implements IPlatformService {
   }
 
   get oauthToken() {
-    return this.userService.platform.token;
+    return this.userService.platform!.token;
   }
 
   get niconicoUserId() {
-    return this.userService.platform.id;
+    return this.userService.platform!.id;
   }
 
   /** 配信中番組ID
@@ -183,7 +183,7 @@ export class NiconicoService extends Service implements IPlatformService {
       console.log('streamingService.streamingStatusChange! ', this.streamingStatus);
       if (this.streamingStatus === EStreamingState.Reconnecting) {
         console.log('reconnecting - checking stream key');
-        this.client.fetchIngestInfo(this.channelId).catch(() => {
+        this.client.fetchIngestInfo(this.channelId!).catch(() => {
           console.log('niconico program has ended! stopping streaming.');
           this.streamingService.stopStreaming();
         });
@@ -406,7 +406,7 @@ export class NiconicoService extends Service implements IPlatformService {
   // TODO ニコニコOAuthのtoken更新に使う
   async fetchNewToken(): Promise<void> {
     const url = `${this.hostsService.niconicoOAuth}/oauth2/token`;
-    const headers = authorizedHeaders(this.userService.apiToken);
+    const headers = authorizedHeaders(this.userService.apiToken!);
     const request = new Request(url, { headers });
 
     const response = await fetch(request);

@@ -5,7 +5,7 @@ export function getDisplayName(chat: WrappedMessage): string {
     return '';
   }
   if (chat.filtered) {
-    return undefined;
+    return '';
   }
-  return chat.value.name;
+  return chat.value.name ?? '';
 }
