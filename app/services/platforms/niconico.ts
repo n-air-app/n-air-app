@@ -103,8 +103,9 @@ export class NiconicoService extends Service implements IPlatformService {
     try {
       json = JSON.parse(response.text);
     } catch (e) {
+      // 200 だが HTML 等の場合は未ログインではなく一時エラー扱い（validateLogin で LOGOUT しない）
       console.error('NiconicoService.getUserId: invalid JSON response', response.text);
-      return '';
+      throw new Error('NiconicoService.getUserId: invalid JSON response');
     }
     if (isSessionsMeResponse(json)) {
       if ('user' in json) {

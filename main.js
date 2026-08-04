@@ -272,7 +272,10 @@ async function recollectUserSessionCookie() {
       cookie.secure = true;
 
       await getAppSession().cookies.set(cookie);
-      console.log(`cookie changed ${JSON.stringify(cookie)}`);
+      // value（セッショントークン）はログに出さない
+      console.log(
+        `cookie changed name=${cookie.name} domain=${cookie.domain} sameSite=${cookie.sameSite} httpOnly=${cookie.httpOnly} secure=${cookie.secure}`,
+      );
     }
   } catch (e) {
     console.log(`cookie error ${e.toString()}`);
