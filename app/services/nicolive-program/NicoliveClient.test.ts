@@ -132,17 +132,18 @@ const upstreamErrorBody = 'upstream connect error or disconnect/reset before hea
 describe('非JSONレスポンスの安全な取り扱い', () => {
   test('fetchOnairUserProgramはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.get(
-      `${NicoliveClient.live2BaseURL}/unama/tool/v2/onairs/user`,
-      { body: upstreamErrorBody, status: 200 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.fetchOnairUserProgram().catch((e) => { error = e; });
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchOnairUserProgram/);
-    // 元のSyntaxErrorがcauseとして保持され、調査時に読めること
     expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
@@ -276,12 +277,18 @@ suites.forEach((suite: Suite) => {
       niconicoSession: 'dummy',
     });
 
-    fetchMock[suite.method](suite.base + suite.path, dummyBody);
+    // Cookie 明示付与のため requestAPI は renderer では main 経由になる
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: JSON.stringify(dummyBody),
+    });
     // @ts-expect-error 引数の型
     const result = await client[suite.name](...suite.args);
 
     expect(result).toEqual({ ok: true, value: dummyBody.data });
-    expect(fetchMock.callHistory.done()).toBe(true);
+    expect(fetchViaMainProcess).toHaveBeenCalled();
   });
 });
 

@@ -70,6 +70,8 @@ const createInjectee = ({
   isNiconicoLoggedIn = false,
   updateStreamSettings = noop,
   optimizeForNiconico = false,
+  panelProgramID = '',
+  panelProgramStatus = 'end' as 'reserved' | 'test' | 'onAir' | 'end',
 } = {}) => ({
   SettingsService: {
     state: {
@@ -108,7 +110,8 @@ const createInjectee = ({
   NicoliveCommentSynthesizerService: {},
   NicoliveProgramService: {
     state: {
-      programID: '',
+      programID: panelProgramID,
+      status: panelProgramStatus,
     },
     fetchProgram: noop,
   },
@@ -593,10 +596,59 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   );
 
   instance.toggleStreaming = jest.fn();
+  showWindow.mockClear();
 
   await instance.toggleStreamingAsync();
 
+  // パネル未取得 + チャンネルあり → 種別選択ダイアログ
+  expect(showWindow).toHaveBeenCalled();
   expect(instance.toggleStreaming).not.toHaveBeenCalled();
+});
+
+test('toggleStreamingAsync: パネルで番組取得済みならチャンネル権限があってもダイアログなしで配信開始する', async () => {
+  const updateStreamSettings = jest.fn(() => {
+    return { key: 'stream-key' };
+  });
+  setup({
+    injectee: createInjectee({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+      panelProgramID: 'lv-panel-1',
+      panelProgramStatus: 'test',
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+  const channels = [
+    {
+      id: 'ch1',
+      name: 'channel',
+      ownerName: 'owner',
+      thumbnailUrl: '',
+      smallThumbnailUrl: '',
+    },
+  ];
+
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv-user-1' }));
+  instance.client.fetchOnairChannels = jest.fn(() =>
+    Promise.resolve({ ok: true, value: channels }),
+  );
+  instance.toggleStreaming = jest.fn();
+  instance.optimizeForNiconicoAndStartStreaming = jest.fn();
+  showWindow.mockClear();
+
+  await instance.toggleStreamingAsync();
+
+  expect(showWindow).not.toHaveBeenCalled();
+  // onairs/user があればそれを優先
+  expect(updateStreamSettings).toHaveBeenCalledWith('lv-user-1');
+  expect(instance.client.fetchOnairChannels).not.toHaveBeenCalled();
 });
 
 test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログインしていて、番組がなかった場合', async () => {

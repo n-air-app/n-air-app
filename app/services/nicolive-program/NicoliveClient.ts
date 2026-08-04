@@ -6,7 +6,6 @@ import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } f
 import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
-import { handleErrors } from 'util/requests';
 import { SentryReport } from 'util/sentry-report';
 
 import {
@@ -293,8 +292,12 @@ export class NicoliveClient {
       };
     }
 
-    // 正常成功
-    if (res.ok) {
+    // HTTP は成功でも API 側 meta.status がエラーのことがある（その場合は失敗扱い）
+    const metaStatus =
+      obj && typeof obj === 'object' && obj.meta && typeof obj.meta.status === 'number'
+        ? (obj.meta.status as number)
+        : undefined;
+    if (res.ok && (metaStatus === undefined || metaStatus === 200)) {
       return {
         ok: true,
         value: obj.data as ResultType,
@@ -302,11 +305,15 @@ export class NicoliveClient {
       };
     }
 
-    // 正常失敗
+    // 正常失敗（HTTP エラー、または HTTP 成功だが meta.status がエラー）
     return {
       ok: false,
       value: obj as CommonErrorResponse,
-      diag: { route, httpStatus: res.status, failureKind: 'http_error' },
+      diag: {
+        route,
+        httpStatus: res.status,
+        failureKind: 'http_error',
+      },
     };
   }
 
@@ -338,7 +345,8 @@ export class NicoliveClient {
 
   /**
    * ニコニコのセッションを読みだし
-   * rendererのdocument.cookieからはローカル扱いになって読めないので、mainプロセスで取る
+   * renderer の document.cookie からは読めないので Electron session から取る。
+   * domain フィルタを使い、SameSite 属性に依存せず jar 上の user_session を得る。
    */
   private async fetchSession(): Promise<string> {
     if (this.options.niconicoSession) {
@@ -346,31 +354,51 @@ export class NicoliveClient {
     }
 
     const { session } = remote.getCurrentWebContents();
-    return new Promise((resolve, reject) => {
-      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then((cookies) => {
-        if (cookies.length < 1) return reject(new NotLoggedInError());
-        resolve(cookies[0].value);
-      });
+    const cookies = await session.cookies.get({
+      domain: getCookieDomain(),
+      name: 'user_session',
     });
+    if (cookies.length < 1) {
+      throw new NotLoggedInError();
+    }
+    return cookies[0].value;
   }
 
+  /**
+   * 認証付き API リクエスト。
+   * SameSite=Lax の user_session は app origin からのクロスサイト fetch では自動付与されない。
+   * Cookie は renderer では forbidden header のため、session 値を明示して main 経由で送る。
+   */
   private async requestAPI<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
     options: RequestInit = {},
   ): Promise<WrappedResult<T>> {
-    // Origin リクエストヘッダーを付けるには main process で fetch を使う必要がある
-    const viaMainProcess = options.headers && 'Origin' in options.headers;
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> | undefined),
+    };
+
+    // renderer（および niconicoSession を渡すテスト）ではセッションを明示付与する
+    if (process.type === 'renderer' || this.options.niconicoSession) {
+      try {
+        const userSession = await this.fetchSession();
+        headers['X-Niconico-Session'] = userSession;
+        headers.Cookie = `user_session=${userSession}`;
+      } catch (err) {
+        return NicoliveClient.wrapFetchError(err as Error, 'renderer');
+      }
+    }
+
+    // Cookie / Origin は renderer では forbidden のため main 経由にする
+    const viaMainProcess =
+      process.type === 'renderer'
+      && (Object.prototype.hasOwnProperty.call(headers, 'Cookie')
+        || Object.prototype.hasOwnProperty.call(headers, 'Origin'));
     const route: RequestRoute = viaMainProcess ? 'main' : 'renderer';
 
-    const headers: HeadersInit = {};
-    // renderer process だと cookieが取れないので、main process で取ってきて付ける
-    if (process.type === 'renderer') {
-      headers['X-Niconico-Session'] = await this.fetchSession();
-    }
     const requestInit = NicoliveClient.createRequest(method, {
       ...options,
-      headers: { ...headers, ...options.headers },
+      headers,
     });
     try {
       const resp = await (viaMainProcess ? fetchViaMainProcess : fetch)(url, requestInit);
@@ -511,13 +539,26 @@ export class NicoliveClient {
    */
   async fetchOnairUserProgram(): Promise<OnairUserProgramData> {
     const url = `${NicoliveClient.live2BaseURL}/unama/tool/v2/onairs/user`;
-    const headers = new Headers();
-    const userSession = await this.fetchSession();
-    headers.append('X-niconico-session', userSession);
-    const request = new Request(url, { headers });
-    const response = await fetch(request).then(handleErrors);
-    const json = await NicoliveClient.parseJsonOrThrow(response, 'fetchOnairUserProgram');
-    return json.data;
+    // requestAPI と同様、Cookie + X-Niconico-Session を main 経由で送る
+    const result = await this.requestAPI<OnairUserProgramData>('GET', url);
+    if (!isOk(result)) {
+      if (result.diag?.failureKind === 'not_logged_in' || result.value instanceof NotLoggedInError) {
+        throw result.value instanceof NotLoggedInError ? result.value : new NotLoggedInError();
+      }
+      if (result.diag?.failureKind === 'json_parse') {
+        throw new Error(
+          `fetchOnairUserProgram: response is not valid JSON (status=${result.diag.httpStatus})`,
+          { cause: result.value },
+        );
+      }
+      if (result.value instanceof Error) {
+        throw result.value;
+      }
+      // handleErrors 相当: HTTP/API エラーは status 付き Error で呼び出し側に返す
+      const status = result.diag?.httpStatus ?? result.value?.meta?.status ?? 0;
+      throw new Error(`fetchOnairUserProgram failed: ${status}`);
+    }
+    return result.value ?? {};
   }
 
   /**
