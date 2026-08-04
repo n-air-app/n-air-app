@@ -149,38 +149,46 @@ describe('非JSONレスポンスの安全な取り扱い', () => {
 
   test('fetchKonomiTagsはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.post(
-      `${NicoliveClient.live2ApiBaseURL}/api/v1/konomiTags/GetFollowing`,
-      { body: upstreamErrorBody, status: 200 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.fetchKonomiTags(String(userID)).catch((e) => { error = e; });
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchKonomiTags/);
+    expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test('fetchUserFollowはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.get(
-      NicoliveClient.userFollowEndpoint(String(userID)),
-      { body: upstreamErrorBody, status: 200 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.fetchUserFollow(String(userID)).catch((e) => { error = e; });
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchUserFollow/);
+    expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test('unFollowUserは失敗レスポンスがJSONでなくてもSyntaxErrorを投げず本来のエラーメッセージを返す', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.delete(
-      NicoliveClient.userFollowEndpoint(String(userID)),
-      { body: upstreamErrorBody, status: 502 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.unFollowUser(String(userID)).catch((e) => { error = e; });

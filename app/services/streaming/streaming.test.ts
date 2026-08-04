@@ -651,6 +651,53 @@ test('toggleStreamingAsync: パネルで番組取得済みならチャンネル�
   expect(instance.client.fetchOnairChannels).not.toHaveBeenCalled();
 });
 
+test('toggleStreamingAsync: onairs/user が空でもパネル番組があればダイアログなしで配信開始する', async () => {
+  const updateStreamSettings = jest.fn(() => {
+    return { key: 'stream-key' };
+  });
+  setup({
+    injectee: createInjectee({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+      panelProgramID: 'lv-panel-1',
+      panelProgramStatus: 'test',
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({}));
+  instance.client.fetchOnairChannels = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      value: [
+        {
+          id: 'ch1',
+          name: 'channel',
+          ownerName: 'owner',
+          thumbnailUrl: '',
+          smallThumbnailUrl: '',
+        },
+      ],
+    }),
+  );
+  instance.toggleStreaming = jest.fn();
+  instance.optimizeForNiconicoAndStartStreaming = jest.fn();
+  showWindow.mockClear();
+
+  await instance.toggleStreamingAsync();
+
+  expect(showWindow).not.toHaveBeenCalled();
+  expect(updateStreamSettings).toHaveBeenCalledWith('lv-panel-1');
+  expect(instance.client.fetchOnairChannels).not.toHaveBeenCalled();
+});
+
 test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログインしていて、番組がなかった場合', async () => {
   setup({
     injectee: createInjectee({

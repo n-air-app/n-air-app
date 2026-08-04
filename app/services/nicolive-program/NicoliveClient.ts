@@ -374,38 +374,84 @@ export class NicoliveClient {
     url: string,
     options: RequestInit = {},
   ): Promise<WrappedResult<T>> {
+    try {
+      const res = await this.requestWithSession(method, url, options);
+      // wrapResult が Response / MainProcessFetchResponse 両方を扱える形に合わせて渡す
+      return NicoliveClient.wrapResult<T>(
+        {
+          ok: res.ok,
+          status: res.status,
+          headers: res.headers,
+          text: res.body,
+        },
+        res.route,
+      );
+    } catch (err) {
+      return NicoliveClient.wrapFetchError(err as Error, process.type === 'renderer' ? 'main' : 'renderer');
+    }
+  }
+
+  /**
+   * Cookie + X-Niconico-Session を付与した HTTP リクエスト（レスポンス形状を問わない汎用）。
+   * follow / konomi など wrapResult 前提ではない API 用。
+   */
+  private async requestWithSession(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    url: string,
+    options: RequestInit = {},
+  ): Promise<{
+    ok: boolean;
+    status: number;
+    statusText: string;
+    body: string;
+    headers: [string, string][];
+    route: RequestRoute;
+  }> {
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> | undefined),
     };
 
-    // renderer（および niconicoSession を渡すテスト）ではセッションを明示付与する
     if (process.type === 'renderer' || this.options.niconicoSession) {
-      try {
-        const userSession = await this.fetchSession();
-        headers['X-Niconico-Session'] = userSession;
-        headers.Cookie = `user_session=${userSession}`;
-      } catch (err) {
-        return NicoliveClient.wrapFetchError(err as Error, 'renderer');
-      }
+      const userSession = await this.fetchSession();
+      headers['X-Niconico-Session'] = userSession;
+      headers.Cookie = `user_session=${userSession}`;
     }
 
-    // Cookie / Origin は renderer では forbidden のため main 経由にする
     const viaMainProcess =
       process.type === 'renderer'
       && (Object.prototype.hasOwnProperty.call(headers, 'Cookie')
         || Object.prototype.hasOwnProperty.call(headers, 'Origin'));
     const route: RequestRoute = viaMainProcess ? 'main' : 'renderer';
-
     const requestInit = NicoliveClient.createRequest(method, {
       ...options,
       headers,
     });
-    try {
-      const resp = await (viaMainProcess ? fetchViaMainProcess : fetch)(url, requestInit);
-      return NicoliveClient.wrapResult<T>(resp, route);
-    } catch (err) {
-      return NicoliveClient.wrapFetchError(err as Error, route);
+
+    if (viaMainProcess) {
+      const res = await fetchViaMainProcess(url, requestInit);
+      return {
+        ok: res.ok,
+        status: res.status,
+        statusText: `${res.status}`,
+        body: res.text,
+        headers: res.headers,
+        route,
+      };
     }
+
+    const res = await fetch(url, requestInit);
+    const headerEntries: [string, string][] = [];
+    res.headers.forEach((value, key) => {
+      headerEntries.push([key, value]);
+    });
+    return {
+      ok: res.ok,
+      status: res.status,
+      statusText: res.statusText,
+      body: await res.text(),
+      headers: headerEntries,
+      route,
+    };
   }
 
   static jsonBody<T>(body: T, extraHeaders: HeadersInit = {}): RequestInit {
@@ -554,8 +600,12 @@ export class NicoliveClient {
       if (result.value instanceof Error) {
         throw result.value;
       }
-      // handleErrors 相当: HTTP/API エラーは status 付き Error で呼び出し側に返す
-      const status = result.diag?.httpStatus ?? result.value?.meta?.status ?? 0;
+      // handleErrors 相当: API エラーは meta.status があればそちらを優先して調査しやすくする
+      const metaStatus =
+        result.value && typeof result.value === 'object' && 'meta' in result.value
+          ? result.value.meta?.status
+          : undefined;
+      const status = metaStatus ?? result.diag?.httpStatus ?? 0;
       throw new Error(`fetchOnairUserProgram failed: ${status}`);
     }
     return result.value ?? {};
@@ -762,18 +812,25 @@ export class NicoliveClient {
    * @returns
    */
   async fetchKonomiTags(userId: string): Promise<KonomiTag[]> {
-    const res = await fetch(
+    const res = await this.requestWithSession(
+      'POST',
       `${NicoliveClient.live2ApiBaseURL}/api/v1/konomiTags/GetFollowing`,
-      NicoliveClient.createRequest(
-        'POST',
-        NicoliveClient.jsonBody(
-          { follower_id: { value: userId, type: 'USER' } },
-          { 'x-service-id': 'n-air-app' },
-        ),
+      NicoliveClient.jsonBody(
+        { follower_id: { value: userId, type: 'USER' } },
+        { 'x-service-id': 'n-air-app' },
       ),
     );
     if (res.ok) {
-      const json = (await NicoliveClient.parseJsonOrThrow(res, 'fetchKonomiTags')) as KonomiTags;
+      let json: KonomiTags;
+      try {
+        json = JSON.parse(res.body) as KonomiTags;
+      } catch (e) {
+        console.warn('fetchKonomiTags: non-json body', res.body.slice(0, 200));
+        throw new Error(
+          `fetchKonomiTags: response is not valid JSON (status=${res.status})`,
+          { cause: e },
+        );
+      }
       return json.konomi_tags;
     }
     throw new Error(`fetchKonomiTags failed: ${res.status} ${res.statusText}`);
@@ -789,14 +846,20 @@ export class NicoliveClient {
    * @returns フォロー中ならtrue
    */
   async fetchUserFollow(userId: string): Promise<boolean> {
-    const res = await fetch(
-      NicoliveClient.userFollowEndpoint(userId),
-      NicoliveClient.createRequest('GET', {
-        headers: FrontendIdHeader,
-      }),
-    );
+    const res = await this.requestWithSession('GET', NicoliveClient.userFollowEndpoint(userId), {
+      headers: FrontendIdHeader,
+    });
     if (res.ok) {
-      const json = await NicoliveClient.parseJsonOrThrow(res, 'fetchUserFollow');
+      let json: unknown;
+      try {
+        json = JSON.parse(res.body);
+      } catch (e) {
+        console.warn('fetchUserFollow: non-json body', res.body.slice(0, 200));
+        throw new Error(
+          `fetchUserFollow: response is not valid JSON (status=${res.status})`,
+          { cause: e },
+        );
+      }
       console.info('fetchUserFollow', json);
       if (isValidUserFollowStatusResponse(json)) {
         return json.data.following;
@@ -824,15 +887,12 @@ export class NicoliveClient {
    */
   async followUser(userId: string): Promise<void> {
     this.prepareUserFollowApi();
-    const res = await fetch(
-      NicoliveClient.userFollowEndpoint(userId),
-      NicoliveClient.createRequest('POST', {
-        headers: {
-          ...FrontendIdHeader,
-          'X-Request-With': 'N Air',
-        },
-      }),
-    );
+    const res = await this.requestWithSession('POST', NicoliveClient.userFollowEndpoint(userId), {
+      headers: {
+        ...FrontendIdHeader,
+        'X-Request-With': 'N Air',
+      },
+    });
     if (!res.ok) {
       throw new Error(`followUser failed: ${res.status} ${res.statusText}`);
     }
@@ -844,19 +904,15 @@ export class NicoliveClient {
    */
   async unFollowUser(userId: string): Promise<void> {
     this.prepareUserFollowApi();
-    const res = await fetch(
-      NicoliveClient.userFollowEndpoint(userId),
-      NicoliveClient.createRequest('DELETE', {
-        headers: {
-          ...FrontendIdHeader,
-          'X-Request-With': 'N Air',
-        },
-      }),
-    );
+    const res = await this.requestWithSession('DELETE', NicoliveClient.userFollowEndpoint(userId), {
+      headers: {
+        ...FrontendIdHeader,
+        'X-Request-With': 'N Air',
+      },
+    });
     if (!res.ok) {
-      // ログ目的なのでJSONパースは不要 — body がプレーンテキストの場合に
-      // res.json() が SyntaxError を投げて本来のエラーを潰してしまうのを避ける
-      console.info('unFollowUser', userId, res, await res.text());
+      // ログ目的で body テキストのみ（JSON 前提にしない）
+      console.info('unFollowUser', userId, res.status, res.body);
       throw new Error(`unFollowUser failed: ${res.status} ${res.statusText}`);
     }
   }
