@@ -8,6 +8,7 @@ export enum EncoderFamily {
   x264 = 'obs_x264',
   nvenc = 'nvenc',
   nvencNew = 'jim_nvenc',
+  nvencH264Tex = 'obs_nvenc_h264_tex',
   amd = 'amd',
   qsv = 'qsv',
   advancedQsv = 'obs_qsv11',
@@ -201,7 +202,7 @@ export const AllKeyDescriptions: KeyDescription[] = [
                 ],
               },
               {
-                values: ['nvenc', 'jim_nvenc'],
+                values: ['nvenc', 'jim_nvenc', 'obs_nvenc_h264_tex'],
                 params: [
                   // 'Rescale' // bool
                   //    'RescaleRes' // '1920x1200' ... '640x400' (10個)
@@ -351,7 +352,7 @@ export const AllKeyDescriptions: KeyDescription[] = [
                 ],
               },
               {
-                values: ['nvenc', 'jim_nvenc'],
+                values: ['nvenc', 'jim_nvenc', 'obs_nvenc_h264_tex'],
                 params: [
                   {
                     key: OptimizationKey.simpleUseAdvanced,

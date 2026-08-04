@@ -36,6 +36,7 @@ import Utils from '../utils';
 
 import { getBestSettingsForNiconico, getRecommendedResolutionForHeight } from './niconico-optimization';
 import {
+  EncoderFamily,
   ISettingsAccessor,
   OptimizationKey,
   OptimizedSettings,
@@ -624,6 +625,13 @@ export class SettingsService
       const accessor = new SettingsKeyAccessor(this);
       const opt = new Optimizer(accessor, best);
       opt.optimize(best);
+
+      // obs_nvenc_h264_tex はデフォルトで B フレーム(bf=2)が有効になっており、
+      // ニコ生 RTMP サーバーとの相性で接続が切断される問題があるため無効化する。
+      // 他の最適化項目が部分的に失敗しても、再接続ループの回避は独立して適用する。
+      if (best.encoder === EncoderFamily.nvencH264Tex) {
+        this.setSettingValue('Output', 'bf', 0);
+      }
 
       // 確実に書き込めたか確認するため、読み込み直す
       accessor.clearCache();

@@ -115,6 +115,7 @@ exports[`filterKeyDescriptions 1`] = `
                 "values": [
                   "nvenc",
                   "jim_nvenc",
+                  "obs_nvenc_h264_tex",
                 ],
               },
               {
