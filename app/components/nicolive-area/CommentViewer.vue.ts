@@ -386,19 +386,43 @@ export default defineComponent({
             menu.append({
               id: 'Ban comment owner',
               label: 'ユーザーを配信からブロック',
-              click: () => {
-                NicoliveCommentFilterService.instance()
-                  .addFilter({
+              click: async () => {
+                try {
+                  await NicoliveCommentFilterService.instance().addFilter({
                     type: 'user',
                     body: userId,
                     messageId: `${id}`,
                     memo: content,
-                  })
-                  .catch((e: unknown) => {
-                    if (e instanceof NicoliveFailure) {
-                      openErrorDialogFromFailure(e);
-                    }
                   });
+                  SnackbarService.instance().show({
+                    position: 'niconico',
+                    message: 'ユーザーを配信からブロックしました',
+                    action: {
+                      label: '取り消す',
+                      onClick: async () => {
+                        try {
+                          const filterRecord = NicoliveCommentFilterService.instance().findFilterByTypeAndBody(
+                            'user',
+                            userId,
+                          );
+                          if (!filterRecord) {
+                            console.warn('unBlockUser: block user filter not found', userId);
+                            return;
+                          }
+                          await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]);
+                        } catch (e: unknown) {
+                          if (e instanceof NicoliveFailure) {
+                            openErrorDialogFromFailure(e);
+                          }
+                        }
+                      },
+                    },
+                  });
+                } catch (e: unknown) {
+                  if (e instanceof NicoliveFailure) {
+                    openErrorDialogFromFailure(e);
+                  }
+                }
               },
             });
           }
