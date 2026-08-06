@@ -406,7 +406,7 @@ export default defineComponent({
                             userId,
                           );
                           if (!filterRecord) {
-                            console.warn('unBlockUser: block user filter not found', userId);
+                            console.warn('undoBlockUser: block user filter not found', userId);
                             return;
                           }
                           await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]);

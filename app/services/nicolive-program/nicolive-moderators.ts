@@ -323,7 +323,18 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
           action: {
             label: '元に戻す',
             onClick: async () => {
-              await this.removeModerator(userId);
+              try {
+                await this.removeModerator(userId);
+              } catch (caught) {
+                if (caught instanceof NicoliveFailure) {
+                  openErrorDialogFromFailure(caught);
+                } else {
+                  const error = caught instanceof Error ? caught : new Error(String(caught));
+                  SentryReport.error('NicoliveModeratorsService', 'undoAddModerator', error, {
+                    extra: { userId },
+                  });
+                }
+              }
             },
           },
         });
