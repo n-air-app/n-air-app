@@ -154,23 +154,23 @@ function setupTranscription(
     modelDownloaded?: boolean;
     audioDeviceId?: string;
     emptyDevices?: boolean;
+    // vosk-cli の `-l` が返すデバイス一覧を差し替える (emptyDevices より優先)
+    devices?: Array<{ id: string; name: string; index: number }>;
   } = {},
 ) {
   const downloadedStatus = { state: 'downloaded' as const };
   const notDownloadedStatus = { state: 'not_downloaded' as const };
 
-  const prepareOptions = options.emptyDevices
-    ? {
-      mockOverrides: {
-        listAudioDevices: emptyDeviceList,
-        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
-      },
-    }
-    : {
-      mockOverrides: {
-        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
-      },
-    };
+  const explicitDeviceList = options.devices
+    ? { version: '1', devices: options.devices }
+    : undefined;
+  const deviceList = explicitDeviceList ?? (options.emptyDevices ? emptyDeviceList : undefined);
+  const prepareOptions = {
+    mockOverrides: {
+      ...(deviceList ? { listAudioDevices: deviceList } : {}),
+      voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
+    },
+  };
 
   const { instance, ...rest } = prepare(prepareOptions);
 
@@ -844,6 +844,87 @@ describe('TranscriptionService', () => {
       expect(instance.getAudioDeviceIndex('test-device', -1)).toBe(0);
       expect(instance.getAudioDeviceIndex('nonexistent', -1)).toBe(-1);
       expect(instance.getAudioDeviceIndex(null, -1)).toBe(-1);
+    });
+
+    describe('getRawAudioDeviceIndex (vosk-cli device index workaround, issue #1394)', () => {
+      // 実機で再現した構成: 既定デバイス (Realtek) が vosk-cli の `-l` で先頭に差し込まれるため、
+      // `-l` の並びと ID 辞書順 (= WASAPI の生の列挙順) が食い違う
+      const REALTEK = '{0.0.1.00000000}.{4dcb28e3-2fef-48b6-b9d6-176a8fabaa53}';
+      const LOGICOOL = '{0.0.1.00000000}.{0966b276-c28c-4c1b-88eb-85519f7d7a4a}';
+      const defaultReorderedDevices = [
+        { id: REALTEK, name: 'マイク (Realtek(R) Audio)', index: 0 },
+        { id: LOGICOOL, name: 'マイク (Logicool Wireless Headset)', index: 1 },
+      ];
+
+      it('recovers the raw enumeration order by sorting device ids', () => {
+        const { instance } = setupTranscription({ devices: defaultReorderedDevices });
+
+        // `-l` の並びはそのまま (既定が先頭)
+        expect(instance.getAudioDeviceList().map((d) => d.id)).toEqual([REALTEK, LOGICOOL]);
+        // `-l` 内の位置は従来通り
+        expect(instance.getAudioDeviceIndex(REALTEK, -1)).toBe(0);
+        expect(instance.getAudioDeviceIndex(LOGICOOL, -1)).toBe(1);
+        // `-d` に渡す添字は ID 辞書順 = 生の列挙順
+        expect(instance.getRawAudioDeviceIndex(LOGICOOL, -1)).toBe(0);
+        expect(instance.getRawAudioDeviceIndex(REALTEK, -1)).toBe(1);
+      });
+
+      it('returns notFoundValue for unknown or null id', () => {
+        const { instance } = setupTranscription({ devices: defaultReorderedDevices });
+        expect(instance.getRawAudioDeviceIndex('nonexistent', -1)).toBe(-1);
+        expect(instance.getRawAudioDeviceIndex(null, -1)).toBe(-1);
+      });
+
+      it('agrees with getAudioDeviceIndex when the default device is already first in raw order', () => {
+        // 既定が生の列挙順でも先頭 (k=0) の正常系。既に動いている環境を壊さないことの確認
+        const { instance } = setupTranscription({
+          devices: [
+            { id: LOGICOOL, name: 'マイク (Logicool Wireless Headset)', index: 0 },
+            { id: REALTEK, name: 'マイク (Realtek(R) Audio)', index: 1 },
+          ],
+        });
+        expect(instance.getRawAudioDeviceIndex(LOGICOOL, -1)).toBe(0);
+        expect(instance.getRawAudioDeviceIndex(REALTEK, -1)).toBe(1);
+      });
+
+      it('handles a single device', () => {
+        const { instance } = setupTranscription();
+        expect(instance.getRawAudioDeviceIndex('test-device', -1)).toBe(0);
+      });
+
+      it('falls back to the list position when the raw-order assumption does not hold', () => {
+        // devices[1..] が ID 辞書順に並んでいない = 前提が崩れている環境。
+        // 生の列挙順を復元できないので、従来の挙動 (`-l` 内の位置) に落とす
+        const OTHER = '{0.0.1.00000000}.{9999ffff-0000-0000-0000-000000000000}';
+        const { instance } = setupTranscription({
+          devices: [
+            { id: REALTEK, name: 'Default Mic', index: 0 },
+            { id: OTHER, name: 'Mic B', index: 1 },
+            { id: LOGICOOL, name: 'Mic A', index: 2 },
+          ],
+        });
+        expect(instance.getRawAudioDeviceIndex(REALTEK, -1)).toBe(0);
+        expect(instance.getRawAudioDeviceIndex(OTHER, -1)).toBe(1);
+        expect(instance.getRawAudioDeviceIndex(LOGICOOL, -1)).toBe(2);
+      });
+
+      it('passes the raw index to the vosk client', () => {
+        const { instance, client } = setupTranscription({
+          modelDownloaded: true,
+          devices: defaultReorderedDevices,
+        });
+
+        instance.setAudioDeviceId(REALTEK);
+        instance.setEnabled(true);
+
+        // 既定 (Realtek) は `-l` では index 0 だが、生の列挙順では 1
+        expect(instance.state.audioDeviceId).toBe(REALTEK);
+        expect(client.audioDeviceIndex).toBe(1);
+
+        instance.setAudioDeviceId(LOGICOOL);
+        expect(instance.state.audioDeviceId).toBe(LOGICOOL);
+        expect(client.audioDeviceIndex).toBe(0);
+      });
     });
 
     it('should set and correct audio device ID', () => {

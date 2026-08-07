@@ -103,6 +103,29 @@ export type ActiveStatus =
 
 export type VoskError = 'launchError' | 'error';
 
+/** デバイスID 文字列の ordinal 比較 (WASAPI の生の列挙順に相当する。getRawAudioDeviceIndex 参照) */
+function compareDeviceId(a: { id: string }, b: { id: string }): number {
+  if (a.id < b.id) return -1;
+  if (a.id > b.id) return 1;
+  return 0;
+}
+
+/**
+ * 「生の列挙順 == デバイスID 辞書順」の前提が成立しているかを検証する。
+ *
+ * vosk-cli は既定デバイスだけを一覧の先頭に差し込むので、残り (devices[1..]) は生の列挙順を
+ * 保っているはずである。したがって devices[1..] が ID 辞書順に並んでいれば前提が成立して
+ * いると判断できる。
+ */
+function isRawOrderRecoverable(devices: { id: string }[]): boolean {
+  for (let i = 2; i < devices.length; i += 1) {
+    if (compareDeviceId(devices[i - 1], devices[i]) > 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export class TranscriptionService extends PersistentStatefulService<ITranscriptionServiceState> {
   @Inject() transcriptionSourceUsageService: TranscriptionSourceUsageService;
   @Inject() transcriptionSourceService: TranscriptionSourceService;
@@ -301,7 +324,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       )
       .subscribe((audioDeviceId) => {
         if (this.client) {
-          this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
+          this.client.audioDeviceIndex = this.getRawAudioDeviceIndex(audioDeviceId, 0);
         }
       });
 
@@ -514,7 +537,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         voskCliPath: this.voskCliPath,
         modelPath: this.getModelPath(this.state.voskModelName!),
       });
-      this.client!.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
+      this.client!.audioDeviceIndex = this.getRawAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
     } catch (err) {
       SentryReport.error('TranscriptionService', 'createClient', err, {
         tags: { voskModelName: this.state.voskModelName },
@@ -623,7 +646,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     if (this.client) {
       // デバイスリストを更新したので、audioDeviceIndex も更新する(見つかるようになったかもしれない)
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
+      this.client.audioDeviceIndex = this.getRawAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
@@ -653,6 +676,10 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
   }
 
+  /**
+   * vosk-cli の `-l` が返すデバイス一覧 (audioDevices$) の中での位置を返す。
+   * `-d` に渡す添字ではない点に注意 (そちらは getRawAudioDeviceIndex() を使う)。
+   */
   getAudioDeviceIndex<T>(id: string | null, notFoundValue: T): number | T {
     if (!id) {
       return notFoundValue;
@@ -664,13 +691,49 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     return index;
   }
 
+  /**
+   * vosk-cli の `-d` に渡すためのデバイス添字を返す。
+   *
+   * vosk-cli v1.0.2 には、`-l`(一覧出力)と `-d`(デバイス選択)でデバイス番号の数え方が
+   * 食い違う不具合がある (issue #1394)。
+   * - `-l` はシステム既定デバイスを配列先頭に差し込んでソートした後の添字を返す
+   * - `-d` は WASAPI の生の列挙順 (EnumAudioEndpoints の順) に対する添字として解釈する
+   *
+   * 実機調査で、生の列挙順は「デバイスID 文字列の ordinal ソート順」と一致することが分かって
+   * いる (レジストリ MMDevices\Audio\Capture のサブキー順に由来する)。これを利用し、`-l` の
+   * 一覧を ID 順にソートして生の列挙順を復元し、その位置を添字として返す。
+   *
+   * ただしこれは Windows の文書化された仕様ではなく実装依存の観測事実なので、前提が成立して
+   * いるかを検証してから採用する。成立しない環境では現状の挙動 (= 一覧内の位置) に落とす。
+   *
+   * vosk-cli 側が ID 指定に対応したら、この workaround は撤去できる。
+   */
+  getRawAudioDeviceIndex<T>(id: string | null, notFoundValue: T): number | T {
+    if (!id) {
+      return notFoundValue;
+    }
+    const devices = this.audioDevices$.value;
+    if (!isRawOrderRecoverable(devices)) {
+      // 前提が崩れているので安全側 (現状の挙動) に落とす
+      return this.getAudioDeviceIndex(id, notFoundValue);
+    }
+    const rawIndex = [...devices].sort(compareDeviceId).findIndex((device) => device.id === id);
+    if (rawIndex === -1) {
+      return notFoundValue;
+    }
+    return rawIndex;
+  }
+
   getAudioDeviceList(): { id: string; name: string }[] {
     return this.audioDevices$.value;
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
-    const index = this.getAudioDeviceIndex(audioDeviceId, 0);
-    const actualDeviceId = this.audioDevices$.value.length > 0 ? this.audioDevices$.value[index].id : null;
+    const devices = this.audioDevices$.value;
+    const found = audioDeviceId !== null && devices.some((device) => device.id === audioDeviceId);
+    // 見つからない場合は一覧の先頭にフォールバックする (デバイスが無ければ null)
+    const fallbackDeviceId = devices.length > 0 ? devices[0].id : null;
+    const actualDeviceId = found ? audioDeviceId : fallbackDeviceId;
     if (audioDeviceId !== actualDeviceId) {
       console.warn(
         `Audio device with id ${audioDeviceId} not found. Using ${actualDeviceId} instead.`,
