@@ -2,7 +2,6 @@ import { dwango } from '@n-air-app/nicolive-comment-protobuf';
 import { distinctUntilChanged, map, Subject, Subscription } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
-import { SnackbarService } from 'services/snackbar';
 import { WindowsService } from 'services/windows';
 import { isFakeMode } from 'util/fakeMode';
 import { SentryReport } from 'util/sentry-report';
@@ -307,8 +306,8 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     });
   }
 
-  async addModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }) {
-    if (this.isModerator(userId)) return;
+  async addModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }): Promise<boolean> {
+    if (this.isModerator(userId)) return false;
     const ok = await this.confirmModerator({
       userId,
       userName,
@@ -317,37 +316,18 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     if (ok) {
       try {
         await this.addModerator(userId);
-        SnackbarService.instance().show({
-          position: 'niconico',
-          message: `${userName}さんをモデレーターに追加しました`,
-          action: {
-            label: '元に戻す',
-            onClick: async () => {
-              try {
-                await this.removeModerator(userId);
-              } catch (caught) {
-                if (caught instanceof NicoliveFailure) {
-                  openErrorDialogFromFailure(caught);
-                } else {
-                  const error = caught instanceof Error ? caught : new Error(String(caught));
-                  SentryReport.error('NicoliveModeratorsService', 'undoAddModerator', error, {
-                    extra: { userId },
-                  });
-                }
-              }
-            },
-          },
-        });
+        return true;
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           openErrorDialogFromFailure(caught);
         }
       }
     }
+    return false;
   }
 
-  async removeModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }) {
-    if (!this.isModerator(userId)) return;
+  async removeModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }): Promise<boolean> {
+    if (!this.isModerator(userId)) return false;
     const ok = await this.confirmModerator({
       userId,
       userName,
@@ -356,12 +336,14 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     if (ok) {
       try {
         await this.removeModerator(userId);
+        return true;
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           openErrorDialogFromFailure(caught);
         }
       }
     }
+    return false;
   }
 
   private setState(state: INicoliveModeratorsService) {
