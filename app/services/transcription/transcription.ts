@@ -670,7 +670,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     );
     Sentry.addBreadcrumb({
       category: 'transcription',
-      message: 'audioDeviceId not found in device list; falling back to system default',
+      message: `Audio device ${audioDeviceId} not found in device list; falling back to system default`,
     });
     return null;
   }
