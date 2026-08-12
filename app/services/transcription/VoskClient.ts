@@ -15,14 +15,14 @@ export function getVoskCliPath(): string {
 }
 
 export type AudioDeviceInfo = {
-  index: number; // vosk-cli の `-l` 一覧内の位置。N Air は `-D` でID指定するため参照しない
+  index: number;
   id: string;
   name: string;
 };
 
 export type AudioDeviceList = {
   devices: AudioDeviceInfo[];
-  version: string; // vosk-cli version。1.0.2 でも出力されるため能力判定には使えない
+  version: string;
 };
 
 type VoskCliMessage =
@@ -115,7 +115,7 @@ export class VoskClient implements ITranscriber {
   private _voskCliProcess: ChildProcess | null = null;
   private transcribe$: Subject<TranscriptionMessage> | null = null;
 
-  constructor(options: { voskCliPath: string; modelPath: string; audioDeviceId?: string | null }) {
+  constructor(options: { voskCliPath: string; modelPath: string; audioDeviceId: string | null }) {
     // validate options
     if (!options.voskCliPath) {
       throw new Error('voskCliPath is required');
@@ -133,7 +133,7 @@ export class VoskClient implements ITranscriber {
     }
     this._voskCliPath = options.voskCliPath;
     this._modelPath = options.modelPath;
-    this._audioDeviceId = options.audioDeviceId ?? null;
+    this._audioDeviceId = options.audioDeviceId;
     this.transcribe$ = new Subject<TranscriptionMessage>();
   }
 
@@ -255,7 +255,7 @@ export class VoskClient implements ITranscriber {
 export function CreateVoskCliClient(options: {
   voskCliPath: string;
   modelPath: string;
-  audioDeviceId?: string | null;
+  audioDeviceId: string | null;
 }): ITranscriber {
   const { voskCliPath, modelPath, audioDeviceId } = options;
 

@@ -53,7 +53,7 @@ const getVoskModelURL = (name: string): string =>
 export interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
-  audioDeviceId?: string | null;
+  audioDeviceId: string | null;
   commentEnabled: boolean;
   commentPosition: CommentPosition;
   commentSize: CommentSize;
@@ -111,6 +111,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    audioDeviceId: null,
     commentEnabled: false,
     commentPosition: 'shita',
     commentFont: 'gothic',
@@ -296,7 +297,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // audioDeviceId 状態を監視して、状態が変わったらクライアントの audioDeviceId を更新する
     this.state$
       .pipe(
-        map((state) => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId),
         distinctUntilChanged(),
       )
       .subscribe((audioDeviceId) => {
@@ -315,7 +316,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private createAudioDeviceMutedStream() {
     merge(
       this.state$.pipe(
-        map((state) => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId),
         distinctUntilChanged(),
       ),
       this.audioService.audioSourceUpdated,
@@ -513,7 +514,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
         modelPath: this.getModelPath(this.state.voskModelName!),
-        audioDeviceId: this.resolveClientAudioDeviceId(this.state.audioDeviceId ?? null),
+        audioDeviceId: this.resolveClientAudioDeviceId(this.state.audioDeviceId),
       });
     } catch (err) {
       SentryReport.error('TranscriptionService', 'createClient', err, {
@@ -528,7 +529,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     this.subscription = this.client!.startTranscription().subscribe({
       next: (message) => {
-        console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
           const text = filterNoiseText(message.text);
           if (text) {
@@ -623,7 +623,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
     if (this.client) {
       // デバイスリストを更新したので、クライアントの audioDeviceId も更新する(見つかるようになったかもしれない)
-      this.client.audioDeviceId = this.resolveClientAudioDeviceId(this.state.audioDeviceId ?? null);
+      this.client.audioDeviceId = this.resolveClientAudioDeviceId(this.state.audioDeviceId);
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
