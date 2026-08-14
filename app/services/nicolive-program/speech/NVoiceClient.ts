@@ -1,5 +1,5 @@
 import { ChildProcess, spawn } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
+import { readdir, readFile, unlink } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
@@ -94,7 +94,9 @@ export class CommandLineClient {
   onTerminate(callback: () => void): () => void {
     this.terminateCallbacks.push(callback);
     return () => {
-      this.terminateCallbacks = this.terminateCallbacks.filter((c) => c !== callback);
+      this.terminateCallbacks = this.terminateCallbacks.filter(
+        (c) => c !== callback,
+      );
     };
   }
 
@@ -183,10 +185,14 @@ async function StartNVoice(
   };
 
   const client = new CommandLineClient(
-    spawn(enginePath, [dictionaryPath, userDictionary, modelPath, extraVoicesPath], {
-      stdio: 'pipe',
-      cwd,
-    }),
+    spawn(
+      enginePath,
+      [dictionaryPath, userDictionary, modelPath, extraVoicesPath],
+      {
+        stdio: 'pipe',
+        cwd,
+      },
+    ),
     log,
     true, // options.showStdout,
   );
@@ -229,8 +235,7 @@ export type Label = {
   phoneme: string;
 };
 
-function loadLabelFile(filename: string): Label[] {
-  const labels = readFileSync(filename, 'utf8');
+function parseLabels(labels: string): Label[] {
   const lines = labels.split(/\r?\n/).filter((line) => line.length > 0);
   const result: Label[] = [];
   for (const line of lines) {
@@ -242,6 +247,34 @@ function loadLabelFile(filename: string): Label[] {
     });
   }
   return result;
+}
+
+function isFileNotFoundError(err: unknown): err is NodeJS.ErrnoException {
+  return err instanceof Error && 'code' in err && err.code === 'ENOENT';
+}
+
+async function readFileIfExists(filename: string): Promise<Buffer | null> {
+  try {
+    return await readFile(filename);
+  } catch (err) {
+    if (isFileNotFoundError(err)) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+async function cleanupFiles(filenames: string[]): Promise<void> {
+  const results = await Promise.allSettled(
+    filenames.map((filename) => unlink(filename)),
+  );
+  const failed = results.find(
+    (result): result is PromiseRejectedResult =>
+      result.status === 'rejected' && !isFileNotFoundError(result.reason),
+  );
+  if (failed) {
+    throw failed.reason;
+  }
 }
 
 class NVoiceEngineError extends Error {
@@ -288,7 +321,7 @@ export class NVoiceClient {
       const dictionaryPath = 'open_jtalk_dic_shift_jis-1.11';
       const userDictionary = 'user.dic';
 
-      const models = readdirSync(baseDir).filter((s) => /.*\.pt$/.test(s));
+      const models = (await readdir(baseDir)).filter((s) => /.*\.pt$/.test(s));
       if (models.length !== 1) {
         throw new Error('model file found: ' + models.join(', '));
       }
@@ -305,7 +338,9 @@ export class NVoiceClient {
       let started = false;
       client.waitExit().then((code) => {
         if (!started) {
-          this.options.onError(new Error(`n-voice-engine start failed! ${code}`));
+          this.options.onError(
+            new Error(`n-voice-engine start failed! ${code}`),
+          );
         }
         this.commandLineClient = undefined; // 落ちたときは次回、起動を試みる
       });
@@ -383,7 +418,9 @@ export class NVoiceClient {
     } catch (err) {
       const opts: SentryReportOpts = {};
       if (err instanceof NVoiceEngineError) {
-        const tags: Record<string, string> = { 'NVoiceEngineError.code': err.code };
+        const tags: Record<string, string> = {
+          'NVoiceEngineError.code': err.code,
+        };
         const extra: Record<string, unknown> = {};
         for (const a of args) {
           if (a.sentryExtra) {
@@ -418,41 +455,52 @@ export class NVoiceClient {
       // ignore empty text
       return { wave: null, labels: [] };
     }
-    try {
-      await this._command(
-        'talk',
-        {
-          label: 'speed',
-          value: speed.toString(),
-        },
-        {
-          label: 'text',
-          value: text,
-          encoder: toShiftJisBase64,
-        },
-        {
-          label: 'filename',
-          value: filename,
-          encoder: toShiftJisBase64,
-          sentryExtra: true,
-        },
-      );
-    } catch (err) {
-      // TODO エラー内容によってはユーザーに伝えるか?
-      return { wave: null, labels: [] };
-    }
-
-    const wave = existsSync(filename) ? readFileSync(filename) : null;
-    if (wave) {
-      unlinkSync(filename);
-    }
     const labelFilename = filename + '.txt';
-    let labels: Label[] = [];
-    if (existsSync(labelFilename)) {
-      labels = loadLabelFile(labelFilename);
-      unlinkSync(labelFilename);
+    const outputFilenames = [filename, labelFilename];
+
+    // 前回異常終了時のファイルを今回の合成結果として使用しないように削除する
+    await cleanupFiles(outputFilenames);
+    try {
+      try {
+        await this._command(
+          'talk',
+          {
+            label: 'speed',
+            value: speed.toString(),
+          },
+          {
+            label: 'text',
+            value: text,
+            encoder: toShiftJisBase64,
+          },
+          {
+            label: 'filename',
+            value: filename,
+            encoder: toShiftJisBase64,
+            sentryExtra: true,
+          },
+        );
+      } catch (err) {
+        // TODO エラー内容によってはユーザーに伝えるか?
+        return { wave: null, labels: [] };
+      }
+
+      const [wave, labelFile] = await Promise.all([
+        readFileIfExists(filename),
+        readFileIfExists(labelFilename),
+      ]);
+      const labels = labelFile ? parseLabels(labelFile.toString('utf8')) : [];
+      return { wave, labels };
+    } finally {
+      // 読み込みやコマンドが失敗しても、生成途中のファイルを残さない
+      try {
+        await cleanupFiles(outputFilenames);
+      } catch (err) {
+        SentryReport.error('NVoiceClient', 'cleanupTalkFiles', err, {
+          fingerprint: ['talk', 'cleanupFiles'],
+        });
+      }
     }
-    return { wave, labels };
   }
 
   async set_max_time(seconds: number): Promise<void> {

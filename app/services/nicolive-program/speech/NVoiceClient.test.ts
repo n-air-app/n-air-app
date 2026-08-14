@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { join } from 'path';
 
 import { getNVoicePath } from '@n-air-app/n-voice-package';
+import { access } from 'fs/promises';
 
 import { NVoiceClient } from './NVoiceClient';
 
@@ -34,6 +35,19 @@ describe('NVoiceClient', () => {
     const filename = join(dir, `test-${randomUUID()}.wav`);
     const { wave, labels } = await client.talk(1.0, 'テスト', filename);
     expect(wave).not.toBeNull();
-    expect(labels.map((l) => l.phoneme)).toEqual(['silB', 't', 'e', 's', 'U', 't', 'o', 'silE']);
+    expect(labels.map((l) => l.phoneme)).toEqual([
+      'silB',
+      't',
+      'e',
+      's',
+      'U',
+      't',
+      'o',
+      'silE',
+    ]);
+    await expect(access(filename)).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(access(filename + '.txt')).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
   }, 20000 /* longer timeout */);
 });
