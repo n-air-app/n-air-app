@@ -94,8 +94,8 @@ importers:
         specifier: ^0.3.4
         version: 0.3.4
       vosk-cli:
-        specifier: https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz
-        version: https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz
+        specifier: https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz
+        version: https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz
       vue:
         specifier: ^3.5.38
         version: 3.5.38(typescript@5.9.3)
@@ -6954,9 +6954,9 @@ packages:
     resolution: {integrity: sha512-veufcmxri4e3XSrT0xwfUR7kguIkaxBeosDg00yDWhk49wdwkSUrvvsm7nc75e1PUyvIeZj6nS8VQRYz2/S4Xg==}
     engines: {node: '>=0.6.0'}
 
-  vosk-cli@https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz}
-    version: 1.0.2
+  vosk-cli@https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz:
+    resolution: {integrity: sha512-5XYk1ZzOa/Q2JM/gxDNETgAXVwqPajrz4PKNAOtbsW8QKemC7OWWbf4dXPR9kKKtPUiqDD05o5lAf/VhLiRCcQ==, tarball: https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz}
+    version: 1.1.0
 
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
@@ -15213,7 +15213,7 @@ snapshots:
       extsprintf: 1.4.1
     optional: true
 
-  vosk-cli@https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz: {}
+  vosk-cli@https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz: {}
 
   vscode-uri@3.1.0: {}
 

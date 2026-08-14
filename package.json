@@ -80,7 +80,7 @@
     "sockjs": "~0.3.19",
     "traverse": "~0.6.7",
     "unzip-stream": "^0.3.4",
-    "vosk-cli": "https://github.com/n-air-app/vosk-cli/releases/download/1.0.2/vosk-cli-v1.0.2-windows-x64.tar.gz",
+    "vosk-cli": "https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz",
     "vue": "^3.5.38",
     "vue-i18n": "11.4.6",
     "vuex": "4.1.0",

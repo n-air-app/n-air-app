@@ -53,7 +53,7 @@ const getVoskModelURL = (name: string): string =>
 export interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
-  audioDeviceId?: string | null;
+  audioDeviceId: string | null;
   commentEnabled: boolean;
   commentPosition: CommentPosition;
   commentSize: CommentSize;
@@ -111,6 +111,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    audioDeviceId: null,
     commentEnabled: false,
     commentPosition: 'shita',
     commentFont: 'gothic',
@@ -293,15 +294,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       });
 
-    // audioDeviceId 状態を監視して、状態が変わったら audioDeviceIndex を更新する
+    // audioDeviceId 状態を監視して、状態が変わったらクライアントの audioDeviceId を更新する
     this.state$
       .pipe(
-        map((state) => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId),
         distinctUntilChanged(),
       )
       .subscribe((audioDeviceId) => {
         if (this.client) {
-          this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
+          this.client.audioDeviceId = this.resolveClientAudioDeviceId(audioDeviceId);
         }
       });
 
@@ -315,7 +316,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private createAudioDeviceMutedStream() {
     merge(
       this.state$.pipe(
-        map((state) => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId),
         distinctUntilChanged(),
       ),
       this.audioService.audioSourceUpdated,
@@ -513,8 +514,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
         modelPath: this.getModelPath(this.state.voskModelName!),
+        audioDeviceId: this.resolveClientAudioDeviceId(this.state.audioDeviceId),
       });
-      this.client!.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
     } catch (err) {
       SentryReport.error('TranscriptionService', 'createClient', err, {
         tags: { voskModelName: this.state.voskModelName },
@@ -528,7 +529,6 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
     this.subscription = this.client!.startTranscription().subscribe({
       next: (message) => {
-        console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
           const text = filterNoiseText(message.text);
           if (text) {
@@ -622,8 +622,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       return;
     }
     if (this.client) {
-      // デバイスリストを更新したので、audioDeviceIndex も更新する(見つかるようになったかもしれない)
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId ?? null, 0);
+      // デバイスリストを更新したので、クライアントの audioDeviceId も更新する(見つかるようになったかもしれない)
+      this.client.audioDeviceId = this.resolveClientAudioDeviceId(this.state.audioDeviceId);
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
@@ -653,15 +653,26 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
   }
 
-  getAudioDeviceIndex<T>(id: string | null, notFoundValue: T): number | T {
-    if (!id) {
-      return notFoundValue;
+  /**
+   * vosk-cli の `-D` に渡すデバイスIDを決める。
+   * 一覧に無い/未選択なら null を返し、VoskClient はデバイス指定フラグを付けない
+   * (vosk-cli はシステム既定の入力デバイスを使う)。
+   */
+  private resolveClientAudioDeviceId(audioDeviceId: string | null): string | null {
+    if (!audioDeviceId) {
+      return null;
     }
-    const index = this.audioDevices$.value.findIndex((device) => device.id === id);
-    if (index === -1) {
-      return notFoundValue;
+    if (this.audioDevices$.value.some((device) => device.id === audioDeviceId)) {
+      return audioDeviceId;
     }
-    return index;
+    console.warn(
+      `Audio device ${audioDeviceId} is not in the current device list. Falling back to the system default device.`,
+    );
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `Audio device ${audioDeviceId} not found in device list; falling back to system default`,
+    });
+    return null;
   }
 
   getAudioDeviceList(): { id: string; name: string }[] {
@@ -669,8 +680,11 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
-    const index = this.getAudioDeviceIndex(audioDeviceId, 0);
-    const actualDeviceId = this.audioDevices$.value.length > 0 ? this.audioDevices$.value[index].id : null;
+    const devices = this.audioDevices$.value;
+    const found = audioDeviceId !== null && devices.some((device) => device.id === audioDeviceId);
+    // 見つからない場合は一覧の先頭にフォールバックする (デバイスが無ければ null)
+    const fallbackDeviceId = devices.length > 0 ? devices[0].id : null;
+    const actualDeviceId = found ? audioDeviceId : fallbackDeviceId;
     if (audioDeviceId !== actualDeviceId) {
       console.warn(
         `Audio device with id ${audioDeviceId} not found. Using ${actualDeviceId} instead.`,
