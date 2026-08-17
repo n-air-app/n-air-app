@@ -459,7 +459,14 @@ export class NVoiceClient {
     const outputFilenames = [filename, labelFilename];
 
     // 前回異常終了時のファイルを今回の合成結果として使用しないように削除する
-    await cleanupFiles(outputFilenames);
+    try {
+      await cleanupFiles(outputFilenames);
+    } catch (err) {
+      SentryReport.error('NVoiceClient', 'cleanupTalkFiles', err, {
+        fingerprint: ['talk', 'cleanupFiles'],
+      });
+      throw err;
+    }
     try {
       try {
         await this._command(
