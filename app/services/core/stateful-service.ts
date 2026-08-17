@@ -108,7 +108,7 @@ export function inheritMutations(target: any) {
       registerMutation(
         target.prototype,
         methodName,
-        Object.getOwnPropertyDescriptor(target.prototype, methodName),
+        Object.getOwnPropertyDescriptor(target.prototype, methodName)!,
         baseClassProto.mutationOptions[methodName],
       );
     });

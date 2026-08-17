@@ -2,11 +2,11 @@
   <div
     class="mixer-item"
     :class="{ muted: audioSource.muted }"
-    :data-test-source-name="audioSource.source.name"
-    :data-test-source-type="audioSource.source.type"
+    :data-test-source-name="audioSource.source?.name"
+    :data-test-source-type="audioSource.source?.type"
   >
     <div class="title-container">
-      <div class="source-name">{{ audioSource.source.name }}</div>
+      <div class="source-name">{{ audioSource.source?.name }}</div>
       <div class="db-value">
         <div v-if="audioSource.fader.deflection == 0">-Inf dB</div>
         <div v-if="audioSource.fader.deflection !== 0">

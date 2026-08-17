@@ -70,6 +70,7 @@ export class ScenesNode extends ArrayNode<ISceneSchema, {}, Scene> {
   loadItem(obj: ISceneSchema): Promise<() => Promise<void>> {
     return new Promise((resolve) => {
       const scene = this.scenesService.createScene(obj.name, { sceneId: obj.id });
+      if (!scene) throw new Error(`Failed to create scene: ${obj.name}`);
 
       if (obj.filters) obj.filters.load({ sceneId: scene.id });
 

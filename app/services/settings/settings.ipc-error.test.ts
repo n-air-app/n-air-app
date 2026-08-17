@@ -1,11 +1,3 @@
-// Mock @electron/remote
-const mockShowMessageBox = jest.fn();
-const mockGetCurrentWindow = jest.fn().mockReturnValue({});
-jest.mock('@electron/remote', () => ({
-  dialog: { showMessageBox: mockShowMessageBox },
-  getCurrentWindow: mockGetCurrentWindow,
-}));
-
 jest.mock('@sentry/vue', () => ({ addBreadcrumb: jest.fn() }));
 jest.mock('services/i18n', () => ({ $t: (key: string) => key }));
 
@@ -26,6 +18,7 @@ jest.mock('services/audio', () => ({ AudioService: class {}, E_AUDIO_CHANNELS: {
 jest.mock('services/dismissables', () => ({ DismissablesService: class {}, EDismissable: {} }));
 jest.mock('services/nicolive-program/nicolive-comment-synthesizer', () => ({ NicoliveCommentSynthesizerService: class {} }));
 jest.mock('services/nicolive-program/state', () => ({ NicoliveProgramStateService: class {} }));
+jest.mock('services/obs-ipc-health', () => ({ ObsIpcHealthService: class {} }));
 jest.mock('services/sound-detector', () => ({ SoundDetectorService: class {} }));
 jest.mock('services/sources', () => ({ SourcesService: class {} }));
 jest.mock('services/user', () => ({ UserService: class {} }));
@@ -48,26 +41,23 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
   let SettingsService: any;
   let IpcRequestErrorClass: any;
   let instance: any;
-  let mockRelaunch: jest.Mock;
+  let mockNotifyIpcLost: jest.Mock;
 
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
 
-    jest.doMock('@electron/remote', () => ({
-      dialog: { showMessageBox: mockShowMessageBox },
-      getCurrentWindow: mockGetCurrentWindow,
-    }));
     jest.doMock('services/i18n', () => ({ $t: (key: string) => key }));
 
-    mockRelaunch = jest.fn();
+    mockNotifyIpcLost = jest.fn();
 
     ({ SettingsService } = require('./settings'));
     ({ IpcRequestError: IpcRequestErrorClass } = require('util/ipc-request-error'));
 
     instance = Object.create(SettingsService.prototype);
-    instance.appService = { relaunch: mockRelaunch };
+    instance.appService = { relaunch: jest.fn() };
     instance.windowsService = { getWindow: jest.fn().mockReturnValue(null) };
+    instance.obsIpcHealthService = { notifyIpcLost: mockNotifyIpcLost };
     instance.obsIpcError = false;
     instance.settingsFormDataCache = new Map();
   });
@@ -89,7 +79,6 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
       jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
         throw new IpcRequestErrorClass('SettingsService', 'getSettingsFormData', { code: -32000 });
       });
-      jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
 
       const result = instance.getSettingsFormData('General');
 
@@ -103,22 +92,21 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
       jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
         throw new IpcRequestErrorClass('SettingsService', 'getSettingsFormData', { code: -32000 });
       });
-      jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
 
       const result = instance.getSettingsFormData('General');
 
       expect(result).toBe(cached);
     });
 
-    test('offerRestart が呼ばれる', () => {
+    test('notifyIpcLost が呼ばれる', () => {
       jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
         throw new IpcRequestErrorClass('SettingsService', 'getSettingsFormData', { code: -32000 });
       });
-      const offerRestartSpy = jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
 
       instance.getSettingsFormData('General');
 
-      expect(offerRestartSpy).toHaveBeenCalledTimes(1);
+      expect(mockNotifyIpcLost).toHaveBeenCalledTimes(1);
+      expect(mockNotifyIpcLost).toHaveBeenCalledWith('SettingsService.getSettingsFormData');
     });
 
     test('obsIpcError が true の場合は getSettingsFormDataImpl を呼ばずキャッシュを返す', () => {
@@ -137,13 +125,36 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
       jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
         throw new IpcRequestErrorClass('SettingsService', 'getSettingsFormData', { code: -32000 });
       });
-      jest.spyOn(instance, 'offerRestart').mockResolvedValue(undefined);
 
       instance.getSettingsFormData('General');
       instance.getSettingsFormData('Output');
       instance.getSettingsFormData('Audio');
 
       expect(instance['getSettingsFormDataImpl']).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('生のネイティブ IPC 切断エラー（IpcRequestError でない）', () => {
+    test('Failed to make IPC call を含む生の Error でも notifyIpcLost が呼ばれキャッシュを返す', () => {
+      jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
+        throw new Error('INTERNAL_SERVER_ERROR Failed to make IPC call, verify IPC status.');
+      });
+
+      const result = instance.getSettingsFormData('General');
+
+      expect(instance.obsIpcError).toBe(true);
+      expect(mockNotifyIpcLost).toHaveBeenCalledWith('SettingsService.getSettingsFormData');
+      expect(result).toEqual([]);
+    });
+
+    test('Lost IPC Connection を含む生の Error でも notifyIpcLost が呼ばれる', () => {
+      jest.spyOn(instance, 'getSettingsFormDataImpl').mockImplementation(() => {
+        throw new Error('Lost IPC Connection');
+      });
+
+      instance.getSettingsFormData('General');
+
+      expect(mockNotifyIpcLost).toHaveBeenCalledWith('SettingsService.getSettingsFormData');
     });
   });
 
@@ -154,24 +165,7 @@ describe('SettingsService: getSettingsFormData IPC エラーハンドリング',
 
       expect(() => instance.getSettingsFormData('General')).toThrow('other error');
       expect(instance.obsIpcError).toBe(false);
-    });
-  });
-
-  describe('offerRestart', () => {
-    test('ダイアログで「はい」を選ぶと relaunch が呼ばれる', async () => {
-      mockShowMessageBox.mockResolvedValue({ response: 0 });
-
-      await instance['offerRestart']();
-
-      expect(mockRelaunch).toHaveBeenCalledTimes(1);
-    });
-
-    test('ダイアログで「いいえ」を選ぶと relaunch は呼ばれない', async () => {
-      mockShowMessageBox.mockResolvedValue({ response: 1 });
-
-      await instance['offerRestart']();
-
-      expect(mockRelaunch).not.toHaveBeenCalled();
+      expect(mockNotifyIpcLost).not.toHaveBeenCalled();
     });
   });
 });

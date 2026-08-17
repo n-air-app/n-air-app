@@ -39,7 +39,7 @@ export interface IAudioSourceApi extends IAudioSource {
 
 export interface IAudioServiceApi {
   getDevices(): IAudioDevice[];
-  getSource(sourceId: string): IAudioSourceApi;
+  getSource(sourceId: string): IAudioSourceApi | undefined;
   getSources(): IAudioSourceApi[];
   getSourcesForScene(sceneId: string): IAudioSourceApi[];
   getSourcesForCurrentScene(): IAudioSourceApi[];

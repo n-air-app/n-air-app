@@ -132,54 +132,63 @@ const upstreamErrorBody = 'upstream connect error or disconnect/reset before hea
 describe('非JSONレスポンスの安全な取り扱い', () => {
   test('fetchOnairUserProgramはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.get(
-      `${NicoliveClient.live2BaseURL}/unama/tool/v2/onairs/user`,
-      { body: upstreamErrorBody, status: 200 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.fetchOnairUserProgram().catch((e) => { error = e; });
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchOnairUserProgram/);
-    // 元のSyntaxErrorがcauseとして保持され、調査時に読めること
     expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test('fetchKonomiTagsはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.post(
-      `${NicoliveClient.live2ApiBaseURL}/api/v1/konomiTags/GetFollowing`,
-      { body: upstreamErrorBody, status: 200 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.fetchKonomiTags(String(userID)).catch((e) => { error = e; });
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchKonomiTags/);
+    expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test('fetchUserFollowはbodyがJSONでなければSyntaxErrorではなくErrorを投げる', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.get(
-      NicoliveClient.userFollowEndpoint(String(userID)),
-      { body: upstreamErrorBody, status: 200 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.fetchUserFollow(String(userID)).catch((e) => { error = e; });
     expect(error).not.toBeInstanceOf(SyntaxError);
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toMatch(/fetchUserFollow/);
+    expect((error as Error).cause).toBeInstanceOf(SyntaxError);
   });
 
   test('unFollowUserは失敗レスポンスがJSONでなくてもSyntaxErrorを投げず本来のエラーメッセージを返す', async () => {
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    fetchMock.delete(
-      NicoliveClient.userFollowEndpoint(String(userID)),
-      { body: upstreamErrorBody, status: 502 },
-    );
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      headers: [],
+      text: upstreamErrorBody,
+    });
 
     let error: unknown;
     await client.unFollowUser(String(userID)).catch((e) => { error = e; });
@@ -276,12 +285,18 @@ suites.forEach((suite: Suite) => {
       niconicoSession: 'dummy',
     });
 
-    fetchMock[suite.method](suite.base + suite.path, dummyBody);
+    // Cookie 明示付与のため requestAPI は renderer では main 経由になる
+    fetchViaMainProcess.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: [],
+      text: JSON.stringify(dummyBody),
+    });
     // @ts-expect-error 引数の型
     const result = await client[suite.name](...suite.args);
 
     expect(result).toEqual({ ok: true, value: dummyBody.data });
-    expect(fetchMock.callHistory.done()).toBe(true);
+    expect(fetchViaMainProcess).toHaveBeenCalled();
   });
 });
 
@@ -324,7 +339,7 @@ function setupMock() {
     browserWindow: BrowserWindow;
     openExternal: jest.Mock;
   } = {
-    browserWindow: null,
+    browserWindow: null as unknown as BrowserWindow,
     openExternal,
   };
   jest.doMock('@electron/remote', () => ({
@@ -535,7 +550,7 @@ describe('NicoliveClient.deleteComment', () => {
   setupMock();
   const error = new Error('error');
 
-  test.each<[boolean, string | Error, Promise<MainProcessFetchResponse>]>([
+  test.each<[boolean, string | Error | null, Promise<MainProcessFetchResponse>]>([
     [
       true,
       null,

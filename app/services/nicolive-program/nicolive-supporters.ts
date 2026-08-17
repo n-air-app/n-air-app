@@ -49,6 +49,7 @@ export class NicoliveSupportersService extends StatefulService<INicoliveSupporte
       if (caught instanceof NicoliveFailure) {
         openErrorDialogFromFailure(caught);
       }
+      return [];
     }
   }
 

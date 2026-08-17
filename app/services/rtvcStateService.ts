@@ -254,7 +254,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     }
 
     const pitchShiftModeProp = props.find((a) => a.name === 'pitch_shift_mode');
-    this.isSongMode = pitchShiftModeProp && pitchShiftModeProp.value === PitchShiftModeValue.song;
+    this.isSongMode = !!(pitchShiftModeProp && pitchShiftModeProp.value === PitchShiftModeValue.song);
 
     source.setPropertiesFormData(props);
   }

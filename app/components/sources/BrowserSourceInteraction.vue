@@ -12,7 +12,7 @@
         style="height: 100%; outline: none"
         ref="eventDiv"
       >
-        <Display :sourceId="sourceId" @outputResize="onOutputResize" />
+        <Display v-if="source" :sourceId="sourceId" @outputResize="onOutputResize" />
       </div>
     </template>
   </ModalLayout>

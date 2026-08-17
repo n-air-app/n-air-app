@@ -114,13 +114,13 @@ function convertChatToMessageResponse(
       ...common,
       ...(id ? { id } : {}),
       ...(chat.content ? { content: chat.content } : {}),
-      ...(chat.no !== undefined ? { no: chat.no } : {}),
+      ...(chat.no != null ? { no: chat.no } : {}),
       ...(chat.accountStatus === dwango.nicolive.chat.data.Chat.AccountStatus.Premium
         ? { premium: 1 }
         : {}),
       ...(user_id ? { user_id } : {}),
       ...(anonymity ? { anonymity } : {}),
-      ...(chat.vpos !== undefined ? { vpos: chat.vpos } : {}),
+      ...(chat.vpos != null ? { vpos: chat.vpos } : {}),
       ...(chat.name ? { name: chat.name } : {}),
       ...(chat.modifier ? { mail: convertModifierToMail(chat.modifier) } : {}),
     },
@@ -177,16 +177,16 @@ function convertSimpleNotificationV2ToMessageResponse(
 ): MessageResponse | undefined {
   const types = simpleNotificationV2TypeMap;
   let type: NotificationType = 'unknown';
-  if (notification.type in types) {
+  if (notification.type != null && notification.type in types) {
     type = types[notification.type as keyof typeof types] as NotificationType;
   }
   return {
     notification: {
       ...common,
       type,
-      message: notification.message,
-      showInList: notification.showInList,
-      showInTelop: notification.showInTelop,
+      message: notification.message ?? '',
+      showInList: notification.showInList ?? undefined,
+      showInTelop: notification.showInTelop ?? undefined,
     },
   };
 }
@@ -212,11 +212,12 @@ function convertGiftToMessageResponse(
 function convertNicoadToMessageResponse(
   common: CommonComponent,
   nicoad: dwango.nicolive.chat.data.INicoad,
-): MessageResponse {
+): MessageResponse | undefined {
   if (nicoad.v0) {
     const v0 = nicoad.v0;
     const latest = v0.latest;
     const ranking = v0.ranking;
+    if (!latest || !ranking) return undefined;
     return {
       nicoad: {
         ...common,
@@ -248,6 +249,7 @@ function convertNicoadToMessageResponse(
       },
     };
   }
+  return undefined;
 }
 
 function convertGameUpdateToMessageResponse(
@@ -265,7 +267,7 @@ function convertGameUpdateToMessageResponse(
 function convertMarqueeToMessageResponse(
   common: CommonComponent,
   marquee: dwango.nicolive.chat.data.IMarquee,
-): MessageResponse {
+): MessageResponse | undefined {
   if (marquee.display) {
     const display = marquee.display;
     if (display.operatorComment) {
@@ -273,12 +275,12 @@ function convertMarqueeToMessageResponse(
       return {
         operator: {
           ...common,
-          content: operatorComment.content,
-          link: operatorComment.link,
+          content: operatorComment.content ?? undefined,
+          link: operatorComment.link ?? undefined,
           mail: operatorComment.modifier
             ? convertModifierToMail(operatorComment.modifier)
             : undefined,
-          name: operatorComment.name,
+          name: operatorComment.name ?? undefined,
         },
       };
     }
@@ -323,7 +325,7 @@ function convertStatisticsToMessageResponse(
 
 function convertSignalToMessageResponse(
   signal: dwango.nicolive.chat.service.edge.ChunkedMessage.Signal,
-): MessageResponse {
+): MessageResponse | undefined {
   switch (signal) {
     case dwango.nicolive.chat.service.edge.ChunkedMessage.Signal.Flushed:
       return {
@@ -343,7 +345,7 @@ export function convertChunkedResponseToMessageResponse(
   };
   if (msg.message) {
     if (msg.message.chat) {
-      return convertChatToMessageResponse(common, msg.message.chat, msg.meta?.id);
+      return convertChatToMessageResponse(common, msg.message.chat, msg.meta?.id ?? '');
     }
     if (msg.message.simpleNotificationV2) {
       return convertSimpleNotificationV2ToMessageResponse(common, msg.message.simpleNotificationV2);
@@ -371,15 +373,15 @@ export function convertChunkedResponseToMessageResponse(
     if (msg.state.statistics) {
       return convertStatisticsToMessageResponse(common, msg.state.statistics);
     }
-  } else if (msg.signal !== undefined) {
+  } else if (msg.signal != null) {
     return convertSignalToMessageResponse(msg.signal);
   }
   return undefined;
 }
 
 export class NdgrCommentReceiver implements IMessageServerClient {
-  private ndgrClient: NdgrClient;
-  private ndgrSubscription: Subscription;
+  private ndgrClient: NdgrClient | null = null;
+  private ndgrSubscription: Subscription | null = null;
   private messageSubject: Subject<MessageResponse>;
 
   constructor(private uri: string, private label = 'comment') {}
@@ -406,7 +408,8 @@ export class NdgrCommentReceiver implements IMessageServerClient {
     if (this.ndgrClient) {
       this.ndgrClient.dispose();
       this.ndgrClient = null;
-      this.ndgrSubscription.unsubscribe();
+      this.ndgrSubscription?.unsubscribe();
+      this.ndgrSubscription = null;
     }
   }
 }

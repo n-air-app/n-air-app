@@ -30,6 +30,7 @@ import {
   SceneItemFolder,
 } from './index';
 import { ScenesService } from './scenes';
+import { resolveTreeMove } from './tree-order';
 
 export type TSceneNode = SceneItem | SceneItemFolder;
 
@@ -75,7 +76,7 @@ export class Scene {
     return scene;
   }
 
-  getNode(sceneNodeId: string): TSceneNode {
+  getNode(sceneNodeId: string): TSceneNode | null {
     const nodeModel = this.state.nodes.find(
       (sceneItemModel) => sceneItemModel.id === sceneNodeId,
     ) as ISceneItem;
@@ -89,12 +90,12 @@ export class Scene {
     return new SceneItemFolder(this.id, nodeModel.id);
   }
 
-  getItem(sceneItemId: string): SceneItem {
+  getItem(sceneItemId: string): SceneItem | null {
     const node = this.getNode(sceneItemId);
     return node && node.sceneNodeType === 'item' ? (node as SceneItem) : null;
   }
 
-  getFolder(sceneFolderId: string): SceneItemFolder {
+  getFolder(sceneFolderId: string): SceneItemFolder | null {
     const node = this.getNode(sceneFolderId);
     return node && node.sceneNodeType === 'folder' ? (node as SceneItemFolder) : null;
   }
@@ -102,7 +103,7 @@ export class Scene {
   /**
    * returns the first node with selected name
    */
-  getNodeByName(name: string): TSceneNode {
+  getNodeByName(name: string): TSceneNode | undefined {
     return this.getNodes().find((node) => node.name === name);
   }
 
@@ -110,27 +111,26 @@ export class Scene {
     return this.state.nodes
       .filter((node) => node.sceneNodeType === 'item')
       .map((item) => this.getItem(item.id))
-      .filter(Boolean);
+      .filter((item): item is SceneItem => item !== null);
   }
 
   getFolders(): SceneItemFolder[] {
     return this.state.nodes
       .filter((node) => node.sceneNodeType === 'folder')
-      .map((item) => this.getFolder(item.id));
+      .map((item) => this.getFolder(item.id))
+      .filter((f): f is SceneItemFolder => f !== null);
   }
 
   getNodes(): TSceneNode[] {
-    return this.state.nodes.map((node) => {
-      return node.sceneNodeType === 'folder' ? this.getFolder(node.id) : this.getItem(node.id);
-    });
+    return this.state.nodes
+      .map((node) => {
+        return node.sceneNodeType === 'folder' ? this.getFolder(node.id) : this.getItem(node.id);
+      })
+      .filter((n): n is TSceneNode => n !== null);
   }
 
   getRootNodes(): TSceneNode[] {
     return this.getNodes().filter((node) => !node.parentId);
-  }
-
-  getRootNodesIds(): string[] {
-    return this.getRootNodes().map((node) => node.id);
   }
 
   getNodesIds(): string[] {
@@ -143,7 +143,7 @@ export class Scene {
 
   setName(newName: string) {
     const sceneSource = this.sourcesService.getSource(this.id);
-    sceneSource.setName(newName);
+    sceneSource!.setName(newName);
     this.SET_NAME(newName);
   }
 
@@ -152,7 +152,7 @@ export class Scene {
     type: TSourceType,
     settings?: Dictionary<any>,
     options: ISceneNodeAddOptions = {},
-  ): SceneItem {
+  ): SceneItem | null {
     const source = this.sourcesService.createSource(sourceName, type, settings);
     return this.addSource(source.sourceId, options);
   }
@@ -169,7 +169,7 @@ export class Scene {
 
     const display = 'horizontal';
     // assign context to scene item
-    const context = this.videoSettingsService.contexts.horizontal;
+    const context = this.videoSettingsService.contexts.horizontal as obs.IVideo | undefined;
 
     this.ADD_SOURCE_TO_SCENE(
       sceneItemId,
@@ -178,7 +178,7 @@ export class Scene {
       display,
       obsSceneItem.position,
     );
-    const sceneItem = this.getItem(sceneItemId);
+    const sceneItem = this.getItem(sceneItemId)!;
 
     sceneItem.loadAttributes();
     sceneItem.setSettings({ ...sceneItem.getSettings(), display, output: context });
@@ -249,7 +249,7 @@ export class Scene {
     ).then(callback, onTimeout);
   }
 
-  addFile(path: string, folderId?: string): TSceneNode {
+  addFile(path: string, folderId?: string): TSceneNode | null {
     let fstat: fs.Stats;
     try {
       fstat = fs.lstatSync(path);
@@ -263,16 +263,16 @@ export class Scene {
 
     if (fstat.isDirectory()) {
       const folder = this.createFolder(fname);
-      if (folderId) folder.setParent(folderId);
+      if (folderId) folder?.setParent(folderId);
       const files = fs.readdirSync(path).reverse();
-      files.forEach((filePath) => this.addFile(`${path}\\${filePath}`, folder.id));
+      files.forEach((filePath) => this.addFile(`${path}\\${filePath}`, folder?.id));
       return folder;
     }
 
     const source = this.sourcesService.addFile(path);
     if (!source) return null;
     const item = this.addSource(source.sourceId);
-    if (folderId) item.setParent(folderId);
+    if (folderId) item?.setParent(folderId);
     return item;
   }
 
@@ -295,11 +295,10 @@ export class Scene {
     if (!sceneFolder) return;
     if (sceneFolder.isSelected()) sceneFolder.deselect();
     sceneFolder.getSelection().remove();
-    sceneFolder.detachParent();
     this.REMOVE_NODE_FROM_SCENE(folderId);
   }
 
-  remove(force?: boolean): IScene {
+  remove(force?: boolean): IScene | null {
     return this.scenesService.removeScene(this.id, force);
   }
 
@@ -308,7 +307,6 @@ export class Scene {
     if (!sceneItem) return;
     const sceneItemModel = sceneItem.getModel();
     if (sceneItem.isSelected()) sceneItem.deselect();
-    sceneItem.detachParent();
     sceneItem.getObsSceneItem().remove();
     this.REMOVE_NODE_FROM_SCENE(sceneItemId);
     this.scenesService.itemRemoved.next(sceneItemModel);
@@ -322,79 +320,24 @@ export class Scene {
     this.getItems().forEach((item) => item.setSettings({ locked }));
   }
 
-  placeAfter(sourceNodeId: string, destNodeId?: string) {
-    const sourceNode = this.getNode(sourceNodeId);
-    const destNode = this.getNode(destNodeId);
+  /** ノードとその子孫を一塊のまま、指定した親の兄弟列へ移動する。 */
+  moveNodes(nodeIds: string[], parentId = '', beforeNodeId?: string) {
+    const existingIds = new Set(this.state.nodes.map((node) => node.id));
+    const missingNodeIds = nodeIds.filter((id) => !existingIds.has(id));
+    const missingParentId = parentId && !existingIds.has(parentId) ? parentId : undefined;
+    const missingBeforeNodeId = beforeNodeId && !existingIds.has(beforeNodeId) ? beforeNodeId : undefined;
 
-    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
-    // 渡されることがある。その場合は並び替えをスキップする。
-    if (!sourceNode) {
-      SentryReport.message('Scene', 'placeAfter', 'sourceNode not found, skipping reorder', {
+    if (missingNodeIds.length || missingParentId || missingBeforeNodeId) {
+      SentryReport.message('Scene', 'moveNodes', 'Tree move references missing nodes', {
         level: 'warning',
-        extra: { sceneId: this.id, sourceNodeId, destNodeId },
+        extra: { sceneId: this.id, missingNodeIds, missingParentId, missingBeforeNodeId },
       });
       return;
     }
 
-    if (destNode && destNode.id === sourceNode.id) return;
-
-    const destNodeIsParentForSourceNode = destNode && destNode.id === sourceNode.parentId;
-
-    let destFolderId = '';
-
-    if (destNode) {
-      if (destNode.isItem()) {
-        destFolderId = destNode.parentId;
-      } else {
-        if (destNode.id === sourceNode.parentId) {
-          destFolderId = destNode.id;
-        } else {
-          destFolderId = destNode.parentId;
-        }
-      }
-    }
-
-    if (sourceNode.parentId !== destFolderId) {
-      sourceNode.setParent(destFolderId);
-    }
-
-    const itemsToMove: SceneItem[] = sourceNode.isFolder()
-      ? sourceNode.getNestedItems()
-      : [sourceNode];
-
-    // move nodes
-
-    const sceneNodesIds = this.getNodesIds();
-    const nodesToMoveIds: string[] = sourceNode.sceneNodeType === 'folder'
-      ? [sourceNode.id].concat((sourceNode as SceneItemFolder).getNestedNodesIds())
-      : [sourceNode.id];
-    const firstNodeIndex = this.getNode(nodesToMoveIds[0]).getNodeIndex();
-
-    let newNodeIndex = 0;
-
-    if (destNode) {
-      const destNodeIndex = destNode.getNodeIndex();
-
-      newNodeIndex = destNode.isFolder() && !destNodeIsParentForSourceNode
-        ? destNodeIndex + destNode.getNestedNodes().length + 1
-        : destNodeIndex + 1;
-
-      if (destNodeIndex > firstNodeIndex) {
-        // Adjust for moved items
-        newNodeIndex -= nodesToMoveIds.length;
-      }
-    }
-
-    sceneNodesIds.splice(firstNodeIndex, nodesToMoveIds.length);
-    sceneNodesIds.splice(newNodeIndex, 0, ...nodesToMoveIds);
-
-    this.SET_NODES_ORDER(sceneNodesIds);
-
-    this.reconcileNodeOrderWithObs();
-  }
-
-  setNodesOrder(order: string[]) {
-    this.SET_NODES_ORDER(order);
+    const result = resolveTreeMove(this.state.nodes, nodeIds, parentId, beforeNodeId);
+    if (!result) return;
+    this.MOVE_NODES(result.order, result.rootNodeIds, result.parentId);
     this.reconcileNodeOrderWithObs();
   }
 
@@ -423,35 +366,6 @@ export class Scene {
     });
   }
 
-  placeBefore(sourceNodeId: string, destNodeId: string) {
-    const destNode = this.getNode(destNodeId);
-    // ドラッグ操作中の削除やシーン切替との競合で、既に存在しないノードIDが
-    // 渡されることがある。その場合は並び替えをスキップする。
-    if (!destNode) {
-      SentryReport.message('Scene', 'placeBefore', 'destNode not found, skipping reorder', {
-        level: 'warning',
-        extra: { sceneId: this.id, sourceNodeId, destNodeId },
-      });
-      return;
-    }
-    const newDestNode = destNode.getPrevSiblingNode();
-    if (newDestNode) {
-      this.placeAfter(sourceNodeId, newDestNode.id);
-    } else if (destNode.parentId) {
-      const sourceNode = this.getNode(sourceNodeId);
-      if (!sourceNode) {
-        SentryReport.message('Scene', 'placeBefore', 'sourceNode not found, skipping reorder', {
-          level: 'warning',
-          extra: { sceneId: this.id, sourceNodeId, destNodeId },
-        });
-        return;
-      }
-      sourceNode.setParent(destNode.parentId); // place to the top of folder
-    } else {
-      this.placeAfter(sourceNodeId); // place to the top of scene
-    }
-  }
-
   addSources(nodes: TSceneNodeInfo[]) {
     const arrayItems: (ISceneItemInfo & obs.ISceneItemInfo)[] = [];
 
@@ -474,8 +388,8 @@ export class Scene {
         rotation: item.rotation || 0,
         streamVisible: true,
         recordingVisible: true,
-        scaleFilter: item.scaleFilter,
-        blendingMode: item.blendingMode,
+        scaleFilter: item.scaleFilter ?? EScaleType.Disable,
+        blendingMode: item.blendingMode ?? EBlendingMode.Normal,
         blendingMethod: item.blendingMethod,
         display: item.display,
       });
@@ -501,7 +415,7 @@ export class Scene {
           display,
           obsSceneItem.position,
         );
-        this.getItem(itemModel.id).loadItemAttributes(itemModel);
+        this.getItem(itemModel.id)!.loadItemAttributes(itemModel);
         itemIndex++;
       }
     });
@@ -520,7 +434,7 @@ export class Scene {
     // 同一scene上では1つだけ
     if (source.type === 'nair-rtvc-source') {
       for (const s of this.items) {
-        if (this.sourcesService.getSourceById(s.sourceId).type === 'nair-rtvc-source') return false;
+        if (this.sourcesService.getSourceById(s.sourceId)?.type === 'nair-rtvc-source') return false;
       }
     }
 
@@ -529,7 +443,7 @@ export class Scene {
     if (this.id === source.sourceId) return false;
 
     const sceneToAdd = this.scenesService.getScene(source.sourceId);
-    return !sceneToAdd.hasNestedScene(this.id);
+    return !sceneToAdd!.hasNestedScene(this.id);
   }
 
   hasNestedScene(sceneId: string) {
@@ -538,8 +452,8 @@ export class Scene {
       .map((sceneItem) => this.scenesService.getScene(sceneItem.sourceId));
 
     for (const childScene of childScenes) {
-      if (childScene.id === sceneId) return true;
-      if (childScene.hasNestedScene(sceneId)) return true;
+      if (childScene?.id === sceneId) return true;
+      if (childScene?.hasNestedScene(sceneId)) return true;
     }
 
     return false;
@@ -553,7 +467,7 @@ export class Scene {
     result
       .filter((sceneItem) => sceneItem.type === 'scene')
       .map((sceneItem) => {
-        return this.scenesService.getScene(sceneItem.sourceId).getNestedItems();
+        return this.scenesService.getScene(sceneItem.sourceId)?.getNestedItems() ?? [];
       })
       .forEach((sceneItems) => {
         result = result.concat(sceneItems);
@@ -585,6 +499,7 @@ export class Scene {
     const resultScenes: Scene[] = [];
 
     scenes.forEach((scene) => {
+      if (!scene) return;
       resultScenes.push(...scene.getNestedScenes());
       if (!resultScenes.find((foundScene) => foundScene.id === scene.id)) {
         resultScenes.push(scene);
@@ -674,12 +589,17 @@ export class Scene {
   }
 
   @mutation()
-  private SET_NODES_ORDER(order: string[]) {
-    // TODO: This is O(n^2)
+  private MOVE_NODES(order: string[], rootNodeIds: string[], parentId: string) {
+    const rootIds = new Set(rootNodeIds);
+    const nodesById = new Map(this.state.nodes.map((node) => [node.id, node]));
+
+    this.state.nodes.forEach((node) => {
+      if (rootIds.has(node.id)) node.parentId = parentId;
+    });
     this.state.nodes = order.map((id) => {
-      return this.state.nodes.find((item) => {
-        return item.id === id;
-      });
+      const node = nodesById.get(id);
+      assertIsDefined(node);
+      return node;
     });
   }
 }

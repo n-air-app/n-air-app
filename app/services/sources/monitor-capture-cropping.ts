@@ -60,7 +60,7 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
       return;
     }
 
-    const source = this.sourcesService.getSource(sourceId);
+    const source = this.sourcesService.getSource(sourceId)!;
     const display = getDisplayFromSource(source, 'startCropping');
     if (!display) {
       return;
@@ -81,7 +81,12 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
     this.SET_WINDOW_ID(windowId);
 
     const windowObj = this.windowsService.getWindow(windowId);
-    windowObj.on('close', () => this.endCropping());
+    windowObj.on('close', () => {
+      // 自発的に閉じた（レンダラー側window.close()等）ウィンドウなので、
+      // setter経由での再度のclose()呼び出しを避けるため先に参照を外す
+      this._currentWindow = null;
+      this.endCropping();
+    });
 
     this.currentWindow = windowObj;
   }
@@ -103,9 +108,9 @@ export class MonitorCaptureCroppingService extends StatefulService<IMonitorCaptu
     }
 
     const sceneItem = new SceneItem(
-      this.state.sceneId,
-      this.state.sceneItemId,
-      this.state.sourceId,
+      this.state.sceneId!,
+      this.state.sceneItemId!,
+      this.state.sourceId!,
     );
     const rect = new ScalableRectangle(sceneItem.getRectangle());
 

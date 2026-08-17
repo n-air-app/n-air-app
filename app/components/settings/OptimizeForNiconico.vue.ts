@@ -51,7 +51,7 @@ export default defineComponent({
       CustomizationService.instance().setShowOptimizationDialogForNiconico(!model.value);
     },
     setUseHardwareEncoder(model: IObsInput<boolean>) {
-      CustomizationService.instance().setOptimizeWithHardwareEncoder(model.value);
+      CustomizationService.instance().setOptimizeWithHardwareEncoder(model.value ?? false);
       // close the dialog and open again to apply new optimization settings
       WindowsService.instance().closeChildWindow();
       StreamingService.instance().toggleStreamingAsync({ mustShowOptimizationDialog: true });

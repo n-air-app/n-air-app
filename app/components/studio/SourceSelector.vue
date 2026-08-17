@@ -20,9 +20,8 @@
       </div>
     </div>
 
-    <sl-vue-tree
+    <tree-view
       :value="nodes"
-      ref="slVueTree"
       @select="makeActive"
       @drop="handleSort"
       @toggle="toggleFolder"
@@ -53,7 +52,7 @@
           <i
             class="source-selector-action"
             :class="lockClassesForSource(node.data.id)"
-            v-tooltip.bottom="lockTooltip"
+            v-tooltip.bottom="lockTooltipForSource(node.data.id, node.isLeaf)"
             @click.stop="toggleLock(node.data.id)"
             @dblclick.stop
           />
@@ -78,7 +77,7 @@
           />
         </template>
       </template>
-    </sl-vue-tree>
+    </tree-view>
   </div>
 </template>
 
@@ -86,89 +85,10 @@
 
 <style lang="less">
 @import url('../../styles/index');
-@import url('../shared/sl-vue-tree/sl-vue-tree-dark.css');
 
 .studio-controls-top-sidebar {
   display: flex;
   align-items: center;
-}
-
-.sl-vue-tree.sl-vue-tree-root {
-  .radius();
-
-  flex-grow: 1;
-  overflow: auto;
-  color: var(--color-text);
-  background-color: var(--color-bg-tertiary);
-  border: none;
-}
-
-.sl-vue-tree-nodes-list {
-  .sl-vue-tree-root > & {
-    padding-bottom: 0;
-  }
-}
-
-.sl-vue-tree-node-item {
-  min-height: @item-generic-size;
-  padding: 0 12px;
-  line-height: @item-generic-size;
-  cursor: pointer;
-  border: none;
-
-  .sl-vue-tree-selected > & {
-    background-color: var(--color-bg-active);
-  }
-}
-
-.sl-vue-tree-cursor-inside {
-  .sl-vue-tree-node-item& {
-    border-color: var(--color-border-light);
-  }
-}
-
-.sl-vue-tree-title,
-.sl-vue-tree-sidebar {
-  display: flex;
-  align-items: center;
-}
-
-.sl-vue-tree-sidebar {
-  flex-shrink: 0;
-}
-
-.sl-vue-tree-title {
-  flex-grow: 1;
-  overflow: hidden;
-}
-
-.sl-vue-tree-gap {
-  width: 24px;
-}
-
-.title-container {
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-
-  .sl-vue-tree-node-item:hover & {
-    .transition();
-
-    color: var(--color-text-light);
-    opacity: 1;
-  }
-
-  .sl-vue-tree-selected & {
-    .transition();
-
-    color: var(--color-text-light);
-  }
-}
-
-.item-title {
-  .text-ellipsis();
-
-  font-size: @font-size2;
 }
 
 .source-selector-action {
@@ -179,7 +99,7 @@
   text-align: center;
   opacity: @opacity-disabled;
 
-  .sl-vue-tree-node-item:hover & {
+  .tree-view-node-item:hover & {
     .transition();
 
     color: var(--color-text-light);
@@ -190,46 +110,11 @@
     color: var(--color-text-light);
     opacity: 1;
 
-    .sl-vue-tree-node-item:hover & {
+    .tree-view-node-item:hover & {
       color: var(--color-text-light);
       opacity: 1;
     }
   }
-}
-
-.layer-icon {
-  display: inline-block;
-  flex-shrink: 0;
-  width: 20px;
-  margin-right: 4px;
-  text-align: left;
-
-  i {
-    font-size: @font-size2;
-    font-weight: @font-weight-bold;
-  }
-}
-
-.sl-vue-tree-toggle {
-  display: inline-block;
-  flex-shrink: 0;
-  margin-right: 4px;
-
-  i {
-    display: block;
-    width: 12px;
-    font-size: 8px;
-    color: var(--color-text);
-    text-align: center;
-
-    &.icon-right {
-      transform: rotate(-90deg);
-    }
-  }
-}
-
-.sl-vue-tree-cursor {
-  border-color: @navy;
 }
 
 //Simple Mode

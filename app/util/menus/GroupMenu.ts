@@ -27,7 +27,7 @@ export class GroupMenu extends Menu {
       click: () => {
         this.scenesService.showNameFolder({
           itemsToGroup: this.selectionService.getIds(),
-          parentId: nodesFolders[0],
+          parentId: nodesFolders[0] ?? undefined,
         });
       },
       enabled: this.selectionService.canGroupIntoFolder(),
@@ -55,9 +55,11 @@ export class GroupMenu extends Menu {
       label: $t('sources.ungroupScene'),
       click: () => {
         const scene = this.scenesService.getScene(selectedItem.getSource().sourceId);
-        scene.getSelection().selectAll().copyTo(this.scenesService.activeSceneId);
-        selectedItem.remove();
-        scene.remove();
+        if (scene) {
+          scene.getSelection().selectAll().copyTo(this.scenesService.activeSceneId);
+          selectedItem.remove();
+          scene.remove();
+        }
       },
       enabled: (() => {
         return !!(selectionSize === 1 && selectedItem && selectedItem.getSource().type === 'scene');

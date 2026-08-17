@@ -186,7 +186,7 @@ test('番組選択ステップで, 配信種別やチャンネルの選択をし
   // チャンネルを選択しようとしても何も起きない
   instance.onSelectChannel('ch100000000', 'name');
   expect(instance.state.currentStep).toBe('programSelect');
-  expect(instance.state.selectedChannel.id).toBe(selectedChannelId);
+  expect(instance.state.selectedChannel!.id).toBe(selectedChannelId);
 });
 
 test('ユーザー番組の確認ステップでは, あらゆる設定済の項目を変更することはできない.', async () => {
@@ -251,13 +251,13 @@ test('チャンネル番組の確認ステップでは, あらゆる設定済の
   await instance.onSelectChannel('ch1111', 'name');
   expect(instance.state.currentStep).toBe('confirm');
   expect(instance.state.selectedProviderType).toBe('channel');
-  expect(instance.state.selectedChannel.id).toBe(selectedChannelId);
+  expect(instance.state.selectedChannel!.id).toBe(selectedChannelId);
 
   // 番組を選択しようとしても変更できない
   instance.onSelectBroadcastingProgram('lv2222', 'title');
   expect(instance.state.currentStep).toBe('confirm');
   expect(instance.state.selectedProviderType).toBe('channel');
-  expect(instance.state.selectedChannelProgram.id).toBe(selectedProgram);
+  expect(instance.state.selectedChannelProgram!.id).toBe(selectedProgram);
 });
 
 describe('ステップ比較系メソッド', () => {

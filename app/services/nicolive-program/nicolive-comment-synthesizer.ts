@@ -41,7 +41,7 @@ export type Speech = {
 export interface ICommentSynthesizerState {
   enabled: boolean;
   soundDetectorEnabled: boolean;
-  queueRunnerState: QueueRunnerState;
+  queueRunnerState: QueueRunnerState | null;
   pitch: number; // SpeechSynthesisUtterance.pitch; 0.1(lowest) to 2(highest) (default: 1), only for web speech
   rate: number; // SpeechSynthesisUtterence.rate; 0.1(lowest) to 10(highest); default:1
   volume: number; // SpeechSynthesisUtterance.volume; 0.1(lowest) to 1(highest)
@@ -106,13 +106,13 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
 
   queue = new QueueRunner();
   get queueLength(): number {
-    return this.state.queueRunnerState.length;
+    return this.state.queueRunnerState!.length;
   }
   get queueState(): QueueRunnerState['state'] {
-    return this.state.queueRunnerState.state;
+    return this.state.queueRunnerState!.state;
   }
   get queueDisabled(): boolean {
-    return this.state.queueRunnerState.disabled;
+    return this.state.queueRunnerState!.disabled;
   }
 
   phonemeServer: PhonemeServer;
@@ -164,7 +164,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     });
   }
 
-  private soundDetectorSubscription: Subscription;
+  private soundDetectorSubscription: Subscription | null = null;
 
   private subscribeSoundDetector() {
     if (this.soundDetectorSubscription) {
@@ -239,7 +239,7 @@ export class NicoliveCommentSynthesizerService extends StatefulService<ICommentS
     switch (chat.type) {
       case 'normal':
         // 放送者からの通常コメントは読み上げない
-        if (chat.value.user_id === this.userService.platform.id) {
+        if (chat.value.user_id === this.userService.platform?.id) {
           return 'ignore';
         }
         return this.state.selector.normal;

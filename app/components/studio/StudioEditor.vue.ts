@@ -171,7 +171,7 @@ export default defineComponent({
 
         // Either select a new source, or deselect all sources
         if (overSource) {
-          const overNode: TSceneNode = overSource.hasParent() ? overSource.getParent() : overSource;
+          const overNode: TSceneNode = overSource.hasParent() ? overSource.getParent()! : overSource;
 
           if (event.ctrlKey) {
             if (overNode.isSelected()) {
@@ -290,7 +290,7 @@ export default defineComponent({
         });
 
         if (overSource && this.canDrag) {
-          const overNode = !overSource.isSelected() && overSource.hasParent() ? overSource.getParent() : overSource;
+          const overNode = !overSource.isSelected() && overSource.hasParent() ? overSource.getParent()! : overSource;
 
           // Make this source active
           if (event.ctrlKey || overNode.isSelected()) {
@@ -310,6 +310,7 @@ export default defineComponent({
     },
 
     crop(x: number, y: number, options: IResizeOptions) {
+      if (!this.resizeRegion) return;
       const source = this.resizeRegion.item;
       const rect = new ScalableRectangle(source.getRectangle());
 
@@ -337,7 +338,7 @@ export default defineComponent({
         });
       });
 
-      this.scene.getItem(source.sceneItemId).setTransform({
+      this.scene.getItem(source.sceneItemId)?.setTransform({
         position: { x: rect.x, y: rect.y },
         crop: rect.crop,
       });
@@ -349,9 +350,9 @@ export default defineComponent({
       y: number,
       options: IResizeOptions,
     ) {
+      if (!this.resizeRegion) return;
       // Set defaults
       const opts = {
-        lockRatio: true,
         lockX: false,
         lockY: false,
         ...options,
@@ -379,12 +380,12 @@ export default defineComponent({
           }
 
           // Aspect ratio preservation overrides lockX and lockY
-          if (ResizeBoxPoint[opts.horizontalEdge] || opts.lockRatio) rect.scaleX = newScaleX;
-          if (ResizeBoxPoint[opts.verticalEdge] || opts.lockRatio) rect.scaleY = newScaleY;
+          if ((opts.horizontalEdge !== undefined && ResizeBoxPoint[opts.horizontalEdge]) || opts.lockRatio) rect.scaleX = newScaleX;
+          if ((opts.verticalEdge !== undefined && ResizeBoxPoint[opts.verticalEdge]) || opts.lockRatio) rect.scaleY = newScaleY;
         });
       });
 
-      this.scene.getItem(source.sceneItemId).setTransform({
+      this.scene.getItem(source.sceneItemId)?.setTransform({
         position: {
           x: rect.x,
           y: rect.y,

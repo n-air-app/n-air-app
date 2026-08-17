@@ -154,23 +154,23 @@ function setupTranscription(
     modelDownloaded?: boolean;
     audioDeviceId?: string;
     emptyDevices?: boolean;
+    // vosk-cli の `-l` が返すデバイス一覧を差し替える (emptyDevices より優先)
+    devices?: Array<{ id: string; name: string; index: number }>;
   } = {},
 ) {
   const downloadedStatus = { state: 'downloaded' as const };
   const notDownloadedStatus = { state: 'not_downloaded' as const };
 
-  const prepareOptions = options.emptyDevices
-    ? {
-      mockOverrides: {
-        listAudioDevices: emptyDeviceList,
-        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
-      },
-    }
-    : {
-      mockOverrides: {
-        voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
-      },
-    };
+  const explicitDeviceList = options.devices
+    ? { version: '1', devices: options.devices }
+    : undefined;
+  const deviceList = explicitDeviceList ?? (options.emptyDevices ? emptyDeviceList : undefined);
+  const prepareOptions = {
+    mockOverrides: {
+      ...(deviceList ? { listAudioDevices: deviceList } : {}),
+      voskModelStatus: options.modelDownloaded ? downloadedStatus : notDownloadedStatus,
+    },
+  };
 
   const { instance, ...rest } = prepare(prepareOptions);
 
@@ -195,6 +195,7 @@ function prepare(options: PrepareOptions = {}): {
   transcriptionMessages$: Subject<TranscriptionMessage>;
   stopTranscription: jest.Mock;
   audioSourceUpdated: Subject<unknown>;
+  restartCalls: (string | null)[];
 } {
   const obsAudioDevicesOverride = options.mockOverrides?.obsAudioDevices;
   const audioServiceOverride = options.mockOverrides?.audioServiceOverride;
@@ -232,18 +233,37 @@ function prepare(options: PrepareOptions = {}): {
 
   const transcriptionMessages$ = new Subject<TranscriptionMessage>();
   const stopTranscription = jest_fn<VoskClientType['stopTranscription']>().mockName('stopTranscription');
+  // audioDeviceId は実際の getter/setter として実装し、デバイス変更時の再起動挙動
+  // (実装と同じ no-op セマンティクス) をテストで観測できるようにする
+  const restartCalls: (string | null)[] = [];
+  let currentAudioDeviceId: string | null = null;
   const client = {
     startTranscription: jest_fn<VoskClientType['startTranscription']>()
       .mockName('startTranscription')
       .mockReturnValue(transcriptionMessages$),
     stopTranscription,
-    audioDeviceIndex: -1,
+    get audioDeviceId() {
+      return currentAudioDeviceId;
+    },
+    set audioDeviceId(id: string | null) {
+      if (currentAudioDeviceId === id) {
+        return;
+      }
+      currentAudioDeviceId = id;
+      restartCalls.push(id);
+    },
   } as unknown as VoskClientType;
   const {
     CreateVoskCliClient: mockedCreateVoskCliClient,
     VoskClient: mockedVoskClient,
   } = require('./VoskClient');
-  mockedCreateVoskCliClient.mockReturnValue(client);
+  mockedCreateVoskCliClient.mockImplementation(
+    (createOptions: { audioDeviceId?: string | null }) => {
+      // 実装と同じく、生成時に渡された audioDeviceId をコンストラクタ引数として反映する
+      currentAudioDeviceId = createOptions.audioDeviceId ?? null;
+      return client;
+    },
+  );
 
   // Apply mock overrides for listAudioDevices
   if (options.mockOverrides?.listAudioDevices) {
@@ -271,6 +291,7 @@ function prepare(options: PrepareOptions = {}): {
     transcriptionMessages$: transcriptionMessages$!,
     setVoskModelStatus: setVoskModelStatus!,
     audioSourceUpdated,
+    restartCalls,
   };
 }
 
@@ -839,13 +860,6 @@ describe('TranscriptionService', () => {
       expect(setupTranscription({ emptyDevices: true }).instance.getAudioDeviceList()).toEqual([]);
     });
 
-    it('should get audio device index correctly', () => {
-      const { instance } = setupTranscription();
-      expect(instance.getAudioDeviceIndex('test-device', -1)).toBe(0);
-      expect(instance.getAudioDeviceIndex('nonexistent', -1)).toBe(-1);
-      expect(instance.getAudioDeviceIndex(null, -1)).toBe(-1);
-    });
-
     it('should set and correct audio device ID', () => {
       const { instance } = setupTranscription();
 
@@ -967,6 +981,112 @@ describe('TranscriptionService', () => {
       );
       consoleSpy.mockRestore();
     });
+  });
+
+  describe('audio device selection (ID based, vosk-cli 1.1.0)', () => {
+    // 実機で再現した #1394 の構成: 既定デバイス (Realtek) が `-l` で先頭に来るが、
+    // Logicool は非既定。vosk-cli 1.1.0 の `-D` は列挙順に依存しないので、
+    // どちらを選んでも選んだ ID がそのまま vosk-cli に渡ることを確認する
+    const REALTEK = '{0.0.1.00000000}.{4dcb28e3-2fef-48b6-b9d6-176a8fabaa53}';
+    const LOGICOOL = '{0.0.1.00000000}.{0966b276-c28c-4c1b-88eb-85519f7d7a4a}';
+    const twoDevices = [
+      { id: REALTEK, name: 'マイク (Realtek(R) Audio)', index: 0 },
+      { id: LOGICOOL, name: 'マイク (Logicool Wireless Headset)', index: 1 },
+    ];
+
+    it(
+      'passes the selected (non-default) device id to CreateVoskCliClient',
+      withClock(async (clock) => {
+        const { instance, client } = setupTranscription({
+          modelDownloaded: true,
+          devices: twoDevices,
+        });
+
+        instance.setAudioDeviceId(LOGICOOL);
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        expect(instance.state.audioDeviceId).toBe(LOGICOOL);
+        expect(client.audioDeviceId).toBe(LOGICOOL);
+      }),
+    );
+
+    it(
+      'restarts the client with the new device id when the selection changes',
+      withClock(async (clock) => {
+        const { instance, client, restartCalls } = setupTranscription({
+          modelDownloaded: true,
+          devices: twoDevices,
+        });
+
+        instance.setAudioDeviceId(REALTEK);
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+        restartCalls.length = 0; // activate() 時点のコンストラクタ渡しはカウントしない
+
+        instance.setAudioDeviceId(LOGICOOL);
+        await clock.tickAsync(0);
+
+        expect(client.audioDeviceId).toBe(LOGICOOL);
+        expect(restartCalls).toEqual([LOGICOOL]);
+      }),
+    );
+
+    it(
+      'passes null when the selected device is not in the current list',
+      withClock(async (clock) => {
+        const { instance, client } = setupTranscription({
+          modelDownloaded: true,
+          devices: twoDevices,
+        });
+
+        instance.setAudioDeviceId(LOGICOOL);
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        // デバイスが着脱されて一覧から消えたケースを模す
+        // (updateAudioDevices() は state.audioDeviceId 自体は書き換えない)
+        const { VoskClient: mockedVoskClient } = require('./VoskClient');
+        mockedVoskClient.listAudioDevices.mockReturnValue({
+          version: '1',
+          devices: [twoDevices[0]],
+        });
+        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+        instance.updateAudioDevices();
+        await clock.tickAsync(0);
+
+        expect(instance.state.audioDeviceId).toBe(LOGICOOL); // 選択自体は保持される
+        expect(client.audioDeviceId).toBeNull(); // クライアントには渡さず既定デバイスに委ねる
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('is not in the current device list'),
+        );
+        consoleSpy.mockRestore();
+      }),
+    );
+
+    it(
+      'ignores device_reconnecting / device_reconnected info messages',
+      withClock(async (clock) => {
+        const { instance, transcriptionMessages$, stopTranscription } = setupTranscription({
+          modelDownloaded: true,
+          devices: twoDevices,
+          audioDeviceId: LOGICOOL,
+        });
+        instance.setEnabled(true);
+        await clock.tickAsync(0);
+
+        transcriptionMessages$.next({ info: 'device_reconnecting' });
+        await clock.tickAsync(0);
+        expect(instance.activeStatus()).toBe('active');
+        expect(stopTranscription).not.toHaveBeenCalled();
+
+        transcriptionMessages$.next({ info: 'device_reconnected' });
+        await clock.tickAsync(0);
+        expect(instance.activeStatus()).toBe('active');
+        expect(stopTranscription).not.toHaveBeenCalled();
+      }),
+    );
   });
 
   describe('audio device muted stream', () => {
@@ -1252,6 +1372,7 @@ describe('TranscriptionService', () => {
         expect(mockedCreateVoskCliClient).toHaveBeenCalledWith({
           voskCliPath: '/fake/vosk-cli',
           modelPath: `/fake/path/vosk-model/${VOSK_MODEL_NAME}`,
+          audioDeviceId: 'test-device',
         });
 
         // Clear mock to track new calls
@@ -1270,6 +1391,7 @@ describe('TranscriptionService', () => {
         expect(mockedCreateVoskCliClient).toHaveBeenCalledWith({
           voskCliPath: '/fake/vosk-cli',
           modelPath: `/fake/path/vosk-model/${VOSK_MODEL_NAME_2}`,
+          audioDeviceId: 'test-device',
         });
 
         // Verify new client's startTranscription was called

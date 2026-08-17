@@ -36,14 +36,14 @@ test('Dropdown interaction in output settings', async (t) => {
   t.truthy(initialValue, 'Expected Mode dropdown to have an initial value');
 
   // ドロップダウンを開く
-  await dropdown.click();
+  await dropdown!.click();
   await client.pause(500);
 
   // ドロップダウンメニューが表示されるまで待つ
   await client.$('.dropdown__menu').waitForDisplayed({ timeout: 3000 });
 
   // オプションが表示されることを確認
-  const options = await dropdown.$$('.dropdown__item[data-option-label]');
+  const options = await dropdown!.$$('.dropdown__item[data-option-label]');
   t.true(options.length > 0, 'Expected dropdown to have options');
 
   // 現在選択されていない別のオプションを探して選択
@@ -65,7 +65,7 @@ test('Dropdown interaction in output settings', async (t) => {
     await client.pause(500);
 
     // 選択された値が更新されることを確認
-    const selectedLabel = await dropdown.getAttribute('data-selected-option-label');
+    const selectedLabel = await dropdown!.getAttribute('data-selected-option-label');
     t.is(selectedLabel, targetLabel, 'Expected dropdown value to be updated');
   }
 });

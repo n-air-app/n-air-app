@@ -48,7 +48,7 @@ test('SettingsKeyAccessor#traverseKeyDescriptions', () => {
   const simpleDescriptions = filterKeyDescriptions(simpleSettings, AllKeyDescriptions);
   expect(simpleDescriptions.length).toEqual(1);
   expect(simpleDescriptions[0].dependents).not.toBeFalsy();
-  expect(simpleDescriptions[0].dependents.length).toEqual(2);
+  expect(simpleDescriptions[0].dependents!.length).toEqual(2);
 
   const advancedSettings: OptimizeSettings = {
     outputMode: 'Advanced',
@@ -57,7 +57,7 @@ test('SettingsKeyAccessor#traverseKeyDescriptions', () => {
   const advancedDescriptions = filterKeyDescriptions(advancedSettings, AllKeyDescriptions);
   expect(advancedDescriptions.length).toEqual(1);
   expect(advancedDescriptions[0].dependents).not.toBeFalsy();
-  expect(advancedDescriptions[0].dependents.length).toEqual(2);
+  expect(advancedDescriptions[0].dependents!.length).toEqual(2);
 
   // アクセサのmockを作る
   let outputMode = 'Simple';

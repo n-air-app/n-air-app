@@ -56,11 +56,11 @@ export default defineComponent({
     },
 
     userName(): string {
-      return UserService.instance().username;
+      return UserService.instance().username ?? '';
     },
 
     userIcon(): string {
-      return UserService.instance().userIcon;
+      return UserService.instance().userIcon ?? '';
     },
 
     autoExtensionEnabled() {
@@ -157,7 +157,7 @@ export default defineComponent({
 
     copyProgramPassword() {
       if (this.isFetching) throw new Error('fetchProgram is running');
-      clipboard.writeText(NicoliveProgramService.instance().state.password);
+      clipboard.writeText(NicoliveProgramService.instance().state.password ?? '');
     },
   },
 });

@@ -13,7 +13,7 @@ interface IOnboardingOptions {
 
 interface IOnboardingServiceState {
   options: IOnboardingOptions;
-  currentStep: TOnboardingStep;
+  currentStep: TOnboardingStep | null;
   completedSteps: TOnboardingStep[];
 }
 
@@ -93,14 +93,14 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
   // Completes the current step and moves on to the
   // next eligible step.
   next() {
-    this.COMPLETE_STEP(this.state.currentStep);
-    this.goToNextStep(ONBOARDING_STEPS[this.state.currentStep].next);
+    this.COMPLETE_STEP(this.state.currentStep!);
+    this.goToNextStep(ONBOARDING_STEPS[this.state.currentStep!].next);
   }
 
   // Skip the current step and move on to the next
   // eligible step.
   skip() {
-    this.goToNextStep(ONBOARDING_STEPS[this.state.currentStep].next);
+    this.goToNextStep(ONBOARDING_STEPS[this.state.currentStep!].next);
   }
 
   // A login attempt is an abbreviated version of the onboarding process,
@@ -128,7 +128,7 @@ export class OnboardingService extends StatefulService<IOnboardingServiceState> 
     this.completed.next();
   }
 
-  private goToNextStep(step: TOnboardingStep) {
+  private goToNextStep(step: TOnboardingStep | undefined) {
     if (!step) {
       this.finish();
       return;

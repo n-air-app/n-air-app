@@ -136,8 +136,8 @@ export class WindowsService extends StatefulService<IWindowsState> {
   init() {
     const windowIds = ipcRenderer.sendSync('getWindowIds');
 
-    this.windows.main = BrowserWindow.fromId(windowIds.main);
-    this.windows.child = BrowserWindow.fromId(windowIds.child);
+    this.windows.main = BrowserWindow.fromId(windowIds.main)!;
+    this.windows.child = BrowserWindow.fromId(windowIds.child)!;
 
     this.windows.main.webContents.setBackgroundThrottling(false);
 
@@ -222,7 +222,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
   closeChildWindow(): Promise<void> {
     const windowOptions = this.state.child;
     if (!windowOptions.isShown) {
-      return;
+      return Promise.resolve();
     }
 
     // show previous window if `preservePrevWindow` flag is true
@@ -234,7 +234,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
       ipcRenderer.send('window-showChildWindow', options);
       this.updateChildWindowOptions(options);
-      return;
+      return Promise.resolve();
     }
 
     // This prevents you from seeing the previous contents
@@ -332,11 +332,13 @@ export class WindowsService extends StatefulService<IWindowsState> {
     }
 
     if (options.size && typeof options.size.x === 'number' && typeof options.size.y === 'number') {
-      newWindow.setPosition(options.size.x, options.size.y);
+      const sizeX = options.size.x!;
+      const sizeY = options.size.y!;
+      newWindow.setPosition(sizeX, sizeY);
 
       // サブモニタの座標がそれぞれ負のときに異常な値になる問題があり
       // 非同期にもう一回座標を与えてやるといい感じに画面内に収めてくれる
-      setTimeout(() => newWindow.setPosition(options.size.x, options.size.y), 200);
+      setTimeout(() => newWindow.setPosition(sizeX, sizeY), 200);
     }
 
     newWindow.loadURL(`${indexUrl}?windowId=${windowId}`);

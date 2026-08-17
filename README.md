@@ -44,7 +44,7 @@ npm login --scope=@n-air-app --registry=https://npm.pkg.github.com
 
 2. GitHub への SSH 鍵登録（git 依存関係を使用するため必要）
 
-一部の依存関係は GitHub リポジトリから直接取得されます（例: sl-vue-tree）。
+一部の依存関係は GitHub リポジトリから直接取得されます。
 これらは SSH 経由でクローンされるため、GitHub に SSH 公開鍵を登録する必要があります。
 
 **症状**: pnpm install 実行時に以下のようなエラーが出る場合は、SSH 鍵の設定が必要です:

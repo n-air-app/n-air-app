@@ -26,7 +26,7 @@ export default defineComponent({
     },
 
     fullscreen(): boolean {
-      return WindowsService.instance().state[this.windowId].isFullScreen;
+      return WindowsService.instance().state[this.windowId].isFullScreen ?? false;
     },
 
     sourceId(): string | undefined {
@@ -66,7 +66,7 @@ export default defineComponent({
       WindowsService.instance().setOneOffFullscreen(this.windowId, false);
       const currentWindow = remote.getCurrentWindow();
       currentWindow.setFullScreen(false);
-      currentWindow.setBounds(this.oldBounds);
+      currentWindow.setBounds(this.oldBounds!);
     },
   },
 });

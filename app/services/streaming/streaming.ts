@@ -179,7 +179,10 @@ export class StreamingService
   /**
    * 配信開始ボタンまたはショートカットキーによる配信開始(対話可能)
    *
-   * 現在ログインされているユーザーで、配信可能なチャンネルが存在する場合には、配信番組選択ウィンドウを開きます。
+   * ニコ生パネルで番組取得済み（test / onAir / reserved）のときは、その番組でそのまま配信開始する。
+   *
+   * パネル未取得かつ現在ログインされているユーザーで配信可能なチャンネルが存在する場合には、
+   * 配信番組選択ウィンドウを開きます。
    *
    * 配信番組選択ウィンドウで「配信開始」ボタンを押した時にもこのメソッドが呼ばれ、
    * options.nicoliveProgramSelectorResult に、ウィンドウで選ばれた配信種別と
@@ -215,37 +218,55 @@ export class StreamingService
         this.SET_PROGRAM_FETCHING(true);
         const broadcastableUserProgram = await this.client.fetchOnairUserProgram();
 
+        // ニコ生パネルで既に番組取得済みで、配信可能な状態ならそれを優先する
+        // （チャンネル配信権限がある場合でも種別ダイアログを挟まない）
+        const panelProgramId = this.nicoliveProgramService.state.programID;
+        const panelStatus = this.nicoliveProgramService.state.status;
+        const panelStreamable =
+          Boolean(panelProgramId)
+          && (panelStatus === 'test' || panelStatus === 'onAir' || panelStatus === 'reserved');
+
         // 配信番組選択ウィンドウ以外からの呼び出し時
         if (!opts.nicoliveProgramSelectorResult) {
-          const broadcastableChannelsResult = await this.client.fetchOnairChannels();
+          // パネル未取得のときだけチャンネル有無を見て選択 UI を出す
+          if (!panelStreamable) {
+            const broadcastableChannelsResult = await this.client.fetchOnairChannels();
 
-          // 配信可能チャンネルがある時
-          // エラー時は チャンネルがない時と同様の挙動とする
-          if (isOk(broadcastableChannelsResult) && broadcastableChannelsResult.value.length > 0) {
-            this.windowsService.showWindow({
-              title: $t('streaming.nicoliveProgramSelector.title'),
-              componentName: 'NicoliveProgramSelector',
-              size: {
-                width: 800,
-                height: 800,
-              },
-            });
-            return;
-          }
+            // 配信可能チャンネルがある時
+            // エラー時は チャンネルがない時と同様の挙動とする
+            // Array.isArray でガード: 認証失敗時などに data が配列以外でも length>0 になり得ないようにする
+            if (
+              isOk(broadcastableChannelsResult)
+              && Array.isArray(broadcastableChannelsResult.value)
+              && broadcastableChannelsResult.value.length > 0
+            ) {
+              this.windowsService.showWindow({
+                title: $t('streaming.nicoliveProgramSelector.title'),
+                componentName: 'NicoliveProgramSelector',
+                size: {
+                  width: 800,
+                  height: 800,
+                },
+              });
+              return;
+            }
 
-          // 配信可能チャンネルがなく、配信できるユーザー生放送もない場合
-          if (!broadcastableUserProgram.programId && !broadcastableUserProgram.nextProgramId) {
-            return this.showNotBroadcastingMessageBoxForNicolive('no_user_program');
+            // 配信可能チャンネルがなく、配信できるユーザー生放送もない場合
+            if (!broadcastableUserProgram.programId && !broadcastableUserProgram.nextProgramId) {
+              return this.showNotBroadcastingMessageBoxForNicolive('no_user_program');
+            }
           }
         }
 
-        // 配信番組選択ウィンドウでチャンネル番組が選ばれた時はそのチャンネル番組を, それ以外の場合は放送中のユーザー番組のIDを代入
-        // ユーザー番組については、即時番組があればそれを優先し、なければ予約番組の番組IDを採用する。
+        // 配信番組選択ウィンドウでチャンネル番組が選ばれた時はそのチャンネル番組を,
+        // それ以外は onairs/user → パネル取得済み番組の順で採用する
         const programId = opts.nicoliveProgramSelectorResult
             && opts.nicoliveProgramSelectorResult.providerType === 'channel'
             && opts.nicoliveProgramSelectorResult.channelProgramId
           ? opts.nicoliveProgramSelectorResult.channelProgramId
-          : broadcastableUserProgram.programId || broadcastableUserProgram.nextProgramId;
+          : broadcastableUserProgram.programId
+            || broadcastableUserProgram.nextProgramId
+            || (panelStreamable ? panelProgramId : undefined);
 
         // 配信番組選択ウィンドウでユーザー番組を選んだが、配信可能なユーザー番組がない場合
         if (!programId) {
@@ -253,9 +274,12 @@ export class StreamingService
         }
 
         const setting = await this.userService.updateStreamSettings(programId);
+        if (!setting) {
+          return this.showNotBroadcastingMessageBoxForNicolive('no_program_id');
+        }
         const streamKey = setting.key;
         if (streamKey === '') {
-          const failure = this.userService.platform.type === 'niconico'
+          const failure = this.userService.platform?.type === 'niconico'
             ? NiconicoService.instance().lastSetupFailure
             : null;
 
@@ -368,7 +392,7 @@ export class StreamingService
       if (shouldConfirm && !confirm(confirmText)) return;
 
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
-      const horizontalContext = this.videoSettingsService.contexts.horizontal;
+      const horizontalContext = this.videoSettingsService.contexts.horizontal!;
       runObsOp('StreamingService', 'startStreaming', () => {
         obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
         obs.NodeObs.OBS_service_startStreaming();
@@ -674,7 +698,7 @@ export class StreamingService
     const voicevoxFilter = (src: SynthesizerSelector, value: string) =>
       src === 'voicevox' ? value : '';
 
-    const event: TUsageEvent = {
+    const event: TUsageEvent & Record<string, any> = {
       event: eventType,
       platform: extractPlatform(settings.streamingURL),
       stream_track_id: streamingTrackId,
@@ -693,8 +717,8 @@ export class StreamingService
       advanced:
         settings.outputMode === 'Advanced'
           ? {
-            rate_control: settings.audio.rateControl,
-            profile: settings.profile,
+            rate_control: settings.audio.rateControl ?? 'CBR',
+            profile: settings.profile ?? 'main',
           }
           : undefined,
       encoder: {
@@ -776,7 +800,7 @@ export class StreamingService
     console.debug('OBS Output signal: ', info);
 
     const time = new Date().toISOString();
-    const outputCodeName = info.code ? (OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code)) : undefined;
+    const outputCodeName = info.code ? (OBS_OUTPUT_CODE_NAMES[info.code] ?? String(info.code)) : '';
 
     if (info.type === EOBSOutputType.Streaming) {
       const time = new Date().toISOString();

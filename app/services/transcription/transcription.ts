@@ -53,7 +53,7 @@ const getVoskModelURL = (name: string): string =>
 export interface ITranscriptionServiceState {
   enabled?: boolean;
   voskModelName: string;
-  audioDeviceId?: string | null;
+  audioDeviceId: string | null;
   commentEnabled: boolean;
   commentPosition: CommentPosition;
   commentSize: CommentSize;
@@ -111,6 +111,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   static defaultState: ITranscriptionServiceState = {
     voskModelName: VOSK_MODEL_NAMES[0],
+    audioDeviceId: null,
     commentEnabled: false,
     commentPosition: 'shita',
     commentFont: 'gothic',
@@ -126,7 +127,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private voskCliPath: string;
   private modelBasePath: string;
   private modelsManager: VoskModelsManager;
-  private client: ITranscriber;
+  private client: ITranscriber | null = null;
   private downloadControllers: Map<string, AbortController> = new Map();
   private state$ = new BehaviorSubject<ITranscriptionServiceState>(
     TranscriptionService.defaultState,
@@ -175,7 +176,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
 
   isVoskModelReady(): boolean {
     const state = this.state;
-    return (
+    return !!(
       state.voskModelName
       && this.modelsManager.getVoskModelStatus(state.voskModelName).state === 'downloaded'
     );
@@ -226,7 +227,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
           },
           { partialTimestamp: null, text: null },
         ),
-        filter((acc) => acc.text !== null),
+        filter((acc): acc is { partialTimestamp: number | null; text: TimestampedText } => acc.text !== null),
         map((acc) => acc.text),
       )
       .subscribe(this.textSubject$);
@@ -235,36 +236,39 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setTextFilePath(defaultTextFilePath());
 
     // enable 状態を監視して、状態が変わったら activate する
-    merge(this.updateActiveness$, this.voskError$, this.audioDeviceMuted$)
-      .pipe(
-        map((): ActiveStatus => {
-          if (!this.state.enabled) return 'disabled';
+    merge(
+      this.updateActiveness$,
+      this.voskError$,
+      this.audioDeviceMuted$,
+    ).pipe(
+      map((): ActiveStatus => {
+        if (!this.state.enabled) return 'disabled';
 
-          const voskError = this.voskError$.value;
-          if (voskError === 'launchError') return 'voskLaunchError';
-          if (voskError === 'error') return 'voskError';
+        const voskError = this.voskError$.value;
+        if (voskError === 'launchError') return 'voskLaunchError';
+        if (voskError === 'error') return 'voskError';
 
-          if (this.audioDevices$.value.length === 0) return 'noAudioDevice';
+        if (this.audioDevices$.value.length === 0) return 'noAudioDevice';
 
-          // 選択中のモデルの状態を先にチェック
-          if (!this.state.voskModelName) return 'noVoskModel';
+        // 選択中のモデルの状態を先にチェック
+        if (!this.state.voskModelName) return 'noVoskModel';
 
-          const modelStatus = this.modelsManager.getVoskModelStatus(this.state.voskModelName);
-          if (modelStatus.state === 'load_error') return 'modelLoadError';
-          if (modelStatus.state !== 'downloaded') {
-            // 選択中のモデルがダウンロードされていない場合のみ、他のモデルの存在をチェック
-            if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
-            return 'noVoskModel';
-          }
+        const modelStatus = this.modelsManager.getVoskModelStatus(this.state.voskModelName);
+        if (modelStatus.state === 'load_error') return 'modelLoadError';
+        if (modelStatus.state !== 'downloaded') {
+          // 選択中のモデルがダウンロードされていない場合のみ、他のモデルの存在をチェック
+          if (!this.hasAnyDownloadedModel()) return 'noModelDownloaded';
+          return 'noVoskModel';
+        }
 
-          if (this.audioDeviceMuted$.value) return 'muted';
+        if (this.audioDeviceMuted$.value) return 'muted';
 
-          return 'active';
-        }),
-        tap((status) => {
-          console.log('TranscriptionService activeStatus:', status);
-        }),
-      )
+        return 'active';
+      }),
+      tap((status) => {
+        console.log('TranscriptionService activeStatus:', status);
+      }),
+    )
       .subscribe(this.activeStatusSubject$);
 
     this.activeStatusSubject$
@@ -290,15 +294,15 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
         }
       });
 
-    // audioDeviceId 状態を監視して、状態が変わったら audioDeviceIndex を更新する
+    // audioDeviceId 状態を監視して、状態が変わったらクライアントの audioDeviceId を更新する
     this.state$
       .pipe(
-        map((state) => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId),
         distinctUntilChanged(),
       )
       .subscribe((audioDeviceId) => {
         if (this.client) {
-          this.client.audioDeviceIndex = this.getAudioDeviceIndex(audioDeviceId, 0);
+          this.client.audioDeviceId = this.resolveClientAudioDeviceId(audioDeviceId);
         }
       });
 
@@ -312,7 +316,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   private createAudioDeviceMutedStream() {
     merge(
       this.state$.pipe(
-        map((state) => state.audioDeviceId ?? null),
+        map((state) => state.audioDeviceId),
         distinctUntilChanged(),
       ),
       this.audioService.audioSourceUpdated,
@@ -493,7 +497,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.deactivate();
   }
 
-  private subscription: Subscription;
+  private subscription: Subscription | null = null;
   private timerSubscriptions: Subscription[] = [];
 
   activate() {
@@ -509,13 +513,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     try {
       this.client = CreateVoskCliClient({
         voskCliPath: this.voskCliPath,
-        modelPath: this.getModelPath(this.state.voskModelName),
+        modelPath: this.getModelPath(this.state.voskModelName!),
+        audioDeviceId: this.resolveClientAudioDeviceId(this.state.audioDeviceId),
       });
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
     } catch (err) {
       SentryReport.error('TranscriptionService', 'createClient', err, {
         tags: { voskModelName: this.state.voskModelName },
-        extra: { voskCliPath: this.voskCliPath, modelPath: this.getModelPath(this.state.voskModelName) },
+        extra: { voskCliPath: this.voskCliPath, modelPath: this.getModelPath(this.state.voskModelName!) },
       });
       console.error('Failed to create Vosk CLI client:', err);
       this.client = null;
@@ -523,9 +527,8 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       return;
     }
 
-    this.subscription = this.client.startTranscription().subscribe({
+    this.subscription = this.client!.startTranscription().subscribe({
       next: (message) => {
-        console.log('Transcribe message:', message);
         if (isTextTranscriptionMessage(message)) {
           const text = filterNoiseText(message.text);
           if (text) {
@@ -619,12 +622,13 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
       return;
     }
     if (this.client) {
-      // デバイスリストを更新したので、audioDeviceIndex も更新する(見つかるようになったかもしれない)
-      this.client.audioDeviceIndex = this.getAudioDeviceIndex(this.state.audioDeviceId, 0);
+      // デバイスリストを更新したので、クライアントの audioDeviceId も更新する(見つかるようになったかもしれない)
+      this.client.audioDeviceId = this.resolveClientAudioDeviceId(this.state.audioDeviceId);
     }
     // audioDeviceId が未設定なら存在する値で更新する
     if (!this.state.audioDeviceId && this.audioDevices$.value.length > 0) {
-      this.setAudioDeviceId(this.selectDefaultAudioDeviceId());
+      const defaultDeviceId = this.selectDefaultAudioDeviceId();
+      if (defaultDeviceId) this.setAudioDeviceId(defaultDeviceId);
     }
   }
 
@@ -649,15 +653,26 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     }
   }
 
-  getAudioDeviceIndex<T>(id: string, notFoundValue: T): number | T {
-    if (!id) {
-      return notFoundValue;
+  /**
+   * vosk-cli の `-D` に渡すデバイスIDを決める。
+   * 一覧に無い/未選択なら null を返し、VoskClient はデバイス指定フラグを付けない
+   * (vosk-cli はシステム既定の入力デバイスを使う)。
+   */
+  private resolveClientAudioDeviceId(audioDeviceId: string | null): string | null {
+    if (!audioDeviceId) {
+      return null;
     }
-    const index = this.audioDevices$.value.findIndex((device) => device.id === id);
-    if (index === -1) {
-      return notFoundValue;
+    if (this.audioDevices$.value.some((device) => device.id === audioDeviceId)) {
+      return audioDeviceId;
     }
-    return index;
+    console.warn(
+      `Audio device ${audioDeviceId} is not in the current device list. Falling back to the system default device.`,
+    );
+    Sentry.addBreadcrumb({
+      category: 'transcription',
+      message: `Audio device ${audioDeviceId} not found in device list; falling back to system default`,
+    });
+    return null;
   }
 
   getAudioDeviceList(): { id: string; name: string }[] {
@@ -665,8 +680,11 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
   }
 
   setAudioDeviceId(audioDeviceId: string | null) {
-    const index = this.getAudioDeviceIndex(audioDeviceId, 0);
-    const actualDeviceId = this.audioDevices$.value.length > 0 ? this.audioDevices$.value[index].id : null;
+    const devices = this.audioDevices$.value;
+    const found = audioDeviceId !== null && devices.some((device) => device.id === audioDeviceId);
+    // 見つからない場合は一覧の先頭にフォールバックする (デバイスが無ければ null)
+    const fallbackDeviceId = devices.length > 0 ? devices[0].id : null;
+    const actualDeviceId = found ? audioDeviceId : fallbackDeviceId;
     if (audioDeviceId !== actualDeviceId) {
       console.warn(
         `Audio device with id ${audioDeviceId} not found. Using ${actualDeviceId} instead.`,
@@ -683,7 +701,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     this.setState({ textFileEnabled });
   }
   getTextFilePath(): string {
-    return this.state.textFilePath;
+    return this.state.textFilePath ?? '';
   }
   setTextFilePath(textFilePath: string) {
     this.setState({ textFilePath });

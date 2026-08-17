@@ -6,7 +6,6 @@ import { SelectionService } from 'services/selection';
 import { TDisplayType } from 'services/settings-v2';
 import { assertIsDefined } from 'util/properties-type-guards';
 
-import { mutation } from '../core';
 import { Inject } from '../core/injector';
 
 import {
@@ -55,21 +54,14 @@ export abstract class SceneItemNode implements ISceneItemNode {
   }
 
   setParent(parentId: string) {
-    // prevent to set a child folder as parent
-    if (this.isFolder() && this.getNestedNodesIds().indexOf(parentId) !== -1) {
-      return;
-    }
-    this.SET_PARENT(parentId);
-    this.parentId = parentId;
-    this.placeAfter(parentId);
+    const scene = this.getScene();
+    const beforeNodeId = scene
+      .getModel()
+      .nodes.find((node) => (node.parentId || '') === parentId && node.id !== this.id)?.id;
+    scene.moveNodes([this.id], parentId, beforeNodeId);
   }
 
-  detachParent() {
-    if (this.parentId) this.SET_PARENT('');
-    this.parentId = '';
-  }
-
-  getParent(): SceneItemFolder {
+  getParent(): SceneItemFolder | null {
     return this.getScene().getFolder(this.parentId);
   }
 
@@ -79,14 +71,6 @@ export abstract class SceneItemNode implements ISceneItemNode {
 
   getNodeIndex(): number {
     return this.getScene().getNodesIds().indexOf(this.id);
-  }
-
-  placeAfter(nodeId: string) {
-    this.getScene().placeAfter(this.id, nodeId);
-  }
-
-  placeBefore(nodeId: string) {
-    this.getScene().placeBefore(this.id, nodeId);
   }
 
   getPrevNode(): TSceneNode {
@@ -99,25 +83,7 @@ export abstract class SceneItemNode implements ISceneItemNode {
     return this.getScene().getNodes()[nodeInd + 1];
   }
 
-  getPrevSiblingNode(): TSceneNode {
-    const siblingsIds = this.parentId
-      ? this.getParent().getNestedNodesIds()
-      : this.getScene().getRootNodesIds();
-
-    const childInd = siblingsIds.indexOf(this.id);
-    if (childInd !== 0) return this.getScene().getNode(siblingsIds[childInd - 1]);
-  }
-
-  getNextSiblingNode(): TSceneNode {
-    const siblingsIds = this.parentId
-      ? this.getParent().getNestedNodesIds()
-      : this.getScene().getRootNodesIds();
-
-    const childInd = siblingsIds.indexOf(this.id);
-    if (childInd !== 0) return this.getScene().getNode(siblingsIds[childInd + 1]);
-  }
-
-  getPrevItem(): SceneItem {
+  getPrevItem(): SceneItem | null {
     let nodeInd = this.getNodeIndex();
     const nodes = this.getScene().getNodes();
     while (nodeInd--) {
@@ -126,13 +92,14 @@ export abstract class SceneItemNode implements ISceneItemNode {
     return null;
   }
 
-  getNextItem(): SceneItem {
+  getNextItem(): SceneItem | null {
     let nodeInd = this.getNodeIndex();
     const nodes = this.getScene().getNodes();
     while (nodeInd++) {
       if (!nodes[nodeInd]) return null;
       if (nodes[nodeInd].isItem()) return nodes[nodeInd] as SceneItem;
     }
+    return null;
   }
 
   /**
@@ -173,9 +140,4 @@ export abstract class SceneItemNode implements ISceneItemNode {
 
   protected abstract get state(): ISceneItemNode;
   abstract remove(): void;
-
-  @mutation()
-  protected SET_PARENT(parentId?: string) {
-    this.state.parentId = parentId;
-  }
 }

@@ -1,11 +1,11 @@
 import fs from 'fs';
 
-import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import {
   inputValuesToObsValues,
   IObsInput,
   IObsListInput,
+  IObsListOption,
   obsValuesToInputValues,
   TObsFormData,
   TObsValue,
@@ -18,11 +18,13 @@ import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
 import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
+import { ObsIpcHealthService } from 'services/obs-ipc-health';
 import { SoundDetectorService } from 'services/sound-detector';
 import { SourcesService } from 'services/sources';
 import { UserService } from 'services/user';
 import { WindowsService } from 'services/windows';
 import { IpcRequestError } from 'util/ipc-request-error';
+import { isObsBackendIpcLost } from 'util/obs-ipc-error';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 import { toRaw } from 'vue';
@@ -34,6 +36,7 @@ import Utils from '../utils';
 
 import { getBestSettingsForNiconico, getRecommendedResolutionForHeight } from './niconico-optimization';
 import {
+  EncoderFamily,
   ISettingsAccessor,
   OptimizationKey,
   OptimizedSettings,
@@ -132,6 +135,7 @@ export class SettingsService
   @Inject() private windowsService: WindowsService;
   @Inject() private appService: AppService;
   @Inject() private userService: UserService;
+  @Inject() private obsIpcHealthService: ObsIpcHealthService;
 
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private dismissablesService: DismissablesService;
@@ -213,29 +217,15 @@ export class SettingsService
       this.settingsFormDataCache.set(categoryName, result);
       return result;
     } catch (e) {
-      if (e instanceof IpcRequestError) {
+      // 生のネイティブ例外（メインウィンドウでの直接呼び出し）と IpcRequestError（RPC 越し）の
+      // 両方を拾う。instanceof IpcRequestError は rpcError.message が空でも RPC 失敗なら
+      // 従来通り縮退させるために残す
+      if (isObsBackendIpcLost(e) || e instanceof IpcRequestError) {
         this.obsIpcError = true;
-        this.offerRestart().catch(() => {});
+        this.obsIpcHealthService.notifyIpcLost('SettingsService.getSettingsFormData');
         return this.settingsFormDataCache.get(categoryName) ?? [];
       }
       throw e;
-    }
-  }
-
-  private async offerRestart(): Promise<void> {
-    const parentWindow = this.windowsService.getWindow('child') ?? remote.getCurrentWindow();
-    const choice = await remote.dialog.showMessageBox(parentWindow, {
-      type: 'error',
-      buttons: [$t('common.yes'), $t('common.no')],
-      title: $t('common.confirm'),
-      message: $t('settings.noticeIpcError'),
-      detail: $t('settings.noticeIpcErrorDetail'),
-      noLink: true,
-      cancelId: 1,
-      defaultId: 0,
-    });
-    if (choice.response === 0) {
-      this.appService.relaunch();
     }
   }
 
@@ -534,7 +524,7 @@ export class SettingsService
     };
   }
 
-  getRecordingSettings(): RecordingSettings {
+  getRecordingSettings(): RecordingSettings | undefined {
     const output = this.getSettingsFormData('Output');
     const outputMode = this.getOutputMode(output);
     switch (outputMode) {
@@ -636,6 +626,13 @@ export class SettingsService
       const opt = new Optimizer(accessor, best);
       opt.optimize(best);
 
+      // obs_nvenc_h264_tex はデフォルトで B フレーム(bf=2)が有効になっており、
+      // ニコ生 RTMP サーバーとの相性で接続が切断される問題があるため無効化する。
+      // 他の最適化項目が部分的に失敗しても、再接続ループの回避は独立して適用する。
+      if (best.encoder === EncoderFamily.nvencH264Tex) {
+        this.setSettingValue('Output', 'bf', 0);
+      }
+
       // 確実に書き込めたか確認するため、読み込み直す
       accessor.clearCache();
       const delta = [...opt.getDifferenceFromCurrent(best)];
@@ -698,7 +695,7 @@ export class SettingsService
     return undefined;
   }
 
-  findSettingValue(settings: ISettingsSubCategory[], category: string, setting: string): TObsValue {
+  findSettingValue(settings: ISettingsSubCategory[], category: string, setting: string): TObsValue | undefined {
     const param = this.findSetting(settings, category, setting);
     if (param) {
       if (typeof param.value !== 'undefined') {
@@ -774,7 +771,7 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
+        options: ([{ description: $t('settings.disabled'), value: null }] as unknown as IObsListOption<TObsValue>[]).concat(
           audioDevices
             .filter((device) => device.type === 'output')
             .map((device) => {
@@ -800,7 +797,7 @@ export class SettingsService
         type: 'OBS_PROPERTY_LIST',
         enabled: true,
         visible: true,
-        options: [{ description: $t('settings.disabled'), value: null }].concat(
+        options: ([{ description: $t('settings.disabled'), value: null }] as unknown as IObsListOption<TObsValue>[]).concat(
           audioDevices
             .filter((device) => device.type === 'input')
             .map((device) => {
@@ -826,7 +823,7 @@ export class SettingsService
     if (categoryName === 'Output' || categoryName === 'Video' || categoryName === 'Stream') {
       markObsOp('SettingsService', 'setSettings', { category: categoryName });
     }
-    if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()]);
+    if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()!]);
     if (categoryName === 'Developer') return this.setDeveloperSettings(settingsData);
 
     const dataToSave: {

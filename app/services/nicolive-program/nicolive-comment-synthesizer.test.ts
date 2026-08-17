@@ -218,7 +218,7 @@ test.each([
     const instance = NicoliveCommentSynthesizerService.instance() as NicoliveCommentSynthesizerService;
     jest.spyOn(instance, 'state', 'get').mockReturnValue(mockedState);
 
-    (instance.getSynthesizer('nVoice').speakText as jest.Mock).mockImplementation(
+    (instance.getSynthesizer('nVoice')!.speakText as jest.Mock).mockImplementation(
       (speech: Speech, onstart: () => void, onend: () => void) => {
         return async () => async () => {
           onstart();

@@ -40,11 +40,12 @@ const osnVersion = getObsStudioNodeVersion();
 ////////////////////////////////////////////////////////////////////////////////
 const electron = require('electron');
 
-const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter } =
+const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter, net } =
   electron;
 const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
+const { fetchViaElectronNet } = require('./main-process/fetch');
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dev Hosts Configuration
@@ -244,10 +245,10 @@ async function showRequiredSystemComponentInstallGuideDialog() {
 }
 
 async function recollectUserSessionCookie() {
-  // electron14->15でcookieがつかない
-  // 設定されるcookieのSameSite指定がないため unspecified となり
-  // 設定が無いためchromeがcookieをつけない(通信ログを見るとフィルタされている)
-  // cookieを直せば通るようなのでそのパッチ処理
+  // electron14->15 で SameSite 未指定 (unspecified) の cookie がフィルタされる問題へのパッチ。
+  // API 呼び出しは session.cookies から読み取った値を X-Niconico-Session / Cookie ヘッダで
+  // 明示送信するため、クロスサイト自動付与用の SameSite=None は不要。
+  // SameSite=None; Secure; not Partitioned は Chromium の third-party cookie 警告の対象になるため Lax にする。
   console.log('recollectUserSessionCookie');
   try {
     const cookies = await getAppSession().cookies.get({
@@ -257,7 +258,8 @@ async function recollectUserSessionCookie() {
     if (!cookies || !cookies.length) return;
 
     for (const cookie of cookies) {
-      if (cookie.sameSite === 'no_restriction') {
+      // 既に目的の属性なら何もしない（過去に no_restriction にした cookie は Lax へ移行する）
+      if (cookie.sameSite === 'lax' && cookie.httpOnly && cookie.secure) {
         console.log(`no-need change cookie ${cookie.name}`);
         continue;
       }
@@ -266,12 +268,15 @@ async function recollectUserSessionCookie() {
       if (d[0] === '.') d = d.substring(1);
 
       cookie.url = `https://${d}`; //nicovideo.jp';
-      cookie.sameSite = 'no_restriction';
+      cookie.sameSite = 'lax';
       cookie.httpOnly = true;
       cookie.secure = true;
 
       await getAppSession().cookies.set(cookie);
-      console.log(`cookie changed ${JSON.stringify(cookie)}`);
+      // value（セッショントークン）はログに出さない
+      console.log(
+        `cookie changed name=${cookie.name} domain=${cookie.domain} sameSite=${cookie.sameSite} httpOnly=${cookie.httpOnly} secure=${cookie.secure}`,
+      );
     }
   } catch (e) {
     console.log(`cookie error ${e.toString()}`);
@@ -1307,25 +1312,7 @@ function initialize(crashHandler) {
      * @returns {Promise<import('./app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
      * */
     async (_e, url, options) => {
-      try {
-        const response = await fetch(url, options);
-        const text = await response.text();
-        return {
-          ok: response.ok,
-          headers: response.headers.entries(),
-          status: response.status,
-          text,
-        };
-      } catch (e) {
-        // cause チェーンとURLを文字列化してrendererに伝搬する
-        // (Electron の IPC シリアライズでは cause が失われるため)
-        // [MAIN_FETCH_FAIL code=...] 接頭辞は renderer 側 wrapFetchError が機械可読に経路を判別するために使用する
-        const causeCode = e.cause?.code ?? '';
-        const cause = e.cause
-          ? `${e.cause.name}: ${e.cause.message} (code: ${e.cause.code})`
-          : undefined;
-        throw new Error(`[MAIN_FETCH_FAIL code=${causeCode}] ${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
-      }
+      return fetchViaElectronNet(net, url, options);
     },
   );
 }

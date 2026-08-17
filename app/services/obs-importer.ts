@@ -166,7 +166,7 @@ export class ObsImporterService extends Service {
         });
 
         if (isFilterAvailable) {
-          const sourceId = this.sourcesService.getSourcesByName(source.name)[0].sourceId;
+          const sourceId = this.sourcesService.getSourcesByName(source.name!)[0]!.sourceId;
 
           const filter = this.filtersService.add(sourceId, filterJSON.id, filterJSON.name);
           filter.enabled = filterJSON.enabled;
@@ -224,9 +224,11 @@ export class ObsImporterService extends Service {
                 ? obs.EMonitoringType.MonitoringOnly
                 : obs.EMonitoringType.None;
 
-              this.audioService.getSource(source.sourceId).setMuted(sourceJSON.muted);
-              this.audioService.getSource(source.sourceId).setMul(sourceJSON.volume);
-              this.audioService.getSource(source.sourceId).setSettings({
+              const audioSource = this.audioService.getSource(source.sourceId);
+              if (!audioSource) return;
+              audioSource.setMuted(sourceJSON.muted);
+              audioSource.setMul(sourceJSON.volume);
+              audioSource.setSettings({
                 audioMixers: sourceJSON.mixers ?? DEFAULT_AUDIO_MIXERS,
                 monitoringType: sourceJSON.monitoring_type ?? defaultMonitoring,
                 syncOffset: sourceJSON.sync != null ? sourceJSON.sync / 1000000 : 0,
@@ -260,6 +262,7 @@ export class ObsImporterService extends Service {
           const scene = this.scenesService.createScene(sourceJSON.name, {
             makeActive: sourceJSON.name === currentScene,
           });
+          if (!scene) return;
           nameToIdMap[scene.name] = scene.id;
         }
       });
@@ -279,6 +282,7 @@ export class ObsImporterService extends Service {
               });
               if (sourceToAdd) {
                 const sceneItem = scene.addSource(sourceToAdd.sourceId);
+                if (!sceneItem) return;
 
                 const crop = {
                   bottom: item.crop_bottom,
@@ -424,7 +428,7 @@ export class ObsImporterService extends Service {
         sceneNames.push(
           listScene.find((scene) => {
             return scene.name === obsScene.name;
-          }).id,
+          })!.id,
         );
       });
     }
@@ -449,8 +453,11 @@ export class ObsImporterService extends Service {
           { channel: i + 1 },
         );
 
-        this.audioService.getSource(newSource.sourceId).setMuted(audioSource.muted);
-        this.audioService.getSource(newSource.sourceId).setMul(audioSource.volume);
+        const newAudioSource = this.audioService.getSource(newSource.sourceId);
+        if (newAudioSource) {
+          newAudioSource.setMuted(audioSource.muted);
+          newAudioSource.setMul(audioSource.volume);
+        }
       }
     });
   }

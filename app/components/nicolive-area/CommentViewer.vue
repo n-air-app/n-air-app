@@ -64,7 +64,7 @@
       </button>
     </div>
     <div class="content">
-      <div class="pinned" v-if="Boolean(pinnedComment)">
+      <div class="pinned" v-if="pinnedComment !== null">
         <div class="comment-header"><i class="icon-pinned"></i></div>
         <component
           class="comment-readonly"

@@ -55,7 +55,7 @@ export default defineComponent({
 
       if (options.preservePrevWindow) {
         this.currentComponent.isShown = false;
-        this.components.push({ name: options.componentName, isShown: true, title: options.title });
+        this.components.push({ name: options.componentName!, isShown: true, title: options.title! });
         this.setWindowTitle();
         return;
       }
@@ -75,7 +75,7 @@ export default defineComponent({
       clearTimeout(this.refreshingTimeout);
       this.refreshingTimeout = window.setTimeout(() => {
         nextTick(() => {
-          this.components.push({ name: options.componentName, isShown: true, title: options.title });
+          this.components.push({ name: options.componentName!, isShown: true, title: options.title! });
           this.setWindowTitle();
         });
       });

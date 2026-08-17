@@ -10,7 +10,7 @@ export default defineComponent({
     input: (_value: IObsInput<TObsValue>[], _index: number) => true,
   },
   props: {
-    value: { type: Array as PropType<IObsInput<TObsValue>[]>, default: (): IObsInput<TObsValue>[] => [] },
+    value: { type: Array as PropType<IObsInput<TObsValue>[]>, required: true as const },
     category: { type: String },
     subCategory: { type: String },
   },

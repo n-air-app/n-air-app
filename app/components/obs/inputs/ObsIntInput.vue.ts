@@ -20,6 +20,7 @@ const ObsIntInput = defineComponent({
       this.$emit('input', eventData);
     },
     updateValue(eventOrValue: Event | string) {
+      if (this.value.enabled === false) return;
       const value = eventOrValue instanceof Event
         ? (eventOrValue.target as HTMLInputElement).value
         : eventOrValue;
@@ -27,10 +28,10 @@ const ObsIntInput = defineComponent({
       if (this.value.type === 'OBS_PROPERTY_UINT' && Number(formattedValue) < 0) {
         formattedValue = '0';
       }
-      if (this.value.minVal !== undefined && Number(value) < this.value.minVal) {
+      if (this.value.minVal !== undefined && Number(formattedValue) < this.value.minVal) {
         formattedValue = String(this.value.minVal);
       }
-      if (this.value.maxVal !== undefined && Number(value) > this.value.maxVal) {
+      if (this.value.maxVal !== undefined && Number(formattedValue) > this.value.maxVal) {
         formattedValue = String(this.value.maxVal);
       }
       const input = (this.$refs.input as HTMLInputElement);
@@ -40,12 +41,15 @@ const ObsIntInput = defineComponent({
       this.emitInput({ ...this.value, value: Number(formattedValue) });
     },
     increment() {
-      this.updateValue(String(Number((this.$refs.input as HTMLInputElement).value) + 1));
+      if (this.value.enabled === false) return;
+      this.updateValue(String(Number((this.$refs.input as HTMLInputElement).value) + this.value.stepVal));
     },
     decrement() {
-      this.updateValue(String(Number((this.$refs.input as HTMLInputElement).value) - 1));
+      if (this.value.enabled === false) return;
+      this.updateValue(String(Number((this.$refs.input as HTMLInputElement).value) - this.value.stepVal));
     },
     onMouseWheelHandler(event: WheelEvent) {
+      if (this.value.enabled === false) return;
       const input = this.$refs.input as HTMLInputElement;
       const canChange = event.target !== input || input === document.activeElement;
       if (!canChange) return;
