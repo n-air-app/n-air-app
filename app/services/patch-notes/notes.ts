@@ -1,8 +1,8 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20260819-unstable.1',
-  title: '1.1.20260819-unstable.1',
+  version: '1.1.20260819-unstable.2',
+  title: '1.1.20260819-unstable.2',
   notes: [
     '変更: OBSを31に更新 / リスケールフィルターを追加 (#1317) by asaday',
     '変更: ソース一覧の選択・並べ替え操作を改善 (#1367) by asaday',
