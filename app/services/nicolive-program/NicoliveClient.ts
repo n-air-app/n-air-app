@@ -643,7 +643,7 @@ export class NicoliveClient {
       'PUT',
       `${NicoliveClient.live2BaseURL}/unama/api/v4/ingest_info?nicoliveProgramId=${programId}`,
       {
-        headers: NicoliveClient.v4ApiHeaders(programId),
+        headers: NicoliveClient.v4ApiHeaders(),
       },
     );
   }
@@ -961,10 +961,10 @@ export class NicoliveClient {
     );
   }
 
-  static v4ApiHeaders(programId: string): HeadersInit {
+  static v4ApiHeaders(): HeadersInit {
     return {
-      // v4 APIは Origin headerが必要
-      Origin: `${NicoliveClient.liveBaseURL}/watch/${programId}`,
+      // v4 APIは Origin headerが必要。Origin はパスを含まない scheme://host[:port] のみ
+      Origin: NicoliveClient.liveBaseURL,
     };
   }
 
@@ -977,7 +977,7 @@ export class NicoliveClient {
       `${NicoliveClient.live2BaseURL
       }/unama/api/v4/programs/${programId}/comments?${params.toString()}`,
       {
-        headers: NicoliveClient.v4ApiHeaders(programId),
+        headers: NicoliveClient.v4ApiHeaders(),
       },
     );
   }
@@ -986,7 +986,7 @@ export class NicoliveClient {
     const requestInit = NicoliveClient.jsonBody('');
     requestInit.headers = {
       ...requestInit.headers,
-      ...NicoliveClient.v4ApiHeaders(programId),
+      ...NicoliveClient.v4ApiHeaders(),
     };
 
     return this.requestAPI<void>(
