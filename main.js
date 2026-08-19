@@ -40,12 +40,11 @@ const osnVersion = getObsStudioNodeVersion();
 ////////////////////////////////////////////////////////////////////////////////
 const electron = require('electron');
 
-const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter, net } =
+const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter } =
   electron;
 const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
-const { fetchViaElectronNet } = require('./main-process/fetch');
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dev Hosts Configuration
@@ -1312,7 +1311,26 @@ function initialize(crashHandler) {
      * @returns {Promise<import('./app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
      * */
     async (_e, url, options) => {
-      return fetchViaElectronNet(net, url, options);
+      try {
+        const response = await fetch(url, options);
+        const text = await response.text();
+        return {
+          ok: response.ok,
+          // iterator のままでは Electron IPC の構造化クローンで中身が失われるため配列化する
+          headers: [...response.headers.entries()],
+          status: response.status,
+          text,
+        };
+      } catch (e) {
+        // cause チェーンとURLを文字列化してrendererに伝搬する
+        // (Electron の IPC シリアライズでは cause が失われるため)
+        // [MAIN_FETCH_FAIL code=...] 接頭辞は renderer 側 wrapFetchError が機械可読に経路を判別するために使用する
+        const causeCode = e.cause?.code ?? '';
+        const cause = e.cause
+          ? `${e.cause.name}: ${e.cause.message} (code: ${e.cause.code})`
+          : undefined;
+        throw new Error(`[MAIN_FETCH_FAIL code=${causeCode}] ${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
+      }
     },
   );
 }
