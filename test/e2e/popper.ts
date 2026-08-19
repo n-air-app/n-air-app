@@ -8,7 +8,7 @@ import { test, TExecutionContext, useWebdriver } from '../helpers/webdriver/inde
 
 useWebdriver();
 
-// pnpm compile-tests && npx ava test-dist/test/e2e/popper.js -v -s
+// pnpm compile-tests && node --test test-dist/test/e2e/popper.js
 
 test('Popper basic functionality', async (t: TExecutionContext) => {
   const client = await getApiClient();

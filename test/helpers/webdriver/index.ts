@@ -1,7 +1,6 @@
 /// <reference path="../../../app/index.d.ts" />
 import * as ChildProcess from 'child_process';
 
-import { ExecutionContext } from 'ava';
 import { DismissablesService } from 'services/dismissables';
 import { remote, RemoteOptions } from 'webdriverio';
 
@@ -11,6 +10,7 @@ import { sleep } from '../sleep';
 
 import {
   initializeTasks,
+  ITestExecutionContext,
   killElectronInstances,
   testFn,
   waitForElectronInstancesExist,
@@ -143,7 +143,7 @@ export interface ITestContext {
   app: Application;
 }
 
-export type TExecutionContext = ExecutionContext<ITestContext>;
+export type TExecutionContext = ITestExecutionContext;
 
 let startAppFn: (t: TExecutionContext, reuseCache?: boolean) => Promise<any>;
 let stopAppFn: (t: TExecutionContext, clearCache?: boolean) => Promise<any>;
@@ -269,7 +269,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     return app;
   };
 
-  stopAppFn = async function stopApp(t: ExecutionContext, clearCache = true) {
+  stopAppFn = async function stopApp(t: TExecutionContext, clearCache = true) {
     try {
       await closeWindow('main');
       await waitForElectronInstancesExist();
@@ -317,11 +317,9 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
     }
   });
 
-  test.afterEach(async (t) => {
-    testPassed = true;
-  });
-
   test.afterEach.always(async (t) => {
+    testPassed = !t.failed;
+
     // wrap in try/catch for the situation when we have a crash
     // so we still can read the logs after the crash
     try {
@@ -338,7 +336,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
       console.error(e);
     }
 
-    if (!testPassed) {
+    if (t.failed || !testPassed) {
       fail();
       t.fail(failMsg);
     }
