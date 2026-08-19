@@ -18,7 +18,9 @@ const setup = createSetupFunction({
       updateSpeechSynthesizerSettings() {},
     },
     NVoiceClientService: {},
-    NVoiceCharacterService: {},
+    NVoiceCharacterService: {
+      updateSocketIoPort: jest.fn(),
+    },
     UserService: {
       platform: {
         id: '<platform_id>',

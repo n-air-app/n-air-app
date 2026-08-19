@@ -1,3 +1,5 @@
+/** @jest-environment jsdom */
+
 /**
  * Scene.reconcileNodeOrderWithObs (moveNodes経由) のテスト
  *

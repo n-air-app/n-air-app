@@ -60,6 +60,11 @@ jest.mock('../../../obs-api', () => ({
 
 beforeEach(() => {
   jest.resetModules();
+  jest.spyOn(window, 'setInterval').mockImplementation(() => 0 as any);
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 test('get instance', () => {

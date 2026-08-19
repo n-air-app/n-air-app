@@ -36,6 +36,7 @@ const setup = createSetupFunction({
     NicoliveCommentSynthesizerService: {
       stateChange: new Subject(),
       available: false,
+      prefetchNVoice: jest.fn(),
     },
     NicoliveModeratorsService: {
       stateChange: new Subject(),

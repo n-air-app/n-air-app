@@ -29,6 +29,10 @@ jest.mock('util/fetchViaMainProcess', () => ({
 import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
 
 beforeEach(() => {
+  Object.defineProperty(process, 'type', {
+    configurable: true,
+    value: 'renderer',
+  });
   fetchMock.mockGlobal();
 });
 
@@ -546,29 +550,42 @@ describe('NicoliveClient.wrapResult', () => {
   });
 });
 
+type DeleteCommentTestCase = [
+  boolean,
+  string | Error | null,
+  () => Promise<MainProcessFetchResponse>,
+];
+
 describe('NicoliveClient.deleteComment', () => {
   setupMock();
   const error = new Error('error');
 
-  test.each<[boolean, string | Error | null, Promise<MainProcessFetchResponse>]>([
+  test.each<DeleteCommentTestCase>([
     [
       true,
       null,
-      Promise.resolve<MainProcessFetchResponse>({ ok: true, headers: [], status: 204, text: '' }),
+      () =>
+        Promise.resolve<MainProcessFetchResponse>({
+          ok: true,
+          headers: [],
+          status: 204,
+          text: '',
+        }),
     ],
     [
       false,
       'not found',
-      Promise.resolve<MainProcessFetchResponse>({
-        ok: false,
-        headers: [],
-        status: 404,
-        text: '"not found"',
-      }),
+      () =>
+        Promise.resolve<MainProcessFetchResponse>({
+          ok: false,
+          headers: [],
+          status: 404,
+          text: '"not found"',
+        }),
     ],
-    [false, error, Promise.reject(error)],
-  ])('ok:%p expect value:%v', async (ok, value, response) => {
-    fetchViaMainProcess.mockResolvedValueOnce(response);
+    [false, error, () => Promise.reject(error)],
+  ])('ok:%p expect value:%v', async (ok, value, createResponse) => {
+    fetchViaMainProcess.mockImplementationOnce(createResponse);
 
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
     {
