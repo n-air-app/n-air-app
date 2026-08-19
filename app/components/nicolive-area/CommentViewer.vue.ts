@@ -158,8 +158,9 @@ export default defineComponent({
       action: { label: string; onClick: () => void };
       hideDelay: number;
     } | null {
-      if (SnackbarService.instance().state.latest?.position === 'niconico') {
-        return SnackbarService.instance().state.latest;
+      const latest = SnackbarService.instance().state.latest;
+      if (latest?.position === 'niconico' && latest.action) {
+        return latest as { message: string; action: { label: string; onClick: () => void }; hideDelay: number };
       }
       return null;
     },
@@ -281,7 +282,11 @@ export default defineComponent({
     },
 
     hasNamePlateHint(item: WrappedMessage): boolean {
-      return this.nameplateHintNo && isWrappedChat(item) && this.nameplateHintNo === item.value.no;
+      return (
+        this.nameplateHintNo !== undefined
+        && isWrappedChat(item)
+        && this.nameplateHintNo === item.value.no
+      );
     },
 
     getSpeakingType(item: WrappedMessageWithComponent): SpeakingType {
@@ -304,14 +309,16 @@ export default defineComponent({
       if (!(item.type === 'normal' || item.type === 'operator')) {
         return;
       }
-      const isBroadcaster = NicoliveProgramService.instance().isBroadcaster(item.value.user_id);
+      const { user_id: userId, content, id, name } = item.value;
+      if (!userId || !content || !id) return;
+      const isBroadcaster = NicoliveProgramService.instance().isBroadcaster(userId);
 
       const menu = new Menu();
       menu.append({
         id: 'Copy comment content',
         label: 'コメントをコピー',
         click: () => {
-          clipboard.writeText(item.value.content);
+          clipboard.writeText(content);
         },
       });
       if (item.type === 'normal') {
@@ -319,7 +326,7 @@ export default defineComponent({
           id: "Copy comment owner's id",
           label: 'ユーザーIDをコピー',
           click: () => {
-            clipboard.writeText(item.value.user_id);
+            clipboard.writeText(userId);
           },
         });
         if (!item.filtered) {
@@ -331,7 +338,7 @@ export default defineComponent({
               id: 'Undo delete a comment',
               label: 'コメント削除を取り消す',
               click: () => {
-                NicoliveCommentViewerService.instance().undoDeleteComment(item.value.id).catch((e: unknown) => {
+                NicoliveCommentViewerService.instance().undoDeleteComment(id).catch((e: unknown) => {
                   if (e instanceof NicoliveFailure) {
                     openErrorDialogFromFailure(e);
                   }
@@ -345,7 +352,7 @@ export default defineComponent({
               label: 'コメントを削除',
               click: () => {
                 NicoliveCommentViewerService.instance()
-                  .deleteComment(item.value.id)
+                  .deleteComment(id)
                   .then(() => {
                     SnackbarService.instance().show({
                       position: 'niconico',
@@ -354,7 +361,7 @@ export default defineComponent({
                         label: '取り消す',
                         onClick: () => {
                           NicoliveCommentViewerService.instance()
-                            .undoDeleteComment(item.value.id)
+                            .undoDeleteComment(id)
                             .catch((e: unknown) => {
                               if (e instanceof NicoliveFailure) {
                                 openErrorDialogFromFailure(e);
@@ -383,9 +390,9 @@ export default defineComponent({
                 NicoliveCommentFilterService.instance()
                   .addFilter({
                     type: 'user',
-                    body: item.value.user_id,
-                    messageId: `${item.value.id}`,
-                    memo: item.value.content,
+                    body: userId,
+                    messageId: `${id}`,
+                    memo: content,
                   })
                   .catch((e: unknown) => {
                     if (e instanceof NicoliveFailure) {
@@ -396,8 +403,8 @@ export default defineComponent({
             });
           }
         }
-        if (item.value.name /* なふだ有効ユーザー */ && !isBroadcaster) {
-          if (!NicoliveModeratorsService.instance().isModerator(item.value.user_id)) {
+        if (name /* なふだ有効ユーザー */ && !isBroadcaster) {
+          if (!NicoliveModeratorsService.instance().isModerator(userId)) {
             if (!item.filtered) {
               menu.append({
                 type: 'separator',
@@ -407,8 +414,8 @@ export default defineComponent({
                 label: 'モデレーターに追加',
                 click: () => {
                   NicoliveModeratorsService.instance().addModeratorWithConfirm({
-                    userId: item.value.user_id,
-                    userName: item.value.name,
+                    userId,
+                    userName: name,
                   });
                 },
               });
@@ -422,8 +429,8 @@ export default defineComponent({
               label: 'モデレーターから削除',
               click: () => {
                 NicoliveModeratorsService.instance().removeModeratorWithConfirm({
-                  userId: item.value.user_id,
-                  userName: item.value.name,
+                  userId,
+                  userName: name,
                 });
               },
             });
@@ -458,10 +465,10 @@ export default defineComponent({
     showUserInfo(item: WrappedMessageWithComponent) {
       if (isWrappedChat(item)) {
         NicoliveCommentViewerService.instance().showUserInfo(
-          item.value.user_id,
-          item.value.name,
-          (item.value.premium & 1) !== 0,
-          item.isSupporter,
+          item.value.user_id ?? '',
+          item.value.name ?? '',
+          ((item.value.premium ?? 0) & 1) !== 0,
+          !!item.isSupporter,
         );
       }
     },

@@ -47,10 +47,10 @@
                 'CommentSpeech',
                 'SubStream',
                 'Transcription',
-              ].includes(categoryName)
+              ].includes(categoryName ?? '')
             "
             :value="settingsData"
-            :category="categoryName"
+            :category="categoryName ?? undefined"
             :isLoggedIn="isLoggedIn"
             @input="save"
           />

@@ -18,7 +18,7 @@ export function toNumber(num: Long | number): number {
 }
 
 export function toISO8601(timestamp: google.protobuf.ITimestamp): string {
-  return new Date(toNumber(timestamp.seconds) * 1000).toISOString();
+  return new Date(toNumber(timestamp.seconds ?? 0) * 1000).toISOString();
 }
 
 export function convertSSNGType(
@@ -68,7 +68,7 @@ export class NdgrClient {
   }
 
   public async connect(from_unix_time?: number | 'now', numBackward = 0): Promise<void> {
-    let next: number | Long | string = from_unix_time ?? 'now';
+    let next: number | Long | string | null = from_unix_time ?? 'now';
     let initPhase = true;
 
     Sentry.addBreadcrumb({
@@ -83,7 +83,7 @@ export class NdgrClient {
     });
 
     while (next && !this.isDisposed) {
-      const fetchUri = `${this.uri}?at=${next}`;
+      const fetchUri: string = `${this.uri}?at=${next}`;
       next = null;
       for await (const entry of this.retrieve(
         fetchUri,
@@ -91,21 +91,21 @@ export class NdgrClient {
         'head',
       )) {
         if (entry.backward != null) {
-          if (initPhase && numBackward > 0) {
+          if (initPhase && numBackward > 0 && entry.backward.segment != null && entry.backward.segment.uri != null) {
             const backwards = await this.pullBackwards(entry.backward.segment.uri, numBackward);
             for (const msg of backwards) {
               this.messages.next(new dwango.nicolive.chat.service.edge.ChunkedMessage(msg));
             }
           }
-        } else if (entry.previous != null) {
+        } else if (entry.previous != null && entry.previous.uri != null) {
           if (initPhase) {
             await this.retrieveMessages(entry.previous.uri, 'previous');
           }
-        } else if (entry.segment != null) {
+        } else if (entry.segment != null && entry.segment.uri != null) {
           initPhase = false;
           await this.retrieveMessages(entry.segment.uri, 'segment');
         } else if (entry.next != null) {
-          next = entry.next.at;
+          next = entry.next.at ?? null;
         }
       }
     }
@@ -115,7 +115,7 @@ export class NdgrClient {
     uri: string,
     phase: 'head' | 'backwards' | 'previous' | 'segment',
   ): Promise<Response> {
-    let response: Response;
+    let response: Response | undefined;
     for (let retryRemain = this.options.maxRetry; retryRemain >= 0; retryRemain--) {
       try {
         response = await fetch(uri);
@@ -139,7 +139,7 @@ export class NdgrClient {
         await sleep(this.options.retryInterval);
       }
     }
-    if (!response.ok) throw new NdgrFetchError(response.status, uri, this.options.label, phase);
+    if (!response || !response.ok) throw new NdgrFetchError(response?.status ?? 0, uri, this.options.label, phase);
     return response;
   }
 
@@ -159,7 +159,7 @@ export class NdgrClient {
       const packed = dwango.nicolive.chat.service.edge.PackedSegment.decode(new Uint8Array(body));
       buf.unshift(packed.messages);
       length += packed.messages.length;
-      if (!packed.next) break;
+      if (!packed.next || packed.next.uri == null) break;
       await sleep(BACKWARD_SEGMENT_INTERVAL);
       fetchUri = packed.next.uri;
     }
@@ -191,6 +191,7 @@ export class NdgrClient {
   ): AsyncGenerator<T, void, undefined> {
     let unread = new Uint8Array();
     const response = await this.fetchWithHandling(uri, phase);
+    if (!response.body) throw new Error('response body is null');
     const reader = response.body.getReader();
     while (true) {
       const { done, value } = await reader.read();

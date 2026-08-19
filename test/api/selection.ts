@@ -18,8 +18,8 @@ afterAppStart(async (t) => {
   selectionService = client.getResource('SelectionService');
   sceneBuilder = new SceneBuilder(client);
   scene = sceneBuilder.scene;
-  getNode = (name) => scene.getNodeByName(name);
-  getNodeId = (name) => scene.getNodeByName(name).id;
+  getNode = (name) => scene.getNodeByName(name)!;
+  getNodeId = (name) => scene.getNodeByName(name)!.id;
 });
 
 test('Selection', async (t) => {
@@ -31,9 +31,9 @@ test('Selection', async (t) => {
   const numPresetItems = selection.getSize();
   selection.reset();
 
-  const color1 = scene.createAndAddSource('Color1', 'color_source');
-  const color2 = scene.createAndAddSource('Color2', 'color_source');
-  const color3 = scene.createAndAddSource('Color3', 'color_source');
+  const color1 = scene.createAndAddSource('Color1', 'color_source')!;
+  const color2 = scene.createAndAddSource('Color2', 'color_source')!;
+  const color3 = scene.createAndAddSource('Color3', 'color_source')!;
 
   selection.select(color2.sceneItemId);
 
@@ -91,8 +91,8 @@ test('Invalid selection', async (t) => {
   const client = await getApiClient();
   const scenesService = client.getResource<ScenesService>('ScenesService');
   const selection = client.getResource<SelectionService>('SelectionService');
-  const anotherScene = scenesService.createScene('Another scene');
-  const colorFromAnotherScene = anotherScene.createAndAddSource('MyColor', 'color_source');
+  const anotherScene = scenesService.createScene('Another scene')!;
+  const colorFromAnotherScene = anotherScene.createAndAddSource('MyColor', 'color_source')!;
   const [colorSource] = scenesService.activeScene.getItems();
 
   // invalid ids must be ignored
@@ -104,7 +104,7 @@ test('Invalid selection', async (t) => {
   t.deepEqual(selection.getIds(), [colorSource.sceneItemId]);
 });
 
-test('Place after', async (t) => {
+test('Move selection to end', async (t) => {
   sceneBuilder.build(`
     Item1:
     Folder1
@@ -114,7 +114,9 @@ test('Place after', async (t) => {
   `);
 
   selectionService.select([getNodeId('Item1'), getNodeId('Folder1')]);
-  selectionService.placeAfter(getNodeId('Item4'));
+  scene
+    .getSelection([getNodeId('Item1'), getNodeId('Folder1')])
+    .moveWithinTree('');
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -127,7 +129,7 @@ test('Place after', async (t) => {
   );
 });
 
-test('Place after folder with deep nesting', async (t) => {
+test('Move folder with deep nesting to end', async (t) => {
   sceneBuilder.build(`
     Folder1
       Item1:
@@ -137,7 +139,7 @@ test('Place after folder with deep nesting', async (t) => {
   `);
 
   selectionService.select(getNodeId('Folder1'));
-  selectionService.placeAfter(getNodeId('Item4'));
+  scene.getSelection([getNodeId('Folder1')]).moveWithinTree('');
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -150,7 +152,7 @@ test('Place after folder with deep nesting', async (t) => {
   );
 });
 
-test('Place before', async (t) => {
+test('Move within tree', async (t) => {
   sceneBuilder.build(`
     Item1:
     Item2:
@@ -160,7 +162,9 @@ test('Place before', async (t) => {
   `);
 
   selectionService.select([getNodeId('Item2'), getNodeId('Folder1')]);
-  selectionService.placeBefore(getNodeId('Item1'));
+  scene
+    .getSelection([getNodeId('Item2'), getNodeId('Folder1')])
+    .moveWithinTree('', getNodeId('Item1'));
 
   t.true(
     sceneBuilder.isEqualTo(`

@@ -30,11 +30,11 @@ export enum PanelState {
 }
 
 type BackupSizeInfo = {
-  widthOffset: number;
-  backupX: number;
-  backupY: number;
-  backupHeight: number;
-  maximized: boolean;
+  widthOffset: number | undefined;
+  backupX: number | undefined;
+  backupY: number | undefined;
+  backupHeight: number | undefined;
+  maximized: boolean | undefined;
 };
 
 const MWOpKey = 'mainwindow-operation';
@@ -84,7 +84,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     this.nicoliveProgramStateService.updated.subscribe({
       next: (persistentState) => {
         if ('panelOpened' in persistentState) {
-          this.setState({ panelOpened: persistentState.panelOpened });
+          this.setState({ panelOpened: persistentState.panelOpened ?? null });
         }
       },
     });
@@ -168,9 +168,9 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
     isCompact,
     isNavigating,
   }: {
-    panelOpened: boolean;
-    isLoggedIn: boolean;
-    isCompact: boolean;
+    panelOpened: boolean | null;
+    isLoggedIn: boolean | null;
+    isCompact: boolean | null;
     isNavigating: boolean;
   }): PanelState | null {
     if (panelOpened === null || isLoggedIn === null) return null;
@@ -201,7 +201,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
         const nextBackupSize = WindowSizeService.updateWindowSize(
           WindowSizeService.mainWindowOperation,
           prevPanelState,
-          nextPanelState,
+          nextPanelState!,
           prevBackupSize,
         );
         if (prevPanelState && nextBackupSize !== undefined) {
@@ -218,7 +218,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
         WindowSizeService.updateWindowSize(
           WindowSizeService.mainWindowOperation,
           prevPanelState,
-          nextPanelState,
+          nextPanelState!,
           prevBackupSize,
         );
       }
@@ -237,7 +237,7 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
 
   static updateWindowSize(
     win: MainWindowOperation,
-    prevState: PanelState,
+    prevState: PanelState | null,
     nextState: PanelState,
     sizeState: BackupSizeInfo | undefined,
   ): BackupSizeInfo {
@@ -289,8 +289,8 @@ export class WindowSizeService extends StatefulService<IWindowSizeState> {
           nextWidth = nextMinWidth;
           nextMaximize = false;
         } else {
-          nextWidth = Math.max(nextBackupSize.widthOffset, nextMinWidth);
-          nextMaximize = nextBackupSize.maximized;
+          nextWidth = Math.max(nextBackupSize.widthOffset ?? nextMinWidth, nextMinWidth);
+          nextMaximize = nextBackupSize.maximized ?? false;
         }
       }
     }

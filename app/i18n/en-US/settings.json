@@ -117,6 +117,7 @@
         "qsv": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
         "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_nvenc_h264_tex": "@:settings.Output.Streaming.Encoder.obs_nvenc_h264_tex",
         "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "ABitrate": {
@@ -172,6 +173,7 @@
         "obs_qsv11": "Hardware (QSV)",
         "ffmpeg_nvenc": "Hardware (NVENC)",
         "jim_nvenc": "Hardware (NVENC NEW)",
+        "obs_nvenc_h264_tex": "NVIDIA NVENC H.264",
         "obs_qsv11_v2": "Hardware (QSV)"
       },
       "ApplyServiceSettings": {
@@ -182,6 +184,14 @@
       },
       "RescaleRes": {
         "name": null
+      },
+      "RescaleFilter": {
+        "name": null,
+        "0": null,
+        "2": null,
+        "3": null,
+        "4": null,
+        "5": null
       },
       "rate_control": {
         "name": null,
@@ -302,6 +312,7 @@
         "obs_qsv11": "@:settings.Output.Streaming.Encoder.obs_qsv11",
         "ffmpeg_nvenc": "@:settings.Output.Streaming.Encoder.ffmpeg_nvenc",
         "jim_nvenc": "@:settings.Output.Streaming.Encoder.jim_nvenc",
+        "obs_nvenc_h264_tex": "@:settings.Output.Streaming.Encoder.obs_nvenc_h264_tex",
         "obs_qsv11_v2": "@:settings.Output.Streaming.Encoder.obs_qsv11_v2"
       },
       "RecAEncoder": { "name": null },

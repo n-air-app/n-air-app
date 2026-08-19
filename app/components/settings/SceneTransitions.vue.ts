@@ -55,7 +55,7 @@ export default defineComponent({
         ETransitionType.Cut,
         $t('transitions.newTransition'),
       );
-      this.editTransition(transition.id);
+      if (transition) this.editTransition(transition.id);
     },
     editTransition(id: string) {
       this.inspectedTransition = id;
@@ -75,9 +75,9 @@ export default defineComponent({
       const connection = TransitionsService.instance().addConnection(
         ScenesService.instance().scenes[0].id,
         ScenesService.instance().scenes[1].id,
-        this.transitions[0].id,
+        this.transitions[0]!.id,
       );
-      this.editConnection(connection.id);
+      if (connection) this.editConnection(connection.id);
     },
     editConnection(id: string) {
       this.inspectedConnection = id;
@@ -100,7 +100,7 @@ export default defineComponent({
       return TransitionsService.instance().isConnectionRedundant(id);
     },
     nameForType(type: ETransitionType) {
-      return TransitionsService.instance().getTypes().find((t) => t.value === type).description;
+      return TransitionsService.instance().getTypes().find((t) => t.value === type)?.description ?? '';
     },
     done() {
       WindowsService.instance().closeChildWindow();

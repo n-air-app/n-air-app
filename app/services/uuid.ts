@@ -6,7 +6,7 @@ interface IUuidServiceState { }
 
 export class UuidService extends StatefulService<IUuidServiceState> {
   localStorageKey = 'InstallationUuidv4';
-  private _uuid: string = null;
+  private _uuid: string | null = null;
 
   init() {
     this._uuid = this.getUuid();

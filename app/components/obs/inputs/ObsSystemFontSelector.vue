@@ -51,7 +51,7 @@
         </dropdown>
       </div>
     </div>
-    <font-size-selector :value="value.value.size" @input="setSize" />
+    <font-size-selector :value="value.value?.size" @input="setSize" />
   </div>
 </template>
 

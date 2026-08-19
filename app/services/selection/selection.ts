@@ -100,8 +100,6 @@ export class SelectionService extends StatefulService<ISelectionState> {
   setBlendingMethod: (method: EBlendingMethod) => void;
 
   // SCENE NODES METHODS
-  placeAfter: (sceneNodeId: string) => void;
-  placeBefore: (sceneNodeId: string) => void;
   setParent: (folderId: string) => void;
 
   @shortcut('Delete')
@@ -218,7 +216,7 @@ export class Selection {
   // SELECTION METHODS
 
   getScene(): Scene {
-    return this.scenesService.getScene(this.sceneId);
+    return this.scenesService.getScene(this.sceneId)!;
   }
 
   add(itemsList: TNodesList): Selection {
@@ -349,7 +347,7 @@ export class Selection {
       });
   }
 
-  getLastSelected(): TSceneNode {
+  getLastSelected(): TSceneNode | null {
     return this.getScene().getNode(this.state.lastSelectedId);
   }
 
@@ -361,7 +359,7 @@ export class Selection {
     return this.state.selectedIds.length;
   }
 
-  getBoundingRect(): IRectangle {
+  getBoundingRect(): IRectangle | null {
     const items = this.getVisualItems();
     if (!items.length) return null;
 
@@ -389,7 +387,9 @@ export class Selection {
 
   getInverted(): TSceneNode[] {
     const scene = this.getScene();
-    return this.getInvertedIds().map((id) => scene.getNode(id));
+    return this.getInvertedIds()
+      .map((id) => scene.getNode(id))
+      .filter((n): n is TSceneNode => n !== null);
   }
 
   invert(): Selection {
@@ -414,10 +414,9 @@ export class Selection {
 
   copyTo(sceneId: string, folderId?: string, duplicateSources = false): TSceneNode[] {
     const insertedNodes: TSceneNode[] = [];
-    const scene = this.scenesService.getScene(sceneId);
+    const scene = this.scenesService.getScene(sceneId)!;
     const foldersMap: Dictionary<string> = {};
-    let prevInsertedNode: TSceneNode;
-    let insertedNode: TSceneNode;
+    const insertionAnchors: Dictionary<string | null> = {};
 
     const sourcesMap: Dictionary<Source> = {};
     const notDuplicatedSources: Source[] = [];
@@ -434,30 +433,34 @@ export class Selection {
 
     // copy items and folders structure
     this.getNodes().forEach((sceneNode) => {
+      let insertedNode: TSceneNode | null = null;
       if (sceneNode.isFolder()) {
         insertedNode = scene.createFolder(sceneNode.name);
-        foldersMap[sceneNode.id] = insertedNode.id;
-        insertedNodes.push(insertedNode);
+        if (insertedNode) {
+          foldersMap[sceneNode.id] = insertedNode.id;
+          insertedNodes.push(insertedNode);
+        }
       } else if (sceneNode.isItem()) {
-        insertedNode = scene.addSource(
+        const addedItem = scene.addSource(
           sourcesMap[sceneNode.sourceId]
             ? sourcesMap[sceneNode.sourceId].sourceId
             : sceneNode.sourceId,
         );
-        insertedNode.setSettings(sceneNode.getSettings());
-        insertedNodes.push(insertedNode);
+        if (addedItem) {
+          addedItem.setSettings(sceneNode.getSettings());
+          insertedNodes.push(addedItem);
+        }
+        insertedNode = addedItem;
       }
 
+      if (!insertedNode) return;
       const newParentId = foldersMap[sceneNode.parentId] || '';
-      if (newParentId) {
-        insertedNode.setParent(newParentId);
+      if (!(newParentId in insertionAnchors)) {
+        insertionAnchors[newParentId] = scene
+          .getModel()
+          .nodes.find((node) => (node.parentId || '') === newParentId && node.id !== insertedNode.id)?.id || null;
       }
-
-      if (prevInsertedNode && prevInsertedNode.parentId === newParentId) {
-        insertedNode.placeAfter(prevInsertedNode.id);
-      }
-
-      prevInsertedNode = insertedNode;
+      scene.moveNodes([insertedNode.id], newParentId, insertionAnchors[newParentId] || undefined);
     });
 
     return insertedNodes;
@@ -465,10 +468,11 @@ export class Selection {
 
   moveTo(sceneId: string, folderId?: string): TSceneNode[] {
     if (this.sceneId === sceneId) {
-      if (!folderId) return;
+      if (!folderId) return [];
       this.getRootNodes()
         .reverse()
         .forEach((sceneNode) => sceneNode.setParent(folderId));
+      return [];
     } else {
       const insertedItems = this.copyTo(sceneId, folderId);
       this.remove();
@@ -513,7 +517,7 @@ export class Selection {
   /**
    * Returns the closest common parent folder for selection if exists
    */
-  getClosestParent(): SceneItemFolder {
+  getClosestParent(): SceneItemFolder | null {
     const rootNodes = this.getRootNodes();
     const paths: string[][] = [];
 
@@ -533,6 +537,7 @@ export class Selection {
         return this.getScene().getFolder(closestParentId);
       }
     }
+    return null;
   }
 
   canGroupIntoFolder(): boolean {
@@ -644,14 +649,9 @@ export class Selection {
     return { sceneId: this.sceneId, ...this.state };
   }
 
-  placeAfter(sceneNodeId: string) {
-    this.getRootNodes()
-      .reverse()
-      .forEach((node) => node.placeAfter(sceneNodeId));
-  }
-
-  placeBefore(sceneNodeId: string) {
-    this.getRootNodes().forEach((node) => node.placeBefore(sceneNodeId));
+  /** 親変更と兄弟順の変更を中間状態なしで適用する。 */
+  moveWithinTree(parentId: string, beforeNodeId?: string) {
+    this.getScene().moveNodes(this.getRootNodes().map((node) => node.id), parentId, beforeNodeId);
   }
 
   setParent(sceneNodeId: string) {

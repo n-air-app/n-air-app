@@ -12,7 +12,7 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
   }
 
   private speakingPromise: Promise<void> | null = null;
-  private speakingResolve: () => void | null = null;
+  private speakingResolve: (() => void) | null = null;
   private speakingCounter: number = 0;
 
   speakText(speech: Speech, onstart: () => void, onend: () => void): PrepareFunc {
@@ -33,7 +33,7 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
       uttr.onstart = onstart;
       uttr.onend = () => {
         if (--this.speakingCounter === 0) {
-          this.speakingResolve();
+          this.speakingResolve?.();
           this.speakingPromise = null;
           this.speakingResolve = null;
         }
@@ -56,7 +56,7 @@ export class WebSpeechSynthesizer implements ISpeechSynthesizer {
           console.warn('speechSynthesis.onerror', e.error);
         }
         if (--this.speakingCounter === 0) {
-          this.speakingResolve();
+          this.speakingResolve?.();
           this.speakingPromise = null;
           this.speakingResolve = null;
         }

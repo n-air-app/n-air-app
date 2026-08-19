@@ -6,7 +6,6 @@ import { getCookieDomain, getPartitionConfig, getPartitionName, transformUrl } f
 import { FrontendIdHeader } from 'services/platforms/niconicoDefs';
 import { addClipboardMenu } from 'util/addClipboardMenu';
 import { fetchViaMainProcess, MainProcessFetchResponse } from 'util/fetchViaMainProcess';
-import { handleErrors } from 'util/requests';
 import { SentryReport } from 'util/sentry-report';
 
 import {
@@ -117,6 +116,7 @@ type Quality = {
 export function parseMaxQuality(maxQuality: string, fallback: Quality): Quality {
   try {
     const match = maxQuality.match(/(\d+([.]\d+)?)([Mk])bps(\d+)p((\d+([.]\d+)?)fps)?/);
+    if (!match) return fallback;
 
     return {
       bitrate: parseFloat(match[1]) * (match[3] === 'M' ? 1000 : 1),
@@ -272,7 +272,7 @@ export class NicoliveClient {
       // No Content ならvalueをnullとして返す
       return {
         ok: true,
-        value: null,
+        value: null as unknown as ResultType,
         serverDateMs,
       };
     }
@@ -292,8 +292,12 @@ export class NicoliveClient {
       };
     }
 
-    // 正常成功
-    if (res.ok) {
+    // HTTP は成功でも API 側 meta.status がエラーのことがある（その場合は失敗扱い）
+    const metaStatus =
+      obj && typeof obj === 'object' && obj.meta && typeof obj.meta.status === 'number'
+        ? (obj.meta.status as number)
+        : undefined;
+    if (res.ok && (metaStatus === undefined || metaStatus === 200)) {
       return {
         ok: true,
         value: obj.data as ResultType,
@@ -301,11 +305,15 @@ export class NicoliveClient {
       };
     }
 
-    // 正常失敗
+    // 正常失敗（HTTP エラー、または HTTP 成功だが meta.status がエラー）
     return {
       ok: false,
       value: obj as CommonErrorResponse,
-      diag: { route, httpStatus: res.status, failureKind: 'http_error' },
+      diag: {
+        route,
+        httpStatus: res.status,
+        failureKind: 'http_error',
+      },
     };
   }
 
@@ -337,7 +345,8 @@ export class NicoliveClient {
 
   /**
    * ニコニコのセッションを読みだし
-   * rendererのdocument.cookieからはローカル扱いになって読めないので、mainプロセスで取る
+   * renderer の document.cookie からは読めないので Electron session から取る。
+   * domain フィルタを使い、SameSite 属性に依存せず jar 上の user_session を得る。
    */
   private async fetchSession(): Promise<string> {
     if (this.options.niconicoSession) {
@@ -345,38 +354,104 @@ export class NicoliveClient {
     }
 
     const { session } = remote.getCurrentWebContents();
-    return new Promise((resolve, reject) => {
-      session.cookies.get({ url: 'https://' + getCookieDomain(), name: 'user_session' }).then((cookies) => {
-        if (cookies.length < 1) return reject(new NotLoggedInError());
-        resolve(cookies[0].value);
-      });
+    const cookies = await session.cookies.get({
+      domain: getCookieDomain(),
+      name: 'user_session',
     });
+    if (cookies.length < 1) {
+      throw new NotLoggedInError();
+    }
+    return cookies[0].value;
   }
 
+  /**
+   * 認証付き API リクエスト。
+   * SameSite=Lax の user_session は app origin からのクロスサイト fetch では自動付与されない。
+   * Cookie は renderer では forbidden header のため、session 値を明示して main 経由で送る。
+   */
   private async requestAPI<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
     options: RequestInit = {},
   ): Promise<WrappedResult<T>> {
-    // Origin リクエストヘッダーを付けるには main process で fetch を使う必要がある
-    const viaMainProcess = options.headers && 'Origin' in options.headers;
-    const route: RequestRoute = viaMainProcess ? 'main' : 'renderer';
-
-    const headers: HeadersInit = {};
-    // renderer process だと cookieが取れないので、main process で取ってきて付ける
-    if (process.type === 'renderer') {
-      headers['X-Niconico-Session'] = await this.fetchSession();
+    try {
+      const res = await this.requestWithSession(method, url, options);
+      // wrapResult が Response / MainProcessFetchResponse 両方を扱える形に合わせて渡す
+      return NicoliveClient.wrapResult<T>(
+        {
+          ok: res.ok,
+          status: res.status,
+          headers: res.headers,
+          text: res.body,
+        },
+        res.route,
+      );
+    } catch (err) {
+      return NicoliveClient.wrapFetchError(err as Error, process.type === 'renderer' ? 'main' : 'renderer');
     }
+  }
+
+  /**
+   * Cookie + X-Niconico-Session を付与した HTTP リクエスト（レスポンス形状を問わない汎用）。
+   * follow / konomi など wrapResult 前提ではない API 用。
+   */
+  private async requestWithSession(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    url: string,
+    options: RequestInit = {},
+  ): Promise<{
+    ok: boolean;
+    status: number;
+    statusText: string;
+    body: string;
+    headers: [string, string][];
+    route: RequestRoute;
+  }> {
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> | undefined),
+    };
+
+    if (process.type === 'renderer' || this.options.niconicoSession) {
+      const userSession = await this.fetchSession();
+      headers['X-Niconico-Session'] = userSession;
+      headers.Cookie = `user_session=${userSession}`;
+    }
+
+    const viaMainProcess =
+      process.type === 'renderer'
+      && (Object.prototype.hasOwnProperty.call(headers, 'Cookie')
+        || Object.prototype.hasOwnProperty.call(headers, 'Origin'));
+    const route: RequestRoute = viaMainProcess ? 'main' : 'renderer';
     const requestInit = NicoliveClient.createRequest(method, {
       ...options,
-      headers: { ...headers, ...options.headers },
+      headers,
     });
-    try {
-      const resp = await (viaMainProcess ? fetchViaMainProcess : fetch)(url, requestInit);
-      return NicoliveClient.wrapResult<T>(resp, route);
-    } catch (err) {
-      return NicoliveClient.wrapFetchError(err as Error, route);
+
+    if (viaMainProcess) {
+      const res = await fetchViaMainProcess(url, requestInit);
+      return {
+        ok: res.ok,
+        status: res.status,
+        statusText: `${res.status}`,
+        body: res.text,
+        headers: res.headers,
+        route,
+      };
     }
+
+    const res = await fetch(url, requestInit);
+    const headerEntries: [string, string][] = [];
+    res.headers.forEach((value, key) => {
+      headerEntries.push([key, value]);
+    });
+    return {
+      ok: res.ok,
+      status: res.status,
+      statusText: res.statusText,
+      body: await res.text(),
+      headers: headerEntries,
+      route,
+    };
   }
 
   static jsonBody<T>(body: T, extraHeaders: HeadersInit = {}): RequestInit {
@@ -510,13 +585,30 @@ export class NicoliveClient {
    */
   async fetchOnairUserProgram(): Promise<OnairUserProgramData> {
     const url = `${NicoliveClient.live2BaseURL}/unama/tool/v2/onairs/user`;
-    const headers = new Headers();
-    const userSession = await this.fetchSession();
-    headers.append('X-niconico-session', userSession);
-    const request = new Request(url, { headers });
-    const response = await fetch(request).then(handleErrors);
-    const json = await NicoliveClient.parseJsonOrThrow(response, 'fetchOnairUserProgram');
-    return json.data;
+    // requestAPI と同様、Cookie + X-Niconico-Session を main 経由で送る
+    const result = await this.requestAPI<OnairUserProgramData>('GET', url);
+    if (!isOk(result)) {
+      if (result.diag?.failureKind === 'not_logged_in' || result.value instanceof NotLoggedInError) {
+        throw result.value instanceof NotLoggedInError ? result.value : new NotLoggedInError();
+      }
+      if (result.diag?.failureKind === 'json_parse') {
+        throw new Error(
+          `fetchOnairUserProgram: response is not valid JSON (status=${result.diag.httpStatus})`,
+          { cause: result.value },
+        );
+      }
+      if (result.value instanceof Error) {
+        throw result.value;
+      }
+      // handleErrors 相当: API エラーは meta.status があればそちらを優先して調査しやすくする
+      const metaStatus =
+        result.value && typeof result.value === 'object' && 'meta' in result.value
+          ? result.value.meta?.status
+          : undefined;
+      const status = metaStatus ?? result.diag?.httpStatus ?? 0;
+      throw new Error(`fetchOnairUserProgram failed: ${status}`);
+    }
+    return result.value ?? {};
   }
 
   /**
@@ -639,7 +731,7 @@ export class NicoliveClient {
     return this.createProgramPromise;
   }
 
-  private editProgramWindow: Electron.BrowserWindow = null;
+  private editProgramWindow: Electron.BrowserWindow | null = null;
   private editProgramId = '';
 
   /** 番組編集画面を開いて結果を返す */
@@ -720,18 +812,25 @@ export class NicoliveClient {
    * @returns
    */
   async fetchKonomiTags(userId: string): Promise<KonomiTag[]> {
-    const res = await fetch(
+    const res = await this.requestWithSession(
+      'POST',
       `${NicoliveClient.live2ApiBaseURL}/api/v1/konomiTags/GetFollowing`,
-      NicoliveClient.createRequest(
-        'POST',
-        NicoliveClient.jsonBody(
-          { follower_id: { value: userId, type: 'USER' } },
-          { 'x-service-id': 'n-air-app' },
-        ),
+      NicoliveClient.jsonBody(
+        { follower_id: { value: userId, type: 'USER' } },
+        { 'x-service-id': 'n-air-app' },
       ),
     );
     if (res.ok) {
-      const json = (await NicoliveClient.parseJsonOrThrow(res, 'fetchKonomiTags')) as KonomiTags;
+      let json: KonomiTags;
+      try {
+        json = JSON.parse(res.body) as KonomiTags;
+      } catch (e) {
+        console.warn('fetchKonomiTags: non-json body', res.body.slice(0, 200));
+        throw new Error(
+          `fetchKonomiTags: response is not valid JSON (status=${res.status})`,
+          { cause: e },
+        );
+      }
       return json.konomi_tags;
     }
     throw new Error(`fetchKonomiTags failed: ${res.status} ${res.statusText}`);
@@ -747,14 +846,20 @@ export class NicoliveClient {
    * @returns フォロー中ならtrue
    */
   async fetchUserFollow(userId: string): Promise<boolean> {
-    const res = await fetch(
-      NicoliveClient.userFollowEndpoint(userId),
-      NicoliveClient.createRequest('GET', {
-        headers: FrontendIdHeader,
-      }),
-    );
+    const res = await this.requestWithSession('GET', NicoliveClient.userFollowEndpoint(userId), {
+      headers: FrontendIdHeader,
+    });
     if (res.ok) {
-      const json = await NicoliveClient.parseJsonOrThrow(res, 'fetchUserFollow');
+      let json: unknown;
+      try {
+        json = JSON.parse(res.body);
+      } catch (e) {
+        console.warn('fetchUserFollow: non-json body', res.body.slice(0, 200));
+        throw new Error(
+          `fetchUserFollow: response is not valid JSON (status=${res.status})`,
+          { cause: e },
+        );
+      }
       console.info('fetchUserFollow', json);
       if (isValidUserFollowStatusResponse(json)) {
         return json.data.following;
@@ -771,7 +876,7 @@ export class NicoliveClient {
     appSession.webRequest.onBeforeSendHeaders(
       { urls: [NicoliveClient.userFollowEndpoint('*')] },
       (details, callback) => {
-        details.requestHeaders['Origin'] = null;
+        delete details.requestHeaders['Origin'];
         callback({ cancel: false, requestHeaders: details.requestHeaders });
       },
     );
@@ -782,15 +887,12 @@ export class NicoliveClient {
    */
   async followUser(userId: string): Promise<void> {
     this.prepareUserFollowApi();
-    const res = await fetch(
-      NicoliveClient.userFollowEndpoint(userId),
-      NicoliveClient.createRequest('POST', {
-        headers: {
-          ...FrontendIdHeader,
-          'X-Request-With': 'N Air',
-        },
-      }),
-    );
+    const res = await this.requestWithSession('POST', NicoliveClient.userFollowEndpoint(userId), {
+      headers: {
+        ...FrontendIdHeader,
+        'X-Request-With': 'N Air',
+      },
+    });
     if (!res.ok) {
       throw new Error(`followUser failed: ${res.status} ${res.statusText}`);
     }
@@ -802,19 +904,15 @@ export class NicoliveClient {
    */
   async unFollowUser(userId: string): Promise<void> {
     this.prepareUserFollowApi();
-    const res = await fetch(
-      NicoliveClient.userFollowEndpoint(userId),
-      NicoliveClient.createRequest('DELETE', {
-        headers: {
-          ...FrontendIdHeader,
-          'X-Request-With': 'N Air',
-        },
-      }),
-    );
+    const res = await this.requestWithSession('DELETE', NicoliveClient.userFollowEndpoint(userId), {
+      headers: {
+        ...FrontendIdHeader,
+        'X-Request-With': 'N Air',
+      },
+    });
     if (!res.ok) {
-      // ログ目的なのでJSONパースは不要 — body がプレーンテキストの場合に
-      // res.json() が SyntaxError を投げて本来のエラーを潰してしまうのを避ける
-      console.info('unFollowUser', userId, res, await res.text());
+      // ログ目的で body テキストのみ（JSON 前提にしない）
+      console.info('unFollowUser', userId, res.status, res.body);
       throw new Error(`unFollowUser failed: ${res.status} ${res.statusText}`);
     }
   }
@@ -906,7 +1004,7 @@ export class NicoliveClient {
   }
 }
 
-export function parseServerDateMs(dateHeader: string): number {
+export function parseServerDateMs(dateHeader: string | null): number | undefined {
   if (dateHeader !== null) {
     try {
       return DateTime.fromHTTP(dateHeader).toMillis();

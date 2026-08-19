@@ -86,7 +86,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.stateUpdated = this.stateSubject.asObservable();
   }
 
-  private internalSubscriptions: Subscription = null;
+  private internalSubscriptions: Subscription | null = null;
 
   setEnabled(enabled: boolean): void {
     if (!enabled) {
@@ -155,7 +155,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     this.endSoundDetected();
     this.clearNoSignalTimer();
 
-    this.internalSubscriptions.unsubscribe();
+    this.internalSubscriptions!.unsubscribe();
     this.internalSubscriptions = null;
   }
 
@@ -215,14 +215,14 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     if (!this.isSoundDetected()) {
       return;
     }
-    clearTimeout(this.resumeTimer);
+    if (this.resumeTimer !== null) clearTimeout(this.resumeTimer);
     this.resumeTimer = setTimeout(() => this.endSoundDetected(), resumeSilenceMs);
   }
   private endSoundDetected() {
     if (!this.isSoundDetected()) {
       return;
     }
-    clearTimeout(this.resumeTimer);
+    if (this.resumeTimer !== null) clearTimeout(this.resumeTimer);
     this.resumeTimer = null;
     this.soundDetectedSubject.next({ soundDetected: 'silence' });
   }
@@ -240,7 +240,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     }
     if (this.isSoundDetected()) {
       // soundDetected中に呼ばれると再開タイマーを延長する
-      clearTimeout(this.resumeTimer);
+      if (this.resumeTimer !== null) clearTimeout(this.resumeTimer);
     } else {
       this.soundDetectedSubject.next({ soundDetected: 'loud' });
     }
@@ -326,7 +326,7 @@ export class SoundDetectorService extends PersistentStatefulService<ISoundDetect
     }
     if (watchSourceId === 'mic') {
       return sources.filter((s) =>
-        ['wasapi_input_capture', 'nair-rtvc-source'].includes(s.source.type),
+        ['wasapi_input_capture', 'nair-rtvc-source'].includes(s.source!.type),
       );
     }
     return sources.filter((s) => s.sourceId === watchSourceId);

@@ -255,7 +255,7 @@ describe('SoundDetectorService', () => {
   test('監視対象のソースが存在しない場合 sourceMuted は false になる', () => {
     const { instance } = prepare();
 
-    let sourceMuted: boolean;
+    let sourceMuted!: boolean;
     instance.sourceMuted.subscribe((muted) => {
       sourceMuted = muted;
     });
@@ -270,7 +270,7 @@ describe('SoundDetectorService', () => {
       // sourceId='mic' はデフォルト値
       const { instance } = prepare();
 
-      let sourceAvailable: boolean;
+      let sourceAvailable!: boolean;
       instance.sourceAvailable.subscribe((available) => {
         sourceAvailable = available;
       });
@@ -307,7 +307,7 @@ describe('SoundDetectorService', () => {
       const instance = SoundDetectorService.instance() as SoundDetectorService;
       instance.enable();
 
-      let sourceAvailable: boolean;
+      let sourceAvailable!: boolean;
       instance.sourceAvailable.subscribe((available) => {
         sourceAvailable = available;
       });
@@ -346,7 +346,7 @@ describe('SoundDetectorService', () => {
       const instance = SoundDetectorService.instance() as SoundDetectorService;
       instance.enable();
 
-      let sourceAvailable: boolean;
+      let sourceAvailable!: boolean;
       instance.sourceAvailable.subscribe((available) => {
         sourceAvailable = available;
       });

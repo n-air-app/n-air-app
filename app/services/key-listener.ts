@@ -61,7 +61,7 @@ export class KeyListenerService extends Service {
         ...binding,
         callback: () => {
           Object.keys(this.bindings[keystr]).forEach((namespace) => {
-            this.bindings[keystr][namespace].callback();
+            this.bindings[keystr][namespace].callback?.();
           });
         },
       });

@@ -98,7 +98,7 @@ export default defineComponent({
     },
 
     queueComment(timestampedText: TimestampedText) {
-      this.commentQueue.add(
+      this.commentQueue?.add(
         timestampedText,
         new Date(Date.now() + this.transcriptionService.state.commentPostDelay),
       );

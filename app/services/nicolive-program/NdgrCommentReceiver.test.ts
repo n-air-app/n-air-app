@@ -256,8 +256,8 @@ describe('convertChunkedMessageToMessageResponse', () => {
       message: { chat: { content: 'test' } },
     };
     const res = convertChunkedResponseToMessageResponse(msg, now + 1 /* now とは異なる時刻 */);
-    expect(isChatMessage(res)).toBe(true);
-    if (isChatMessage(res)) {
+    expect(isChatMessage(res!)).toBe(true);
+    if (isChatMessage(res!)) {
       expect(res.chat.date).toBe(date);
       expect(res.chat.date_usec).toBe(date_usec);
     }
@@ -266,7 +266,7 @@ describe('convertChunkedMessageToMessageResponse', () => {
   test.each<{
     title: String;
     msg: dwango.nicolive.chat.service.edge.IChunkedMessage;
-    expected: MessageResponse;
+    expected: MessageResponse | undefined;
   }>([
     {
       title: 'chat',
@@ -505,7 +505,7 @@ describe('convertChunkedMessageToMessageResponse', () => {
         },
       },
     },
-  ])('$title', ({ msg, expected }) => {
+  ])('$title', ({ msg, expected }: { msg: dwango.nicolive.chat.service.edge.IChunkedMessage; expected: MessageResponse | undefined }) => {
     expect(convertChunkedResponseToMessageResponse(msg, now)).toEqual(expected);
   });
 });

@@ -4,7 +4,6 @@ import { ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 
 import { Observable, Subject } from 'rxjs';
-import { CommandLineClient } from 'services/nicolive-program/speech/NVoiceClient';
 
 export function getVoskCliPath(): string {
   // import/require構文を使うとビルド時に展開してしまうが、
@@ -23,7 +22,7 @@ export type AudioDeviceInfo = {
 
 export type AudioDeviceList = {
   devices: AudioDeviceInfo[];
-  version: string; // vosk-cli version
+  version: string;
 };
 
 type VoskCliMessage =
@@ -48,7 +47,7 @@ export type TranscriptionMessage =
     };
 
 export interface ITranscriber {
-  audioDeviceIndex: number;
+  audioDeviceId: string | null;
   startTranscription(): Observable<TranscriptionMessage>;
   stopTranscription(): void;
 }
@@ -108,19 +107,15 @@ function isVoskCliMessage(obj: any): obj is TranscriptionMessage {
   );
 }
 
-function isTranscriptionMessage(obj: any): obj is TranscriptionMessage {
-  return obj && (isVoskCliMessage(obj) || isProcessExitedMessage(obj));
-}
-
 // Transcriber implementation using vosk-cli
 export class VoskClient implements ITranscriber {
   private _voskCliPath: string;
   private _modelPath: string;
-  private _audioDeviceIndex: number = 0;
+  private _audioDeviceId: string | null = null;
   private _voskCliProcess: ChildProcess | null = null;
   private transcribe$: Subject<TranscriptionMessage> | null = null;
 
-  constructor(options: { voskCliPath: string; modelPath: string }) {
+  constructor(options: { voskCliPath: string; modelPath: string; audioDeviceId: string | null }) {
     // validate options
     if (!options.voskCliPath) {
       throw new Error('voskCliPath is required');
@@ -138,6 +133,7 @@ export class VoskClient implements ITranscriber {
     }
     this._voskCliPath = options.voskCliPath;
     this._modelPath = options.modelPath;
+    this._audioDeviceId = options.audioDeviceId;
     this.transcribe$ = new Subject<TranscriptionMessage>();
   }
 
@@ -162,9 +158,11 @@ export class VoskClient implements ITranscriber {
       return; // Process is already running
     }
     const args = ['-m', this._modelPath];
-    if (this._audioDeviceIndex !== null) {
-      args.push('-d', this._audioDeviceIndex.toString());
+    if (this._audioDeviceId) {
+      // vosk-cli 1.1.0 以降はデバイスIDで直接指定できる (-d は使わない。両方渡すとエラーになる)
+      args.push('-D', this._audioDeviceId);
     }
+    // ID が未指定/一覧に無い場合はフラグを付けない。vosk-cli がシステム既定の入力デバイスを使う
     this._voskCliProcess = spawn(this._voskCliPath, args, {
       stdio: 'pipe',
     });
@@ -180,7 +178,7 @@ export class VoskClient implements ITranscriber {
     });
     let stdoutBuffer = '';
     let stderrBuffer = '';
-    this._voskCliProcess.stdout.on('data', (data) => {
+    this._voskCliProcess.stdout!.on('data', (data) => {
       stdoutBuffer += data.toString();
       const lines = stdoutBuffer.split('\n');
       stdoutBuffer = lines.pop() || ''; // Keep the last incomplete line
@@ -200,7 +198,7 @@ export class VoskClient implements ITranscriber {
         }
       }
     });
-    this._voskCliProcess.stderr.on('data', (data) => {
+    this._voskCliProcess.stderr!.on('data', (data) => {
       stderrBuffer += data.toString();
       const lines = stderrBuffer.split('\n');
       stderrBuffer = lines.pop() || ''; // Keep the last incomplete line
@@ -225,46 +223,28 @@ export class VoskClient implements ITranscriber {
     }
   }
 
-  set audioDeviceIndex(index: number) {
-    if (this._audioDeviceIndex === index) {
+  set audioDeviceId(id: string | null) {
+    if (this._audioDeviceId === id) {
       return; // No change needed
     }
-    this._audioDeviceIndex = index;
-    this.shutdownVoskCliProcess(); // Restart the process with the new device
-    this.activateVoskCliProcess();
+    this._audioDeviceId = id;
+    if (this._voskCliProcess) {
+      // プロセスが走っている時だけ新しいデバイスで再起動する。
+      // 未起動時に再起動すると、activate() 前の代入で二重起動してしまう。
+      this.shutdownVoskCliProcess();
+      this.activateVoskCliProcess();
+    }
   }
-  get audioDeviceIndex(): number {
-    return this._audioDeviceIndex;
+  get audioDeviceId(): string | null {
+    return this._audioDeviceId;
   }
 
   startTranscription(): Observable<TranscriptionMessage> {
     if (!this._voskCliProcess || this._voskCliProcess.killed) {
       this.activateVoskCliProcess();
-
-      const client = new CommandLineClient(
-        this._voskCliProcess,
-        (...args: unknown[]) => {
-          console.log(...args);
-        },
-        true,
-      );
-      client.waitLine((line: string) => {
-        try {
-          const message: TranscriptionMessage = JSON.parse(line);
-          if (isTranscriptionMessage(message)) {
-            this.transcribe$?.next(message);
-          } else {
-            console.warn(`Invalid message format: ${line}`);
-          }
-        } catch (e) {
-          console.error(`Failed to parse message: ${line}`, e);
-          this.transcribe$?.next({ info: `Error parsing message: ${JSON.stringify(line)}` });
-        }
-        return false; // Continue listening for more lines
-      });
     }
 
-    return this.transcribe$.asObservable();
+    return this.transcribe$!.asObservable();
   }
 
   async stopTranscription() {
@@ -275,11 +255,13 @@ export class VoskClient implements ITranscriber {
 export function CreateVoskCliClient(options: {
   voskCliPath: string;
   modelPath: string;
+  audioDeviceId: string | null;
 }): ITranscriber {
-  const { voskCliPath, modelPath } = options;
+  const { voskCliPath, modelPath, audioDeviceId } = options;
 
   return new VoskClient({
     voskCliPath,
     modelPath,
+    audioDeviceId,
   });
 }

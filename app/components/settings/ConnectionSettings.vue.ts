@@ -19,7 +19,7 @@ export default defineComponent({
         return {
           description: $t('transitions.connectionFrom'),
           name: 'from',
-          value: this.connection.fromSceneId,
+          value: this.connection?.fromSceneId ?? '',
           options: this.sceneOptions,
         };
       },
@@ -34,7 +34,7 @@ export default defineComponent({
         return {
           description: $t('transitions.connectionTo'),
           name: 'to',
-          value: this.connection.toSceneId,
+          value: this.connection?.toSceneId ?? '',
           options: this.sceneOptions,
         };
       },
@@ -49,7 +49,7 @@ export default defineComponent({
         return {
           description: $t('transitions.sceneTransition'),
           name: 'transition',
-          value: this.connection.transitionId,
+          value: this.connection?.transitionId ?? '',
           options: this.transitionOptions,
         };
       },

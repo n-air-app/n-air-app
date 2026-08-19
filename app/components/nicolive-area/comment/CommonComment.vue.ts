@@ -18,8 +18,8 @@ export default defineComponent({
       moderatorTooltip: 'モデレーター',
       supporterTooltip: 'サポーター',
       userIconURL: NicoliveClient.getUserIconURL(
-        this.chat.value.user_id,
-        `${this.chat.value.thread}`,
+        this.chat.value.user_id ?? '',
+        `${this.chat.value.thread ?? ''}`,
       ),
       defaultUserIconURL: NicoliveClient.defaultUserIconURL,
     };

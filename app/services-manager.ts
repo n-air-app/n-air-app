@@ -47,7 +47,7 @@ export class ServicesManager extends Service {
       // redirect all services methods calls to the main window's services
       Service.setupProxy((service) => this.internalApiClient.applyIpcProxy(service));
       // don't call the init method for all services
-      Service.setupInitFunction((service) => null);
+      Service.setupInitFunction((service) => false);
     } else {
       // if it's a main window, subscribe to serviceAfterInit event
       // to initialize services with `InitAfter()` decorator

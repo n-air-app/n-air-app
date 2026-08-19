@@ -70,8 +70,8 @@ export class CommandLineClient {
     private log: (...args: unknown[]) => void,
     private showStdout: boolean,
   ) {
-    this.stdout = this.subprocess.stdout;
-    this.stderr = this.subprocess.stderr;
+    this.stdout = this.subprocess.stdout!;
+    this.stderr = this.subprocess.stderr!;
 
     this.terminateResolve = () => {
       /* do nothing */
@@ -152,7 +152,7 @@ export class CommandLineClient {
   async send(line: string): Promise<void> {
     await new Promise((resolve) => {
       this.log(`<- ${line}`);
-      this.subprocess.stdin.write(line + '\n', resolve);
+      this.subprocess.stdin!.write(line + '\n', resolve);
     });
   }
 
@@ -367,7 +367,7 @@ export class NVoiceClient {
         category: 'n-voice-engine',
         message: `${command} ${args.map((a) => a.value).join(' ')}`,
       });
-      await this.commandLineClient.send(
+      await this.commandLineClient!.send(
         [
           command,
           ...args.map((a) => {
@@ -379,7 +379,7 @@ export class NVoiceClient {
           }),
         ].join(' '),
       );
-      return await this.waitOkNg(this.commandLineClient);
+      return await this.waitOkNg(this.commandLineClient!);
     } catch (err) {
       const opts: SentryReportOpts = {};
       if (err instanceof NVoiceEngineError) {

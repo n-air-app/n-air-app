@@ -61,7 +61,7 @@ export default defineComponent({
     },
 
     opened(): boolean {
-      return NicoliveProgramService.instance().state.panelOpened;
+      return NicoliveProgramService.instance().state.panelOpened ?? false;
     },
 
     isCompactMode(): boolean {

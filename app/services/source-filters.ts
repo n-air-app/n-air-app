@@ -115,7 +115,7 @@ export class SourceFiltersService extends Service {
   }
 
   getTypesForSource(sourceId: string): ISourceFilterType[] {
-    const source = this.sourcesService.getSource(sourceId);
+    const source = this.sourcesService.getSource(sourceId)!;
     return this.getTypes().filter((filterType) => {
       /* Audio filters can be applied to audio sources. */
       if (source.audio && filterType.audio) {
@@ -143,7 +143,7 @@ export class SourceFiltersService extends Service {
     filterName: string,
     settings?: Dictionary<TObsValue>,
   ) {
-    const source = this.sourcesService.getSource(sourceId);
+    const source = this.sourcesService.getSource(sourceId)!;
     const obsFilter = obs.FilterFactory.create(filterType, filterName, settings || {});
 
     const obsSource = source.getObsInput();
@@ -171,7 +171,7 @@ export class SourceFiltersService extends Service {
 
   remove(sourceId: string, filterName: string) {
     const obsFilter = this.getObsFilter(sourceId, filterName);
-    const source = this.sourcesService.getSource(sourceId);
+    const source = this.sourcesService.getSource(sourceId)!;
     source.getObsInput().removeFilter(obsFilter);
   }
 
@@ -246,7 +246,7 @@ export class SourceFiltersService extends Service {
 
   setOrder(sourceId: string, filterName: string, delta: number) {
     const obsFilter = this.getObsFilter(sourceId, filterName);
-    const obsInput = this.sourcesService.getSource(sourceId).getObsInput();
+    const obsInput = this.sourcesService.getSource(sourceId)!.getObsInput();
     const movement = delta > 0 ? EOrderMovement.Down : EOrderMovement.Up;
     let i = Math.abs(delta);
     while (i--) {
@@ -255,7 +255,7 @@ export class SourceFiltersService extends Service {
   }
 
   showSourceFilters(sourceId: string, selectedFilterName = '') {
-    const sourceDisplayName = this.sourcesService.getSource(sourceId).name;
+    const sourceDisplayName = this.sourcesService.getSource(sourceId)!.name;
     this.windowsService.showWindow({
       componentName: 'SourceFilters',
       title: $t('sources.layerFilters') + ' (' + sourceDisplayName + ')',
@@ -281,7 +281,7 @@ export class SourceFiltersService extends Service {
 
   /** フィルターを検索する。見つからない場合は undefined を返す（存在チェック用） */
   private findObsFilter(sourceId: string, filterName: string): obs.IFilter | undefined {
-    return this.sourcesService.getSource(sourceId).getObsInput().findFilter(filterName);
+    return this.sourcesService.getSource(sourceId)!.getObsInput().findFilter(filterName);
   }
 
   /** フィルターを取得する。見つからない場合は例外を投げる（操作用） */

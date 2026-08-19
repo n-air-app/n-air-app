@@ -3,12 +3,14 @@ import Display from 'components/shared/Display.vue';
 import ModalLayout from 'components/shared/ModalLayout.vue';
 import NavItem from 'components/shared/NavItem.vue';
 import NavMenu from 'components/shared/NavMenu.vue';
+import { Subscription } from 'rxjs';
 import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { SourcesService } from 'services/sources';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
 
-import SlVueTree, { ICursorPosition, ISlTreeNodeModel } from '../shared/sl-vue-tree';
+import TreeView from '../shared/tree-view/TreeView.vue';
+import { ITreeCursorPosition, ITreeNodeModel } from '../shared/tree-view/types';
 
 interface IFilterNodeData {
   visible: boolean;
@@ -23,7 +25,7 @@ export default defineComponent({
     NavItem,
     GenericForm,
     Display,
-    SlVueTree,
+    TreeView,
   },
 
   data() {
@@ -34,22 +36,26 @@ export default defineComponent({
     const sourceId = windowOptions.sourceId;
     const filters = SourceFiltersService.instance().getFilters(sourceId);
     const selectedFilterName = windowOptions.selectedFilterName || (filters[0] && filters[0].name) || null;
-    const properties = SourceFiltersService.instance().getPropertiesFormData(
-      sourceId,
-      selectedFilterName,
-    );
+    const properties = selectedFilterName
+      ? SourceFiltersService.instance().getPropertiesFormData(sourceId, selectedFilterName)
+      : [];
     return {
       windowOptions,
       sourceId,
       filters,
       selectedFilterName,
       properties,
+      sourceRemovedSub: null as Subscription | null,
     };
   },
 
   computed: {
+    source() {
+      return SourcesService.instance().getSource(this.sourceId);
+    },
+
     sourceDisplayName(): string {
-      return SourcesService.instance().getSource(this.sourceId).name;
+      return SourcesService.instance().getSource(this.sourceId)?.name ?? '';
     },
 
     nodes() {
@@ -69,12 +75,24 @@ export default defineComponent({
   watch: {
     selectedFilterName: {
       handler(): void {
-        this.properties = SourceFiltersService.instance().getPropertiesFormData(
-          this.sourceId,
-          this.selectedFilterName,
-        );
+        this.properties = this.selectedFilterName
+          ? SourceFiltersService.instance().getPropertiesFormData(this.sourceId, this.selectedFilterName)
+          : [];
       },
     },
+  },
+
+  mounted(): void {
+    // ソースが削除されたら display の500msポーリングを止めるため window を閉じる（#1380）
+    this.sourceRemovedSub = SourcesService.instance().sourceRemoved.subscribe((source) => {
+      if (source.sourceId === this.sourceId) {
+        WindowsService.instance().closeChildWindow();
+      }
+    });
+  },
+
+  unmounted(): void {
+    this.sourceRemovedSub?.unsubscribe();
   },
 
   methods: {
@@ -84,6 +102,7 @@ export default defineComponent({
     },
 
     save(): void {
+      if (!this.selectedFilterName) return;
       SourceFiltersService.instance().setPropertiesFormData(
         this.sourceId,
         this.selectedFilterName,
@@ -104,6 +123,7 @@ export default defineComponent({
     },
 
     removeFilter(): void {
+      if (!this.selectedFilterName) return;
       SourceFiltersService.instance().remove(this.sourceId, this.selectedFilterName);
       this.filters = SourceFiltersService.instance().getFilters(this.sourceId);
       this.selectedFilterName = (this.filters[0] && this.filters[0].name) || null;
@@ -111,6 +131,7 @@ export default defineComponent({
 
     toggleVisibility(filterName: string): void {
       const sourceFilter = this.filters.find((filter: ISourceFilter) => filter.name === filterName);
+      if (!sourceFilter) return;
       SourceFiltersService.instance().setVisibility(
         this.sourceId,
         sourceFilter.name,
@@ -120,12 +141,12 @@ export default defineComponent({
     },
 
     makeActive(filterDescr: any[]): void {
-      this.selectedFilterName = filterDescr[0].title;
+      this.selectedFilterName = filterDescr[0]?.title ?? null;
     },
 
     handleSort(
-      nodes: ISlTreeNodeModel<IFilterNodeData>[],
-      position: ICursorPosition<IFilterNodeData>,
+      nodes: ITreeNodeModel<IFilterNodeData>[],
+      position: ITreeCursorPosition<IFilterNodeData>,
     ): void {
       if (!Array.isArray(nodes)) return;
       const sourceNode = nodes[0];
@@ -137,6 +158,7 @@ export default defineComponent({
       } else if (sourceInd > targetInd) {
         targetInd = position.placement === 'before' ? targetInd : targetInd + 1;
       }
+      if (!this.selectedFilterName) return;
       SourceFiltersService.instance().setOrder(
         this.sourceId,
         this.selectedFilterName,

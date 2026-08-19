@@ -10,7 +10,7 @@ export function mutation() {
 
 export class StatefulService<State> extends Service {
   static store: { [serviceName: string]: any } = {};
-  static overrideState: { [serviceName: string]: any } = null;
+  static overrideState: { [serviceName: string]: any } | null = null;
 
   get store(): { [serviceName: string]: any } {
     return {
@@ -29,11 +29,11 @@ export class StatefulService<State> extends Service {
 
   init(): void {
     this.state = (this.constructor as any).initialState;
-    const state = StatefulService.overrideState[this.serviceName];
+    const state = StatefulService.overrideState?.[this.serviceName];
     if (state) this.state = merge({}, this.state, state);
   }
 }
 
 export function __setup(states?: { [serviceName: string]: any }) {
-  StatefulService.overrideState = states;
+  StatefulService.overrideState = states ?? {};
 }

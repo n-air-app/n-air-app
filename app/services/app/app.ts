@@ -198,7 +198,7 @@ export class AppService extends StatefulService<IAppState> {
     }, 300);
   }
 
-  private studioModeSubscription: Subscription;
+  private studioModeSubscription: Subscription | null;
   /**
    * Customization Settingsの永続設定から Studio Modeを設定し、以後 Studio Mode の変化を監視して永続化する
    *
@@ -255,7 +255,7 @@ export class AppService extends StatefulService<IAppState> {
       //TODO await this.sceneCollectionsService.disableAutoSave();
     }
 
-    let error: Error = null;
+    let error: Error | null = null;
     let result: any = null;
 
     try {
