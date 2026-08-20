@@ -940,7 +940,10 @@ function initialize(crashHandler) {
     // The child window is never closed, it just hides in the
     // background until it is needed.
     childWindow.on('close', (e) => {
-      if (!shutdownStarted) {
+      // shutdownStarted で判定すると、mainWindow の close が
+      // renderer 側でキャンセルされてアプリが継続する場合でも
+      // childWindow だけ実際に破棄されてしまう(N-AIR-APP-G8Y)。
+      if (!allowMainWindowClose) {
         safeSend(childWindow, 'closeWindow');
 
         // Prevent the window from actually closing
@@ -1126,7 +1129,9 @@ function initialize(crashHandler) {
         }
       }
 
-      childWindow.focus();
+      if (!childWindow.isDestroyed()) {
+        childWindow.focus();
+      }
     }
   });
 
