@@ -13,7 +13,7 @@
       "dest": "/node_modules/obs-studio-node/obs-plugins/64bit"
     },
     {
-      "url": "https://github.com/n-air-app/substream/releases/download/1.1.0/nair-substream.dll",
+      "url": "https://github.com/n-air-app/substream/releases/download/1.2.0/nair-substream.dll",
       "dest": "/node_modules/obs-studio-node/obs-plugins/64bit"
     }
   ]
