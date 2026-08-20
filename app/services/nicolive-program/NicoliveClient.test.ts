@@ -578,6 +578,22 @@ describe('NicoliveClient.deleteComment', () => {
       expect(fetchViaMainProcess).toHaveBeenCalledWith(expect.anything(), expect.anything());
     }
   });
+
+  test('Origin ヘッダーはパスを含まない scheme://host のみで main 経由リクエストに載る', async () => {
+    fetchViaMainProcess.mockResolvedValueOnce(
+      Promise.resolve<MainProcessFetchResponse>({ ok: true, headers: [], status: 204, text: '' }),
+    );
+
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    await client.deleteComment('lv1', '1');
+
+    expect(fetchViaMainProcess).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Origin: 'https://live.nicovideo.jp' }),
+      }),
+    );
+  });
 });
 
 describe('NicoliveClient.wrapFetchError', () => {
