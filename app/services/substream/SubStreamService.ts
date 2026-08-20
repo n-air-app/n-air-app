@@ -82,6 +82,8 @@ export interface SubStreamStatus {
 
 type WaitForStreamStateResult = 'ready' | 'state-mismatch' | 'timeout';
 
+const SHUTDOWN_TIMEOUT_MS = 5000;
+
 /**
  * サブストリーム配信機能を管理するサービスクラス
  * 名前付きパイプを使用して外部プロセスと通信し、サブストリームの制御を行う
@@ -228,6 +230,45 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
     } finally {
       this.isExecutingCommand = false;
     }
+  }
+
+  /**
+   * アプリ終了時にサブストリームを停止し、OBSリソースの解放完了を待つ
+   *
+   * @throws 停止状態を確認できない、またはタイムアウトした場合
+   */
+  async shutdown(): Promise<void> {
+    const timeoutAt = Date.now() + SHUTDOWN_TIMEOUT_MS;
+
+    try {
+      let status = await this.getStatusForShutdown();
+
+      while (status.busy && Date.now() < timeoutAt) {
+        await sleep(100);
+        status = await this.getStatusForShutdown();
+      }
+
+      if (status.busy) throw new Error('SubStream was busy during shutdown');
+
+      if (status.active || status.streaming) {
+        const response = await this.client.callEx('stop');
+        if (response.error) throw new Error(`Failed to stop SubStream: ${response.error}`);
+      }
+
+      while (Date.now() < timeoutAt) {
+        status = await this.getStatusForShutdown();
+        if (!status.active && !status.streaming && !status.busy) return;
+        await sleep(100);
+      }
+
+      throw new Error('Timed out waiting for SubStream to stop');
+    } finally {
+      this.client.close();
+    }
+  }
+
+  private async getStatusForShutdown(): Promise<SubStreamStatus> {
+    return (await this.client.callEx('status')) as SubStreamStatus;
   }
 
   /**
