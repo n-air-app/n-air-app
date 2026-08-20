@@ -40,11 +40,12 @@ const osnVersion = getObsStudioNodeVersion();
 ////////////////////////////////////////////////////////////////////////////////
 const electron = require('electron');
 
-const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter } =
+const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter, net } =
   electron;
 const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
+const { fetchViaElectronNet } = require('./main-process/fetch');
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dev Hosts Configuration
@@ -657,6 +658,11 @@ function initialize(crashHandler) {
     SentryElectron.init({
       dsn: sentryDefs.DSN,
       release: process.env.NAIR_VERSION,
+      // sentry-trace/baggage ヘッダーの自動付与を無効化。
+      // 無指定だと electronNetIntegration が net.request 経由の全リクエストに
+      // ヘッダーを付与し、ニコニコ生放送APIのCORSプリフライトが
+      // sentry-trace ヘッダーで拒否される(Access-Control-Allow-Headersに含まれないため)。
+      tracePropagationTargets: [],
     });
     if (osnVersion) {
       SentryElectron.getCurrentScope().setTag('obs-studio-node', osnVersion);
@@ -1311,26 +1317,7 @@ function initialize(crashHandler) {
      * @returns {Promise<import('./app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
      * */
     async (_e, url, options) => {
-      try {
-        const response = await fetch(url, options);
-        const text = await response.text();
-        return {
-          ok: response.ok,
-          // iterator のままでは Electron IPC の構造化クローンで中身が失われるため配列化する
-          headers: [...response.headers.entries()],
-          status: response.status,
-          text,
-        };
-      } catch (e) {
-        // cause チェーンとURLを文字列化してrendererに伝搬する
-        // (Electron の IPC シリアライズでは cause が失われるため)
-        // [MAIN_FETCH_FAIL code=...] 接頭辞は renderer 側 wrapFetchError が機械可読に経路を判別するために使用する
-        const causeCode = e.cause?.code ?? '';
-        const cause = e.cause
-          ? `${e.cause.name}: ${e.cause.message} (code: ${e.cause.code})`
-          : undefined;
-        throw new Error(`[MAIN_FETCH_FAIL code=${causeCode}] ${e.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`);
-      }
+      return fetchViaElectronNet(net, url, options);
     },
   );
 }
