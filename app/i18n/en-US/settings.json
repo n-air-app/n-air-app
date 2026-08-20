@@ -759,6 +759,7 @@
     "info": {
       "error": "Error",
       "status": "Status",
+      "processing": "Communicating with the substream process...",
       "stopped": "Stopped",
       "frames": "Frames Sent",
       "dropped": "Frames Dropped"
@@ -767,7 +768,14 @@
       "url_key": "Please configure URL and Stream key",
       "bad_path": "Invalid URL",
       "connect_failed": "Connection failed",
-      "invalid_stream": "Invalid stream"
+      "invalid_stream": "Invalid stream",
+      "already_running": "The substream is already running. Close all N Air windows, terminate the remaining obs64.exe process, and try again",
+      "busy_timeout": "The substream operation did not finish, so the stream could not be started",
+      "communication_failed": "The operation could not be completed because N Air could not communicate with the substream process",
+      "start_failed": "Failed to start the substream",
+      "stop_failed": "Failed to stop the substream",
+      "command_in_progress": "Another substream operation is in progress. Wait a moment and try again",
+      "encoder_list_failed": "Could not communicate with the substream process or retrieve the encoder list. Close all N Air windows, terminate the remaining obs64.exe process, and try again"
     },
     "status": {
       "starting": "Starting stream...",

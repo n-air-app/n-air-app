@@ -80,6 +80,8 @@ export interface SubStreamStatus {
   displayStatus: string;
 }
 
+type WaitForStreamStateResult = 'ready' | 'state-mismatch' | 'timeout';
+
 /**
  * サブストリーム配信機能を管理するサービスクラス
  * 名前付きパイプを使用して外部プロセスと通信し、サブストリームの制御を行う
@@ -182,28 +184,60 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
     };
 
     // コマンドの連続実行防止
-    if (this.isExecutingCommand) return;
+    if (this.isExecutingCommand) return $t('settings.substream.error.command_in_progress');
     this.isExecutingCommand = true;
-    if (await this.waitForStreamState(false)) await this.client.call('start', param);
-    this.isExecutingCommand = false;
+    try {
+      const waitResult = await this.waitForStreamState(false);
+      if (waitResult === 'state-mismatch') {
+        return $t('settings.substream.error.already_running');
+      }
+      if (waitResult === 'timeout') {
+        return $t('settings.substream.error.busy_timeout');
+      }
+
+      const response = await this.client.callEx('start', param);
+      if (response.error) {
+        return `${$t('settings.substream.error.start_failed')}: ${response.error}`;
+      }
+    } catch (err) {
+      console.error('Failed to start substream:', err);
+      return $t('settings.substream.error.communication_failed');
+    } finally {
+      this.isExecutingCommand = false;
+    }
   }
 
   /**
    * サブストリームの配信を停止する
    */
-  async stop(): Promise<void> {
+  async stop(): Promise<string | undefined> {
     // 連投防止
-    if (this.isExecutingCommand) return;
+    if (this.isExecutingCommand) return $t('settings.substream.error.command_in_progress');
     this.isExecutingCommand = true;
-    if (await this.waitForStreamState(true)) await this.client.call('stop');
-    this.isExecutingCommand = false;
+    try {
+      const waitResult = await this.waitForStreamState(true);
+      if (waitResult === 'ready') {
+        const response = await this.client.callEx('stop');
+        if (response.error) return `${$t('settings.substream.error.stop_failed')}: ${response.error}`;
+      } else if (waitResult === 'timeout') {
+        return $t('settings.substream.error.busy_timeout');
+      }
+    } catch (err) {
+      console.error('Failed to stop substream:', err);
+      return $t('settings.substream.error.communication_failed');
+    } finally {
+      this.isExecutingCommand = false;
+    }
   }
 
   /**
    * 利用可能なエンコーダータイプの一覧を取得する
    */
   async enumEncoderTypes(): Promise<EnumEncoderTypesResult> {
-    const encoderTypes = (await this.client.call('enumEncoderTypes')) as EnumEncoderTypesResult;
+    const encoderTypes = (await this.client.callEx('enumEncoderTypes')) as EnumEncoderTypesResult;
+    if (!encoderTypes.encoders?.video?.length || !encoderTypes.encoders?.audio?.length) {
+      throw new Error('Invalid encoder list response');
+    }
     return encoderTypes;
   }
 
@@ -250,16 +284,15 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
    * @param streaming 待機する状態（true: ストリーミング中、false: 停止中）
    * @returns 指定された状態になったかどうか
    */
-  private async waitForStreamState(streaming: boolean): Promise<boolean> {
+  private async waitForStreamState(streaming: boolean): Promise<WaitForStreamStateResult> {
     const timeoutAt = Date.now() + 30000; // 30秒タイムアウト
-    let status = await this.getStatus();
 
     while (Date.now() < timeoutAt) {
-      if (status && !status.busy) return status.streaming === streaming;
+      const status = (await this.client.callEx('status')) as SubStreamStatus;
+      if (!status.busy) return status.streaming === streaming ? 'ready' : 'state-mismatch';
       await sleep(500); // 500ms待機
-      status = await this.getStatus();
     }
-    return false;
+    return 'timeout';
   }
 
   /**
