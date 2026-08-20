@@ -191,7 +191,8 @@ export class SubStreamService extends PersistentStatefulService<ISubStreamState>
     try {
       const waitResult = await this.waitForStreamState(false);
       if (waitResult === 'state-mismatch') {
-        return $t('settings.substream.error.already_running');
+        // 既に配信中の場合、開始操作は完了済みとして扱う。
+        return;
       }
       if (waitResult === 'timeout') {
         return $t('settings.substream.error.busy_timeout');
