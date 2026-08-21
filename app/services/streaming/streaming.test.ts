@@ -240,17 +240,18 @@ test('toggleStreamingで配信開始処理が同期例外になった場合は�
   });
 
   const { StreamingService } = require('./streaming');
+  const currentRemote = require('@electron/remote') as typeof remote;
   const instance = StreamingService.instance();
-  const showMessageBox = jest.spyOn(remote.dialog, 'showMessageBox');
-  jest.spyOn(remote.powerSaveBlocker, 'start').mockReturnValue(123);
+  const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+  jest.spyOn(currentRemote.powerSaveBlocker, 'start').mockReturnValue(123);
 
   instance.toggleStreaming();
   await Promise.resolve();
 
   expect(OBS_service_startStreaming).not.toHaveBeenCalled();
-  expect(remote.powerSaveBlocker.stop).toHaveBeenCalledWith(123);
+  expect(currentRemote.powerSaveBlocker.stop).toHaveBeenCalledWith(123);
   expect(showMessageBox).toHaveBeenCalledWith(
-    remote.getCurrentWindow(),
+    currentRemote.getCurrentWindow(),
     expect.objectContaining({
       title: 'streaming.streamingError',
       message: 'streaming.startFailedError',
