@@ -251,7 +251,7 @@ jobs:
 
       - name: Run e2e tests
         if: ${{ needs.changes.outputs.app == 'true' }}
-        run: node bin/i18n-early-check.js && pnpm run compile-tests && node --test --test-concurrency=1 test-dist/test/${{ matrix.directory }}
+        run: node bin/i18n-early-check.js && pnpm run compile-tests && node --test --test-force-exit --test-concurrency=1 test-dist/test/${{ matrix.directory }}
 
   build_check:
     name: build check

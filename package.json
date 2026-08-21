@@ -33,7 +33,7 @@
     "start": "node bin/start-with-auto-env.js",
     "start:stable": "electron .",
     "start:unstable": "cross-env NAIR_UNSTABLE=1 electron .",
-    "test": "node bin/i18n-early-check.js && tsc -p test && node --test --test-concurrency=1 test-dist/test/e2e/*.js test-dist/test/api/*.js",
+    "test": "node bin/i18n-early-check.js && tsc -p test && node --test --test-force-exit --test-concurrency=1 test-dist/test/e2e/*.js test-dist/test/api/*.js",
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "pnpm run test:unit:app && pnpm run test:unit:bin",
     "test:unit:app": "pnpm run typecheck && node scripts/run-jest-app.js",
