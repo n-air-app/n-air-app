@@ -1,6 +1,7 @@
 import {
   findOrphanedNairObsProcesses,
   getNairIpcName,
+  getObsProcessMetadata,
   hasLiveParent,
   isNairObsExecutable,
   recoverOrphanedNairObsProcess,
@@ -70,6 +71,16 @@ describe('N Air OBSの識別', () => {
         ParentCreationDate: '2026-08-20T10:01:00.000Z',
       }),
     ).toBe(false);
+  });
+
+  test('PowerShellでプロセス生成日時をISO 8601形式へ変換する', async () => {
+    mockExecResults([]);
+
+    await getObsProcessMetadata();
+
+    const script = mockExecFile.mock.calls[0][1].at(-1) as string;
+    expect(script).toContain('$process.CreationDate.ToUniversalTime().ToString("o")');
+    expect(script).toContain('$parent.CreationDate.ToUniversalTime().ToString("o")');
   });
 
   test('IPC名・同名パイプ・実行パス・親不在が一致するプロセスを返す', async () => {

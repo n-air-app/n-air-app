@@ -39,7 +39,7 @@ async function getObsProcessMetadata() {
       '@($processes | ForEach-Object {',
       '$process = $_;',
       '$parent = Get-CimInstance Win32_Process -Filter ("ProcessId = " + $process.ParentProcessId);',
-      '[PSCustomObject]@{ Name = $process.Name; ProcessId = $process.ProcessId; ParentProcessId = $process.ParentProcessId; CreationDate = $process.CreationDate; ParentCreationDate = if ($parent) { $parent.CreationDate } else { $null }; ExecutablePath = $process.ExecutablePath; CommandLine = $process.CommandLine }',
+      '[PSCustomObject]@{ Name = $process.Name; ProcessId = $process.ProcessId; ParentProcessId = $process.ParentProcessId; CreationDate = $process.CreationDate.ToUniversalTime().ToString("o"); ParentCreationDate = if ($parent) { $parent.CreationDate.ToUniversalTime().ToString("o") } else { $null }; ExecutablePath = $process.ExecutablePath; CommandLine = $process.CommandLine }',
       '}) | ConvertTo-Json -Compress',
     ].join('; ');
     const { stdout = '' } = await execFileAsync(

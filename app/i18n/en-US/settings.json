@@ -769,7 +769,6 @@
       "bad_path": "Invalid URL",
       "connect_failed": "Connection failed",
       "invalid_stream": "Invalid stream",
-      "already_running": "The substream is already running. Close all N Air windows, terminate the remaining obs64.exe process, and try again",
       "busy_timeout": "The substream operation did not finish, so the stream could not be started",
       "communication_failed": "The operation could not be completed because N Air could not communicate with the substream process",
       "start_failed": "Failed to start the substream",
