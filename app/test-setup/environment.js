@@ -9,11 +9,17 @@ if (typeof globalThis.window.require === 'undefined') globalThis.window.require 
 if (typeof globalThis.localStorage === 'undefined') {
   const storage = new Map();
   globalThis.localStorage = {
-    clear: () => storage.clear(),
+    clear: () => {
+      storage.clear();
+    },
     getItem: (key) => storage.get(key) ?? null,
     key: (index) => [...storage.keys()][index] ?? null,
-    removeItem: (key) => storage.delete(key),
-    setItem: (key, value) => storage.set(key, String(value)),
+    removeItem: (key) => {
+      storage.delete(key);
+    },
+    setItem: (key, value) => {
+      storage.set(key, String(value));
+    },
     get length() {
       return storage.size;
     },
