@@ -164,15 +164,15 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 
 ### パッケージビルド
 
-| スクリプト | 用途 |
-|---|---|
-| `pnpm package:local` | ローカル用インストーラー（コード署名なし）。`dev-hosts.json` があれば自動で dev 対応 |
-| `pnpm run install:dist` | `dist/` にある既存インストーラーを無人インストール＋アプリ起動（再ビルド不要。どの `package:*` の成果物でも可） |
-| `pnpm run package:local:install` | `compile:production` → `package:local` → `install:dist` を一括実行 |
-| `pnpm package:internal-stable` | 社内版 stable インストーラー（`INTERNAL_PUBLISH_URL` 必須）。`dev-hosts.json` があれば自動で dev 対応 |
-| `pnpm package:internal-unstable` | 社内版 unstable インストーラー（`INTERNAL_PUBLISH_URL` 必須）。`dev-hosts.json` があれば自動で dev 対応 |
-| `pnpm package:public-stable`     | 公開版 stable インストーラー                                                                            |
-| `pnpm package:public-unstable`   | 公開版 unstable インストーラー                                                                          |
+| スクリプト                       | 用途                                                                                                            |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `pnpm package:local`             | ローカル用インストーラー（コード署名なし）。`dev-hosts.json` があれば自動で dev 対応                            |
+| `pnpm run install:dist`          | `dist/` にある既存インストーラーを無人インストール＋アプリ起動（再ビルド不要。どの `package:*` の成果物でも可） |
+| `pnpm run package:local:install` | `compile:production` → `package:local` → `install:dist` を一括実行                                              |
+| `pnpm package:internal-stable`   | 社内版 stable インストーラー（`INTERNAL_PUBLISH_URL` 必須）。`dev-hosts.json` があれば自動で dev 対応           |
+| `pnpm package:internal-unstable` | 社内版 unstable インストーラー（`INTERNAL_PUBLISH_URL` 必須）。`dev-hosts.json` があれば自動で dev 対応         |
+| `pnpm package:public-stable`     | 公開版 stable インストーラー                                                                                    |
+| `pnpm package:public-unstable`   | 公開版 unstable インストーラー                                                                                  |
 
 ### インストーラーの動作確認（`install:dist`）
 
