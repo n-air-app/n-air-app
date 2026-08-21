@@ -33,7 +33,11 @@ pnpm run watch      # Watch mode compilation
 pnpm run compile:production     # Production build
 pnpm run package                # Package for distribution (stable)
 pnpm run package:public-unstable  # Package unstable build
+pnpm run install:dist            # Install + launch whatever installer is already in dist/ unattended (any package:* output)
+pnpm run package:local:install   # compile:production + package:local + install:dist chained
 ```
+
+> **Note:** `install:dist` and `package:local:install` show a UAC elevation prompt once (the NSIS installer requires `perMachine: true`), so they cannot run fully unattended in CI or a background agent session — only run them when a human is present to click through the UAC prompt.
 
 **Testing:**
 ```bash
