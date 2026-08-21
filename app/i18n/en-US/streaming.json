@@ -11,7 +11,7 @@
   "error": "An error occurred with the output. Please check your streaming and recording settings:",
   "outdatedDriverError": "An error occurred with the output. This is usually caused by out of date video drivers. Please ensure your Nvidia or AMD drivers are up to date and try again.",
   "encoderError": "An error occurred with the encoder. Please check your encoder and recording quality settings in the output settings, and try again.",
-  "startFailedError": "An error occurred while starting the stream. Restart N Air and try again. If the problem persists, change the encoder in Settings > Output.",
+  "startFailedError": "An error occurred while starting the stream. Restart N Air and try again. If the problem persists, check your streaming settings.",
   "streamingError": "Streaming Error",
   "recordingError": "Recording Error",
   "replayBufferError": "Replay Buffer Error",
