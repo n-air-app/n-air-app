@@ -1,11 +1,22 @@
 const fs = require('node:fs');
-const { execFile } = require('node:child_process');
-const { promisify } = require('node:util');
-
-const execFileAsync = promisify(execFile);
 
 const PROCESS_EXIT_TIMEOUT_MS = 5000;
 const NAIR_IPC_NAME_PATTERN = /^nair-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * 通常起動時には外部プロセスを実行しないため、child_process は必要になった時だけ読み込む。
+ */
+function execFileAsync(file, args, options) {
+  return new Promise((resolve, reject) => {
+    require('node:child_process').execFile(file, args, options, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve({ stdout, stderr });
+    });
+  });
+}
 
 /**
  * obs64.exe の起動引数から N Air が生成した IPC 名を取得する。
@@ -19,10 +30,9 @@ function getNairIpcName(commandLine) {
 }
 
 /**
- * @param {(file: string, args: string[], options?: object) => Promise<{ stdout?: string }>} [exec]
  * @returns {Promise<object[]>}
  */
-async function getObsProcessMetadata(exec = execFileAsync) {
+async function getObsProcessMetadata() {
   try {
     const script = [
       '$processes = @(Get-CimInstance Win32_Process -Filter "Name = \'obs64.exe\'")',
@@ -32,7 +42,7 @@ async function getObsProcessMetadata(exec = execFileAsync) {
       '[PSCustomObject]@{ Name = $process.Name; ProcessId = $process.ProcessId; ParentProcessId = $process.ParentProcessId; CreationDate = $process.CreationDate; ParentCreationDate = if ($parent) { $parent.CreationDate } else { $null }; ExecutablePath = $process.ExecutablePath; CommandLine = $process.CommandLine }',
       '}) | ConvertTo-Json -Compress',
     ].join('; ');
-    const { stdout = '' } = await exec(
+    const { stdout = '' } = await execFileAsync(
       'powershell.exe',
       ['-NoProfile', '-NonInteractive', '-Command', script],
       { windowsHide: true, timeout: 3000 },
@@ -57,18 +67,12 @@ function isNairObsExecutable(metadata) {
 /**
  * N Air 固有の IPC 名、同名パイプ、OBS 実行パス、親の不在がすべて一致する
  * obs64.exe だけを孤立した N Air OBS と判定する。
- *
- * @param {{ getMetadata?: () => Promise<object[]>, getPipeNames?: () => string[] }} [dependencies]
  */
-async function findOrphanedNairObsProcesses(dependencies = {}) {
-  const getMetadata = dependencies.getMetadata ?? getObsProcessMetadata;
-  const getPipeNames =
-    dependencies.getPipeNames ?? (() => fs.readdirSync('\\\\.\\pipe\\', { encoding: 'utf8' }));
-
+async function findOrphanedNairObsProcesses() {
   let pipeNames;
   try {
     pipeNames = new Set(
-      getPipeNames()
+      fs.readdirSync('\\\\.\\pipe\\', { encoding: 'utf8' })
         .filter((name) => NAIR_IPC_NAME_PATTERN.test(name))
         .map((name) => name.toLowerCase()),
     );
@@ -80,7 +84,7 @@ async function findOrphanedNairObsProcesses(dependencies = {}) {
   // 時間のかかる PowerShell/CIM のプロセス照会を行わない。
   if (pipeNames.size === 0) return [];
 
-  const processes = await getMetadata();
+  const processes = await getObsProcessMetadata();
   return processes.filter((metadata) => {
     const ipcName = getNairIpcName(metadata.CommandLine ?? '');
     return (
@@ -108,61 +112,45 @@ function hasLiveParent(metadata) {
 
 /**
  * @param {number} processId
- * @param {(file: string, args: string[], options?: object) => Promise<unknown>} [exec]
  */
-async function terminateProcess(processId, exec = execFileAsync) {
-  await exec('taskkill.exe', ['/pid', String(processId), '/f'], { windowsHide: true });
+async function terminateProcess(processId) {
+  await execFileAsync('taskkill.exe', ['/pid', String(processId), '/f'], { windowsHide: true });
 }
 
 /**
  * @param {number} processId
- * @param {(processId: number) => Promise<boolean>} processCheck
  */
-async function waitForProcessExit(processId, processCheck) {
+async function waitForProcessExit(processId) {
   const deadline = Date.now() + PROCESS_EXIT_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    if (!(await processCheck(processId))) return true;
+    const processes = await getObsProcessMetadata();
+    if (!processes.some((metadata) => metadata.ProcessId === processId)) return true;
     await new Promise((resolve) => {
       setTimeout(resolve, 100);
     });
   }
-  return !(await processCheck(processId));
+  const processes = await getObsProcessMetadata();
+  return !processes.some((metadata) => metadata.ProcessId === processId);
 }
 
 /**
  * N Air 固有 IPC とプロセス情報から特定した孤立 obs64.exe だけを終了する。
  * 判定不能時は一切プロセスを終了しない。
  *
- * @param {{
- *   findProcesses?: () => Promise<object[]>,
- *   processCheck?: (processId: number) => Promise<boolean>,
- *   terminate?: (processId: number) => Promise<void>,
- *   waitForExit?: (processId: number, processCheck: (processId: number) => Promise<boolean>) => Promise<boolean>,
- * }} [dependencies]
  * @returns {Promise<{ recovered: boolean, reason: string, processId?: number }>}
  */
-async function recoverOrphanedNairObsProcess(dependencies = {}) {
-  if (process.platform !== 'win32') return { recovered: false, reason: 'unsupported-platform' };
-
-  const findProcesses = dependencies.findProcesses ?? findOrphanedNairObsProcesses;
-  const processCheck = dependencies.processCheck ?? (async (processId) => {
-    const processes = await getObsProcessMetadata();
-    return processes.some((metadata) => metadata.ProcessId === processId);
-  });
-  const terminate = dependencies.terminate ?? terminateProcess;
-  const waitForExit = dependencies.waitForExit ?? waitForProcessExit;
-
-  const processes = await findProcesses();
+async function recoverOrphanedNairObsProcess() {
+  const processes = await findOrphanedNairObsProcesses();
   if (processes.length === 0) return { recovered: false, reason: 'not-found' };
   const processId = processes[0].ProcessId;
 
   try {
-    await terminate(processId);
+    await terminateProcess(processId);
   } catch {
     return { recovered: false, reason: 'termination-failed', processId };
   }
 
-  if (!(await waitForExit(processId, processCheck))) {
+  if (!(await waitForProcessExit(processId))) {
     return { recovered: false, reason: 'exit-timeout', processId };
   }
 

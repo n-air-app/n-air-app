@@ -6,6 +6,12 @@ import {
   recoverOrphanedNairObsProcess,
 } from './obs-orphan-recovery';
 
+jest.mock('node:fs', () => ({ readdirSync: jest.fn() }));
+jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
+
+const mockReaddirSync = jest.requireMock('node:fs').readdirSync as jest.Mock;
+const mockExecFile = jest.requireMock('node:child_process').execFile as jest.Mock;
+
 const ipcName = 'nair-6e6318df-3236-41b8-a1c1-4037fc05f589';
 const orphanMetadata = {
   Name: 'obs64.exe',
@@ -16,6 +22,21 @@ const orphanMetadata = {
   ExecutablePath: 'C:\\Program Files\\N Air\\resources\\node_modules\\obs-studio-node\\obs64.exe',
   CommandLine: `"C:\\Program Files\\N Air\\resources\\node_modules\\obs-studio-node\\obs64.exe" ${ipcName} DEVMODE_VERSION`,
 };
+
+function mockExecResults(...results: object[][]) {
+  mockExecFile.mockImplementation((...args: any[]) => {
+    const callback = args.at(-1) as (error: Error | null, stdout: string, stderr: string) => void;
+    callback(null, JSON.stringify(results.shift() ?? []), '');
+    return {};
+  });
+  return mockExecFile;
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockReaddirSync.mockReset();
+  mockExecFile.mockReset();
+});
 
 describe('N Air OBSの識別', () => {
   test('コマンドラインから正しいN Air IPC名を取得する', () => {
@@ -52,32 +73,23 @@ describe('N Air OBSの識別', () => {
   });
 
   test('IPC名・同名パイプ・実行パス・親不在が一致するプロセスを返す', async () => {
-    await expect(
-      findOrphanedNairObsProcesses({
-        getMetadata: jest.fn().mockResolvedValue([orphanMetadata]),
-        getPipeNames: () => [ipcName],
-      }),
-    ).resolves.toEqual([orphanMetadata]);
+    mockReaddirSync.mockReturnValue([ipcName]);
+    mockExecResults([orphanMetadata]);
+
+    await expect(findOrphanedNairObsProcesses()).resolves.toEqual([orphanMetadata]);
   });
 
-  test('N Air IPCパイプがないときプロセス情報を取得しない', async () => {
-    const getMetadata = jest.fn();
+  test('N Air IPCパイプがないときPowerShellを実行しない', async () => {
+    mockReaddirSync.mockReturnValue(['NAirSubstream', 'unrelated-pipe']);
 
-    await expect(
-      findOrphanedNairObsProcesses({
-        getMetadata,
-        getPipeNames: () => ['NAirSubstream', 'unrelated-pipe'],
-      }),
-    ).resolves.toEqual([]);
-    expect(getMetadata).not.toHaveBeenCalled();
+    await expect(findOrphanedNairObsProcesses()).resolves.toEqual([]);
+    expect(mockExecFile).not.toHaveBeenCalled();
   });
 
   test.each([
-    ['同名パイプがない', orphanMetadata, []],
     [
       '親が生存している',
       { ...orphanMetadata, ParentCreationDate: '2026-08-20T10:00:00.000Z' },
-      [ipcName],
     ],
     [
       'N Air以外のOBSパスである',
@@ -85,42 +97,49 @@ describe('N Air OBSの識別', () => {
         ...orphanMetadata,
         ExecutablePath: 'C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe',
       },
-      [ipcName],
     ],
-  ])('%sとき候補にしない', async (_name, metadata, pipeNames) => {
-    await expect(
-      findOrphanedNairObsProcesses({
-        getMetadata: jest.fn().mockResolvedValue([metadata]),
-        getPipeNames: () => pipeNames,
-      }),
-    ).resolves.toEqual([]);
+    [
+      'コマンドラインのIPC名とパイプ名が異なる',
+      {
+        ...orphanMetadata,
+        CommandLine:
+          '"C:\\Program Files\\N Air\\resources\\node_modules\\obs-studio-node\\obs64.exe" nair-00000000-0000-0000-0000-000000000000 DEVMODE_VERSION',
+      },
+    ],
+  ])('%sとき候補にしない', async (_name, metadata) => {
+    mockReaddirSync.mockReturnValue([ipcName]);
+    mockExecResults([metadata]);
+
+    await expect(findOrphanedNairObsProcesses()).resolves.toEqual([]);
   });
 });
 
 describe('recoverOrphanedNairObsProcess', () => {
   test('安全に特定した孤立obs64.exeだけを終了する', async () => {
-    const terminate = jest.fn().mockResolvedValue(undefined);
-    const waitForExit = jest.fn().mockResolvedValue(true);
+    mockReaddirSync.mockReturnValue([ipcName]);
+    const execFile = mockExecResults([orphanMetadata], []);
 
-    await expect(
-      recoverOrphanedNairObsProcess({
-        findProcesses: jest.fn().mockResolvedValue([orphanMetadata]),
-        terminate,
-        waitForExit,
-      }),
-    ).resolves.toEqual({ recovered: true, reason: 'terminated', processId: 1234 });
-    expect(terminate).toHaveBeenCalledWith(1234);
+    await expect(recoverOrphanedNairObsProcess()).resolves.toEqual({
+      recovered: true,
+      reason: 'terminated',
+      processId: 1234,
+    });
+    expect(execFile).toHaveBeenNthCalledWith(
+      2,
+      'taskkill.exe',
+      ['/pid', '1234', '/f'],
+      { windowsHide: true },
+      expect.any(Function),
+    );
   });
 
   test('候補を確認できないとき何も終了しない', async () => {
-    const terminate = jest.fn();
+    mockReaddirSync.mockReturnValue([]);
 
-    await expect(
-      recoverOrphanedNairObsProcess({
-        findProcesses: jest.fn().mockResolvedValue([]),
-        terminate,
-      }),
-    ).resolves.toEqual({ recovered: false, reason: 'not-found' });
-    expect(terminate).not.toHaveBeenCalled();
+    await expect(recoverOrphanedNairObsProcess()).resolves.toEqual({
+      recovered: false,
+      reason: 'not-found',
+    });
+    expect(mockExecFile).not.toHaveBeenCalled();
   });
 });
