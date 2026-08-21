@@ -769,7 +769,7 @@
       "bad_path": "Invalid URL",
       "connect_failed": "Connection failed",
       "invalid_stream": "Invalid stream",
-      "busy_timeout": "The substream operation did not finish, so the stream could not be started",
+      "busy_timeout": "The substream operation did not finish. Wait a moment and try again",
       "communication_failed": "The operation could not be completed because N Air could not communicate with the substream process",
       "start_failed": "Failed to start the substream",
       "stop_failed": "Failed to stop the substream",

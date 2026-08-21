@@ -30,7 +30,7 @@ function getNairIpcName(commandLine) {
 }
 
 /**
- * @returns {Promise<object[]>}
+ * @returns {Promise<object[]|null>}
  */
 async function getObsProcessMetadata() {
   try {
@@ -50,7 +50,7 @@ async function getObsProcessMetadata() {
     const metadata = JSON.parse(stdout.trim() || '[]');
     return Array.isArray(metadata) ? metadata : [metadata];
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -85,6 +85,7 @@ async function findOrphanedNairObsProcesses() {
   if (pipeNames.size === 0) return [];
 
   const processes = await getObsProcessMetadata();
+  if (!processes) return [];
   return processes.filter((metadata) => {
     const ipcName = getNairIpcName(metadata.CommandLine ?? '');
     return (
@@ -124,13 +125,13 @@ async function waitForProcessExit(processId) {
   const deadline = Date.now() + PROCESS_EXIT_TIMEOUT_MS;
   while (Date.now() < deadline) {
     const processes = await getObsProcessMetadata();
-    if (!processes.some((metadata) => metadata.ProcessId === processId)) return true;
+    if (processes && !processes.some((metadata) => metadata.ProcessId === processId)) return true;
     await new Promise((resolve) => {
       setTimeout(resolve, 100);
     });
   }
   const processes = await getObsProcessMetadata();
-  return !processes.some((metadata) => metadata.ProcessId === processId);
+  return processes !== null && !processes.some((metadata) => metadata.ProcessId === processId);
 }
 
 /**
@@ -142,19 +143,27 @@ async function waitForProcessExit(processId) {
 async function recoverOrphanedNairObsProcess() {
   const processes = await findOrphanedNairObsProcesses();
   if (processes.length === 0) return { recovered: false, reason: 'not-found' };
-  const processId = processes[0].ProcessId;
+  const processIds = processes.map((metadata) => metadata.ProcessId);
 
-  try {
-    await terminateProcess(processId);
-  } catch {
-    return { recovered: false, reason: 'termination-failed', processId };
+  for (const processId of processIds) {
+    try {
+      await terminateProcess(processId);
+    } catch {
+      return { recovered: false, reason: 'termination-failed', processId };
+    }
   }
 
-  if (!(await waitForProcessExit(processId))) {
-    return { recovered: false, reason: 'exit-timeout', processId };
+  for (const processId of processIds) {
+    if (!(await waitForProcessExit(processId))) {
+      return { recovered: false, reason: 'exit-timeout', processId };
+    }
   }
 
-  return { recovered: true, reason: 'terminated', processId };
+  return {
+    recovered: true,
+    reason: 'terminated',
+    processId: processIds[0],
+  };
 }
 
 module.exports = {

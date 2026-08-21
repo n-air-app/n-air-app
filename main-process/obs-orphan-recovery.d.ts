@@ -15,7 +15,7 @@ export interface RecoveryResult {
 }
 
 export function getNairIpcName(commandLine: string): string | undefined;
-export function getObsProcessMetadata(): Promise<ProcessMetadata[]>;
+export function getObsProcessMetadata(): Promise<ProcessMetadata[] | null>;
 export function isNairObsExecutable(
   metadata: Pick<ProcessMetadata, 'Name' | 'ExecutablePath'>,
 ): boolean;

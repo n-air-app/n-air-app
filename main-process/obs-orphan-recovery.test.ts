@@ -83,6 +83,16 @@ describe('N Air OBSの識別', () => {
     expect(script).toContain('$parent.CreationDate.ToUniversalTime().ToString("o")');
   });
 
+  test('プロセス情報を取得できないときnullを返す', async () => {
+    mockExecFile.mockImplementation((...args: any[]) => {
+      const callback = args.at(-1) as (error: Error) => void;
+      callback(new Error('PowerShell failed'));
+      return {};
+    });
+
+    await expect(getObsProcessMetadata()).resolves.toBeNull();
+  });
+
   test('IPC名・同名パイプ・実行パス・親不在が一致するプロセスを返す', async () => {
     mockReaddirSync.mockReturnValue([ipcName]);
     mockExecResults([orphanMetadata]);
@@ -139,6 +149,36 @@ describe('recoverOrphanedNairObsProcess', () => {
       2,
       'taskkill.exe',
       ['/pid', '1234', '/f'],
+      { windowsHide: true },
+      expect.any(Function),
+    );
+  });
+
+  test('安全に特定した孤立obs64.exeが複数あるとき全件終了する', async () => {
+    const secondOrphanMetadata = {
+      ...orphanMetadata,
+      ProcessId: 5678,
+      CommandLine: orphanMetadata.CommandLine.replace(ipcName, ipcName.toUpperCase()),
+    };
+    mockReaddirSync.mockReturnValue([ipcName]);
+    const execFile = mockExecResults([orphanMetadata, secondOrphanMetadata], [], []);
+
+    await expect(recoverOrphanedNairObsProcess()).resolves.toEqual({
+      recovered: true,
+      reason: 'terminated',
+      processId: 1234,
+    });
+    expect(execFile).toHaveBeenNthCalledWith(
+      2,
+      'taskkill.exe',
+      ['/pid', '1234', '/f'],
+      { windowsHide: true },
+      expect.any(Function),
+    );
+    expect(execFile).toHaveBeenNthCalledWith(
+      3,
+      'taskkill.exe',
+      ['/pid', '5678', '/f'],
       { windowsHide: true },
       expect.any(Function),
     );
