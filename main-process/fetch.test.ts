@@ -1,3 +1,5 @@
+import * as FakeTimers from '@sinonjs/fake-timers';
+
 import { fetchViaElectronNet } from './fetch';
 
 describe('fetchViaElectronNet', () => {
@@ -46,18 +48,27 @@ describe('fetchViaElectronNet', () => {
   });
 
   test('応答がない場合はタイムアウトして ETIMEDOUT を返す', async () => {
+    const clock = FakeTimers.install();
     const net = {
       fetch: jest.fn((_url: string, options: RequestInit) => new Promise<Response>((_resolve, reject) => {
         options.signal?.addEventListener('abort', () => reject(options.signal?.reason));
       })),
     };
 
-    await expect(fetchViaElectronNet(net, 'https://example.com/onairs', {}, 10)).rejects.toThrow(
-      '[MAIN_FETCH_FAIL code=ETIMEDOUT] Request timed out after 10ms',
-    );
+    try {
+      const result = fetchViaElectronNet(net, 'https://example.com/onairs', {}, 10);
+      const assertion = expect(result).rejects.toThrow(
+        '[MAIN_FETCH_FAIL code=ETIMEDOUT] Request timed out after 10ms',
+      );
+      await clock.tickAsync(10);
+      await assertion;
+    } finally {
+      clock.uninstall();
+    }
   });
 
   test('GETがERR_CONNECTION_RESETになった場合は1回だけ再試行する', async () => {
+    const clock = FakeTimers.install();
     const response = {
       ok: true,
       headers: new Headers(),
@@ -70,13 +81,37 @@ describe('fetchViaElectronNet', () => {
         .mockResolvedValueOnce(response),
     };
 
-    await expect(fetchViaElectronNet(net, 'https://example.com/onairs', {})).resolves.toEqual({
-      ok: true,
-      headers: [],
-      status: 200,
-      text: '{"programId":"lv1"}',
-    });
-    expect(net.fetch).toHaveBeenCalledTimes(2);
+    try {
+      const result = fetchViaElectronNet(net, 'https://example.com/onairs', {});
+      await clock.tickAsync(250);
+      await expect(result).resolves.toEqual({
+        ok: true,
+        headers: [],
+        status: 200,
+        text: '{"programId":"lv1"}',
+      });
+      expect(net.fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      clock.uninstall();
+    }
+  });
+
+  test('呼び出し元のAbortSignalでもリクエストを中断する', async () => {
+    const controller = new AbortController();
+    let receivedSignal: AbortSignal | undefined;
+    const net = {
+      fetch: jest.fn((_url: string, options: RequestInit) => new Promise<Response>((_resolve, reject) => {
+        receivedSignal = options.signal ?? undefined;
+        options.signal?.addEventListener('abort', () => reject(options.signal?.reason));
+      })),
+    };
+    const result = fetchViaElectronNet(net, 'https://example.com/onairs', { signal: controller.signal });
+
+    controller.abort(new Error('cancelled by caller'));
+
+    await expect(result).rejects.toThrow('cancelled by caller');
+    expect(receivedSignal).not.toBe(controller.signal);
+    expect(receivedSignal?.aborted).toBe(true);
   });
 
   test('POSTがERR_CONNECTION_RESETになっても再試行しない', async () => {
