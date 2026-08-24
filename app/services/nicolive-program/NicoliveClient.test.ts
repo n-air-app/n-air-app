@@ -5,6 +5,8 @@
 import fetchMock from '@fetch-mock/jest';
 import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
+const sentryMessage = jest.fn();
+
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
 }));
@@ -25,6 +27,9 @@ const fetchViaMainProcess = jest
 jest.mock('util/fetchViaMainProcess', () => ({
   fetchViaMainProcess,
 }));
+jest.mock('util/sentry-report', () => ({
+  SentryReport: { message: sentryMessage },
+}));
 
 import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
 
@@ -35,6 +40,7 @@ beforeEach(() => {
 afterEach(() => {
   fetchMock.mockRestore({ includeSticky: true });
   fetchViaMainProcess.mockReset();
+  sentryMessage.mockReset();
 });
 
 describe('parseMaxQuality', () => {
@@ -591,6 +597,40 @@ describe('NicoliveClient.deleteComment', () => {
       expect.anything(),
       expect.objectContaining({
         headers: expect.objectContaining({ Origin: 'https://live.nicovideo.jp' }),
+      }),
+    );
+  });
+
+  test('Electron net失敗後にNode.jsフォールバックが成功したことをSentryへ一度だけ送る', async () => {
+    fetchViaMainProcess.mockResolvedValue({
+      ok: true,
+      headers: [],
+      status: 204,
+      text: '',
+      transport: 'node-fetch-fallback',
+      electronNetErrorCode: 'ERR_CONNECTION_RESET',
+    });
+
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    await client.fetchProgramSchedules();
+    await client.fetchProgramSchedules();
+
+    expect(sentryMessage).toHaveBeenCalledTimes(1);
+    expect(sentryMessage).toHaveBeenCalledWith(
+      'NicoliveClient',
+      'requestWithSession',
+      'Electron network request failed; Node.js fallback succeeded',
+      expect.objectContaining({
+        level: 'warning',
+        tags: {
+          transport: 'electron-net',
+          errorCode: 'ERR_CONNECTION_RESET',
+          httpMethod: 'GET',
+          fallbackSuccess: 'true',
+        },
+        context: {
+          request: { endpoint: 'https://live2.nicovideo.jp/unama/tool/v1/program_schedules' },
+        },
       }),
     );
   });

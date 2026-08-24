@@ -20,7 +20,7 @@ function isRetryableConnectionReset(error, options) {
       || extractErrorCode(error) === 'ECONNRESET');
 }
 
-async function fetchOnce(net, url, options) {
+async function fetchOnce(net, url, options, transport, electronNetErrorCode) {
   const response = await net.fetch(url, options);
   const text = await response.text();
   return {
@@ -29,6 +29,8 @@ async function fetchOnce(net, url, options) {
     headers: [...response.headers.entries()],
     status: response.status,
     text,
+    transport: transport ?? 'electron-net',
+    ...(electronNetErrorCode ? { electronNetErrorCode } : {}),
   };
 }
 
@@ -57,7 +59,13 @@ async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000, fallba
     if (isRetryableConnectionReset(error, options)) {
       electronNetErrorCode = extractErrorCode(error);
       try {
-        return await fetchOnce({ fetch: fallbackFetch }, url, requestOptions);
+        return await fetchOnce(
+          { fetch: fallbackFetch },
+          url,
+          requestOptions,
+          'node-fetch-fallback',
+          electronNetErrorCode,
+        );
       } catch (e) {
         error = e;
       }

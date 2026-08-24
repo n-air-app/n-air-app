@@ -28,6 +28,7 @@ describe('fetchViaElectronNet', () => {
       ],
       status: 200,
       text: '{"result":"ok"}',
+      transport: 'electron-net',
     });
     expect(net.fetch).toHaveBeenCalledWith('https://example.com/ingest', {
       ...options,
@@ -82,6 +83,8 @@ describe('fetchViaElectronNet', () => {
       headers: [],
       status: 200,
       text: '{"programId":"lv1"}',
+      transport: 'node-fetch-fallback',
+      electronNetErrorCode: 'ERR_CONNECTION_RESET',
     });
     expect(net.fetch).toHaveBeenCalledTimes(1);
     expect(fallbackFetch).toHaveBeenCalledTimes(1);
