@@ -7,4 +7,5 @@ export function fetchViaElectronNet(
   url: string,
   options: RequestInit,
   timeoutMs?: number,
+  fallbackFetch?: typeof fetch,
 ): Promise<MainProcessFetchResponse>;

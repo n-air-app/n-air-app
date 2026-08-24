@@ -6,8 +6,6 @@
  * @param {RequestInit} options
  * @returns {Promise<import('../app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
  */
-const RETRY_DELAY_MS = 250;
-
 function extractErrorCode(error) {
   return error.code
     ?? error.cause?.code
@@ -34,26 +32,7 @@ async function fetchOnce(net, url, options) {
   };
 }
 
-function waitForRetry(signal) {
-  return new Promise((resolve, reject) => {
-    const onAbort = () => {
-      clearTimeout(delayId);
-      reject(signal.reason);
-    };
-    const delayId = setTimeout(() => {
-      signal.removeEventListener('abort', onAbort);
-      resolve();
-    }, RETRY_DELAY_MS);
-
-    if (signal.aborted) {
-      onAbort();
-    } else {
-      signal.addEventListener('abort', onAbort, { once: true });
-    }
-  });
-}
-
-async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000) {
+async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000, fallbackFetch = globalThis.fetch) {
   const timeoutController = new AbortController();
   const timeoutId = setTimeout(() => {
     timeoutController.abort(Object.assign(new Error(`Request timed out after ${timeoutMs}ms`), {
@@ -72,12 +51,13 @@ async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000) {
       error = e;
     }
 
-    // net.fetch へ切り替えた一部環境で、配信開始直後のGETだけ接続がリセットされることがある。
-    // 冪等なリクエストに限り1回だけ再試行し、一過性障害ならユーザー操作なしで復旧する。
+    let electronNetErrorCode = '';
+    // 一部環境では Chromium ネットワークスタックの net.fetch だけが恒常的に接続リセットされる。
+    // 冪等なリクエストに限り、以前使用していた Node.js の fetch へフォールバックする。
     if (isRetryableConnectionReset(error, options)) {
+      electronNetErrorCode = extractErrorCode(error);
       try {
-        await waitForRetry(signal);
-        return await fetchOnce(net, url, requestOptions);
+        return await fetchOnce({ fetch: fallbackFetch }, url, requestOptions);
       } catch (e) {
         error = e;
       }
@@ -90,8 +70,11 @@ async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000) {
     const cause = error.cause
       ? `${error.cause.name}: ${error.cause.message} (code: ${error.cause.code})`
       : undefined;
+    const fallbackContext = electronNetErrorCode
+      ? ` [ELECTRON_NET_FAIL code=${electronNetErrorCode}]`
+      : '';
     throw new Error(
-      `[MAIN_FETCH_FAIL code=${causeCode}] ${error.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`,
+      `[MAIN_FETCH_FAIL code=${causeCode}]${fallbackContext} ${error.message} [url: ${url}, cause: ${cause ?? 'no cause'}]`,
     );
   } finally {
     clearTimeout(timeoutId);

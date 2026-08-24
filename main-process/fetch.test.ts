@@ -67,33 +67,36 @@ describe('fetchViaElectronNet', () => {
     }
   });
 
-  test('GETがERR_CONNECTION_RESETになった場合は1回だけ再試行する', async () => {
-    const clock = FakeTimers.install();
+  test('GETがERR_CONNECTION_RESETになった場合はNode.js fetchへフォールバックする', async () => {
     const response = {
       ok: true,
       headers: new Headers(),
       status: 200,
       text: jest.fn().mockResolvedValue('{"programId":"lv1"}'),
     };
-    const net = {
-      fetch: jest.fn()
-        .mockRejectedValueOnce(new Error('net::ERR_CONNECTION_RESET'))
-        .mockResolvedValueOnce(response),
-    };
+    const net = { fetch: jest.fn().mockRejectedValue(new Error('net::ERR_CONNECTION_RESET')) };
+    const fallbackFetch = jest.fn().mockResolvedValue(response);
 
-    try {
-      const result = fetchViaElectronNet(net, 'https://example.com/onairs', {});
-      await clock.tickAsync(250);
-      await expect(result).resolves.toEqual({
-        ok: true,
-        headers: [],
-        status: 200,
-        text: '{"programId":"lv1"}',
-      });
-      expect(net.fetch).toHaveBeenCalledTimes(2);
-    } finally {
-      clock.uninstall();
-    }
+    await expect(fetchViaElectronNet(net, 'https://example.com/onairs', {}, 30_000, fallbackFetch)).resolves.toEqual({
+      ok: true,
+      headers: [],
+      status: 200,
+      text: '{"programId":"lv1"}',
+    });
+    expect(net.fetch).toHaveBeenCalledTimes(1);
+    expect(fallbackFetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('フォールバックも失敗した場合は両方の経路のエラーコードを返す', async () => {
+    const net = { fetch: jest.fn().mockRejectedValue(new Error('net::ERR_CONNECTION_RESET')) };
+    const fallbackError = Object.assign(new Error('fetch failed'), { code: 'ECONNREFUSED' });
+    const fallbackFetch = jest.fn().mockRejectedValue(fallbackError);
+
+    await expect(
+      fetchViaElectronNet(net, 'https://example.com/onairs', {}, 30_000, fallbackFetch),
+    ).rejects.toThrow(
+      '[MAIN_FETCH_FAIL code=ECONNREFUSED] [ELECTRON_NET_FAIL code=ERR_CONNECTION_RESET] fetch failed',
+    );
   });
 
   test('呼び出し元のAbortSignalでもリクエストを中断する', async () => {
@@ -116,10 +119,12 @@ describe('fetchViaElectronNet', () => {
 
   test('POSTがERR_CONNECTION_RESETになっても再試行しない', async () => {
     const net = { fetch: jest.fn().mockRejectedValue(new Error('net::ERR_CONNECTION_RESET')) };
+    const fallbackFetch = jest.fn();
 
-    await expect(fetchViaElectronNet(net, 'https://example.com/program', { method: 'POST' })).rejects.toThrow(
+    await expect(fetchViaElectronNet(net, 'https://example.com/program', { method: 'POST' }, 30_000, fallbackFetch)).rejects.toThrow(
       '[MAIN_FETCH_FAIL code=ERR_CONNECTION_RESET] net::ERR_CONNECTION_RESET',
     );
     expect(net.fetch).toHaveBeenCalledTimes(1);
+    expect(fallbackFetch).not.toHaveBeenCalled();
   });
 });
