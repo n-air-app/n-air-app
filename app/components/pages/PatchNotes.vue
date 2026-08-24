@@ -38,7 +38,6 @@
 .patch-notes-container {
   position: absolute;
   width: 480px;
-  overflow: auto;
 }
 
 .patch-notes-content {
@@ -64,22 +63,32 @@
 
 .patch-notes-wrap {
   width: 100%;
-  overflow: hidden;
 }
 
 .patch-notes-list {
   box-sizing: border-box;
-  //lessなので　width: calc(100% + 8px) ではなく↓で記述
-  width: calc(~'100% + 8px');
+  width: 100%;
   max-height: 160px;
   padding: 0 32px;
-  //foundation対応
-  margin-right: 1.25rem;
   margin-bottom: 32px;
   overflow-x: hidden;
   overflow-y: auto;
   color: @text-secondary;
   text-align: left;
+}
+
+.patch-notes-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.patch-notes-list::-webkit-scrollbar-track {
+  background: fade(@grey, 15%);
+  border-radius: 4px;
+}
+
+.patch-notes-list::-webkit-scrollbar-thumb {
+  background: @text-secondary;
+  border-radius: 4px;
 }
 
 .patch-notes-item {
