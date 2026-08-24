@@ -1,10 +1,11 @@
 import { IPatchNotes } from '.';
 
 export const notes: IPatchNotes = {
-  version: '1.1.20260820-unstable.1',
-  title: '1.1.20260820-unstable.1',
+  version: '1.1.20260824-unstable.1',
+  title: '1.1.20260824-unstable.1',
   notes: [
-    '修正: サブ配信で映像が送信されない問題を修正 (#1409) by asaday',
-    '修正: 一部の環境で配信を開始できない問題を修正 (#1408) by koizuka',
+    '修正: OBS終了時にN Airを再起動できないことがある問題を修正 (#1417) by koizuka',
+    '修正: アプリ終了処理が完了しない状態で設定画面を開くとクラッシュする問題を修正 (#1412) by koizuka',
+    '修正: 配信開始時の通信エラーを別の通信経路で回避 (#1416) by koizuka',
   ],
 };
