@@ -2,23 +2,35 @@ const path = require('node:path');
 
 /** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
-  preset: 'ts-jest',
-  runner: '@kayahr/jest-electron-runner',
-  modulePaths: [path.resolve(__dirname, 'app')],
-  testEnvironment: '@kayahr/jest-electron-runner/environment',
-  testEnvironmentOptions: {
-    electron: {
-      options: ['no-sandbox'],
+  projects: [
+    {
+      displayName: 'app',
+      preset: 'ts-jest',
+      modulePaths: [path.resolve(__dirname, 'app')],
+      moduleNameMapper: {
+        '^electron$': '<rootDir>/app/test-setup/electron.js',
+        '^@electron/remote$': '<rootDir>/app/test-setup/electron-remote.js',
+      },
+      testEnvironment: 'node',
+      setupFiles: ['<rootDir>/app/test-setup/environment.js'],
+      roots: ['<rootDir>/app'],
+      testMatch: ['**/app/**/*.test.ts'],
+      transformIgnorePatterns: [
+        'node_modules/(?!(ml-kmeans|ml-distance-euclidean|ml-matrix|ml-nearest-vector|ml-random|ml-xsadd))',
+      ],
+      transform: {
+        '^.+\\.tsx?$': 'ts-jest',
+      },
     },
-  },
-  setupFiles: ['<rootDir>/app/test-setup/electron-watchdog.ts'],
-  roots: ['<rootDir>/app', '<rootDir>/main-process'],
-  testMatch: ['**/app/**/*.test.ts', '**/main-process/*.test.ts'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(ml-kmeans|ml-distance-euclidean|ml-matrix|ml-nearest-vector|ml-random|ml-xsadd))',
+    {
+      displayName: 'main-process',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      roots: ['<rootDir>/main-process'],
+      testMatch: ['**/main-process/*.test.ts'],
+      transform: {
+        '^.+\\.tsx?$': 'ts-jest',
+      },
+    },
   ],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-    '^.+\\.jsx?$': 'ts-jest',
-  },
 };

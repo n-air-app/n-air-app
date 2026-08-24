@@ -102,6 +102,9 @@ const setup = createSetupFunction({
       updated: {
         subscribe() {},
       },
+      state: {
+        onecommeRelation: { use: false },
+      },
     },
     UserService: {
       userLoginState: {
@@ -1046,7 +1049,10 @@ describe('refreshAutoExtensionTimer', () => {
           .mockReturnValue(suite.now * 1000),
       );
 
-      instance.client.extendProgram = jest.fn().mockName('extendProgram');
+      instance.client.extendProgram = jest
+        .fn()
+        .mockName('extendProgram')
+        .mockResolvedValue({ ok: true, value: { end_time: suite.next?.endTime ?? 0 } });
       const state = instance.state;
 
       instance.refreshAutoExtensionTimer({ ...state, ...suite.prev }, { ...state, ...suite.next });
