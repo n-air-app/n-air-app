@@ -336,7 +336,7 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
       console.error(e);
     }
 
-    if (t.failed || !testPassed) {
+    if (!t.failed && !testPassed) {
       fail();
       t.fail(failMsg);
     }

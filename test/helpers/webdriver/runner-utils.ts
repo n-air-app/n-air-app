@@ -1,6 +1,6 @@
 /**
  * This file provides patches for node:test that allow to track failed tests to re-run them
- * Also it skips the tests that should be run on an different CI agent in a parallel execution mode
+ * Also it skips the tests that should be run on a different CI agent in a parallel execution mode
  */
 
 import assert from 'node:assert/strict';
@@ -133,11 +133,13 @@ export const testFn = ((testName: string, implementation: TestImplementation) =>
   }
   pendingTests.push(testName);
   saveFailedTestsToFile([testName]);
-  nodeTest(testName, { timeout: 180000 }, async () => {
+  nodeTest(testName, { timeout: 180000 }, async (context) => {
+    const executionContext = currentContext ?? createExecutionContext(context.name);
+    currentContext = executionContext;
     try {
-      await implementation(currentContext);
+      await implementation(executionContext);
     } catch (error) {
-      currentContext.failed = true;
+      executionContext.failed = true;
       throw error;
     }
   });
