@@ -34,7 +34,7 @@
     "test": "node bin/i18n-early-check.js && tsc -p test && ava -v -s",
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "pnpm run test:unit:app && pnpm run test:unit:bin",
-    "test:unit:app": "pnpm run typecheck && jest --silent --config ./jest.config.js --forceExit",
+    "test:unit:app": "pnpm run typecheck && jest --silent --config ./jest.config.js",
     "test:unit:bin": "pnpm install --dir bin --ignore-workspace && jest --silent --config ./jest.bin-config.js",
     "update-gamecapture": "node bin/update-gamecapture.js",
     "version": "git add app/services/patch-notes/notes.ts",

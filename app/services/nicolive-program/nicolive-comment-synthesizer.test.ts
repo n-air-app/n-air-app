@@ -36,6 +36,11 @@ jest.mock('services/nicolive-program/state', () => ({ NicoliveProgramStateServic
 jest.mock('services/nicolive-program/n-voice-client', () => ({ NVoiceClientService: {} }));
 jest.mock('services/nvoice-character', () => ({ NVoiceCharacterService: {} }));
 jest.mock('services/user', () => ({ UserService: {} }));
+jest.mock('./PhonemeServer', () => ({
+  PhonemeServer: jest.fn().mockImplementation(() => ({
+    emitPhoneme: jest.fn(),
+  })),
+}));
 
 beforeEach(() => {
   jest.doMock('services/core/stateful-service');

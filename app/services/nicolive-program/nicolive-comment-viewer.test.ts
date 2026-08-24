@@ -65,6 +65,8 @@ const setup = createSetupFunction({
   },
 });
 
+const subscriptionsToCleanup: Array<{ unsubscribe(): void }> = [];
+
 jest.mock('services/nicolive-program/nicolive-program', () => ({
   NicoliveProgramService: {},
 }));
@@ -109,6 +111,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const subscription of subscriptionsToCleanup.splice(0)) {
+    subscription.unsubscribe();
+  }
   jest.resetModules();
 });
 
@@ -121,6 +126,7 @@ test('接続先情報が来たら接続する', async () => {
       connect() {
         return clientSubject;
       }
+      close() {}
     },
   }));
   setup({ injectee: { NicoliveProgramService: { stateChange } } });
@@ -132,6 +138,7 @@ test('接続先情報が来たら接続する', async () => {
   expect(stateChange.observers).toHaveLength(3);
   stateChange.next({ viewUri: 'https://example.com' });
   expect(clientSubject.observers).toHaveLength(1);
+  clientSubject.complete();
 });
 
 test('接続先情報が欠けていたら接続しない', () => {
@@ -165,6 +172,7 @@ test('status=endedが流れてきたらunsubscribeし、refreshProgramも呼ぶ'
         connect() {
           return clientSubject;
         }
+        close() {}
       },
     };
   });
@@ -190,6 +198,7 @@ test('status=endedが流れてきたらunsubscribeし、refreshProgramも呼ぶ'
 
   // ended が来たら refreshProgramも呼ばれる
   expect(refreshProgram).toHaveBeenCalledTimes(1);
+  clientSubject.complete();
 });
 
 test('status=endedでrefreshProgramがNicoliveFailureを投げてもunhandledにならない', async () => {
@@ -202,6 +211,7 @@ test('status=endedでrefreshProgramがNicoliveFailureを投げてもunhandledに
         connect() {
           return clientSubject;
         }
+        close() {}
       },
     };
   });
@@ -224,6 +234,7 @@ test('status=endedでrefreshProgramがNicoliveFailureを投げてもunhandledに
 
   expect(warnSpy).toHaveBeenCalledWith('refreshProgram failed:', failure);
   warnSpy.mockRestore();
+  clientSubject.complete();
 });
 
 const MODERATOR_ID = '123';
@@ -301,6 +312,7 @@ function connectionSetup(options: { speechEnabled?: boolean; httpRelationEnabled
   const instance = NicoliveCommentViewerService.instance() as NicoliveCommentViewerService;
 
   stateChange.next({ viewUri: 'https://example.com' });
+  subscriptionsToCleanup.push((instance as any).lastSubscription);
 
   return {
     instance,
