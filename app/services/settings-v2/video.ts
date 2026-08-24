@@ -373,13 +373,17 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     });
   }
 
-  private reportShutdownError(display: TDisplayType, operation: string, error: unknown) {
+  private reportShutdownError(
+    display: TDisplayType,
+    operation: 'saveLegacySettings' | 'destroyContext',
+    error: unknown,
+  ) {
     markObsOp('VideoSettingsService', 'shutdown', {
       display,
       operation,
       error: error instanceof Error ? error.message : String(error),
     });
-    console.error(`[VideoSettingsService] shutdown: ${operation} failed:`, error);
+    console.error(`[VideoSettingsService] shutdown(${display}): ${operation} failed:`, error);
   }
 
   @mutation()

@@ -329,9 +329,10 @@ describe('VideoSettingsService.shutdown', () => {
 
   test('context の destroy に失敗してもローカル状態を破棄する', () => {
     const expectedLegacySettings = mockState.horizontal;
+    const error = new Error('IPC received error code 1');
     const context = {
       legacySettings: null,
-      destroy: jest.fn(() => { throw new Error('IPC received error code 1'); }),
+      destroy: jest.fn(() => { throw error; }),
     } as any;
     instance.contexts = { horizontal: context };
 
@@ -348,6 +349,10 @@ describe('VideoSettingsService.shutdown', () => {
         operation: 'destroyContext',
         error: 'IPC received error code 1',
       }),
+    );
+    expect(console.error).toHaveBeenCalledWith(
+      '[VideoSettingsService] shutdown(horizontal): destroyContext failed:',
+      error,
     );
   });
 });
