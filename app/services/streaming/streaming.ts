@@ -393,14 +393,30 @@ export class StreamingService
 
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
       const horizontalContext = this.videoSettingsService.contexts.horizontal!;
-      runObsOp('StreamingService', 'startStreaming', () => {
-        obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
-        obs.NodeObs.OBS_service_startStreaming();
-        this.subStreamService.syncStart();
-      }, {
-        data: { action: 'start' },
-        fingerprint: ['StreamingService', 'startStreaming', 'obs', 'exception'],
-      });
+      try {
+        runObsOp('StreamingService', 'startStreaming', () => {
+          obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
+          obs.NodeObs.OBS_service_startStreaming();
+          this.subStreamService.syncStart();
+        }, {
+          data: { action: 'start' },
+          fingerprint: ['StreamingService', 'startStreaming', 'obs', 'exception'],
+          // 配信開始前の同期例外は OBS の output signal が発火しないため、
+          // 呼び出し元でユーザーへ通知できるようにする。
+          rethrow: true,
+        });
+      } catch (e) {
+        if (this.powerSaveId) {
+          remote.powerSaveBlocker.stop(this.powerSaveId);
+          this.powerSaveId = 0;
+        }
+        void remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+          buttons: ['OK'],
+          title: $t('streaming.streamingError'),
+          type: 'error',
+          message: $t('streaming.startFailedError'),
+        });
+      }
       return;
     }
 
