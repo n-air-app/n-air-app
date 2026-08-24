@@ -590,6 +590,84 @@ test('toggleStreamingAsyncでstreamingStatusがoffline以外の場合', async ()
   expect(instance.toggleStreaming).toHaveBeenCalledTimes(1);
 });
 
+test('toggleStreamingAsyncの配信開始準備中は多重呼び出しを無視する', async () => {
+  let resolveFetchOnairUserProgram: (value: { programId: string; nextProgramId: string }) => void;
+  const fetchOnairUserProgram = jest.fn(() => new Promise<{ programId: string; nextProgramId: string }>((resolve) => {
+    resolveFetchOnairUserProgram = resolve;
+  }));
+  const updateStreamSettings = jest.fn(() => ({ key: 'stream-key' }));
+
+  setup({
+    injectee: createInjectee({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+  instance.client.fetchOnairUserProgram = fetchOnairUserProgram;
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+  instance.toggleStreaming = jest.fn();
+
+  const firstCall = instance.toggleStreamingAsync();
+  const secondCall = instance.toggleStreamingAsync();
+
+  expect(fetchOnairUserProgram).toHaveBeenCalledTimes(1);
+
+  resolveFetchOnairUserProgram!({ programId: 'lv12345', nextProgramId: '' });
+  await Promise.all([firstCall, secondCall]);
+
+  expect(updateStreamSettings).toHaveBeenCalledTimes(1);
+  expect(instance.toggleStreaming).toHaveBeenCalledTimes(1);
+});
+
+test('toggleStreamingAsyncでOBSの状態通知を待っている間は再実行しない', async () => {
+  const OBS_service_startStreaming = jest.fn();
+  jest.mock('../../../obs-api', () => ({
+    NodeObs: {
+      OBS_service_startStreaming,
+      OBS_service_stopStreaming: jest.fn(),
+      OBS_service_connectOutputSignals: noop,
+      OBS_service_setVideoInfo: jest.fn(),
+    },
+  }));
+
+  const updateStreamSettings = jest.fn(() => ({ key: 'stream-key' }));
+
+  setup({
+    injectee: createInjectee({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({
+    programId: 'lv12345',
+    nextProgramId: '',
+  }));
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+  instance.nicoliveProgramService.fetchProgram = jest.fn();
+
+  await instance.toggleStreamingAsync();
+  await instance.toggleStreamingAsync();
+
+  expect(updateStreamSettings).toHaveBeenCalledTimes(1);
+  expect(OBS_service_startStreaming).toHaveBeenCalledTimes(1);
+});
+
 test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログインしていない場合', async () => {
   setup({
     state: {
