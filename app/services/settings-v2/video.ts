@@ -383,7 +383,10 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
       operation,
       error: error instanceof Error ? error.message : String(error),
     });
-    console.error(`[VideoSettingsService] shutdown(${display}): ${operation} failed:`, error);
+    console.warn(
+      `[VideoSettingsService] shutdown(${display}): video context was already unavailable; ${operation} cleanup failure ignored:`,
+      error,
+    );
   }
 
   @mutation()
