@@ -350,16 +350,36 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
     this.debouncedUpdateObsSettings.cancel();
 
     displays.forEach((display) => {
-      if (this.contexts[display]) {
-        // save settings as legacy settings
-        this.contexts[display].legacySettings = this.state[display]!;
+      const context = this.contexts[display];
+      if (!context) return;
 
-        // destroy context
-        this.contexts[display].destroy();
+      // OBS IPC が切断済みでも、1つのネイティブ呼び出しの失敗で残りの
+      // シャットダウン処理を中断しない。各処理を独立して試行し、フロント側の
+      // コンテキストは必ず破棄する。
+      try {
+        context.legacySettings = this.state[display]!;
+      } catch (e) {
+        this.reportShutdownError(display, 'saveLegacySettings', e);
+      }
+
+      try {
+        context.destroy();
+      } catch (e) {
+        this.reportShutdownError(display, 'destroyContext', e);
+      } finally {
         this.contexts[display] = null;
         this.DESTROY_VIDEO_CONTEXT(display);
       }
     });
+  }
+
+  private reportShutdownError(display: TDisplayType, operation: string, error: unknown) {
+    markObsOp('VideoSettingsService', 'shutdown', {
+      display,
+      operation,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    console.error(`[VideoSettingsService] shutdown: ${operation} failed:`, error);
   }
 
   @mutation()
