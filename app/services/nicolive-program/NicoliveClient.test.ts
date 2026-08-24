@@ -6,6 +6,7 @@ import fetchMock from '@fetch-mock/jest';
 import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
 const sentryMessage = jest.fn();
+const sentryError = jest.fn();
 
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
@@ -28,7 +29,7 @@ jest.mock('util/fetchViaMainProcess', () => ({
   fetchViaMainProcess,
 }));
 jest.mock('util/sentry-report', () => ({
-  SentryReport: { message: sentryMessage },
+  SentryReport: { error: sentryError, message: sentryMessage },
 }));
 
 import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
@@ -40,6 +41,7 @@ beforeEach(() => {
 afterEach(() => {
   fetchMock.mockRestore({ includeSticky: true });
   fetchViaMainProcess.mockReset();
+  sentryError.mockReset();
   sentryMessage.mockReset();
 });
 
