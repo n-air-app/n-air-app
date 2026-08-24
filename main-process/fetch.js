@@ -35,7 +35,13 @@ async function fetchOnce(net, url, options, transport, electronNetErrorCode) {
   };
 }
 
-async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000, fallbackFetch = globalThis.fetch) {
+async function fetchViaElectronNet(
+  net,
+  url,
+  options,
+  timeoutMs = 30_000,
+  fallbackFetch = globalThis.fetch.bind(globalThis),
+) {
   const timeoutController = new AbortController();
   const timeoutId = setTimeout(() => {
     timeoutController.abort(Object.assign(new Error(`Request timed out after ${timeoutMs}ms`), {

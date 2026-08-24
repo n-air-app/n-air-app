@@ -43,7 +43,8 @@ describe('fetchViaElectronNet', () => {
     const error = new Error('fetch failed', { cause });
     const net = { fetch: jest.fn().mockRejectedValue(error) };
 
-    await expect(fetchViaElectronNet(net, 'https://example.com/ingest', {})).rejects.toThrow(
+    // POSTはフォールバック対象外なので、元のElectronエラーがそのまま診断へ入る。
+    await expect(fetchViaElectronNet(net, 'https://example.com/ingest', { method: 'POST' })).rejects.toThrow(
       '[MAIN_FETCH_FAIL code=SELF_SIGNED_CERT_IN_CHAIN] fetch failed [url: https://example.com/ingest, cause: Error: self signed certificate in certificate chain (code: SELF_SIGNED_CERT_IN_CHAIN)]',
     );
   });
