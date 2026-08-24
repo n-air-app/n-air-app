@@ -122,6 +122,12 @@ dev-hosts は本番ドメイン（`*.nicovideo.jp` 等）を dev 環境ドメイ
 # ローカルインストーラー
 NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:local
 
+# ローカルインストーラー（無人インストール＋起動も含めて一括実行）
+NAIR_DEV_HOSTS=1 pnpm run package:local:install
+
+# 既に dist/ にあるインストーラーだけを無人インストール＋起動（package:local 以外の成果物でも可）
+pnpm run install:dist
+
 # 社内版インストーラー
 NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 ```
@@ -161,10 +167,23 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 | スクリプト | 用途 |
 |---|---|
 | `pnpm package:local` | ローカル用インストーラー（コード署名なし）。`dev-hosts.json` があれば自動で dev 対応 |
+| `pnpm run install:dist` | `dist/` にある既存インストーラーを無人インストール＋アプリ起動（再ビルド不要。どの `package:*` の成果物でも可） |
+| `pnpm run package:local:install` | `compile:production` → `package:local` → `install:dist` を一括実行 |
 | `pnpm package:internal-stable` | 社内版 stable インストーラー（`INTERNAL_PUBLISH_URL` 必須）。`dev-hosts.json` があれば自動で dev 対応 |
 | `pnpm package:internal-unstable` | 社内版 unstable インストーラー（`INTERNAL_PUBLISH_URL` 必須）。`dev-hosts.json` があれば自動で dev 対応 |
 | `pnpm package:public-stable` | 公開版 stable インストーラー |
 | `pnpm package:public-unstable` | 公開版 unstable インストーラー |
+
+### インストーラーの動作確認（`install:dist`）
+
+`pnpm run install:dist` は `dist/` に既にあるインストーラーを `/S --updated --force-run` 付きで実行し、無人インストール後にアプリを起動します。`package:local` に限らず `package:public-stable` などどの `package:*` が作った `n-air-app-setup.*.exe` でも動作します。再ビルドが不要なため、インストール手順だけを繰り返し試したいときは対象の `package:*` の直後にこれだけを使うと速いです（ローカルビルドを最初から通す場合は `package:local:install` を使ってください）。
+
+- **UAC 確認ダイアログが1回表示されます。** `nsis.perMachine: true` のため昇格が必須で、これは抑制できません。管理者権限のシェルから実行すればダイアログは出ません
+- `--updated` により VC++ ランタイムのダウンロードと、起動中の N Air の確認なし終了をスキップしています
+- ライセンス同意ページ・インストール先選択・完了ページはサイレントインストールのため検証されません。それらを確認したい場合は `dist/` の exe を直接ダブルクリックしてください
+- 失敗パス（旧バージョンのアンインストール失敗、vc_redist ダウンロード失敗）のエラーダイアログはサイレントでも表示されます。固まったように見えたら裏に隠れたダイアログを探してください。Ctrl+C では昇格したインストーラーを止められません
+- **`appId` が同じチャンネル同士は既存インストールを上書き/アンインストールします。** `public-stable` / `internal-stable` / `local` は同一 appId (`jp.nicovideo.nair`)、`public-unstable` / `internal-unstable` は別の同一 appId (`jp.nicovideo.nair-unstable`) を共有しています。実行時に `dist/win-unpacked` の exe 名を表示するので、意図したチャンネルかを確認してください
+- `pnpm run install:dist -- --no-run` でインストールのみ行い、アプリを起動しないようにできます
 
 ---
 

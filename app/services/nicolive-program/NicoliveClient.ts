@@ -179,6 +179,9 @@ export class NicoliveClient {
 
   private static OpenWindows: { [key: string]: Electron.BrowserWindow | null } = {};
 
+  /** フォールバック成功の診断イベントを同一クライアント内で重複送信しないためのキー。 */
+  private reportedElectronNetFallbacks = new Set<string>();
+
   static registerWindow(key: 'createProgram' | 'editProgram', win: Electron.BrowserWindow) {
     if (NicoliveClient.OpenWindows[key]) {
       throw new Error(`NicoliveClient.registerWindow: Window already exists: ${key}`);
@@ -429,6 +432,38 @@ export class NicoliveClient {
 
     if (viaMainProcess) {
       const res = await fetchViaMainProcess(url, requestInit);
+      if (res.transport === 'node-fetch-fallback' && res.electronNetErrorCode) {
+        const endpoint = (() => {
+          try {
+            const parsed = new URL(url);
+            return `${parsed.origin}${parsed.pathname}`;
+          } catch (_e) {
+            return 'invalid-url';
+          }
+        })();
+        const reportKey = `${method}:${endpoint}:${res.electronNetErrorCode}`;
+        if (!this.reportedElectronNetFallbacks.has(reportKey)) {
+          this.reportedElectronNetFallbacks.add(reportKey);
+          SentryReport.message(
+            'NicoliveClient',
+            'requestWithSession',
+            'Electron network request failed; Node.js fallback succeeded',
+            {
+              level: 'warning',
+              fingerprint: ['NicoliveClient', 'electron-net-fallback', res.electronNetErrorCode],
+              tags: {
+                transport: 'electron-net',
+                errorCode: res.electronNetErrorCode,
+                httpMethod: method,
+                fallbackSuccess: 'true',
+              },
+              context: {
+                request: { endpoint },
+              },
+            },
+          );
+        }
+      }
       return {
         ok: res.ok,
         status: res.status,
