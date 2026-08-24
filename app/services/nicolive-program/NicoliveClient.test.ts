@@ -612,8 +612,8 @@ describe('NicoliveClient.deleteComment', () => {
     });
 
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
-    await client.fetchProgramSchedules();
-    await client.fetchProgramSchedules();
+    await client.fetchIngestInfo('lv1');
+    await client.fetchIngestInfo('lv1');
 
     expect(sentryMessage).toHaveBeenCalledTimes(1);
     expect(sentryMessage).toHaveBeenCalledWith(
@@ -625,11 +625,11 @@ describe('NicoliveClient.deleteComment', () => {
         tags: {
           transport: 'electron-net',
           errorCode: 'ERR_CONNECTION_RESET',
-          httpMethod: 'GET',
+          httpMethod: 'PUT',
           fallbackSuccess: 'true',
         },
         context: {
-          request: { endpoint: 'https://live2.nicovideo.jp/unama/tool/v1/program_schedules' },
+          request: { endpoint: 'https://live2.nicovideo.jp/unama/api/v4/ingest_info' },
         },
       }),
     );

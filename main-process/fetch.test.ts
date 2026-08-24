@@ -90,6 +90,74 @@ describe('fetchViaElectronNet', () => {
     expect(fallbackFetch).toHaveBeenCalledTimes(1);
   });
 
+  test('fetchIngestInfoのPUTがERR_CONNECTION_RESETになった場合もNode.js fetchへフォールバックする', async () => {
+    const response = {
+      ok: true,
+      headers: new Headers(),
+      status: 200,
+      text: jest.fn().mockResolvedValue('{"rtmp":{}}'),
+    };
+    const net = { fetch: jest.fn().mockRejectedValue(new Error('net::ERR_CONNECTION_RESET')) };
+    const fallbackFetch = jest.fn().mockResolvedValue(response);
+
+    await expect(fetchViaElectronNet(
+      net,
+      'https://example.com/ingest_info?nicoliveProgramId=lv1',
+      { method: 'PUT' },
+      30_000,
+      fallbackFetch,
+    )).resolves.toMatchObject({
+      ok: true,
+      transport: 'node-fetch-fallback',
+      electronNetErrorCode: 'ERR_CONNECTION_RESET',
+    });
+    expect(fallbackFetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('接続リセット以外のElectron通信エラーでもNode.js fetchへフォールバックする', async () => {
+    const response = {
+      ok: true,
+      headers: new Headers(),
+      status: 200,
+      text: jest.fn().mockResolvedValue('{}'),
+    };
+    const net = { fetch: jest.fn().mockRejectedValue(new Error('net::ERR_NAME_NOT_RESOLVED')) };
+    const fallbackFetch = jest.fn().mockResolvedValue(response);
+
+    await expect(fetchViaElectronNet(
+      net,
+      'https://example.com/onairs',
+      {},
+      30_000,
+      fallbackFetch,
+    )).resolves.toMatchObject({
+      transport: 'node-fetch-fallback',
+      electronNetErrorCode: 'ERR_NAME_NOT_RESOLVED',
+    });
+  });
+
+  test('コードを抽出できないElectron通信エラーもUNKNOWNとしてフォールバックする', async () => {
+    const response = {
+      ok: true,
+      headers: new Headers(),
+      status: 200,
+      text: jest.fn().mockResolvedValue('{}'),
+    };
+    const net = { fetch: jest.fn().mockRejectedValue(new TypeError('fetch failed')) };
+    const fallbackFetch = jest.fn().mockResolvedValue(response);
+
+    await expect(fetchViaElectronNet(
+      net,
+      'https://example.com/onairs',
+      {},
+      30_000,
+      fallbackFetch,
+    )).resolves.toMatchObject({
+      transport: 'node-fetch-fallback',
+      electronNetErrorCode: 'UNKNOWN',
+    });
+  });
+
   test('フォールバックも失敗した場合は両方の経路のエラーコードを返す', async () => {
     const net = { fetch: jest.fn().mockRejectedValue(new Error('net::ERR_CONNECTION_RESET')) };
     const fallbackError = Object.assign(new Error('fetch failed'), { code: 'ECONNREFUSED' });

@@ -13,11 +13,12 @@ function extractErrorCode(error) {
     ?? '';
 }
 
-function isRetryableConnectionReset(error, options) {
+function canFallbackToNodeFetch(options, signal) {
   const method = (options.method ?? 'GET').toUpperCase();
-  return (method === 'GET' || method === 'HEAD')
-    && (extractErrorCode(error) === 'ERR_CONNECTION_RESET'
-      || extractErrorCode(error) === 'ECONNRESET');
+  // fetchIngestInfo はPUTであり、配信開始に不可欠。HTTP上冪等なGET/HEAD/PUTだけを
+  // 旧Node.js経路へ切り替え、POSTなど副作用を重複させ得るメソッドは対象外にする。
+  // 呼び出し元のキャンセルや全体タイムアウト後には新しい通信を開始しない。
+  return !signal.aborted && (method === 'GET' || method === 'HEAD' || method === 'PUT');
 }
 
 async function fetchOnce(net, url, options, transport, electronNetErrorCode) {
@@ -55,9 +56,10 @@ async function fetchViaElectronNet(net, url, options, timeoutMs = 30_000, fallba
 
     let electronNetErrorCode = '';
     // 一部環境では Chromium ネットワークスタックの net.fetch だけが恒常的に接続リセットされる。
-    // 冪等なリクエストに限り、以前使用していた Node.js の fetch へフォールバックする。
-    if (isRetryableConnectionReset(error, options)) {
-      electronNetErrorCode = extractErrorCode(error);
+    // 冪等なリクエスト（fetchIngestInfo のPUTを含む）に限り、以前使用していた
+    // Node.js の fetch へフォールバックする。
+    if (canFallbackToNodeFetch(options, signal)) {
+      electronNetErrorCode = extractErrorCode(error) || 'UNKNOWN';
       try {
         return await fetchOnce(
           { fetch: fallbackFetch },
