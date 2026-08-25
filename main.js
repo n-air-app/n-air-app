@@ -812,7 +812,10 @@ function initialize(crashHandler) {
     mainWindow.webContents.once('did-finish-load', () => {
       // Give Vue a moment to render before showing
       setTimeout(() => {
-        mainWindow.show();
+        // OBS IPC接続失敗等でシャットダウンが先行し、mainWindowが破棄済みの場合がある
+        if (!mainWindow.isDestroyed()) {
+          mainWindow.show();
+        }
         closeSplashWindow();
       }, 100);
     });
