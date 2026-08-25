@@ -555,10 +555,10 @@ export class StreamingService
         this.toggleStreaming();
       }
     } catch (e) {
-      // ここで捕まえないと、呼び出し元(toggleStreamingAsync)の catch にも届かず
-      // unhandled rejection になり、ユーザーには何も表示されずに配信開始が失敗する。
+      // 呼び出し元(toggleStreamingAsync)でも catch するが、二重の安全策としてここでも捕捉し
+      // ユーザーに必ずエラーダイアログを表示する。
       SentryReport.error('StreamingService', 'optimizeForNiconicoAndStartStreaming', e, {
-        fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'exception'],
+        fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
       });
       await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
         buttons: ['OK'],
