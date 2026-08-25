@@ -5,6 +5,9 @@
 import fetchMock from '@fetch-mock/jest';
 import type { MainProcessFetchResponse } from 'util/fetchViaMainProcess';
 
+const sentryMessage = jest.fn();
+const sentryError = jest.fn();
+
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
 }));
@@ -25,16 +28,25 @@ const fetchViaMainProcess = jest
 jest.mock('util/fetchViaMainProcess', () => ({
   fetchViaMainProcess,
 }));
+jest.mock('util/sentry-report', () => ({
+  SentryReport: { error: sentryError, message: sentryMessage },
+}));
 
 import { NicoliveClient, parseMaxQuality } from './NicoliveClient';
 
 beforeEach(() => {
+  Object.defineProperty(process, 'type', {
+    configurable: true,
+    value: 'renderer',
+  });
   fetchMock.mockGlobal();
 });
 
 afterEach(() => {
   fetchMock.mockRestore({ includeSticky: true });
   fetchViaMainProcess.mockReset();
+  sentryError.mockReset();
+  sentryMessage.mockReset();
 });
 
 describe('parseMaxQuality', () => {
@@ -546,29 +558,42 @@ describe('NicoliveClient.wrapResult', () => {
   });
 });
 
+type DeleteCommentTestCase = [
+  boolean,
+  string | Error | null,
+  () => Promise<MainProcessFetchResponse>,
+];
+
 describe('NicoliveClient.deleteComment', () => {
   setupMock();
   const error = new Error('error');
 
-  test.each<[boolean, string | Error | null, Promise<MainProcessFetchResponse>]>([
+  test.each<DeleteCommentTestCase>([
     [
       true,
       null,
-      Promise.resolve<MainProcessFetchResponse>({ ok: true, headers: [], status: 204, text: '' }),
+      () =>
+        Promise.resolve<MainProcessFetchResponse>({
+          ok: true,
+          headers: [],
+          status: 204,
+          text: '',
+        }),
     ],
     [
       false,
       'not found',
-      Promise.resolve<MainProcessFetchResponse>({
-        ok: false,
-        headers: [],
-        status: 404,
-        text: '"not found"',
-      }),
+      () =>
+        Promise.resolve<MainProcessFetchResponse>({
+          ok: false,
+          headers: [],
+          status: 404,
+          text: '"not found"',
+        }),
     ],
-    [false, error, Promise.reject(error)],
-  ])('ok:%p expect value:%v', async (ok, value, response) => {
-    fetchViaMainProcess.mockResolvedValueOnce(response);
+    [false, error, () => Promise.reject(error)],
+  ])('ok:%p expect value:%v', async (ok, value, createResponse) => {
+    fetchViaMainProcess.mockImplementationOnce(createResponse);
 
     const client = new NicoliveClient({ niconicoSession: 'dummy' });
     {
@@ -591,6 +616,40 @@ describe('NicoliveClient.deleteComment', () => {
       expect.anything(),
       expect.objectContaining({
         headers: expect.objectContaining({ Origin: 'https://live.nicovideo.jp' }),
+      }),
+    );
+  });
+
+  test('Electron net失敗後にNode.jsフォールバックが成功したことをSentryへ一度だけ送る', async () => {
+    fetchViaMainProcess.mockResolvedValue({
+      ok: true,
+      headers: [],
+      status: 204,
+      text: '',
+      transport: 'node-fetch-fallback',
+      electronNetErrorCode: 'ERR_CONNECTION_RESET',
+    });
+
+    const client = new NicoliveClient({ niconicoSession: 'dummy' });
+    await client.fetchIngestInfo('lv1');
+    await client.fetchIngestInfo('lv1');
+
+    expect(sentryMessage).toHaveBeenCalledTimes(1);
+    expect(sentryMessage).toHaveBeenCalledWith(
+      'NicoliveClient',
+      'requestWithSession',
+      'Electron network request failed; Node.js fallback succeeded',
+      expect.objectContaining({
+        level: 'warning',
+        tags: {
+          transport: 'electron-net',
+          errorCode: 'ERR_CONNECTION_RESET',
+          httpMethod: 'PUT',
+          fallbackSuccess: 'true',
+        },
+        context: {
+          request: { endpoint: 'https://live2.nicovideo.jp/unama/api/v4/ingest_info' },
+        },
       }),
     );
   });

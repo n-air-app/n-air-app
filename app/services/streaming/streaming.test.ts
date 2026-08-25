@@ -29,6 +29,7 @@ jest.mock('@electron/remote', () => ({
   getCurrentWindow: jest.fn(),
   powerSaveBlocker: {
     start: jest.fn(),
+    stop: jest.fn(),
   },
   dialog: {
     showMessageBox: jest.fn().mockImplementation(async () => ({ response: 0 })),
@@ -212,6 +213,51 @@ test('toggleStreamingでstreamingStatusがofflineの場合', () => {
   expect(instance.toggleRecording).not.toHaveBeenCalled();
   expect(OBS_service_startStreaming).toHaveBeenCalledTimes(1);
   expect(OBS_service_stopStreaming).not.toHaveBeenCalled();
+});
+
+test('toggleStreamingで配信開始処理が同期例外になった場合はエラーを表示してスリープ抑止を解除する', async () => {
+  const startError = new Error('failed to configure video output');
+  const OBS_service_startStreaming = jest.fn();
+  const OBS_service_setVideoInfo = jest.fn(() => { throw startError; });
+
+  jest.mock('../../../obs-api', () => ({
+    NodeObs: {
+      OBS_service_startStreaming,
+      OBS_service_stopStreaming: jest.fn(),
+      OBS_service_connectOutputSignals: noop,
+      OBS_service_setVideoInfo,
+    },
+  }));
+
+  setup({
+    injectee: createInjectee(),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+        recordingStatus: ERecordingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const instance = StreamingService.instance();
+  const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+  jest.spyOn(currentRemote.powerSaveBlocker, 'start').mockReturnValue(123);
+
+  instance.toggleStreaming();
+  await Promise.resolve();
+
+  expect(OBS_service_startStreaming).not.toHaveBeenCalled();
+  expect(currentRemote.powerSaveBlocker.stop).toHaveBeenCalledWith(123);
+  expect(showMessageBox).toHaveBeenCalledWith(
+    currentRemote.getCurrentWindow(),
+    expect.objectContaining({
+      title: 'streaming.streamingError',
+      message: 'streaming.startFailedError',
+      type: 'error',
+    }),
+  );
 });
 
 test('toggleStreamingでstreamingStatusがoffline、配信開始時に確認して、配信開始をやめる場合', () => {

@@ -69,6 +69,7 @@ describe('AudioService: sourceUpdated での reroute_audio 判定', () => {
     // AudioSource の生成には AudioService/SourcesService への @Inject が必要で
     // このテストの主眼(reroute_audio 判定)には無関係なため、getSource をスタブして回避する
     instance.getSource = jest.fn().mockReturnValue(undefined);
+    instance.getDevices = jest.fn().mockReturnValue([]);
     instance.init();
 
     const updateSpy = jest.spyOn(instance, 'UPDATE_AUDIO_SOURCE' as any);
