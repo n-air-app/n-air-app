@@ -3,6 +3,20 @@ import { Speech } from '../nicolive-comment-synthesizer';
 import { WebSpeechSynthesizer } from './WebSpeechSynthesizer';
 
 describe('WebSpeechSynthesizer', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'speechSynthesis', {
+      configurable: true,
+      get: () => undefined,
+    });
+    globalThis.SpeechSynthesisUtterance = class {
+      constructor(public text: string) {}
+    } as unknown as typeof SpeechSynthesisUtterance;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test('available', async () => {
     const synth = new WebSpeechSynthesizer();
 

@@ -1,3 +1,5 @@
+/** @jest-environment jsdom */
+
 /**
  * Unit tests for SceneCollectionsService
  * Focuses on Sentry error reporting for partial load failures

@@ -217,10 +217,10 @@ jobs:
     strategy:
       matrix:
         directory:
-          - 'e2e/[^s]*.js'
-          - 'e2e/s*.js'
-          - 'api/[^s]*.js'
-          - 'api/s*.js'
+          - "e2e/[^s]*.js"
+          - "e2e/s*.js"
+          - "api/[^s]*.js"
+          - "api/s*.js"
 
     steps:
       - name: Checkout code
@@ -251,7 +251,7 @@ jobs:
 
       - name: Run e2e tests
         if: ${{ needs.changes.outputs.app == 'true' }}
-        run: pnpm test --fail-fast test-dist/test/${{ matrix.directory }}
+        run: node bin/i18n-early-check.js && pnpm run compile-tests && node --test --test-force-exit --test-concurrency=1 test-dist/test/${{ matrix.directory }}
 
   build_check:
     name: build check
@@ -262,7 +262,7 @@ jobs:
       contents: read
       packages: read
     env:
-      MIN_INSTALLER_SIZE_MB: 300  # Minimum installer size in MB (adjust if needed)
+      MIN_INSTALLER_SIZE_MB: 300 # Minimum installer size in MB (adjust if needed)
 
     steps:
       - name: Checkout code
@@ -330,7 +330,15 @@ jobs:
 
   test-summary:
     # 注意: needs に setupも入れないと、setupで失敗すると後段のresultが `skipped` になってしまい、すりぬけてしまう
-    needs: [setup-app, setup-bin, unit_test-app, unit_test-bin, e2e_test, build_check]
+    needs:
+      [
+        setup-app,
+        setup-bin,
+        unit_test-app,
+        unit_test-bin,
+        e2e_test,
+        build_check,
+      ]
     if: always()
     permissions: {}
     steps:

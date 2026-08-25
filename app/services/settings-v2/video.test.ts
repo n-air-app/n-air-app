@@ -296,7 +296,7 @@ describe('VideoSettingsService.shutdown', () => {
     instance.DESTROY_VIDEO_CONTEXT = jest.fn((display: 'horizontal') => {
       mockState[display] = null;
     });
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -350,8 +350,8 @@ describe('VideoSettingsService.shutdown', () => {
         error: 'IPC received error code 1',
       }),
     );
-    expect(console.error).toHaveBeenCalledWith(
-      '[VideoSettingsService] shutdown(horizontal): destroyContext failed:',
+    expect(console.warn).toHaveBeenCalledWith(
+      '[VideoSettingsService] shutdown(horizontal): video context was already unavailable; destroyContext cleanup failure ignored:',
       error,
     );
   });
