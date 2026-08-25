@@ -23,8 +23,7 @@ jest.mock('services/windows', () => ({ WindowsService: class {} }));
 
 describe('ObsIpcHealthService', () => {
   let mockRelaunch: jest.Mock;
-  let mockGetWindow: jest.Mock;
-  let mockIsChildWindowShown: jest.Mock;
+  let mockGetDialogParent: jest.Mock;
 
   const setup = createSetupFunction({
     injectee: {},
@@ -35,15 +34,15 @@ describe('ObsIpcHealthService', () => {
     jest.clearAllMocks();
 
     mockRelaunch = jest.fn();
-    mockGetWindow = jest.fn().mockReturnValue(undefined);
-    mockIsChildWindowShown = jest.fn().mockReturnValue(false);
+    // 親ウィンドウ解決ロジック自体は util/dialog-parent.test.ts で検証するため、
+    // ここでは既定で main を返すだけの単純なモックにする。
+    mockGetDialogParent = jest.fn().mockReturnValue({ window: { id: 'main' }, kind: 'main' });
 
     setup({
       injectee: {
         AppService: { relaunch: mockRelaunch },
         WindowsService: {
-          getWindow: mockGetWindow,
-          isChildWindowShown: mockIsChildWindowShown,
+          getDialogParent: mockGetDialogParent,
         },
       },
     });
@@ -122,11 +121,10 @@ describe('ObsIpcHealthService', () => {
     expect(mockShowMessageBox).toHaveBeenCalledTimes(1);
   });
 
-  test('子ウィンドウが表示されている場合は child をモーダル親にする', () => {
+  test('windowsService.getDialogParent() が返した window をモーダル親にする', () => {
     mockShowMessageBox.mockResolvedValue({ response: 1 });
-    mockIsChildWindowShown.mockReturnValue(true);
     const childWindow = { id: 'child' };
-    mockGetWindow.mockImplementation((id: string) => (id === 'child' ? childWindow : undefined));
+    mockGetDialogParent.mockReturnValue({ window: childWindow, kind: 'child' });
     const { ObsIpcHealthService } = require('./obs-ipc-health');
     const instance = ObsIpcHealthService.instance();
 
@@ -135,29 +133,16 @@ describe('ObsIpcHealthService', () => {
     expect(mockShowMessageBox).toHaveBeenCalledWith(childWindow, expect.anything());
   });
 
-  test('子ウィンドウが非表示の場合は main をモーダル親にする', () => {
+  test('親ウィンドウが取得できない場合は親を渡さずダイアログを表示する', () => {
     mockShowMessageBox.mockResolvedValue({ response: 1 });
-    mockIsChildWindowShown.mockReturnValue(false);
-    const mainWindow = { id: 'main' };
-    mockGetWindow.mockImplementation((id: string) => (id === 'main' ? mainWindow : undefined));
+    mockGetDialogParent.mockReturnValue({ window: null, kind: 'none' });
     const { ObsIpcHealthService } = require('./obs-ipc-health');
     const instance = ObsIpcHealthService.instance();
 
     instance.notifyIpcLost('test');
 
-    expect(mockShowMessageBox).toHaveBeenCalledWith(mainWindow, expect.anything());
-  });
-
-  test('main も取得できない場合は getCurrentWindow をモーダル親にする', () => {
-    mockShowMessageBox.mockResolvedValue({ response: 1 });
-    mockIsChildWindowShown.mockReturnValue(false);
-    mockGetWindow.mockReturnValue(undefined);
-    const { ObsIpcHealthService } = require('./obs-ipc-health');
-    const instance = ObsIpcHealthService.instance();
-
-    instance.notifyIpcLost('test');
-
-    expect(mockShowMessageBox).toHaveBeenCalledWith({ id: 'current' }, expect.anything());
+    expect(mockShowMessageBox).toHaveBeenCalledWith(expect.anything());
+    expect(mockShowMessageBox.mock.calls[0]).toHaveLength(1);
   });
 
   test('Sentry へ diagnostic タグ付き・warning で1回だけ報告する', () => {

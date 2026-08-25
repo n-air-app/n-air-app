@@ -107,6 +107,7 @@ const createInjectee = ({
   },
   WindowsService: {
     showWindow,
+    getDialogParent: () => ({ window: { id: 'main-test-window' }, kind: 'main' }),
   },
   NicoliveCommentSynthesizerService: {},
   NicoliveProgramService: {
@@ -1222,4 +1223,216 @@ test('logStreamEndが冪等である（2回呼んでもrecordEventは1回のみ�
   instance.logStreamEnd();
 
   expect(recordEvent).toHaveBeenCalledTimes(1);
+});
+
+// handleOBSOutputSignal の info.code 処理 (OBS出力エラーダイアログ・Sentry診断情報) のテスト。
+// obs-api の EOutputCode はファイル先頭のモックに含まれていないため、ここで個別に追加する。
+const OUTPUT_CODE = {
+  BadPath: -1,
+  ConnectFailed: -2,
+  InvalidStream: -3,
+  Error: -4,
+  Disconnected: -5,
+  Unsupported: -6,
+  NoSpace: -7,
+  EncoderError: -8,
+  OutdatedDriver: -65,
+};
+
+function mockObsApiWithOutputCode() {
+  jest.mock('../../../obs-api', () => ({
+    NodeObs: {
+      OBS_service_startStreaming: noop,
+      OBS_service_stopStreaming: noop,
+      OBS_service_connectOutputSignals: noop,
+    },
+    EOutputCode: OUTPUT_CODE,
+  }));
+}
+
+test('handleOBSOutputSignal: outputErrorOpen中の2回目はダイアログを抑制し、Sentryタグにdialog.suppressed=trueが記録される', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const Sentry = require('@sentry/vue');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const messageSpy = jest.spyOn(SentryReport, 'message');
+  const breadcrumbSpy = jest.spyOn(Sentry, 'addBreadcrumb');
+  const instance = StreamingService.instance();
+
+  // showMessageBox は await されるまで解決しないため、連続呼び出しの間は
+  // outputErrorOpen が true のまま維持される。
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledTimes(1);
+  expect(messageSpy).toHaveBeenNthCalledWith(
+    2,
+    'StreamingService',
+    'handleOBSOutputSignal',
+    expect.stringContaining('ConnectFailed'),
+    expect.objectContaining({
+      tags: expect.objectContaining({ 'dialog.suppressed': 'true' }),
+    }),
+  );
+  expect(breadcrumbSpy).toHaveBeenCalledWith(
+    expect.objectContaining({ category: 'streaming.dialog', message: 'outputError.suppressed' }),
+  );
+});
+
+test('handleOBSOutputSignal: 通常時はgetDialogParent()が返したwindowでダイアログを表示し、dialog.suppressed=false / dialog.parentが記録される', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const messageSpy = jest.spyOn(SentryReport, 'message');
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    { id: 'main-test-window' },
+    expect.objectContaining({ title: 'streaming.streamingError', message: 'streaming.connectFailedError' }),
+  );
+  expect(messageSpy).toHaveBeenCalledWith(
+    'StreamingService',
+    'handleOBSOutputSignal',
+    expect.stringContaining('ConnectFailed'),
+    expect.objectContaining({
+      tags: expect.objectContaining({ 'dialog.suppressed': 'false', 'dialog.parent': 'main' }),
+    }),
+  );
+});
+
+test('handleOBSOutputSignal: getDialogParent()がwindow:nullを返す場合は親を渡さずダイアログを表示する', () => {
+  mockObsApiWithOutputCode();
+  // WindowsService.getDialogParent() が親を見つけられない (kind: 'none') ケース
+  setup({
+    injectee: {
+      WindowsService: { getDialogParent: () => ({ window: null, kind: 'none' }) },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    expect.objectContaining({ message: 'streaming.connectFailedError' }),
+  );
+  expect((currentRemote.dialog.showMessageBox as jest.Mock).mock.calls[0]).toHaveLength(1);
+});
+
+test('handleOBSOutputSignal: Error(-4)でinfo.errorが空のときはstreaming.errorを使う', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'recording', signal: 'stop', code: OUTPUT_CODE.Error, error: '' });
+
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    { id: 'main-test-window' },
+    expect.objectContaining({ message: 'streaming.error' }),
+  );
+});
+
+test('handleOBSOutputSignal: Error(-4)でinfo.errorがあるときはstreaming.errorWithDetailを使う', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({
+    type: 'recording',
+    signal: 'stop',
+    code: OUTPUT_CODE.Error,
+    error: 'The selected recording encoder is not compatible with the selected recording format.',
+  });
+
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    { id: 'main-test-window' },
+    expect.objectContaining({ message: 'streaming.errorWithDetail' }),
+  );
+});
+
+test('handleOBSOutputSignal: showMessageBoxが失敗した場合はSentryReport.errorをdiagnosticタグ付きで送り、outputErrorOpenを解除する', async () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const errorSpy = jest.spyOn(SentryReport, 'error');
+  (currentRemote.dialog.showMessageBox as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  expect(errorSpy).toHaveBeenCalledWith(
+    'StreamingService',
+    'handleOBSOutputSignal',
+    expect.any(Error),
+    expect.objectContaining({
+      tags: expect.objectContaining({ diagnostic: 'output-error-dialog-failed' }),
+    }),
+  );
+
+  // outputErrorOpen が解除されているので、次のエラーはまた表示される
+  (currentRemote.dialog.showMessageBox as jest.Mock).mockResolvedValueOnce({ response: 0 });
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledTimes(2);
+});
+
+test('handleOBSOutputSignal: fingerprintにoutputCode名とoutputTypeが含まれる', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const messageSpy = jest.spyOn(SentryReport, 'message');
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'recording', signal: 'stop', code: OUTPUT_CODE.EncoderError, error: 'boom' });
+
+  expect(messageSpy).toHaveBeenCalledWith(
+    'StreamingService',
+    'handleOBSOutputSignal',
+    expect.anything(),
+    expect.objectContaining({
+      fingerprint: ['StreamingService', 'outputCode', 'EncoderError', 'recording'],
+    }),
+  );
+});
+
+test('handleOBSOutputSignal: Disconnectedはノイズ抑制のためSentry報告されないが、ダイアログは表示される', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const messageSpy = jest.spyOn(SentryReport, 'message');
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.Disconnected, error: '' });
+
+  expect(messageSpy).not.toHaveBeenCalled();
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    { id: 'main-test-window' },
+    expect.objectContaining({ message: 'streaming.disconnectedError' }),
+  );
 });

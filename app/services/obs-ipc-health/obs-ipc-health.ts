@@ -56,16 +56,9 @@ export class ObsIpcHealthService extends Service {
     this.offerRestart().catch(() => {});
   }
 
-  private getDialogParent(): Electron.BrowserWindow {
-    if (this.windowsService.isChildWindowShown()) {
-      const child = this.windowsService.getWindow('child');
-      if (child) return child;
-    }
-    return this.windowsService.getWindow('main') ?? remote.getCurrentWindow();
-  }
-
   private async offerRestart(): Promise<void> {
-    const choice = await remote.dialog.showMessageBox(this.getDialogParent(), {
+    const { window: parent } = this.windowsService.getDialogParent();
+    const options: Electron.MessageBoxOptions = {
       type: 'error',
       buttons: [$t('common.yes'), $t('common.no')],
       title: $t('common.confirm'),
@@ -74,7 +67,10 @@ export class ObsIpcHealthService extends Service {
       noLink: true,
       cancelId: 1,
       defaultId: 0,
-    });
+    };
+    const choice = parent
+      ? await remote.dialog.showMessageBox(parent, options)
+      : await remote.dialog.showMessageBox(options);
     if (choice.response === 0) {
       this.appService.relaunch();
     }

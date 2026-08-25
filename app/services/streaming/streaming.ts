@@ -17,7 +17,6 @@ import { VideoSettingsService } from 'services/settings-v2/video';
 import { TranscriptionService } from 'services/transcription/transcription';
 import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
-import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { markObsOp, runObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
@@ -932,6 +931,12 @@ export class StreamingService
     }
 
     if (info.code) {
+      // ダイアログを実際に出せるかどうかを、Sentry報告より前に確定させる。
+      // これにより「エラーは記録されたがダイアログは出なかった」ケースを
+      // 同一イベントのタグから後で判別できるようにする。
+      const suppressed = this.outputErrorOpen;
+      const { window: dialogParent, kind: dialogParentKind } = this.windowsService.getDialogParent();
+
       if (
         info.signal !== EOBSOutputSignal.Reconnect &&
         info.signal !== EOBSOutputSignal.ReconnectSuccess &&
@@ -939,12 +944,27 @@ export class StreamingService
       ) {
         SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${outputCodeName}`, {
           level: 'warning',
-          fingerprint: ['StreamingService', 'outputCode'],
-          tags: { signal: String(info.signal), outputType: String(info.type), outputCode: outputCodeName },
+          // outputCode/outputTypeごとに issue を分離する(以前は1issueに集約していたが、
+          // 原因の異なるコードが混在してトリアージ不能になっていた)
+          fingerprint: ['StreamingService', 'outputCode', outputCodeName, String(info.type)],
+          tags: {
+            signal: String(info.signal),
+            outputType: String(info.type),
+            outputCode: outputCodeName,
+            'dialog.suppressed': String(suppressed),
+            'dialog.parent': dialogParentKind,
+            'dialog.hasErrorDetail': String(Boolean(info.error)),
+          },
           extra: { info, reconnectCount: this.reconnectCount },
         });
       }
-      if (this.outputErrorOpen) {
+      if (suppressed) {
+        Sentry.addBreadcrumb({
+          category: 'streaming.dialog',
+          message: 'outputError.suppressed',
+          level: 'warning',
+          data: { code: info.code, outputCode: outputCodeName, outputType: String(info.type) },
+        });
         console.warn('Not showing error message because existing window is open.', info);
         return;
       }
@@ -971,7 +991,9 @@ export class StreamingService
         // obs.EOutputCode.Error
         // -4 is used for generic unknown messages in OBS. Both -4 and any other code
         // we don't recognize should fall into this branch and show a generic error.
-        errorText = $t('streaming.error') + info.error;
+        errorText = info.error
+          ? $t('streaming.errorWithDetail', { detail: info.error })
+          : $t('streaming.error');
       }
 
       const title = {
@@ -981,13 +1003,35 @@ export class StreamingService
       }[info.type];
 
       this.outputErrorOpen = true;
+      const dialogOptions = {
+        buttons: ['OK'],
+        title,
+        type: 'error' as const,
+        message: errorText,
+      };
+      const shownAt = Date.now();
+      Sentry.addBreadcrumb({
+        category: 'streaming.dialog',
+        message: 'outputError.show',
+        data: { code: info.code, outputCode: outputCodeName, outputType: String(info.type), parent: dialogParentKind },
+      });
       (async () => {
         try {
-          await remote.dialog.showMessageBox(Utils.getMainWindow(), {
-            buttons: ['OK'],
-            title,
-            type: 'error',
-            message: errorText,
+          await (dialogParent
+            ? remote.dialog.showMessageBox(dialogParent, dialogOptions)
+            : remote.dialog.showMessageBox(dialogOptions));
+          Sentry.addBreadcrumb({
+            category: 'streaming.dialog',
+            message: 'outputError.dismissed',
+            data: { outputCode: outputCodeName, durationMs: Date.now() - shownAt },
+          });
+        } catch (e) {
+          SentryReport.error('StreamingService', 'handleOBSOutputSignal', e, {
+            level: 'warning',
+            // beforeSend の NOISE 判定より前に通すため diagnostic タグ必須 (app.ts 参照)
+            tags: { diagnostic: 'output-error-dialog-failed', outputCode: outputCodeName, 'dialog.parent': dialogParentKind },
+            fingerprint: ['StreamingService', 'outputErrorDialog', 'failed'],
+            extra: { info },
           });
         } finally {
           this.outputErrorOpen = false;

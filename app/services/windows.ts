@@ -33,6 +33,7 @@ import { Subject } from 'rxjs';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { getPartitionConfig } from 'services/dev-hosts';
 import Util, { uuidv4 } from 'services/utils';
+import { resolveDialogParent } from 'util/dialog-parent';
 import { SentryReport } from 'util/sentry-report';
 import { type Component } from 'vue';
 
@@ -386,6 +387,15 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   getWindow(windowId: string) {
     return this.windows[windowId];
+  }
+
+  /** エラーダイアログ等をモーダル表示する際の親ウィンドウを解決する。ロジック本体は util/dialog-parent 参照 */
+  getDialogParent() {
+    return resolveDialogParent({
+      isChildWindowShown: () => this.isChildWindowShown(),
+      getWindow: (windowId) => this.getWindow(windowId),
+      getCurrentWindow: () => remote.getCurrentWindow(),
+    });
   }
 
   updateChildWindowOptions(optionsPatch: Partial<IWindowOptions>) {
