@@ -1187,7 +1187,7 @@ test('optimizeForNiconicoAndStartStreaming: diffOptimizedSettingsが例外を投
     'optimizeForNiconicoAndStartStreaming',
     expect.any(Error),
     expect.objectContaining({
-      fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'exception'],
+      fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
     }),
   );
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
@@ -1229,7 +1229,7 @@ test('optimizeForNiconicoAndStartStreaming: optimizeForNiconico(即時適用)が
     'optimizeForNiconicoAndStartStreaming',
     expect.any(Error),
     expect.objectContaining({
-      fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'exception'],
+      fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
     }),
   );
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
