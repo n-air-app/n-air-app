@@ -1250,7 +1250,7 @@ function mockObsApiWithOutputCode() {
   }));
 }
 
-test('handleOBSOutputSignal: outputErrorOpen中の2回目はダイアログを抑制し、Sentryタグにdialog.suppressed=trueが記録される', () => {
+test('handleOBSOutputSignal: 表示中に2つ目のエラーが来ても捨てずにキューして両方表示し、2つ目にdialog.queued=trueが記録される', async () => {
   mockObsApiWithOutputCode();
   setup({ injectee: createInjectee() });
 
@@ -1262,27 +1262,33 @@ test('handleOBSOutputSignal: outputErrorOpen中の2回目はダイアログを�
   const breadcrumbSpy = jest.spyOn(Sentry, 'addBreadcrumb');
   const instance = StreamingService.instance();
 
-  // showMessageBox は await されるまで解決しないため、連続呼び出しの間は
-  // outputErrorOpen が true のまま維持される。
-  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
-  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  // 録画とリプレイバッファが同時に失敗するようなケースを想定: 1つ目のダイアログが
+  // await で解決するまでの間は outputErrorPending が残ったまま2つ目が来る。
+  instance.handleOBSOutputSignal({ type: 'recording', signal: 'stop', code: OUTPUT_CODE.Error, error: 'recording failed' });
+  instance.handleOBSOutputSignal({ type: 'replay-buffer', signal: 'stop', code: OUTPUT_CODE.Error, error: 'replay-buffer failed' });
 
-  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledTimes(1);
+  // チェーンされた2つのダイアログが両方解決するまでマイクロタスクを十分にフラッシュする
+  await new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+
+  // 捨てずに両方表示される
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledTimes(2);
   expect(messageSpy).toHaveBeenNthCalledWith(
     2,
     'StreamingService',
     'handleOBSOutputSignal',
-    expect.stringContaining('ConnectFailed'),
+    expect.anything(),
     expect.objectContaining({
-      tags: expect.objectContaining({ 'dialog.suppressed': 'true' }),
+      tags: expect.objectContaining({ 'dialog.queued': 'true' }),
     }),
   );
   expect(breadcrumbSpy).toHaveBeenCalledWith(
-    expect.objectContaining({ category: 'streaming.dialog', message: 'outputError.suppressed' }),
+    expect.objectContaining({ category: 'streaming.dialog', message: 'outputError.queued' }),
   );
 });
 
-test('handleOBSOutputSignal: 通常時はgetDialogParent()が返したwindowでダイアログを表示し、dialog.suppressed=false / dialog.parentが記録される', () => {
+test('handleOBSOutputSignal: 通常時はgetDialogParent()が返したwindowでダイアログを表示し、dialog.queued=false / dialog.parentが記録される', async () => {
   mockObsApiWithOutputCode();
   setup({ injectee: createInjectee() });
 
@@ -1293,6 +1299,7 @@ test('handleOBSOutputSignal: 通常時はgetDialogParent()が返したwindowで�
   const instance = StreamingService.instance();
 
   instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  await Promise.resolve();
 
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
     { id: 'main-test-window' },
@@ -1303,12 +1310,29 @@ test('handleOBSOutputSignal: 通常時はgetDialogParent()が返したwindowで�
     'handleOBSOutputSignal',
     expect.stringContaining('ConnectFailed'),
     expect.objectContaining({
-      tags: expect.objectContaining({ 'dialog.suppressed': 'false', 'dialog.parent': 'main' }),
+      tags: expect.objectContaining({ 'dialog.queued': 'false', 'dialog.parent': 'main' }),
     }),
   );
 });
 
-test('handleOBSOutputSignal: getDialogParent()がwindow:nullを返す場合は親を渡さずダイアログを表示する', () => {
+test('handleOBSOutputSignal: Reconnect/ReconnectSuccessシグナルはダイアログもSentry報告も出さない', () => {
+  mockObsApiWithOutputCode();
+  setup({ injectee: createInjectee() });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const messageSpy = jest.spyOn(SentryReport, 'message');
+  const instance = StreamingService.instance();
+
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'reconnect', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  instance.handleOBSOutputSignal({ type: 'streaming', signal: 'reconnect_success', code: OUTPUT_CODE.ConnectFailed, error: '' });
+
+  expect(messageSpy).not.toHaveBeenCalled();
+  expect(currentRemote.dialog.showMessageBox).not.toHaveBeenCalled();
+});
+
+test('handleOBSOutputSignal: getDialogParent()がwindow:nullを返す場合は親を渡さずダイアログを表示する', async () => {
   mockObsApiWithOutputCode();
   // WindowsService.getDialogParent() が親を見つけられない (kind: 'none') ケース
   setup({
@@ -1322,6 +1346,7 @@ test('handleOBSOutputSignal: getDialogParent()がwindow:nullを返す場合は�
   const instance = StreamingService.instance();
 
   instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  await Promise.resolve();
 
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
     expect.objectContaining({ message: 'streaming.connectFailedError' }),
@@ -1329,7 +1354,7 @@ test('handleOBSOutputSignal: getDialogParent()がwindow:nullを返す場合は�
   expect((currentRemote.dialog.showMessageBox as jest.Mock).mock.calls[0]).toHaveLength(1);
 });
 
-test('handleOBSOutputSignal: Error(-4)でinfo.errorが空のときはstreaming.errorを使う', () => {
+test('handleOBSOutputSignal: Error(-4)でinfo.errorが空のときはstreaming.errorを使う', async () => {
   mockObsApiWithOutputCode();
   setup({ injectee: createInjectee() });
 
@@ -1338,6 +1363,7 @@ test('handleOBSOutputSignal: Error(-4)でinfo.errorが空のときはstreaming.e
   const instance = StreamingService.instance();
 
   instance.handleOBSOutputSignal({ type: 'recording', signal: 'stop', code: OUTPUT_CODE.Error, error: '' });
+  await Promise.resolve();
 
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
     { id: 'main-test-window' },
@@ -1345,7 +1371,7 @@ test('handleOBSOutputSignal: Error(-4)でinfo.errorが空のときはstreaming.e
   );
 });
 
-test('handleOBSOutputSignal: Error(-4)でinfo.errorがあるときはstreaming.errorWithDetailを使う', () => {
+test('handleOBSOutputSignal: Error(-4)でinfo.errorがあるときはstreaming.errorWithDetailを使う', async () => {
   mockObsApiWithOutputCode();
   setup({ injectee: createInjectee() });
 
@@ -1359,6 +1385,7 @@ test('handleOBSOutputSignal: Error(-4)でinfo.errorがあるときはstreaming.e
     code: OUTPUT_CODE.Error,
     error: 'The selected recording encoder is not compatible with the selected recording format.',
   });
+  await Promise.resolve();
 
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
     { id: 'main-test-window' },
@@ -1366,7 +1393,7 @@ test('handleOBSOutputSignal: Error(-4)でinfo.errorがあるときはstreaming.e
   );
 });
 
-test('handleOBSOutputSignal: showMessageBoxが失敗した場合はSentryReport.errorをdiagnosticタグ付きで送り、outputErrorOpenを解除する', async () => {
+test('handleOBSOutputSignal: showMessageBoxが失敗した場合はSentryReport.errorをdiagnosticタグ付きで送り、キューを解放する', async () => {
   mockObsApiWithOutputCode();
   setup({ injectee: createInjectee() });
 
@@ -1391,9 +1418,10 @@ test('handleOBSOutputSignal: showMessageBoxが失敗した場合はSentryReport.
     }),
   );
 
-  // outputErrorOpen が解除されているので、次のエラーはまた表示される
+  // outputErrorPending が解除されているので、次のエラーは待たされずに表示される
   (currentRemote.dialog.showMessageBox as jest.Mock).mockResolvedValueOnce({ response: 0 });
   instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.ConnectFailed, error: '' });
+  await Promise.resolve();
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledTimes(2);
 });
 
@@ -1418,7 +1446,7 @@ test('handleOBSOutputSignal: fingerprintにoutputCode名とoutputTypeが含ま�
   );
 });
 
-test('handleOBSOutputSignal: Disconnectedはノイズ抑制のためSentry報告されないが、ダイアログは表示される', () => {
+test('handleOBSOutputSignal: Disconnectedはノイズ抑制のためSentry報告されないが、ダイアログは表示される', async () => {
   mockObsApiWithOutputCode();
   setup({ injectee: createInjectee() });
 
@@ -1429,6 +1457,7 @@ test('handleOBSOutputSignal: Disconnectedはノイズ抑制のためSentry報告
   const instance = StreamingService.instance();
 
   instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: OUTPUT_CODE.Disconnected, error: '' });
+  await Promise.resolve();
 
   expect(messageSpy).not.toHaveBeenCalled();
   expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(

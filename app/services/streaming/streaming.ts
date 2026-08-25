@@ -806,7 +806,12 @@ export class StreamingService
     return this.usageStatisticsService.recordEvent(event);
   }
 
-  private outputErrorOpen = false;
+  // 出力エラーダイアログの表示待ち件数。0より大きい間に新たなエラーが来た場合、
+  // 従来はダイアログを出さずに捨てていたが、それだと配信開始時に録画/リプレイ
+  // バッファが同時に失敗した場合など、後発のエラーがユーザーに一切見えなかった。
+  // 捨てずにチェーンして順番に表示することで、発生したエラーは必ず出す。
+  private outputErrorPending = 0;
+  private outputErrorChain: Promise<void> = Promise.resolve();
 
   private reconnectStartedAt: number | null = null;
   private reconnectCount = 0;
@@ -931,17 +936,16 @@ export class StreamingService
     }
 
     if (info.code) {
-      // ダイアログを実際に出せるかどうかを、Sentry報告より前に確定させる。
-      // これにより「エラーは記録されたがダイアログは出なかった」ケースを
-      // 同一イベントのタグから後で判別できるようにする。
-      const suppressed = this.outputErrorOpen;
+      // Reconnect/ReconnectSuccess は再接続試行中の一時的な状態であり、最終的に
+      // 諦めた場合は改めて signal: stop で確定コードが来る。ここでダイアログを
+      // 出すと再接続の度に表示されうるため、Sentry報告・ダイアログとも対象外にする。
+      const isTransientReconnectSignal =
+        info.signal === EOBSOutputSignal.Reconnect || info.signal === EOBSOutputSignal.ReconnectSuccess;
+      // 別のエラーダイアログの表示待ちがあるかどうかを、Sentry報告より前に確定させる。
+      const queued = !isTransientReconnectSignal && this.outputErrorPending > 0;
       const { window: dialogParent, kind: dialogParentKind } = this.windowsService.getDialogParent();
 
-      if (
-        info.signal !== EOBSOutputSignal.Reconnect &&
-        info.signal !== EOBSOutputSignal.ReconnectSuccess &&
-        info.code !== obs.EOutputCode.Disconnected
-      ) {
+      if (!isTransientReconnectSignal && info.code !== obs.EOutputCode.Disconnected) {
         SentryReport.message('StreamingService', 'handleOBSOutputSignal', `OBS output error code: ${outputCodeName}`, {
           level: 'warning',
           // outputCode/outputTypeごとに issue を分離する(以前は1issueに集約していたが、
@@ -951,21 +955,14 @@ export class StreamingService
             signal: String(info.signal),
             outputType: String(info.type),
             outputCode: outputCodeName,
-            'dialog.suppressed': String(suppressed),
+            'dialog.queued': String(queued),
             'dialog.parent': dialogParentKind,
             'dialog.hasErrorDetail': String(Boolean(info.error)),
           },
           extra: { info, reconnectCount: this.reconnectCount },
         });
       }
-      if (suppressed) {
-        Sentry.addBreadcrumb({
-          category: 'streaming.dialog',
-          message: 'outputError.suppressed',
-          level: 'warning',
-          data: { code: info.code, outputCode: outputCodeName, outputType: String(info.type) },
-        });
-        console.warn('Not showing error message because existing window is open.', info);
+      if (isTransientReconnectSignal) {
         return;
       }
 
@@ -1002,20 +999,23 @@ export class StreamingService
         [EOBSOutputType.ReplayBuffer]: $t('streaming.replayBufferError'),
       }[info.type];
 
-      this.outputErrorOpen = true;
       const dialogOptions = {
         buttons: ['OK'],
         title,
         type: 'error' as const,
         message: errorText,
       };
-      const shownAt = Date.now();
+      this.outputErrorPending++;
       Sentry.addBreadcrumb({
         category: 'streaming.dialog',
-        message: 'outputError.show',
+        message: queued ? 'outputError.queued' : 'outputError.show',
+        level: queued ? 'warning' : 'info',
         data: { code: info.code, outputCode: outputCodeName, outputType: String(info.type), parent: dialogParentKind },
       });
-      (async () => {
+      // 表示中のダイアログがあっても捨てずにチェーンし、閉じられたら順番に表示する。
+      // このthenは内部で例外を握り込むため常に成功し、チェーンは途切れない。
+      this.outputErrorChain = this.outputErrorChain.then(async () => {
+        const shownAt = Date.now();
         try {
           await (dialogParent
             ? remote.dialog.showMessageBox(dialogParent, dialogOptions)
@@ -1034,9 +1034,9 @@ export class StreamingService
             extra: { info },
           });
         } finally {
-          this.outputErrorOpen = false;
+          this.outputErrorPending--;
         }
-      })();
+      });
     }
   }
 
