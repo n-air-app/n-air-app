@@ -4,8 +4,10 @@ const visibleCursorSelector = '.tree-view-cursor[style*="visible"]';
 const insideCursorSelector = '.tree-view-cursor-inside';
 
 export function clearTreeCursor(root: HTMLElement) {
-  root.querySelector<HTMLElement>(visibleCursorSelector)?.style.removeProperty('visibility');
-  root.querySelector<HTMLElement>(insideCursorSelector)?.classList.remove('tree-view-cursor-inside');
+  root.querySelectorAll<HTMLElement>(visibleCursorSelector)
+    .forEach((cursor) => cursor.style.removeProperty('visibility'));
+  root.querySelectorAll<HTMLElement>(insideCursorSelector)
+    .forEach((item) => item.classList.remove('tree-view-cursor-inside'));
 }
 
 export function updateTreeCursor<TData>(root: HTMLElement, position: ITreeCursorPosition<TData>) {

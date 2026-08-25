@@ -86,4 +86,17 @@ describe('TreeViewのドラッグカーソル', () => {
     clearTreeCursor(root);
     expect(root.querySelector('.tree-view-cursor[style*="visible"]')).toBeNull();
   });
+
+  it('複数残ったカーソル表示をすべて消す', () => {
+    const root = createTreeRoot();
+    root.querySelectorAll<HTMLElement>('.tree-view-cursor')
+      .forEach((cursor) => { cursor.style.visibility = 'visible'; });
+    root.querySelectorAll<HTMLElement>('[data-tree-path]')
+      .forEach((item) => item.classList.add('tree-view-cursor-inside'));
+
+    clearTreeCursor(root);
+
+    expect(root.querySelectorAll('.tree-view-cursor[style*="visible"]')).toHaveLength(0);
+    expect(root.querySelectorAll('.tree-view-cursor-inside')).toHaveLength(0);
+  });
 });
