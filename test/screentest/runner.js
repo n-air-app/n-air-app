@@ -41,7 +41,7 @@ const returnCode = (function main() {
 
     log('creating screenshots');
     try {
-      execSync('pnpm ava test-dist/test/screentest/tests');
+      execSync('node --test --test-concurrency=1 test-dist/test/screentest/tests/*.js');
     } catch (e) {
       err('creating screenshots failed');
       return 1;

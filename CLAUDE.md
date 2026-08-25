@@ -45,13 +45,13 @@ pnpm run package:local:install   # compile:production + package:local + install:
 **Testing:**
 
 ```bash
-pnpm test           # Full test suite (i18n check + TypeScript compile + AVA)
+pnpm test           # Full test suite (i18n check + TypeScript compile + node:test)
 pnpm run test:unit  # Unit tests (Jest for app + bin)
 pnpm run test:unit:app  # Jest tests for app only
 pnpm screentest     # Visual regression tests
 ```
 
-> **Note:** `pnpm test` runs the full suite (i18n + tsc + AVA) and is slow. For day-to-day development, prefer `pnpm run test:unit:app`. For TypeScript type checking (including `.vue` files), run `pnpm run typecheck` separately.
+> **Note:** `pnpm test` runs the full suite (i18n + tsc + node:test) and is slow. For day-to-day development, prefer `pnpm run test:unit:app`. For TypeScript type checking (including `.vue` files), run `pnpm run typecheck` separately.
 
 **Code Quality:**
 
