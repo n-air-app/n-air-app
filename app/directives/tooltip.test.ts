@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import directive from './tooltip';
 
 describe('v-tooltip directive', () => {

@@ -1,14 +1,22 @@
 /**
- * This file provides patches for AVA that allow to track failed tests to re-run them
- * Also it skips the tests that should be run on an different CI agent in a parallel execution mode
+ * This file provides patches for node:test that allow to track failed tests to re-run them
+ * Also it skips the tests that should be run on a different CI agent in a parallel execution mode
  */
 
-import avaTest, { TestFn } from 'ava';
+import assert from 'node:assert/strict';
+import {
+  after,
+  afterEach,
+  before,
+  beforeEach,
+  test as nodeTest,
+} from 'node:test';
+
 import { tasklist } from 'tasklist';
 
 import { sleep } from '../../../app/util/sleep';
 
-import { ITestContext } from './index';
+import type { ITestContext } from './index';
 
 const fs = require('fs');
 const kill = require('tree-kill');
@@ -16,6 +24,65 @@ const kill = require('tree-kill');
 export interface ITestStats {
   duration: number;
   syncIPCCalls: number;
+}
+
+export interface ITestExecutionContext {
+  context: ITestContext;
+  failed: boolean;
+  title: string;
+  deepEqual(actual: unknown, expected: unknown, message?: string): void;
+  fail(message?: string): never;
+  false(value: unknown, message?: string): void;
+  is(actual: unknown, expected: unknown, message?: string): void;
+  pass(): void;
+  true(value: unknown, message?: string): void;
+  truthy(value: unknown, message?: string): void;
+}
+
+type TestImplementation = (t: ITestExecutionContext) => void | Promise<void>;
+type HookImplementation = (t: ITestExecutionContext) => void | Promise<void>;
+
+interface ITestFn {
+  (title: string, implementation: TestImplementation): void;
+  after: ((implementation: HookImplementation) => void) & {
+    always(implementation: HookImplementation): void;
+  };
+  afterEach: ((implementation: HookImplementation) => void) & {
+    always(implementation: HookImplementation): void;
+  };
+  before(implementation: HookImplementation): void;
+  beforeEach(implementation: HookImplementation): void;
+  skip(title: string, implementation?: TestImplementation): void;
+  todo(title: string): void;
+}
+
+let currentContext: ITestExecutionContext;
+
+function createExecutionContext(title: string): ITestExecutionContext {
+  return {
+    context: {} as ITestContext,
+    failed: false,
+    title,
+    deepEqual: (actual, expected, message) => assert.deepStrictEqual(actual, expected, message),
+    fail: (message) => assert.fail(message),
+    false: (value, message) => assert.ok(!value, message),
+    is: (actual, expected, message) => assert.strictEqual(actual, expected, message),
+    pass: () => undefined,
+    true: (value, message) => assert.ok(value, message),
+    truthy: (value, message) => assert.ok(value, message),
+  };
+}
+
+function wrapHook(
+  hook: typeof beforeEach | typeof afterEach | typeof before | typeof after,
+  createContext = false,
+) {
+  return (implementation: HookImplementation) => {
+    hook(async (context) => {
+      if (createContext || !currentContext) currentContext = createExecutionContext(context.name);
+      await implementation(currentContext);
+    });
+  };
 }
 
 const {
@@ -55,27 +122,37 @@ const testTimings: Record<string, number> = (() => {
 })();
 
 /**
- * overridden version of the ava.test() function
+ * Overridden version of node:test that applies CI sharding and the existing
+ * assertion/context API used by the end-to-end tests.
  */
-// @ts-ignore typescript upgrade
-export const testFn: TestFn<ITestContext> = new Proxy(avaTest, {
-  apply: (target, thisArg, args) => {
-    const testName = args[0];
-    if (!isTestEligibleToRun(testName)) {
-      // skip tests that don't belong current slice
-      avaTest.skip(`SKIP: ${testName}`, (t) => {});
-      return;
+export const testFn = ((testName: string, implementation: TestImplementation) => {
+  if (!isTestEligibleToRun(testName)) {
+    // skip tests that don't belong current slice
+    nodeTest.skip(`SKIP: ${testName}`);
+    return;
+  }
+  pendingTests.push(testName);
+  saveFailedTestsToFile([testName]);
+  nodeTest(testName, { timeout: 180000 }, async (context) => {
+    const executionContext = currentContext ?? createExecutionContext(context.name);
+    currentContext = executionContext;
+    try {
+      await implementation(executionContext);
+    } catch (error) {
+      executionContext.failed = true;
+      throw error;
     }
-    pendingTests.push(testName);
-    return (target as (...args: unknown[]) => unknown).apply(thisArg, args);
-  },
-});
+  });
+}) as ITestFn;
 
-avaTest.before(async (t) => {
-  // consider all tests as failed until it's not successfully finished
-  // so we can catch failures for tests with timeouts
-  saveFailedTestsToFile(pendingTests);
-});
+testFn.before = wrapHook(before);
+testFn.beforeEach = wrapHook(beforeEach, true);
+testFn.after = wrapHook(after) as typeof testFn.after;
+testFn.after.always = testFn.after;
+testFn.afterEach = wrapHook(afterEach) as typeof testFn.afterEach;
+testFn.afterEach.always = testFn.afterEach;
+testFn.skip = (title) => nodeTest.skip(title);
+testFn.todo = (title) => nodeTest.todo(title);
 
 export function saveFailedTestsToFile(failedTests: string[]) {
   if (fs.existsSync(FAILED_TESTS_PATH)) {
