@@ -19,8 +19,15 @@ import { TUsageEvent, UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils from 'services/utils';
 import { WindowsService } from 'services/windows';
-import { markObsOp, runObsOp } from 'util/sentry-obs-breadcrumb';
+import { getLastObsOp, markObsOp, runObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
+import {
+  clearStreamStartFailure,
+  getStreamStartFailure,
+  IStreamSettingsSnapshot,
+  recordStreamStartFailure,
+  summarizeChangedKeys,
+} from 'util/stream-start-diagnostics';
 
 import * as obs from '../../../obs-api';
 import { RtvcStateService } from '../../services/rtvcStateService';
@@ -106,6 +113,14 @@ export class StreamingService
   streamingStateChange = new Subject<void>();
 
   powerSaveId: number;
+
+  // OBS_service_startStreaming() は戻り値を持たず(obs-api.d.ts参照)、成否は
+  // OBS_service_connectOutputSignals のシグナルのみで通知される。何らかの理由で
+  // シグナルが一度も来ないまま配信開始前の状態に戻ってしまうケースがあり、その場合
+  // ダイアログも Sentry 報告も一切発生しない「完全な沈黙」になる。この無反応状態を
+  // 検知するためのウォッチドッグタイマー。
+  private static readonly START_WATCHDOG_MS = 15_000;
+  private startWatchdogTimer: ReturnType<typeof setTimeout> | null = null;
 
   static initialState: IStreamingServiceState = {
     programFetching: false,
@@ -405,6 +420,9 @@ export class StreamingService
           // 呼び出し元でユーザーへ通知できるようにする。
           rethrow: true,
         });
+        // 同期例外が出なかった場合でも、その後 OBS からのシグナルが
+        // 一度も来ないまま終わる異常系がある。それを検知するために武装する。
+        this.armStartWatchdog();
       } catch (e) {
         if (this.powerSaveId) {
           remote.powerSaveBlocker.stop(this.powerSaveId);
@@ -429,6 +447,9 @@ export class StreamingService
       const confirmText = $t('streaming.stopStreamingConfirm');
 
       if (shouldConfirm && !confirm(confirmText)) return;
+
+      // この分岐に来る時点で何らかのシグナルは既に来ているはずだが、念のため解除する
+      this.clearStartWatchdog();
 
       markObsOp('StreamingService', 'stopStreaming', { action: 'stop' });
       if (this.powerSaveId) {
@@ -812,6 +833,147 @@ export class StreamingService
   private reconnectStartedAt: number | null = null;
   private reconnectCount = 0;
 
+  private armStartWatchdog(): void {
+    this.clearStartWatchdog();
+    this.startWatchdogTimer = setTimeout(() => {
+      this.startWatchdogTimer = null;
+      this.handleStartWatchdogTimeout();
+    }, StreamingService.START_WATCHDOG_MS);
+  }
+
+  private clearStartWatchdog(): void {
+    if (this.startWatchdogTimer !== null) {
+      clearTimeout(this.startWatchdogTimer);
+      this.startWatchdogTimer = null;
+    }
+  }
+
+  /**
+   * OBS_service_startStreaming() を呼んだにもかかわらず、一定時間シグナルが
+   * 一度も来なかった場合の処理。配信ボタンが「番組取得中」から無反応に
+   * 配信開始前へ戻るだけでダイアログも報告も出ない、という完全な沈黙を解消する。
+   */
+  private handleStartWatchdogTimeout(): void {
+    if (this.powerSaveId) {
+      remote.powerSaveBlocker.stop(this.powerSaveId);
+      this.powerSaveId = 0;
+    }
+
+    const snapshot = this.captureStreamSettingsSnapshot();
+    recordStreamStartFailure(snapshot);
+    const failure = getStreamStartFailure();
+    const attempts = failure?.attempts ?? 1;
+
+    Sentry.addBreadcrumb({
+      category: 'streaming',
+      message: 'startWatchdog.timeout',
+      level: 'warning',
+      data: { attempts },
+    });
+    SentryReport.message(
+      'StreamingService',
+      'handleStartWatchdogTimeout',
+      'Stream start produced no OBS output signal',
+      {
+        level: 'warning',
+        fingerprint: ['StreamingService', 'startWatchdog', 'noSignal'],
+        tags: {
+          diagnostic: 'stream-start-no-signal',
+          attempts: String(attempts),
+        },
+        extra: { settings: snapshot, attempts, obsLastOp: getLastObsOp() },
+      },
+    );
+
+    void remote.dialog
+      .showMessageBox(remote.getCurrentWindow(), {
+        buttons: [$t('streaming.startNoResponseError.openSettings'), $t('common.close')],
+        cancelId: 1,
+        title: $t('streaming.startNoResponseError.title'),
+        type: 'error',
+        message: $t('streaming.startNoResponseError.message'),
+      })
+      .then(({ response }) => {
+        if (response === 0) {
+          this.settingsService.showSettings('Output');
+        }
+      });
+  }
+
+  /**
+   * 直前に無反応失敗の記録が残っている状態で配信が実際に成功したときに、
+   * 失敗時点との設定差分を Sentry へ送る。「何を変更したら配信できるようになったか」を
+   * ユーザーを跨いで回収するための仕組み。
+   */
+  private reportStreamStartRecoveryIfNeeded(): void {
+    const failure = getStreamStartFailure();
+    if (!failure) return;
+
+    const current = this.captureStreamSettingsSnapshot();
+    const changedKeys = summarizeChangedKeys(failure.settings, current);
+
+    SentryReport.message(
+      'StreamingService',
+      'handleOBSOutputSignal',
+      'Stream start recovered after no-signal failure',
+      {
+        level: 'info',
+        fingerprint: ['StreamingService', 'startWatchdog', 'recovered'],
+        tags: {
+          diagnostic: 'stream-start-recovered',
+          changedKeys,
+          attempts: String(failure.attempts),
+        },
+        extra: {
+          before: failure.settings,
+          after: current,
+          elapsedMsSinceFirstFailure: Date.now() - failure.firstAt,
+        },
+      },
+    );
+
+    clearStreamStartFailure();
+  }
+
+  /**
+   * 配信開始に関わる設定のスナップショットを取る。無反応失敗の前後で差分を取るための
+   * ベースラインで、取得自体に失敗した場合(OBS の IPC が死んでいる可能性がある)は
+   * null を返す。
+   */
+  private captureStreamSettingsSnapshot(): IStreamSettingsSnapshot | null {
+    try {
+      const settings = this.settingsService.getStreamEncoderSettings();
+      return {
+        platform: extractPlatform(settings.streamingURL),
+        outputMode: settings.outputMode,
+        video: {
+          baseResolution: settings.baseResolution,
+          outputResolution: settings.outputResolution,
+          bitrate: settings.bitrate,
+          fps: settings.fps,
+        },
+        audio: {
+          bitrate: settings.audio.bitrate,
+          sampleRate: settings.audio.sampleRate,
+        },
+        encoder: {
+          type: settings.encoder,
+          preset: settings.preset,
+        },
+        autoOptimize: {
+          enabled: this.customizationService.optimizeForNiconico,
+          useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
+        },
+      };
+    } catch (e) {
+      SentryReport.error('StreamingService', 'captureStreamSettingsSnapshot', e, {
+        level: 'warning',
+        fingerprint: ['StreamingService', 'captureStreamSettingsSnapshot', 'exception'],
+      });
+      return null;
+    }
+  }
+
   private handleOBSOutputSignal(info: IOBSOutputSignalInfo) {
     console.debug('OBS Output signal: ', info);
 
@@ -820,6 +982,10 @@ export class StreamingService
 
     if (info.type === EOBSOutputType.Streaming) {
       const time = new Date().toISOString();
+
+      // シグナルが来た＝フィードバック経路自体は生きている。以降のエラー処理は
+      // 既存の仕組み(このメソッド末尾の info.code 処理)に任せてよいので解除する。
+      this.clearStartWatchdog();
 
       if (info.signal === EOBSOutputSignal.Start) {
         this.reconnectCount = 0;
@@ -831,6 +997,8 @@ export class StreamingService
         });
         this.SET_STREAMING_STATUS(EStreamingState.Live, time);
         this.streamingStatusChange.next(EStreamingState.Live);
+
+        this.reportStreamStartRecoveryIfNeeded();
 
         const recordWhenStreaming = this.settingsService.state.General.RecordWhenStreaming;
         if (recordWhenStreaming && this.state.recordingStatus === ERecordingState.Offline) {

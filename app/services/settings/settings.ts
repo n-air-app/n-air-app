@@ -27,6 +27,7 @@ import { IpcRequestError } from 'util/ipc-request-error';
 import { isObsBackendIpcLost } from 'util/obs-ipc-error';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
+import { noteSettingsChangeWhileFailing } from 'util/stream-start-diagnostics';
 import { toRaw } from 'vue';
 
 import * as obs from '../../../obs-api';
@@ -823,6 +824,9 @@ export class SettingsService
     if (categoryName === 'Output' || categoryName === 'Video' || categoryName === 'Stream') {
       markObsOp('SettingsService', 'setSettings', { category: categoryName });
     }
+    // 配信開始が無反応で失敗した直後は、ユーザーがどの設定カテゴリを触ったのかを
+    // breadcrumb に残す。失敗記録が無いときは何もしない(通常時のコストはほぼ無い)。
+    noteSettingsChangeWhileFailing(categoryName);
     if (categoryName === 'Audio') this.setAudioSettings([settingsData.pop()!]);
     if (categoryName === 'Developer') return this.setDeveloperSettings(settingsData);
 
