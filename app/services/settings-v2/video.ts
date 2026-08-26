@@ -5,7 +5,7 @@ import { SettingsService } from 'services/settings';
 import { getKeys } from 'util/getKeys';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 
-import { EColorSpace, EFPSType, ERangeType, EScaleType, EVideoFormat, IVideo, IVideoInfo, Video, VideoFactory } from '../../../obs-api';
+import { EFPSType, EScaleType, IVideo, IVideoInfo, Video, VideoFactory } from '../../../obs-api';
 import { mutation, StatefulService } from '../core/stateful-service';
 
 /**
@@ -46,18 +46,6 @@ export enum ESettingsVideoProperties {
 }
 export function invalidFps(num: number, den: number) {
   return num / den > 1000 || num / den < 1;
-}
-
-/**
- * 2つの IVideoInfo が全フィールドで一致するかどうかを判定する。
- * refrectLegacy で不要な SetVideoContext 呼び出しを抑制するために使用。
- */
-export function isVideoInfoEqual(a: IVideoInfo | null | undefined, b: IVideoInfo | null | undefined): boolean {
-  if (a == null || b == null) return a == null && b == null;
-  const aKeys = getKeys(a);
-  const bKeys = getKeys(b);
-  if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((key) => a[key] === b[key]);
 }
 
 export class VideoSettingsService extends StatefulService<IVideoSetting> {
@@ -214,38 +202,22 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
    * @param display - Optional, the context's display name
    */
   migrateSettings(display: TDisplayType = 'horizontal') {
-    // osn 0.26.28 では IVideo.video への代入が SetVideoContext を呼び出し、
-    // outputWidth=0 または outputHeight=0 の場合にエラーをthrowするようになった。
-    // basic.ini の OutputCX=0, OutputCY=0 の場合（初回起動やキャッシュクリア後）に
-    // legacySettings の outputWidth/outputHeight が 0 になるため、
-    // 代入前にデフォルト値で補完する。
-    // BaseCX/BaseCY は 1280/720 でも OutputCX/OutputCY が 0 の場合があるため
-    // baseWidth/baseHeight だけでなく outputWidth/outputHeight もチェックする。
-    // 参考: streamlabs/desktop の同様の修正
-    const legacy = this.contexts.horizontal!.legacySettings;
-    if (!legacy.baseWidth || !legacy.baseHeight || !legacy.outputWidth || !legacy.outputHeight) {
-      const defaultVideoInfo: IVideoInfo = {
-        fpsNum: legacy.fpsNum || 30,
-        fpsDen: legacy.fpsDen || 1,
-        baseWidth: legacy.baseWidth || 1280,
-        baseHeight: legacy.baseHeight || 720,
-        outputWidth: legacy.outputWidth || legacy.baseWidth || 1280,
-        outputHeight: legacy.outputHeight || legacy.baseHeight || 720,
-        outputFormat: legacy.outputFormat ?? EVideoFormat.I420,
-        colorspace: legacy.colorspace ?? EColorSpace.CS709,
-        range: legacy.range ?? ERangeType.Full,
-        scaleType: legacy.scaleType ?? EScaleType.Bilinear,
-        fpsType: legacy.fpsType ?? EFPSType.Integer,
-      };
-      getKeys(defaultVideoInfo).forEach((key) => {
-        this.SET_VIDEO_SETTING(key, defaultVideoInfo[key], 'horizontal');
-      });
-      // legacySettings も更新して以降の代入でエラーが出ないようにする
-      this.contexts.horizontal!.legacySettings = defaultVideoInfo;
-    }
-
-    // legacySettings を video に反映（この時点で outputWidth/outputHeight は非ゼロ）
     this.contexts.horizontal!.video = this.contexts.horizontal!.legacySettings;
+    /**
+     * If this is the first time starting the app set default settings for horizontal context
+     */
+    // if (display === 'horizontal' && !this.dualOutputService.views.videoSettings?.horizontal) {
+    //   this.loadLegacySettings();
+    //   this.contexts.horizontal.video = this.contexts.horizontal.legacySettings;
+    // } else {
+    //   // otherwise, load them from the dual output service
+    //   const settings = this.dualOutputService.views.videoSettings[display];
+
+    //   Object.keys(settings).forEach((key: keyof IVideoInfo) => {
+    //     this.SET_VIDEO_SETTING(key, settings[key], display);
+    //   });
+    //   this.contexts[display].video = settings;
+    // }
 
     if (invalidFps(this.contexts[display]!.video.fpsNum, this.contexts[display]!.video.fpsDen)) {
       this.createDefaultFps(display);
@@ -305,38 +277,10 @@ export class VideoSettingsService extends StatefulService<IVideoSetting> {
   // 現状settingsの情報はlegacyにあるのでそれを反映させる
   refrectLegacy(display: TDisplayType = 'horizontal') {
     const legacySettings = this.contexts[display]!.legacySettings;
+    this.contexts[display]!.video = legacySettings;
 
-    // osn 0.26.28 では SetVideoContext(0x0) がエラーをthrowするようになった。
-    // legacySettings の outputWidth/outputHeight が 0 の場合はデフォルト値で補完する。
-    const safeSettings: IVideoInfo = {
-      ...legacySettings,
-      baseWidth: legacySettings.baseWidth || 1280,
-      baseHeight: legacySettings.baseHeight || 720,
-      outputWidth: legacySettings.outputWidth || legacySettings.baseWidth || 1280,
-      outputHeight: legacySettings.outputHeight || legacySettings.baseHeight || 720,
-    };
-
-    // A案: 値が実際に変化した場合のみ video context を更新する。
-    // osn 0.26.28 では配信中に SetVideoContext を呼ぶと IPC エラーが発生するため、
-    // 同値再設定（シーンコレクション切替などで解像度が変わらない場合）をスキップする。
-    const current = this.contexts[display]!.video;
-    if (!isVideoInfoEqual(current, safeSettings)) {
-      // C案: try/catch で囲み、osn の video context エラーを warn 格下げする安全網。
-      // A案で同値ケースは除外済みのため、ここに来るのは値が実際に変化した場合のみ。
-      try {
-        this.contexts[display]!.video = safeSettings;
-      } catch (e) {
-        markObsOp('VideoSettingsService', 'refrectLegacy', {
-          display,
-          error: e instanceof Error ? e.message : String(e),
-        });
-        console.warn('[VideoSettingsService] refrectLegacy: failed to set video context:', e);
-        // 配信中の video context 再設定エラーはダイアログを出さず warn 格下げとする
-      }
-    }
-
-    getKeys(safeSettings).forEach((key) => {
-      this.SET_VIDEO_SETTING(key, safeSettings[key], 'horizontal');
+    getKeys(legacySettings).forEach((key) => {
+      this.SET_VIDEO_SETTING(key, legacySettings[key], 'horizontal');
     });
   }
 

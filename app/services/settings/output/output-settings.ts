@@ -26,7 +26,6 @@ enum EObsAdvancedEncoder {
   amd_amf_h264 = 'amd_amf_h264',
   obs_qsv11 = 'obs_qsv11',
   jim_nvenc = 'jim_nvenc',
-  obs_nvenc_h264_tex = 'obs_nvenc_h264_tex',
 }
 
 /**
@@ -38,7 +37,6 @@ export enum EEncoderFamily {
   qsv = 'qsv',
   nvenc = 'nvenc',
   jim_nvenc = 'jim_nvenc',
-  obs_nvenc_h264_tex = 'obs_nvenc_h264_tex',
   amd = 'amd',
 }
 
@@ -139,7 +137,6 @@ export const encoderFieldsMap = {
   [EEncoderFamily.x264]: { preset: 'preset', encoderOptions: 'x264opts' },
   [EEncoderFamily.nvenc]: { preset: 'preset' },
   [EEncoderFamily.jim_nvenc]: { preset: 'preset' },
-  [EEncoderFamily.obs_nvenc_h264_tex]: { preset: 'preset' },
   [EEncoderFamily.qsv]: { preset: 'target_usage' },
   [EEncoderFamily.amd]: { preset: 'QualityPreset' },
 };
@@ -164,8 +161,6 @@ export function obsEncoderToEncoderFamily(
       return EEncoderFamily.nvenc;
     case EObsAdvancedEncoder.jim_nvenc:
       return EEncoderFamily.jim_nvenc;
-    case EObsAdvancedEncoder.obs_nvenc_h264_tex:
-      return EEncoderFamily.obs_nvenc_h264_tex;
     case EObsSimpleEncoder.amd:
     case EObsAdvancedEncoder.amd_amf_h264:
       return EEncoderFamily.amd;
