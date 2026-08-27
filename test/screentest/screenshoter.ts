@@ -1,5 +1,3 @@
-import test from 'ava';
-
 import { IAudioServiceApi } from '../../app/services/audio/audio-api';
 import { CustomizationService } from '../../app/services/customization';
 import { PerformanceService } from '../../app/services/performance';
@@ -7,6 +5,7 @@ import { WindowsService } from '../../app/services/windows';
 import { getApiClient } from '../helpers/api-client';
 import { focusChild } from '../helpers/modules/core';
 import { sleep } from '../helpers/sleep';
+import { test } from '../helpers/webdriver';
 
 import { getConfig, getConfigsVariations } from './utils';
 
@@ -63,7 +62,7 @@ export async function makeScreenshots(t: any, options: IScreentestOptions) {
     await applyConfig(t, config);
     // eslint-disable-next-line no-loop-func
     await t.context.app.browserWindow.capturePage().then((imageBuffer: ArrayBuffer) => {
-      const testName = t['_test'].title.replace('afterEach for ', '');
+      const testName = t.title;
       const imageFileName = `${testName}__${configInd}.png`;
       fs.writeFileSync(`${CONFIG.dist}/${branchName}/${imageFileName}`, imageBuffer);
     });

@@ -8,6 +8,7 @@ import { WrappedChatWithComponent, WrappedMessageWithComponent } from './Wrapped
 
 describe('HttpRelation', () => {
   beforeEach(() => {
+    fetchMock.config.allowRelativeUrls = true;
     fetchMock.mockGlobal();
   });
 
