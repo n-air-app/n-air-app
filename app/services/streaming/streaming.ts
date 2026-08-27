@@ -107,6 +107,10 @@ export class StreamingService
 
   powerSaveId: number;
 
+  private streamingStartInProgress = false;
+
+  private waitingForObsStreamingSignal = false;
+
   static initialState: IStreamingServiceState = {
     programFetching: false,
     streamingStatus: EStreamingState.Offline,
@@ -211,6 +215,12 @@ export class StreamingService
       this.toggleStreaming();
       return;
     }
+
+    // StatefulService の同期を待たず、同一プロセス内で多重呼び出しを即座に防ぐ
+    if (this.streamingStartInProgress) {
+      return;
+    }
+    this.streamingStartInProgress = true;
 
     console.log('Start Streaming button: platform=' + JSON.stringify(this.userService.platform));
     if (this.userService.isNiconicoLoggedIn()) {
@@ -381,9 +391,13 @@ export class StreamingService
             .then(({ response: done }) => resolve(done));
         });
       } finally {
+        if (!this.waitingForObsStreamingSignal) {
+          this.streamingStartInProgress = false;
+        }
         this.SET_PROGRAM_FETCHING(false);
       }
     }
+    this.streamingStartInProgress = false;
     this.toggleStreaming();
   }
 
@@ -397,6 +411,8 @@ export class StreamingService
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
       const horizontalContext = this.videoSettingsService.contexts.horizontal!;
       try {
+        this.streamingStartInProgress = true;
+        this.waitingForObsStreamingSignal = true;
         runObsOp('StreamingService', 'startStreaming', () => {
           obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
           obs.NodeObs.OBS_service_startStreaming();
@@ -409,6 +425,8 @@ export class StreamingService
           rethrow: true,
         });
       } catch (e) {
+        this.waitingForObsStreamingSignal = false;
+        this.streamingStartInProgress = false;
         if (this.powerSaveId) {
           remote.powerSaveBlocker.stop(this.powerSaveId);
           this.powerSaveId = 0;
@@ -837,6 +855,11 @@ export class StreamingService
 
     if (info.type === EOBSOutputType.Streaming) {
       const time = new Date().toISOString();
+
+      if (info.signal === EOBSOutputSignal.Start || info.signal === EOBSOutputSignal.Stop) {
+        this.waitingForObsStreamingSignal = false;
+        this.streamingStartInProgress = false;
+      }
 
       if (info.signal === EOBSOutputSignal.Start) {
         this.reconnectCount = 0;
