@@ -1,3 +1,5 @@
+/** @jest-environment jsdom */
+
 /**
  * ScenesService.rescaleAllScenes のテスト
  *

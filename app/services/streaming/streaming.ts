@@ -345,7 +345,10 @@ export class StreamingService
         }
 
         if (this.customizationService.optimizeForNiconico) {
-          return this.optimizeForNiconicoAndStartStreaming(
+          // await しないと、この catch では拾えず unhandled rejection になる
+          // (optimizeForNiconicoAndStartStreaming 自身も内部で例外を処理するが、
+          // 二重の安全策として await する)
+          return await this.optimizeForNiconicoAndStartStreaming(
             setting,
             opts.mustShowOptimizationDialog,
           );
@@ -393,14 +396,30 @@ export class StreamingService
 
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
       const horizontalContext = this.videoSettingsService.contexts.horizontal!;
-      runObsOp('StreamingService', 'startStreaming', () => {
-        obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
-        obs.NodeObs.OBS_service_startStreaming();
-        this.subStreamService.syncStart();
-      }, {
-        data: { action: 'start' },
-        fingerprint: ['StreamingService', 'startStreaming', 'obs', 'exception'],
-      });
+      try {
+        runObsOp('StreamingService', 'startStreaming', () => {
+          obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
+          obs.NodeObs.OBS_service_startStreaming();
+          this.subStreamService.syncStart();
+        }, {
+          data: { action: 'start' },
+          fingerprint: ['StreamingService', 'startStreaming', 'obs', 'exception'],
+          // 配信開始前の同期例外は OBS の output signal が発火しないため、
+          // 呼び出し元でユーザーへ通知できるようにする。
+          rethrow: true,
+        });
+      } catch (e) {
+        if (this.powerSaveId) {
+          remote.powerSaveBlocker.stop(this.powerSaveId);
+          this.powerSaveId = 0;
+        }
+        void remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+          buttons: ['OK'],
+          title: $t('streaming.streamingError'),
+          type: 'error',
+          message: $t('streaming.startFailedError'),
+        });
+      }
       return;
     }
 
@@ -505,34 +524,48 @@ export class StreamingService
           .then(({ response: done }) => resolve(done));
       });
     }
-    const settings = this.settingsService.diffOptimizedSettings({
-      bitrate: streamingSetting.quality.bitrate,
-      height: streamingSetting.quality.height,
-      fps: streamingSetting.quality.fps,
-      useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
-    });
-    if (Object.keys(settings.delta).length > 0 || mustShowDialog || settings.canvasResolutionWarning) {
-      if (
-        this.customizationService.showOptimizationDialogForNiconico
-        || mustShowDialog
-        || this.isRecording
-        || settings.canvasResolutionWarning
-      ) {
-        this.windowsService.showWindow({
-          componentName: 'OptimizeForNiconico',
-          title: $t('streaming.optimizationForNiconico.title'),
-          queryParams: settings,
-          size: {
-            width: 600,
-            height: 594, // なぜ {@link this.calculateOptimizeWindowSize()} を使っていない?
-          },
-        });
+    try {
+      const settings = this.settingsService.diffOptimizedSettings({
+        bitrate: streamingSetting.quality.bitrate,
+        height: streamingSetting.quality.height,
+        fps: streamingSetting.quality.fps,
+        useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
+      });
+      if (Object.keys(settings.delta).length > 0 || mustShowDialog || settings.canvasResolutionWarning) {
+        if (
+          this.customizationService.showOptimizationDialogForNiconico
+          || mustShowDialog
+          || this.isRecording
+          || settings.canvasResolutionWarning
+        ) {
+          this.windowsService.showWindow({
+            componentName: 'OptimizeForNiconico',
+            title: $t('streaming.optimizationForNiconico.title'),
+            queryParams: settings,
+            size: {
+              width: 600,
+              height: 594, // なぜ {@link this.calculateOptimizeWindowSize()} を使っていない?
+            },
+          });
+        } else {
+          this.settingsService.optimizeForNiconico(settings.best);
+          this.toggleStreaming();
+        }
       } else {
-        this.settingsService.optimizeForNiconico(settings.best);
         this.toggleStreaming();
       }
-    } else {
-      this.toggleStreaming();
+    } catch (e) {
+      // 呼び出し元(toggleStreamingAsync)でも catch するが、二重の安全策としてここでも捕捉し
+      // ユーザーに必ずエラーダイアログを表示する。
+      SentryReport.error('StreamingService', 'optimizeForNiconicoAndStartStreaming', e, {
+        fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
+      });
+      await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        buttons: ['OK'],
+        title: $t('streaming.streamingError'),
+        type: 'error',
+        message: $t('streaming.startFailedError'),
+      });
     }
   }
 

@@ -272,3 +272,87 @@ describe('VideoSettingsService.refrectLegacy', () => {
     });
   });
 });
+
+describe('VideoSettingsService.shutdown', () => {
+  let VideoSettingsService: any;
+  let markObsOpMock: jest.Mock;
+  let instance: any;
+  let mockState: { horizontal: IVideoInfo | null };
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+
+    ({ VideoSettingsService } = require('./video'));
+    ({ markObsOp: markObsOpMock } = require('util/sentry-obs-breadcrumb'));
+
+    instance = Object.create(VideoSettingsService.prototype);
+    instance.debouncedUpdateObsSettings = { cancel: jest.fn() };
+    mockState = { horizontal: makeVideoInfo() };
+    Object.defineProperty(instance, 'state', {
+      get: () => mockState,
+      configurable: true,
+    });
+    instance.DESTROY_VIDEO_CONTEXT = jest.fn((display: 'horizontal') => {
+      mockState[display] = null;
+    });
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('legacySettings の保存に失敗しても context を destroy してローカル状態を破棄する', () => {
+    const destroy = jest.fn();
+    const context = { destroy } as any;
+    Object.defineProperty(context, 'legacySettings', {
+      set: () => { throw new Error('IPC received error code 1'); },
+    });
+    instance.contexts = { horizontal: context };
+
+    expect(() => instance.shutdown()).not.toThrow();
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(instance.contexts.horizontal).toBeNull();
+    expect(instance.DESTROY_VIDEO_CONTEXT).toHaveBeenCalledWith('horizontal');
+    expect(markObsOpMock).toHaveBeenCalledWith(
+      'VideoSettingsService',
+      'shutdown',
+      expect.objectContaining({
+        display: 'horizontal',
+        operation: 'saveLegacySettings',
+        error: 'IPC received error code 1',
+      }),
+    );
+  });
+
+  test('context の destroy に失敗してもローカル状態を破棄する', () => {
+    const expectedLegacySettings = mockState.horizontal;
+    const error = new Error('IPC received error code 1');
+    const context = {
+      legacySettings: null,
+      destroy: jest.fn(() => { throw error; }),
+    } as any;
+    instance.contexts = { horizontal: context };
+
+    expect(() => instance.shutdown()).not.toThrow();
+
+    expect(context.legacySettings).toEqual(expectedLegacySettings);
+    expect(instance.contexts.horizontal).toBeNull();
+    expect(instance.DESTROY_VIDEO_CONTEXT).toHaveBeenCalledWith('horizontal');
+    expect(markObsOpMock).toHaveBeenCalledWith(
+      'VideoSettingsService',
+      'shutdown',
+      expect.objectContaining({
+        display: 'horizontal',
+        operation: 'destroyContext',
+        error: 'IPC received error code 1',
+      }),
+    );
+    expect(console.warn).toHaveBeenCalledWith(
+      '[VideoSettingsService] shutdown(horizontal): video context was already unavailable; destroyContext cleanup failure ignored:',
+      error,
+    );
+  });
+});

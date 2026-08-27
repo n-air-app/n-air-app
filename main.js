@@ -813,7 +813,10 @@ function initialize(crashHandler) {
     mainWindow.webContents.once('did-finish-load', () => {
       // Give Vue a moment to render before showing
       setTimeout(() => {
-        mainWindow.show();
+        // OBS IPC接続失敗等でシャットダウンが先行し、mainWindowが破棄済みの場合がある
+        if (!mainWindow.isDestroyed()) {
+          mainWindow.show();
+        }
         closeSplashWindow();
       }, 100);
     });
@@ -941,7 +944,10 @@ function initialize(crashHandler) {
     // The child window is never closed, it just hides in the
     // background until it is needed.
     childWindow.on('close', (e) => {
-      if (!shutdownStarted) {
+      // shutdownStarted で判定すると、mainWindow の close が
+      // renderer 側でキャンセルされてアプリが継続する場合でも
+      // childWindow だけ実際に破棄されてしまう(N-AIR-APP-G8Y)。
+      if (!allowMainWindowClose) {
         safeSend(childWindow, 'closeWindow');
 
         // Prevent the window from actually closing
@@ -1142,7 +1148,9 @@ function initialize(crashHandler) {
         }
       }
 
-      childWindow.focus();
+      if (!childWindow.isDestroyed()) {
+        childWindow.focus();
+      }
     }
   });
 
