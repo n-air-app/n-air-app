@@ -30,13 +30,13 @@ describe('deepToRaw', () => {
     const state = reactive({ selectedIds: ['a', 'b'] });
     const options = {
       componentName: 'NameFolder',
-      queryParams: { itemsToGroup: state.selectedIds, parentId: undefined },
+      queryParams: { itemsToGroup: state.selectedIds, parentId: 'p' },
     };
 
     expect(() => structuredClone(options)).toThrow();
     expect(structuredClone(deepToRaw(options))).toEqual({
       componentName: 'NameFolder',
-      queryParams: { itemsToGroup: ['a', 'b'] },
+      queryParams: { itemsToGroup: ['a', 'b'], parentId: 'p' },
     });
   });
 });
