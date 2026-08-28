@@ -1,4 +1,5 @@
 import * as remote from '@electron/remote';
+import FakeTimers from '@sinonjs/fake-timers';
 import { EncoderFamily, OptimizedSettings } from 'services/settings/optimizer';
 import { RequestError } from 'util/RequestError';
 import { createSetupFunction } from 'util/test-setup';
@@ -11,6 +12,26 @@ function noop(..._args: any[]) {}
 
 jest.mock('services/core/stateful-service');
 jest.mock('services/core/injector');
+
+// jest.resetModules() を beforeEach で呼ぶため、jest.mock のファクトリはその都度
+// 再実行される。ファクトリの中で jest.fn() を作ると呼び出しごとに別インスタンスになり
+// テストの static import が指すものと食い違って呼び出しを検出できなくなる
+// (cf. obs-ipc-health.test.ts の同種の対策)。そのためモック関数はファクトリの外で保持する。
+const sentryAddBreadcrumbMock = jest.fn();
+const sentrySetTagMock = jest.fn();
+const sentryReportErrorMock = jest.fn();
+const sentryReportMessageMock = jest.fn();
+
+jest.mock('@sentry/vue', () => ({
+  addBreadcrumb: sentryAddBreadcrumbMock,
+  setTag: sentrySetTagMock,
+}));
+jest.mock('util/sentry-report', () => ({
+  SentryReport: {
+    error: sentryReportErrorMock,
+    message: sentryReportMessageMock,
+  },
+}));
 jest.mock('../../../obs-api', () => ({
   NodeObs: {
     OBS_service_startStreaming: noop,
@@ -84,6 +105,7 @@ const createInjectee = ({
       },
     },
     getStreamEncoderSettings,
+    showSettings: noop,
   },
   UserService: {
     isNiconicoLoggedIn() {
@@ -163,6 +185,11 @@ const setup = createSetupFunction({
   injectee: createInjectee(),
 });
 
+// StreamingServiceは配信開始無反応検知のウォッチドッグでsetTimeout/clearTimeoutを使う。
+// Date/microtaskまで差し替えると既存の `await Promise.resolve()` 待ちに影響しうるため、
+// setTimeout/clearTimeoutだけをフェイクにする。
+let clock: FakeTimers.Clock;
+
 beforeEach(() => {
   /**
    * jest.spyOnをリセット
@@ -171,6 +198,21 @@ beforeEach(() => {
   jest.restoreAllMocks();
 
   jest.resetModules();
+
+  // sentryAddBreadcrumbMock等はjest.mockのファクトリの外(モジュールトップレベル)で
+  // 保持しているため、jest.resetModules()やjest.restoreAllMocksでは呼び出し履歴が
+  // クリアされない。テスト間で呼び出し実績が漏れないよう明示的にクリアする。
+  sentryAddBreadcrumbMock.mockClear();
+  sentrySetTagMock.mockClear();
+  sentryReportErrorMock.mockClear();
+  sentryReportMessageMock.mockClear();
+
+  localStorage.clear();
+  clock = FakeTimers.install({ toFake: ['setTimeout', 'clearTimeout'] });
+});
+
+afterEach(() => {
+  clock.uninstall();
 });
 
 test('get instance', () => {
@@ -258,6 +300,262 @@ test('toggleStreamingで配信開始処理が同期例外になった場合は�
       type: 'error',
     }),
   );
+});
+
+describe('配信開始無反応検知ウォッチドッグ', () => {
+  // OBS_service_startStreaming() を呼んだ後、シグナルが一度も来ない異常系を再現するための
+  // セットアップ。既存の「toggleStreamingでstreamingStatusがofflineの場合」と同じOBSモック形。
+  function setupForWatchdog(injecteeOverrides: Parameters<typeof createInjectee>[0] = {}) {
+    const OBS_service_startStreaming = jest.fn();
+    const OBS_service_stopStreaming = jest.fn();
+    const OBS_service_setVideoInfo = jest.fn();
+
+    jest.mock('../../../obs-api', () => ({
+      NodeObs: {
+        OBS_service_startStreaming,
+        OBS_service_stopStreaming,
+        OBS_service_connectOutputSignals: noop,
+        OBS_service_setVideoInfo,
+      },
+    }));
+
+    setup({
+      injectee: createInjectee(injecteeOverrides),
+      state: {
+        StreamingService: {
+          streamingStatus: EStreamingState.Offline,
+          recordingStatus: ERecordingState.Offline,
+        },
+      },
+    });
+
+    const { StreamingService } = require('./streaming');
+    const currentRemote = require('@electron/remote') as typeof remote;
+    // streaming.ts が require したのと同じモジュールインスタンスを得るため、
+    // jest.resetModules() 後にここで改めて require する
+    // (util/stream-start-diagnostics参照)。
+    const { getStreamStartFailure } = require('util/stream-start-diagnostics');
+    const instance = StreamingService.instance();
+    jest.spyOn(currentRemote.powerSaveBlocker, 'start').mockReturnValue(999);
+
+    return {
+      instance,
+      currentRemote,
+      OBS_service_startStreaming,
+      OBS_service_stopStreaming,
+      getStreamStartFailure,
+    };
+  }
+
+  test('シグナルが一度も来ないまま15秒経過すると、ダイアログ表示・Sentry報告・スリープ抑止解除・失敗記録が行われる', async () => {
+    const { instance, currentRemote, getStreamStartFailure } = setupForWatchdog();
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+
+    instance.toggleStreaming();
+    expect(getStreamStartFailure()).toBeNull(); // まだ武装中で発火していない
+
+    await clock.tickAsync(15_000);
+
+    expect(showMessageBox).toHaveBeenCalledWith(
+      currentRemote.getCurrentWindow(),
+      expect.objectContaining({
+        title: 'streaming.startNoResponseError.title',
+        message: 'streaming.startNoResponseError.message',
+        type: 'error',
+      }),
+    );
+    expect(currentRemote.powerSaveBlocker.stop).toHaveBeenCalledWith(999);
+    expect(sentryReportMessageMock).toHaveBeenCalledWith(
+      'StreamingService',
+      'handleStartWatchdogTimeout',
+      expect.any(String),
+      expect.objectContaining({
+        tags: expect.objectContaining({ diagnostic: 'stream-start-no-signal', attempts: '1' }),
+      }),
+    );
+
+    const failure = getStreamStartFailure();
+    expect(failure).not.toBeNull();
+    expect(failure!.attempts).toBe(1);
+  });
+
+  test('ウォッチドッグタイムアウト後は多重呼び出しガードが解除され再試行できる', async () => {
+    const updateStreamSettings = jest.fn(() => ({ key: 'stream-key' }));
+    const { instance, OBS_service_startStreaming } = setupForWatchdog({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+    });
+    instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({
+      programId: 'lv12345',
+      nextProgramId: '',
+    }));
+    instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+
+    await instance.toggleStreamingAsync();
+    expect(OBS_service_startStreaming).toHaveBeenCalledTimes(1);
+
+    await clock.tickAsync(15_000); // ウォッチドッグが発火し無反応失敗として記録される
+
+    await instance.toggleStreamingAsync();
+
+    // ウォッチドッグ発火時にフラグが解除されていなければ、ここで多重呼び出しガードに
+    // 引っかかって updateStreamSettings/OBS_service_startStreaming が呼ばれない
+    expect(updateStreamSettings).toHaveBeenCalledTimes(2);
+    expect(OBS_service_startStreaming).toHaveBeenCalledTimes(2);
+  });
+
+  test('タイムアウト前にstartingシグナルが来ればウォッチドッグは発火しない', async () => {
+    const { instance, currentRemote, getStreamStartFailure } = setupForWatchdog();
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+
+    instance.toggleStreaming();
+    instance.handleOBSOutputSignal({ type: 'streaming', signal: 'starting' });
+
+    await clock.tickAsync(15_000);
+
+    expect(showMessageBox).not.toHaveBeenCalled();
+    expect(sentryReportMessageMock).not.toHaveBeenCalled();
+    expect(getStreamStartFailure()).toBeNull();
+  });
+
+  test('配信開始が同期例外で失敗した場合はウォッチドッグは武装されず二重にダイアログが出ない', async () => {
+    const startError = new Error('failed to configure video output');
+    const OBS_service_startStreaming = jest.fn();
+    const OBS_service_setVideoInfo = jest.fn(() => { throw startError; });
+
+    jest.mock('../../../obs-api', () => ({
+      NodeObs: {
+        OBS_service_startStreaming,
+        OBS_service_stopStreaming: jest.fn(),
+        OBS_service_connectOutputSignals: noop,
+        OBS_service_setVideoInfo,
+      },
+    }));
+
+    setup({
+      injectee: createInjectee(),
+      state: {
+        StreamingService: {
+          streamingStatus: EStreamingState.Offline,
+          recordingStatus: ERecordingState.Offline,
+        },
+      },
+    });
+
+    const { StreamingService } = require('./streaming');
+    const currentRemote = require('@electron/remote') as typeof remote;
+    const { getStreamStartFailure } = require('util/stream-start-diagnostics');
+    const instance = StreamingService.instance();
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+    jest.spyOn(currentRemote.powerSaveBlocker, 'start').mockReturnValue(123);
+
+    instance.toggleStreaming();
+    await Promise.resolve();
+    jest.clearAllMocks(); // 同期例外時に出る既存のダイアログ呼び出しはここでは見ない
+
+    await clock.tickAsync(15_000);
+
+    expect(showMessageBox).not.toHaveBeenCalled();
+    expect(sentryReportMessageMock).not.toHaveBeenCalled();
+    expect(getStreamStartFailure()).toBeNull();
+  });
+
+  test('ウォッチドッグ発火後に配信が成功すると設定差分付きの回収イベントが送られ失敗記録が消える', async () => {
+    const streamSettings = {
+      streamingURL: 'rtmp://service.domain/path',
+      outputMode: 'Simple' as const,
+      encoder: 'obs_x264',
+      preset: 'veryfast',
+      profile: '',
+      bitrate: '2000',
+      baseResolution: '1920x1080',
+      outputResolution: '1280x720',
+      fps: '30',
+      audio: { bitrate: '128', sampleRate: 48000 as const, rateControl: null },
+    };
+    const getStreamEncoderSettings = jest.fn(() => streamSettings);
+
+    const { instance, getStreamStartFailure } = setupForWatchdog({ getStreamEncoderSettings });
+
+    instance.toggleStreaming();
+    await clock.tickAsync(15_000);
+    expect(getStreamStartFailure()).not.toBeNull();
+
+    // 失敗後、ユーザーがエンコーダーを変更してから再度配信を試みて成功したケースを再現する
+    streamSettings.encoder = 'jim_nvenc';
+    jest.clearAllMocks();
+
+    instance.handleOBSOutputSignal({ type: 'streaming', signal: 'start' });
+
+    expect(sentryReportMessageMock).toHaveBeenCalledWith(
+      'StreamingService',
+      'handleOBSOutputSignal',
+      expect.any(String),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          diagnostic: 'stream-start-recovered',
+          changedKeys: 'encoder.type',
+          attempts: '1',
+        }),
+      }),
+    );
+    expect(getStreamStartFailure()).toBeNull();
+  });
+
+  test('設定を変えずに再試行して成功した場合はchangedKeysがnoneになる', async () => {
+    const streamSettings = {
+      streamingURL: 'rtmp://service.domain/path',
+      outputMode: 'Simple' as const,
+      encoder: 'obs_x264',
+      preset: 'veryfast',
+      profile: '',
+      bitrate: '2000',
+      baseResolution: '1920x1080',
+      outputResolution: '1280x720',
+      fps: '30',
+      audio: { bitrate: '128', sampleRate: 48000 as const, rateControl: null },
+    };
+    const getStreamEncoderSettings = jest.fn(() => streamSettings);
+
+    const { instance, getStreamStartFailure } = setupForWatchdog({ getStreamEncoderSettings });
+
+    instance.toggleStreaming();
+    await clock.tickAsync(15_000);
+    jest.clearAllMocks();
+
+    instance.handleOBSOutputSignal({ type: 'streaming', signal: 'start' });
+
+    expect(sentryReportMessageMock).toHaveBeenCalledWith(
+      'StreamingService',
+      'handleOBSOutputSignal',
+      expect.any(String),
+      expect.objectContaining({
+        tags: expect.objectContaining({ diagnostic: 'stream-start-recovered', changedKeys: 'none' }),
+      }),
+    );
+  });
+
+  test('設定スナップショット取得が例外を投げてもウォッチドッグは完走してダイアログを出す', async () => {
+    const getStreamEncoderSettings = jest.fn(() => {
+      throw new Error('OBS IPC is lost');
+    });
+
+    const { instance, currentRemote, getStreamStartFailure } = setupForWatchdog({
+      getStreamEncoderSettings,
+    });
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+
+    instance.toggleStreaming();
+    await clock.tickAsync(15_000);
+
+    expect(showMessageBox).toHaveBeenCalledWith(
+      currentRemote.getCurrentWindow(),
+      expect.objectContaining({ title: 'streaming.startNoResponseError.title' }),
+    );
+    const failure = getStreamStartFailure();
+    expect(failure).not.toBeNull();
+    expect(failure!.settings).toBeNull();
+  });
 });
 
 test('toggleStreamingでstreamingStatusがoffline、配信開始時に確認して、配信開始をやめる場合', () => {
