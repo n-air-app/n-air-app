@@ -102,7 +102,7 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
 
     const [ownIds, moderatorIds] = ids.reduce(
       ([own, moderator], id) => {
-        const record = this.findFilterCache(id);
+        const record = this.findFilterById(id);
         if (record && this.isBroadcastersFilter(record)) {
           return [[...own, id], moderator];
         }
@@ -119,8 +119,12 @@ export class NicoliveCommentFilterService extends StatefulService<INicoliveComme
     this.deleteFiltersCache(ids);
   }
 
-  findFilterCache(id: number): FilterRecord | undefined {
+  findFilterById(id: number): FilterRecord | undefined {
     return this.state.filters.find((rec) => rec.id === id);
+  }
+
+  findFilterByTypeAndBody(type: FilterRecord['type'], body: string): FilterRecord | undefined {
+    return this.state.filters.find((rec) => rec.type === type && rec.body === body);
   }
 
   addFilterCache(record: FilterRecord) {
