@@ -121,6 +121,12 @@ describe('summarizeChangedKeys', () => {
     expect(summarizeChangedKeys(null, null)).toBe('unknown');
   });
 
+  test('どちらかがundefinedでもunknownを返す(壊れたlocalStorage値でsettingsが欠けているケース)', () => {
+    expect(summarizeChangedKeys(undefined, sampleSnapshot())).toBe('unknown');
+    expect(summarizeChangedKeys(sampleSnapshot(), undefined)).toBe('unknown');
+    expect(summarizeChangedKeys(undefined, undefined)).toBe('unknown');
+  });
+
   test('差分が無ければnoneを返す', () => {
     const snap = sampleSnapshot();
     expect(summarizeChangedKeys(snap, { ...snap })).toBe('none');

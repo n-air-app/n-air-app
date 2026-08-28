@@ -379,6 +379,31 @@ describe('配信開始無反応検知ウォッチドッグ', () => {
     expect(failure!.attempts).toBe(1);
   });
 
+  test('ウォッチドッグタイムアウト後は多重呼び出しガードが解除され再試行できる', async () => {
+    const updateStreamSettings = jest.fn(() => ({ key: 'stream-key' }));
+    const { instance, OBS_service_startStreaming } = setupForWatchdog({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+    });
+    instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({
+      programId: 'lv12345',
+      nextProgramId: '',
+    }));
+    instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+
+    await instance.toggleStreamingAsync();
+    expect(OBS_service_startStreaming).toHaveBeenCalledTimes(1);
+
+    await clock.tickAsync(15_000); // ウォッチドッグが発火し無反応失敗として記録される
+
+    await instance.toggleStreamingAsync();
+
+    // ウォッチドッグ発火時にフラグが解除されていなければ、ここで多重呼び出しガードに
+    // 引っかかって updateStreamSettings/OBS_service_startStreaming が呼ばれない
+    expect(updateStreamSettings).toHaveBeenCalledTimes(2);
+    expect(OBS_service_startStreaming).toHaveBeenCalledTimes(2);
+  });
+
   test('タイムアウト前にstartingシグナルが来ればウォッチドッグは発火しない', async () => {
     const { instance, currentRemote, getStreamStartFailure } = setupForWatchdog();
     const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');

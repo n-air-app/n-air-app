@@ -118,10 +118,10 @@ function isPlainObject(value: unknown): value is IStreamSettingsSnapshot {
  * 差分が無ければ 'none' を返す(設定を変えていないのに直った、という情報自体が有用)。
  */
 export function summarizeChangedKeys(
-  before: IStreamSettingsSnapshot | null,
-  after: IStreamSettingsSnapshot | null,
+  before: IStreamSettingsSnapshot | null | undefined,
+  after: IStreamSettingsSnapshot | null | undefined,
 ): string {
-  if (before === null || after === null) return 'unknown';
+  if (before == null || after == null) return 'unknown';
 
   const changed: string[] = [];
 

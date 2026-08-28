@@ -893,6 +893,10 @@ export class StreamingService
       remote.powerSaveBlocker.stop(this.powerSaveId);
       this.powerSaveId = 0;
     }
+    // シグナルが一度も来ないままなので、多重呼び出しガード用のフラグも
+    // ここで解除しないと再試行時に toggleStreamingAsync() の入口で弾かれてしまう。
+    this.waitingForObsStreamingSignal = false;
+    this.streamingStartInProgress = false;
 
     const snapshot = this.captureStreamSettingsSnapshot();
     recordStreamStartFailure(snapshot);
