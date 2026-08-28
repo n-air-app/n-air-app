@@ -863,6 +863,84 @@ test('toggleStreamingAsyncでstreamingStatusがoffline以外の場合', async ()
   expect(instance.toggleStreaming).toHaveBeenCalledTimes(1);
 });
 
+test('toggleStreamingAsyncの配信開始準備中は多重呼び出しを無視する', async () => {
+  let resolveFetchOnairUserProgram: (value: { programId: string; nextProgramId: string }) => void;
+  const fetchOnairUserProgram = jest.fn(() => new Promise<{ programId: string; nextProgramId: string }>((resolve) => {
+    resolveFetchOnairUserProgram = resolve;
+  }));
+  const updateStreamSettings = jest.fn(() => ({ key: 'stream-key' }));
+
+  setup({
+    injectee: createInjectee({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+  instance.client.fetchOnairUserProgram = fetchOnairUserProgram;
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+  instance.toggleStreaming = jest.fn();
+
+  const firstCall = instance.toggleStreamingAsync();
+  const secondCall = instance.toggleStreamingAsync();
+
+  expect(fetchOnairUserProgram).toHaveBeenCalledTimes(1);
+
+  resolveFetchOnairUserProgram!({ programId: 'lv12345', nextProgramId: '' });
+  await Promise.all([firstCall, secondCall]);
+
+  expect(updateStreamSettings).toHaveBeenCalledTimes(1);
+  expect(instance.toggleStreaming).toHaveBeenCalledTimes(1);
+});
+
+test('toggleStreamingAsyncでOBSの状態通知を待っている間は再実行しない', async () => {
+  const OBS_service_startStreaming = jest.fn();
+  jest.mock('../../../obs-api', () => ({
+    NodeObs: {
+      OBS_service_startStreaming,
+      OBS_service_stopStreaming: jest.fn(),
+      OBS_service_connectOutputSignals: noop,
+      OBS_service_setVideoInfo: jest.fn(),
+    },
+  }));
+
+  const updateStreamSettings = jest.fn(() => ({ key: 'stream-key' }));
+
+  setup({
+    injectee: createInjectee({
+      isNiconicoLoggedIn: true,
+      updateStreamSettings,
+    }),
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const instance = StreamingService.instance();
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({
+    programId: 'lv12345',
+    nextProgramId: '',
+  }));
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+  instance.nicoliveProgramService.fetchProgram = jest.fn();
+
+  await instance.toggleStreamingAsync();
+  await instance.toggleStreamingAsync();
+
+  expect(updateStreamSettings).toHaveBeenCalledTimes(1);
+  expect(OBS_service_startStreaming).toHaveBeenCalledTimes(1);
+});
+
 test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログインしていない場合', async () => {
   setup({
     state: {
@@ -1423,6 +1501,92 @@ test('optimizeForNiconicoAndStartStreaming: 差分なし・canvasResolutionWarni
   expect(showWindow).toHaveBeenCalledTimes(1);
   expect(injectee.SettingsService.optimizeForNiconico).not.toHaveBeenCalled();
   expect(instance.toggleStreaming).not.toHaveBeenCalled();
+});
+
+test('optimizeForNiconicoAndStartStreaming: diffOptimizedSettingsが例外を投げてもtoggleStreamingAsyncがハングせず、エラーダイアログを表示する', async () => {
+  const injectee = createInjecteeForOptimizeTest();
+  injectee.SettingsService.diffOptimizedSettings = jest.fn(() => {
+    throw new Error('boom');
+  });
+  setup({
+    injectee,
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+        recordingStatus: ERecordingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const errorSpy = jest.spyOn(SentryReport, 'error');
+  const instance = StreamingService.instance();
+  instance.toggleStreaming = jest.fn();
+
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+
+  // return await していないと、この await は解決しても例外は握り込まれず
+  // unhandled rejection になり、テストの評価より後に発火してしまう。
+  await instance.toggleStreamingAsync();
+
+  expect(instance.toggleStreaming).not.toHaveBeenCalled();
+  expect(errorSpy).toHaveBeenCalledWith(
+    'StreamingService',
+    'optimizeForNiconicoAndStartStreaming',
+    expect.any(Error),
+    expect.objectContaining({
+      fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
+    }),
+  );
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    currentRemote.getCurrentWindow(),
+    expect.objectContaining({ title: 'streaming.streamingError', message: 'streaming.startFailedError' }),
+  );
+});
+
+test('optimizeForNiconicoAndStartStreaming: optimizeForNiconico(即時適用)が例外を投げてもエラーダイアログを表示する', async () => {
+  const injectee = createInjecteeForOptimizeTest({ showOptimizationDialogForNiconico: false });
+  injectee.SettingsService.optimizeForNiconico = jest.fn(() => {
+    throw new Error('boom');
+  });
+  setup({
+    injectee,
+    state: {
+      StreamingService: {
+        streamingStatus: EStreamingState.Offline,
+        recordingStatus: ERecordingState.Offline,
+      },
+    },
+  });
+
+  const { StreamingService } = require('./streaming');
+  const { SentryReport } = require('util/sentry-report');
+  const currentRemote = require('@electron/remote') as typeof remote;
+  const errorSpy = jest.spyOn(SentryReport, 'error');
+  const instance = StreamingService.instance();
+  instance.toggleStreaming = jest.fn();
+
+  instance.client.fetchOnairUserProgram = jest.fn(() => Promise.resolve({ programId: 'lv12345' }));
+  instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
+
+  await instance.toggleStreamingAsync();
+
+  expect(instance.toggleStreaming).not.toHaveBeenCalled();
+  expect(errorSpy).toHaveBeenCalledWith(
+    'StreamingService',
+    'optimizeForNiconicoAndStartStreaming',
+    expect.any(Error),
+    expect.objectContaining({
+      fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
+    }),
+  );
+  expect(currentRemote.dialog.showMessageBox).toHaveBeenCalledWith(
+    currentRemote.getCurrentWindow(),
+    expect.objectContaining({ title: 'streaming.streamingError', message: 'streaming.startFailedError' }),
+  );
 });
 
 test('logStreamEndがstreamingTrackIdが設定されている場合にstream_endを送信する', () => {

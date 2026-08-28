@@ -306,8 +306,8 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     });
   }
 
-  async addModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }) {
-    if (this.isModerator(userId)) return;
+  async addModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }): Promise<boolean> {
+    if (this.isModerator(userId)) return false;
     const ok = await this.confirmModerator({
       userId,
       userName,
@@ -316,16 +316,18 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     if (ok) {
       try {
         await this.addModerator(userId);
+        return true;
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           openErrorDialogFromFailure(caught);
         }
       }
     }
+    return false;
   }
 
-  async removeModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }) {
-    if (!this.isModerator(userId)) return;
+  async removeModeratorWithConfirm({ userId, userName }: { userId: string; userName: string }): Promise<boolean> {
+    if (!this.isModerator(userId)) return false;
     const ok = await this.confirmModerator({
       userId,
       userName,
@@ -334,12 +336,14 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
     if (ok) {
       try {
         await this.removeModerator(userId);
+        return true;
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           openErrorDialogFromFailure(caught);
         }
       }
     }
+    return false;
   }
 
   private setState(state: INicoliveModeratorsService) {

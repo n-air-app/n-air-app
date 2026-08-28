@@ -20,7 +20,6 @@ import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
-import { FilterRecord } from 'services/nicolive-program/ResponseTypes';
 import { isWrappedChat, WrappedChatWithComponent } from 'services/nicolive-program/WrappedChat';
 import { WindowsService } from 'services/windows';
 import { Component, defineComponent } from 'vue';
@@ -207,9 +206,7 @@ export default defineComponent({
     },
 
     async unBlockUser() {
-      const filterRecord = NicoliveCommentFilterService.instance().state.filters.find(
-        (filter: FilterRecord) => filter.type === 'user' && filter.body === this.userId,
-      );
+      const filterRecord = NicoliveCommentFilterService.instance().findFilterByTypeAndBody('user', this.userId);
       if (!filterRecord) {
         console.warn('unBlockUser: block user filter not found', this.userId);
         return;

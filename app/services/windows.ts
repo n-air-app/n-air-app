@@ -30,7 +30,7 @@ import electron from 'electron';
 // for spawning various child windows.
 import cloneDeep from 'lodash/cloneDeep';
 import { Subject } from 'rxjs';
-import { mutation, StatefulService } from 'services/core/stateful-service';
+import { deepToRaw, mutation, StatefulService } from 'services/core/stateful-service';
 import { getPartitionConfig } from 'services/dev-hosts';
 import Util, { uuidv4 } from 'services/utils';
 import { SentryReport } from 'util/sentry-report';
@@ -202,7 +202,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
       this.requireWaitWindowCleanup('child', false);
     }
 
-    ipcRenderer.send('window-showChildWindow', options);
+    ipcRenderer.send('window-showChildWindow', deepToRaw(options));
     this.updateChildWindowOptions(options);
   }
 
@@ -232,7 +232,7 @@ export class WindowsService extends StatefulService<IWindowsState> {
         isPreserved: true,
       };
 
-      ipcRenderer.send('window-showChildWindow', options);
+      ipcRenderer.send('window-showChildWindow', deepToRaw(options));
       this.updateChildWindowOptions(options);
       return Promise.resolve();
     }

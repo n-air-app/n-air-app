@@ -122,6 +122,10 @@ export class StreamingService
   private static readonly START_WATCHDOG_MS = 15_000;
   private startWatchdogTimer: ReturnType<typeof setTimeout> | null = null;
 
+  private streamingStartInProgress = false;
+
+  private waitingForObsStreamingSignal = false;
+
   static initialState: IStreamingServiceState = {
     programFetching: false,
     streamingStatus: EStreamingState.Offline,
@@ -226,6 +230,12 @@ export class StreamingService
       this.toggleStreaming();
       return;
     }
+
+    // StatefulService の同期を待たず、同一プロセス内で多重呼び出しを即座に防ぐ
+    if (this.streamingStartInProgress) {
+      return;
+    }
+    this.streamingStartInProgress = true;
 
     console.log('Start Streaming button: platform=' + JSON.stringify(this.userService.platform));
     if (this.userService.isNiconicoLoggedIn()) {
@@ -360,7 +370,10 @@ export class StreamingService
         }
 
         if (this.customizationService.optimizeForNiconico) {
-          return this.optimizeForNiconicoAndStartStreaming(
+          // await しないと、この catch では拾えず unhandled rejection になる
+          // (optimizeForNiconicoAndStartStreaming 自身も内部で例外を処理するが、
+          // 二重の安全策として await する)
+          return await this.optimizeForNiconicoAndStartStreaming(
             setting,
             opts.mustShowOptimizationDialog,
           );
@@ -393,9 +406,13 @@ export class StreamingService
             .then(({ response: done }) => resolve(done));
         });
       } finally {
+        if (!this.waitingForObsStreamingSignal) {
+          this.streamingStartInProgress = false;
+        }
         this.SET_PROGRAM_FETCHING(false);
       }
     }
+    this.streamingStartInProgress = false;
     this.toggleStreaming();
   }
 
@@ -409,6 +426,8 @@ export class StreamingService
       this.powerSaveId = remote.powerSaveBlocker.start('prevent-display-sleep');
       const horizontalContext = this.videoSettingsService.contexts.horizontal!;
       try {
+        this.streamingStartInProgress = true;
+        this.waitingForObsStreamingSignal = true;
         runObsOp('StreamingService', 'startStreaming', () => {
           obs.NodeObs.OBS_service_setVideoInfo(horizontalContext, 'horizontal');
           obs.NodeObs.OBS_service_startStreaming();
@@ -424,6 +443,8 @@ export class StreamingService
         // 一度も来ないまま終わる異常系がある。それを検知するために武装する。
         this.armStartWatchdog();
       } catch (e) {
+        this.waitingForObsStreamingSignal = false;
+        this.streamingStartInProgress = false;
         if (this.powerSaveId) {
           remote.powerSaveBlocker.stop(this.powerSaveId);
           this.powerSaveId = 0;
@@ -542,34 +563,48 @@ export class StreamingService
           .then(({ response: done }) => resolve(done));
       });
     }
-    const settings = this.settingsService.diffOptimizedSettings({
-      bitrate: streamingSetting.quality.bitrate,
-      height: streamingSetting.quality.height,
-      fps: streamingSetting.quality.fps,
-      useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
-    });
-    if (Object.keys(settings.delta).length > 0 || mustShowDialog || settings.canvasResolutionWarning) {
-      if (
-        this.customizationService.showOptimizationDialogForNiconico
-        || mustShowDialog
-        || this.isRecording
-        || settings.canvasResolutionWarning
-      ) {
-        this.windowsService.showWindow({
-          componentName: 'OptimizeForNiconico',
-          title: $t('streaming.optimizationForNiconico.title'),
-          queryParams: settings,
-          size: {
-            width: 600,
-            height: 594, // なぜ {@link this.calculateOptimizeWindowSize()} を使っていない?
-          },
-        });
+    try {
+      const settings = this.settingsService.diffOptimizedSettings({
+        bitrate: streamingSetting.quality.bitrate,
+        height: streamingSetting.quality.height,
+        fps: streamingSetting.quality.fps,
+        useHardwareEncoder: this.customizationService.optimizeWithHardwareEncoder,
+      });
+      if (Object.keys(settings.delta).length > 0 || mustShowDialog || settings.canvasResolutionWarning) {
+        if (
+          this.customizationService.showOptimizationDialogForNiconico
+          || mustShowDialog
+          || this.isRecording
+          || settings.canvasResolutionWarning
+        ) {
+          this.windowsService.showWindow({
+            componentName: 'OptimizeForNiconico',
+            title: $t('streaming.optimizationForNiconico.title'),
+            queryParams: settings,
+            size: {
+              width: 600,
+              height: 594, // なぜ {@link this.calculateOptimizeWindowSize()} を使っていない?
+            },
+          });
+        } else {
+          this.settingsService.optimizeForNiconico(settings.best);
+          this.toggleStreaming();
+        }
       } else {
-        this.settingsService.optimizeForNiconico(settings.best);
         this.toggleStreaming();
       }
-    } else {
-      this.toggleStreaming();
+    } catch (e) {
+      // 呼び出し元(toggleStreamingAsync)でも catch するが、二重の安全策としてここでも捕捉し
+      // ユーザーに必ずエラーダイアログを表示する。
+      SentryReport.error('StreamingService', 'optimizeForNiconicoAndStartStreaming', e, {
+        fingerprint: ['StreamingService', 'optimizeForNiconicoAndStartStreaming', 'niconico', 'exception'],
+      });
+      await remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        buttons: ['OK'],
+        title: $t('streaming.streamingError'),
+        type: 'error',
+        message: $t('streaming.startFailedError'),
+      });
     }
   }
 
@@ -986,6 +1021,11 @@ export class StreamingService
       // シグナルが来た＝フィードバック経路自体は生きている。以降のエラー処理は
       // 既存の仕組み(このメソッド末尾の info.code 処理)に任せてよいので解除する。
       this.clearStartWatchdog();
+
+      if (info.signal === EOBSOutputSignal.Start || info.signal === EOBSOutputSignal.Stop) {
+        this.waitingForObsStreamingSignal = false;
+        this.streamingStartInProgress = false;
+      }
 
       if (info.signal === EOBSOutputSignal.Start) {
         this.reconnectCount = 0;

@@ -31,11 +31,11 @@ importers:
         specifier: ^3.5.38
         version: 3.5.38
       color-picker:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/color-picker-1.3.11-win64.tar.gz
-        version: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/color-picker-1.3.11-win64.tar.gz
+        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/color-picker-1.3.11-win64.tar.gz
+        version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/color-picker-1.3.11-win64.tar.gz
       crash-handler:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/crash-handler-1.2.28-win64.tar.gz
-        version: spawn-crash-handler@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/crash-handler-1.2.28-win64.tar.gz
+        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/crash-handler-1.2.23-win64.tar.gz
+        version: spawn-crash-handler@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/crash-handler-1.2.23-win64.tar.gz
       electron-updater:
         specifier: 6.6.2
         version: 6.6.2
@@ -43,8 +43,8 @@ importers:
         specifier: 5.0.3
         version: 5.0.3
       font-manager:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/font-manager-1.2.10-win64.tar.gz
-        version: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/font-manager-1.2.10-win64.tar.gz
+        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz
+        version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz
       fuse.js:
         specifier: ~7.1.0
         version: 7.1.0
@@ -61,14 +61,14 @@ importers:
         specifier: ^3.5.0
         version: 3.7.2
       node-fontinfo:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-fontinfo-1.1.12-win64.tar.gz
-        version: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-fontinfo-1.1.12-win64.tar.gz
+        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz
+        version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz
       node-libuiohook:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-libuiohook-1.1.17-win64.tar.gz
-        version: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-libuiohook-1.1.17-win64.tar.gz
+        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz
+        version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz
       obs-studio-node:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/osn-0.26.28-release-win64.tar.gz
-        version: '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/osn-0.26.28-release-win64.tar.gz'
+        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz
+        version: '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz'
       protobufjs:
         specifier: ^8.7.1
         version: 8.7.1
@@ -1840,8 +1840,9 @@ packages:
   '@socket.io/component-emitter@3.1.2':
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
 
-  '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/osn-0.26.28-release-win64.tar.gz':
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/osn-0.26.28-release-win64.tar.gz}
+  '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz':
+    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz}
+    version: 0.25.56
 
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
@@ -2842,8 +2843,8 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  color-picker@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/color-picker-1.3.11-win64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/color-picker-1.3.11-win64.tar.gz}
+  color-picker@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/color-picker-1.3.11-win64.tar.gz:
+    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/color-picker-1.3.11-win64.tar.gz}
     version: 1.0.7
 
   colord@2.9.3:
@@ -3767,8 +3768,8 @@ packages:
       debug:
         optional: true
 
-  font-manager@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/font-manager-1.2.10-win64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/font-manager-1.2.10-win64.tar.gz}
+  font-manager@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz:
+    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz}
     version: 1.0.8
 
   for-each@0.3.5:
@@ -5153,15 +5154,15 @@ packages:
       encoding:
         optional: true
 
-  node-fontinfo@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-fontinfo-1.1.12-win64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-fontinfo-1.1.12-win64.tar.gz}
+  node-fontinfo@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz:
+    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz}
     version: 1.1.12
 
   node-int64@0.4.0:
     resolution: {integrity: sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==}
 
-  node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-libuiohook-1.1.17-win64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-libuiohook-1.1.17-win64.tar.gz}
+  node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz:
+    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz}
     version: 0.0.9
 
   node-releases@2.0.27:
@@ -6091,8 +6092,8 @@ packages:
     resolution: {integrity: sha512-i5uvt8C3ikiWeNZSVZNWcfZPItFQOsYTUAOkcUPGd8DqDy1uOUikjt5dG+uRlwyvR108Fb9DOd4GvXfT0N2/uQ==}
     engines: {node: '>= 12'}
 
-  spawn-crash-handler@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/crash-handler-1.2.28-win64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/crash-handler-1.2.28-win64.tar.gz}
+  spawn-crash-handler@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/crash-handler-1.2.23-win64.tar.gz:
+    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/crash-handler-1.2.23-win64.tar.gz}
     version: 0.0.1
 
   spdx-correct@3.2.0:
@@ -9037,7 +9038,7 @@ snapshots:
 
   '@socket.io/component-emitter@3.1.2': {}
 
-  '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/osn-0.26.28-release-win64.tar.gz': {}
+  '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz': {}
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:
@@ -10351,7 +10352,7 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  color-picker@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/color-picker-1.3.11-win64.tar.gz: {}
+  color-picker@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/color-picker-1.3.11-win64.tar.gz: {}
 
   colord@2.9.3: {}
 
@@ -11473,7 +11474,7 @@ snapshots:
 
   follow-redirects@1.16.0: {}
 
-  font-manager@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/font-manager-1.2.10-win64.tar.gz:
+  font-manager@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/font-manager-1.2.10-win64.tar.gz:
     dependencies:
       node-addon-api: 7.1.1
 
@@ -13046,13 +13047,13 @@ snapshots:
     optionalDependencies:
       encoding: 0.1.13
 
-  node-fontinfo@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-fontinfo-1.1.12-win64.tar.gz:
+  node-fontinfo@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz:
     dependencies:
       node-addon-api: 7.1.1
 
   node-int64@0.4.0: {}
 
-  node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/node-libuiohook-1.1.17-win64.tar.gz:
+  node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz:
     dependencies:
       node-addon-api: 7.1.1
 
@@ -14076,7 +14077,7 @@ snapshots:
 
   source-map@0.7.6: {}
 
-  spawn-crash-handler@https://github.com/n-air-app/native-deps/releases/download/osn0.26.28/crash-handler-1.2.28-win64.tar.gz:
+  spawn-crash-handler@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/crash-handler-1.2.23-win64.tar.gz:
     dependencies:
       node-addon-api: 7.1.1
 
