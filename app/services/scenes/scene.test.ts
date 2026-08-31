@@ -141,4 +141,23 @@ describe('Scene.reconcileNodeOrderWithObs (via moveNodes)', () => {
     expect(() => scene.moveNodes(['item1'])).not.toThrow();
     expect(obsScene.moveItem).not.toHaveBeenCalled();
   });
+
+  test('OBS側のアイテム数がstate側より少ないと、対応アイテムが見つかっても移動先indexが範囲外ならスキップする (N-AIR-APP-GGY)', () => {
+    const { scene, obsScene, Sentry } = prepare({
+      itemIds: [
+        { sceneItemId: 'item1', sourceId: 'source1', obsSceneItemId: 1 }, // OBS側に存在しない
+        { sceneItemId: 'item2', sourceId: 'source2', obsSceneItemId: 2 }, // OBS側に存在するがindex(1)が範囲外(length=1)
+      ],
+      obsItemIds: [2],
+    });
+
+    expect(() => scene.moveNodes(['item1'], '', 'item2')).not.toThrow();
+    expect(obsScene.moveItem).not.toHaveBeenCalled();
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      'OBS scene item not found for obsSceneItemId, skipping moveItem',
+    );
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      'Target index out of range for OBS scene items, skipping moveItem',
+    );
+  });
 });
