@@ -72,7 +72,7 @@ test('fetchFilters/失敗', async () => {
 
   await expect(instance.fetchFilters()).rejects.toMatchInlineSnapshot(`
 NicoliveFailure {
-  "additionalMessage": "ERROR_CODE: simple description",
+  "additionalMessage": "simple description (ERROR_CODE)",
   "errorCode": "ERROR_CODE",
   "failureKind": undefined,
   "method": "fetchFilters",
@@ -142,7 +142,7 @@ test('addFilters/失敗', async () => {
 
   await expect(instance.addFilter({ type: 'word', body: '810' })).rejects.toMatchInlineSnapshot(`
 NicoliveFailure {
-  "additionalMessage": "ERROR_CODE: simple description",
+  "additionalMessage": "simple description (ERROR_CODE)",
   "errorCode": "ERROR_CODE",
   "failureKind": undefined,
   "method": "addFilters",
@@ -196,7 +196,7 @@ test('deleteFilters/失敗', async () => {
 
   await expect(instance.deleteFilters([114514])).rejects.toMatchInlineSnapshot(`
 NicoliveFailure {
-  "additionalMessage": "ERROR_CODE: simple description",
+  "additionalMessage": "simple description (ERROR_CODE)",
   "errorCode": "ERROR_CODE",
   "failureKind": undefined,
   "method": "deleteFilters",
