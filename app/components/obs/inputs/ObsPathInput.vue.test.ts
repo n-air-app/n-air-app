@@ -13,7 +13,7 @@ jest.mock('@electron/remote', () => ({
 
 const ObsPathInput = require('./ObsPathInput.vue.ts').default;
 
-function makeContext(refsInput: HTMLInputElement | undefined) {
+function makeContext(refsInput: HTMLInputElement | null) {
   return {
     value: { name: 'test', type: 'OBS_PROPERTY_FILE', value: '', filters: [] },
     $refs: { input: refsInput },
@@ -32,7 +32,7 @@ describe('ObsPathInput.showFileDialog', () => {
     (remote.dialog.showOpenDialog as jest.Mock).mockResolvedValue({
       filePaths: ['C:/selected.txt'],
     });
-    const ctx = makeContext(undefined);
+    const ctx = makeContext(null);
 
     await expect(ObsPathInput.methods.showFileDialog.call(ctx)).resolves.toBeUndefined();
     expect(ctx.$emit).not.toHaveBeenCalled();

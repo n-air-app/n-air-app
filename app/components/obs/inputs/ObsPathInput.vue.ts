@@ -35,7 +35,7 @@ const ObsPathInput = defineComponent({
         options.properties!.push('openDirectory');
       }
       const { filePaths } = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), options);
-      const input = this.$refs.input as HTMLInputElement | undefined;
+      const input = this.$refs.input as HTMLInputElement | null;
       if (filePaths[0] && input) {
         input.value = filePaths[0];
         this.handleChange();
