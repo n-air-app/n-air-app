@@ -90,6 +90,21 @@ test('追加文言をAPIメッセージ（エラーコード）の順にする',
   expect(failure.additionalMessage).toBe('APIのエラーメッセージ (ERROR_CODE)');
 });
 
+test('エラーコードがなくAPIメッセージだけの場合は区切り文字を付けない', () => {
+  const { NicoliveFailure } = prepare('400');
+  const failure = NicoliveFailure.fromClientError('method', {
+    ok: false,
+    value: {
+      meta: {
+        status: 400,
+        errorMessage: 'APIのエラーメッセージ',
+      },
+    },
+  });
+
+  expect(failure.additionalMessage).toBe('APIのエラーメッセージ');
+});
+
 test('errorCodeがなかったらstatusCodeを使う', async () => {
   const { showMessageBox, NicoliveFailure, openErrorDialogFromFailure } = prepare('403');
   const failure = NicoliveFailure.fromClientError('method', {
