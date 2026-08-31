@@ -19,6 +19,7 @@ import tooltipDirective from 'directives/tooltip';
 import electron from 'electron';
 import { Settings } from 'luxon';
 import { setupGlobalContextMenuForEditableElement } from 'util/menus/GlobalMenu';
+import { filterNoiseErrorEvent } from 'util/sentry-noise-filter';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
 import { createApp } from 'vue';
@@ -89,29 +90,7 @@ if ((isProduction || process.env.NAIR_REPORT_TO_SENTRY) && !remote.process.env.N
   Sentry.init(
     {
       sampleRate: /* isPreview ? */ 1.0 /* : 0.1 */,
-      beforeSend(event) {
-        // 診断目的で構造化して送るイベントは NOISE チェックより前に通す
-        // (tags.diagnostic が設定されているものは意図的に送っているので除外しない)
-        if ((event.tags as Record<string, unknown>)?.diagnostic) {
-          return event;
-        }
-
-        // quota 対策: ユーザー側ネット環境起因またはアプリバグに起因しないノイズを除外する
-        const NOISE_PATTERNS = [
-          /Failed to make IPC call/,
-          /ERR_ABORTED/,
-          /ERR_FAILED/,
-          /read ECONNRESET/,
-          /network error/i,
-          /Failed to fetch/,
-        ];
-        const messageText =
-          (event.exception?.values?.[0]?.value) ?? event.message ?? '';
-        if (NOISE_PATTERNS.some((re) => re.test(messageText))) {
-          return null;
-        }
-        return event;
-      },
+      beforeSend: filterNoiseErrorEvent,
     },
   );
 
