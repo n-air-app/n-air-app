@@ -45,7 +45,9 @@ export class NicoliveFailure {
       return new this('network_error', method, kind, '', diagCode ?? '', route, kind);
     }
     const { errorCode, errorMessage } = res.value.meta;
-    const additionalMessage = `${errorCode ?? ''}${errorMessage ? `: ${errorMessage}` : ''}`;
+    const additionalMessage = errorMessage
+      ? `${errorMessage}${errorCode ? ` (${errorCode})` : ''}`
+      : (errorCode ?? '');
     return new this(
       'http_error',
       method,
