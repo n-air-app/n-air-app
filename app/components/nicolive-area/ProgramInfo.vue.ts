@@ -87,10 +87,6 @@ export default defineComponent({
       return url.toString();
     },
 
-    isFetching(): boolean {
-      return NicoliveProgramService.instance().state.isFetching;
-    },
-
     existsProgramPassword(): boolean {
       return !!NicoliveProgramService.instance().state.password;
     },
@@ -149,14 +145,12 @@ export default defineComponent({
     },
 
     copyProgramURL() {
-      if (this.isFetching) throw new Error('fetchProgram is running');
       clipboard.writeText(
         HostsService.instance().getWatchPageURL(NicoliveProgramService.instance().state.programID),
       );
     },
 
     copyProgramPassword() {
-      if (this.isFetching) throw new Error('fetchProgram is running');
       clipboard.writeText(NicoliveProgramService.instance().state.password ?? '');
     },
   },
