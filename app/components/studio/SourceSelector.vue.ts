@@ -6,8 +6,12 @@ import { SourcesService } from 'services/sources';
 import { EditMenu } from 'util/menus/EditMenu';
 import { defineComponent } from 'vue';
 
+import Popper from '../shared/Popper.vue';
 import TreeView from '../shared/tree-view/TreeView.vue';
 import { ITreeCursorPosition, ITreeNode, ITreeNodeModel } from '../shared/tree-view/types';
+
+// サイドバーアイコンをまとめるかどうかの幅の閾値
+const NARROW_SIDEBAR_THRESHOLD = 240;
 
 const sourceIconMap = {
   ffmpeg_source: 'icon-media',
@@ -38,7 +42,7 @@ const sourceIconMap = {
 export default defineComponent({
   name: 'SourceSelector',
 
-  components: { TreeView },
+  components: { TreeView, Popper },
 
   data() {
     return {
@@ -53,7 +57,23 @@ export default defineComponent({
       unlockFolderTooltip: $t('scenes.unlockFolderTooltip'),
       visibilityTooltip: $t('scenes.visibilityTooltip'),
       expandedFoldersIds: [] as string[],
+      narrowSidebar: false,
     };
+  },
+
+  mounted() {
+    const el = this.$el as HTMLElement;
+    (this as any)._resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        this.narrowSidebar = entry.contentRect.width < NARROW_SIDEBAR_THRESHOLD;
+      }
+    });
+    (this as any)._resizeObserver.observe(el);
+    this.narrowSidebar = el.offsetWidth < NARROW_SIDEBAR_THRESHOLD;
+  },
+
+  beforeUnmount() {
+    (this as any)._resizeObserver?.disconnect();
   },
 
   computed: {

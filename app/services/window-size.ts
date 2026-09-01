@@ -17,7 +17,7 @@ interface IWindowSizeState {
   isReady: boolean; // 初期化が完了したかどうか
 }
 
-const STUDIO_WIDTH = 800;
+const STUDIO_WIDTH = 500;
 const SIDENAV_WIDTH = 48;
 const NICOLIVE_PANEL_WIDTH = 400;
 const PANEL_DIVIDER_WIDTH = 24;

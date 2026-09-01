@@ -10,7 +10,7 @@
     </div>
   </div>
   <div class="footer" v-else>
-    <div class="flex flex--center flex--grow flex--justify-start">
+    <div class="flex flex--center flex--grow flex--justify-start footer__metrics">
       <performance-metrics />
     </div>
     <streaming-controller :locked="locked" />
@@ -44,5 +44,10 @@
     height: 32px;
     background-color: var(--color-bg-secondary);
   }
+}
+
+.footer__metrics {
+  max-height: 40px;
+  overflow: hidden;
 }
 </style>
