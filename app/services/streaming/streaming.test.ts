@@ -1180,7 +1180,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
 
   await instance.toggleStreamingAsync();
-  expect(updateStreamSettings).toBeCalledWith('lv12345');
+  expect(updateStreamSettings).toHaveBeenCalledWith('lv12345');
   expect(instance.optimizeForNiconicoAndStartStreaming).toHaveBeenCalledTimes(1);
   expect(instance.toggleStreaming).not.toHaveBeenCalled();
 });
@@ -1216,7 +1216,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
   instance.client.fetchOnairChannels = jest.fn(() => Promise.resolve({ ok: true, value: [] }));
 
   await instance.toggleStreamingAsync();
-  expect(updateStreamSettings).toBeCalledWith('lv12345');
+  expect(updateStreamSettings).toHaveBeenCalledWith('lv12345');
   expect(instance.optimizeForNiconicoAndStartStreaming).toHaveBeenCalledTimes(1);
   expect(instance.toggleStreaming).not.toHaveBeenCalled();
 });
@@ -1250,7 +1250,7 @@ test('toggleStreamingAsyncでstreamingStatusがoffline、ニコニコにログ�
 
   await instance.toggleStreamingAsync();
 
-  expect(updateStreamSettings).toBeCalledWith('lv67890');
+  expect(updateStreamSettings).toHaveBeenCalledWith('lv67890');
   expect(instance.optimizeForNiconicoAndStartStreaming).toHaveBeenCalledTimes(1);
   expect(instance.toggleStreaming).not.toHaveBeenCalled();
 });
