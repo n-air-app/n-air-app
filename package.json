@@ -125,7 +125,7 @@
     "jest": "^30.5.1",
     "jest-environment-jsdom": "^30.5.1",
     "jsonc-eslint-parser": "^3.3.0",
-    "less": "^4.6.6",
+    "less": "^4.9.0",
     "less-loader": "^12.3.0",
     "lint-staged": "^16.4.0",
     "node-win32-np": "1.0.6",
