@@ -69,7 +69,7 @@
   box-sizing: border-box;
   width: 100%;
   max-height: 160px;
-  padding: 0 32px;
+  padding: 0 48px 0 32px;
   margin-bottom: 32px;
   overflow-x: hidden;
   overflow-y: auto;
