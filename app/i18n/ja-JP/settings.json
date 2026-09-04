@@ -759,6 +759,7 @@
     "info": {
       "error": "エラー",
       "status": "ステータス",
+      "processing": "サブ配信機能と通信しています...",
       "stopped": "停止中",
       "frames": "送出フレーム数",
       "dropped": "ドロップ数"
@@ -767,7 +768,13 @@
       "url_key": "URLとストリームキーを設定してください",
       "bad_path": "URLが不正です",
       "connect_failed": "接続に失敗しました",
-      "invalid_stream": "ストリームが無効です"
+      "invalid_stream": "ストリームが無効です",
+      "busy_timeout": "サブ配信の処理が完了しませんでした。しばらく待ってから再度お試しください",
+      "communication_failed": "サブ配信プロセスと通信できないため、操作を実行できませんでした",
+      "start_failed": "サブ配信を開始できませんでした",
+      "stop_failed": "サブ配信を停止できませんでした",
+      "command_in_progress": "サブ配信の別の処理を実行中です。しばらく待ってから再度お試しください",
+      "encoder_list_failed": "サブ配信機能と通信できず、エンコーダー一覧を取得できませんでした。N Airをすべて終了し、残っているobs64.exeを終了してから再度お試しください"
     },
     "status": {
       "starting": "配信開始処理中..",

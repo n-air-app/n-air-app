@@ -28,6 +28,10 @@ export default defineComponent({
       keyintSec: SubStreamService.defaultState.keyintSec,
       sync: SubStreamService.defaultState.sync,
       status: '',
+      initializationError: '',
+      commandError: '',
+      commandMessage: '',
+      commandExecuting: false,
       showKey: false,
       checker: undefined as number | undefined,
       defaultServers: {
@@ -105,8 +109,8 @@ export default defineComponent({
     this.audioBitrate = SubStreamService.instance().state.audioBitrate;
     this.sync = SubStreamService.instance().state.sync;
 
-    const r = await SubStreamService.instance().enumEncoderTypes();
-    if (r.encoders) {
+    try {
+      const r = await SubStreamService.instance().enumEncoderTypes();
       this.videoCodecs = r.encoders.video
         .filter((v) => !/h265|hevc|fallback_amf|qsv11_soft/.test(v.id))
         .map((v) => ({
@@ -128,6 +132,9 @@ export default defineComponent({
       ) ?? { id: 'ffmpeg_aac', name: 'ffmpeg_aac' };
 
       this.startChecker();
+    } catch (err) {
+      console.error('Failed to initialize substream settings:', err);
+      this.initializationError = $t('settings.substream.error.encoder_list_failed');
     }
   },
   beforeUnmount() {
@@ -178,13 +185,28 @@ export default defineComponent({
       this.checker = undefined;
     },
     async start() {
-      const message = await SubStreamService.instance().start();
-      if (message) {
-        remote.dialog.showErrorBox('Error', message);
+      this.commandError = '';
+      this.commandMessage = $t('settings.substream.info.processing');
+      this.commandExecuting = true;
+      try {
+        const message = await SubStreamService.instance().start();
+        if (message) this.commandError = message;
+      } finally {
+        this.commandMessage = '';
+        this.commandExecuting = false;
       }
     },
     async stop() {
-      await SubStreamService.instance().stop();
+      this.commandError = '';
+      this.commandMessage = $t('settings.substream.info.processing');
+      this.commandExecuting = true;
+      try {
+        const message = await SubStreamService.instance().stop();
+        if (message) this.commandError = message;
+      } finally {
+        this.commandMessage = '';
+        this.commandExecuting = false;
+      }
     },
   },
 });
