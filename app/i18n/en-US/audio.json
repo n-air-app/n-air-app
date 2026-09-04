@@ -10,5 +10,7 @@
   "tracks": "Tracks",
   "advancedAudioSettings": "Advanced Audio Settings",
   "mixer": "Mixer",
+  "mute": "Mute",
+  "unmute": "Unmute",
   "mixerTooltip": "Monitor audio levels. If the bars are moving you are outputting audio."
 }
