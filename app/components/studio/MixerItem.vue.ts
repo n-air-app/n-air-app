@@ -22,22 +22,23 @@ export default defineComponent({
   data() {
     return {
       narrowControls: false,
+      resizeObserver: null as ResizeObserver | null,
     };
   },
 
   mounted() {
     const el = this.$el as HTMLElement;
-    (this as any)._resizeObserver = new ResizeObserver((entries) => {
+    this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         this.narrowControls = entry.contentRect.width < NARROW_MIXER_THRESHOLD;
       }
     });
-    (this as any)._resizeObserver.observe(el);
+    this.resizeObserver.observe(el);
     this.narrowControls = el.offsetWidth < NARROW_MIXER_THRESHOLD;
   },
 
   beforeUnmount() {
-    (this as any)._resizeObserver?.disconnect();
+    this.resizeObserver?.disconnect();
   },
 
   computed: {

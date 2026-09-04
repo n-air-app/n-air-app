@@ -58,22 +58,23 @@ export default defineComponent({
       visibilityTooltip: $t('scenes.visibilityTooltip'),
       expandedFoldersIds: [] as string[],
       narrowSidebar: false,
+      resizeObserver: null as ResizeObserver | null,
     };
   },
 
   mounted() {
     const el = this.$el as HTMLElement;
-    (this as any)._resizeObserver = new ResizeObserver((entries) => {
+    this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         this.narrowSidebar = entry.contentRect.width < NARROW_SIDEBAR_THRESHOLD;
       }
     });
-    (this as any)._resizeObserver.observe(el);
+    this.resizeObserver.observe(el);
     this.narrowSidebar = el.offsetWidth < NARROW_SIDEBAR_THRESHOLD;
   },
 
   beforeUnmount() {
-    (this as any)._resizeObserver?.disconnect();
+    this.resizeObserver?.disconnect();
   },
 
   computed: {

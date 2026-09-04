@@ -30,14 +30,14 @@
         <template v-if="!narrowControls">
           <i
             class="icon-btn icon-speaker"
-            title="click to switch off"
+            :title="$t('audio.mute')"
             v-if="!audioSource.muted"
             @click="setMuted(true)"
           >
           </i>
           <i
             class="icon-btn icon-mute"
-            title="click to switch on"
+            :title="$t('audio.unmute')"
             v-if="audioSource.muted"
             @click="setMuted(false)"
           >
@@ -54,13 +54,13 @@
             <div class="popper mixer-actions-menu">
               <ul class="popup-menu-list">
                 <li class="popup-menu-item">
-                  <button class="source-actions-menu__item" @click="setMuted(!audioSource.muted)">
+                  <button class="popup-menu-item__button" @click="setMuted(!audioSource.muted)">
                     <i :class="audioSource.muted ? 'icon-mute' : 'icon-speaker'" />
                     {{ audioSource.muted ? $t('audio.unmute') : $t('audio.mute') }}
                   </button>
                 </li>
                 <li class="popup-menu-item" v-if="!isCompactMode">
-                  <button class="source-actions-menu__item" @click="showSourceMenu(audioSource.sourceId)">
+                  <button class="popup-menu-item__button" @click="showSourceMenu(audioSource.sourceId)">
                     <i class="icon-settings" />
                     {{ $t('audio.advancedAudioSettings') }}
                   </button>

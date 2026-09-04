@@ -83,7 +83,7 @@
                 <ul class="popup-menu-list">
                   <li class="popup-menu-item">
                     <button
-                      class="source-actions-menu__item"
+                      class="popup-menu-item__button"
                       @click.stop="toggleLock(node.data.id)"
                     >
                       <i :class="lockClassesForSource(node.data.id)" />
@@ -92,7 +92,7 @@
                   </li>
                   <li class="popup-menu-item">
                     <button
-                      class="source-actions-menu__item"
+                      class="popup-menu-item__button"
                       @click.stop="toggleVisibility(node.data.id)"
                     >
                       <i :class="visibilityClassesForSource(node.data.id)" />
@@ -101,7 +101,7 @@
                   </li>
                   <li class="popup-menu-item">
                     <button
-                      class="source-actions-menu__item"
+                      class="popup-menu-item__button"
                       @click.stop="removeItems"
                     >
                       <i class="icon-delete" />
@@ -110,7 +110,7 @@
                   </li>
                   <li class="popup-menu-item">
                     <button
-                      class="source-actions-menu__item"
+                      class="popup-menu-item__button"
                       @click.stop="sourceProperties"
                     >
                       <i class="icon-settings" />
@@ -148,30 +148,6 @@
 
 .source-actions-menu {
   min-width: 140px;
-}
-
-.source-actions-menu__item {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-  padding: 6px 12px;
-  font-size: @font-size2;
-  color: var(--color-text);
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-
-  i {
-    flex-shrink: 0;
-    width: 16px;
-    text-align: center;
-  }
-
-  &:hover {
-    color: var(--color-text-light);
-    background-color: var(--color-bg-active);
-  }
 }
 
 .source-selector-action {
