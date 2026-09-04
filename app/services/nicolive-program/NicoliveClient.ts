@@ -450,7 +450,7 @@ export class NicoliveClient {
             'Electron network request failed; Node.js fallback succeeded',
             {
               level: 'warning',
-              fingerprint: ['NicoliveClient', 'electron-net-fallback', res.electronNetErrorCode],
+              fingerprint: ['NicoliveClient', 'electron-net-fallback'],
               tags: {
                 transport: 'electron-net',
                 errorCode: res.electronNetErrorCode,
