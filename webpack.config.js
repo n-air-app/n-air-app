@@ -197,6 +197,9 @@ module.exports = function (env, argv) {
         'font-manager': 'require("font-manager")',
         'color-picker': 'require("color-picker")',
         'node-fontinfo': 'require("node-fontinfo")',
+        // Socket.IO server depends on the Node.js implementation of ws.
+        // Bundling it for the renderer resolves ws to its browser-only shim.
+        'socket.io': 'require("socket.io")',
       },
 
       module: {
