@@ -3,7 +3,6 @@ import { fileURLToPath } from 'url';
 
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
-import jest from 'eslint-plugin-jest';
 import jsoncPlugin from 'eslint-plugin-jsonc';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
@@ -233,7 +232,6 @@ export default [
 
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      jest,
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
     },
@@ -281,7 +279,6 @@ export default [
     plugins: {
       vue,
       '@typescript-eslint': tseslint.plugin,
-      jest,
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
     },
