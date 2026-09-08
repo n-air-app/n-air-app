@@ -458,13 +458,14 @@
       "original_voice": "オリジナルボイス",
       "remove_voice": "ボイスを削除",
       "copy_voice": "ボイスを複製",
-      "check_voice": "変換後音声を聞く",
+      "check_voice": "変換後音声をプレビュー",
       "original_voice_add": "オリジナルボイスを追加",
       "remove_confirm": "削除しますか？",
       "add_voice": "ボイス作成",
       "play_sample": "サンプルボイスを再生",
       "open_menu": "メニューを開く",
-      "preview_audio_on": "ミキサーの高度な設定でプレビュー音声がONになっています"
+      "preview_audio_on": "ミキサーの高度な設定でプレビュー音声がONになっています",
+      "preview_stop_notice": "プロパティを閉じるとプレビューを停止します"
     },
     "container": {
       "voice_name": "名前",

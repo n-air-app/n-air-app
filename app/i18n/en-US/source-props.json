@@ -464,7 +464,8 @@
       "add_voice": "Add voice",
       "play_sample": "Play sample",
       "open_menu": "Open menu",
-      "preview_audio_on": "Preview audio is turned on in the mixer advanced settings"
+      "preview_audio_on": "Preview audio is turned on in the mixer advanced settings",
+      "preview_stop_notice": "Closing the properties window stops the preview"
     },
     "container": {
       "voice_name": "Name",
