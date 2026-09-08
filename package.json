@@ -107,7 +107,7 @@
     "babel-loader": "^10.1.1",
     "cross-env": "~10.1.0",
     "css-loader": "^7.1.5",
-    "electron": "29.4.5",
+    "electron": "44.2.0",
     "electron-builder": "26.0.12",
     "electron-chromedriver": "29.4.5",
     "eslint": "^9.39.0",
