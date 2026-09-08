@@ -132,7 +132,7 @@
     "pixelmatch": "~7.2.0",
     "pngjs": "^7.0.0",
     "postcss": "^8.5.26",
-    "postcss-html": "^1.8.1",
+    "postcss-html": "^2.0.0",
     "postcss-less": "^6.0.0",
     "postcss-loader": "^8.2.1",
     "recursive-readdir": "~2.2.3",
