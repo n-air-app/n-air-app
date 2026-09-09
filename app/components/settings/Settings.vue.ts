@@ -118,12 +118,15 @@ export default defineComponent({
     streamingStatus() {
       if (this.settingsRefreshTimer) clearTimeout(this.settingsRefreshTimer);
 
-      // OBS does not expose a signal for completion of the settings unlock. The streaming
-      // stop signal can arrive before it, so retry briefly after returning to Offline.
+      // OBS には設定ロック解除の完了通知がなく、配信停止シグナルが先に届くことがあるため、
+      // Offline に戻った後は短時間再取得を繰り返す
       const delays = this.streamingStatus === EStreamingState.Offline ? [0, 100, 500, 1000] : [0];
       const refresh = (index: number) => {
         this.settingsRefreshTimer = setTimeout(() => {
-          if (!this.categoryName) return;
+          if (!this.categoryName) {
+            this.settingsRefreshTimer = null;
+            return;
+          }
           this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
           if (index + 1 < delays.length) {
             refresh(index + 1);
