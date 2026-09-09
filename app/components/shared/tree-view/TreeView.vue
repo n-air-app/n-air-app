@@ -2,7 +2,7 @@
   <div ref="root" class="tree-view tree-view-root" @contextmenu.self="$emit('contextmenu', $event)" @dragover="onRootDragOver" @drop="onDrop">
     <div class="tree-view-nodes-list">
       <div v-for="node in visibleNodes" :key="node.pathStr" class="tree-view-node" :class="{ 'tree-view-selected': node.isSelected }">
-        <div class="tree-view-cursor tree-view-cursor_before" :style="cursorStyle(node, 'before')" />
+        <div class="tree-view-cursor tree-view-cursor_before" />
         <div
           class="tree-view-node-item"
           :class="nodeClasses(node)"
@@ -26,7 +26,7 @@
           </div>
           <div class="tree-view-sidebar"><slot name="sidebar" :node="node" /></div>
         </div>
-        <div class="tree-view-cursor tree-view-cursor_after" :style="cursorStyle(node, 'after')" />
+        <div class="tree-view-cursor tree-view-cursor_after" />
       </div>
     </div>
   </div>
@@ -129,6 +129,7 @@
   right: 0;
   left: calc(var(--depth) * 24px + 12px);
   z-index: 1;
+  visibility: hidden;
   height: 1px;
   pointer-events: none;
 

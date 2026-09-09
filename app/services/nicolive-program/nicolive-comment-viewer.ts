@@ -269,7 +269,7 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
               || !this.nicoliveCommentFilterService.isBroadcastersFilter(event.record)
             ) {
               const { ssngId, userName, userId } = event.record;
-              const record = this.nicoliveCommentFilterService.findFilterCache(ssngId);
+              const record = this.nicoliveCommentFilterService.findFilterById(ssngId);
 
               if (record) {
                 this.nicoliveCommentFilterService.deleteFiltersCache([ssngId]);

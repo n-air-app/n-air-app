@@ -1,7 +1,21 @@
-import { CSSProperties, defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
+import { clearTreeCursor, updateTreeCursor } from './tree-cursor';
 import { buildTreeNodes, flattenTree, getDropPlacement, isSameOrDescendant, resolveDropPosition, selectNodes } from './tree-utils';
-import { ITreeCursorPosition, ITreeNode, ITreeNodeModel, TDropPlacement } from './types';
+import { ITreeCursorPosition, ITreeNode, ITreeNodeModel } from './types';
+
+function cursorPositionKey(position: ITreeCursorPosition<unknown> | null): string {
+  if (!position) return '';
+  return [
+    position.node.pathStr,
+    position.placement,
+    position.parentNode?.pathStr || '',
+    position.beforeNode?.pathStr || '',
+    position.lineNode?.pathStr || '',
+    position.linePlacement || '',
+    position.lineLevel || '',
+  ].join('|');
+}
 
 export default defineComponent({
   name: 'TreeView',
@@ -29,21 +43,11 @@ export default defineComponent({
   beforeUnmount() { this.stopScroll(); },
   methods: {
     nodeClasses(node: ITreeNode<unknown>) {
-      const cursor = this.cursorPosition?.node.pathStr === node.pathStr;
       return {
-        'tree-view-cursor-hover': cursor,
-        'tree-view-cursor-inside': cursor && this.cursorPosition?.placement === 'inside',
         'tree-view-dragging': this.draggingNodes.some((candidate: ITreeNode<unknown>) => candidate.pathStr === node.pathStr),
         'tree-view-node-is-leaf': node.isLeaf,
         'tree-view-node-is-folder': !node.isLeaf,
       };
-    },
-    cursorStyle(node: ITreeNode<unknown>, placement: TDropPlacement): CSSProperties {
-      const lineNode = this.cursorPosition?.lineNode || this.cursorPosition?.node;
-      const linePlacement = this.cursorPosition?.linePlacement || this.cursorPosition?.placement;
-      const visible = lineNode?.pathStr === node.pathStr && linePlacement === placement;
-      const level = this.cursorPosition?.lineLevel || node.level;
-      return { visibility: visible ? 'visible' : 'hidden', '--depth': level - 1 } as CSSProperties;
     },
     emitSelection(node: ITreeNode<unknown>, event: MouseEvent, additive: boolean, anchor?: string) {
       this.lastSelectedPath = node.pathStr;
@@ -62,6 +66,18 @@ export default defineComponent({
       }
     },
     toggle(node: ITreeNode<unknown>, event: MouseEvent) { this.$emit('toggle', node, event); },
+    clearCursorDisplay() {
+      clearTreeCursor(this.$refs.root as HTMLElement);
+    },
+    updateCursorDisplay(position: ITreeCursorPosition<unknown>) {
+      updateTreeCursor(this.$refs.root as HTMLElement, position);
+    },
+    updateCursorPosition(position: ITreeCursorPosition<unknown>): boolean {
+      if (cursorPositionKey(this.cursorPosition) === cursorPositionKey(position)) return false;
+      this.cursorPosition = position;
+      this.updateCursorDisplay(position);
+      return true;
+    },
     onDragStart(node: ITreeNode<unknown>, event: DragEvent) {
       if (!node.isDraggable) { event.preventDefault(); return; }
       this.dragStarted = true;
@@ -77,7 +93,9 @@ export default defineComponent({
       const placement = getDropPlacement(!!node.isLeaf, event.clientY - rect.top, rect.height, this.edgeSize);
       const rootRect = (this.$refs.root as HTMLElement).getBoundingClientRect();
       const desiredLevel = Math.max(1, Math.floor((event.clientX - rootRect.left - 12) / 24) + 1);
-      this.cursorPosition = resolveDropPosition(this.allNodes, this.visibleNodes, node, placement, desiredLevel);
+      this.updateCursorPosition(
+        resolveDropPosition(this.allNodes, this.visibleNodes, node, placement, desiredLevel),
+      );
       this.updateAutoScroll(event.clientY);
     },
     onRootDragOver(event: DragEvent) {
@@ -88,7 +106,9 @@ export default defineComponent({
       const node = before ? this.visibleNodes[0] : this.visibleNodes[this.visibleNodes.length - 1];
       if (node) {
         const placement = before ? 'before' : 'after';
-        this.cursorPosition = resolveDropPosition(this.allNodes, this.visibleNodes, node, placement, 1);
+        this.updateCursorPosition(
+          resolveDropPosition(this.allNodes, this.visibleNodes, node, placement, 1),
+        );
       }
       this.updateAutoScroll(event.clientY);
     },
@@ -120,6 +140,7 @@ export default defineComponent({
     },
     stopScroll() { cancelAnimationFrame(this.scrollFrame); this.scrollFrame = 0; this.scrollSpeed = 0; },
     stopDrag() {
+      this.clearCursorDisplay();
       this.draggingNodes = [];
       this.cursorPosition = null;
       this.stopScroll();

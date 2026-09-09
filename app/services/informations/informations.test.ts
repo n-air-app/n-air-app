@@ -116,7 +116,7 @@ test('fetchFeed(private):パース失敗', async () => {
 
   (instance as any).SET_FETCHING = jest.fn();
 
-  await expect((instance as any).fetchFeed()).rejects.toThrowError('parse error');
+  await expect((instance as any).fetchFeed()).rejects.toThrow('parse error');
   expect((instance as any).SET_FETCHING).toHaveBeenCalledTimes(2);
   expect((instance as any).SET_FETCHING).toHaveBeenNthCalledWith(1, true);
   expect((instance as any).SET_FETCHING).toHaveBeenNthCalledWith(2, false);

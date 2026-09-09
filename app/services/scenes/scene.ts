@@ -348,10 +348,8 @@ export class Scene {
     const obsScene = this.getObsScene();
     this.getItems().forEach((item, index) => {
       // moveItem実行後はOBS側の並びが変わるため、都度取り直す必要がある。
-      const currentIndex = obsScene
-        .getItems()
-        .reverse()
-        .findIndex((obsItem) => obsItem.id === item.obsSceneItemId);
+      const obsItems = obsScene.getItems().reverse();
+      const currentIndex = obsItems.findIndex((obsItem) => obsItem.id === item.obsSceneItemId);
       // stateとOBS側のアイテム集合が一時的にズレている(ドラッグ操作中の削除・
       // シーン切替との競合など)と対応するOBS側アイテムが見つからないことがある。
       // その場合はこのアイテムの並び替えのみスキップして処理を継続する。
@@ -359,6 +357,15 @@ export class Scene {
         SentryReport.message('Scene', 'reconcileNodeOrderWithObs', 'OBS scene item not found for obsSceneItemId, skipping moveItem', {
           level: 'warning',
           extra: { sceneId: this.id, sceneItemId: item.id, obsSceneItemId: item.obsSceneItemId, index },
+        });
+        return;
+      }
+      // 同様の理由でOBS側のアイテム数がstate側より少ないと、移動先indexが範囲外になり
+      // ネイティブ側のmoveItemが例外を投げる。この場合も並び替えをスキップする。
+      if (index >= obsItems.length) {
+        SentryReport.message('Scene', 'reconcileNodeOrderWithObs', 'Target index out of range for OBS scene items, skipping moveItem', {
+          level: 'warning',
+          extra: { sceneId: this.id, sceneItemId: item.id, obsSceneItemId: item.obsSceneItemId, index, obsItemsLength: obsItems.length },
         });
         return;
       }

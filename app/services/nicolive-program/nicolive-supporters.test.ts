@@ -64,7 +64,7 @@ describe('update', () => {
     expect(instance.state.supporterIds).toEqual([]);
 
     const supporterIds = await instance.update();
-    expect(fetchSupporters).toBeCalledTimes(1);
+    expect(fetchSupporters).toHaveBeenCalledTimes(1);
     expect(supporterIds).toEqual(['1', '2', '3']);
 
     // 事後状態
@@ -83,10 +83,10 @@ describe('update', () => {
       },
     });
     await instance.update();
-    expect(fetchSupporters).toBeCalledTimes(1);
+    expect(fetchSupporters).toHaveBeenCalledTimes(1);
     expect(instance.state.supporterIds).toEqual([]);
 
-    expect(openErrorDialogFromFailure).toBeCalledWith(
+    expect(openErrorDialogFromFailure).toHaveBeenCalledWith(
       expect.objectContaining({
         additionalMessage: 'error_code',
         errorCode: 'error_code',

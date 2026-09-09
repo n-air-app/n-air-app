@@ -10,3 +10,7 @@ onlyBuiltDependencies:
   - husky
   - protobufjs
   - vue-popperjs
+
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - unrs-resolver

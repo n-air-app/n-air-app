@@ -390,7 +390,7 @@ describe('ステップ比較系メソッド', () => {
         instance.backTo('channelSelect');
         instance.backTo('programSelect');
         instance.backTo('confirm');
-        expect((instance as any).SET_STATE).not.toBeCalled();
+        expect((instance as any).SET_STATE).not.toHaveBeenCalled();
       });
     });
     describe('broadcastChanelSelect ステップのインスタンスに対して状態をクリアできる', () => {
@@ -412,7 +412,7 @@ describe('ステップ比較系メソッド', () => {
         instance.backTo('channelSelect');
         instance.backTo('programSelect');
         instance.backTo('confirm');
-        expect((instance as any).SET_STATE).not.toBeCalled();
+        expect((instance as any).SET_STATE).not.toHaveBeenCalled();
       });
     });
     describe('programSelect ステップのインスタンスに対して状態をクリアできる', () => {
@@ -445,7 +445,7 @@ describe('ステップ比較系メソッド', () => {
         (instance as any).SET_STATE = jest.fn();
         instance.backTo('programSelect');
         instance.backTo('confirm');
-        expect((instance as any).SET_STATE).not.toBeCalled();
+        expect((instance as any).SET_STATE).not.toHaveBeenCalled();
       });
     });
     describe('confirm ステップ (チャンネル番組) のインスタンスに対して状態をクリアできる', () => {
@@ -492,7 +492,7 @@ describe('ステップ比較系メソッド', () => {
         const instance = await createServiceInstanceByStep('confirm', 'channel');
         (instance as any).SET_STATE = jest.fn();
         instance.backTo('confirm');
-        expect((instance as any).SET_STATE).not.toBeCalled();
+        expect((instance as any).SET_STATE).not.toHaveBeenCalled();
       });
     });
     describe('confirm ステップ (ユーザー番組) のインスタンスに対して状態をクリアできる', () => {
@@ -514,7 +514,7 @@ describe('ステップ比較系メソッド', () => {
         instance.backTo('channelSelect'); // ユーザー番組ではスキップされるため無効
         instance.backTo('programSelect'); // ユーザー番組ではスキップされるため無効
         instance.backTo('confirm');
-        expect((instance as any).SET_STATE).not.toBeCalled();
+        expect((instance as any).SET_STATE).not.toHaveBeenCalled();
       });
     });
   });
