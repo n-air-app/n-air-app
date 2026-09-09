@@ -92,6 +92,7 @@ export default defineComponent({
       isTocOpen: true,
       currentActiveTocId: null as string | null,
       tocManager: new TocManager(),
+      settingsRefreshTimer: null as ReturnType<typeof setTimeout> | null,
     };
   },
   computed: {
@@ -115,8 +116,23 @@ export default defineComponent({
   },
   watch: {
     streamingStatus() {
-      if (!this.categoryName) return;
-      this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+      if (this.settingsRefreshTimer) clearTimeout(this.settingsRefreshTimer);
+
+      // OBS does not expose a signal for completion of the settings unlock. The streaming
+      // stop signal can arrive before it, so retry briefly after returning to Offline.
+      const delays = this.streamingStatus === EStreamingState.Offline ? [0, 100, 500, 1000] : [0];
+      const refresh = (index: number) => {
+        this.settingsRefreshTimer = setTimeout(() => {
+          if (!this.categoryName) return;
+          this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+          if (index + 1 < delays.length) {
+            refresh(index + 1);
+          } else {
+            this.settingsRefreshTimer = null;
+          }
+        }, delays[index]);
+      };
+      refresh(0);
     },
     categoryName(categoryName: SettingsCategory) {
       this.settingsData = SettingsService.instance().getSettingsFormData(categoryName);
@@ -159,6 +175,7 @@ export default defineComponent({
     }
   },
   beforeUnmount() {
+    if (this.settingsRefreshTimer) clearTimeout(this.settingsRefreshTimer);
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
