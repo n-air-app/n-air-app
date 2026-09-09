@@ -23,8 +23,8 @@ test('loadManifestFileで初回起動の場合', async () => {
 
   await instance.loadManifestFile();
 
-  expect(instance.LOAD_STATE).not.toBeCalled();
-  expect(instance._loadManifestFile).toBeCalledTimes(1);
+  expect(instance.LOAD_STATE).not.toHaveBeenCalled();
+  expect(instance._loadManifestFile).toHaveBeenCalledTimes(1);
 });
 
 test('loadManifestFileでオリジナルのmanifestが読める場合', async () => {
@@ -76,5 +76,5 @@ test('loadManifestFileでバックアップも読み取れない場合', async (
 
   await instance.loadManifestFile();
 
-  expect(instance.LOAD_STATE).not.toBeCalled();
+  expect(instance.LOAD_STATE).not.toHaveBeenCalled();
 });

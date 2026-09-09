@@ -280,7 +280,7 @@ function connectionSetup(options: { speechEnabled?: boolean; httpRelationEnabled
       },
       NicoliveCommentFilterService: {
         addFilterCache: () => {},
-        findFilterCache: () => ({ type: 'word', body: NG_WORD } as FilterRecord),
+        findFilterById: () => ({ type: 'word', body: NG_WORD } as FilterRecord),
         deleteFiltersCache: () => {},
         applyFilter: (msg: WrappedMessage) => {
           return { ...msg, filtered: isWrappedChat(msg) && msg.value.content === NG_WORD };

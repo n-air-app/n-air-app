@@ -7,6 +7,7 @@ import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
+import { SnackbarService } from 'services/snackbar';
 import { StreamingService } from 'services/streaming';
 import { defineComponent } from 'vue';
 
@@ -177,7 +178,12 @@ export default defineComponent({
     async extendProgram() {
       if (this.isExtending) throw new Error('extendProgram is running');
       try {
-        return await NicoliveProgramService.instance().extendProgram();
+        await NicoliveProgramService.instance().extendProgram();
+        SnackbarService.instance().show({
+          position: 'niconico',
+          message: $t('nicolive-program.extended'),
+        });
+        return;
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
           await openErrorDialogFromFailure(caught);

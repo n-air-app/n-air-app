@@ -158,8 +158,9 @@ export class FileManagerService extends Service {
         level: 'debug',
       });
     } catch (e) {
+      // 失敗後も、再試行または次回の書き込みができるようロックを解除する。
+      file.locked = false;
       if (tries > 0) {
-        file.locked = false;
         await this.flush(filePath, tries - 1);
       } else {
         SentryReport.message('FileManagerService', 'flush', 'Ran out of retries writing file', {

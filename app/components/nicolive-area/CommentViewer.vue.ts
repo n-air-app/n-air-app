@@ -386,19 +386,43 @@ export default defineComponent({
             menu.append({
               id: 'Ban comment owner',
               label: 'ユーザーを配信からブロック',
-              click: () => {
-                NicoliveCommentFilterService.instance()
-                  .addFilter({
+              click: async () => {
+                try {
+                  await NicoliveCommentFilterService.instance().addFilter({
                     type: 'user',
                     body: userId,
                     messageId: `${id}`,
                     memo: content,
-                  })
-                  .catch((e: unknown) => {
-                    if (e instanceof NicoliveFailure) {
-                      openErrorDialogFromFailure(e);
-                    }
                   });
+                  SnackbarService.instance().show({
+                    position: 'niconico',
+                    message: 'ユーザーを配信からブロックしました',
+                    action: {
+                      label: '取り消す',
+                      onClick: async () => {
+                        try {
+                          const filterRecord = NicoliveCommentFilterService.instance().findFilterByTypeAndBody(
+                            'user',
+                            userId,
+                          );
+                          if (!filterRecord) {
+                            console.warn('undoBlockUser: block user filter not found', userId);
+                            return;
+                          }
+                          await NicoliveCommentFilterService.instance().deleteFilters([filterRecord.id]);
+                        } catch (e: unknown) {
+                          if (e instanceof NicoliveFailure) {
+                            openErrorDialogFromFailure(e);
+                          }
+                        }
+                      },
+                    },
+                  });
+                } catch (e: unknown) {
+                  if (e instanceof NicoliveFailure) {
+                    openErrorDialogFromFailure(e);
+                  }
+                }
               },
             });
           }
@@ -412,11 +436,29 @@ export default defineComponent({
               menu.append({
                 id: 'Add to moderator',
                 label: 'モデレーターに追加',
-                click: () => {
-                  NicoliveModeratorsService.instance().addModeratorWithConfirm({
+                click: async () => {
+                  const done = await NicoliveModeratorsService.instance().addModeratorWithConfirm({
                     userId,
                     userName: name,
                   });
+                  if (done) {
+                    SnackbarService.instance().show({
+                      position: 'niconico',
+                      message: `${name}さんをモデレーターに追加しました`,
+                      action: {
+                        label: '元に戻す',
+                        onClick: async () => {
+                          try {
+                            await NicoliveModeratorsService.instance().removeModerator(userId);
+                          } catch (e: unknown) {
+                            if (e instanceof NicoliveFailure) {
+                              openErrorDialogFromFailure(e);
+                            }
+                          }
+                        },
+                      },
+                    });
+                  }
                 },
               });
             }
@@ -427,11 +469,29 @@ export default defineComponent({
             menu.append({
               id: 'Remove from moderator',
               label: 'モデレーターから削除',
-              click: () => {
-                NicoliveModeratorsService.instance().removeModeratorWithConfirm({
+              click: async () => {
+                const done = await NicoliveModeratorsService.instance().removeModeratorWithConfirm({
                   userId,
                   userName: name,
                 });
+                if (done) {
+                  SnackbarService.instance().show({
+                    position: 'niconico',
+                    message: `${name}さんをモデレーターから削除しました`,
+                    action: {
+                      label: '元に戻す',
+                      onClick: async () => {
+                        try {
+                          await NicoliveModeratorsService.instance().addModerator(userId);
+                        } catch (e: unknown) {
+                          if (e instanceof NicoliveFailure) {
+                            openErrorDialogFromFailure(e);
+                          }
+                        }
+                      },
+                    },
+                  });
+                }
               },
             });
           }
