@@ -23,7 +23,7 @@ N Air は Streamlabs OBS をベースにした、生放送に便利な機能が�
 
 npm パッケージをインストールし、さまざまなスクリプトを実行するには Node が必要です。
 
-現在の LTS リリース 22.x.x を推奨します：<https://nodejs.org/>
+Node.js 24.11.0 以上、25 未満が必要です：<https://nodejs.org/>
 
 ### pnpm
 

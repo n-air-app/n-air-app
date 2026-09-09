@@ -188,7 +188,7 @@ test("service behavior", () => {
 
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
 **Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
-**Node Version:** Requires Node.js 22.x LTS
+**Node Version:** Requires Node.js >=24.11.0 <25
 **Important:** `.npmrc` is configured with `node-linker=hoisted` to maintain flat node_modules structure for native modules that use relative path references in electron-builder packaging
 
 **bin/ lockfile update:** `bin/` is an independent pnpm project (not part of the root workspace). The root `.npmrc` and `pnpm-workspace.yaml` interfere with `cd bin && pnpm install`, causing it to run in the root workspace context instead. To correctly update `bin/pnpm-lock.yaml`, use the `--ignore-workspace` flag from within the `bin/` directory:
