@@ -233,11 +233,6 @@ module.exports = function (env, argv) {
             exclude: /node_modules|vue\/src/,
           },
           {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            exclude: [/node_modules/, path.join(__dirname, 'bin')],
-          },
-          {
             test: /\.css$/,
             use: [
               'style-loader',
