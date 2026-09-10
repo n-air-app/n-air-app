@@ -869,7 +869,7 @@ export class TranscriptionService extends PersistentStatefulService<ITranscripti
     // modelPath のディレクトリを削除
     const modelPath = this.getModelPath(modelName);
     try {
-      fs.rmdir(modelPath, { recursive: true });
+      await fs.rm(modelPath, { recursive: true });
       console.log('Deleted model directory:', modelPath);
     } catch (err) {
       console.error('Failed to delete model directory:', err);
