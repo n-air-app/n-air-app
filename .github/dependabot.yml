@@ -20,6 +20,10 @@ updates:
       # @n-air-app/* パッケージは内製なので即座に更新可能
       - dependency-name: '@n-air-app/*'
         update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
+      # @types/nodeはElectron 29が内蔵するNode.js 20.9.0系に合わせて20系に固定する。
+      # メジャー更新(21以上)はElectronのバンドルNode.jsと型定義がずれるため無視する
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       external-dependencies:
         patterns:
