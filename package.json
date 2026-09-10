@@ -82,14 +82,6 @@
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/plugin-proposal-decorators": "^7.29.7",
-    "@babel/plugin-proposal-throw-expressions": "^7.29.7",
-    "@babel/plugin-transform-class-properties": "^7.29.7",
-    "@babel/plugin-transform-export-namespace-from": "^7.29.7",
-    "@babel/plugin-transform-json-strings": "^7.29.7",
-    "@babel/plugin-transform-numeric-separator": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^9.0.0",
     "@fetch-mock/jest": "^0.2.20",
@@ -104,7 +96,6 @@
     "@types/unzip-stream": "^0.3.4",
     "@types/xml2js": "^0.4.11",
     "autoprefixer": "^10.5.4",
-    "babel-loader": "^10.1.1",
     "cross-env": "~10.1.0",
     "css-loader": "^7.1.5",
     "electron": "29.4.5",
