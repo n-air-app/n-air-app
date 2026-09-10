@@ -92,6 +92,7 @@ export default defineComponent({
       isTocOpen: true,
       currentActiveTocId: null as string | null,
       tocManager: new TocManager(),
+      settingsRefreshTimer: null as ReturnType<typeof setTimeout> | null,
     };
   },
   computed: {
@@ -114,9 +115,27 @@ export default defineComponent({
     },
   },
   watch: {
-    isStreaming() {
-      if (!this.categoryName) return;
-      this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+    streamingStatus() {
+      if (this.settingsRefreshTimer) clearTimeout(this.settingsRefreshTimer);
+
+      // OBS には設定ロック解除の完了通知がなく、配信停止シグナルが先に届くことがあるため、
+      // Offline に戻った後は短時間再取得を繰り返す
+      const delays = this.streamingStatus === EStreamingState.Offline ? [0, 100, 500, 1000] : [0];
+      const refresh = (index: number) => {
+        this.settingsRefreshTimer = setTimeout(() => {
+          if (!this.categoryName) {
+            this.settingsRefreshTimer = null;
+            return;
+          }
+          this.settingsData = SettingsService.instance().getSettingsFormData(this.categoryName);
+          if (index + 1 < delays.length) {
+            refresh(index + 1);
+          } else {
+            this.settingsRefreshTimer = null;
+          }
+        }, delays[index]);
+      };
+      refresh(0);
     },
     categoryName(categoryName: SettingsCategory) {
       this.settingsData = SettingsService.instance().getSettingsFormData(categoryName);
@@ -159,6 +178,7 @@ export default defineComponent({
     }
   },
   beforeUnmount() {
+    if (this.settingsRefreshTimer) clearTimeout(this.settingsRefreshTimer);
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
