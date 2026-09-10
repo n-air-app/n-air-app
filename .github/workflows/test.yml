@@ -69,7 +69,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         run: corepack enable pnpm
@@ -83,16 +83,16 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('.node-version') }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-pnpm-store-${{ hashFiles('.node-version') }}-
 
       - name: cache node modules
         id: cache-node-modules
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('.node-version', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: npm login
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> $env:USERPROFILE\.npmrc
@@ -118,7 +118,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         run: corepack enable pnpm
@@ -128,7 +128,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('.node-version', 'bin/pnpm-lock.yaml') }}
 
       - name: Install dependencies
         if: steps.cache-node-modules-bin.outputs.cache-hit != 'true'
@@ -150,7 +150,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         run: corepack enable pnpm
@@ -160,7 +160,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('.node-version', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Run unit tests(app)
         timeout-minutes: 20
@@ -218,7 +218,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         run: corepack enable pnpm
@@ -228,14 +228,14 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('.node-version', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
         id: cache-node-modules-bin
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('.node-version', 'bin/pnpm-lock.yaml') }}
 
       - name: Run unit tests(bin)
         run: pnpm run test:unit:bin
@@ -264,7 +264,7 @@ jobs:
         if: ${{ needs.changes.outputs.app == 'true' }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         if: ${{ needs.changes.outputs.app == 'true' }}
@@ -276,7 +276,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('.node-version', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: Compile
         if: ${{ needs.changes.outputs.app == 'true' }}
@@ -304,7 +304,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         run: corepack enable pnpm
@@ -314,7 +314,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('.node-version', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
 
       - name: cache node modules(bin)
         if: ${{ needs.changes.outputs.bin == 'true' }}
@@ -322,7 +322,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: bin/node_modules
-          key: ${{ runner.os }}-node-bin-${{ hashFiles('bin/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-node-bin-${{ hashFiles('.node-version', 'bin/pnpm-lock.yaml') }}
 
       - name: Get electron-builder version
         id: electron-builder-version
