@@ -29,6 +29,8 @@ jobs:
               - 'package.json'
               - 'pnpm-lock.yaml'
               - '.github/workflows/test.yml'
+              - 'eslint.config.mjs'
+              - 'stylelint.config.cjs'
             app:
               - 'installer.nsh'
               - 'tsconfig.json'
@@ -168,6 +170,37 @@ jobs:
         if: always()
         run: taskkill /F /T /IM electron.exe 2>nul || exit /b 0
         shell: cmd
+
+  lint:
+    name: lint
+    needs: [changes, setup-app]
+    if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.bin == 'true' }}
+    runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: corepack enable pnpm
+
+      - name: cache node modules
+        id: cache-node-modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'additional/additional.json', 'additional/main.mjs') }}
+
+      - name: Run lint
+        run: pnpm run lint
 
   unit_test-bin:
     name: unit tests(bin)
@@ -334,6 +367,7 @@ jobs:
       [
         setup-app,
         setup-bin,
+        lint,
         unit_test-app,
         unit_test-bin,
         e2e_test,
