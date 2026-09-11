@@ -24,6 +24,13 @@ updates:
       # メジャー更新(21以上)はElectronのバンドルNode.jsと型定義がずれるため無視する
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      # electron本体・関連ビルドツールは影響範囲が大きいため自動更新せず、必要なタイミングで手動更新する
+      - dependency-name: 'electron'
+      - dependency-name: 'electron-builder'
+      - dependency-name: 'electron-updater'
+      # @sentry/*はelectron SDKとbrowser系SDK(vue等)が内部バージョンで1対1対応するため、
+      # dependabotが個別更新すると組み合わせがずれてトラブルになる。手動で組にして更新する
+      - dependency-name: '@sentry/*'
     groups:
       external-dependencies:
         patterns:
