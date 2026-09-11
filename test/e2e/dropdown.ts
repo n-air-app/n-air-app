@@ -44,7 +44,7 @@ test('Dropdown interaction in output settings', async (t) => {
 
   // オプションが表示されることを確認
   const options = await dropdown!.$$('.dropdown__item[data-option-label]');
-  t.true(options.length > 0, 'Expected dropdown to have options');
+  t.true((await options.length) > 0, 'Expected dropdown to have options');
 
   // 現在選択されていない別のオプションを探して選択
   let targetOption = null;
@@ -54,7 +54,7 @@ test('Dropdown interaction in output settings', async (t) => {
     const label = await option.getAttribute('data-option-label');
     if (label !== initialValue) {
       targetOption = option;
-      targetLabel = label;
+      targetLabel = label ?? '';
       break;
     }
   }
@@ -69,4 +69,3 @@ test('Dropdown interaction in output settings', async (t) => {
     t.is(selectedLabel, targetLabel, 'Expected dropdown value to be updated');
   }
 });
-

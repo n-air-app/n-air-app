@@ -44,7 +44,7 @@ export class ListInputController<TValue> extends BaseInputController<TValue> {
 
   async getDisplayValue() {
     const $el = await this.getElement();
-    return $el.getAttribute('data-selected-option-label');
+    return (await $el.getAttribute('data-selected-option-label')) ?? '';
   }
 
   async open() {
@@ -61,7 +61,7 @@ export class ListInputController<TValue> extends BaseInputController<TValue> {
     for (const $opt of $options) {
       const value = await $opt.getAttribute('data-option-value');
       const label = await $opt.getAttribute('data-option-label');
-      result.push({ value, label });
+      if (value !== null && label !== null) result.push({ value, label });
     }
     if (!doNotClose) await (await this.getElement()).click(); // close the popup
     return result;
