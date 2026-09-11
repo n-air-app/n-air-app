@@ -16,6 +16,7 @@
   flex-grow: 1;
   flex-direction: column;
   width: 100%;
+  background-color: var(--color-bg-tertiary);
 }
 
 .program-description-header {
@@ -26,15 +27,13 @@
   width: 100%;
   height: 48px;
   padding: 4px 16px;
-  background-color: @bg-secondary;
-  border-bottom: 1px solid @bg-primary;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .program-description-body {
   flex-grow: 1;
   overflow-x: hidden;
   overflow-y: auto;
-  background-color: @white;
 
   &::-webkit-scrollbar-track {
     background-color: transparent;
@@ -42,14 +41,14 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: @grey;
-    border-color: @white;
+    background-color: var(--color-scroll-bar);
+    border-color: var(--color-bg-tertiary);
   }
 }
 
 .program-description-text {
   padding: 16px;
-  color: @black;
+  color: var(--color-text);
   overflow-wrap: break-word;
 }
 </style>
