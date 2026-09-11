@@ -156,6 +156,7 @@
   },
   "pnpm": {
     "overrides": {
+      "nth-check": "^2.0.1",
       "tar-fs": "^2.1.4"
     }
   },
