@@ -92,5 +92,25 @@
       margin-right: 16px;
     }
   }
+
+  .popup-menu-item__button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: @font-size2;
+    line-height: normal;
+    color: var(--color-text);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+
+    i {
+      flex-shrink: 0;
+      width: 16px;
+      margin-right: 0;
+      text-align: center;
+    }
+  }
 }
 </style>

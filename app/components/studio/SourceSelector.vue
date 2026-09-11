@@ -49,32 +49,81 @@
 
       <template #sidebar="{ node }">
         <template v-if="canShowActions(node.data.id)">
-          <i
-            class="source-selector-action"
-            :class="lockClassesForSource(node.data.id)"
-            v-tooltip.bottom="lockTooltipForSource(node.data.id, node.isLeaf)"
-            @click.stop="toggleLock(node.data.id)"
-            @dblclick.stop
-          />
-          <i
-            class="source-selector-action"
-            :class="visibilityClassesForSource(node.data.id)"
-            v-tooltip.bottom="visibilityTooltip"
-            @click.stop="toggleVisibility(node.data.id)"
-            @dblclick.stop
-          />
-          <i
-            class="source-selector-action icon-delete"
-            @click="removeItems"
-            v-tooltip.bottom="removeSourcesTooltip"
-            :data-test="`Remove` + node.title"
-          />
-          <i
-            class="source-selector-action icon-settings"
-            @click="sourceProperties"
-            v-tooltip.bottom="openSourcePropertiesTooltip"
-            data-test="Edit"
-          />
+          <template v-if="!narrowSidebar">
+            <i
+              class="source-selector-action"
+              :class="lockClassesForSource(node.data.id)"
+              v-tooltip.bottom="lockTooltipForSource(node.data.id, node.isLeaf)"
+              @click.stop="toggleLock(node.data.id)"
+              @dblclick.stop
+            />
+            <i
+              class="source-selector-action"
+              :class="visibilityClassesForSource(node.data.id)"
+              v-tooltip.bottom="visibilityTooltip"
+              @click.stop="toggleVisibility(node.data.id)"
+              @dblclick.stop
+            />
+            <i
+              class="source-selector-action icon-delete"
+              @click="removeItems"
+              v-tooltip.bottom="removeSourcesTooltip"
+              :data-test="`Remove` + node.title"
+            />
+            <i
+              class="source-selector-action icon-settings"
+              @click="sourceProperties"
+              v-tooltip.bottom="openSourcePropertiesTooltip"
+              data-test="Edit"
+            />
+          </template>
+          <template v-else>
+            <popper placement="bottom-end" class="source-actions-popper">
+              <div class="popper source-actions-menu">
+                <ul class="popup-menu-list">
+                  <li class="popup-menu-item">
+                    <button
+                      class="popup-menu-item__button"
+                      @click.stop="toggleLock(node.data.id)"
+                    >
+                      <i :class="lockClassesForSource(node.data.id)" />
+                      {{ lockClassesForSource(node.data.id)['icon-lock'] ? $t('scenes.unlockLabel') : $t('scenes.lockLabel') }}
+                    </button>
+                  </li>
+                  <li class="popup-menu-item">
+                    <button
+                      class="popup-menu-item__button"
+                      @click.stop="toggleVisibility(node.data.id)"
+                    >
+                      <i :class="visibilityClassesForSource(node.data.id)" />
+                      {{ $t('scenes.visibilityLabel') }}
+                    </button>
+                  </li>
+                  <li class="popup-menu-item">
+                    <button
+                      class="popup-menu-item__button"
+                      @click.stop="removeItems"
+                    >
+                      <i class="icon-delete" />
+                      {{ $t('scenes.removeLabel') }}
+                    </button>
+                  </li>
+                  <li class="popup-menu-item">
+                    <button
+                      class="popup-menu-item__button"
+                      @click.stop="sourceProperties"
+                    >
+                      <i class="icon-settings" />
+                      {{ $t('scenes.propertiesLabel') }}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <template #reference>
+                <i class="source-selector-action source-selector-action--more icon-ellipsis-vertical" @click.stop @dblclick.stop />
+              </template>
+            </popper>
+          </template>
         </template>
       </template>
     </tree-view>
@@ -88,7 +137,17 @@
 
 .studio-controls-top-sidebar {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
+}
+
+.source-selector-action--more {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.source-actions-menu {
+  min-width: 140px;
 }
 
 .source-selector-action {

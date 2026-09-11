@@ -247,8 +247,8 @@ describe('updateWindowSize', () => {
     COMPACT: 'コンパクトモード',
   };
   const BASE_HEIGHT = 600;
-  const BASE_WIDTH = 800;
-  const SMALL_WIDTH = BASE_WIDTH - 1; // 800より小さくしておくと便利
+  const BASE_WIDTH = 1000;
+  const SMALL_WIDTH = 400; // 最小幅(INACTIVE=548, CLOSED=572)より小さい値
 
   const initSuites: {
     prev: PanelState | null;

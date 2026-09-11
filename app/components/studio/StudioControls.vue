@@ -145,9 +145,14 @@
 }
 
 .studio-controls__label {
+  flex: 1 1 0;
+  min-width: 0;
   margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: @font-size4;
   color: var(--color-text-light);
+  white-space: nowrap;
   .semibold();
 }
 

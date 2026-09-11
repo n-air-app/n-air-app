@@ -85,9 +85,9 @@
 .scene-collections-wrapper {
   position: relative;
   display: flex;
-  flex-grow: 1;
+  flex: 1 1 0;
   align-items: center;
-  width: 160px;
+  min-width: 0;
   margin-right: 16px;
 }
 

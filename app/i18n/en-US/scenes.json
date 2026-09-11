@@ -60,6 +60,11 @@
   "lockFolderTooltip": "Lock the position and size of sources in the folder.",
   "unlockFolderTooltip": "Unlock the position and size of sources in the folder.",
   "visibilityTooltip": "Toggle the visibility of the source.",
+  "lockLabel": "Lock",
+  "unlockLabel": "Unlock",
+  "visibilityLabel": "Visibility",
+  "removeLabel": "Remove",
+  "propertiesLabel": "Properties",
   "addSceneTooltip": "Add a new scene.",
   "removeSceneTooltip": "Remove the scene.",
   "openSceneSwitcherTooltip": "Open the scene switcher properties."
