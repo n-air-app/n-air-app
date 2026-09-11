@@ -46,6 +46,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
 const { fetchViaElectronNet } = require('./main-process/fetch');
+const { recoverOrphanedNairObsProcess } = require('./main-process/obs-orphan-recovery');
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dev Hosts Configuration
@@ -1055,7 +1056,22 @@ function initialize(crashHandler) {
     }
   });
 
-  app.on('ready', () => {
+  app.on('ready', async () => {
+    const recoveryAlreadyAttempted = process.argv.includes('--obs-recovery-attempted');
+    if (!recoveryAlreadyAttempted) {
+      try {
+        const recovery = await recoverOrphanedNairObsProcess();
+        console.log('[OBS RECOVERY]', recovery);
+        if (recovery.recovered) {
+          app.relaunch({ args: [...process.argv.slice(1), '--obs-recovery-attempted'] });
+          app.exit(0);
+          return;
+        }
+      } catch (error) {
+        console.error('[OBS RECOVERY] Failed to recover stale OBS process', error);
+      }
+    }
+
     // Show splash window immediately (skip in test environment)
     createSplashWindow();
 

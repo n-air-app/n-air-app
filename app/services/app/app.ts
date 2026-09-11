@@ -20,6 +20,7 @@ import { VideoSettingsService } from 'services/settings-v2';
 import { ShortcutsService } from 'services/shortcuts';
 import { SourcesService } from 'services/sources';
 import { StreamingService } from 'services/streaming';
+import { SubStreamService } from 'services/substream/SubStreamService';
 import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
 import { UsageStatisticsService } from 'services/usage-statistics';
@@ -80,6 +81,7 @@ export class AppService extends StatefulService<IAppState> {
   @Inject() private customizationService: CustomizationService;
   @Inject() private transcriptionService: TranscriptionService;
   @Inject() private streamingService: StreamingService;
+  @Inject() private subStreamService: SubStreamService;
   private loadingPromises: Dictionary<Promise<any>> = {};
 
   readonly pid = require('process').pid;
@@ -147,6 +149,8 @@ export class AppService extends StatefulService<IAppState> {
     this.tcpServerService.stopListening();
 
     window.setTimeout(async () => {
+      let canDestroyVideoContexts = true;
+
       try {
         // InitShutdownSequence をスキップ (N Air はクラッシュハンドラープロセスを使用していないため)
         // Streamlabs Desktop では別プロセスとしてクラッシュハンドラーを起動し、named pipe で通信しているが、
@@ -168,12 +172,23 @@ export class AppService extends StatefulService<IAppState> {
         NicoliveClient.closeOpenWindows();
         this.ipcServerService.stopListening();
         this.stopMonitoringStudioMode();
+        try {
+          await this.subStreamService.shutdown();
+          console.log('[SHUTDOWN] SubStream stopped');
+        } catch (e) {
+          canDestroyVideoContexts = false;
+          console.error('[SHUTDOWN] Failed to stop SubStream:', e);
+        }
         await this.sceneCollectionsService.deinitialize({
           // 全キャッシュ削除時はシーンコレクションを保存しない（再起動後に削除されるため）
           saveOnExit: !this.skipSavingOnShutdown,
         });
         this.transitionsService.shutdown();
-        this.videoSettingsService.shutdown();
+        if (canDestroyVideoContexts) {
+          this.videoSettingsService.shutdown();
+        } else {
+          console.warn('[SHUTDOWN] Skipping video context destruction because SubStream did not stop');
+        }
         if (!this.skipSavingOnShutdown) {
           await this.fileManagerService.flushAll();
         }
@@ -185,15 +200,33 @@ export class AppService extends StatefulService<IAppState> {
         } catch (e) {
           console.error('[SHUTDOWN] Error sending stream_end log:', e);
         }
-        obs.NodeObs.RemoveSourceCallback();
-        obs.NodeObs.OBS_service_removeCallback();
-        obs.IPC.disconnect();
-        this.crashReporterService.endShutdown();
         console.log('[SHUTDOWN] Shutdown sequence completed');
       } catch (e) {
         console.error('[SHUTDOWN] Error during shutdown:', e);
       } finally {
-        electron.ipcRenderer.send('shutdownComplete');
+        try {
+          obs.NodeObs.RemoveSourceCallback();
+        } catch (e) {
+          console.error('[SHUTDOWN] Failed to remove source callback:', e);
+        }
+        try {
+          obs.NodeObs.OBS_service_removeCallback();
+        } catch (e) {
+          console.error('[SHUTDOWN] Failed to remove service callback:', e);
+        }
+        try {
+          obs.IPC.disconnect();
+          console.log('[SHUTDOWN] OBS IPC disconnected');
+        } catch (e) {
+          console.error('[SHUTDOWN] Failed to disconnect OBS IPC:', e);
+        }
+        try {
+          this.crashReporterService.endShutdown();
+        } catch (e) {
+          console.error('[SHUTDOWN] Failed to finish crash reporter shutdown:', e);
+        } finally {
+          electron.ipcRenderer.send('shutdownComplete');
+        }
       }
     }, 300);
   }

@@ -2,6 +2,9 @@ import * as net from 'net';
 
 //    const PIPE_NAME = '\\\\.\\pipe\\NAirSubstream';
 
+const CONNECTION_TIMEOUT_MS = 1000;
+const REQUEST_TIMEOUT_MS = 1000;
+
 export class NamedPipeClient {
   name = '';
   client: net.Socket | undefined = undefined;
@@ -24,16 +27,41 @@ export class NamedPipeClient {
     this.buffer = '';
 
     return new Promise((resolve, reject) => {
+      let settled = false;
       const client = net.createConnection(this.name, () => {
+        if (settled) {
+          client.destroy();
+          return;
+        }
+        settled = true;
+        clearTimeout(connectionTimeout);
         this.client = client;
         resolve();
       });
 
+      const connectionTimeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        client.destroy();
+        reject(new Error('Connection timed out'));
+      }, CONNECTION_TIMEOUT_MS);
+
       client.on('end', () => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(connectionTimeout);
+          reject(new Error('Connection closed'));
+        }
         this.close();
       });
       client.on('error', (err: Error) => {
-        this.close();
+        if (settled) {
+          this.close();
+          return;
+        }
+        settled = true;
+        clearTimeout(connectionTimeout);
+        client.destroy();
         reject(err);
       });
 
@@ -106,7 +134,7 @@ export class NamedPipeClient {
       const timeout = setTimeout(() => {
         this.queue.delete(id);
         reject(new Error('Request timed out'));
-      }, 1000);
+      }, REQUEST_TIMEOUT_MS);
 
       this.queue.set(id, { resolve, reject, timeout });
       this.client!.write(JSON.stringify({ id, fn, arg }) + '\n');

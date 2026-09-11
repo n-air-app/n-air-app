@@ -105,6 +105,7 @@
               data-radius="sm"
               data-color="secondary"
               data-variant="light"
+              :disabled="commandExecuting"
               @click="start()"
             >
               {{ $t('settings.substream.start') }}
@@ -115,6 +116,7 @@
               data-radius="sm"
               data-color="secondary"
               data-variant="light"
+              :disabled="commandExecuting"
               @click="stop()"
             >
               {{ $t('settings.substream.stop') }}
@@ -122,7 +124,14 @@
           </div>
         </div>
 
-        <div style="white-space: pre-wrap">{{ status }}</div>
+        <div v-if="initializationError || commandError" class="substream-error" role="alert">
+          <i class="icon-warning"></i>
+          <span>{{ commandError || initializationError }}</span>
+        </div>
+
+        <div class="substream-status" role="status">
+          {{ commandMessage || status }}
+        </div>
       </div>
 
       <div class="section" v-if="use">
@@ -298,5 +307,20 @@
 .description-text {
   margin: 16px;
   white-space: pre-line;
+}
+
+.substream-error {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+  color: var(--color-error);
+  white-space: pre-line;
+}
+
+.substream-status {
+  margin-top: 12px;
+  color: var(--color-text);
+  white-space: pre-wrap;
 }
 </style>
