@@ -21,14 +21,14 @@ export function useForm(name?: string) {
   /**
    * Find all input's DOM elements
    */
-  async function getInputElements(): Promise<WebdriverIO.ElementArray> {
+  async function getInputElements(): Promise<WebdriverIO.Element[]> {
     // wait for form appear
     if (formSelector !== DEFAULT_FORM_SELECTOR) {
       (await client.$(formSelector)).waitForExist({ timeout: 15000 });
     }
 
     const $inputs = await client.$$(`${formSelector} [data-role=input]`);
-    return $inputs;
+    return Array.from($inputs);
   }
 
   /**
@@ -46,7 +46,7 @@ export function useForm(name?: string) {
       name: input.name,
       value: await input.getValue(),
       displayValue: await input.getDisplayValue(),
-      title: await input.getTitle(),
+      title: (await input.getTitle()) ?? '',
     }));
   }
   /**
@@ -144,6 +144,7 @@ export function useForm(name?: string) {
     for (const $input of $inputs) {
       const type = await $input.getAttribute('data-type');
       const name = await $input.getAttribute('data-name');
+      if (!type || !name) continue;
       const InputControllerClass = getInputControllerForType(type);
       if (!InputControllerClass) {
         continue;

@@ -2,7 +2,7 @@
 import * as ChildProcess from 'child_process';
 
 import { DismissablesService } from 'services/dismissables';
-import { remote, RemoteOptions } from 'webdriverio';
+import { remote } from 'webdriverio';
 
 import { getApiClient } from '../api-client';
 import { closeWindow, focusChild, focusMain, waitForLoader } from '../modules/core';
@@ -24,13 +24,13 @@ const CHROMEDRIVER_PORT = 4444;
 // Enable for verbose debugging output. This does two things:
 // Enable Chromedriver logging to chromedriver.log
 // Enable Webdriver logging to test output
-const CHROMEDRIVER_DEBUG = false;
+const CHROMEDRIVER_DEBUG = process.env.CHROMEDRIVER_DEBUG === '1';
 
 class Application {
   client: WebdriverIO.Browser;
   process: ChildProcess.ChildProcess;
 
-  constructor(public options: RemoteOptions) { }
+  constructor(public options: Parameters<typeof remote>[0]) { }
 
   async start(cacheDir: string, chromedriverLogging = false) {
     if (this.process) return;
@@ -185,6 +185,9 @@ export function useWebdriver(options: ITestRunnerOptions = {}) {
       logLevel: CHROMEDRIVER_DEBUG ? 'debug' : 'silent',
       capabilities: {
         browserName: 'chrome',
+        // Electron 29's ChromeDriver does not provide a stable WebDriver BiDi
+        // session while application windows are being created and replaced.
+        'wdio:enforceWebDriverClassic': true,
         'goog:chromeOptions': {
           binary: path.join(
             __dirname,
