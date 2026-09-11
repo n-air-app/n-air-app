@@ -6,8 +6,10 @@ let socket: Socket | undefined;
 try {
   const port = params.get('port');
   if (port && parseInt(port, 10) !== 0) {
-    const host = `http://localhost:${port}`;
-    socket = io(host);
+    const host = `http://127.0.0.1:${port}`;
+    socket = io(host, {
+      transports: ['websocket'],
+    });
   } else {
     console.log('offline mode.');
   }
