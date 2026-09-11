@@ -24,6 +24,18 @@ updates:
       # メジャー更新(21以上)はElectronのバンドルNode.jsと型定義がずれるため無視する
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
+      # electron本体はobs-studio-nodeがネイティブバイナリとしてビルドされている特定バージョンに縛られるため、
+      # obs-studio-node側の追従なしに単独では上げられない。electron-chromedriverはE2Eテストで使うElectron自体の
+      # ChromeDriverであり、常にelectronと同一バージョンに揃える必要があるため合わせて手動更新する
+      - dependency-name: 'electron'
+      - dependency-name: 'electron-chromedriver'
+      # electron-builder/electron-updaterは過去の更新でパッケージング後の生成物が正常に実行できなくなった
+      # トラブルがあったため、慎重に検証しながら手動で更新する
+      - dependency-name: 'electron-builder'
+      - dependency-name: 'electron-updater'
+      # @sentry/*はelectron SDKとbrowser系SDK(vue等)が内部バージョンで1対1対応するため、
+      # dependabotが個別更新すると組み合わせがずれてトラブルになる。手動で組にして更新する
+      - dependency-name: '@sentry/*'
     groups:
       external-dependencies:
         patterns:
