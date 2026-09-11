@@ -44,6 +44,13 @@
 
     <div>
       <div class="section">
+        <ObsBoolInput :value="enableTcpApiModel" @input="setEnableTcpApi" />
+        <p>{{ $t('settings.enableTcpApiDescription') }}</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
         <div class="input-label">
           <label>{{ $t('settings.cacheManagement') }}</label>
         </div>
