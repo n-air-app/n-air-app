@@ -91,6 +91,7 @@ export default defineComponent({
       if (!this.draggingNodes.length) {
         // 外部アプリからのファイルドラッグ: preventDefault だけ通してバブルアップさせる
         event.preventDefault();
+        if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
         return;
       }
       const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
