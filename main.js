@@ -1056,8 +1056,11 @@ function initialize(crashHandler) {
   });
 
   app.on('ready', () => {
-    // Show splash window immediately (skip in test environment)
-    createSplashWindow();
+    // ChromeDriver enumerates windows while creating a test session. If the splash
+    // is destroyed during that process, session creation fails with "no such window".
+    if (process.env.NODE_ENV !== 'test') {
+      createSplashWindow();
+    }
 
     // バックグラウンドで起動時のクリーンアップ処理を実行（非ブロッキング）
     setTimeout(() => {

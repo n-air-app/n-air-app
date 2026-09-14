@@ -11,7 +11,7 @@ export class TagsInputController extends BaseInputController<(string | number)[]
   async getValue() {
     const $el = await this.getElement();
     const valueAttr = await $el.getAttribute('data-value');
-    return JSON.parse(valueAttr);
+    return JSON.parse(valueAttr ?? '[]');
   }
 
   /**
@@ -20,7 +20,7 @@ export class TagsInputController extends BaseInputController<(string | number)[]
   async getDisplayValue() {
     const $el = await this.getElement();
     const displayValueAttr = await $el.getAttribute('data-display-value');
-    return JSON.parse(displayValueAttr);
+    return JSON.parse(displayValueAttr ?? '[]');
   }
 
   /**
@@ -42,7 +42,7 @@ export class TagsInputController extends BaseInputController<(string | number)[]
     await $el.click();
 
     // check if the component has a search input
-    const hasSearch = (await $el.getAttribute('class')).match('ant-select-show-search');
+    const hasSearch = (await $el.getAttribute('class'))?.includes('ant-select-show-search');
 
     // click options
     for (const value of values) {

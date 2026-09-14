@@ -8,7 +8,7 @@
     "noImplicitThis": false,
     "emitDecoratorMetadata": true,
     "baseUrl": "../app",
-    "types": ["webdriverio/async"]
+    "types": ["node"]
   },
   "include": ["../test/**/*.ts", "../app/**/*.d.ts"],
   "exclude": ["node_modules"]

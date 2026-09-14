@@ -2,14 +2,14 @@
  * The core module provides methods for the most frequent actions
  */
 
-import { ClickOptions, WaitForOptions } from 'webdriverio';
+import { ChainablePromiseElement, ClickOptions, WaitForOptions } from 'webdriverio';
 
 import { WindowsService } from '../../../app/services/windows';
 import { sleep } from '../../../app/util/sleep';
 import { getApiClient } from '../api-client';
 import { getContext } from '../webdriver';
 
-export type TSelectorOrEl = string | WebdriverIO.Element;
+export type TSelectorOrEl = string | WebdriverIO.Element | ChainablePromiseElement;
 
 export function getClient(): WebdriverIO.Browser {
   return getContext().context.app.client;
@@ -22,16 +22,16 @@ export function getClient(): WebdriverIO.Browser {
  */
 export async function select(selectorOrEl: TSelectorOrEl): Promise<WebdriverIO.Element> {
   if (typeof selectorOrEl === 'string') {
-    return getClient().$(selectorOrEl);
+    return getClient().$(selectorOrEl).getElement();
   }
-  return selectorOrEl;
+  return 'getElement' in selectorOrEl ? selectorOrEl.getElement() : selectorOrEl;
 }
 
 /**
  * A shortcut for client.$$()
  */
 export async function selectElements(selector: string): Promise<WebdriverIO.Element[]> {
-  return getClient().$$(selector);
+  return Array.from(await getClient().$$(selector));
 }
 
 export function selectButton(buttonText: string) {
@@ -40,7 +40,7 @@ export function selectButton(buttonText: string) {
 
 // CLICK SHORTCUTS
 
-export async function click(selectorOrEl: TSelectorOrEl, options?: ClickOptions) {
+export async function click(selectorOrEl: TSelectorOrEl, options?: Partial<ClickOptions>) {
   const $el = await select(selectorOrEl);
   await $el.waitForClickable();
   await $el.click(options);
