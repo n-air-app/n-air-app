@@ -26,9 +26,9 @@ jobs:
 
           has_dependency_changes=false
 
-          lockfile_changed=$(gh api --paginate --slurp \
-            "repos/$REPOSITORY/pulls/$PR_NUMBER/files" \
-            --jq 'any(.[][]; .filename == "pnpm-lock.yaml" or .filename == "bin/pnpm-lock.yaml")')
+          lockfile_changed=$(gh api --paginate \
+            "repos/$REPOSITORY/pulls/$PR_NUMBER/files" | \
+            jq -s 'any(.[][]; .filename == "pnpm-lock.yaml" or .filename == "bin/pnpm-lock.yaml")')
 
           if [[ "$lockfile_changed" == true ]]; then
             has_dependency_changes=true
