@@ -6,7 +6,6 @@ settings:
 
 overrides:
   svg2ttf: 6.0.3
-  xml2js: '>=0.5.0'
 
 importers:
 
@@ -40,9 +39,6 @@ importers:
       progress:
         specifier: ^2.0.0
         version: 2.0.3
-      semver:
-        specifier: ^7.8.5
-        version: 7.8.5
       shelljs:
         specifier: ^0.10.0
         version: 0.10.0
@@ -791,11 +787,6 @@ packages:
   sax@1.6.1:
     resolution: {integrity: sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q==}
     engines: {node: '>=11.0.0'}
-
-  semver@7.8.5:
-    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
-    engines: {node: '>=10'}
-    hasBin: true
 
   shebang-command@2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
@@ -1701,8 +1692,6 @@ snapshots:
   sax@1.4.3: {}
 
   sax@1.6.1: {}
-
-  semver@7.8.5: {}
 
   shebang-command@2.0.0:
     dependencies:
