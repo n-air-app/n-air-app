@@ -1,0 +1,69 @@
+name: Label dependency changes
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: ['n-air_development']
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  label-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect dependency changes and update label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          has_dependency_changes=false
+
+          lockfile_changed=$(gh api --paginate --slurp \
+            "repos/$REPOSITORY/pulls/$PR_NUMBER/files" \
+            --jq 'any(.[][]; .filename == "pnpm-lock.yaml" or .filename == "bin/pnpm-lock.yaml")')
+
+          if [[ "$lockfile_changed" == true ]]; then
+            has_dependency_changes=true
+          else
+            for package_path in package.json bin/package.json; do
+              base_package=$(gh api \
+                "repos/$REPOSITORY/contents/$package_path?ref=$BASE_SHA" \
+                --jq '.content' | base64 --decode)
+              head_package=$(gh api \
+                "repos/$REPOSITORY/contents/$package_path?ref=$HEAD_SHA" \
+                --jq '.content' | base64 --decode)
+
+              base_dependencies=$(jq -cS \
+                '{dependencies: (.dependencies // {}), devDependencies: (.devDependencies // {})}' \
+                <<< "$base_package")
+              head_dependencies=$(jq -cS \
+                '{dependencies: (.dependencies // {}), devDependencies: (.devDependencies // {})}' \
+                <<< "$head_package")
+
+              if [[ "$base_dependencies" != "$head_dependencies" ]]; then
+                has_dependency_changes=true
+                break
+              fi
+            done
+          fi
+
+          has_label=$(gh api \
+            "repos/$REPOSITORY/issues/$PR_NUMBER/labels" \
+            --jq 'any(.[]; .name == "dependencies")')
+
+          if [[ "$has_dependency_changes" == true && "$has_label" == false ]]; then
+            gh api --method POST \
+              "repos/$REPOSITORY/issues/$PR_NUMBER/labels" \
+              --field 'labels[]=dependencies' >/dev/null
+          elif [[ "$has_dependency_changes" == false && "$has_label" == true ]]; then
+            gh api --method DELETE \
+              "repos/$REPOSITORY/issues/$PR_NUMBER/labels/dependencies" >/dev/null
+          fi
