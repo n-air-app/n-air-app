@@ -1,4 +1,3 @@
-import { pascalize } from 'humps';
 import isEqual from 'lodash/isEqual';
 import keyBy from 'lodash/keyBy';
 
@@ -10,6 +9,14 @@ import * as inputControllers from './inputs';
 
 const DEFAULT_FORM_SELECTOR = 'body';
 export type TFormData = Record<string, unknown>;
+
+export function pascalize(value: string): string {
+  return value
+    .replace(/[-_\s]+(.)?/g, (_match, character: string | undefined) =>
+      character ? character.toUpperCase() : '',
+    )
+    .replace(/^[a-z]/, (character) => character.toUpperCase());
+}
 
 /**
  * A helper utility for filling and reading web forms
