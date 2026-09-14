@@ -28,28 +28,31 @@ jobs:
 
           lockfile_changed=$(gh api --paginate --slurp \
             "repos/$REPOSITORY/pulls/$PR_NUMBER/files" \
-            --jq 'any(.[][]; .filename == "pnpm-lock.yaml")')
+            --jq 'any(.[][]; .filename == "pnpm-lock.yaml" or .filename == "bin/pnpm-lock.yaml")')
 
           if [[ "$lockfile_changed" == true ]]; then
             has_dependency_changes=true
           else
-            base_package=$(gh api \
-              "repos/$REPOSITORY/contents/package.json?ref=$BASE_SHA" \
-              --jq '.content' | base64 --decode)
-            head_package=$(gh api \
-              "repos/$REPOSITORY/contents/package.json?ref=$HEAD_SHA" \
-              --jq '.content' | base64 --decode)
+            for package_path in package.json bin/package.json; do
+              base_package=$(gh api \
+                "repos/$REPOSITORY/contents/$package_path?ref=$BASE_SHA" \
+                --jq '.content' | base64 --decode)
+              head_package=$(gh api \
+                "repos/$REPOSITORY/contents/$package_path?ref=$HEAD_SHA" \
+                --jq '.content' | base64 --decode)
 
-            base_dependencies=$(jq -cS \
-              '{dependencies: (.dependencies // {}), devDependencies: (.devDependencies // {})}' \
-              <<< "$base_package")
-            head_dependencies=$(jq -cS \
-              '{dependencies: (.dependencies // {}), devDependencies: (.devDependencies // {})}' \
-              <<< "$head_package")
+              base_dependencies=$(jq -cS \
+                '{dependencies: (.dependencies // {}), devDependencies: (.devDependencies // {})}' \
+                <<< "$base_package")
+              head_dependencies=$(jq -cS \
+                '{dependencies: (.dependencies // {}), devDependencies: (.devDependencies // {})}' \
+                <<< "$head_package")
 
-            if [[ "$base_dependencies" != "$head_dependencies" ]]; then
-              has_dependency_changes=true
-            fi
+              if [[ "$base_dependencies" != "$head_dependencies" ]]; then
+                has_dependency_changes=true
+                break
+              fi
+            done
           fi
 
           has_label=$(gh api \
