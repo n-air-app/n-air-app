@@ -88,7 +88,11 @@ export default defineComponent({
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
     },
     onNodeDragOver(node: ITreeNode<unknown>, event: DragEvent) {
-      if (!this.draggingNodes.length) return;
+      if (!this.draggingNodes.length) {
+        // 外部アプリからのファイルドラッグ: preventDefault だけ通してバブルアップさせる
+        event.preventDefault();
+        return;
+      }
       const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
       const placement = getDropPlacement(!!node.isLeaf, event.clientY - rect.top, rect.height, this.edgeSize);
       const rootRect = (this.$refs.root as HTMLElement).getBoundingClientRect();
@@ -99,8 +103,14 @@ export default defineComponent({
       this.updateAutoScroll(event.clientY);
     },
     onRootDragOver(event: DragEvent) {
-      if (!this.draggingNodes.length || (event.target as HTMLElement).closest('[data-tree-path]')) return;
+      if ((event.target as HTMLElement).closest('[data-tree-path]')) return;
+      // 外部アプリからのファイルドラッグ中もドロップを許可する
       event.preventDefault();
+      if (!this.draggingNodes.length) {
+        if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+        return;
+      }
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
       const rect = (this.$refs.root as HTMLElement).getBoundingClientRect();
       const before = event.clientY < rect.top + rect.height / 2;
       const node = before ? this.visibleNodes[0] : this.visibleNodes[this.visibleNodes.length - 1];
@@ -114,10 +124,12 @@ export default defineComponent({
     },
     onDrop(event: DragEvent) {
       event.preventDefault();
+      // 外部アプリからのファイルドロップ（draggingNodes が空）はバブルアップさせて Main.vue の onDropHandler に委ねる
+      if (!this.draggingNodes.length) return;
       event.stopPropagation();
       const position = this.cursorPosition;
       const destination = position?.parentNode || position?.node;
-      if (position && destination && this.draggingNodes.length
+      if (position && destination
         && !this.draggingNodes.some((node: ITreeNode<unknown>) => isSameOrDescendant(node, destination))) {
         this.$emit('drop', this.draggingNodes, position, event);
       }
