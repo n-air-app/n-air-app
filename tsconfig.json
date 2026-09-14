@@ -12,6 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "noEmit": true,
     "outDir": "dist/tsc-out",
     "rootDir": ".",
     "sourceMap": true,
