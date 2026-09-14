@@ -24,7 +24,7 @@ export function useForm(name?: string) {
   async function getInputElements(): Promise<WebdriverIO.Element[]> {
     // wait for form appear
     if (formSelector !== DEFAULT_FORM_SELECTOR) {
-      (await client.$(formSelector)).waitForExist({ timeout: 15000 });
+      await (await client.$(formSelector)).waitForExist({ timeout: 15000 });
     }
 
     const $inputs = await client.$$(`${formSelector} [data-role=input]`);
