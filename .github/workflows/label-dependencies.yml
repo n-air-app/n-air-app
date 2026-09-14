@@ -3,7 +3,7 @@ name: Label dependency changes
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
-    branches: ['n-air_development', 'chore/label-dependency-prs']
+    branches: ['n-air_development']
 
 permissions:
   contents: read
