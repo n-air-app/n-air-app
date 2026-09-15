@@ -421,6 +421,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     const index = state.currentIndex;
     const { isManual, num } = this.indexToModeNum(index);
     if (isManual) {
+      if (num < 0 || num >= state.manuals.length) return;
       const p = state.manuals[num];
       const key = `manual${num}` as RtvcParamManualKeys;
       const param = this.eventLog.param as RtvcParamManual;
