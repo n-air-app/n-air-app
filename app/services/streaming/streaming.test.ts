@@ -1693,7 +1693,7 @@ test('logStreamEndが冪等である（2回呼んでもrecordEventは1回のみ�
 });
 
 describe('handleOBSOutputSignalのEncoderError処理', () => {
-  test('録画中のEncoderErrorで空き容量が少ない場合はnoSpaceErrorを表示する', async () => {
+  test('録画中のEncoderErrorで空き容量が少ない場合はencoderErrorLowDiskSpaceを表示する', async () => {
     setup({
       injectee: createInjectee({ isRecordingDiskSpaceLow: () => true }),
     });
@@ -1709,7 +1709,7 @@ describe('handleOBSOutputSignalのEncoderError処理', () => {
 
     expect(showMessageBox).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ message: 'streaming.noSpaceError' }),
+      expect.objectContaining({ message: 'streaming.encoderErrorLowDiskSpace' }),
     );
   });
 

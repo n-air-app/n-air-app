@@ -1179,12 +1179,13 @@ export class StreamingService
         errorText = $t('streaming.outdatedDriverError');
       } else if (info.code === obs.EOutputCode.EncoderError) {
         // OBS は録画時のディスク容量不足を NoSpace ではなく EncoderError として
-        // 返すことが多いため、録画/リプレイ出力では空き容量を実測して文言を補正する
+        // 返すことがあるが、EncoderError自体が容量不足以外の原因で発生することも
+        // あるため、録画/リプレイ出力で空き容量が少ない場合は両方の可能性を案内する
         const isRecordingLike =
           info.type === EOBSOutputType.Recording || info.type === EOBSOutputType.ReplayBuffer;
         errorText =
           isRecordingLike && this.settingsService.isRecordingDiskSpaceLow()
-            ? $t('streaming.noSpaceError')
+            ? $t('streaming.encoderErrorLowDiskSpace')
             : $t('streaming.encoderError');
       } else {
         // obs.EOutputCode.Error
