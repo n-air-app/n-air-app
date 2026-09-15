@@ -507,7 +507,7 @@ export class SettingsService
    * 録画出力先の空き容量がしきい値未満かどうかを判定する。
    * URL出力(recType: Advanced/Custom/URL)やパス取得不能時はチェック対象外として false を返す。
    */
-  isRecordingDiskSpaceLow(thresholdBytes = 500 * 1024 * 1024): boolean {
+  isRecordingDiskSpaceLow(thresholdBytes = 100 * 1024 * 1024): boolean {
     const settings = this.getRecordingSettings();
     if (!settings || settings.recType === 'Advanced/Custom/URL' || !settings.path) {
       return false;
