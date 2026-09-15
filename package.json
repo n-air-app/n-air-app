@@ -85,6 +85,8 @@
     "@fetch-mock/jest": "^0.2.20",
     "@sentry/webpack-plugin": "^4.6.1",
     "@sinonjs/fake-timers": "^15.4.0",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/humps": "^2.0.6",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.25",
     "@types/luxon": "^3.7.5",

@@ -347,7 +347,7 @@ function setupMock() {
   }
 
   const openExternal = jest.fn();
-  let wrapper: {
+  const wrapper: {
     browserWindow: BrowserWindow;
     openExternal: jest.Mock;
   } = {

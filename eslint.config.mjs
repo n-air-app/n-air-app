@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import importPlugin from 'eslint-plugin-import';
 import jsoncPlugin from 'eslint-plugin-jsonc';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -10,13 +11,12 @@ import tseslint from 'typescript-eslint';
 const OFF = 0;
 const ERROR = 2;
 
-const GLOBALS = {
-  ...globals.browser,
-  ...globals.node,
-  ...globals.jest,
-};
+const enable = (...rules) => Object.fromEntries(rules.map((rule) => [rule, ERROR]));
+const disable = (...rules) => Object.fromEntries(rules.map((rule) => [rule, OFF]));
+const enableStylistic = (...rules) => enable(...rules.map((rule) => `@stylistic/${rule}`));
 
 const PLUGINS = {
+  '@stylistic': stylistic,
   import: importPlugin,
   'simple-import-sort': simpleImportSort,
   'unused-imports': unusedImports,
@@ -24,72 +24,43 @@ const PLUGINS = {
 
 // Format rules shared across JS/TS and Vue configs
 const FORMAT_RULES = {
+  ...enable(
+    'semi-spacing', 'key-spacing', 'unicode-bom', 'func-call-spacing',
+  ),
+  ...enableStylistic(
+    'semi', 'semi-style', 'comma-spacing', 'comma-style', 'arrow-parens', 'arrow-spacing',
+    'block-spacing', 'computed-property-spacing', 'keyword-spacing', 'rest-spread-spacing',
+    'space-before-blocks', 'space-in-parens', 'space-infix-ops', 'switch-colon-spacing',
+    'template-curly-spacing', 'yield-star-spacing', 'eol-last', 'new-parens',
+    'no-mixed-spaces-and-tabs', 'no-tabs', 'no-trailing-spaces', 'no-whitespace-before-property',
+    'array-bracket-spacing', 'nonblock-statement-body-position',
+  ),
   indent: [ERROR, 2, { SwitchCase: 1 }],
-  'brace-style': [ERROR, '1tbs', { allowSingleLine: true }],
-  quotes: [ERROR, 'single', { avoidEscape: true }],
-  semi: ERROR,
-  'semi-spacing': ERROR,
-  'semi-style': ERROR,
-  'comma-dangle': [ERROR, 'always-multiline'],
-  'comma-spacing': ERROR,
-  'comma-style': ERROR,
-  curly: [ERROR, 'multi-line'],
-  'arrow-parens': ERROR,
-  'arrow-spacing': ERROR,
-  'block-spacing': ERROR,
-  'computed-property-spacing': ERROR,
-  'key-spacing': ERROR,
-  'keyword-spacing': ERROR,
-  'object-curly-spacing': [ERROR, 'always'],
-  'object-property-newline': [ERROR, { allowAllPropertiesOnSameLine: true }],
-  'rest-spread-spacing': ERROR,
-  'space-before-blocks': ERROR,
-  'space-in-parens': ERROR,
-  'space-infix-ops': ERROR,
-  'space-unary-ops': [ERROR, { words: true, nonwords: false }],
-  'switch-colon-spacing': ERROR,
-  'template-curly-spacing': ERROR,
-  'yield-star-spacing': ERROR,
-  'eol-last': ERROR,
-  'new-parens': ERROR,
-  'no-mixed-spaces-and-tabs': ERROR,
-  'no-tabs': ERROR,
-  'no-trailing-spaces': ERROR,
-  'no-multiple-empty-lines': [ERROR, { max: 1, maxBOF: 0, maxEOF: 1 }],
-  'no-whitespace-before-property': ERROR,
-  'unicode-bom': ERROR,
-  'func-call-spacing': ERROR,
-  'array-bracket-spacing': ERROR,
-  'nonblock-statement-body-position': ERROR,
-  'wrap-iife': [ERROR, 'inside'],
   'quote-props': [ERROR, 'as-needed'],
+  '@stylistic/brace-style': [ERROR, '1tbs', { allowSingleLine: true }],
+  '@stylistic/quotes': [ERROR, 'single', { avoidEscape: true }],
+  '@stylistic/comma-dangle': [ERROR, 'always-multiline'],
+  curly: [ERROR, 'multi-line'],
+  '@stylistic/object-curly-spacing': [ERROR, 'always'],
+  '@stylistic/object-property-newline': [ERROR, { allowAllPropertiesOnSameLine: true }],
+  '@stylistic/space-unary-ops': [ERROR, { words: true, nonwords: false }],
+  '@stylistic/no-multiple-empty-lines': [ERROR, { max: 1, maxBOF: 0, maxEOF: 1 }],
+  '@stylistic/wrap-iife': [ERROR, 'inside'],
 };
 
 // Rules shared between JS/TS and Vue file configs
 const COMMON_RULES = {
-  // Overrides for rules enabled by @eslint/js recommended
-  'no-unused-vars': OFF,
-  'no-cond-assign': OFF,
-  'no-useless-escape': OFF,
-  'no-empty': OFF,
-  'getter-return': OFF,
-  'no-prototype-builtins': OFF,
-  'no-dupe-class-members': OFF,
-  'no-constant-condition': OFF,
-  'no-async-promise-executor': OFF,
-  'no-irregular-whitespace': OFF,
-  'no-undef': OFF,
+  ...enable(
+    'no-eval', 'no-loop-func', 'no-template-curly-in-string', 'no-throw-literal',
+    'prefer-rest-params', 'prefer-spread', 'import/newline-after-import', 'import/first',
+    'import/no-duplicates', 'simple-import-sort/exports', 'unused-imports/no-unused-imports',
+  ),
 
-  // Additional code quality rules
-  'no-eval': ERROR,
-  'no-loop-func': ERROR,
-  'no-template-curly-in-string': ERROR,
-  'no-throw-literal': ERROR,
-  'prefer-rest-params': ERROR,
-  'prefer-spread': ERROR,
-  'import/newline-after-import': ERROR,
-  'import/first': ERROR,
-  'import/no-duplicates': ERROR,
+  // Existing code migration backlog for @eslint/js recommended.
+  ...disable(
+    'no-unused-vars', 'no-cond-assign', 'no-useless-escape', 'no-empty', 'getter-return',
+    'no-prototype-builtins', 'no-async-promise-executor', 'no-irregular-whitespace',
+  ),
 
   'simple-import-sort/imports': [ERROR, {
     groups: [
@@ -105,9 +76,6 @@ const COMMON_RULES = {
       ['^\\.'],
     ],
   }],
-  'simple-import-sort/exports': ERROR,
-  'unused-imports/no-unused-imports': ERROR,
-
   // Also applies to virtual `.vue.ts` files created by the Vue processor.
   'vue/multi-word-component-names': OFF,
 
@@ -130,6 +98,10 @@ export default [
   },
 
   js.configs.recommended,
+  ...tseslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ['**/*.{ts,tsx}'],
+  })),
   ...jsoncPlugin.configs['flat/recommended-with-jsonc'],
   ...vue.configs['flat/essential'],
 
@@ -151,35 +123,64 @@ export default [
     },
   },
 
+  // Rules shared by JavaScript, TypeScript, and Vue.
+  {
+    files: ['**/*.{js,mjs,cjs,ts,vue}'],
+    plugins: PLUGINS,
+    rules: COMMON_RULES,
+  },
+
   // Main configuration for JS/TS files
   {
     files: ['**/*.{js,mjs,cjs,ts}'],
-    plugins: PLUGINS,
-
     languageOptions: {
       parser: tseslint.parser,
-      globals: GLOBALS,
+      globals: globals.node,
     },
+  },
 
-    rules: COMMON_RULES,
+  // Renderer code runs in Electron with both browser and Node.js APIs.
+  {
+    files: ['app/**/*.{js,ts}'],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+
+  // Test files additionally use Jest globals.
+  {
+    files: ['**/*.test.{js,ts}', 'test/**/*.{js,ts}', 'app/test-setup/**/*.{js,ts}'],
+    languageOptions: {
+      globals: globals.jest,
+    },
+  },
+
+  // Values injected by webpack's DefinePlugin.
+  {
+    files: ['sentry-defs.js'],
+    languageOptions: {
+      globals: {
+        SENTRY_DSN: 'readonly',
+        SENTRY_MINIDUMP_URL: 'readonly',
+      },
+    },
   },
 
   // Vue files configuration
   {
     files: ['**/*.vue'],
-    plugins: PLUGINS,
-
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: ['.vue'],
       },
-      globals: GLOBALS,
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
 
     rules: {
-      ...COMMON_RULES,
-
       'vue/html-indent': [ERROR, 2, {
         attribute: 1,
         baseIndent: 1,
@@ -194,7 +195,14 @@ export default [
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
-      'no-redeclare': OFF,
+      // Existing code migration backlog for typescript-eslint recommended.
+      ...disable(
+        'no-undef', 'no-redeclare', '@typescript-eslint/ban-ts-comment',
+        '@typescript-eslint/no-empty-object-type', '@typescript-eslint/no-explicit-any',
+        '@typescript-eslint/no-require-imports', '@typescript-eslint/no-unsafe-function-type',
+        '@typescript-eslint/no-unused-expressions', '@typescript-eslint/no-unused-vars',
+        '@typescript-eslint/no-wrapper-object-types', '@typescript-eslint/triple-slash-reference',
+      ),
     },
   },
 ];
