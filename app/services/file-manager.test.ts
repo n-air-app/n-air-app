@@ -94,7 +94,7 @@ test('ENOSPCが繰り返し発生してもダイアログは1回だけ表示さ�
   jest.spyOn(internals, 'writeFile').mockRejectedValue(
     Object.assign(new Error('no space'), { code: 'ENOSPC' }),
   );
-  jest.spyOn(SentryReport, 'message').mockImplementation();
+  const sentryMessage = jest.spyOn(SentryReport, 'message').mockImplementation();
   const showMessageBox = jest.spyOn(remote.dialog, 'showMessageBox').mockClear().mockResolvedValue({ response: 0 } as any);
 
   await internals.flush(filePath);
@@ -102,6 +102,7 @@ test('ENOSPCが繰り返し発生してもダイアログは1回だけ表示さ�
   await internals.flush(filePath);
 
   expect(showMessageBox).toHaveBeenCalledTimes(1);
+  expect(sentryMessage).toHaveBeenCalledTimes(1);
 
   delete internals.files[filePath];
   jest.restoreAllMocks();

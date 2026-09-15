@@ -182,18 +182,18 @@ export class FileManagerService extends Service {
   }
 
   /**
-   * ディスク容量不足をユーザーに通知する。アプリ起動中に1回だけ表示し、
-   * 以降は Sentry への報告のみに留める（60秒毎の自動保存で再発するため）。
+   * ディスク容量不足をユーザーに通知する。60秒毎の自動保存で再発するため、
+   * ダイアログ表示・Sentryへの報告ともにアプリ起動中1回だけに留める。
    */
   private notifyDiskFull(filePath: string, code: string) {
+    if (this.diskFullNotified) return;
+    this.diskFullNotified = true;
+
     SentryReport.message('FileManagerService', 'flush', 'Disk full while writing file', {
       tags: { code },
       extra: { filePath },
       fingerprint: ['FileManagerService', 'flush', 'DiskFull'],
     });
-
-    if (this.diskFullNotified) return;
-    this.diskFullNotified = true;
 
     remote.dialog
       .showMessageBox(Utils.getMainWindow(), {
