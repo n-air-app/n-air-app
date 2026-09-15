@@ -12,8 +12,10 @@ const OFF = 0;
 const ERROR = 2;
 
 const enable = (...rules) => Object.fromEntries(rules.map((rule) => [rule, ERROR]));
-const disable = (...rules) => Object.fromEntries(rules.map((rule) => [rule, OFF]));
 const enableStylistic = (...rules) => enable(...rules.map((rule) => `@stylistic/${rule}`));
+const disableTypeScript = (...rules) => Object.fromEntries(
+  rules.map((rule) => [`@typescript-eslint/${rule}`, OFF]),
+);
 
 const PLUGINS = {
   '@stylistic': stylistic,
@@ -24,28 +26,16 @@ const PLUGINS = {
 
 // Format rules shared across JS/TS and Vue configs
 const FORMAT_RULES = {
-  ...enable(
-    'semi-spacing', 'key-spacing', 'unicode-bom', 'func-call-spacing',
-  ),
+  ...enable('unicode-bom'),
   ...enableStylistic(
-    'semi', 'semi-style', 'comma-spacing', 'comma-style', 'arrow-parens', 'arrow-spacing',
-    'block-spacing', 'computed-property-spacing', 'keyword-spacing', 'rest-spread-spacing',
-    'space-before-blocks', 'space-in-parens', 'space-infix-ops', 'switch-colon-spacing',
-    'template-curly-spacing', 'yield-star-spacing', 'eol-last', 'new-parens',
-    'no-mixed-spaces-and-tabs', 'no-tabs', 'no-trailing-spaces', 'no-whitespace-before-property',
-    'array-bracket-spacing', 'nonblock-statement-body-position',
+    'semi', 'eol-last', 'no-mixed-spaces-and-tabs', 'no-tabs', 'no-trailing-spaces',
   ),
   indent: [ERROR, 2, { SwitchCase: 1 }],
-  'quote-props': [ERROR, 'as-needed'],
   '@stylistic/brace-style': [ERROR, '1tbs', { allowSingleLine: true }],
   '@stylistic/quotes': [ERROR, 'single', { avoidEscape: true }],
   '@stylistic/comma-dangle': [ERROR, 'always-multiline'],
-  curly: [ERROR, 'multi-line'],
   '@stylistic/object-curly-spacing': [ERROR, 'always'],
-  '@stylistic/object-property-newline': [ERROR, { allowAllPropertiesOnSameLine: true }],
-  '@stylistic/space-unary-ops': [ERROR, { words: true, nonwords: false }],
   '@stylistic/no-multiple-empty-lines': [ERROR, { max: 1, maxBOF: 0, maxEOF: 1 }],
-  '@stylistic/wrap-iife': [ERROR, 'inside'],
 };
 
 // Rules shared between JS/TS and Vue file configs
@@ -175,11 +165,10 @@ export default [
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
       // Existing code migration backlog for typescript-eslint recommended.
-      ...disable(
-        '@typescript-eslint/no-empty-object-type', '@typescript-eslint/no-explicit-any',
-        '@typescript-eslint/no-require-imports', '@typescript-eslint/no-unsafe-function-type',
-        '@typescript-eslint/no-unused-expressions', '@typescript-eslint/no-unused-vars',
-        '@typescript-eslint/no-wrapper-object-types',
+      ...disableTypeScript(
+        'no-empty-object-type', 'no-explicit-any', 'no-require-imports',
+        'no-unsafe-function-type', 'no-unused-expressions', 'no-unused-vars',
+        'no-wrapper-object-types',
       ),
     },
   },
