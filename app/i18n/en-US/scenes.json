@@ -12,6 +12,8 @@
   "failedToLoadSceneCollection": "Failed to load scene collection.  A new one will be created instead.",
   "loadErrorTitle": "Scene Collection Load Error",
   "loadErrorMessage": "Failed to load scene collection '{collectionName}'.\n\n{errorDetail}\n\nCreating a new collection may result in loss of existing data.",
+  "saveErrorTitle": "Scene Collection Save Error",
+  "diskFullError": "Failed to save settings because disk space is insufficient.\n\nPlease free up disk space and restart N Air.",
   "quitApp": "Quit Application",
   "createNewCollection": "Create New Collection",
   "partialLoadWarningTitle": "Some Elements Failed to Load",
