@@ -41,7 +41,7 @@ export default defineComponent({
   methods: {
     onDragOverSelf(ev: DragEvent) {
       ev.preventDefault();
-      if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+      if (ev.dataTransfer) ev.dataTransfer.dropEffect = this.draggingIndex !== null ? 'move' : 'copy';
     },
 
     indexFromEvent(ev: Event): number {
