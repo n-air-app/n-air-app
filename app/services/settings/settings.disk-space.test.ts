@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 jest.mock('@sentry/vue', () => ({ addBreadcrumb: jest.fn() }));
 jest.mock('services/i18n', () => ({ $t: (key: string) => key }));
@@ -104,12 +105,25 @@ describe('SettingsService: isRecordingDiskSpaceLow', () => {
     expect(instance.isRecordingDiskSpaceLow()).toBe(false);
   });
 
-  test('statfsSyncが例外を投げた場合はfalseを返す', () => {
-    mockRecordingSettings('Simple', '/nonexistent');
+  test('statfsSyncがすべての候補で例外を投げた場合はfalseを返す', () => {
+    mockRecordingSettings('Simple', '/nonexistent/deep/path.mp4');
     jest.spyOn(fs, 'statfsSync').mockImplementation(() => {
       throw new Error('ENOENT');
     });
 
     expect(instance.isRecordingDiskSpaceLow()).toBe(false);
+  });
+
+  test('ファイルパス自体がstatfs不能でも親ディレクトリで判定できる', () => {
+    mockRecordingSettings('Simple', path.join('some', 'dir', 'not-yet-created.mp4'));
+    const statfsSync = jest.spyOn(fs, 'statfsSync').mockImplementation((target: any) => {
+      if (target === path.join('some', 'dir', 'not-yet-created.mp4')) {
+        throw new Error('ENOENT');
+      }
+      return { bavail: 1, bsize: 1 } as any;
+    });
+
+    expect(instance.isRecordingDiskSpaceLow(1000)).toBe(true);
+    expect(statfsSync).toHaveBeenCalledWith(path.join('some', 'dir'));
   });
 });

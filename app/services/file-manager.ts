@@ -5,7 +5,6 @@ import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { Service } from 'services/core/service';
 import { $t } from 'services/i18n';
-import Utils from 'services/utils';
 import { SentryReport } from 'util/sentry-report';
 
 interface IFile {
@@ -196,7 +195,7 @@ export class FileManagerService extends Service {
     });
 
     remote.dialog
-      .showMessageBox(Utils.getMainWindow(), {
+      .showMessageBox(remote.getCurrentWindow(), {
         buttons: ['OK'],
         title: $t('scenes.saveErrorTitle'),
         type: 'error',

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 import * as Sentry from '@sentry/vue';
 import {
@@ -513,12 +514,17 @@ export class SettingsService
       return false;
     }
 
-    try {
-      const stats = fs.statfsSync(settings.path);
-      return stats.bavail * stats.bsize < thresholdBytes;
-    } catch {
-      return false;
+    // settings.path はまだ作成されていない録画ファイル名を含むことがあるため、
+    // 直接 statfs できない場合は親ディレクトリにフォールバックする
+    for (const target of [settings.path, path.dirname(settings.path)]) {
+      try {
+        const stats = fs.statfsSync(target);
+        return stats.bavail * stats.bsize < thresholdBytes;
+      } catch {
+        // 次の候補を試す
+      }
     }
+    return false;
   }
 
   diffOptimizedSettings(options: {
