@@ -323,6 +323,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     const s = index.split('/');
     if (s.length !== 2) return def;
     const num = Number(s[1]);
+    if (!Number.isInteger(num) || num < 0) return def;
     if (s[0] === 'manual') return { isManual: true, num };
     if (s[0] === 'preset') return { isManual: false, num };
 
@@ -421,6 +422,7 @@ export class RtvcStateService extends PersistentStatefulService<IRtvcState> {
     const index = state.currentIndex;
     const { isManual, num } = this.indexToModeNum(index);
     if (isManual) {
+      if (num < 0 || num >= state.manuals.length) return;
       const p = state.manuals[num];
       const key = `manual${num}` as RtvcParamManualKeys;
       const param = this.eventLog.param as RtvcParamManual;
