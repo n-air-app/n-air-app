@@ -46,7 +46,11 @@ jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
 }));
 jest.mock('@electron/remote', () => ({
-  BrowserWindow: jest.fn(),
+  BrowserWindow: Object.assign(jest.fn(), {
+    getAllWindows: jest.fn().mockReturnValue([
+      { webContents: { getURL: () => 'app:///index.html?windowId=main' } },
+    ]),
+  }),
   getCurrentWindow: jest.fn(),
   powerSaveBlocker: {
     start: jest.fn(),
@@ -94,6 +98,7 @@ const createInjectee = ({
   optimizeForNiconico = false,
   panelProgramID = '',
   panelProgramStatus = 'end' as 'reserved' | 'test' | 'onAir' | 'end',
+  isRecordingDiskSpaceLow = (() => false) as () => boolean,
 } = {}) => ({
   SettingsService: {
     state: {
@@ -106,6 +111,7 @@ const createInjectee = ({
     },
     getStreamEncoderSettings,
     showSettings: noop,
+    isRecordingDiskSpaceLow,
   },
   UserService: {
     isNiconicoLoggedIn() {
@@ -1684,4 +1690,68 @@ test('logStreamEndが冪等である（2回呼んでもrecordEventは1回のみ�
   instance.logStreamEnd();
 
   expect(recordEvent).toHaveBeenCalledTimes(1);
+});
+
+describe('handleOBSOutputSignalのEncoderError処理', () => {
+  test('録画中のEncoderErrorで空き容量が少ない場合はnoSpaceErrorを表示する', async () => {
+    setup({
+      injectee: createInjectee({ isRecordingDiskSpaceLow: () => true }),
+    });
+
+    const { StreamingService } = require('./streaming');
+    const instance = StreamingService.instance();
+    const currentRemote = require('@electron/remote');
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+
+    instance.handleOBSOutputSignal({ type: 'recording', signal: 'stop', code: -8, error: 'Encoder error' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(showMessageBox).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ message: 'streaming.noSpaceError' }),
+    );
+  });
+
+  test('録画中のEncoderErrorで空き容量に問題ない場合はencoderErrorを表示する', async () => {
+    setup({
+      injectee: createInjectee({ isRecordingDiskSpaceLow: () => false }),
+    });
+
+    const { StreamingService } = require('./streaming');
+    const instance = StreamingService.instance();
+    const currentRemote = require('@electron/remote');
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+
+    instance.handleOBSOutputSignal({ type: 'recording', signal: 'stop', code: -8, error: 'Encoder error' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(showMessageBox).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ message: 'streaming.encoderError' }),
+    );
+  });
+
+  test('配信中のEncoderErrorは空き容量チェックをせずencoderErrorを表示する', async () => {
+    const isRecordingDiskSpaceLow = jest.fn().mockReturnValue(true);
+    setup({
+      injectee: createInjectee({ isRecordingDiskSpaceLow }),
+    });
+
+    const { StreamingService } = require('./streaming');
+    const instance = StreamingService.instance();
+    const currentRemote = require('@electron/remote');
+    const showMessageBox = jest.spyOn(currentRemote.dialog, 'showMessageBox');
+
+    instance.handleOBSOutputSignal({ type: 'streaming', signal: 'stop', code: -8, error: 'Encoder error' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(isRecordingDiskSpaceLow).not.toHaveBeenCalled();
+    expect(showMessageBox).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ message: 'streaming.encoderError' }),
+    );
+  });
 });

@@ -12,6 +12,8 @@
   "failedToLoadSceneCollection": "シーンコレクションの読み込みに失敗しました。新しいシーンコレクションを作成します。",
   "loadErrorTitle": "シーンコレクション読み込みエラー",
   "loadErrorMessage": "シーンコレクション '{collectionName}' の読み込みに失敗しました。\n\n{errorDetail}\n\n新しいコレクションを作成すると、既存のデータが失われる可能性があります。",
+  "saveErrorTitle": "シーンコレクション保存エラー",
+  "diskFullError": "ディスクの空き容量が不足しているため、設定を保存できませんでした。\n\n不要なファイルを削除して空き容量を確保してから、N Airを再起動してください。",
   "quitApp": "アプリを終了",
   "createNewCollection": "新しいコレクションを作成",
   "partialLoadWarningTitle": "一部の要素の読み込みに失敗",

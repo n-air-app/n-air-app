@@ -1,8 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
+import * as remote from '@electron/remote';
 import * as Sentry from '@sentry/vue';
 import { Service } from 'services/core/service';
+import { $t } from 'services/i18n';
+import Utils from 'services/utils';
 import { SentryReport } from 'util/sentry-report';
 
 interface IFile {
@@ -33,6 +36,7 @@ export interface IFileReadOptions {
  */
 export class FileManagerService extends Service {
   private files: Dictionary<IFile> = {};
+  private diskFullNotified = false;
 
   async exists(filePath: string): Promise<boolean> {
     const truePath = path.resolve(filePath);
@@ -160,7 +164,12 @@ export class FileManagerService extends Service {
     } catch (e) {
       // 失敗後も、再試行または次回の書き込みができるようロックを解除する。
       file.locked = false;
-      if (tries > 0) {
+      const code = (e as NodeJS.ErrnoException)?.code;
+
+      if (code === 'ENOSPC' || code === 'EDQUOT') {
+        // 容量不足はリトライしても直らないため、即座に打ち切ってユーザーに知らせる。
+        this.notifyDiskFull(filePath, code);
+      } else if (tries > 0) {
         await this.flush(filePath, tries - 1);
       } else {
         SentryReport.message('FileManagerService', 'flush', 'Ran out of retries writing file', {
@@ -170,6 +179,30 @@ export class FileManagerService extends Service {
         });
       }
     }
+  }
+
+  /**
+   * ディスク容量不足をユーザーに通知する。アプリ起動中に1回だけ表示し、
+   * 以降は Sentry への報告のみに留める（60秒毎の自動保存で再発するため）。
+   */
+  private notifyDiskFull(filePath: string, code: string) {
+    SentryReport.message('FileManagerService', 'flush', 'Disk full while writing file', {
+      tags: { code },
+      extra: { filePath },
+      fingerprint: ['FileManagerService', 'flush', 'DiskFull'],
+    });
+
+    if (this.diskFullNotified) return;
+    this.diskFullNotified = true;
+
+    remote.dialog
+      .showMessageBox(Utils.getMainWindow(), {
+        buttons: ['OK'],
+        title: $t('scenes.saveErrorTitle'),
+        type: 'error',
+        message: $t('scenes.diskFullError'),
+      })
+      .catch(() => {});
   }
 
   /**

@@ -369,69 +369,6 @@ export class SettingsService
     return this.findSettingValue(output, 'Untitled', 'Mode') as 'Simple' | 'Advanced' | null;
   }
 
-  isValidOutputRecordingPath(): boolean {
-    const path = this.getOutputRecordingPath();
-    console.log('getOutputRecordingPath: ', path);
-
-    if (!path) {
-      return false;
-    }
-
-    if (path.length < 2) {
-      return false;
-    }
-
-    return this.isValidOutputRecordingUri(path) || this.isValidOutputRecordingDirectoryPath(path);
-  }
-
-  isValidOutputRecordingDirectoryPath(recordingPath: string): boolean {
-    return fs.existsSync(recordingPath) && fs.statSync(recordingPath).isDirectory();
-  }
-
-  isValidOutputRecordingUri(uri: string): boolean {
-    let parsedUri;
-    try {
-      parsedUri = new URL(uri);
-    } catch (e) {
-      if (e instanceof TypeError) {
-        return false;
-      } else {
-        console.log('unexpected error thrown:', e);
-        throw e;
-      }
-    }
-    return parsedUri.protocol === 'rtmp:';
-  }
-
-  getOutputRecordingPath(): string | undefined {
-    const output = this.getSettingsFormData('Output');
-    const outputMode = this.getOutputMode(output);
-    switch (outputMode) {
-      case 'Simple':
-        return this.findSettingValue(output, 'Recording', 'FilePath') as string;
-
-      case 'Advanced': {
-        const recType = this.findSettingValue(output, 'Recording', 'RecType');
-        console.log(`Output/Recording RecType: ${recType}`);
-        switch (recType) {
-          case 'Standard':
-            return this.findSettingValue(output, 'Recording', 'RecFilePath') as string;
-
-          case 'Custom Output (FFmpeg)': {
-            const ffMpegMode = this.findSettingValue(output, 'Recording', 'FFOutputToFile');
-            switch (ffMpegMode) {
-              case 0: // Output to URL
-                return this.findSettingValue(output, 'Recording', 'FFURL') as string;
-              case 1: // Output to File
-                return this.findSettingValue(output, 'Recording', 'FFFilePath') as string;
-            }
-          }
-        }
-      }
-    }
-    return undefined;
-  }
-
   /**
    * Returns some information about the user's streaming settings.
    * This is used in aggregate to improve our optimized video encoding.
@@ -564,6 +501,24 @@ export class SettingsService
       }
     }
     return undefined;
+  }
+
+  /**
+   * 録画出力先の空き容量がしきい値未満かどうかを判定する。
+   * URL出力(recType: Advanced/Custom/URL)やパス取得不能時はチェック対象外として false を返す。
+   */
+  isRecordingDiskSpaceLow(thresholdBytes = 500 * 1024 * 1024): boolean {
+    const settings = this.getRecordingSettings();
+    if (!settings || settings.recType === 'Advanced/Custom/URL' || !settings.path) {
+      return false;
+    }
+
+    try {
+      const stats = fs.statfsSync(settings.path);
+      return stats.bavail * stats.bsize < thresholdBytes;
+    } catch {
+      return false;
+    }
   }
 
   diffOptimizedSettings(options: {
