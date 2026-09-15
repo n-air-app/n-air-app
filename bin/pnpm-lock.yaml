@@ -4,20 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  svg2ttf: 6.0.3
-  xml2js: '>=0.5.0'
-
 importers:
 
   .:
-    dependencies:
-      '@octokit/rest':
-        specifier: ^22.0.1
-        version: 22.0.1
-      luxon:
-        specifier: ^3.5.0
-        version: 3.7.2
     devDependencies:
       '@aws-sdk/client-s3':
         specifier: ^3.1127.0
@@ -28,6 +17,9 @@ importers:
       '@inquirer/prompts':
         specifier: ^8.7.1
         version: 8.7.2(@types/node@22.20.2)
+      '@octokit/rest':
+        specifier: ^22.0.1
+        version: 22.0.1
       colors:
         specifier: ^1.4.0
         version: 1.4.0
@@ -37,12 +29,12 @@ importers:
       js-yaml:
         specifier: ^5.4.1
         version: 5.4.1
+      luxon:
+        specifier: ^3.5.0
+        version: 3.7.2
       progress:
         specifier: ^2.0.0
         version: 2.0.3
-      semver:
-        specifier: ^7.8.5
-        version: 7.8.5
       shelljs:
         specifier: ^0.10.0
         version: 0.10.0
@@ -370,14 +362,13 @@ packages:
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
 
-  '@xmldom/xmldom@0.7.13':
-    resolution: {integrity: sha512-lm2GW5PkosIzccsaZIz7tp8cPADSIlIHWDFTR1N0SzfinhhYgeIQjFMz4rYzanCScr3DqQLeomUDArp6MWKm+g==}
-    engines: {node: '>=10.0.0'}
-    deprecated: this version has critical issues, please update to the latest version
-
   '@xmldom/xmldom@0.8.15':
     resolution: {integrity: sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==}
     engines: {node: '>=10.0.0'}
+
+  '@xmldom/xmldom@0.9.12':
+    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
+    engines: {node: '>=14.6'}
 
   a-sync-waterfall@1.0.1:
     resolution: {integrity: sha512-RYTOHHdWipFUliRFMCS4X2Yn2X8M87V/OpSqWzKKOGhzqyUxzyVmhHDH9sAvG+ZuQf/TAOFsLCpMw09I1ufUnA==}
@@ -792,11 +783,6 @@ packages:
     resolution: {integrity: sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q==}
     engines: {node: '>=11.0.0'}
 
-  semver@7.8.5:
-    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   shebang-command@2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
     engines: {node: '>=8'}
@@ -842,8 +828,8 @@ packages:
     resolution: {integrity: sha512-h9FuqmNsgDKq2hQBqTMOWjZwqdZOnWijZmcg6FL4iSmH6VvRnobhHrBQSdOiP0W9nwgv0qiW5vQ3//Arrmp19g==}
     engines: {node: '>=24.14.0'}
 
-  svg2ttf@6.0.3:
-    resolution: {integrity: sha512-CgqMyZrbOPpc+WqH7aga4JWkDPso23EgypLsbQ6gN3uoPWwwiLjXvzgrwGADBExvCRJrWFzAeK1bSoSpE7ixSQ==}
+  svg2ttf@6.1.0:
+    resolution: {integrity: sha512-EjxgcmhKcBpx/3fR1hPwVtJAbUc/ZsDpwOTF74SI3PbzCg4pDHnxVmoSuqgEqxVJGqqkSCI6+82cucpn2D5aOw==}
     hasBin: true
 
   svgicons2svgfont@16.0.0:
@@ -1345,9 +1331,9 @@ snapshots:
     dependencies:
       '@types/node': 22.20.2
 
-  '@xmldom/xmldom@0.7.13': {}
-
   '@xmldom/xmldom@0.8.15': {}
+
+  '@xmldom/xmldom@0.9.12': {}
 
   a-sync-waterfall@1.0.1: {}
 
@@ -1702,8 +1688,6 @@ snapshots:
 
   sax@1.6.1: {}
 
-  semver@7.8.5: {}
-
   shebang-command@2.0.0:
     dependencies:
       shebang-regex: 3.0.0
@@ -1740,9 +1724,9 @@ snapshots:
 
   svg-pathdata@9.0.0: {}
 
-  svg2ttf@6.0.3:
+  svg2ttf@6.1.0:
     dependencies:
-      '@xmldom/xmldom': 0.7.13
+      '@xmldom/xmldom': 0.9.12
       argparse: 2.0.1
       cubic2quad: 1.2.1
       lodash: 4.18.1
@@ -1815,7 +1799,7 @@ snapshots:
       nunjucks: 3.2.4
       p-limit: 7.3.0
       resolve-from: 5.0.0
-      svg2ttf: 6.0.3
+      svg2ttf: 6.1.0
       svgicons2svgfont: 16.0.0
       svgo: 4.0.2
       ttf2eot: 3.1.0

@@ -223,6 +223,7 @@ module.exports = function (env, argv) {
                 options: {
                   transpileOnly: false,
                   compilerOptions: {
+                    noEmit: false,
                     sourceMap: true,
                     inlineSources: !isProduction,
                     sourceRoot: '',
@@ -354,6 +355,11 @@ module.exports = function (env, argv) {
           {
             test: /\.ts$/,
             loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                noEmit: false,
+              },
+            },
             exclude: /node_modules/,
           },
         ],
