@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const appService: AppService = AppService.instance();
 
       // This is used for debugging
-      // @ts-ignore
+      // @ts-expect-error Debug-only global that is intentionally absent from Window.
       window['obs'] = obs;
 
       // Host a new OBS server instance

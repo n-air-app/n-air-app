@@ -1,4 +1,3 @@
-/// <reference path="../../../app/index.d.ts" />
 import * as ChildProcess from 'child_process';
 
 import { DismissablesService } from 'services/dismissables';

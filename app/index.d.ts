@@ -1,5 +1,3 @@
-/// <reference path="./vue-augmentations.d.ts" />
-
 // all global interfaces here
 
 interface Dictionary<TItemType> {

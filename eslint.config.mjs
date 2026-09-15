@@ -91,31 +91,16 @@ export default [
     ],
   },
 
-  js.configs.recommended,
+  {
+    ...js.configs.recommended,
+    files: ['**/*.{js,mjs,cjs}'],
+  },
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
     files: ['**/*.{ts,tsx}'],
   })),
   ...jsoncPlugin.configs['flat/recommended-with-jsonc'],
   ...vue.configs['flat/essential'],
-
-  // JSON / JSONC formatting (Prettier 廃止に伴い ESLint で format 管理)
-  {
-    files: ['**/*.json', '**/*.jsonc', '**/*.json5'],
-    rules: {
-      // フォーマット（2スペース・ダブルクォート・末尾カンマなし）
-      'jsonc/indent': [ERROR, 2],
-      'jsonc/key-spacing': [ERROR, { beforeColon: false, afterColon: true }],
-      'jsonc/comma-style': [ERROR, 'last'],
-      'jsonc/comma-dangle': [ERROR, 'never'],
-      'jsonc/quotes': [ERROR, 'double'],
-      'jsonc/quote-props': [ERROR, 'always'],
-      'jsonc/array-bracket-spacing': [ERROR, 'never'],
-      'jsonc/object-curly-spacing': [ERROR, 'always'],
-      'jsonc/object-curly-newline': [ERROR, { multiline: true, consistent: true }],
-      'jsonc/object-property-newline': [ERROR, { allowAllPropertiesOnSameLine: true }],
-    },
-  },
 
   // Rules shared by JavaScript, TypeScript, and Vue.
   {
@@ -191,11 +176,10 @@ export default [
     rules: {
       // Existing code migration backlog for typescript-eslint recommended.
       ...disable(
-        'no-undef', 'no-redeclare', '@typescript-eslint/ban-ts-comment',
         '@typescript-eslint/no-empty-object-type', '@typescript-eslint/no-explicit-any',
         '@typescript-eslint/no-require-imports', '@typescript-eslint/no-unsafe-function-type',
         '@typescript-eslint/no-unused-expressions', '@typescript-eslint/no-unused-vars',
-        '@typescript-eslint/no-wrapper-object-types', '@typescript-eslint/triple-slash-reference',
+        '@typescript-eslint/no-wrapper-object-types',
       ),
     },
   },
