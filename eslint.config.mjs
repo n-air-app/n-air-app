@@ -1,6 +1,5 @@
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
-import importPlugin from 'eslint-plugin-import';
 import jsoncPlugin from 'eslint-plugin-jsonc';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
@@ -19,7 +18,6 @@ const disableTypeScript = (...rules) => Object.fromEntries(
 
 const PLUGINS = {
   '@stylistic': stylistic,
-  import: importPlugin,
   'simple-import-sort': simpleImportSort,
   'unused-imports': unusedImports,
 };
@@ -42,8 +40,8 @@ const FORMAT_RULES = {
 const COMMON_RULES = {
   ...enable(
     'no-eval', 'no-loop-func', 'no-template-curly-in-string', 'no-throw-literal',
-    'prefer-rest-params', 'prefer-spread', 'import/newline-after-import', 'import/first',
-    'import/no-duplicates', 'simple-import-sort/exports', 'unused-imports/no-unused-imports',
+    'prefer-rest-params', 'prefer-spread', 'no-duplicate-imports',
+    'simple-import-sort/exports', 'unused-imports/no-unused-imports',
   ),
 
   'simple-import-sort/imports': [ERROR, {

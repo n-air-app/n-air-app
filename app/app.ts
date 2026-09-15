@@ -1,4 +1,3 @@
-/* eslint-disable import/first */
 // window.eval override must execute before other imports to prevent eval usage in any imported module
 import get from 'lodash/get';
 import { I18nService } from 'services/i18n';

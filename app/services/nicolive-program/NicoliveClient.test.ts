@@ -1,4 +1,3 @@
-/* eslint-disable import/first */
 // NicoliveClient must be imported AFTER the fetchViaMainProcess mock is set up,
 // so that when Jest loads NicoliveClient (which imports fetchViaMainProcess),
 // the mock factory can reference the already-initialized fetchViaMainProcess variable.
