@@ -139,7 +139,8 @@ export default defineComponent({
     },
     categoryName(categoryName: SettingsCategory) {
       this.settingsData = SettingsService.instance().getSettingsFormData(categoryName);
-      (this.$refs.settingsContainer as HTMLElement).scrollTop = 0;
+      const settingsContainer = this.$refs.settingsContainer as HTMLElement | undefined;
+      if (settingsContainer) settingsContainer.scrollTop = 0;
       this.isTocOpen = true;
 
       this.tocManager.clear(categoryName);
