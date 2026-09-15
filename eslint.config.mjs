@@ -56,12 +56,6 @@ const COMMON_RULES = {
     'import/no-duplicates', 'simple-import-sort/exports', 'unused-imports/no-unused-imports',
   ),
 
-  // Existing code migration backlog for @eslint/js recommended.
-  ...disable(
-    'no-unused-vars', 'no-cond-assign', 'no-useless-escape', 'no-empty', 'getter-return',
-    'no-prototype-builtins', 'no-async-promise-executor', 'no-irregular-whitespace',
-  ),
-
   'simple-import-sort/imports': [ERROR, {
     groups: [
       // Side-effect imports

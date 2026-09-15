@@ -92,7 +92,9 @@ class Application {
     try {
       const result = await fetch(statusUrl);
       return result.status === 200;
-    } catch (e: unknown) { }
+    } catch {
+      return false;
+    }
   }
 }
 

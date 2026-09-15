@@ -8,14 +8,14 @@ export function apply(value: string): string {
 }
 
 // URL検出正規表現生成用
-const punct = "!'#%&\\(\\)\\*\\+,\\-\\./:;<=>\\?@[\\]^_{}~\\$、。　";
+const punct = "!'#%&\\(\\)\\*\\+,\\-\\./:;<=>\\?@[\\]^_{}~\\$、。\u3000";
 const spaces = '\\s\\u1680\\u180E\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000';
 const invalidChars = '\\u{00}-\\u{2f}\\u{3a}-\\u{40}\\u{5b}-\\u{60}\\u{7b}-\\u{de}\\uFE74-\\uFFFF\\u202A-\\u202E';
 const invalidCharsForDomain = punct + spaces + invalidChars;
 const validCharsForDomain = `[^${invalidCharsForDomain}]`;
 const validDomain = `(?:(?:${validCharsForDomain}+(?:[_-]|${validCharsForDomain})*)?${validCharsForDomain})`;
 const domainPattern = `(?:${validDomain}\\.)+(?:${validDomain})`;
-const urlPattern = `(https?://${domainPattern}(?::\\d+)?(?:/[^\\s<>'"、。　]*)?)`;
+const urlPattern = `(https?://${domainPattern}(?::\\d+)?(?:/[^\\s<>'"、。\\u3000]*)?)`;
 
 const urlRegExp = new RegExp(urlPattern, 'gu');
 

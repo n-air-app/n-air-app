@@ -365,11 +365,11 @@ export class WindowsService extends StatefulService<IWindowsState> {
 
   async closeOneOffWindow(windowId: string): Promise<void> {
     if (!this.windows[windowId] || this.windows[windowId].isDestroyed()) return;
-    return new Promise(async (resolve) => {
+    const closed = new Promise<void>((resolve) => {
       this.windows[windowId].on('closed', resolve);
-      this.windows[windowId].close();
-      await this.waitWindowCleanup(windowId);
     });
+    this.windows[windowId].close();
+    await Promise.all([closed, this.waitWindowCleanup(windowId)]);
   }
 
   getChildWindowOptions(): IWindowOptions {
