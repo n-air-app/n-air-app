@@ -1,8 +1,5 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import importPlugin from 'eslint-plugin-import';
 import jsoncPlugin from 'eslint-plugin-jsonc';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
@@ -10,14 +7,6 @@ import vue from 'eslint-plugin-vue';
 import * as jsoncParser from 'jsonc-eslint-parser';
 import tseslint from 'typescript-eslint';
 import vueParser from 'vue-eslint-parser';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-});
 
 const OFF = 0;
 const WARN = 1;
@@ -28,10 +17,37 @@ const FORMAT_RULES = {
   indent: [ERROR, 2, { SwitchCase: 1 }],
   'brace-style': [ERROR, '1tbs', { allowSingleLine: true }],
   quotes: [ERROR, 'single', { avoidEscape: true }],
+  semi: [ERROR, 'always'],
+  'semi-spacing': [ERROR, { before: false, after: true }],
+  'semi-style': [ERROR, 'last'],
+  'comma-dangle': [ERROR, 'always-multiline'],
+  'comma-spacing': [ERROR, { before: false, after: true }],
+  'comma-style': [ERROR, 'last'],
   curly: [ERROR, 'multi-line'],
   'arrow-parens': [ERROR, 'always'],
+  'arrow-spacing': [ERROR, { before: true, after: true }],
+  'block-spacing': [ERROR, 'always'],
+  'computed-property-spacing': [ERROR, 'never'],
+  'key-spacing': [ERROR, { beforeColon: false, afterColon: true }],
+  'keyword-spacing': [ERROR, { before: true, after: true }],
+  'object-curly-spacing': [ERROR, 'always'],
+  'object-property-newline': [ERROR, { allowAllPropertiesOnSameLine: true }],
+  'rest-spread-spacing': [ERROR, 'never'],
+  'space-before-blocks': ERROR,
+  'space-in-parens': [ERROR, 'never'],
+  'space-infix-ops': ERROR,
+  'space-unary-ops': [ERROR, { words: true, nonwords: false }],
+  'switch-colon-spacing': [ERROR, { after: true, before: false }],
+  'template-curly-spacing': [ERROR, 'never'],
+  'yield-star-spacing': [ERROR, 'after'],
+  'eol-last': [ERROR, 'always'],
+  'new-parens': ERROR,
+  'no-mixed-spaces-and-tabs': ERROR,
+  'no-tabs': ERROR,
   'no-trailing-spaces': ERROR,
   'no-multiple-empty-lines': [ERROR, { max: 1, maxBOF: 0, maxEOF: 1 }],
+  'no-whitespace-before-property': ERROR,
+  'unicode-bom': [ERROR, 'never'],
   'func-call-spacing': [ERROR, 'never'],
   'no-spaced-func': ERROR,
   'array-bracket-spacing': [ERROR, 'never'],
@@ -101,6 +117,12 @@ const COMMON_RULES = {
   camelcase: OFF,
   'no-restricted-globals': OFF,
   'no-alert': OFF,
+  'no-eval': ERROR,
+  'no-loop-func': ERROR,
+  'no-template-curly-in-string': ERROR,
+  'no-throw-literal': ERROR,
+  'prefer-rest-params': ERROR,
+  'prefer-spread': ERROR,
   'default-case': OFF,
   'array-callback-return': OFF,
   'spaced-comment': OFF,
@@ -220,7 +242,6 @@ export default [
   },
 
   // Base config for all JS/TS files
-  ...compat.extends('airbnb-base'),
   js.configs.recommended,
 
   // Vue plugin configs (Vue 3)
@@ -232,6 +253,7 @@ export default [
 
     plugins: {
       '@typescript-eslint': tseslint.plugin,
+      import: importPlugin,
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
     },
@@ -279,6 +301,7 @@ export default [
     plugins: {
       vue,
       '@typescript-eslint': tseslint.plugin,
+      import: importPlugin,
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
     },
@@ -290,7 +313,7 @@ export default [
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: ['.vue'],
-        ecmaFeatures: { globalReturn: false }, // Fix: override airbnb-base's globalReturn:true that breaks vue/valid-v-for scope tracking
+        ecmaFeatures: { globalReturn: false },
       },
       globals: {
         Atomics: 'readonly',
@@ -348,6 +371,7 @@ export default [
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
       'no-undef': OFF,
+      'no-redeclare': OFF,
       'default-param-last': OFF,
     },
   },

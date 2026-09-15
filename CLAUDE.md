@@ -149,7 +149,7 @@ test("service behavior", () => {
 
 ## Code Style
 
-**Formatting:** ESLint (airbnb-base + overrides) が single quotes / trailing commas / 2-space indent を強制。CSS/Less は Stylelint
+**Formatting:** ESLintのローカル設定がsingle quotes / trailing commas / 2-space indentなどを強制。CSS/LessはStylelint
 **Linting:** ESLint with TypeScript + Vue plugins, Stylelint for CSS/Less
 **Pre-commit:** Husky + lint-staged runs formatting and linting automatically
 
