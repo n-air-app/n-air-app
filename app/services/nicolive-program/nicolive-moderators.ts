@@ -38,10 +38,10 @@ export class NicoliveModeratorsService extends StatefulService<INicoliveModerato
   private refreshSubject = new Subject<
     | { event: 'addSSNG'; record: FilterRecord }
     | {
-        event: 'removeSSNG';
-        record: { ssngId: number; userId?: number; userName?: string };
-        byModerator: boolean;
-      }
+      event: 'removeSSNG';
+      record: { ssngId: number; userId?: number; userName?: string };
+      byModerator: boolean;
+    }
   >();
   refreshObserver = this.refreshSubject.asObservable();
 
