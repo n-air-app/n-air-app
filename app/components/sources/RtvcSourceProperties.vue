@@ -312,6 +312,9 @@
             $t('source-props.nair-rtvc-source.nav.check_voice')
           }}</span>
           <input v-model="isMonitor" type="checkbox" class="toggle-button" />
+          <span v-if="isMonitor" class="preview-stop-notice">{{
+            $t('source-props.nair-rtvc-source.nav.preview_stop_notice')
+          }}</span>
         </div>
         <div v-else>{{ $t('source-props.nair-rtvc-source.nav.preview_audio_on') }}</div>
       </div>
@@ -678,6 +681,13 @@
 
 .toggle-wrapper {
   margin-right: auto;
+
+  .preview-stop-notice {
+    margin-top: 2px;
+    margin-left: 16px;
+    font-size: @font-size2;
+    color: var(--color-text);
+  }
 }
 
 .row {
