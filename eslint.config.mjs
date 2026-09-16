@@ -26,7 +26,7 @@ const PLUGINS = {
 const FORMAT_RULES = {
   ...enable('unicode-bom'),
   ...enableStylistic(
-    'semi', 'eol-last', 'no-mixed-spaces-and-tabs', 'no-tabs', 'no-trailing-spaces',
+    'semi', 'eol-last', 'no-tabs', 'no-trailing-spaces',
   ),
   indent: [ERROR, 2, { SwitchCase: 1 }],
   '@stylistic/brace-style': [ERROR, '1tbs', { allowSingleLine: true }],
@@ -68,12 +68,10 @@ export default [
   // Ignore patterns
   {
     ignores: [
-      'node_modules/**',
       'dist/**',
       'bundles/**',
       'test-dist/**',
       'plugins/**',
-      'bin/node_modules/**',
       'docs/**',
       'nvoice/near/bundle.js*',
     ],
@@ -139,7 +137,6 @@ export default [
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
-        extraFileExtensions: ['.vue'],
       },
       globals: {
         ...globals.browser,
