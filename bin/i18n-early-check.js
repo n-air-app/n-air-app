@@ -75,7 +75,7 @@ async function loadAllJsons() {
         }
       });
 
-    values = await collectAcceptedAndRejectedValues(tries);
+    const values = await collectAcceptedAndRejectedValues(tries);
     accepted.push(...values.accepted);
     rejected.push(...values.rejected);
   }
@@ -110,7 +110,7 @@ function checkKeys(localeJsons) {
     } else {
       const localesOfKeys = new Map();
       for (const [locale, content] of localesOfAFile) {
-        for (key of enumerateKeys(content)) {
+        for (const key of enumerateKeys(content)) {
           if (!localesOfKeys.has(key)) {
             localesOfKeys.set(key, [locale]);
           } else {

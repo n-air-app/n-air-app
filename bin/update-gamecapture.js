@@ -1,4 +1,4 @@
-// PCゲームキャプチャ：自動　でのアプリケーションリストの更新スクリプト
+// PCゲームキャプチャ：自動 でのアプリケーションリストの更新スクリプト
 // アプリケーションリストはアプリにバンドルします
 // そんなに更新されないのでたまに手動更新ぐらいでよいです
 //
@@ -25,7 +25,7 @@ async function main() {
     let existingData = '';
     try {
       existingData = fs.readFileSync(outputPath, 'utf8');
-    } catch (err) {
+    } catch {
       console.log('既存ファイルが見つかりません。新規作成します。');
     }
 

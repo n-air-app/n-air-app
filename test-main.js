@@ -71,7 +71,7 @@ const electron = require('electron');
 (() => {
   let currentCb;
 
-  electron.dialog.showSaveDialog = function showSaveDialog(win, opts) {
+  electron.dialog.showSaveDialog = function showSaveDialog() {
     return new Promise((resolve) => {
       currentCb = resolve;
     });

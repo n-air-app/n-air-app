@@ -26,51 +26,51 @@ export function getScore(chat: ChatMessage): number {
 }
 
 export function isChatMessage(msg: MessageResponse): msg is { chat: ChatMessage } {
-  return msg.hasOwnProperty('chat');
+  return Object.hasOwn(msg, 'chat');
 }
 
 export function isOperatorMessage(msg: MessageResponse): msg is { operator: OperatorMessage } {
-  return msg.hasOwnProperty('operator');
+  return Object.hasOwn(msg, 'operator');
 }
 
 export function isNotificationMessage(
   msg: MessageResponse,
 ): msg is { notification: NotificationMessage } {
-  return msg.hasOwnProperty('notification');
+  return Object.hasOwn(msg, 'notification');
 }
 
 export function isGiftMessage(msg: MessageResponse): msg is { gift: GiftMessage } {
-  return msg.hasOwnProperty('gift');
+  return Object.hasOwn(msg, 'gift');
 }
 
 export function isNicoadMessage(msg: MessageResponse): msg is { nicoad: NicoadMessage } {
-  return msg.hasOwnProperty('nicoad');
+  return Object.hasOwn(msg, 'nicoad');
 }
 
 export function isNicoadMessageV0(msg: NicoadMessage): msg is NicoadMessageV0 {
-  return msg.hasOwnProperty('v0');
+  return Object.hasOwn(msg, 'v0');
 }
 
 export function isNicoadMessageV1(msg: NicoadMessage): msg is NicoadMessageV1 {
-  return msg.hasOwnProperty('v1');
+  return Object.hasOwn(msg, 'v1');
 }
 
 export function isGameUpdateMessage(
   msg: MessageResponse,
 ): msg is { gameUpdate: GameUpdateMessage } {
-  return msg.hasOwnProperty('gameUpdate');
+  return Object.hasOwn(msg, 'gameUpdate');
 }
 
 export function isStateMessage(msg: MessageResponse): msg is { state: StateMessage } {
-  return msg.hasOwnProperty('state');
+  return Object.hasOwn(msg, 'state');
 }
 
 export function isStatisticsMessage(
   msg: MessageResponse,
 ): msg is { statistics: StatisticsMessage } {
-  return msg.hasOwnProperty('statistics');
+  return Object.hasOwn(msg, 'statistics');
 }
 
 export function isSignalMessage(msg: MessageResponse): msg is { signal: SignalMessage } {
-  return msg.hasOwnProperty('signal');
+  return Object.hasOwn(msg, 'signal');
 }

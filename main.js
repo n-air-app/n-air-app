@@ -40,7 +40,7 @@ const osnVersion = getObsStudioNodeVersion();
 ////////////////////////////////////////////////////////////////////////////////
 const electron = require('electron');
 
-const { app, BrowserWindow, ipcMain, session, dialog, webContents, shell, crashReporter, net } =
+const { app, BrowserWindow, ipcMain, dialog, webContents, shell, crashReporter, net } =
   electron;
 const path = require('node:path');
 const fs = require('node:fs');
@@ -129,7 +129,9 @@ function devHostsTransformUrl(url) {
           return urlObj.toString();
         }
       }
-    } catch { }
+    } catch {
+      // URLとして解釈できない場合は変換せず、そのまま返す。
+    }
   }
   return url;
 }
@@ -759,7 +761,7 @@ function initialize(crashHandler) {
       rawSavedState = require('jsonfile').readFileSync(
         require('path').join(app.getPath('userData'), 'window-state.json'),
       );
-    } catch (err) {
+    } catch {
       // 初回起動時などファイルが無い場合は無視
     }
 
@@ -967,18 +969,6 @@ function initialize(crashHandler) {
       requests[request.id] = Object.assign({}, request, { event });
     }
 
-    // use this function to call some service method from the main process
-    function callService(resource, method, ...args) {
-      sendRequest({
-        jsonrpc: '2.0',
-        method,
-        params: {
-          resource,
-          args,
-        },
-      });
-    }
-
     ipcMain.on('services-ready', () => {
       if (!childWindow.isDestroyed()) {
         // Only load the URL if the child window hasn't been initialized yet.
@@ -1165,7 +1155,7 @@ function initialize(crashHandler) {
     await windowCleanupWaiter.wait(windowId);
   });
 
-  ipcMain.on('window-closeChildWindow', (event) => {
+  ipcMain.on('window-closeChildWindow', () => {
     // never close the child window, hide it instead
     if (childWindow.isDestroyed()) return;
 

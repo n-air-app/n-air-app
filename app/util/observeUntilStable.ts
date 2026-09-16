@@ -16,6 +16,7 @@ export function observeUntilStable<T>(
     // その時点では subscription への代入がまだ完了していない。let で事前宣言することで
     // TDZ(参照前アクセスによるReferenceError)を避け、settled フラグで二重解決
     // (take(1)のnext直後に同期発火するcomplete等)も防ぐ。
+    // eslint-disable-next-line prefer-const -- Assignment must happen after declaration to avoid the synchronous callback TDZ.
     let subscription: Subscription | undefined;
     let settled = false;
     const finish = (fn: () => void) => {
