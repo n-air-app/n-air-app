@@ -40,7 +40,7 @@ export class Source implements ISourceApi {
   state: ISource;
 
   @Inject()
-    scenesService: ScenesService;
+  scenesService: ScenesService;
 
   getObsInput(): obs.IInput {
     const input = obs.InputFactory.fromName(this.sourceId);

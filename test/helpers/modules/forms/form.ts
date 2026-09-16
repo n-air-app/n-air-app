@@ -48,7 +48,7 @@ export function useForm(name?: string) {
       value: any;
       displayValue: boolean | number | string | string[];
     }[]
-    > {
+  > {
     return traverseForm(async (input) => ({
       name: input.name,
       value: await input.getValue(),

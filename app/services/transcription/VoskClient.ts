@@ -27,24 +27,24 @@ export type AudioDeviceList = {
 
 type VoskCliMessage =
   | {
-      info: string; // Information message: 'start'
-    }
+    info: string; // Information message: 'start'
+  }
   | {
-      partial: string; // Partial transcription result: 'partial text'
-    }
+    partial: string; // Partial transcription result: 'partial text'
+  }
   | {
-      text: string; // Final transcription result: 'final text'
-    }
+    text: string; // Final transcription result: 'final text'
+  }
   | {
-      format: {};
-    }
+    format: {};
+  }
   | { error: string };
 
 export type TranscriptionMessage =
   | VoskCliMessage
   | {
-      processExited: string; // Process exited with code: 'code'
-    };
+    processExited: string; // Process exited with code: 'code'
+  };
 
 export interface ITranscriber {
   audioDeviceId: string | null;

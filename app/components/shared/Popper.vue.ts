@@ -80,8 +80,8 @@ type Placement =
     | 'right-end';
 
 interface Position {
-    top: number;
-    left: number;
+  top: number;
+  left: number;
 }
 
 const POPPER_OFFSET = 5;

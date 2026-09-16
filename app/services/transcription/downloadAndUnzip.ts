@@ -9,13 +9,13 @@ export class DownloadError extends Error {
   constructor(
     public detail:
       | {
-          reason: 'fetch';
-          error: Error;
-        }
+        reason: 'fetch';
+        error: Error;
+      }
       | {
-          reason: 'response';
-          response: Response;
-        },
+        reason: 'response';
+        response: Response;
+      },
   ) {
     super(
       `Failed to download: ${

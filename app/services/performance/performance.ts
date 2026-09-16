@@ -39,7 +39,7 @@ const STATS_UPDATE_INTERVAL = 2 * 1000;
 // Keeps a store of up-to-date performance metrics
 export class PerformanceService extends StatefulService<IPerformanceState> {
   @Inject()
-    customizationService: CustomizationService;
+  customizationService: CustomizationService;
   @Inject()
   private videoSettingsService: VideoSettingsService;
   @Inject()

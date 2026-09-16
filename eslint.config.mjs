@@ -28,7 +28,7 @@ const FORMAT_RULES = {
   ...enableStylistic(
     'semi', 'eol-last', 'no-tabs', 'no-trailing-spaces',
   ),
-  indent: [ERROR, 2, { SwitchCase: 1 }],
+  '@stylistic/indent': [ERROR, 2, { SwitchCase: 1 }],
   '@stylistic/brace-style': [ERROR, '1tbs', { allowSingleLine: true }],
   '@stylistic/quotes': [ERROR, 'single', { avoidEscape: true }],
   '@stylistic/comma-dangle': [ERROR, 'always-multiline'],

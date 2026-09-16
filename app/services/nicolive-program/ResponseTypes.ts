@@ -39,27 +39,27 @@ export interface ProgramInfo {
     /** 番組の配信者に関係する情報 */
     socialGroup:
       | {
-          providerType: 'community';
-          /** コミュニティ名 */
-          name: string;
-          /** コミュニティID */
-          id: string;
-          /** コミュレベル */
-          communityLevel: number;
-          /** サムネイルのURL */
-          thumbnailUrl: string;
-        }
+        providerType: 'community';
+        /** コミュニティ名 */
+        name: string;
+        /** コミュニティID */
+        id: string;
+        /** コミュレベル */
+        communityLevel: number;
+        /** サムネイルのURL */
+        thumbnailUrl: string;
+      }
       | {
-          providerType: 'channel';
-          /** チャンネル名 */
-          name: string;
-          /** チャンネルID */
-          id: string;
-          /** 配信会社名 */
-          ownerName: string;
-          /** サムネイルのURL */
-          thumbnailUrl: string;
-        };
+        providerType: 'channel';
+        /** チャンネル名 */
+        name: string;
+        /** チャンネルID */
+        id: string;
+        /** 配信会社名 */
+        ownerName: string;
+        /** サムネイルのURL */
+        thumbnailUrl: string;
+      };
     /** コメントのルーム */
     rooms: {
       /** コメントサーバーの接続先(Ndgr) View URL */

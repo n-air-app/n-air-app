@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 export function jest_fn<T extends(...args: any[]) => any>(): jest.Mock<
   ReturnType<T>,
   Parameters<T>
-  > {
+> {
   return jest.fn<ReturnType<T>, Parameters<T>>();
 }
 

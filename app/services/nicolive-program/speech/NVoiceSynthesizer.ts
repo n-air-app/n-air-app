@@ -16,11 +16,11 @@ export interface INVoiceTalker {
     },
   ): Promise<
     | (() => Promise<{
-        cancel: () => void;
-        pause: () => void;
-        resume: () => void;
-        speaking: Promise<void>;
-      } | null>)
+      cancel: () => void;
+      pause: () => void;
+      resume: () => void;
+      speaking: Promise<void>;
+    } | null>)
     | null
   >;
 }
