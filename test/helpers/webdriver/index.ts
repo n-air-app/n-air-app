@@ -1,4 +1,3 @@
-/// <reference path="../../../app/index.d.ts" />
 import * as ChildProcess from 'child_process';
 
 import { DismissablesService } from 'services/dismissables';
@@ -92,7 +91,9 @@ class Application {
     try {
       const result = await fetch(statusUrl);
       return result.status === 200;
-    } catch (e: unknown) { }
+    } catch {
+      return false;
+    }
   }
 }
 

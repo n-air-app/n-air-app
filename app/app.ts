@@ -1,4 +1,3 @@
-/* eslint-disable import/first */
 // window.eval override must execute before other imports to prevent eval usage in any imported module
 import get from 'lodash/get';
 import { I18nService } from 'services/i18n';
@@ -180,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const appService: AppService = AppService.instance();
 
       // This is used for debugging
-      // @ts-ignore
+      // @ts-expect-error Debug-only global that is intentionally absent from Window.
       window['obs'] = obs;
 
       // Host a new OBS server instance
