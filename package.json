@@ -19,7 +19,7 @@
     "format": "eslint --fix . && stylelint --fix app/**/*.{vue,css,less} && sort-package-json",
     "postinstall": "node additional/main.mjs",
     "install:dist": "node scripts/install-dist.js",
-    "lint": "eslint . && stylelint app/**/*.{vue,css,less}",
+    "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/.eslintcache && stylelint app/**/*.{vue,css,less}",
     "package": "pnpm run package:public-stable",
     "package:internal-stable": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-stable.config.js",
     "package:internal-unstable": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-unstable.config.js",
