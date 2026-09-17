@@ -82,7 +82,7 @@ module.exports = function (env, argv) {
   const SENTRY_MINIDUMP_URL = getSentryMiniDumpURLFromDSN(SENTRY_DSN);
 
   const isProduction = argv.mode === 'production';
-  const cacheName = argv.env.WEBPACK_SERVE
+  const cacheName = argv.env?.WEBPACK_SERVE
     ? 'development-server'
     : isProduction
       ? 'production'
@@ -113,7 +113,7 @@ module.exports = function (env, argv) {
   plugins.push(new VueLoaderPlugin());
   plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'], configType: 'flat' }));
 
-  /** @type import('webpack').Configuration */
+  /** @type {(name: string) => import('webpack').Configuration} */
   const createCommonConfig = (name) => ({
     cache: {
       type: 'filesystem',
