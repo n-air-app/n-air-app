@@ -82,6 +82,11 @@ module.exports = function (env, argv) {
   const SENTRY_MINIDUMP_URL = getSentryMiniDumpURLFromDSN(SENTRY_DSN);
 
   const isProduction = argv.mode === 'production';
+  const cacheName = argv.env.WEBPACK_SERVE
+    ? 'development-server'
+    : isProduction
+      ? 'production'
+      : 'development';
   const definePlugin = new DefinePlugin({
     SENTRY_DSN: JSON.stringify(SENTRY_DSN),
     SENTRY_MINIDUMP_URL: JSON.stringify(SENTRY_MINIDUMP_URL),
@@ -109,9 +114,10 @@ module.exports = function (env, argv) {
   plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'], configType: 'flat' }));
 
   /** @type import('webpack').Configuration */
-  const common = {
+  const createCommonConfig = (name) => ({
     cache: {
       type: 'filesystem',
+      name: `${cacheName}-${name}`,
       buildDependencies: {
         config: [__filename],
         packageJson: [path.resolve(__dirname, 'package.json')],
@@ -125,11 +131,11 @@ module.exports = function (env, argv) {
       modules: false,
       version: false,
     },
-  };
+  });
 
   return [
     {
-      ...common,
+      ...createCommonConfig('sentry-defs'),
       name: 'sentry-defs',
       output: {
         path: `${__dirname}/bundles`,
@@ -145,7 +151,7 @@ module.exports = function (env, argv) {
       target: 'electron29-main',
     },
     {
-      ...common,
+      ...createCommonConfig('renderer'),
       name: 'renderer',
 
       output: {
@@ -339,7 +345,7 @@ module.exports = function (env, argv) {
       ],
     },
     {
-      ...common,
+      ...createCommonConfig('nvoice'),
       name: 'nvoice-character',
 
       output: {
