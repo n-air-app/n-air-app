@@ -105,8 +105,12 @@ export default [
   },
 
   // Renderer code runs in Electron with both browser and Node.js APIs.
+  // Besides app/, the renderer bundle includes obs-api/ and updater/ui.js
+  // (updater/Updater.js is main-process code, so it is excluded).
+  // eslint-plugin-vue v10 no longer injects browser globals repo-wide,
+  // so these must be listed explicitly.
   {
-    files: ['app/**/*.{js,ts}'],
+    files: ['app/**/*.{js,ts}', 'obs-api/**/*.js', 'updater/ui.js'],
     languageOptions: {
       globals: globals.browser,
     },
