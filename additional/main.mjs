@@ -48,7 +48,7 @@ async function download(url) {
 
     return cachePath;
   } catch (error) {
-    throw new Error(`Failed to download: ${error.message}`);
+    throw new Error(`Failed to download: ${error.message}`, { cause: error });
   }
 }
 

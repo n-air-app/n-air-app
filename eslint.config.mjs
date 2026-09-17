@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import jsoncPlugin from 'eslint-plugin-jsonc';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
@@ -64,27 +65,24 @@ const COMMON_RULES = {
   ...FORMAT_RULES,
 };
 
-export default [
-  // Ignore patterns
-  {
-    ignores: [
-      'dist/**',
-      'bundles/**',
-      'test-dist/**',
-      'plugins/**',
-      'docs/**',
-      'nvoice/near/bundle.js*',
-    ],
-  },
+export default defineConfig([
+  globalIgnores([
+    'dist/',
+    'bundles/',
+    'test-dist/',
+    'plugins/',
+    'docs/',
+    'nvoice/near/bundle.js*',
+  ]),
 
   {
-    ...js.configs.recommended,
     files: ['**/*.{js,mjs,cjs}'],
+    extends: [js.configs.recommended],
   },
-  ...tseslint.configs.recommended.map((config) => ({
-    ...config,
+  {
     files: ['**/*.{ts,tsx}'],
-  })),
+    extends: [tseslint.configs.recommended],
+  },
   ...jsoncPlugin.configs['flat/recommended-with-jsonc'],
   ...vue.configs['flat/essential'],
 
@@ -104,9 +102,9 @@ export default [
     },
   },
 
-  // Renderer code runs in Electron with both browser and Node.js APIs.
+  // Renderer code runs in Electron with browser APIs.
   {
-    files: ['app/**/*.{js,ts}'],
+    files: ['app/**/*.{js,ts}', 'obs-api/**/*.js', 'updater/ui.js'],
     languageOptions: {
       globals: globals.browser,
     },
@@ -167,4 +165,4 @@ export default [
       ),
     },
   },
-];
+]);
