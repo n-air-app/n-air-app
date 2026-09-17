@@ -1,8 +1,8 @@
 packages:
-  - '.'
+  - "."
 
 onlyBuiltDependencies:
-  - '@sentry/cli'
+  - "@sentry/cli"
   - core-js
   - electron
   - electron-chromedriver
@@ -12,5 +12,7 @@ onlyBuiltDependencies:
   - vue-popperjs
 
 ignoredBuiltDependencies:
-  - '@parcel/watcher'
+  - "@parcel/watcher"
+  - edgedriver
+  - geckodriver
   - unrs-resolver
