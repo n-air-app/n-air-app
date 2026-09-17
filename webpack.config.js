@@ -46,7 +46,6 @@ if (devHostsConfig) {
   console.log('[dev-hosts] Written dev-hosts.json for main process');
 } else {
   fs.rmSync(devHostsJsonPath, { force: true });
-  console.log('[dev-hosts] Removed stale dev-hosts.json');
 }
 
 function getSentryMiniDumpURLFromDSN(dsn) {
@@ -119,11 +118,19 @@ module.exports = function (env, argv) {
         lockfile: [path.resolve(__dirname, 'pnpm-lock.yaml')],
       },
     },
+    stats: {
+      assets: false,
+      chunks: false,
+      entrypoints: false,
+      modules: false,
+      version: false,
+    },
   };
 
   return [
     {
       ...common,
+      name: 'sentry-defs',
       output: {
         path: `${__dirname}/bundles`,
         filename: '[name].js',
@@ -139,6 +146,7 @@ module.exports = function (env, argv) {
     },
     {
       ...common,
+      name: 'renderer',
 
       output: {
         path: `${__dirname}/bundles`,
@@ -332,6 +340,7 @@ module.exports = function (env, argv) {
     },
     {
       ...common,
+      name: 'nvoice-character',
 
       output: {
         path: `${__dirname}/nvoice/near`,
