@@ -160,8 +160,8 @@ importers:
         specifier: ^3.4.2
         version: 3.4.2(eslint@9.39.2(jiti@2.7.0))
       eslint-plugin-simple-import-sort:
-        specifier: 13.0.0
-        version: 13.0.0(eslint@9.39.2(jiti@2.7.0))
+        specifier: ^14.0.0
+        version: 14.0.0(eslint@9.39.2(jiti@2.7.0))
       eslint-plugin-unused-imports:
         specifier: ^4.4.1
         version: 4.4.1(@typescript-eslint/eslint-plugin@8.69.0(@typescript-eslint/parser@8.69.0(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.2(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.2(jiti@2.7.0))
@@ -193,8 +193,8 @@ importers:
         specifier: ^4.9.1
         version: 4.9.1
       less-loader:
-        specifier: ^12.3.0
-        version: 12.3.0(less@4.9.1)(webpack@5.110.3)
+        specifier: ^13.0.0
+        version: 13.0.0(less@4.9.1)(webpack@5.110.3)
       lint-staged:
         specifier: ^17.5.0
         version: 17.5.0
@@ -247,8 +247,8 @@ importers:
         specifier: ^8.1.1
         version: 8.1.1(stylelint@17.14.1(typescript@6.0.3))
       tasklist:
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^6.0.0
+        version: 6.0.0
       terser-webpack-plugin:
         specifier: ^5.6.1
         version: 5.6.1(postcss@8.5.28)(webpack@5.110.3)
@@ -1426,6 +1426,9 @@ packages:
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
 
+  '@types/less@3.0.8':
+    resolution: {integrity: sha512-Gjm4+H9noDJgu5EdT3rUw5MhPBag46fiOy27BefvWkNL8mlZnKnCaVVVTLKj6RYXed9b62CPKnPav9govyQDzA==}
+
   '@types/lodash@4.17.25':
     resolution: {integrity: sha512-+K1NIO8I+F9/wNulfVvu23QYd0Pe9/OCqRrim4NoYIf1VoEDL90Ve4ClzpyqBLc7NpGGWRvYNCKZ1BE/Jpf8dQ==}
 
@@ -2511,17 +2514,17 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  csv-generate@3.4.3:
-    resolution: {integrity: sha512-w/T+rqR0vwvHqWs/1ZyMDWtHHSJaN06klRqJXBEpDJaM/+dZkso0OKh1VcuuYvK3XM53KysVNq8Ko/epCK8wOw==}
+  csv-generate@4.6.1:
+    resolution: {integrity: sha512-eELl9K716LSSeP2/YcCjch525JztnnERe3jEARWw2v1FN9ukUYfZTNYZ4Rq2Jj/MFKMauffOy9VCaqQTpFThDQ==}
 
-  csv-parse@4.16.3:
-    resolution: {integrity: sha512-cO1I/zmz4w2dcKHVvpCr7JVRu8/FymG5OEpmvsZYlccYolPBLoVGKUHgNoc4ZGkFeFlWGEDmMyBM+TTqRdW/wg==}
+  csv-parse@7.0.2:
+    resolution: {integrity: sha512-uKZghv9UmPkMVLYy//KZ9HFAIJsl7wkhoEdIL0+rhuSY9pZQlhaeGEDPIe+/w7eh81MOql8Q/9+inAGWG6ZHYA==}
 
-  csv-stringify@5.6.5:
-    resolution: {integrity: sha512-PjiQ659aQ+fUTQqSrd1XEDnOr52jh30RBurfzkscaE2tPaFsDH5wOAHJiw8XAHphRknCwMUE9KRayc4K/NbO8A==}
+  csv-stringify@6.8.3:
+    resolution: {integrity: sha512-gIeSCvq5F4VtXV3naV3VAewLhBkiZBz+PPhTOA8H3Y8h/ELa+R1ml0GZck/4/Nzo9ep2lvOluilJ6MJlbZsKMA==}
 
-  csv@5.5.3:
-    resolution: {integrity: sha512-QTaY0XjjhTQOdguARF0lGKm5/mEq9PD9/VhZZegHDIBq2tQwgNpHc3dneD4mGo2iJs+fTKv5Bp0fZ+BRuY3Z0g==}
+  csv@6.6.3:
+    resolution: {integrity: sha512-X2AnOgcxqV+OdLm1M2FOl+bPQrM1LK1jwo4FhEoq8hi8JTR0tQ8ZWv3x3N2gVMIuUmpb4CLrV08rTP49IdFQ8w==}
     engines: {node: '>= 0.1.90'}
 
   data-uri-to-buffer@6.0.2:
@@ -2921,8 +2924,8 @@ packages:
     peerDependencies:
       eslint: '>=9.38.0'
 
-  eslint-plugin-simple-import-sort@13.0.0:
-    resolution: {integrity: sha512-McAc+/Nlvcg4byY/CABGH8kqnefWBj8s3JA2okEtz8ixbECQgU46p0HkTUKa4YS7wvgGceimlc34p1nXqbWqtA==}
+  eslint-plugin-simple-import-sort@14.0.0:
+    resolution: {integrity: sha512-NUJO0+XFCkk+o5EsAJruTgnfMEpeWrPWeJS15UVF60GgXmqz1BJ9/3hzlvG7lkL8Bubzos5cCLptThbFfPnSMQ==}
     peerDependencies:
       eslint: '>=5.0.0'
 
@@ -4111,11 +4114,11 @@ packages:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
 
-  less-loader@12.3.0:
-    resolution: {integrity: sha512-0M6+uYulvYIWs52y0LqN4+QM9TqWAohYSNTo4htE8Z7Cn3G/qQMEmktfHmyJT23k+20kU9zHH2wrfFXkxNLtVw==}
-    engines: {node: '>= 18.12.0'}
+  less-loader@13.0.0:
+    resolution: {integrity: sha512-TIa8d6znKH634Mg+7OU3jevZT6KeOhh0amW+YeMPD0GM9buUn5Y7HvtyCR5pUDdLaFfqLA8AX5PTSIHMNSexEA==}
+    engines: {node: '>= 22.11.0'}
     peerDependencies:
-      '@rspack/core': 0.x || 1.x
+      '@rspack/core': 0.x || ^1.0.0 || ^2.0.0-0
       less: ^3.5.0 || ^4.0.0
       webpack: ^5.0.0
     peerDependenciesMeta:
@@ -4441,10 +4444,6 @@ packages:
 
   mitt@3.0.1:
     resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
-
-  mixme@0.5.10:
-    resolution: {integrity: sha512-5H76ANWinB1H3twpJ6JY8uvAtpmFvHNArpilJAjXRKXSDDLPIMoZArw5SH0q9z+lLs8IrMw7Q2VWpWimFKFT1Q==}
-    engines: {node: '>= 8.0.0'}
 
   mkdirp@0.5.6:
     resolution: {integrity: sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==}
@@ -5488,8 +5487,8 @@ packages:
   stream-parser@0.3.1:
     resolution: {integrity: sha512-bJ/HgKq41nlKvlhccD5kaCr/P+Hu0wPNKPJOH7en+YrJu/9EgqUF+88w5Jb6KNcjOFMhfX4B2asfeAtIGuHObQ==}
 
-  stream-transform@2.1.3:
-    resolution: {integrity: sha512-9GHUiM5hMiCi6Y03jD2ARC1ettBXkQBoQAe7nJsPknnI0ow10aXjTnew8QtYQmLjzn974BnmWEAJgCY6ZP1DeQ==}
+  stream-transform@3.5.1:
+    resolution: {integrity: sha512-TTDX+qKFr7GGRXATn66rprmlFPx08W0UBIccE/rMPgW2sT7GovduZYP4xcdJ7Nu2YigF17U+CNFxYY11+W1oPw==}
 
   streamx@2.28.1:
     resolution: {integrity: sha512-zEzXb0s5Cds7tqMH6rhZ05lcJydCWiQPEwiNngVqzsxCc962vLY4Uw+mW7od8kDH258k2Uz/JrOkdIAAhSh9VA==}
@@ -5665,9 +5664,9 @@ packages:
     engines: {node: '>=10'}
     deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
-  tasklist@5.0.0:
-    resolution: {integrity: sha512-qPB4J6pseXRqdxAFT1GhlvDPv4FHxWkXs8QVYQWIqusGwn7UXVKOoYu09DZuYWe1K7T5iusHfSoKrv8k9+RfxA==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+  tasklist@6.0.0:
+    resolution: {integrity: sha512-tIonICLZa2pvzlCkyjFbdxwVH+ZJmH6Z0G2xKLxvU4T4fzzTT3ku8FhQksMrfgDq33kfeSXxdzPL1PLQHPVVjg==}
+    engines: {node: '>=20'}
 
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==}
@@ -7784,6 +7783,8 @@ snapshots:
     dependencies:
       '@types/node': 20.19.43
 
+  '@types/less@3.0.8': {}
+
   '@types/lodash@4.17.25': {}
 
   '@types/luxon@3.7.5': {}
@@ -9055,18 +9056,18 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  csv-generate@3.4.3: {}
+  csv-generate@4.6.1: {}
 
-  csv-parse@4.16.3: {}
+  csv-parse@7.0.2: {}
 
-  csv-stringify@5.6.5: {}
+  csv-stringify@6.8.3: {}
 
-  csv@5.5.3:
+  csv@6.6.3:
     dependencies:
-      csv-generate: 3.4.3
-      csv-parse: 4.16.3
-      csv-stringify: 5.6.5
-      stream-transform: 2.1.3
+      csv-generate: 4.6.1
+      csv-parse: 7.0.2
+      csv-stringify: 6.8.3
+      stream-transform: 3.5.1
 
   data-uri-to-buffer@6.0.2: {}
 
@@ -9563,7 +9564,7 @@ snapshots:
     transitivePeerDependencies:
       - '@eslint/json'
 
-  eslint-plugin-simple-import-sort@13.0.0(eslint@9.39.2(jiti@2.7.0)):
+  eslint-plugin-simple-import-sort@14.0.0(eslint@9.39.2(jiti@2.7.0)):
     dependencies:
       eslint: 9.39.2(jiti@2.7.0)
 
@@ -11074,8 +11075,9 @@ snapshots:
     dependencies:
       readable-stream: 2.3.8
 
-  less-loader@12.3.0(less@4.9.1)(webpack@5.110.3):
+  less-loader@13.0.0(less@4.9.1)(webpack@5.110.3):
     dependencies:
+      '@types/less': 3.0.8
       less: 4.9.1
     optionalDependencies:
       webpack: 5.110.3(postcss@8.5.28)(webpack-cli@7.2.3)
@@ -11356,8 +11358,6 @@ snapshots:
       yallist: 4.0.0
 
   mitt@3.0.1: {}
-
-  mixme@0.5.10: {}
 
   mkdirp@0.5.6:
     dependencies:
@@ -12491,9 +12491,7 @@ snapshots:
       - supports-color
     optional: true
 
-  stream-transform@2.1.3:
-    dependencies:
-      mixme: 0.5.10
+  stream-transform@3.5.1: {}
 
   streamx@2.28.1:
     dependencies:
@@ -12738,9 +12736,9 @@ snapshots:
       mkdirp: 1.0.4
       yallist: 4.0.0
 
-  tasklist@5.0.0:
+  tasklist@6.0.0:
     dependencies:
-      csv: 5.5.3
+      csv: 6.6.3
       sec: 2.0.0
 
   teex@1.0.1:
