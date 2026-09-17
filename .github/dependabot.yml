@@ -33,9 +33,12 @@ updates:
       # トラブルがあったため、慎重に検証しながら手動で更新する
       - dependency-name: 'electron-builder'
       - dependency-name: 'electron-updater'
-      # @sentry/*はelectron SDKとbrowser系SDK(vue等)が内部バージョンで1対1対応するため、
-      # dependabotが個別更新すると組み合わせがずれてトラブルになる。手動で組にして更新する
-      - dependency-name: '@sentry/*'
+      # @sentry/electronとbrowser系SDK(@sentry/vue等)は内部バージョンで1対1対応するため、
+      # dependabotが個別更新すると組み合わせがずれてトラブルになる。手動で組にして更新する。
+      # @sentry/webpack-pluginはビルド時のソースマップアップロード用プラグインでSDKバージョンとの
+      # ペア制約はないため対象外(通常のminor/patch groupで自動更新可能)
+      - dependency-name: '@sentry/electron'
+      - dependency-name: '@sentry/vue'
     groups:
       external-dependencies:
         patterns:
