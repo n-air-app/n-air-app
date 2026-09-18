@@ -249,7 +249,7 @@ function parseLabels(labels: string): Label[] {
   return result;
 }
 
-function isFileNotFoundError(err: unknown): err is NodeJS.ErrnoException {
+function isFileNotFoundError(err: unknown): err is { code: 'ENOENT' } {
   return (
     typeof err === 'object' &&
     err !== null &&
