@@ -249,8 +249,13 @@ function parseLabels(labels: string): Label[] {
   return result;
 }
 
-function isFileNotFoundError(err: unknown): err is NodeJS.ErrnoException {
-  return err instanceof Error && 'code' in err && err.code === 'ENOENT';
+function isFileNotFoundError(err: unknown): err is { code: 'ENOENT' } {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    err.code === 'ENOENT'
+  );
 }
 
 async function readFileIfExists(filename: string): Promise<Buffer | null> {
