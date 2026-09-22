@@ -17,7 +17,7 @@
     "@octokit/rest": "^22.0.1",
     "colors": "^1.4.0",
     "iconv-lite": "^0.7.3",
-    "js-yaml": "^5.4.1",
+    "js-yaml": "^5.4.2",
     "luxon": "^3.5.0",
     "progress": "^2.0.0",
     "shelljs": "^0.10.0",
