@@ -186,9 +186,6 @@ importers:
       jest-environment-jsdom:
         specifier: ^30.5.1
         version: 30.5.1
-      jsonc-eslint-parser:
-        specifier: ^3.3.0
-        version: 3.3.0
       less:
         specifier: ^4.9.1
         version: 4.9.1
