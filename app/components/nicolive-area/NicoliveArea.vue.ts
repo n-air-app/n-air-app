@@ -93,7 +93,7 @@ export default defineComponent({
           // (N Air で手動終了した直後はスケジュール API がまだ onAir を返すことがある)
           // programID がセットされたままだと hasProgram=true でパネルが切り替わるためクリアする
           if (NicoliveProgramService.instance().state.status === 'end') {
-            NicoliveProgramService.instance().clearProgram();
+            NicoliveProgramService.instance().releaseProgram();
             needsCreate = true;
           }
         } catch (caught) {
@@ -103,8 +103,6 @@ export default defineComponent({
             && caught.reason === 'no_suitable_program'
           ) {
             needsCreate = true;
-          } else if (caught instanceof NicoliveFailure) {
-            await openErrorDialogFromFailure(caught);
           } else {
             throw caught;
           }
@@ -112,8 +110,12 @@ export default defineComponent({
         if (needsCreate) {
           await NicoliveProgramService.instance().createProgram();
         }
-      } catch (e) {
-        console.error(e);
+      } catch (caught) {
+        if (caught instanceof NicoliveFailure) {
+          await openErrorDialogFromFailure(caught);
+        } else {
+          console.error(caught);
+        }
       } finally {
         this.isFetching = false;
       }
