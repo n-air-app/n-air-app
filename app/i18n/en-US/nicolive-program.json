@@ -418,7 +418,7 @@
       "fetchProgram": {
         "no_suitable_program": {
           "title": "There is no program",
-          "message": "Click \"Create a Program\" button.\nNote: You can not fetch the channel program information."
+          "message": "There is no program available to fetch.\nNote: You can not fetch the channel program information."
         }
       },
       "fetchOnairChannels": {
