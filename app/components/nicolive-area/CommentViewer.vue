@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="header" v-if="!isCompactMode">
+      <span class="header-title">コメント</span>
       <button
         data-size="md"
         data-variant="sabtle"
@@ -194,6 +195,12 @@
   padding: 4px 16px;
   border-bottom: 1px solid var(--color-border-light);
 
+  .header-title {
+    margin-right: auto;
+    font-size: @font-size4;
+    color: var(--color-text-light);
+  }
+
   .divider {
     width: 1px;
     height: 14px;
@@ -290,7 +297,7 @@
 
 .overlay {
   position: absolute;
-  z-index: @z-index-expand-content; // AreaSwitcherのheaderより大きく
+  z-index: @z-index-expand-content;
   width: 100%;
   height: 100%;
   background-color: var(--color-bg-tertiary);
