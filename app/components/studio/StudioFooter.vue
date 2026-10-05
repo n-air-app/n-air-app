@@ -48,6 +48,7 @@
 
 .footer__metrics {
   align-items: flex-start;
+  min-width: 0;
   max-height: 40px;
   overflow-x: hidden;
   overflow-y: auto;

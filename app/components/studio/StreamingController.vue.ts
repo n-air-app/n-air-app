@@ -1,4 +1,5 @@
 import StartStreamingButton from 'components/studio/StartStreamingButton.vue';
+import SubStreamButton from 'components/studio/SubStreamButton.vue';
 import { $t } from 'services/i18n';
 import { SettingsService } from 'services/settings';
 import { EReplayBufferState, EStreamingState, StreamingService } from 'services/streaming';
@@ -10,6 +11,7 @@ export default defineComponent({
 
   components: {
     StartStreamingButton,
+    SubStreamButton,
   },
 
   props: {
