@@ -832,16 +832,15 @@ function initialize(crashHandler) {
       console.error('[RENDERER] render-process-gone:', JSON.stringify(details));
     });
 
-    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-      const levelName = ['verbose', 'info', 'warning', 'error'][level] || 'unknown';
-      if (level >= 2) { // warning or error
+    mainWindow.webContents.on('console-message', ({ level, message, lineNumber, sourceId }) => {
+      if (level === 'warning' || level === 'error') {
         // intlify の fallback/missing 警告は動作上問題ないため除外
         if (message.includes('[intlify] Fall back to translate') ||
             message.includes('[intlify] Not found') ||
             message.includes('modulo syntax is deprecated')) {
           return;
         }
-        console.log(`[RENDERER-CONSOLE][${levelName}] ${message} (${sourceId}:${line})`);
+        console.log(`[RENDERER-CONSOLE][${level}] ${message} (${sourceId}:${lineNumber})`);
       }
     });
 
