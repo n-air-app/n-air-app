@@ -4,6 +4,8 @@
 // the module is required properly and to define
 // a typed interface around it.
 
+import path from 'path';
+
 import * as remote from '@electron/remote';
 
 import { Service } from './core/service';
@@ -38,7 +40,7 @@ export class KeyListenerService extends Service {
   bindings: Dictionary<Dictionary<IKeyBinding>> = {};
 
   init() {
-    this.libuiohook = remote.require('node-libuiohook');
+    this.libuiohook = remote.require(path.join(remote.app.getAppPath(), 'node_modules', 'node-libuiohook'));
   }
 
   unregisterAll(namespace = 'global') {

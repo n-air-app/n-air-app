@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 N Air is an Electron-based desktop streaming application for niconico live streaming, forked from Streamlabs OBS. It combines Vue.js frontend with native OBS streaming capabilities, specifically tailored for Japanese live streaming needs.
 
-**Tech Stack:** Electron 29.3.1, Vue.js 3.5.34, TypeScript 5.5.4, OBS Studio Node, Webpack 5
+**Tech Stack:** Electron 44.5.1, Vue.js 3.5.34, TypeScript 5.5.4, OBS Studio Node, Webpack 5
 
 ## Development Commands
 
@@ -87,7 +87,7 @@ pnpm format         # ESLint fix + Stylelint fix + sort-package-json
 
 **State Management:** RxJS Subjects/BehaviorSubjects in services. `StatefulService<T>` uses Vuex 4 for cross-process state sync; plain `Service` does not.
 
-**Window Communication:** Use `@electron/remote` for IPC between main and renderer processes
+**Window Communication:** Use `@electron/remote` for IPC between main and renderer processes. Electron 44 no longer exports `clipboard` to renderers; access it through `@electron/remote` and await asynchronous reads.
 
 ## Testing Setup
 
@@ -189,12 +189,14 @@ test("service behavior", () => {
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
 **Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
 **Node Version:** Requires Node.js >=24.14.0 <25 for running build tooling (webpack, pnpm scripts, tests). The exact version is pinned in `.node-version` at the repo root, which CI (`actions/setup-node`'s `node-version-file`) and version managers that support it (fnm, nvm, nodenv, Volta) read directly — with fnm/nvm's `cd`-hook enabled, the correct version is selected automatically when entering the repo.
-**`@types/node` version:** Intentionally pinned to `^20.19.27` (see `.github/dependabot.yml` ignore rule), independent of the tooling Node version above. `app/` code runs inside Electron's bundled Node.js runtime, not the tooling Node — Electron 29.x bundles Node.js 20.9.0, so `@types/node` must track that version to avoid type-checking against Node APIs that don't actually exist in the running Electron process. Bump this only alongside an Electron major upgrade that changes the bundled Node version.
+**`@types/node` version:** Intentionally pinned to the Node.js 24 major (see `.github/dependabot.yml` ignore rule), independent of the tooling Node version above. `app/` code runs inside Electron's bundled Node.js runtime, not the tooling Node — Electron 44.5.1 bundles Node.js 24.21.0, so `@types/node` must track that major to avoid type-checking against Node APIs that don't actually exist in the running Electron process. Bump this only alongside an Electron major upgrade that changes the bundled Node version.
 **Manually-managed dependencies:** `electron`, `electron-chromedriver`, `electron-builder`, `electron-updater`, `@sentry/electron`, and `@sentry/vue` are excluded from Dependabot (see `.github/dependabot.yml` ignore rule) and must be updated manually, each for a different reason:
-- `electron`: obs-studio-node ships a native binary built against a specific Electron version — bumping Electron alone breaks that binding. Electron can only move when obs-studio-node is upgraded to a build that targets the new version.
+- `electron`: obs-studio-node 0.25.56 uses Node-API (NAPI_VERSION=7), so a different Electron major does not necessarily require rebuilding it. Its distributed binary and the other native addons were verified to load under Electron 44.5.1, including OSN IPC and renderer/@electron/remote access. This does not guarantee full OBS/streaming compatibility: manually verify startup, sources, recording/streaming, shutdown, and packaged output before releasing an Electron upgrade.
 - `electron-chromedriver`: the ChromeDriver build for E2E tests, which must always match the `electron` version exactly — bumped together with it.
 - `electron-builder` / `electron-updater`: a past update once broke the packaged app so it could no longer run after installation, so these are now bumped only with careful manual verification of the packaged output.
 - `@sentry/electron` / `@sentry/vue`: `@sentry/electron`'s version pairs 1:1 with an internal SDK version shared by the browser-side SDKs (`@sentry/vue`, etc.), but the version numbers themselves don't match (e.g. electron 7.x ↔ vue 10.x), so updating them independently risks a runtime mismatch that Dependabot can't account for. `@sentry/webpack-plugin` is unaffected — it's a build-time sourcemap-upload tool with no version pairing constraint, so it updates normally via the regular minor/patch group.
+**Electron 29 → 44 Cookie migration:** Before Chromium opens the Cookie DB, `main-process/cookie-migration.js` reads schema version 21 and creates a consistent `Cookies.electron29-backup` alongside it. Plaintext, unpartitioned cookies are imported through Electron's Cookie API; expired cookies are omitted. The backup is deleted only after all supported cookies are registered, flushed, and their values/attributes verified. Encrypted/partitioned cookies or failures retain the backup and prompt for re-login; a retained backup prevents automatic retries from overwriting newer login information. Backup/read failures stop startup to protect the original DB. `--clearCookies` also deletes the backup. Backups contain credentials: never share them, and delete retained backups after re-login when no longer needed. This does not support downgrading a migrated profile to Electron 29.
+
 **Important:** `.npmrc` is configured with `node-linker=hoisted` to maintain flat node_modules structure for native modules that use relative path references in electron-builder packaging
 
 **bin/ lockfile update:** `bin/` is an independent pnpm project (not part of the root workspace). The root `.npmrc` and `pnpm-workspace.yaml` interfere with `cd bin && pnpm install`, causing it to run in the root workspace context instead. To correctly update `bin/pnpm-lock.yaml`, use the `--ignore-workspace` flag from within the `bin/` directory:

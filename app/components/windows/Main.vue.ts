@@ -7,6 +7,7 @@ import CustomLoader from 'components/shared/CustomLoader.vue';
 import SideNav from 'components/studio/SideNav.vue';
 import StudioFooter from 'components/studio/StudioFooter.vue';
 import TitleBar from 'components/studio/TitleBar.vue';
+import { webUtils } from 'electron';
 import { AppService } from 'services/app';
 import { CompactModeService } from 'services/compact-mode';
 import { $t } from 'services/i18n';
@@ -106,12 +107,13 @@ export default defineComponent({
       while (fi--) {
         const file = files.item(fi);
         if (!file) continue;
-        if (!file.path) {
-          unavailableFiles.push(file.name);
-          continue;
-        }
         try {
-          ScenesService.instance().activeScene.addFile(file.path);
+          const filePath = webUtils.getPathForFile(file);
+          if (!filePath) {
+            unavailableFiles.push(file.name);
+            continue;
+          }
+          ScenesService.instance().activeScene.addFile(filePath);
         } catch {
           unavailableFiles.push(file.name);
         }
