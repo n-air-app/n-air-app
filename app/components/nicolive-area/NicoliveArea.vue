@@ -33,22 +33,11 @@
           </p>
           <div class="button-wrapper">
             <button
-              class="button button--primary button--create-program"
-              @click="createProgram"
-              v-if="!isCompactMode"
-            >
-              新しく番組を作成する
-            </button>
-            <div class="devider" v-if="!isCompactMode">
-              <span class="devider-label">または</span>
-            </div>
-            <button
-              class="button button--fetch-program"
-              @click="fetchProgram"
+              class="button button--primary button--prepare-program"
+              @click="prepareProgram"
               :disabled="isFetching"
-              :class="[isCompactMode ? 'button--primary' : 'button--secondary']"
             >
-              作成済みの番組を取得する
+              番組を作成/取得する
             </button>
           </div>
         </template>
