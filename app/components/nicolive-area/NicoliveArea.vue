@@ -37,7 +37,7 @@
               @click="prepareProgram"
               :disabled="isFetching"
             >
-              番組を作成/再開する
+              番組を作成/取得する
             </button>
           </div>
         </template>
