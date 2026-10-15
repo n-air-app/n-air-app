@@ -151,11 +151,13 @@ async function generateRoutine({ githubTokenForReadPullRequest }) {
   info('next step -> `pnpm release`');
 }
 
-checkEnv('NAIR_GITHUB_TOKEN');
+if (require.main === module) {
+  checkEnv('NAIR_GITHUB_TOKEN');
 
-generateRoutine({
-  githubTokenForReadPullRequest: process.env.NAIR_GITHUB_TOKEN,
-}).catch((e) => {
-  error(e);
-  sh.exit(1);
-});
+  generateRoutine({
+    githubTokenForReadPullRequest: process.env.NAIR_GITHUB_TOKEN,
+  }).catch((e) => {
+    error(e);
+    sh.exit(1);
+  });
+}

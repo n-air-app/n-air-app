@@ -48,6 +48,7 @@ pnpm run package:local:install   # compile:production + package:local + install:
 pnpm test           # Full test suite (i18n check + TypeScript compile + node:test)
 pnpm run test:unit  # Unit tests (Jest for app + bin)
 pnpm run test:unit:app  # Jest tests for app only
+pnpm run test:unit:bin  # bin/ type check + Jest + integration tests (node:test)
 pnpm screentest     # Visual regression tests
 ```
 
@@ -208,6 +209,11 @@ cd bin && PNPM_HOME="" pnpm update <package-name> --ignore-workspace
 Also ensure `bin/package.json`'s `packageManager` field matches the root `package.json` to use the same pnpm version.
 
 Because `--ignore-workspace` skips the root `.npmrc`, `bin/.npmrc` duplicates the `minimum-release-age` setting (7-day release cooldown). Keep the two in sync when changing it.
+
+**bin/ tests:** The release scripts only run on release day, so CI covers their dependencies (S3, GitHub API, prompts, YAML) without network access:
+
+- `pnpm run typecheck:bin` type-checks `bin/` files marked with `// @ts-check` (uses the root TypeScript) to catch API changes in dependencies.
+- `bin/release/integration-tests/` runs the real dependencies against a local fake S3 server, a stubbed Octokit `fetch`, and piped stdin. They use `node:test` instead of Jest because `@octokit/rest` and `@inquirer/prompts` are ESM-only.
 
 ## Decorators
 
