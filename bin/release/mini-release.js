@@ -8,7 +8,6 @@ const path = require('node:path');
 const { Octokit } = require('@octokit/rest');
 const sh = require('shelljs');
 const colors = require('colors/safe');
-const yaml = require('js-yaml');
 const { log, info, error, executeCmd } = require('./scripts/log');
 const { confirm } = require('./scripts/prompt');
 const { checkEnv, getTagCommitId } = require('./scripts/util');
@@ -19,6 +18,7 @@ const {
   readPatchNote,
 } = require('./scripts/patchNote');
 const { uploadS3File, uploadToGithub } = require('./scripts/uploadArtifacts');
+const { addReleaseNotesToLatestYml } = require('./scripts/latestYml');
 
 const projectRoot = path.resolve(__dirname, '..', '..');
 sh.cd(projectRoot);
@@ -288,13 +288,7 @@ async function runScript({
   info('Checking artifacts...');
   const distDir = path.resolve('.', 'dist');
   const latestYmlFilePath = path.join(distDir, 'latest.yml');
-  const parsedLatestYml = /** @type {{releaseNotes: string, path: string}} */ (
-    yaml.load(fs.readFileSync(latestYmlFilePath, 'utf-8'))
-  );
-
-  // add releaseNotes into latest.yml
-  parsedLatestYml.releaseNotes = patchNote.notes;
-  fs.writeFileSync(latestYmlFilePath, yaml.dump(parsedLatestYml));
+  const parsedLatestYml = addReleaseNotesToLatestYml(latestYmlFilePath, patchNote.notes);
 
   const binaryFile = parsedLatestYml.path;
   const binaryFilePath = path.join(distDir, binaryFile);

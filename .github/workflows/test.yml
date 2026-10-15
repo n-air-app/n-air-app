@@ -48,7 +48,10 @@ jobs:
             bin:
               - 'bin/package.json'
               - 'bin/pnpm-lock.yaml'
+              - 'bin/.npmrc'
+              - 'bin/tsconfig.json'
               - 'bin/**/*.js'
+              - 'bin/**/*.d.ts'
               - 'jest.bin-config.js'
 
   setup-app:
