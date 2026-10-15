@@ -1,8 +1,4 @@
-import AreaSwitcher from 'components/nicolive-area/AreaSwitcher.vue';
-import type { IArea } from 'components/nicolive-area/AreaSwitcher.vue.ts';
-import CommentFilter from 'components/nicolive-area/CommentFilter.vue';
 import CommentViewer from 'components/nicolive-area/CommentViewer.vue';
-import ProgramDescription from 'components/nicolive-area/ProgramDescription.vue';
 import ProgramInfo from 'components/nicolive-area/ProgramInfo.vue';
 import ProgramStatistics from 'components/nicolive-area/ProgramStatistics.vue';
 import ToolBar from 'components/nicolive-area/ToolBar.vue';
@@ -15,22 +11,14 @@ import {
 } from 'services/nicolive-program/NicoliveFailure';
 import { defineComponent } from 'vue';
 
-import ControlsArrow from '../../../media/images/controls-arrow-vertical.svg';
-
-const CREATED_NOTICE_DURATION = 5000; // 番組作成通知の表示時間(ミリ秒)
-
 export default defineComponent({
   name: 'NicolivePanelRoot',
 
   components: {
-    AreaSwitcher,
     ProgramInfo,
-    ProgramDescription,
     CommentViewer,
-    CommentFilter,
     ProgramStatistics,
     ToolBar,
-    ControlsArrow,
     PerformanceMetrics,
   },
 
@@ -45,21 +33,6 @@ export default defineComponent({
   },
 
   computed: {
-    contents(): IArea[] {
-      return [
-        {
-          name: 'コメント',
-          text: '番組に投稿されたコメントを閲覧します',
-          slotName: 'commentViewer',
-        },
-        {
-          name: '番組説明文',
-          text: '番組作成時に設定した説明文の表示を確認します',
-          slotName: 'description',
-        },
-      ];
-    },
-
     opened(): boolean {
       return NicoliveProgramService.instance().state.panelOpened ?? false;
     },

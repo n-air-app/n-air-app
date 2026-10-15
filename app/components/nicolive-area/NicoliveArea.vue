@@ -13,12 +13,7 @@
         <template v-if="hasProgram">
           <program-info class="program-area-item" />
           <program-statistics class="program-area-item" />
-          <area-switcher class="switch-area" :contents="contents">
-            <template v-slot:commentViewer
-            ><comment-viewer :showPlaceholder="showPlaceholder"
-            /></template>
-            <template v-slot:description><program-description /></template>
-          </area-switcher>
+          <comment-viewer class="comment-area" :showPlaceholder="showPlaceholder" />
           <tool-bar class="program-area-item" />
           <div class="footer performance-metrics" v-if="isCompactMode">
             <div class="flex flex--center flex--grow flex--justify-start">
@@ -151,7 +146,7 @@
   }
 }
 
-.switch-area {
+.comment-area {
   flex-grow: 1;
   flex-basis: 0;
 }
