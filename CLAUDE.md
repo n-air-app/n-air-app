@@ -207,6 +207,8 @@ cd bin && PNPM_HOME="" pnpm update <package-name> --ignore-workspace
 
 Also ensure `bin/package.json`'s `packageManager` field matches the root `package.json` to use the same pnpm version.
 
+Because `--ignore-workspace` skips the root `.npmrc`, `bin/.npmrc` duplicates the `minimum-release-age` setting (7-day release cooldown). Keep the two in sync when changing it.
+
 ## Decorators
 
 **Current Status:** See [docs/decorators.md](docs/decorators.md) for decorator usage inventory (Vue 3 migration complete)
