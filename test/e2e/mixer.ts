@@ -78,7 +78,7 @@ test('Mixer volume slider and mute functionality', async (t) => {
 
   // Verify muted state
   const mixerItemClass = await mixerItem.getAttribute('class');
-  t.true(mixerItemClass.includes('muted'), 'Mixer item should have muted class');
+  t.true(mixerItemClass?.includes('muted') ?? false, 'Mixer item should have muted class');
   t.true(await mixerItem.$('.icon-mute').isExisting(), 'Mute icon should be visible');
   t.false(await speakerIcon.isExisting(), 'Speaker icon should be hidden');
 
@@ -88,7 +88,7 @@ test('Mixer volume slider and mute functionality', async (t) => {
 
   // Verify unmuted state
   const mixerItemClassAfter = await mixerItem.getAttribute('class');
-  t.false(mixerItemClassAfter.includes('muted'), 'Mixer item should not have muted class');
+  t.false(mixerItemClassAfter?.includes('muted') ?? false, 'Mixer item should not have muted class');
   t.true(await speakerIcon.isExisting(), 'Speaker icon should be visible');
   t.false(await muteIcon.isExisting(), 'Mute icon should be hidden');
 });

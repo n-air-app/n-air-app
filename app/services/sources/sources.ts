@@ -203,7 +203,7 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
     this.UPDATE_SOURCE({ id, muted });
     this.updateSourceFlags(source.state, obsInput.outputFlags, true);
 
-    if (!PROPERTIES_MANAGER_TYPES.hasOwnProperty(managerType)) {
+    if (!Object.hasOwn(PROPERTIES_MANAGER_TYPES, managerType)) {
       console.error(
         `Unknown properties manager type ${managerType} of source id:${id} ('${source.name}'). fallback to default.`,
       );

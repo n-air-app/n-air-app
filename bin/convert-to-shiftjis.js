@@ -1,7 +1,7 @@
 const fs = require('fs');
 const iconv = require('iconv-lite');
 
-process.argv.slice(2).forEach((value, index, array) => {
+process.argv.slice(2).forEach((value) => {
   fs.createReadStream(value)
     .pipe(iconv.decodeStream('utf8'))
     .pipe(iconv.encodeStream('cp932'))

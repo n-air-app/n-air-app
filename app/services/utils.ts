@@ -142,7 +142,7 @@ export default class Utils {
     getKeys(patch).forEach((key) => {
       if (!isEqual(obj[key], patch[key])) {
         if (patch[key] && typeof patch[key] === 'object' && !Array.isArray(patch[key])) {
-          // @ts-ignore ts2322 再帰的に子要素もPartialなのだが型解決が難しい
+          // @ts-expect-error ts2322 再帰的に子要素もPartialなのだが型解決が難しい
           result[key] = this.getDeepChangedParams(obj[key] as object, patch[key] as object);
         } else {
           result[key] = patch[key];

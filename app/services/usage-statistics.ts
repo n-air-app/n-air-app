@@ -87,73 +87,73 @@ export type TranscriptionLog = {
 
 export type TUsageEvent =
   | {
-      event: 'boot';
-    }
+    event: 'boot';
+  }
   | {
-      event: 'stream_start' | 'stream_end';
-      platform: string;
-      stream_track_id: string;
-      content_id: string | null;
-      output_mode: 'Simple' | 'Advanced';
-      video: {
-        base_resolution: string; // eg. '1920x1080'
-        output_resolution: string; // eg. '1280x720'
-        fps: string; // "30", "29.97", "24 NTSC", ...
-        bitrate: number;
-      };
-      audio: {
-        bitrate: number;
-        sample_rate: 44100 | 48000;
-      };
-      encoder: {
-        encoder_type: EncoderFamily;
-        preset: string;
-      };
-      auto_optimize: {
-        enabled: boolean;
-        use_hardware_encoder: boolean;
-      };
-      advanced?: {
-        rate_control: 'CBR' | 'VBR' | 'ABR' | 'CRF';
-        profile: 'high' | 'main' | 'baseline';
-      };
-      yomiage: {
-        enabled: boolean;
-        pitch: number;
-        rate: number;
-        volume: number;
-        max_seconds: number;
-        engine: {
-          normal: SynthesizerSelector;
-          operator: SynthesizerSelector;
-          system: SynthesizerSelector;
-        };
-        voicevox: {
-          normal: string;
-          operator: string;
-          system: string;
-        };
-        onecomme: {
-          used: boolean;
-          removeComment: boolean;
-        };
-      };
-      compact_mode: {
-        auto_compact_mode: boolean;
-        current: boolean;
-      };
-      rtvc: RtvcEventLog;
-      substream?: SubStreamLog;
-      transcription?: TranscriptionLog;
-      soundDetector?: SoundDetectorLog;
-      nvoiceCharacter?: NVoiceCharacterUsageLog;
-    }
-  | {
-      event: 'app_start' | 'app_close';
-    }
-  | {
-      event: 'crash';
+    event: 'stream_start' | 'stream_end';
+    platform: string;
+    stream_track_id: string;
+    content_id: string | null;
+    output_mode: 'Simple' | 'Advanced';
+    video: {
+      base_resolution: string; // eg. '1920x1080'
+      output_resolution: string; // eg. '1280x720'
+      fps: string; // "30", "29.97", "24 NTSC", ...
+      bitrate: number;
     };
+    audio: {
+      bitrate: number;
+      sample_rate: 44100 | 48000;
+    };
+    encoder: {
+      encoder_type: EncoderFamily;
+      preset: string;
+    };
+    auto_optimize: {
+      enabled: boolean;
+      use_hardware_encoder: boolean;
+    };
+    advanced?: {
+      rate_control: 'CBR' | 'VBR' | 'ABR' | 'CRF';
+      profile: 'high' | 'main' | 'baseline';
+    };
+    yomiage: {
+      enabled: boolean;
+      pitch: number;
+      rate: number;
+      volume: number;
+      max_seconds: number;
+      engine: {
+        normal: SynthesizerSelector;
+        operator: SynthesizerSelector;
+        system: SynthesizerSelector;
+      };
+      voicevox: {
+        normal: string;
+        operator: string;
+        system: string;
+      };
+      onecomme: {
+        used: boolean;
+        removeComment: boolean;
+      };
+    };
+    compact_mode: {
+      auto_compact_mode: boolean;
+      current: boolean;
+    };
+    rtvc: RtvcEventLog;
+    substream?: SubStreamLog;
+    transcription?: TranscriptionLog;
+    soundDetector?: SoundDetectorLog;
+    nvoiceCharacter?: NVoiceCharacterUsageLog;
+  }
+  | {
+    event: 'app_start' | 'app_close';
+  }
+  | {
+    event: 'crash';
+  };
 
 export function track(event: TUsageEvent) {
   return (target: any, methodName: string, descriptor: PropertyDescriptor) => {

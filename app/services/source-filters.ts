@@ -58,10 +58,10 @@ export interface ISourceFilter {
 @InitAfter('SourcesService')
 export class SourceFiltersService extends Service {
   @Inject()
-    sourcesService: SourcesService;
+  sourcesService: SourcesService;
 
   @Inject()
-    windowsService: WindowsService;
+  windowsService: WindowsService;
 
   getTypesList(): IObsListOption<TSourceFilterType>[] {
     const obsAvailableTypes = obs.FilterFactory.types();

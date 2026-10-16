@@ -46,7 +46,6 @@ if (devHostsConfig) {
   console.log('[dev-hosts] Written dev-hosts.json for main process');
 } else {
   fs.rmSync(devHostsJsonPath, { force: true });
-  console.log('[dev-hosts] Removed stale dev-hosts.json');
 }
 
 function getSentryMiniDumpURLFromDSN(dsn) {
@@ -83,6 +82,11 @@ module.exports = function (env, argv) {
   const SENTRY_MINIDUMP_URL = getSentryMiniDumpURLFromDSN(SENTRY_DSN);
 
   const isProduction = argv.mode === 'production';
+  const cacheName = argv.env?.WEBPACK_SERVE
+    ? 'development-server'
+    : isProduction
+      ? 'production'
+      : 'development';
   const definePlugin = new DefinePlugin({
     SENTRY_DSN: JSON.stringify(SENTRY_DSN),
     SENTRY_MINIDUMP_URL: JSON.stringify(SENTRY_MINIDUMP_URL),
@@ -109,21 +113,30 @@ module.exports = function (env, argv) {
   plugins.push(new VueLoaderPlugin());
   plugins.push(new ESLintPlugin({ extensions: ['js', 'ts'], configType: 'flat' }));
 
-  /** @type import('webpack').Configuration */
-  const common = {
+  /** @type {(name: string) => import('webpack').Configuration} */
+  const createCommonConfig = (name) => ({
     cache: {
       type: 'filesystem',
+      name: `${cacheName}-${name}`,
       buildDependencies: {
         config: [__filename],
         packageJson: [path.resolve(__dirname, 'package.json')],
         lockfile: [path.resolve(__dirname, 'pnpm-lock.yaml')],
       },
     },
-  };
+    stats: {
+      assets: false,
+      chunks: false,
+      entrypoints: false,
+      modules: false,
+      version: false,
+    },
+  });
 
   return [
     {
-      ...common,
+      ...createCommonConfig('sentry-defs'),
+      name: 'sentry-defs',
       output: {
         path: `${__dirname}/bundles`,
         filename: '[name].js',
@@ -138,7 +151,8 @@ module.exports = function (env, argv) {
       target: 'electron29-main',
     },
     {
-      ...common,
+      ...createCommonConfig('renderer'),
+      name: 'renderer',
 
       output: {
         path: `${__dirname}/bundles`,
@@ -197,6 +211,9 @@ module.exports = function (env, argv) {
         'font-manager': 'require("font-manager")',
         'color-picker': 'require("color-picker")',
         'node-fontinfo': 'require("node-fontinfo")',
+        // Socket.IO server depends on the Node.js implementation of ws.
+        // Bundling it for the renderer resolves ws to its browser-only shim.
+        'socket.io': 'require("socket.io")',
       },
 
       module: {
@@ -223,6 +240,7 @@ module.exports = function (env, argv) {
                 options: {
                   transpileOnly: false,
                   compilerOptions: {
+                    noEmit: false,
                     sourceMap: true,
                     inlineSources: !isProduction,
                     sourceRoot: '',
@@ -231,11 +249,6 @@ module.exports = function (env, argv) {
               },
             ],
             exclude: /node_modules|vue\/src/,
-          },
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            exclude: [/node_modules/, path.join(__dirname, 'bin')],
           },
           {
             test: /\.css$/,
@@ -335,7 +348,8 @@ module.exports = function (env, argv) {
       ],
     },
     {
-      ...common,
+      ...createCommonConfig('nvoice'),
+      name: 'nvoice-character',
 
       output: {
         path: `${__dirname}/nvoice/near`,
@@ -359,6 +373,11 @@ module.exports = function (env, argv) {
           {
             test: /\.ts$/,
             loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                noEmit: false,
+              },
+            },
             exclude: /node_modules/,
           },
         ],

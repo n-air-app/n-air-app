@@ -1,5 +1,3 @@
-/// <reference path="./vue-augmentations.d.ts" />
-
 // all global interfaces here
 
 interface Dictionary<TItemType> {
@@ -45,7 +43,6 @@ declare module 'node-fontinfo';
 declare module '@xkeshi/vue-qrcode';
 
 declare module 'font-manager';
-declare module 'recursive-readdir';
 declare module 'hyperform';
 declare module '*.svg';
 declare module 'emojione';

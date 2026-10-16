@@ -309,9 +309,16 @@ export default defineComponent({
       if (!(item.type === 'normal' || item.type === 'operator')) {
         return;
       }
-      const { user_id: userId, content, id, name } = item.value;
-      if (!userId || !content || !id) return;
-      const isBroadcaster = NicoliveProgramService.instance().isBroadcaster(userId);
+      const { content } = item.value;
+      if (!content) return;
+      const isNormal = item.type === 'normal';
+      if (isNormal && (!item.value.user_id || !item.value.id)) return;
+      const userId = item.value.user_id ?? '';
+      const id = item.value.id ?? '';
+      const name = item.value.name;
+      const isBroadcaster = isNormal && userId
+        ? NicoliveProgramService.instance().isBroadcaster(userId)
+        : false;
 
       const menu = new Menu();
       menu.append({

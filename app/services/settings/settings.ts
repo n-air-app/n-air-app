@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 import * as Sentry from '@sentry/vue';
 import {
@@ -369,69 +370,6 @@ export class SettingsService
     return this.findSettingValue(output, 'Untitled', 'Mode') as 'Simple' | 'Advanced' | null;
   }
 
-  isValidOutputRecordingPath(): boolean {
-    const path = this.getOutputRecordingPath();
-    console.log('getOutputRecordingPath: ', path);
-
-    if (!path) {
-      return false;
-    }
-
-    if (path.length < 2) {
-      return false;
-    }
-
-    return this.isValidOutputRecordingUri(path) || this.isValidOutputRecordingDirectoryPath(path);
-  }
-
-  isValidOutputRecordingDirectoryPath(recordingPath: string): boolean {
-    return fs.existsSync(recordingPath) && fs.statSync(recordingPath).isDirectory();
-  }
-
-  isValidOutputRecordingUri(uri: string): boolean {
-    let parsedUri;
-    try {
-      parsedUri = new URL(uri);
-    } catch (e) {
-      if (e instanceof TypeError) {
-        return false;
-      } else {
-        console.log('unexpected error thrown:', e);
-        throw e;
-      }
-    }
-    return parsedUri.protocol === 'rtmp:';
-  }
-
-  getOutputRecordingPath(): string | undefined {
-    const output = this.getSettingsFormData('Output');
-    const outputMode = this.getOutputMode(output);
-    switch (outputMode) {
-      case 'Simple':
-        return this.findSettingValue(output, 'Recording', 'FilePath') as string;
-
-      case 'Advanced': {
-        const recType = this.findSettingValue(output, 'Recording', 'RecType');
-        console.log(`Output/Recording RecType: ${recType}`);
-        switch (recType) {
-          case 'Standard':
-            return this.findSettingValue(output, 'Recording', 'RecFilePath') as string;
-
-          case 'Custom Output (FFmpeg)': {
-            const ffMpegMode = this.findSettingValue(output, 'Recording', 'FFOutputToFile');
-            switch (ffMpegMode) {
-              case 0: // Output to URL
-                return this.findSettingValue(output, 'Recording', 'FFURL') as string;
-              case 1: // Output to File
-                return this.findSettingValue(output, 'Recording', 'FFFilePath') as string;
-            }
-          }
-        }
-      }
-    }
-    return undefined;
-  }
-
   /**
    * Returns some information about the user's streaming settings.
    * This is used in aggregate to improve our optimized video encoding.
@@ -564,6 +502,29 @@ export class SettingsService
       }
     }
     return undefined;
+  }
+
+  /**
+   * 録画出力先の空き容量がしきい値未満かどうかを判定する。
+   * URL出力(recType: Advanced/Custom/URL)やパス取得不能時はチェック対象外として false を返す。
+   */
+  isRecordingDiskSpaceLow(thresholdBytes = 100 * 1024 * 1024): boolean {
+    const settings = this.getRecordingSettings();
+    if (!settings || settings.recType === 'Advanced/Custom/URL' || !settings.path) {
+      return false;
+    }
+
+    // settings.path はまだ作成されていない録画ファイル名を含むことがあるため、
+    // 直接 statfs できない場合は親ディレクトリにフォールバックする
+    for (const target of [settings.path, path.dirname(settings.path)]) {
+      try {
+        const stats = fs.statfsSync(target);
+        return stats.bavail * stats.bsize < thresholdBytes;
+      } catch {
+        // 次の候補を試す
+      }
+    }
+    return false;
   }
 
   diffOptimizedSettings(options: {

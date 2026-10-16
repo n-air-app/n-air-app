@@ -112,19 +112,19 @@ export const NodeObs: {
   ): EVideoCodes;
   // OBS_API_destroyOBS_API(): void;
   OBS_API_getPerformanceStatistics():
-    {
-        CPU: number;
-        numberDroppedFrames: number;
-        percentageDroppedFrames: number;
-        streamingBandwidth: number;
-        streamingDataOutput: number;
-        recordingBandwidth: number;
-        recordingDataOutput: number;
-        frameRate: number;
-        averageTimeToRenderFrame: number;
-        memoryUsage: number;
-        diskSpaceAvailable: string;
-      };
+  {
+    CPU: number;
+    numberDroppedFrames: number;
+    percentageDroppedFrames: number;
+    streamingBandwidth: number;
+    streamingDataOutput: number;
+    recordingBandwidth: number;
+    recordingDataOutput: number;
+    frameRate: number;
+    averageTimeToRenderFrame: number;
+    memoryUsage: number;
+    diskSpaceAvailable: string;
+  };
   SetWorkingDirectory(path: string): void;
   InitShutdownSequence(): void;
   /* OBS_API_QueryHotkeys(): {

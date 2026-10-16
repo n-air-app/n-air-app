@@ -48,6 +48,7 @@ pnpm run package:local:install   # compile:production + package:local + install:
 pnpm test           # Full test suite (i18n check + TypeScript compile + node:test)
 pnpm run test:unit  # Unit tests (Jest for app + bin)
 pnpm run test:unit:app  # Jest tests for app only
+pnpm run test:unit:bin  # bin/ type check + Jest + integration tests (node:test)
 pnpm screentest     # Visual regression tests
 ```
 
@@ -149,7 +150,7 @@ test("service behavior", () => {
 
 ## Code Style
 
-**Formatting:** ESLint (airbnb-base + overrides) が single quotes / trailing commas / 2-space indent を強制。CSS/Less は Stylelint
+**Formatting:** ESLintのローカル設定がsingle quotes / trailing commas / 2-space indentなどを強制。CSS/LessはStylelint
 **Linting:** ESLint with TypeScript + Vue plugins, Stylelint for CSS/Less
 **Pre-commit:** Husky + lint-staged runs formatting and linting automatically
 
@@ -188,7 +189,13 @@ test("service behavior", () => {
 
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
 **Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
-**Node Version:** Requires Node.js 22.x LTS
+**Node Version:** Requires Node.js >=24.14.0 <25 for running build tooling (webpack, pnpm scripts, tests). The exact version is pinned in `.node-version` at the repo root, which CI (`actions/setup-node`'s `node-version-file`) and version managers that support it (fnm, nvm, nodenv, Volta) read directly — with fnm/nvm's `cd`-hook enabled, the correct version is selected automatically when entering the repo.
+**`@types/node` version:** Intentionally pinned to `^20.19.27` (see `.github/dependabot.yml` ignore rule), independent of the tooling Node version above. `app/` code runs inside Electron's bundled Node.js runtime, not the tooling Node — Electron 29.x bundles Node.js 20.9.0, so `@types/node` must track that version to avoid type-checking against Node APIs that don't actually exist in the running Electron process. Bump this only alongside an Electron major upgrade that changes the bundled Node version.
+**Manually-managed dependencies:** `electron`, `electron-chromedriver`, `electron-builder`, `electron-updater`, `@sentry/electron`, and `@sentry/vue` are excluded from Dependabot (see `.github/dependabot.yml` ignore rule) and must be updated manually, each for a different reason:
+- `electron`: obs-studio-node ships a native binary built against a specific Electron version — bumping Electron alone breaks that binding. Electron can only move when obs-studio-node is upgraded to a build that targets the new version.
+- `electron-chromedriver`: the ChromeDriver build for E2E tests, which must always match the `electron` version exactly — bumped together with it.
+- `electron-builder` / `electron-updater`: a past update once broke the packaged app so it could no longer run after installation, so these are now bumped only with careful manual verification of the packaged output.
+- `@sentry/electron` / `@sentry/vue`: `@sentry/electron`'s version pairs 1:1 with an internal SDK version shared by the browser-side SDKs (`@sentry/vue`, etc.), but the version numbers themselves don't match (e.g. electron 7.x ↔ vue 10.x), so updating them independently risks a runtime mismatch that Dependabot can't account for. `@sentry/webpack-plugin` is unaffected — it's a build-time sourcemap-upload tool with no version pairing constraint, so it updates normally via the regular minor/patch group.
 **Important:** `.npmrc` is configured with `node-linker=hoisted` to maintain flat node_modules structure for native modules that use relative path references in electron-builder packaging
 
 **bin/ lockfile update:** `bin/` is an independent pnpm project (not part of the root workspace). The root `.npmrc` and `pnpm-workspace.yaml` interfere with `cd bin && pnpm install`, causing it to run in the root workspace context instead. To correctly update `bin/pnpm-lock.yaml`, use the `--ignore-workspace` flag from within the `bin/` directory:
@@ -200,6 +207,13 @@ cd bin && PNPM_HOME="" pnpm update <package-name> --ignore-workspace
 ```
 
 Also ensure `bin/package.json`'s `packageManager` field matches the root `package.json` to use the same pnpm version.
+
+Because `--ignore-workspace` skips the root `.npmrc`, `bin/.npmrc` duplicates the `minimum-release-age` setting (7-day release cooldown). Keep the two in sync when changing it.
+
+**bin/ tests:** The release scripts only run on release day, so CI covers their dependencies (S3, GitHub API, prompts, YAML) without network access:
+
+- `pnpm run typecheck:bin` type-checks `bin/` files marked with `// @ts-check` (uses the root TypeScript) to catch API changes in dependencies.
+- `bin/release/integration-tests/` runs the real dependencies against a local fake S3 server, a stubbed Octokit `fetch`, and piped stdin. They use `node:test` instead of Jest because `@octokit/rest` and `@inquirer/prompts` are ESM-only.
 
 ## Decorators
 

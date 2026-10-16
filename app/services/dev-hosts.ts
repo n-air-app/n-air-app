@@ -15,10 +15,10 @@
 
 declare const DEV_HOSTS_CONFIG:
   | {
-      domainMap?: Record<string, string>;
-      overrides?: Record<string, string>;
-      cookieDomain?: string;
-    }
+    domainMap?: Record<string, string>;
+    overrides?: Record<string, string>;
+    cookieDomain?: string;
+  }
   | null
   | undefined;
 

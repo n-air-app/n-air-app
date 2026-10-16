@@ -24,15 +24,15 @@ export type WrappedChat = {
 export type WrappedMessage =
   | WrappedChat
   | {
-      type: 'nicoad';
-      value: NicoadMessage;
-      seqId: number;
-    }
+    type: 'nicoad';
+    value: NicoadMessage;
+    seqId: number;
+  }
   | {
-      type: 'gift';
-      value: GiftMessage;
-      seqId: number;
-    };
+    type: 'gift';
+    value: GiftMessage;
+    seqId: number;
+  };
 
 /** WrappedMessageのうち WrappedChat に該当するかどうかを判定する */
 export function isWrappedChat(chat: Pick<WrappedMessage, 'type' | 'value'>): chat is WrappedChat {

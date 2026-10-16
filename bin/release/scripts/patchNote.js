@@ -300,10 +300,10 @@ export const notes: IPatchNotes = {
   title: '${title}',
   notes: [
 ${notes
-    .trim()
-    .split('\n')
-    .map((s) => `    ${JSON.stringify(s)},`)
-    .join('\n')}
+  .trim()
+  .split('\n')
+  .map((s) => `    ${JSON.stringify(s)},`)
+  .join('\n')}
   ],
 };
 `;

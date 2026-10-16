@@ -48,10 +48,10 @@ export class SceneItemsNode extends Node<ISchema, {}> {
   schemaVersion = 1;
 
   @Inject('SourcesService')
-    sourcesService: SourcesService;
+  sourcesService: SourcesService;
 
   @Inject('ScenesService')
-    scenesService: ScenesService;
+  scenesService: ScenesService;
 
   getItems(context: IContext) {
     return context.scene.getNodes().slice().reverse();
