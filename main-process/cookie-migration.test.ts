@@ -58,6 +58,26 @@ test('新しいDBや存在しないDBには変更を加えない', () => {
   expect(fs.existsSync(databasePath + BACKUP_SUFFIX)).toBe(false);
 });
 
+test('テーブルのないCookie DBは移行対象なしとして扱う', () => {
+  new DatabaseSync(databasePath).close();
+  expect(prepareCookieMigration(databasePath)).toBeNull();
+  expect(fs.existsSync(databasePath + BACKUP_SUFFIX)).toBe(false);
+});
+
+test('--clearCookiesでは移行せず旧バックアップも削除する', () => {
+  createDatabase().close();
+  fs.writeFileSync(databasePath + BACKUP_SUFFIX, 'synthetic-backup');
+  expect(prepareCookieMigration(databasePath, true)).toBeNull();
+  expect(fs.existsSync(databasePath + BACKUP_SUFFIX)).toBe(false);
+});
+
+test('テーブルはあるがmetaがないDBは失敗として扱う', () => {
+  const db = new DatabaseSync(databasePath);
+  db.exec('CREATE TABLE cookies (name TEXT)');
+  db.close();
+  expect(() => prepareCookieMigration(databasePath)).toThrow('no such table: meta');
+});
+
 test('WALを含む旧DBをバックアップし64bitの日時を読み取る', () => {
   const db = createDatabase();
   db.exec('PRAGMA journal_mode=WAL');

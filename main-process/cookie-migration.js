@@ -2,14 +2,20 @@ const fs = require('node:fs');
 
 const BACKUP_SUFFIX = '.electron29-backup';
 
-function prepareCookieMigration(databasePath) {
+function prepareCookieMigration(databasePath, clearCookies = false) {
   const backupPath = databasePath + BACKUP_SUFFIX;
+  if (clearCookies) {
+    fs.rmSync(backupPath, { force: true });
+    return null;
+  }
   if (fs.existsSync(backupPath)) return { status: 'previous-failure', backupPath };
   if (!fs.existsSync(databasePath)) return null;
 
   const { DatabaseSync } = require('node:sqlite');
   const db = new DatabaseSync(databasePath, { readOnly: true });
   try {
+    // Chromium may leave an initialized but empty SQLite file after switching versions.
+    if (!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' LIMIT 1").get()) return null;
     const version = Number(db.prepare("SELECT value FROM meta WHERE key = 'version'").get()?.value);
     if (version !== 21) return null;
     // VACUUM includes committed WAL contents and creates a standalone, consistent backup.

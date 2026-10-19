@@ -343,22 +343,10 @@ if (!gotTheLock) {
 let cookieMigration = null;
 if (gotTheLock) {
   try {
-    const { prepareCookieMigration, BACKUP_SUFFIX } = require('./main-process/cookie-migration');
-    if (process.argv.includes('--clearCookies')) {
-      fs.rmSync(getCookieFiles()[0] + BACKUP_SUFFIX, { force: true });
-    } else {
-      cookieMigration = prepareCookieMigration(getCookieFiles()[0]);
-    }
-  } catch {
-    // Do not allow Chromium to replace the old DB if reading or backing it up failed.
-    app.whenReady().then(() => {
-      dialog.showErrorBox(
-        'ログイン情報を移行できませんでした',
-        '旧Cookieデータを保護するため、N Airの起動を中止しました。空き容量やファイルのアクセス権限を確認してから再起動してください。',
-      );
-      app.exit(1);
-    });
-    return;
+    const { prepareCookieMigration } = require('./main-process/cookie-migration');
+    cookieMigration = prepareCookieMigration(getCookieFiles()[0], process.argv.includes('--clearCookies'));
+  } catch (error) {
+    console.error('Cookie migration preparation failed; continuing without migration:', error);
   }
 }
 
@@ -750,12 +738,7 @@ function initialize(crashHandler) {
         const result = await importCookies(cookieMigration, getAppSession().cookies);
         console.log('Cookie migration:', result);
         if (!result.success && cookieMigration.status !== 'previous-failure') {
-          await dialog.showMessageBox({
-            type: 'warning',
-            title: 'ログイン情報の移行について',
-            message: '一部のCookieを移行できませんでした。ログインが外れている場合は、再ログインしてください。',
-            detail: '旧Cookie DBはNetworkフォルダーのCookies.electron29-backupに保存しています。認証情報を含むため共有しないでください。再ログイン後、不要になったバックアップは削除できます。次回以降、自動で移行を再試行することはありません。',
-          });
+          console.warn('Cookie migration incomplete; login may be required.');
         }
         cookieMigration = null;
       }
