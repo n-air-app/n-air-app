@@ -3,15 +3,11 @@ import {
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 
-jest.mock('components/nicolive-area/AreaSwitcher.vue', () => ({}));
-jest.mock('components/nicolive-area/CommentFilter.vue', () => ({}));
 jest.mock('components/nicolive-area/CommentViewer.vue', () => ({}));
-jest.mock('components/nicolive-area/ProgramDescription.vue', () => ({}));
 jest.mock('components/nicolive-area/ProgramInfo.vue', () => ({}));
 jest.mock('components/nicolive-area/ProgramStatistics.vue', () => ({}));
 jest.mock('components/nicolive-area/ToolBar.vue', () => ({}));
 jest.mock('components/studio/PerformanceMetrics.vue', () => ({}));
-jest.mock('../../../media/images/controls-arrow-vertical.svg', () => ({}));
 jest.mock('services/customization', () => ({}));
 jest.mock('services/nicolive-program/NicoliveFailure', () => ({
   NicoliveFailure: class {
