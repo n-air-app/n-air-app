@@ -13,12 +13,7 @@
         <template v-if="hasProgram">
           <program-info class="program-area-item" />
           <program-statistics class="program-area-item" />
-          <area-switcher class="switch-area" :contents="contents">
-            <template v-slot:commentViewer
-            ><comment-viewer :showPlaceholder="showPlaceholder"
-            /></template>
-            <template v-slot:description><program-description /></template>
-          </area-switcher>
+          <comment-viewer class="comment-area" :showPlaceholder="showPlaceholder" />
           <tool-bar class="program-area-item" />
           <div class="footer performance-metrics" v-if="isCompactMode">
             <div class="flex flex--center flex--grow flex--justify-start">
@@ -33,22 +28,11 @@
           </p>
           <div class="button-wrapper">
             <button
-              class="button button--primary button--create-program"
-              @click="createProgram"
-              v-if="!isCompactMode"
-            >
-              新しく番組を作成する
-            </button>
-            <div class="devider" v-if="!isCompactMode">
-              <span class="devider-label">または</span>
-            </div>
-            <button
-              class="button button--fetch-program"
-              @click="fetchProgram"
+              class="button button--primary button--prepare-program"
+              @click="prepareProgram"
               :disabled="isFetching"
-              :class="[isCompactMode ? 'button--primary' : 'button--secondary']"
             >
-              作成済みの番組を取得する
+              番組を作成/取得する
             </button>
           </div>
         </template>
@@ -151,7 +135,7 @@
   }
 }
 
-.switch-area {
+.comment-area {
   flex-grow: 1;
   flex-basis: 0;
 }

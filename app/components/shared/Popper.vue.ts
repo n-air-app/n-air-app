@@ -41,9 +41,6 @@
  * 依存関係: なし
  *
  * 使用箇所一覧:確認時点のものなので、今後増える可能性あり
- * - app/components/nicolive-area/AreaSwitcher.vue
- *     番組エリア切り替えメニュー（placement: bottom-start）
- *
  * - app/components/nicolive-area/ToolBar.vue
  *     ツールバーのメニュー表示（placement: bottom-end）
  *
