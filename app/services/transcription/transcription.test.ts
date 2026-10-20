@@ -25,7 +25,7 @@ jest.mock('node:fs', () => ({
   promises: {
     writeFile: jest_fn<() => Promise<void>>().mockName('writeFile').mockResolvedValue(undefined),
     unlink: jest_fn<() => Promise<void>>().mockName('unlink').mockResolvedValue(undefined),
-    rmdir: jest_fn<() => Promise<void>>().mockName('rmdir').mockResolvedValue(undefined),
+    rm: jest_fn<() => Promise<void>>().mockName('rm').mockResolvedValue(undefined),
   },
   existsSync: jest_fn<() => boolean>().mockName('existsSync'),
 }));
@@ -1331,7 +1331,7 @@ describe('TranscriptionService', () => {
           state: 'not_downloaded',
         });
         expect(stopTranscription).toHaveBeenCalled();
-        expect(require('node:fs').promises.rmdir).toHaveBeenCalled();
+        expect(require('node:fs').promises.rm).toHaveBeenCalled();
       }),
     );
   });

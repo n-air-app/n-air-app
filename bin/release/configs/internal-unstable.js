@@ -1,3 +1,5 @@
+// @ts-check
+
 const base = require('./internal-stable');
 
 const config = {

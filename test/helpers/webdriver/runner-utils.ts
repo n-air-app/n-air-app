@@ -63,13 +63,20 @@ function createExecutionContext(title: string): ITestExecutionContext {
     context: {} as ITestContext,
     failed: false,
     title,
-    deepEqual: (actual, expected, message) => assert.deepStrictEqual(actual, expected, message),
+    deepEqual: (actual, expected, message) =>
+      message === undefined
+        ? assert.deepStrictEqual(actual, expected)
+        : assert.deepStrictEqual(actual, expected, message),
     fail: (message) => assert.fail(message),
-    false: (value, message) => assert.ok(!value, message),
-    is: (actual, expected, message) => assert.strictEqual(actual, expected, message),
+    false: (value, message) =>
+      message === undefined ? assert.ok(!value) : assert.ok(!value, message),
+    is: (actual, expected, message) =>
+      message === undefined
+        ? assert.strictEqual(actual, expected)
+        : assert.strictEqual(actual, expected, message),
     pass: () => undefined,
-    true: (value, message) => assert.ok(value, message),
-    truthy: (value, message) => assert.ok(value, message),
+    true: (value, message) => (message === undefined ? assert.ok(value) : assert.ok(value, message)),
+    truthy: (value, message) => (message === undefined ? assert.ok(value) : assert.ok(value, message)),
   };
 }
 

@@ -5,10 +5,10 @@ export type IStreamingSetting = {
   key: string;
   quality:
     | {
-        bitrate: number;
-        height: number;
-        fps: number;
-      }
+      bitrate: number;
+      height: number;
+      fps: number;
+    }
     | undefined;
 };
 

@@ -2,6 +2,55 @@ import type { WrappedMessageWithComponent } from 'services/nicolive-program/Wrap
 
 import { SpeakingType } from './comment/SpeakingType';
 
+const mockMenuAppend = jest.fn();
+const mockMenuPopup = jest.fn();
+jest.mock('util/menus/Menu', () => ({
+  Menu: jest.fn(() => ({ append: mockMenuAppend, popup: mockMenuPopup, menu: { once: jest.fn() } })),
+}));
+
+jest.mock('services/customization', () => ({
+  CustomizationService: { instance: jest.fn(() => ({ state: { compactMode: false } })) },
+}));
+jest.mock('services/hosts', () => ({ HostsService: { instance: jest.fn() } }));
+jest.mock('services/nicolive-program/nicolive-comment-filter', () => ({
+  NicoliveCommentFilterService: { instance: jest.fn() },
+}));
+jest.mock('services/nicolive-program/nicolive-comment-viewer', () => ({
+  NicoliveCommentViewerService: { instance: jest.fn() },
+}));
+jest.mock('services/nicolive-program/nicolive-moderators', () => ({
+  NicoliveModeratorsService: { instance: jest.fn() },
+}));
+jest.mock('services/nicolive-program/nicolive-program', () => ({
+  NicoliveProgramService: { instance: jest.fn() },
+}));
+jest.mock('services/nicolive-program/state', () => ({
+  NicoliveProgramStateService: { instance: jest.fn() },
+}));
+jest.mock('services/nicolive-program/NicoliveFailure', () => ({
+  NicoliveFailure: class NicoliveFailure {},
+  openErrorDialogFromFailure: jest.fn(),
+}));
+jest.mock('services/settings', () => ({ SettingsService: { instance: jest.fn() } }));
+jest.mock('services/snackbar', () => ({ SnackbarService: { instance: jest.fn() } }));
+jest.mock('services/sound-detector', () => ({ SoundDetectorService: { instance: jest.fn() } }));
+jest.mock('../../../media/images/n-air-logo.svg', () => ({ default: 'n-air-logo' }));
+jest.mock('./comment/CommonComment.vue', () => ({}));
+jest.mock('./comment/EmotionComment.vue', () => ({}));
+jest.mock('./comment/GiftComment.vue', () => ({}));
+jest.mock('./comment/NicoadComment.vue', () => ({}));
+jest.mock('./comment/SystemMessage.vue', () => ({}));
+jest.mock('./CommentFilter.vue', () => ({}));
+jest.mock('./CommentForm.vue', () => ({}));
+jest.mock('./SoundDetectorButton.vue', () => ({}));
+
+Object.defineProperty(globalThis.window, 'location', {
+  configurable: true,
+  value: { href: 'file:///index.html?windowId=main' },
+});
+
+const CommentViewer = require('./CommentViewer.vue.ts').default;
+
 describe('CommentViewer.getSpeakingType', () => {
   // getSpeakingType は public メソッドなので、ロジックを直接テストする
   // 実装の詳細（private プロパティ）には触れず、振る舞いをテスト
@@ -105,5 +154,31 @@ describe('CommentViewer.getSpeakingType', () => {
       expect(mock.getSpeakingType(item1)).toBe(SpeakingType.SPEAKING);
       expect(mock.getSpeakingType(item2)).toBe(SpeakingType.NONE);
     });
+  });
+});
+
+describe('CommentViewer.showCommentMenu', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('operatorコメントはcontentだけでメニューを表示する', () => {
+    const item = {
+      type: 'operator',
+      value: { content: '放送者コメント' },
+      seqId: 1,
+      component: 'common',
+    } as WrappedMessageWithComponent;
+
+    CommentViewer.methods.showCommentMenu.call({ commentMenuTarget: null }, item);
+
+    expect(mockMenuAppend).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'Copy comment content',
+      label: 'コメントをコピー',
+    }));
+    expect(mockMenuPopup).toHaveBeenCalled();
+    expect(mockMenuAppend).not.toHaveBeenCalledWith(expect.objectContaining({
+      id: 'Pin the comment',
+    }));
   });
 });

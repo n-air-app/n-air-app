@@ -42,7 +42,7 @@ const returnCode = (function main() {
     log('creating screenshots');
     try {
       execSync('node --test --test-concurrency=1 test-dist/test/screentest/tests/*.js');
-    } catch (e) {
+    } catch {
       err('creating screenshots failed');
       return 1;
     }
@@ -53,7 +53,7 @@ const returnCode = (function main() {
   log('comparing screenshots');
   try {
     execSync(`node test-dist/test/screentest/comparator.js ${branches[0]} ${branches[1]}`);
-  } catch (e) {
+  } catch {
     err('comparing screenshots failed');
     return 1;
   }

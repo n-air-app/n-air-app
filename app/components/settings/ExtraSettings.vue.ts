@@ -3,6 +3,7 @@ import ObsBoolInput from 'components/obs/inputs/ObsBoolInput.vue';
 import { IObsInput } from 'components/obs/inputs/ObsInput';
 import TocSection from 'components/shared/TocSection.vue';
 import electron from 'electron';
+import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
@@ -66,6 +67,13 @@ export default defineComponent({
         value: CustomizationService.instance().pollingPerformanceStatistics ?? false,
       };
     },
+    enableTcpApiModel(): IObsInput<boolean> {
+      return {
+        name: 'enable_tcp_api',
+        description: $t('settings.enableTcpApi'),
+        value: TcpServerService.instance().state.tcp.enabled ?? false,
+      };
+    },
     autoCompactModel(): IObsInput<boolean> {
       return {
         name: 'auto_compact',
@@ -103,6 +111,9 @@ export default defineComponent({
     },
     setPollingPerformanceStatistics(model: IObsInput<boolean>) {
       CustomizationService.instance().setPollingPerformanceStatistics(model.value ?? false);
+    },
+    setEnableTcpApi(model: IObsInput<boolean>) {
+      TcpServerService.instance().setTcpEnabled(model.value ?? false);
     },
     setAutoCompact(model: IObsInput<boolean>) {
       CustomizationService.instance().setAutoCompatMode(model.value ?? false);

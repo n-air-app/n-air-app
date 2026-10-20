@@ -78,7 +78,7 @@ interface ISceneCollectionInternalCreateOptions extends ISceneCollectionCreateOp
  */
 export class SceneCollectionsService extends Service implements ISceneCollectionsServiceApi {
   @Inject('SceneCollectionsStateService')
-    stateService: SceneCollectionsStateService;
+  stateService: SceneCollectionsStateService;
   @Inject() scenesService: ScenesService;
   @Inject() sourcesService: SourcesService;
   @Inject() appService: AppService;

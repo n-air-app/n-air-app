@@ -122,7 +122,7 @@ export class ObsImporterService extends Service {
     const data = fs.readFileSync(globalConfigFile).toString();
 
     if (data) {
-      const match = data.match(/^SceneCollection\=(.*)$/m);
+      const match = data.match(/^SceneCollection=(.*)$/m);
       if (match && match[1]) {
         const coll = this.sceneCollectionsService.collections.find((co) => co.name === match[1]);
         if (coll) this.sceneCollectionsService.load(coll.id);

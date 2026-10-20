@@ -80,21 +80,21 @@ import { ObjectDirective } from 'vue';
 export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
 
 interface Position {
-    top: number;
-    left: number;
-    placement: TooltipPlacement;
+  top: number;
+  left: number;
+  placement: TooltipPlacement;
 }
 
 interface TooltipOptions {
-    content: string;
-    placement: TooltipPlacement;
-    container: string;
-    delay: number;
+  content: string;
+  placement: TooltipPlacement;
+  container: string;
+  delay: number;
 }
 
 interface TooltipElement extends Element {
-    _tooltipManager?: TooltipManager;
-    _tooltipHandlers?: Record<string, () => void>;
+  _tooltipManager?: TooltipManager;
+  _tooltipHandlers?: Record<string, () => void>;
 }
 
 // ========================================

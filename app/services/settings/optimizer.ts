@@ -552,7 +552,7 @@ export function* iterateKeyDescriptions(
   desc: KeyDescription[],
 ): IterableIterator<KeyDescription> {
   for (const item of desc) {
-    if (values.hasOwnProperty(item.key)) {
+    if (Object.hasOwn(values, item.key)) {
       if (item.dependents) {
         const newItem = Object.assign({}, item);
         newItem.dependents = [];
@@ -586,7 +586,7 @@ function* iterateAllKeyDescriptions(
  */
 function isDependOnItems(values: OptimizeSettings, items: KeyDescription[]): boolean {
   for (const item of items) {
-    if (values.hasOwnProperty(item.key)) {
+    if (Object.hasOwn(values, item.key)) {
       return true;
     }
     if (item.dependents) {
@@ -858,7 +858,7 @@ export class SettingsKeyAccessor {
         // ターゲット値を先に決め、その値に一致する枝だけを辿る。
         // 複数の兄弟枝に同一 key が現れる場合（outputMode の Advanced/Simple など）、
         // 一致しない枝まで降りて誤った設定先に書いてしまうのを防ぐ。
-        const targetValue = values.hasOwnProperty(key) ? values[key] : this.findValue(item);
+        const targetValue = Object.hasOwn(values, key) ? values[key] : this.findValue(item);
         for (const dependent of item.dependents) {
           if (targetValue !== undefined && dependent.values.includes(targetValue as TObsValue) && isDependOnItems(values, dependent.params)) {
             this.setValue(item, targetValue as TObsValue);
@@ -867,7 +867,7 @@ export class SettingsKeyAccessor {
         }
         if (targetValue !== undefined) this.setValue(item, targetValue as TObsValue);
       } else {
-        if (values.hasOwnProperty(key)) {
+        if (Object.hasOwn(values, key)) {
           const v = values[key];
           if (v !== undefined) this.setValue(item, v as TObsValue);
         }
@@ -888,7 +888,7 @@ export class SettingsKeyAccessor {
   ): boolean {
     const descriptions = filterKeyDescriptions(new Set([key]), keyDescriptions);
     const setting = this.getSetting(key, descriptions);
-    if (setting && setting.hasOwnProperty('options') && Array.isArray(setting.options)) {
+    if (setting && Object.hasOwn(setting, 'options') && Array.isArray(setting.options)) {
       const options: { value: any }[] = setting.options;
       return options.find((v) => v.value === value) !== undefined;
     }
@@ -950,7 +950,7 @@ export class Optimizer {
       const key = opt.key;
       const category = opt.category;
       let item;
-      if (optimized.hasOwnProperty(key)) {
+      if (Object.hasOwn(optimized, key)) {
         item = {
           key,
           name: opt.label,

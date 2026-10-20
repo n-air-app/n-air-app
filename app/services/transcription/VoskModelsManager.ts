@@ -17,10 +17,10 @@ export class VoskModelsManager {
     description: string;
     status: VoskModelStatus;
   }[] = VOSK_MODEL_NAMES.map((name) => ({
-      name,
-      description: $t(`settings.transcription.voskModels['${name}']`),
-      status: { state: 'not_downloaded' },
-    }));
+    name,
+    description: $t(`settings.transcription.voskModels['${name}']`),
+    status: { state: 'not_downloaded' },
+  }));
 
   constructor(private modelBasePath: string) {
     this.models = this.models.map((model) => {
