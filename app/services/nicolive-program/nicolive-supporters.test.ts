@@ -96,4 +96,22 @@ describe('update', () => {
       }),
     );
   });
+
+  it('does not show an error dialog when not logged in', async () => {
+    const { NotLoggedInError } = jest.requireActual('./NicoliveClient');
+    const { instance, fetchSupporters, openErrorDialogFromFailure } = prepare();
+    fetchSupporters.mockResolvedValue({
+      ok: false,
+      value: new NotLoggedInError(),
+      diag: { route: 'renderer', failureKind: 'not_logged_in' },
+    });
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const supporterIds = await instance.update();
+
+    expect(supporterIds).toEqual([]);
+    expect(openErrorDialogFromFailure).not.toHaveBeenCalled();
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 });

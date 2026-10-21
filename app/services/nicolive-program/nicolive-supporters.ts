@@ -46,7 +46,8 @@ export class NicoliveSupportersService extends StatefulService<INicoliveSupporte
       this.setState({ supporterIds });
       return supporterIds;
     } catch (caught) {
-      if (caught instanceof NicoliveFailure) {
+      // 3分ごとのバックグラウンド更新なので、未ログイン時はダイアログを繰り返し出さない
+      if (caught instanceof NicoliveFailure && caught.reason !== 'not_logged_in') {
         openErrorDialogFromFailure(caught);
       }
       return [];

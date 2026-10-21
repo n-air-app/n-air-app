@@ -28,7 +28,6 @@ export class NicoliveFailure {
     const failureKind = res.diag?.failureKind;
 
     if (res.value instanceof NotLoggedInError) {
-      console.error(res.value);
       return new this('logic', method, 'not_logged_in', '', '', route, 'not_logged_in');
     }
     if (res.value instanceof Error) {

@@ -50,6 +50,26 @@ test('4xxで未定義文言だったら400にフォールバックする', async
   expect(showMessageBox.mock.calls[0][1].message).toBe('message');
 });
 
+test('未ログインは not_logged_in の logic エラーになり console.error を呼ばない', () => {
+  class NotLoggedInError {}
+  jest.doMock('./NicoliveClient', () => ({
+    NotLoggedInError,
+    isCertificateErrorCode: () => false,
+  }));
+  const { NicoliveFailure } = prepare('');
+  const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  const failure = NicoliveFailure.fromClientError('method', {
+    ok: false,
+    value: new NotLoggedInError(),
+  } as any);
+
+  expect(failure.type).toBe('logic');
+  expect(failure.reason).toBe('not_logged_in');
+  expect(consoleError).not.toHaveBeenCalled();
+  consoleError.mockRestore();
+});
+
 test('5xxで未定義文言だったら500にフォールバックする', async () => {
   const { showMessageBox, NicoliveFailure, openErrorDialogFromFailure } = prepare('500');
   const failure = NicoliveFailure.fromClientError('method', {
