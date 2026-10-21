@@ -691,13 +691,19 @@ describe('user_session cookie が見つからないときの診断', () => {
   function setupSession(cookiesGet: jest.Mock) {
     jest.resetModules();
     const message = jest.fn();
+    const cookiesOn = jest.fn();
     jest.doMock('util/sentry-report', () => ({ SentryReport: { error: jest.fn(), message } }));
     jest.doMock('@electron/remote', () => ({
       BrowserWindow: jest.fn(),
-      getCurrentWebContents: () => ({ session: { cookies: { get: cookiesGet } } }),
+      getCurrentWebContents: () => ({ session: { cookies: { get: cookiesGet, on: cookiesOn } } }),
     }));
     const mod = require('./NicoliveClient');
-    return { message, NicoliveClient: mod.NicoliveClient, NotLoggedInError: mod.NotLoggedInError };
+    return {
+      message,
+      cookiesOn,
+      NicoliveClient: mod.NicoliveClient,
+      NotLoggedInError: mod.NotLoggedInError,
+    };
   }
 
   test('見つからないとき診断を1回だけ送り、cookie の値は含まない', async () => {
@@ -727,6 +733,37 @@ describe('user_session cookie が見つからないときの診断', () => {
     expect(opts.extra.nicovideoCookies).toEqual([
       expect.objectContaining({ name: 'nicosid', domain: '.nicovideo.jp' }),
     ]);
+    expect(JSON.stringify(opts)).not.toContain('SECRET');
+  });
+
+  test('user_session の変化の cause を診断に含める(他の cookie の変化は無視)', async () => {
+    let handler: (...args: unknown[]) => void = () => {};
+    const cookiesGet = jest.fn().mockImplementation(async (filter: { domain?: string }) => {
+      if (filter.domain) {
+        // 検索の直前に cookie が失効したことを再現する
+        handler({}, { name: 'other', domain: '.nicovideo.jp' }, 'explicit', true);
+        handler({}, { name: 'user_session', domain: '.nicovideo.jp', value: 'SECRET' }, 'expired', true);
+      }
+      return [];
+    });
+    const { message, cookiesOn, NicoliveClient } = setupSession(cookiesGet);
+    cookiesOn.mockImplementation((_event: string, h: typeof handler) => {
+      handler = h;
+    });
+    const client = new NicoliveClient();
+
+    await client.fetchSupporters();
+    await client.fetchSupporters();
+
+    expect(cookiesOn).toHaveBeenCalledTimes(1);
+    expect(cookiesOn).toHaveBeenCalledWith('changed', expect.any(Function));
+    expect(message).toHaveBeenCalledTimes(1);
+    const [, , , opts] = message.mock.calls[0];
+    expect(opts.extra.lastCookieChange).toMatchObject({
+      cause: 'expired',
+      removed: true,
+      domain: '.nicovideo.jp',
+    });
     expect(JSON.stringify(opts)).not.toContain('SECRET');
   });
 });
