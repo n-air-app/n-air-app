@@ -373,10 +373,11 @@ export class NicoliveCommentViewerService extends StatefulService<INicoliveComme
     // コメント接続が切断したときにすべて止めるためのSubject
     const closer = new Subject<void>();
 
-    const { isSupporter } = this.startUpdateSupporters(SUPPORTERS_REFRESH_INTERVAL, closer);
-
+    // client が無いと finalize による closer.next() が発火せず、更新が止まらなくなるので先に確認する
     const client = this.client;
     if (!client) return;
+
+    const { isSupporter } = this.startUpdateSupporters(SUPPORTERS_REFRESH_INTERVAL, closer);
     const clientSubject = client.connect();
 
     this.lastSubscription = merge(

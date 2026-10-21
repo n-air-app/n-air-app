@@ -678,6 +678,15 @@ describe('startUpdateSupporters', () => {
     clock.tick(INTERVAL);
     expect(update).toHaveBeenCalledTimes(3);
   });
+
+  test('コメント接続が未設定のまま再接続してもサポーター情報の更新は始まらない', async () => {
+    const { instance, update } = prepare();
+
+    await instance.refreshConnection();
+    clock.tick(180000 * 2);
+
+    expect(update).not.toHaveBeenCalled();
+  });
 });
 
 test('NGにかかるコメントは読み上げない', async () => {
