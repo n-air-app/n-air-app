@@ -53,6 +53,14 @@ type SucceededResult<T> = {
   serverDateMs?: number;
 };
 
+let missingSessionCookieReported = false;
+let lastSessionCookieFoundAt: number | undefined;
+let lastAuthApiSuccessAt: number | undefined;
+let sessionCookieWatched = false;
+let lastSessionCookieChange:
+  | { at: number; cause: string; removed: boolean; domain: string }
+  | undefined;
+
 /** main process 経由か renderer 直送かを示す経路種別 */
 export type RequestRoute = 'main' | 'renderer';
 
@@ -357,14 +365,109 @@ export class NicoliveClient {
     }
 
     const { session } = remote.getCurrentWebContents();
+    NicoliveClient.watchSessionCookie(session);
     const cookies = await session.cookies.get({
       domain: getCookieDomain(),
       name: 'user_session',
     });
     if (cookies.length < 1) {
+      await NicoliveClient.reportMissingSessionCookie(session);
       throw new NotLoggedInError();
     }
+    lastSessionCookieFoundAt = Date.now();
     return cookies[0].value;
+  }
+
+  /**
+   * user_session の変化(削除・失効・上書き)の原因を記録する(N-AIR-APP-GFK の調査用)。
+   * cause が expired/evicted ならローカル要因、explicit ならアプリ内外の明示的な削除。
+   */
+  private static watchSessionCookie(session: Electron.Session): void {
+    if (sessionCookieWatched) return;
+    sessionCookieWatched = true;
+    try {
+      session.cookies.on('changed', (_event, cookie, cause, removed) => {
+        if (cookie.name !== 'user_session') return;
+        lastSessionCookieChange = {
+          at: Date.now(),
+          cause,
+          removed,
+          domain: cookie.domain ?? '',
+        };
+        Sentry.addBreadcrumb({
+          category: 'niconico',
+          message: `user_session cookie changed: cause=${cause} removed=${removed}`,
+        });
+      });
+    } catch (e) {
+      console.warn('watchSessionCookie failed', e);
+    }
+  }
+
+  /**
+   * ログイン済みのはずなのに user_session が見つからない原因調査用の診断(N-AIR-APP-GFK)。
+   * 3分ごとの再試行で大量送信しないよう、セッション内で1回だけ送る。cookie の値は送らない。
+   */
+  private static async reportMissingSessionCookie(session: Electron.Session): Promise<void> {
+    if (missingSessionCookieReported) return;
+    missingSessionCookieReported = true;
+    try {
+      const all = await session.cookies.get({});
+      const named = await session.cookies.get({ name: 'user_session' });
+      const nicoCookies = all.filter((c) => c.domain?.includes('nicovideo.jp'));
+      Sentry.addBreadcrumb({ category: 'niconico', message: 'user_session cookie not found' });
+      SentryReport.message(
+        'NicoliveClient',
+        'fetchSession',
+        'fetchSession: user_session cookie not found',
+        {
+          level: 'warning',
+          fingerprint: ['NicoliveClient', 'fetchSession', 'cookie-missing'],
+          tags: {
+            diagnostic: 'session-cookie-missing',
+            'cookie.userSessionAnyDomain': String(named.length),
+            'cookie.everFound': String(lastSessionCookieFoundAt !== undefined),
+          },
+          extra: {
+            queryDomain: getCookieDomain(),
+            partition: getPartitionName() ?? 'default',
+            totalCookies: all.length,
+            nicovideoCookies: nicoCookies.slice(0, 30).map((c) => ({
+              name: c.name,
+              domain: c.domain,
+              session: c.session,
+              sameSite: c.sameSite,
+              expiresInSec: c.expirationDate
+                ? Math.round(c.expirationDate - Date.now() / 1000)
+                : undefined,
+            })),
+            userSessionAnyDomain: named.map((c) => ({
+              domain: c.domain,
+              sameSite: c.sameSite,
+              expiresInSec: c.expirationDate
+                ? Math.round(c.expirationDate - Date.now() / 1000)
+                : undefined,
+            })),
+            sinceLastFoundSec: lastSessionCookieFoundAt
+              ? Math.round((Date.now() - lastSessionCookieFoundAt) / 1000)
+              : undefined,
+            sinceLastAuthApiSuccessSec: lastAuthApiSuccessAt
+              ? Math.round((Date.now() - lastAuthApiSuccessAt) / 1000)
+              : undefined,
+            lastCookieChange: lastSessionCookieChange
+              ? {
+                ...lastSessionCookieChange,
+                at: undefined,
+                agoSec: Math.round((Date.now() - lastSessionCookieChange.at) / 1000),
+              }
+              : undefined,
+            sinceRendererLoadSec: Math.round(performance.now() / 1000),
+          },
+        },
+      );
+    } catch (e) {
+      console.warn('reportMissingSessionCookie failed', e);
+    }
   }
 
   /**
@@ -379,6 +482,9 @@ export class NicoliveClient {
   ): Promise<WrappedResult<T>> {
     try {
       const res = await this.requestWithSession(method, url, options);
+      if (res.ok) {
+        lastAuthApiSuccessAt = Date.now();
+      }
       // wrapResult が Response / MainProcessFetchResponse 両方を扱える形に合わせて渡す
       return NicoliveClient.wrapResult<T>(
         {
