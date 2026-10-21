@@ -54,6 +54,15 @@ type SucceededResult<T> = {
 };
 
 /** main process 経由か renderer 直送かを示す経路種別 */
+let missingSessionCookieReported = false;
+let lastSessionCookieFoundAt: number | undefined;
+
+/** テスト用: 診断の報告状態をリセットする */
+export function resetSessionCookieDiagState(): void {
+  missingSessionCookieReported = false;
+  lastSessionCookieFoundAt = undefined;
+}
+
 export type RequestRoute = 'main' | 'renderer';
 
 /** API 呼び出し失敗の種別 */
@@ -362,9 +371,67 @@ export class NicoliveClient {
       name: 'user_session',
     });
     if (cookies.length < 1) {
+      await NicoliveClient.reportMissingSessionCookie(session);
       throw new NotLoggedInError();
     }
+    lastSessionCookieFoundAt = Date.now();
     return cookies[0].value;
+  }
+
+  /**
+   * ログイン済みのはずなのに user_session が見つからない原因調査用の診断(N-AIR-APP-GFK)。
+   * 3分ごとの再試行で大量送信しないよう、セッション内で1回だけ送る。cookie の値は送らない。
+   */
+  private static async reportMissingSessionCookie(session: Electron.Session): Promise<void> {
+    if (missingSessionCookieReported) return;
+    missingSessionCookieReported = true;
+    try {
+      const all = await session.cookies.get({});
+      const named = await session.cookies.get({ name: 'user_session' });
+      const nicoCookies = all.filter((c) => c.domain?.includes('nicovideo.jp'));
+      Sentry.addBreadcrumb({ category: 'niconico', message: 'user_session cookie not found' });
+      SentryReport.message(
+        'NicoliveClient',
+        'fetchSession',
+        'fetchSession: user_session cookie not found',
+        {
+          level: 'warning',
+          fingerprint: ['NicoliveClient', 'fetchSession', 'cookie-missing'],
+          tags: {
+            diagnostic: 'session-cookie-missing',
+            'cookie.userSessionAnyDomain': String(named.length),
+            'cookie.everFound': String(lastSessionCookieFoundAt !== undefined),
+          },
+          extra: {
+            queryDomain: getCookieDomain(),
+            partition: getPartitionName() ?? 'default',
+            totalCookies: all.length,
+            nicovideoCookies: nicoCookies.slice(0, 30).map((c) => ({
+              name: c.name,
+              domain: c.domain,
+              session: c.session,
+              sameSite: c.sameSite,
+              expiresInSec: c.expirationDate
+                ? Math.round(c.expirationDate - Date.now() / 1000)
+                : undefined,
+            })),
+            userSessionAnyDomain: named.map((c) => ({
+              domain: c.domain,
+              sameSite: c.sameSite,
+              expiresInSec: c.expirationDate
+                ? Math.round(c.expirationDate - Date.now() / 1000)
+                : undefined,
+            })),
+            sinceLastFoundSec: lastSessionCookieFoundAt
+              ? Math.round((Date.now() - lastSessionCookieFoundAt) / 1000)
+              : undefined,
+            sinceRendererLoadSec: Math.round(performance.now() / 1000),
+          },
+        },
+      );
+    } catch (e) {
+      console.warn('reportMissingSessionCookie failed', e);
+    }
   }
 
   /**
