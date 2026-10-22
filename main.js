@@ -340,6 +340,16 @@ if (!gotTheLock) {
   app.quit();
 }
 
+let cookieMigration = null;
+if (gotTheLock) {
+  try {
+    const { prepareCookieMigration } = require('./main-process/cookie-migration');
+    cookieMigration = prepareCookieMigration(getCookieFiles()[0], process.argv.includes('--clearCookies'));
+  } catch (error) {
+    console.error('Cookie migration preparation failed; continuing without migration:', error);
+  }
+}
+
 try {
   const crashHandler = require('crash-handler');
   initialize(crashHandler);
@@ -723,6 +733,15 @@ function initialize(crashHandler) {
       // async 関数は startApp() からなら呼べるのでここで実行する
       await clearCookies();
     } else {
+      if (cookieMigration) {
+        const { importCookies } = require('./main-process/cookie-migration');
+        const result = await importCookies(cookieMigration, getAppSession().cookies);
+        console.log('Cookie migration:', result);
+        if (!result.success && cookieMigration.status !== 'previous-failure') {
+          console.warn('Cookie migration incomplete; login may be required.');
+        }
+        cookieMigration = null;
+      }
       await recollectUserSessionCookie();
     }
     const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
@@ -832,16 +851,15 @@ function initialize(crashHandler) {
       console.error('[RENDERER] render-process-gone:', JSON.stringify(details));
     });
 
-    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-      const levelName = ['verbose', 'info', 'warning', 'error'][level] || 'unknown';
-      if (level >= 2) { // warning or error
+    mainWindow.webContents.on('console-message', ({ level, message, lineNumber, sourceId }) => {
+      if (level === 'warning' || level === 'error') {
         // intlify の fallback/missing 警告は動作上問題ないため除外
         if (message.includes('[intlify] Fall back to translate') ||
             message.includes('[intlify] Not found') ||
             message.includes('modulo syntax is deprecated')) {
           return;
         }
-        console.log(`[RENDERER-CONSOLE][${levelName}] ${message} (${sourceId}:${line})`);
+        console.log(`[RENDERER-CONSOLE][${level}] ${message} (${sourceId}:${lineNumber})`);
       }
     });
 

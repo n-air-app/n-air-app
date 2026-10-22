@@ -43,7 +43,7 @@ test('Simple copy/paste', async (t) => {
 
   selectionService.select([getNodeId('Folder1'), getNodeId('Item2')]);
   clipboardService.copy();
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -67,7 +67,7 @@ test('Copy/paste folder with items', async (t) => {
 
   selectionService.select(getNodeId('Folder2'));
   clipboardService.copy();
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -96,7 +96,7 @@ test('Copy/paste nodes between scene collections', async (t) => {
 
   await sceneCollectionsService.create({ name: 'New Collection' });
 
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -108,7 +108,7 @@ test('Copy/paste nodes between scene collections', async (t) => {
 
   const sourcesCount = sourcesService.getSources().length;
 
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -189,7 +189,7 @@ test('Copy/paste scenes between scene collections', async (t) => {
 
   await sceneCollectionsService.create({ name: 'Collection2' });
 
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -225,7 +225,7 @@ test('Copy/paste duplicate sources', async (t) => {
   clipboardService.copy();
   const sourcesCount = selectionService.getSources().length;
 
-  clipboardService.paste(true);
+  await clipboardService.paste(true);
 
   t.true(
     sceneBuilder.isEqualTo(`

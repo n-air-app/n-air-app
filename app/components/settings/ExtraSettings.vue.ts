@@ -2,7 +2,6 @@ import * as remote from '@electron/remote';
 import ObsBoolInput from 'components/obs/inputs/ObsBoolInput.vue';
 import { IObsInput } from 'components/obs/inputs/ObsInput';
 import TocSection from 'components/shared/TocSection.vue';
-import electron from 'electron';
 import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
 import { CustomizationService } from 'services/customization';
@@ -98,7 +97,7 @@ export default defineComponent({
   },
   methods: {
     copyToClipboard(text: string) {
-      electron.clipboard.writeText(text);
+      remote.clipboard.writeText(text);
     },
     setOptimizeForNiconico(model: IObsInput<boolean>) {
       CustomizationService.instance().setOptimizeForNiconico(model.value ?? false);
