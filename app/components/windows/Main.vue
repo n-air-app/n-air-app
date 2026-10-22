@@ -19,7 +19,7 @@
           :is="page"
           :params="params"
         />
-        <studio-footer v-if="page !== 'Onboarding'" :locked="applicationLoading" />
+        <studio-footer v-if="page === 'Studio'" :locked="applicationLoading" />
       </div>
       <div class="nicolive-area" v-if="showNicoliveArea">
         <nicolive-area />

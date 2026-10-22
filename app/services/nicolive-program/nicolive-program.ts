@@ -602,6 +602,9 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
       const scope = Sentry.getCurrentScope();
       scope.setTag('nicolive.programID', nextState.programID);
     }
+    if (prevState.status !== nextState.status) {
+      Sentry.getCurrentScope().setTag('nicolive.status', nextState.status);
+    }
   }
 
   private async extendProgramForAutoExtension(state: INicoliveProgramState) {
