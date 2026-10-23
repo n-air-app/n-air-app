@@ -253,11 +253,7 @@ jobs:
       packages: read
     strategy:
       matrix:
-        directory:
-          - "e2e/[^s]*.js"
-          - "e2e/s*.js"
-          - "api/[^s]*.js"
-          - "api/s*.js"
+        shard: [1, 2, 3, 4]
 
     steps:
       - name: Checkout code
@@ -288,7 +284,7 @@ jobs:
 
       - name: Run e2e tests
         if: ${{ needs.changes.outputs.app == 'true' }}
-        run: node bin/i18n-early-check.js && pnpm run compile-tests && node --test --test-force-exit --test-concurrency=1 test-dist/test/${{ matrix.directory }}
+        run: node bin/i18n-early-check.js && pnpm run compile-tests && node --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/${{ strategy.job-total }} test-dist/test/e2e/*.js test-dist/test/api/*.js
 
   build_check:
     name: build check
