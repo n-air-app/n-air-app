@@ -153,15 +153,42 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 - 追加: libebur128 (MIT)。`thirdparty/libebur128/` にソースを vendoring して vcxproj に直接含めるのが楽 (`ebur128.c` 1 ファイル + ヘッダ)
 - ブランチ運用も substream に倣い、osn バージョンごとに `release/x.y.x-osnA.B.C` を切る
 - リリース: GitHub Release に DLL を添付し、本体の `additional/additional.json` に URL を追加 (Release 本文に Compatibility 表を書く)
-- ライセンス: substream は GPL-3.0、rtvc_plugin は GPL-2.0。libobs が GPL-2.0-or-later なのでどちらでも可。libebur128 (MIT) の表記を `thirdparty/LICENSES` に置く
+- ライセンス: **GPL-2.0-or-later (決定)**。libobs・obs-loudness-dock と揃える。libebur128 (MIT) と nlohmann/json (MIT) の表記を `thirdparty/LICENSES` に置く
+
+#### ライセンスの判断材料
+
+| 対象 | ライセンス |
+|---|---|
+| libobs (リンク先) | GPL-2.0-or-later |
+| obs-studio-node | GPL-2.0 |
+| N Air 本体 | GPL-3.0 |
+| n-air-app/substream | GPL-3.0 |
+| n-air-app/rtvc_plugin | GPL-2.0 |
+| norihiro/obs-loudness-dock (参考実装) | GPL-2.0-or-later |
+| libebur128 | MIT |
+
+- libobs にリンクするので GPL 系は必須。**GPL-2.0-or-later と GPL-3.0 のどちらも libobs・N Air 本体と両立する**
+- **GPL-2.0-or-later** の利点
+  - libobs・obs-loudness-dock と同じライセンスになる。loudness-dock のコードを持ってきてもライセンスが変わらない
+  - 他の OBS プラグイン (GPL-2.0-or-later が多い) や OBS 本体側にコードを還元・流用してもらいやすい
+  - GPL-3.0 の N Air 本体と一緒に配布しても問題ない (or-later なので GPL-3.0 として扱える)
+- **GPL-3.0** の利点
+  - N Air 本体・substream と揃う
+  - Apache-2.0 のライブラリを取り込める (GPL-2.0 とは非互換)。今回の依存 (libebur128 = MIT, nlohmann/json = MIT) では関係しない
+- 注意: 「GPL-2.0-only」は選ばない。GPL-3.0 の本体との組み合わせで問題になりうる
+- 実務上の差は小さい。どちらでもソースは公開しており、GPL-3.0 で追加される特許条項やハードウェア制限禁止の条項も今回は効いてこない
 - CI: substream には GitHub Actions がなく手元 MSBuild ビルド。新リポジトリでは windows runner で MSBuild + Release 添付まで自動化しておくと osn 更新時に楽 (任意)
 
 ## 8. 未決事項 / 次に調べること
 
-- [ ] **どのトラックが配信に乗るか**: 詳細モードの `advAudioTrackIndex` (ニコニコ最適化では `'1'`)。シンプルモードではトラック1のはず (要確認)。`obs_add_raw_audio_callback` の `mix_idx` は 0 始まり
+- [x] **どのトラックが配信に乗るか**: osn 0.25.56 の `obs-studio-server/source/nodeobs_service.cpp` `createAudioStreamingEncoder()` で確認
+  - シンプルモード: `trackIndex = 0` 固定 → **トラック1** (`mix_idx` 0)
+  - 詳細モード: `AdvOut.TrackIndex - 1` (ニコニコ最適化では `TrackIndex = 1` → `mix_idx` 0)
+  - `obs_add_raw_audio_callback` の `mix_idx` は 0 始まり。実装時は JS 側で出力設定から `mix_idx` を決めてプラグインに渡す
+  - 参考: nair-substream のサブ配信も `obs_audio_encoder_create(..., mixer_idx = 0, ...)` なのでトラック1
 - [ ] 目標値の初期値を実際の配信音声で検証
-- [ ] 新規リポジトリ `n-air-app/loudness` のライセンスを決めて作成
-- [ ] DLL の署名が必要か (既存の substream / rtvc の DLL の扱いに合わせる)
+- [ ] 新規リポジトリ `n-air-app/loudness` (GPL-2.0-or-later) を作成
+- [x] DLL の署名: アプリ同梱時のパッケージングで署名されるため、リポジトリ側では不要 (付けても上書きされる)
 - [ ] libebur128 のビルドとライセンス表記 (MIT)
 - [ ] 計算負荷: libebur128 の True Peak モードはオーバーサンプリングで重め。S だけなら軽いはず
 - [ ] UI: ミキサーに LUFS 表示を足すのか、別のガイド UI を作るのか
