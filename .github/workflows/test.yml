@@ -26,6 +26,7 @@ jobs:
         with:
           filters: |
             common:
+              - '.node-version'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - '.github/workflows/test.yml'
