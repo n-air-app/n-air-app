@@ -17,6 +17,15 @@ N Air は Streamlabs OBS をベースにした、生放送に便利な機能が�
 
 <https://n-air-app.nicovideo.jp/>
 
+Wingetによるインストール
+```powershell
+winget install --id niconico.nair.live -e
+```
+実験版
+```powershell
+winget install --id DWANGO.NAIR.experimental -e
+```
+
 ## ビルド方法
 
 ### Node.js
