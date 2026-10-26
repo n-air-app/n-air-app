@@ -7,7 +7,7 @@ import { SettingsService } from 'services/settings';
 import { SourceFiltersService } from 'services/source-filters';
 import { NamedPipeClient } from 'services/substream/NamedPipeClient';
 
-import { IAdjustPlan, MEASURE_DURATION_MS, median, planAdjustment } from './loudness-adjust';
+import { IAdjustPlan, MEASURE_DURATION_MS, pickVoiceLevel, planAdjustment } from './loudness-adjust';
 
 /**
  * nair-loudness.dll (n-air-app/loudness) と通信してラウドネスを取得する。
@@ -30,8 +30,6 @@ interface ILoudnessState {
 
 const PIPE_NAME = '\\\\.\\pipe\\NAirLoudness';
 const POLL_INTERVAL_MS = 200;
-// これ以下の momentary は無音 (声が出ていない) とみなす
-const SILENCE_LUFS = -50;
 
 const EMPTY_LOUDNESS: ILoudness = {
   momentary: null,
@@ -122,8 +120,8 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   }
 
   /**
-   * 指定ソース単体のラウドネス (pre-fader、フィルタ適用後) を一定時間測り、有音区間の中央値を返す。
-   * 声が出ていなければ null。配信用メーターとは別のメーターを一時的に作る
+   * 指定ソース単体のラウドネス (pre-fader、フィルタ適用後) を一定時間測り、声の大きさを返す。
+   * 音量の振れ幅が小さい (ノイズだけ・無音) 場合は null。配信用メーターとは別のメーターを一時的に作る
    */
   measureSource(sourceId: string, durationMs = MEASURE_DURATION_MS): Promise<number | null> {
     const run = async (): Promise<number | null> => {
@@ -142,10 +140,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
         while (Date.now() < endAt) {
           await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
           const res = await this.call('get', { meterId });
-          // 無音区間 (声が出ていない) は目標との比較に使えないので除く
-          if (typeof res.momentary === 'number' && res.momentary > SILENCE_LUFS) {
-            samples.push(res.momentary);
-          }
+          if (typeof res.momentary === 'number') samples.push(res.momentary);
         }
       } catch (e) {
         this.reportUnavailable(e);
@@ -157,9 +152,9 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
           // 切断済みなら再接続時の destroyAll で片付く
         }
       }
-      // 測定時間の 1/4 以上は有音でないと、声が出ていないとみなす
-      const minSamples = Math.ceil(durationMs / POLL_INTERVAL_MS / 4);
-      return samples.length >= minSamples ? median(samples) : null;
+      // 声がある区間が測定時間の 1/8 以上ないと、声が出ていないとみなす
+      const minVoiceSamples = Math.ceil(durationMs / POLL_INTERVAL_MS / 8);
+      return pickVoiceLevel(samples, minVoiceSamples);
     };
 
     // 配信用メーターのポーリングと同じ接続を使うので、lifecycle で直列化する

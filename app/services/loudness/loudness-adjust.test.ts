@@ -1,4 +1,27 @@
-import { FADER_MIN_DB, median, planAdjustment } from './loudness-adjust';
+import { FADER_MIN_DB, median, pickVoiceLevel, planAdjustment } from './loudness-adjust';
+
+describe('pickVoiceLevel', () => {
+  // 声: -25 前後と、単語の間の -45 前後を行き来する
+  const speech = [-45, -44, -26, -25, -24, -46, -25, -27, -43, -24, -25, -26, -44, -25, -24, -26, -45, -25, -26, -24];
+
+  test('声がある: 山側 (大きい方) の中央値を返す', () => {
+    expect(pickVoiceLevel(speech, 5)).toBe(-25);
+  });
+
+  test('ノイズだけ (ほぼ一定) なら、-35 LUFS のような大きなノイズでも null', () => {
+    const noise = Array.from({ length: 40 }, (_, i) => -35 + (i % 3) * 0.5);
+    expect(pickVoiceLevel(noise, 5)).toBeNull();
+  });
+
+  test('完全な無音 (-70 以下) や空は null', () => {
+    expect(pickVoiceLevel([], 5)).toBeNull();
+    expect(pickVoiceLevel([-80, -90, -75], 1)).toBeNull();
+  });
+
+  test('声のサンプルが足りなければ null', () => {
+    expect(pickVoiceLevel(speech, 15)).toBeNull();
+  });
+});
 
 describe('planAdjustment', () => {
   test('小さすぎる: フェーダーが 0 dB ならゲインフィルタで足す', () => {

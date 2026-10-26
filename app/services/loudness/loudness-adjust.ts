@@ -60,6 +60,33 @@ export function planAdjustment(input: IAdjustInput): IAdjustPlan {
   return { faderDb: 0, gainDb, limited };
 }
 
+// これ以下の momentary は完全な無音とみなして除く
+export const ABSOLUTE_SILENCE_LUFS = -70;
+
+// 声があるとみなすのに必要な、測定中の音量の振れ幅 (LU)。
+// ノイズだけならほぼ一定で、声は単語の間で上下するため、これ未満は声なしとみなす
+export const VOICE_MIN_SPREAD_LU = 6;
+
+const percentile = (sorted: number[], p: number) => sorted[Math.floor(p * (sorted.length - 1))];
+
+/**
+ * 測定中に集めた momentary (LUFS) から、声の大きさを求める。
+ * 下位 10% を床 (ノイズ)、上位 90% を山として、振れ幅が足りなければ声なし (null)。
+ * 声ありなら、床と山の中間より大きいサンプルの中央値を返す
+ */
+export function pickVoiceLevel(samples: number[], minVoiceSamples: number): number | null {
+  const audible = samples.filter((value) => value > ABSOLUTE_SILENCE_LUFS);
+  if (!audible.length) return null;
+
+  const sorted = [...audible].sort((a, b) => a - b);
+  const floor = percentile(sorted, 0.1);
+  const peak = percentile(sorted, 0.9);
+  if (peak - floor < VOICE_MIN_SPREAD_LU) return null;
+
+  const voice = audible.filter((value) => value >= (floor + peak) / 2);
+  return voice.length >= minVoiceSamples ? median(voice) : null;
+}
+
 /** 測定値のばらつきを抑えるための中央値。空なら null */
 export function median(values: number[]): number | null {
   if (!values.length) return null;

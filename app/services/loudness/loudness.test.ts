@@ -278,7 +278,7 @@ describe('targetLufs', () => {
 
 describe('measureSource', () => {
   test('ソース単体の pre-fader メーターを作り、有音区間の中央値を返して破棄する', async () => {
-    const momentaries = [-60, -30, -28, -26, -28, -70, -29, -27, -28, -28];
+    const momentaries = [-55, -50, -28, -26, -28, -56, -29, -27, -28, -28];
     let i = 0;
     fakePlugin(() => ({ momentary: momentaries[Math.min(i++, momentaries.length - 1)] }));
     const service = getService();
@@ -300,6 +300,16 @@ describe('measureSource', () => {
 
     expect(await promise).toBeNull();
     expect(callsOf('destroy')).toHaveLength(1);
+  });
+
+  test('ノイズだけ (一定で -35 LUFS のように大きい) なら声なしの null', async () => {
+    fakePlugin(() => ({ momentary: -35 }));
+    const service = getService();
+
+    const promise = service.measureSource('mic-1', 2000);
+    await clock.tickAsync(2500);
+
+    expect(await promise).toBeNull();
   });
 
   test('値が確定していない (null) 間は無視する', async () => {
