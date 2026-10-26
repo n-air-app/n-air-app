@@ -1,8 +1,13 @@
 import * as Sentry from '@sentry/vue';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { AudioService } from 'services/audio';
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
+import { $t } from 'services/i18n';
 import { SettingsService } from 'services/settings';
+import { SourceFiltersService } from 'services/source-filters';
 import { NamedPipeClient } from 'services/substream/NamedPipeClient';
+
+import { IAdjustPlan, median, planAdjustment } from './loudness-adjust';
 
 /**
  * nair-loudness.dll (n-air-app/loudness) と通信してラウドネスを取得する。
@@ -25,6 +30,9 @@ interface ILoudnessState {
 
 const PIPE_NAME = '\\\\.\\pipe\\NAirLoudness';
 const POLL_INTERVAL_MS = 200;
+const MEASURE_DURATION_MS = 8000;
+// これ以下の momentary は無音 (声が出ていない) とみなす
+const SILENCE_LUFS = -50;
 
 const EMPTY_LOUDNESS: ILoudness = {
   momentary: null,
@@ -37,6 +45,8 @@ type RpcResult = { [name: string]: any };
 
 export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   @Inject() private settingsService: SettingsService;
+  @Inject() private audioService: AudioService;
+  @Inject() private sourceFiltersService: SourceFiltersService;
 
   static defaultState: ILoudnessState = {
     targetLufs: -15,
@@ -110,6 +120,91 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     if (output.Mode !== 'Advanced') return 0;
     const trackIndex = Number(output.TrackIndex);
     return Number.isInteger(trackIndex) && trackIndex >= 1 ? trackIndex - 1 : 0;
+  }
+
+  /**
+   * 指定ソース単体のラウドネス (pre-fader、フィルタ適用後) を一定時間測り、有音区間の中央値を返す。
+   * 声が出ていなければ null。配信用メーターとは別のメーターを一時的に作る
+   */
+  measureSource(sourceId: string, durationMs = MEASURE_DURATION_MS): Promise<number | null> {
+    const run = async (): Promise<number | null> => {
+      let meterId: number;
+      try {
+        const res = await this.call('create', { type: 'source', source: sourceId, postFader: false });
+        meterId = res.meterId;
+      } catch (e) {
+        this.reportUnavailable(e);
+        return null;
+      }
+
+      const samples: number[] = [];
+      try {
+        const endAt = Date.now() + durationMs;
+        while (Date.now() < endAt) {
+          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+          const res = await this.call('get', { meterId });
+          // 無音区間 (声が出ていない) は目標との比較に使えないので除く
+          if (typeof res.momentary === 'number' && res.momentary > SILENCE_LUFS) {
+            samples.push(res.momentary);
+          }
+        }
+      } catch (e) {
+        this.reportUnavailable(e);
+        return null;
+      } finally {
+        try {
+          await this.call('destroy', { meterId });
+        } catch {
+          // 切断済みなら再接続時の destroyAll で片付く
+        }
+      }
+      // 測定時間の 1/4 以上は有音でないと、声が出ていないとみなす
+      const minSamples = Math.ceil(durationMs / POLL_INTERVAL_MS / 4);
+      return samples.length >= minSamples ? median(samples) : null;
+    };
+
+    // 配信用メーターのポーリングと同じ接続を使うので、lifecycle で直列化する
+    const result = this.lifecycle.then(run);
+    this.lifecycle = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
+  /**
+   * 測定値 (measureSource の結果) を目標に合わせるよう、フェーダーとゲインフィルタを更新する。
+   * ゲインフィルタが既にあれば値を更新し、なければ先頭 (他のフィルタより前) に追加する
+   */
+  applyAdjustment(sourceId: string, measuredLufs: number): IAdjustPlan {
+    const audioSource = this.audioService.getSource(sourceId);
+    if (!audioSource) throw new Error(`audio source not found: ${sourceId}`);
+
+    const existing = this.sourceFiltersService
+      .getFilters(sourceId)
+      .find((filter) => filter.type === 'gain_filter');
+    const currentGainDb = existing ? Number(existing.settings.db ?? 0) : null;
+
+    const plan = planAdjustment({
+      measuredLufs,
+      targetLufs: this.targetLufs,
+      faderDb: audioSource.fader.db,
+      currentGainDb,
+    });
+
+    if (plan.gainDb !== null) {
+      if (existing) {
+        this.sourceFiltersService.updateSettings(sourceId, existing.name, { db: plan.gainDb });
+      } else {
+        const name = this.sourceFiltersService.suggestName(sourceId, $t('filters.gain'));
+        this.sourceFiltersService.add(sourceId, 'gain_filter', name, { db: plan.gainDb });
+        const count = this.sourceFiltersService.getFilters(sourceId).length;
+        if (count > 1) this.sourceFiltersService.setOrder(sourceId, name, -(count - 1));
+      }
+    }
+    // 10^(dB/20)。フェーダーは mul (線形) で設定する (db は直接設定しない)
+    audioSource.setMul(Math.pow(10, plan.faderDb / 20));
+    return plan;
   }
 
   private async start(): Promise<void> {

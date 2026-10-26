@@ -13,7 +13,27 @@
   "mute": "Mute",
   "unmute": "Unmute",
   "mixerTooltip": "Monitor audio levels. If the bars are moving you are outputting audio.",
-  "loudness": "Stream loudness",
-  "loudnessTooltip": "Perceived loudness of the stream audio (last 3 seconds, EBU R 128), shown as the difference from the {target} LUFS target. Average since start: {integrated} LUFS. Double-click to reset the average.",
-  "loudnessUnavailable": "Unavailable"
+  "loudness": "Loudness",
+  "loudnessTooltip": "Perceived loudness of the stream audio (last 3 seconds, EBU R 128), shown as the difference from the {target} LUFS target. Average since start: {integrated} LUFS. Double-click to reset the average. Right-click to change the target.",
+  "loudnessLow": "Too quiet",
+  "loudnessHigh": "Too loud",
+  "loudnessOk": "Good volume",
+  "loudnessTargetItem": "Target: {target} LUFS",
+  "loudnessResetIntegrated": "Reset average",
+  "loudnessUnavailable": "Unavailable",
+  "loudnessAdjust": {
+    "button": "Adjust",
+    "title": "Auto-adjust volume",
+    "selectMessage": "Choose the source to adjust.\nIts volume is measured for a few seconds and adjusted automatically toward the target.",
+    "noSource": "No audio source to adjust (an unmuted source is required).",
+    "speakNote": "Speak into the microphone during the measurement, as you would while streaming.",
+    "start": "Measure and adjust",
+    "measuring": "Measuring. Please speak into the microphone...",
+    "remaining": "About {seconds} s left",
+    "silent": "No voice was detected.\nPlease try again while speaking into the microphone.",
+    "resultGain": "Gain set to {gain} dB.\nYou can fine-tune it later in the source's filters.",
+    "resultFader": "Mixer volume lowered to {fader} dB.",
+    "resultNone": "The volume is already close to the target, so nothing was changed.",
+    "limited": "The gain limit was reached. To make it louder, raise the microphone input volume in Windows sound settings."
+  }
 }

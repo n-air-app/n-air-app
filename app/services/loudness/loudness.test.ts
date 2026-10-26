@@ -275,3 +275,50 @@ describe('targetLufs', () => {
     expect(service.targetLufs).toBe(-14);
   });
 });
+
+describe('measureSource', () => {
+  test('ソース単体の pre-fader メーターを作り、有音区間の中央値を返して破棄する', async () => {
+    const momentaries = [-60, -30, -28, -26, -28, -70, -29, -27, -28, -28];
+    let i = 0;
+    fakePlugin(() => ({ momentary: momentaries[Math.min(i++, momentaries.length - 1)] }));
+    const service = getService();
+
+    const promise = service.measureSource('mic-1', 2000);
+    await clock.tickAsync(2500);
+
+    expect(await promise).toBe(-28);
+    expect(callsOf('create')).toEqual([['create', { type: 'source', source: 'mic-1', postFader: false }]]);
+    expect(callsOf('destroy')).toEqual([['destroy', { meterId: 1 }]]);
+  });
+
+  test('ほとんど無音なら null', async () => {
+    fakePlugin(() => ({ momentary: -80 }));
+    const service = getService();
+
+    const promise = service.measureSource('mic-1', 2000);
+    await clock.tickAsync(2500);
+
+    expect(await promise).toBeNull();
+    expect(callsOf('destroy')).toHaveLength(1);
+  });
+
+  test('値が確定していない (null) 間は無視する', async () => {
+    fakePlugin(() => ({ momentary: null }));
+    const service = getService();
+
+    const promise = service.measureSource('mic-1', 1000);
+    await clock.tickAsync(1500);
+
+    expect(await promise).toBeNull();
+  });
+
+  test('接続できなければ null を返し unavailable にする', async () => {
+    mockCallEx.mockRejectedValue(new Error('connect ENOENT'));
+    const service = getService();
+    const statuses: LoudnessStatus[] = [];
+    service.status.subscribe((s) => statuses.push(s));
+
+    expect(await service.measureSource('mic-1', 1000)).toBeNull();
+    expect(statuses[statuses.length - 1]).toBe('unavailable');
+  });
+});

@@ -213,7 +213,7 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 
 ### 本体側の実装 (このブランチ)
 
-- `app/services/loudness/loudness.ts` `LoudnessService` (PersistentStatefulService, `app-services.ts` 登録済み)
+- `app/services/loudness/loudness.ts` `LoudnessService` (PersistentStatefulService, `app-services.ts` 登録済み。`measureSource()` / `applyAdjustment()` で自動調整も担当)
   - `enable()` / `disable()` (ネスト対応) で配信トラックのメーターを作成・破棄し、200ms ごとに `get` をポーリング
   - start / stop / poll / reset は `lifecycle` Promise で直列化
   - 配信トラックは `SettingsService.state.Output` の `Mode` / `TrackIndex` から決める (native を呼ばない)。ポーリング時に変化を検知したらメーターを作り直す
@@ -223,13 +223,23 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 - i18n: `audio.loudness` / `audio.loudnessTooltip` / `audio.loudnessUnavailable` (ja-JP / en-US)
 - テスト: `app/services/loudness/loudness.test.ts` (18 件 pass)。typecheck / eslint / stylelint / i18n チェック pass
 
+### 実機確認済みの機能 (2026-10-26)
+
+- ミキサー上部の表示: サイン波 -23 dBFS で `-23.0 LUFS`。目標との差は数値ではなく「音量が小さいです / 大きいです / ちょうどよい音量です」で表示する (ライトなユーザー向け)
+  - 色は対処が必要なとき (小さい・大きい) の黄色だけ。アクセシビリティのため赤系は使わない (`--color-accent` は赤系なので適正表示に使わない)
+  - ラベルのクラス名に `.label` を使わない (vendor/foundation.min.css の `.label` が水色の背景を当てる)
+- 目標値: ラウドネス行を右クリックして -14 / -15 / -16 / -18 / -23 LUFS から選ぶ。許容幅 ±3 LU は固定
+- 自動調整 (`LoudnessAdjust` ダイアログ): 「音量が小さい/大きい」のとき「調整する」ボタンから起動
+  - 調整するソースを選び (ミュートされていないもの、初期値はマイク)、約 8 秒そのソース単体 (pre-fader) を測って、有音区間の中央値で判断する
+  - 小さい: フェーダーを 0 dB に戻し、足りない分を `gain_filter` で足す。既存のゲインフィルタは更新し、なければフィルタの先頭に追加。+20 dB で頭打ちにして OS の入力音量を案内する
+  - 大きい: ゲインを足さず、既存ゲインを 0 に戻してフェーダーを下げる
+  - 計算は `app/services/loudness/loudness-adjust.ts` (`planAdjustment`)
+
 ### 次にやること
 
-1. worktree で `pnpm start` して、ミキサー上部の表示を実機確認 (サイン波 -23 dBFS で `-23.0 LUFS`、差 `-8.0`、暗色になるはず)
-2. 目標値の設定 UI をどこに置くか決める (設定画面の音声カテゴリ / ミキサーの右クリックメニュー等)
-3. プラグインのリリース: `n-air-app/loudness` にタグを打つと CI が Draft Release を作る → Publish → 本体 `additional/additional.json` に DLL の URL を追加
-4. PR 作成は `/draft-pr-watch` スキルで。タイトルは `追加:` prefix (ユーザー向けの文言で)
-5. 公開判断がついたら `n-air-app/loudness` を public に切り替え
+1. プラグイン `n-air-app/loudness` は public 化し、タグ `0.1.0` で Draft Release (DLL + PDB) を作成済み。Publish して本体 `additional/additional.json` に DLL の URL を追加する (substream と同じく `/node_modules/obs-studio-node/obs-plugins/64bit` へ配置)
+2. 実際の配信音声で目標値の初期値 (-15 LUFS) と許容幅 (±3 LU) を見直す
+3. 自動調整に配信全体のメーター (BGM を含む) を使うか検討する (現状はマイク単体を目標に合わせる)
 
 ### 既知の注意点
 
