@@ -1,4 +1,5 @@
 import MixerItem from 'components/studio/MixerItem.vue';
+import MixerLoudness from 'components/studio/MixerLoudness.vue';
 import { AudioService } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
 import { $t } from 'services/i18n';
@@ -8,7 +9,7 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'Mixer',
 
-  components: { MixerItem },
+  components: { MixerItem, MixerLoudness },
 
   data() {
     return {

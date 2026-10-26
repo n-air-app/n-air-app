@@ -26,6 +26,7 @@ export { IncrementalRolloutService } from 'services/incremental-rollout';
 export { InformationsService } from 'services/informations';
 export { InformationsStateService } from 'services/informations/state';
 export { KeyListenerService } from 'services/key-listener';
+export { LoudnessService } from 'services/loudness';
 export { NavigationService } from 'services/navigation';
 export { KonomiTagsService } from 'services/nicolive-program/konomi-tags';
 export { NVoiceClientService } from 'services/nicolive-program/n-voice-client';

@@ -196,7 +196,45 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
   - 1kHz ステレオ -23 dBFS のサイン波をメディアソースで再生し、`track1` が **-23.0 LUFS** になることを確認 (BS.1770 の期待値どおり)
   - 不具合 1 件を修正: Streamlabs 版 libobs (30.2.4sl41) の `do_audio_output()` は `obs_add_raw_audio_callback` の param を `struct obs_encoder *` として読むため、任意のポインタを渡すと範囲外読み込みでトラックの音声が届かないことがあった。ゼロ埋めした大きな領域を param にして回避 (loudness `f757562`)
 - 手元のマイク (Realtek 内蔵) は話し声の Integrated が約 -38 LUFS で、ミキサー 100% でも目標 -15 LUFS に 20 LU 以上足りない。ガイド機能では「ミキサーでは上げられない、OS の入力音量やゲインフィルタで上げる」ことを案内する必要がありそう
-- [ ] N Air 本体側から `NamedPipeClient` で呼び出してサービス化する
+- [x] N Air 本体側から `NamedPipeClient` で呼び出してサービス化する (2026-10-26、実機での表示確認はまだ)
+
+## 9. 申し送り (2026-10-26 時点)
+
+### 作業環境
+
+- 本体: worktree `../n-air-app-loudness` (ブランチ `research/loudness-1517`、push 先 `koizuka`)。メインディレクトリはリリースに使うので、`nair-loudness.dll` は**この worktree にだけ**置いている
+  - DLL の置き場所: `node_modules/obs-studio-node/obs-plugins/64bit/nair-loudness.dll` (手でコピー。`pnpm install` し直すと消えることがある)
+  - DLL は N Air 起動中はロックされるので、差し替えは N Air を閉じてから
+- プラグイン: `../loudness` (= `n-air-app/loudness`, private, `main`)。最新 `f757562`
+  - ビルド: `"/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" nair-loudness.sln -p:Configuration=Release -p:Platform=x64` → `x64/Release/nair-loudness.dll`
+  - Claude Code の worktree セッションからは `../loudness` で直接コマンドを実行できない (worktree 隔離)。`C:/temp/` にシェルスクリプトを書いて `sh` で実行すれば回避できた
+  - 動作確認: `node ../loudness/tools/probe.mjs [--list] [--source <sourceId>]`
+  - 精度確認用 WAV: `../loudness/tools/test-signals/sine-1khz-stereo-{15,23,33}dbfs.wav` (git 管理外。`tools/make-test-signals.mjs` で再生成)
+
+### 本体側の実装 (このブランチ)
+
+- `app/services/loudness/loudness.ts` `LoudnessService` (PersistentStatefulService, `app-services.ts` 登録済み)
+  - `enable()` / `disable()` (ネスト対応) で配信トラックのメーターを作成・破棄し、200ms ごとに `get` をポーリング
+  - start / stop / poll / reset は `lifecycle` Promise で直列化
+  - 配信トラックは `SettingsService.state.Output` の `Mode` / `TrackIndex` から決める (native を呼ばない)。ポーリング時に変化を検知したらメーターを作り直す
+  - 接続できない・エラー応答は `unavailable` にして Sentry に 1 回だけ送る (DLL は同梱前提なので異常扱い。ユーザー判断)
+  - 目標値 `targetLufs` は state に永続化 (初期値 -15)。`setTargetLufs()` はあるが**設定 UI はまだない**
+- `app/components/studio/MixerLoudness.vue(.ts)`: ミキサー上部に 1 行表示 (short-term LUFS と目標との差)。目標 ±3 LU を適正 (accent 色)、超過は黄色、不足・未確定は暗色。ダブルクリックで Integrated リセット。ツールチップに目標と Integrated
+- i18n: `audio.loudness` / `audio.loudnessTooltip` / `audio.loudnessUnavailable` (ja-JP / en-US)
+- テスト: `app/services/loudness/loudness.test.ts` (18 件 pass)。typecheck / eslint / stylelint / i18n チェック pass
+
+### 次にやること
+
+1. worktree で `pnpm start` して、ミキサー上部の表示を実機確認 (サイン波 -23 dBFS で `-23.0 LUFS`、差 `-8.0`、暗色になるはず)
+2. 目標値の設定 UI をどこに置くか決める (設定画面の音声カテゴリ / ミキサーの右クリックメニュー等)
+3. プラグインのリリース: `n-air-app/loudness` にタグを打つと CI が Draft Release を作る → Publish → 本体 `additional/additional.json` に DLL の URL を追加
+4. PR 作成は `/draft-pr-watch` スキルで。タイトルは `追加:` prefix (ユーザー向けの文言で)
+5. 公開判断がついたら `n-air-app/loudness` を public に切り替え
+
+### 既知の注意点
+
+- Streamlabs 版 libobs は `obs_add_raw_audio_callback` の param を `struct obs_encoder *` として読む。プラグイン側でゼロ埋めした大きな領域を param にして回避済み (§8)
+- `pnpm exec jest app/services/settings app/services/audio app/components/studio` で "worker process has failed to exit gracefully" が出るが、loudness のテスト単体では出ないので既存テスト由来
 - [x] DLL の署名: アプリ同梱時のパッケージングで署名されるため、リポジトリ側では不要 (付けても上書きされる)
 - [ ] libebur128 のビルドとライセンス表記 (MIT)
 - [ ] 計算負荷: libebur128 の True Peak モードはオーバーサンプリングで重め。S だけなら軽いはず

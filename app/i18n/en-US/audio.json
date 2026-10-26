@@ -12,5 +12,8 @@
   "mixer": "Mixer",
   "mute": "Mute",
   "unmute": "Unmute",
-  "mixerTooltip": "Monitor audio levels. If the bars are moving you are outputting audio."
+  "mixerTooltip": "Monitor audio levels. If the bars are moving you are outputting audio.",
+  "loudness": "Stream loudness",
+  "loudnessTooltip": "Perceived loudness of the stream audio (last 3 seconds, EBU R 128), shown as the difference from the {target} LUFS target. Average since start: {integrated} LUFS. Double-click to reset the average.",
+  "loudnessUnavailable": "Unavailable"
 }

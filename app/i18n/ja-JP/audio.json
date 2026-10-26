@@ -12,5 +12,8 @@
   "mixer": "ミキサー",
   "mute": "ミュート",
   "unmute": "ミュート解除",
-  "mixerTooltip": "各ソースの音量を確認できます。バーが動いている場合、音声が出力されています。"
+  "mixerTooltip": "各ソースの音量を確認できます。バーが動いている場合、音声が出力されています。",
+  "loudness": "配信音声のラウドネス",
+  "loudnessTooltip": "配信に乗る音声の聴感上の大きさ(直近3秒、EBU R 128)です。目標 {target} LUFS との差を表示します。計測開始からの平均: {integrated} LUFS。ダブルクリックで平均をリセットします。",
+  "loudnessUnavailable": "計測できません"
 }
