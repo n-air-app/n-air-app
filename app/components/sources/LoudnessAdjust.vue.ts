@@ -114,8 +114,13 @@ export default defineComponent({
     },
 
     describe(faderDb: number, gainDb: number | null): string {
-      if (gainDb !== null && gainDb > 0) {
-        return $t('audio.loudnessAdjust.resultGain', { gain: gainDb.toFixed(1) });
+      if (gainDb !== null && gainDb !== 0) {
+        const key = gainDb > 0 ? 'resultGain' : 'resultGainDown';
+        const message = $t(`audio.loudnessAdjust.${key}`, { gain: gainDb.toFixed(1) });
+        // ゲインで下げ切れず、フェーダーも下げた場合は両方を伝える
+        return faderDb < 0
+          ? `${message}\n${$t('audio.loudnessAdjust.resultFader', { fader: faderDb.toFixed(1) })}`
+          : message;
       }
       if (faderDb < 0) {
         return $t('audio.loudnessAdjust.resultFader', { fader: faderDb.toFixed(1) });

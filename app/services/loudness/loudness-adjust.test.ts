@@ -56,11 +56,32 @@ describe('planAdjustment', () => {
     ).toEqual({ faderDb: -6, gainDb: null, limited: false });
   });
 
-  test('大きすぎる: 既存のゲインがあれば 0 に戻し、残りをフェーダーで下げる', () => {
-    // 既存ゲイン +4 を含めて -9。-6 必要 → 合計 -2 (ゲイン 0、フェーダー -2)
+  test('大きすぎる: 既存のゲインがあれば、フェーダーに触れずゲインを下げる', () => {
+    // 既存ゲイン +4 を含めて -9。-6 必要 → ゲイン -2、フェーダーは 0 のまま
     expect(
       planAdjustment({ measuredLufs: -9, targetLufs: -15, faderDb: 0, currentGainDb: 4 }),
-    ).toEqual({ faderDb: -2, gainDb: 0, limited: false });
+    ).toEqual({ faderDb: 0, gainDb: -2, limited: false });
+  });
+
+  test('大きすぎる: ゲインが負の値になってもよい (0 dB に戻すだけにしない)', () => {
+    expect(
+      planAdjustment({ measuredLufs: -5, targetLufs: -15, faderDb: 0, currentGainDb: 6 }),
+    ).toEqual({ faderDb: 0, gainDb: -4, limited: false });
+  });
+
+  test('大きすぎる: ゲインの下限 (-30 dB) を超える分だけフェーダーで補う', () => {
+    // 既存ゲイン 0 を含めて +30。-45 必要 → ゲイン -30 で足りない -15 をフェーダーで
+    expect(
+      planAdjustment({ measuredLufs: 30, targetLufs: -15, faderDb: 0, currentGainDb: 0 }),
+    ).toEqual({ faderDb: -15, gainDb: -30, limited: false });
+  });
+
+  test('大きすぎる: フェーダーが下がっていて、ゲインがあれば、フェーダー込みでゲインを下げる', () => {
+    // 配信上は -5 + (-3) = -8。目標 -15 まで -7。合計 = ゲイン 2 + フェーダー -3 - 7 = -8
+    // → ゲインを -8 まで下げ、フェーダーは 0 に戻る
+    expect(
+      planAdjustment({ measuredLufs: -5, targetLufs: -15, faderDb: -3, currentGainDb: 2 }),
+    ).toEqual({ faderDb: 0, gainDb: -8, limited: false });
   });
 
   test('大きすぎる: フェーダーは下限で止める', () => {

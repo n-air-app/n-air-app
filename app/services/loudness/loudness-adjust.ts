@@ -7,6 +7,9 @@ export const FADER_MIN_DB = -60;
 // これ以上ゲインで持ち上げるとノイズが目立つ。超える分は OS の入力音量での調整を案内する
 export const GAIN_FILTER_RECOMMENDED_MAX_DB = 20;
 
+// ゲインフィルタ (gain_filter) の設定範囲の下限 (dB)。これより下げる分はフェーダーで補う
+export const GAIN_FILTER_MIN_DB = -30;
+
 export interface IAdjustInput {
   /** 測定したソース単体のラウドネス (LUFS、pre-fader) */
   measuredLufs: number;
@@ -34,7 +37,8 @@ const round1 = (value: number) => Math.round(value * 10) / 10;
  * pre-fader の測定値はフェーダーを含まないが、ゲインフィルタ (フィルタ適用後) は含む。
  *
  * 配分の方針:
- * - 大きすぎる: フィルタ → フェーダーの順に下げる (ゲインを足さない)
+ * - 大きすぎる: ゲインフィルタがあればゲインを下げる (負の値も可)。下限を超える分だけフェーダーで補う。
+ *   ゲインフィルタが無ければ作らず、フェーダーだけで下げる
  * - 小さすぎる: フェーダーを 0 dB まで戻し、足りない分をゲインフィルタで足す
  */
 export function planAdjustment(input: IAdjustInput): IAdjustPlan {
@@ -46,18 +50,21 @@ export function planAdjustment(input: IAdjustInput): IAdjustPlan {
   // 合計 (ゲイン + フェーダー) の目標値
   const totalDb = gain + faderDb + needed;
 
-  if (totalDb <= 0) {
-    // ゲインは不要。既存のゲインは 0 に戻し、フェーダーだけで合わせる
-    return {
-      faderDb: Math.max(round1(totalDb), FADER_MIN_DB),
-      gainDb: currentGainDb === null ? null : 0,
-      limited: false,
-    };
+  if (totalDb > 0) {
+    const limited = totalDb > GAIN_FILTER_RECOMMENDED_MAX_DB;
+    const gainDb = round1(Math.min(totalDb, GAIN_FILTER_RECOMMENDED_MAX_DB));
+    return { faderDb: 0, gainDb, limited };
   }
 
-  const limited = totalDb > GAIN_FILTER_RECOMMENDED_MAX_DB;
-  const gainDb = round1(Math.min(totalDb, GAIN_FILTER_RECOMMENDED_MAX_DB));
-  return { faderDb: 0, gainDb, limited };
+  if (currentGainDb === null) {
+    // ゲインフィルタが無ければ作らず、フェーダーだけで下げる
+    return { faderDb: Math.max(round1(totalDb), FADER_MIN_DB), gainDb: null, limited: false };
+  }
+
+  // ゲインフィルタがあれば、ゲインを優先して下げる。下限を超える分だけフェーダーで補う
+  const gainDb = Math.max(round1(totalDb), GAIN_FILTER_MIN_DB);
+  const rest = round1(totalDb - gainDb);
+  return { faderDb: Math.max(rest, FADER_MIN_DB), gainDb, limited: false };
 }
 
 // これ以下の momentary は完全な無音とみなして除く

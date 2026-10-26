@@ -7,6 +7,7 @@
           <p v-if="!candidates.length" class="note">{{ $t('audio.loudnessAdjust.noSource') }}</p>
           <ObsListInput v-else :value="sourceInput" @input="onSourceInput" />
           <p class="note">{{ $t('audio.loudnessAdjust.speakNote') }}</p>
+          <p class="note">{{ $t('audio.loudnessAdjust.pauseNote') }}</p>
         </template>
 
         <template v-else-if="step === 'measuring'">
@@ -21,6 +22,7 @@
             <div class="progress-bar" :style="{ width: `${progressPercent}%` }"></div>
           </div>
           <p class="note">{{ $t('audio.loudnessAdjust.remaining', { seconds: remainingSeconds }) }}</p>
+          <p class="note">{{ $t('audio.loudnessAdjust.pauseNote') }}</p>
         </template>
 
         <template v-else-if="step === 'done'">
@@ -30,6 +32,7 @@
 
         <template v-else>
           <p class="message">{{ $t('audio.loudnessAdjust.silent') }}</p>
+          <p class="note">{{ $t('audio.loudnessAdjust.pauseNote') }}</p>
         </template>
       </div>
     </template>
