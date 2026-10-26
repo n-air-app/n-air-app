@@ -4,10 +4,9 @@ import ModalLayout from 'components/shared/ModalLayout.vue';
 import { AudioService } from 'services/audio';
 import { $t } from 'services/i18n';
 import { LoudnessService } from 'services/loudness';
+import { MEASURE_DURATION_MS } from 'services/loudness/loudness-adjust';
 import { WindowsService } from 'services/windows';
 import { defineComponent } from 'vue';
-
-const MEASURE_DURATION_MS = 8000;
 
 // 初期選択にするソースの種別 (マイク)
 const MIC_SOURCE_TYPES = ['wasapi_input_capture', 'nair-rtvc-source'];

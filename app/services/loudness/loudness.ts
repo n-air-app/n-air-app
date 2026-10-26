@@ -7,7 +7,7 @@ import { SettingsService } from 'services/settings';
 import { SourceFiltersService } from 'services/source-filters';
 import { NamedPipeClient } from 'services/substream/NamedPipeClient';
 
-import { IAdjustPlan, median, planAdjustment } from './loudness-adjust';
+import { IAdjustPlan, MEASURE_DURATION_MS, median, planAdjustment } from './loudness-adjust';
 
 /**
  * nair-loudness.dll (n-air-app/loudness) と通信してラウドネスを取得する。
@@ -30,7 +30,6 @@ interface ILoudnessState {
 
 const PIPE_NAME = '\\\\.\\pipe\\NAirLoudness';
 const POLL_INTERVAL_MS = 200;
-const MEASURE_DURATION_MS = 8000;
 // これ以下の momentary は無音 (声が出ていない) とみなす
 const SILENCE_LUFS = -50;
 

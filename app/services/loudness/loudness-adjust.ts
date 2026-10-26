@@ -1,3 +1,6 @@
+// 自動調整でソースの音量を測る時間 (ms)。測定処理と進捗表示で共有する
+export const MEASURE_DURATION_MS = 8000;
+
 // 自動調整でフェーダーを下げる下限 (dB)。これ以上は無音に近く、調整対象として不適切
 export const FADER_MIN_DB = -60;
 
