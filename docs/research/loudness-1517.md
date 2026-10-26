@@ -187,7 +187,11 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
   - `obs_add_raw_audio_callback` の `mix_idx` は 0 始まり。実装時は JS 側で出力設定から `mix_idx` を決めてプラグインに渡す
   - 参考: nair-substream のサブ配信も `obs_audio_encoder_create(..., mixer_idx = 0, ...)` なのでトラック1
 - [ ] 目標値の初期値を実際の配信音声で検証
-- [ ] 新規リポジトリ `n-air-app/loudness` (GPL-2.0-or-later) を作成
+- [x] 新規リポジトリ [n-air-app/loudness](https://github.com/n-air-app/loudness) (GPL-2.0-or-later, 当面 private) を作成し、雛形を投入 (2026-10-26)
+  - 3 種類のタップ (track / source pre-fader / source post-fader)、M / S / I / LRA、Named Pipe RPC (`info` / `create` / `get` / `reset` / `destroy` / `destroyAll`) まで実装済み。プロトコルは同リポジトリの README を参照
+  - ローカル (VS 2022) と GitHub Actions (windows-latest) でビルドが通ることを確認。**OBS 上での動作確認はまだ**
+- [ ] DLL を N Air に手で置いて読み込まれるか確認 (OBS ログに `[nair-loudness] plugin ... loaded`)
+- [ ] N Air 側の `NamedPipeClient` で `create` / `get` を叩いて値を確認
 - [x] DLL の署名: アプリ同梱時のパッケージングで署名されるため、リポジトリ側では不要 (付けても上書きされる)
 - [ ] libebur128 のビルドとライセンス表記 (MIT)
 - [ ] 計算負荷: libebur128 の True Peak モードはオーバーサンプリングで重め。S だけなら軽いはず
