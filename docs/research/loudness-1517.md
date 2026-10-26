@@ -190,8 +190,13 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 - [x] 新規リポジトリ [n-air-app/loudness](https://github.com/n-air-app/loudness) (GPL-2.0-or-later, 当面 private) を作成し、雛形を投入 (2026-10-26)
   - 3 種類のタップ (track / source pre-fader / source post-fader)、M / S / I / LRA、Named Pipe RPC (`info` / `create` / `get` / `reset` / `destroy` / `destroyAll`) まで実装済み。プロトコルは同リポジトリの README を参照
   - ローカル (VS 2022) と GitHub Actions (windows-latest) でビルドが通ることを確認。**OBS 上での動作確認はまだ**
-- [ ] DLL を N Air に手で置いて読み込まれるか確認 (OBS ログに `[nair-loudness] plugin ... loaded`)
-- [ ] N Air 側の `NamedPipeClient` で `create` / `get` を叩いて値を確認
+- [x] DLL を N Air に手で置いて読み込まれるか確認 (OBS ログに `[nair-loudness] plugin ... loaded`) (2026-10-26)
+- [x] `tools/probe.mjs` (loudness リポジトリ) で `create` / `get` を叩いて値を確認 (2026-10-26)
+  - track / source pre / source post の 3 種類とも想定どおり動作。ミュート中は post だけ null、pre は値が出る
+  - 1kHz ステレオ -23 dBFS のサイン波をメディアソースで再生し、`track1` が **-23.0 LUFS** になることを確認 (BS.1770 の期待値どおり)
+  - 不具合 1 件を修正: Streamlabs 版 libobs (30.2.4sl41) の `do_audio_output()` は `obs_add_raw_audio_callback` の param を `struct obs_encoder *` として読むため、任意のポインタを渡すと範囲外読み込みでトラックの音声が届かないことがあった。ゼロ埋めした大きな領域を param にして回避 (loudness `f757562`)
+- 手元のマイク (Realtek 内蔵) は話し声の Integrated が約 -38 LUFS で、ミキサー 100% でも目標 -15 LUFS に 20 LU 以上足りない。ガイド機能では「ミキサーでは上げられない、OS の入力音量やゲインフィルタで上げる」ことを案内する必要がありそう
+- [ ] N Air 本体側から `NamedPipeClient` で呼び出してサービス化する
 - [x] DLL の署名: アプリ同梱時のパッケージングで署名されるため、リポジトリ側では不要 (付けても上書きされる)
 - [ ] libebur128 のビルドとライセンス表記 (MIT)
 - [ ] 計算負荷: libebur128 の True Peak モードはオーバーサンプリングで重め。S だけなら軽いはず
