@@ -14,13 +14,19 @@ const MIC_SOURCE_TYPES = ['wasapi_input_capture', 'nair-rtvc-source'];
 
 type Step = 'select' | 'measuring' | 'done' | 'silent';
 
+interface ICandidate {
+  sourceId: string;
+  name: string;
+  isMic: boolean;
+}
+
 export default defineComponent({
   name: 'LoudnessAdjust',
 
   components: { ModalLayout, ObsListInput },
 
   data() {
-    const candidates = AudioService.instance()
+    const candidates: ICandidate[] = AudioService.instance()
       .getVisibleSourcesForCurrentScene()
       .filter((source) => !source.muted)
       .map((source) => ({
@@ -48,7 +54,10 @@ export default defineComponent({
         description: '',
         showDescription: false,
         value: this.selectedId,
-        options: this.candidates.map((source) => ({ description: source.name, value: source.sourceId })),
+        options: this.candidates.map((source: ICandidate) => ({
+          description: source.name,
+          value: source.sourceId,
+        })),
       };
     },
 
