@@ -107,7 +107,12 @@ export default defineComponent({
       TARGET_PRESETS.forEach((target) => {
         menu.append({
           id: `Loudness target ${target}`,
-          label: $t('audio.loudnessTargetItem', { target }),
+          label: $t(
+            target === LoudnessService.defaultState.targetLufs
+              ? 'audio.loudnessTargetDefaultItem'
+              : 'audio.loudnessTargetItem',
+            { target },
+          ),
           type: 'radio',
           checked: service.targetLufs === target,
           click: () => service.setTargetLufs(target),

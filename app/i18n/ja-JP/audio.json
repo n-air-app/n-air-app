@@ -22,6 +22,7 @@
   "loudnessHigh": "音量が大きいです",
   "loudnessOk": "ちょうどよい音量です",
   "loudnessTargetItem": "目標 {target} LUFS",
+  "loudnessTargetDefaultItem": "目標 {target} LUFS (既定)",
   "loudnessUnavailable": "計測できません",
   "loudnessAdjust": {
     "button": "調整する",

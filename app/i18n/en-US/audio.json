@@ -22,6 +22,7 @@
   "loudnessHigh": "Too loud",
   "loudnessOk": "Good volume",
   "loudnessTargetItem": "Target: {target} LUFS",
+  "loudnessTargetDefaultItem": "Target: {target} LUFS (default)",
   "loudnessUnavailable": "Unavailable",
   "loudnessAdjust": {
     "button": "Adjust",
