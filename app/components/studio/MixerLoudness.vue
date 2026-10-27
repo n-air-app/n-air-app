@@ -1,5 +1,5 @@
 <template>
-  <div class="mixer-loudness" :class="`level-${level}`" v-tooltip.bottom="tooltip" @dblclick="reset" @contextmenu.stop="showMenu">
+  <div class="mixer-loudness" :class="`level-${level}`" v-tooltip.bottom="tooltip" @contextmenu.stop="showMenu">
     <div class="loudness-title">{{ $t('audio.loudness') }}</div>
     <template v-if="status === 'unavailable'">
       <div class="value unavailable">{{ $t('audio.loudnessUnavailable') }}</div>
@@ -16,6 +16,16 @@
         </button>
       </div>
     </template>
+    <button
+      type="button"
+      class="menu-button"
+      :aria-label="$t('audio.loudnessMenu')"
+      aria-haspopup="menu"
+      v-tooltip.bottom="$t('audio.loudnessMenu')"
+      @click.stop="showMenu"
+    >
+      <i class="icon-ellipsis-horizontal" />
+    </button>
   </div>
 </template>
 
@@ -25,13 +35,35 @@
 @import url('../../styles/index');
 
 .mixer-loudness {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  padding: 8px 12px;
+  padding: 8px 36px 8px 12px;
   font-size: @font-size2;
   color: var(--color-text);
   border-bottom: 1px solid var(--color-border-emphasis-low);
+
+  .menu-button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: @font-size2;
+    color: var(--color-text-dark);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:hover {
+      color: var(--color-text);
+    }
+  }
 
   .loudness-title {
     flex: 1;

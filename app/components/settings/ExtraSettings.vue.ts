@@ -7,6 +7,7 @@ import { TcpServerService } from 'services/api/tcp-server';
 import { AppService } from 'services/app';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
+import { LoudnessService } from 'services/loudness';
 import { OnboardingService } from 'services/onboarding';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
@@ -30,6 +31,13 @@ export default defineComponent({
     };
   },
   computed: {
+    showLoudnessPanelModel(): IObsInput<boolean> {
+      return {
+        name: 'show_loudness_panel',
+        description: $t('settings.showLoudnessPanel'),
+        value: LoudnessService.instance().showPanel,
+      };
+    },
     isStreaming(): boolean {
       return StreamingService.instance().state.streamingStatus !== EStreamingState.Offline;
     },
@@ -97,6 +105,9 @@ export default defineComponent({
     },
   },
   methods: {
+    setShowLoudnessPanel(model: IObsInput<boolean>) {
+      LoudnessService.instance().setShowPanel(model.value ?? false);
+    },
     copyToClipboard(text: string) {
       electron.clipboard.writeText(text);
     },

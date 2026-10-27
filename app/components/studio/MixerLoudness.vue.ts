@@ -1,3 +1,4 @@
+import * as remote from '@electron/remote';
 import { Subscription } from 'rxjs';
 import { $t } from 'services/i18n';
 import { ILoudness, LoudnessService, LoudnessStatus } from 'services/loudness';
@@ -8,7 +9,7 @@ import { defineComponent } from 'vue';
 // 目標との差がこの範囲 (LU) なら「適正」とみなす
 const TOLERANCE_LU = 3;
 
-// 右クリックメニューで選べる目標値 (LUFS)
+// メニューで選べる目標値 (LUFS)
 const TARGET_PRESETS = [-14, -15, -16, -18, -23];
 
 export default defineComponent({
@@ -78,17 +79,18 @@ export default defineComponent({
     },
 
     tooltip(): string {
-      const integrated = this.loudness?.integrated;
-      return $t('audio.loudnessTooltip', {
-        target: this.targetLufs,
-        integrated: integrated === null || integrated === undefined ? '---' : integrated.toFixed(1),
-      });
+      return $t('audio.loudnessTooltip');
     },
   },
 
   methods: {
-    reset() {
-      LoudnessService.instance().reset();
+    closePanel() {
+      LoudnessService.instance().setShowPanel(false);
+      void remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'info',
+        message: $t('audio.loudnessHidden'),
+        buttons: [$t('common.ok')],
+      });
     },
 
     openAdjust() {
@@ -113,9 +115,9 @@ export default defineComponent({
       });
       menu.append({ type: 'separator' });
       menu.append({
-        id: 'Loudness reset',
-        label: $t('audio.loudnessResetIntegrated'),
-        click: () => service.reset(),
+        id: 'Loudness hide',
+        label: $t('audio.loudnessHide'),
+        click: () => this.closePanel(),
       });
       menu.popup();
     },

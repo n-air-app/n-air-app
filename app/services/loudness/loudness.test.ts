@@ -63,7 +63,6 @@ function fakePlugin(get: () => Partial<ILoudness> & { error?: string } = () => (
     switch (fn) {
       case 'destroyAll':
       case 'destroy':
-      case 'reset':
         return { result: 'OK' };
       case 'create':
         return { meterId: nextId++ };
@@ -95,6 +94,17 @@ describe('getStreamingTrack', () => {
     [{}, 0],
   ])('%j => %d', (output, expected) => {
     expect(getService(output).getStreamingTrack()).toBe(expected);
+  });
+});
+
+describe('showPanel', () => {
+  test('既存の設定に表示状態がない場合は表示し、状態を切り替える', () => {
+    const service = getService();
+    expect(service.showPanel).toBe(true);
+    service.setShowPanel(false);
+    expect(service.showPanel).toBe(false);
+    service.setShowPanel(true);
+    expect(service.showPanel).toBe(true);
   });
 });
 
@@ -235,30 +245,6 @@ describe('プラグインが使えないとき', () => {
     await clock.tickAsync(1000);
     await flush();
     expect(callsOf('get')).toHaveLength(getCount);
-  });
-});
-
-describe('reset', () => {
-  test('計測中のメーターをリセットする', async () => {
-    fakePlugin();
-    const service = getService();
-
-    service.enable();
-    await flush();
-    service.reset();
-    await flush();
-
-    expect(callsOf('reset')).toEqual([['reset', { meterId: 1 }]]);
-  });
-
-  test('計測していなければ何もしない', async () => {
-    fakePlugin();
-    const service = getService();
-
-    service.reset();
-    await flush();
-
-    expect(callsOf('reset')).toHaveLength(0);
   });
 });
 

@@ -3,6 +3,7 @@ import MixerLoudness from 'components/studio/MixerLoudness.vue';
 import { AudioService } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
 import { $t } from 'services/i18n';
+import { LoudnessService } from 'services/loudness';
 import { Menu } from 'util/menus/Menu';
 import { defineComponent } from 'vue';
 
@@ -19,6 +20,10 @@ export default defineComponent({
   },
 
   computed: {
+    showLoudnessPanel(): boolean {
+      return LoudnessService.instance().showPanel;
+    },
+
     audioSources() {
       return AudioService.instance().getVisibleSourcesForCurrentScene();
     },

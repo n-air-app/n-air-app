@@ -215,11 +215,11 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 
 - `app/services/loudness/loudness.ts` `LoudnessService` (PersistentStatefulService, `app-services.ts` 登録済み。`measureSource()` / `applyAdjustment()` で自動調整も担当)
   - `enable()` / `disable()` (ネスト対応) で配信トラックのメーターを作成・破棄し、200ms ごとに `get` をポーリング
-  - start / stop / poll / reset は `lifecycle` Promise で直列化
+  - start / stop / poll は `lifecycle` Promise で直列化
   - 配信トラックは `SettingsService.state.Output` の `Mode` / `TrackIndex` から決める (native を呼ばない)。ポーリング時に変化を検知したらメーターを作り直す
   - 接続できない・エラー応答は `unavailable` にして Sentry に 1 回だけ送る (DLL は同梱前提なので異常扱い。ユーザー判断)
-  - 目標値 `targetLufs` は state に永続化 (初期値 -15)。`setTargetLufs()` はあるが**設定 UI はまだない**
-- `app/components/studio/MixerLoudness.vue(.ts)`: ミキサー上部に 1 行表示 (short-term LUFS と目標との差)。目標 ±3 LU を適正 (accent 色)、超過は黄色、不足・未確定は暗色。ダブルクリックで Integrated リセット。ツールチップに目標と Integrated
+  - 目標値 `targetLufs` (初期値 -15) とパネルの表示状態 (初期値は表示) は state に永続化
+- `app/components/studio/MixerLoudness.vue(.ts)`: ミキサー上部に short-term LUFS と音量の状態を表示。目標 ±3 LU を適正とし、超過・不足は黄色で表示する。メニューから目標値の変更とパネルを閉じる操作ができ、設定の「一般」から再表示できる
 - i18n: `audio.loudness` / `audio.loudnessTooltip` / `audio.loudnessUnavailable` (ja-JP / en-US)
 - テスト: `app/services/loudness/loudness.test.ts` (18 件 pass)。typecheck / eslint / stylelint / i18n チェック pass
 
@@ -228,7 +228,7 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 - ミキサー上部の表示: サイン波 -23 dBFS で `-23.0 LUFS`。目標との差は数値ではなく「音量が小さいです / 大きいです / ちょうどよい音量です」で表示する (ライトなユーザー向け)
   - 色は対処が必要なとき (小さい・大きい) の黄色だけ。アクセシビリティのため赤系は使わない (`--color-accent` は赤系なので適正表示に使わない)
   - ラベルのクラス名に `.label` を使わない (vendor/foundation.min.css の `.label` が水色の背景を当てる)
-- 目標値: ラウドネス行を右クリックして -14 / -15 / -16 / -18 / -23 LUFS から選ぶ。許容幅 ±3 LU は固定
+- 目標値: 実機ではラウドネス行の右クリックで -14 / -15 / -16 / -18 / -23 LUFS を選択できた。現在はメニューボタンからも選べる。許容幅 ±3 LU は固定
 - 自動調整 (`LoudnessAdjust` ダイアログ): 「音量が小さい/大きい」のとき「調整する」ボタンから起動
   - 調整するソースを選び (ミュートされていないもの、初期値はマイク)、約 8 秒そのソース単体 (pre-fader) を測って、有音区間の中央値で判断する
   - 小さい: フェーダーを 0 dB に戻し、足りない分を `gain_filter` で足す。既存のゲインフィルタは更新し、なければフィルタの先頭に追加。+20 dB で頭打ちにして OS の入力音量を案内する

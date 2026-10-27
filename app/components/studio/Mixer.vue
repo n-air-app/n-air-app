@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="studio-controls-selector mixer-panel">
-      <MixerLoudness />
+      <MixerLoudness v-if="showLoudnessPanel" />
       <MixerItem
         v-for="audioSource in audioSources"
         :audioSource="audioSource"

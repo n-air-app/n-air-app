@@ -26,6 +26,7 @@ export type LoudnessStatus = 'stopped' | 'running' | 'unavailable';
 interface ILoudnessState {
   // ガイドの目標値 (LUFS)。初期値はニコニコ動画のラウドネスノーマライゼーション基準と同じ -15
   targetLufs: number;
+  showPanel: boolean;
 }
 
 const PIPE_NAME = '\\\\.\\pipe\\NAirLoudness';
@@ -47,6 +48,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
 
   static defaultState: ILoudnessState = {
     targetLufs: -15,
+    showPanel: true,
   };
 
   private client = new NamedPipeClient(PIPE_NAME);
@@ -67,6 +69,19 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
 
   get targetLufs(): number {
     return this.state.targetLufs;
+  }
+
+  get showPanel(): boolean {
+    return this.state.showPanel ?? true;
+  }
+
+  setShowPanel(showPanel: boolean): void {
+    this.SET_SHOW_PANEL(showPanel);
+  }
+
+  @mutation()
+  private SET_SHOW_PANEL(showPanel: boolean): void {
+    this.state = { ...this.state, showPanel };
   }
 
   setTargetLufs(targetLufs: number): void {
@@ -92,18 +107,6 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     this.enableCounter--;
     if (this.enableCounter > 0) return;
     this.lifecycle = this.lifecycle.then(() => this.stop());
-  }
-
-  /** Integrated / LRA を含めて計測をやり直す */
-  reset(): void {
-    this.lifecycle = this.lifecycle.then(async () => {
-      if (this.meterId === null) return;
-      try {
-        await this.call('reset', { meterId: this.meterId });
-      } catch (e) {
-        this.reportUnavailable(e);
-      }
-    });
   }
 
   /**
