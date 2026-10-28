@@ -1,14 +1,16 @@
 import MixerItem from 'components/studio/MixerItem.vue';
+import MixerLoudness from 'components/studio/MixerLoudness.vue';
 import { AudioService } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
 import { $t } from 'services/i18n';
+import { LoudnessService } from 'services/loudness';
 import { Menu } from 'util/menus/Menu';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'Mixer',
 
-  components: { MixerItem },
+  components: { MixerItem, MixerLoudness },
 
   data() {
     return {
@@ -18,6 +20,10 @@ export default defineComponent({
   },
 
   computed: {
+    showLoudnessPanel(): boolean {
+      return LoudnessService.instance().showPanel;
+    },
+
     audioSources() {
       return AudioService.instance().getVisibleSourcesForCurrentScene();
     },
