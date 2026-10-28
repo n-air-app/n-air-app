@@ -1,5 +1,5 @@
 import * as FakeTimers from '@sinonjs/fake-timers';
-import { Subject } from 'rxjs';
+import { config, Subject } from 'rxjs';
 import { jest_fn, type ObserveType } from 'util/jest_fn';
 import { sleep } from 'util/sleep';
 import { createSetupFunction } from 'util/test-setup';
@@ -677,6 +677,50 @@ describe('startUpdateSupporters', () => {
     // 止めた後は進まなくなる
     clock.tick(INTERVAL);
     expect(update).toHaveBeenCalledTimes(3);
+  });
+
+  test('コメント接続が未設定のまま再接続してもサポーター情報の更新は始まらない', async () => {
+    const { instance, update } = prepare();
+
+    await instance.refreshConnection();
+    clock.tick(180000 * 2);
+
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  test('コメント接続の開始で例外が起きたらサポーター情報の更新は始まらない', async () => {
+    const update = jest_fn<NicoliveSupportersService['update']>();
+    const stateChange = new Subject();
+    jest.doMock('./NdgrCommentReceiver', () => ({
+      NdgrCommentReceiver: class NdgrCommentReceiver {
+        connect() {
+          throw new Error('connect failed');
+        }
+        close() {}
+      },
+    }));
+    setup({
+      injectee: {
+        NicoliveSupportersService: { update },
+        NicoliveProgramService: { stateChange },
+      },
+    });
+    const { NicoliveCommentViewerService } = require('./nicolive-comment-viewer');
+    NicoliveCommentViewerService.instance();
+
+    // subscribe 内の例外は RxJS が setTimeout で再スローするので、受け取って更新の有無だけを見る
+    const onUnhandledError = jest.fn();
+    config.onUnhandledError = onUnhandledError;
+    try {
+      stateChange.next({ viewUri: 'https://example.com' });
+      clock.tick(180000 * 2);
+    } finally {
+      config.onUnhandledError = null;
+    }
+
+    expect(onUnhandledError).toHaveBeenCalledWith(expect.objectContaining({ message: 'connect failed' }));
+
+    expect(update).not.toHaveBeenCalled();
   });
 });
 
