@@ -9,13 +9,15 @@
         <span class="number">{{ valueText }}</span>
         <span class="unit">LUFS</span>
       </div>
-      <div v-if="message" class="message">
-        {{ message }}
+    </template>
+    <div class="message">
+      <template v-if="status !== 'unavailable'">
+        <span class="message-text">{{ message }}</span>
         <button v-if="canAdjust" class="adjust-button" @click.stop="openAdjust">
           {{ $t('audio.loudnessAdjust.button') }}
         </button>
-      </div>
-    </template>
+      </template>
+    </div>
     <button
       type="button"
       class="menu-button"
@@ -92,11 +94,23 @@
   }
 
   .message {
+    display: flex;
     flex: 0 0 100%;
+    align-items: center;
+    justify-content: flex-end;
+    height: 24px;
     margin-top: 4px;
-    text-align: right;
+
+    .message-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     .adjust-button {
+      flex-shrink: 0;
+      height: 24px;
       padding: 0 8px;
       margin-left: 8px;
       color: inherit;
