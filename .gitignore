@@ -30,4 +30,3 @@ additional/.cache
 # nvoice build artifacts
 nvoice/near/bundle.js
 nvoice/near/bundle.js.map
-.local/
