@@ -1,6 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import { IClipboardServiceApi } from 'services/clipboard';
 import { ISceneCollectionsServiceApi } from 'services/scene-collections';
 import { SceneItem, SceneItemNode, ScenesService } from 'services/scenes';
@@ -10,9 +7,10 @@ import { ISourcesServiceApi } from 'services/sources';
 
 import { getApiClient } from '../helpers/api-client';
 import { SceneBuilder } from '../helpers/scene-builder';
-import { afterAppStart, getApp, test, useWebdriver } from '../helpers/webdriver';
+import { afterAppStart, test, useWebdriver } from '../helpers/webdriver';
 
-useWebdriver({ restartAppAfterEachTest: false });
+// These tests cover N Air's internal copy buffer, not OS text/file pasting.
+useWebdriver({ restartAppAfterEachTest: false, appArgs: '--fake-system-clipboard' });
 
 let sceneBuilder: SceneBuilder;
 let getNode: (name: string) => SceneItemNode;
@@ -23,35 +21,8 @@ let sourceFiltersService: SourceFiltersService;
 let sceneCollectionsService: ISceneCollectionsServiceApi;
 let sourcesService: ISourcesServiceApi;
 let scenesService: ScenesService;
-let diagnosticPath: string;
 
 afterAppStart(async (t) => {
-  diagnosticPath = join(t.context.cacheDir, 'clipboard-diagnostics.log');
-  await getApp().client.execute((logPath: string) => {
-    const fs = window.require('node:fs');
-    const service = (window as any).sm.getResource('ClipboardService');
-    const mark = (phase: string) => fs.appendFileSync(logPath, `${Date.now()} ${phase}\n`);
-    // Record phases only: never log clipboard text, file paths, or error payloads.
-    service.clipboardReady.then(() => mark('initialization:resolved'), () => mark('initialization:rejected'));
-    for (const name of ['fetchSystemClipboard', 'getFiles', 'paste']) {
-      const original = service[name];
-      service[name] = function (...args: unknown[]) {
-        mark(`${name}:start`);
-        try {
-          const result = original.apply(this, args);
-          if (result && typeof result.then === 'function') {
-            result.then(() => mark(`${name}:resolved`), () => mark(`${name}:rejected`));
-          } else {
-            mark(`${name}:returned`);
-          }
-          return result;
-        } catch (error) {
-          mark(`${name}:threw`);
-          throw error;
-        }
-      };
-    }
-  }, diagnosticPath);
   const client = await getApiClient();
   scenesService = client.getResource('ScenesService');
   sourcesService = client.getResource('SourcesService');
@@ -62,12 +33,6 @@ afterAppStart(async (t) => {
   sceneBuilder = new SceneBuilder(client);
   getNode = (name) => sceneBuilder.scene.getNodeByName(name)!;
   getNodeId = (name) => sceneBuilder.scene.getNodeByName(name)!.id;
-});
-
-test.afterEach.always((t) => {
-  if (t.failed && diagnosticPath && existsSync(diagnosticPath)) {
-    console.log('[clipboard diagnostics]\n' + readFileSync(diagnosticPath, 'utf8'));
-  }
 });
 
 test('Simple copy/paste', async (t) => {
