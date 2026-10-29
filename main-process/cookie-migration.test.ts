@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 
-const { prepareCookieMigration, importCookies, BACKUP_SUFFIX } = require('./cookie-migration');
+const { prepareCookieMigration, importCookies, BACKUP_SUFFIX, COMPATIBILITY_BACKUP_SUFFIX } = require('./cookie-migration');
 let directory: string;
 let databasePath: string;
 
@@ -16,7 +16,7 @@ afterEach(() => fs.rmSync(directory, { recursive: true, force: true }));
 
 function createDatabase(version = 21) {
   const db = new DatabaseSync(databasePath);
-  db.exec(`CREATE TABLE meta (key TEXT, value INTEGER);
+  db.exec(`CREATE TABLE meta (key TEXT PRIMARY KEY, value INTEGER);
     INSERT INTO meta VALUES ('version', ${version});
     CREATE TABLE cookies (host_key TEXT, name TEXT, value TEXT, encrypted_value BLOB,
       top_frame_site_key TEXT, path TEXT, expires_utc INTEGER, has_expires INTEGER,
@@ -51,17 +51,104 @@ function cookieApi() {
   };
 }
 
-test('新しいDBや存在しないDBには変更を加えない', () => {
+test('未知の新しい形式には変更を加えない', () => {
+  createDatabase(25).close();
+  const before = fs.readFileSync(databasePath);
   expect(prepareCookieMigration(databasePath)).toBeNull();
-  createDatabase(24).close();
-  expect(prepareCookieMigration(databasePath)).toBeNull();
+  expect(fs.readFileSync(databasePath)).toEqual(before);
   expect(fs.existsSync(databasePath + BACKUP_SUFFIX)).toBe(false);
+});
+
+test('旧バックアップがある形式21のDBを消去・再移行しない', () => {
+  const db = createDatabase();
+  insertCookie(db);
+  db.close();
+  fs.writeFileSync(databasePath + BACKUP_SUFFIX, 'synthetic-backup');
+  const before = fs.readFileSync(databasePath);
+  expect(() => prepareCookieMigration(databasePath)).toThrow('Previous Cookie migration failed');
+  expect(fs.readFileSync(databasePath)).toEqual(before);
+  expect(fs.readFileSync(databasePath + BACKUP_SUFFIX, 'utf8')).toBe('synthetic-backup');
 });
 
 test('テーブルのないCookie DBは移行対象なしとして扱う', () => {
   new DatabaseSync(databasePath).close();
   expect(prepareCookieMigration(databasePath)).toBeNull();
   expect(fs.existsSync(databasePath + BACKUP_SUFFIX)).toBe(false);
+});
+
+test.each(['missing', 'empty'])('新規・空DBでも初回から29で保存可能な形式を作成する: %s', state => {
+  if (state === 'empty') new DatabaseSync(databasePath).close();
+  expect(prepareCookieMigration(databasePath)).toBeNull();
+  const db = new DatabaseSync(databasePath);
+  expect(Number(db.prepare("SELECT value FROM meta WHERE key = 'version'").get()!.value)).toBe(24);
+  expect(Number(db.prepare("SELECT value FROM meta WHERE key = 'last_compatible_version'").get()!.value)).toBe(21);
+  // The exact set of columns INSERTed by Electron 29 (the two v24 fields are omitted).
+  db.exec(`INSERT INTO cookies (creation_utc, host_key, top_frame_site_key, name, value,
+    encrypted_value, path, expires_utc, is_secure, is_httponly, last_access_utc,
+    has_expires, is_persistent, priority, samesite, source_scheme, source_port, last_update_utc)
+    VALUES (1, 'example.com', '', 'synthetic', 'value', x'', '/', 1, 1, 1, 1, 1, 1, 1, 1, 2, 443, 1)`);
+  expect(db.prepare('SELECT source_type, has_cross_site_ancestor FROM cookies').get()).toEqual({
+    source_type: 0, has_cross_site_ancestor: 1,
+  });
+  db.close();
+  const before = fs.readFileSync(databasePath);
+  expect(prepareCookieMigration(databasePath)).toBeNull();
+  expect(fs.readFileSync(databasePath)).toEqual(before);
+});
+
+function makeStandardV24() {
+  prepareCookieMigration(databasePath);
+  const db = new DatabaseSync(databasePath);
+  const schema = String(db.prepare("SELECT sql FROM sqlite_master WHERE name = 'cookies'").get()!.sql)
+    .replace(/ DEFAULT [01]/g, '');
+  db.exec(`DROP TABLE cookies; ${schema};
+    CREATE UNIQUE INDEX cookies_unique_index ON cookies
+      (host_key, top_frame_site_key, has_cross_site_ancestor, name, path, source_scheme, source_port);
+    UPDATE meta SET value = '24' WHERE key = 'last_compatible_version';`);
+  return db;
+}
+
+test('既に44で保存したDBを行・属性・64bit日時を保って互換化する', () => {
+  const db = makeStandardV24();
+  db.exec(`INSERT INTO cookies VALUES
+    (13300000000000001, '.example.com', '', 'synthetic', 'value', x'', '/',
+    13300000000000002, 1, 1, 13300000000000003, 1, 1, 1, 1, 2, 443, 13300000000000004, 2, 1)`);
+  const statement = db.prepare('SELECT * FROM cookies');
+  statement.setReadBigInts(true);
+  const before = statement.all();
+  db.close();
+  expect(prepareCookieMigration(databasePath)).toBeNull();
+  const updated = new DatabaseSync(databasePath);
+  const after = updated.prepare('SELECT * FROM cookies');
+  after.setReadBigInts(true);
+  expect(after.all()).toEqual(before);
+  updated.close();
+  expect(fs.existsSync(databasePath + COMPATIBILITY_BACKUP_SUFFIX)).toBe(false);
+});
+
+test('互換化中の失敗はDB更新をロールバックしバックアップを残す', () => {
+  const db = makeStandardV24();
+  // An unexpected extra column must never be silently lost.
+  db.exec('ALTER TABLE cookies ADD COLUMN future_column INTEGER');
+  db.close();
+  // Explicit schema validation is also required for an empty table.
+  expect(() => prepareCookieMigration(databasePath)).toThrow();
+  const after = new DatabaseSync(databasePath, { readOnly: true });
+  expect(Number(after.prepare("SELECT value FROM meta WHERE key = 'last_compatible_version'").get()!.value)).toBe(24);
+  expect(after.prepare('PRAGMA table_info(cookies)').all().some(c => c.name === 'future_column')).toBe(true);
+  after.close();
+  expect(fs.existsSync(databasePath + COMPATIBILITY_BACKUP_SUFFIX)).toBe(true);
+});
+
+test('旧試作のancestor=0を1に補正し44での更新・削除に備える', () => {
+  const db = makeStandardV24();
+  db.exec(`INSERT INTO cookies VALUES
+    (1, 'example.com', '', 'synthetic', 'value', x'', '/', 1, 1, 1, 1, 1, 1, 1, 1, 2, 443, 1, 0, 0)`);
+  db.close();
+  prepareCookieMigration(databasePath);
+  const after = new DatabaseSync(databasePath);
+  expect(after.prepare('SELECT has_cross_site_ancestor FROM cookies').get()!.has_cross_site_ancestor).toBe(1);
+  after.close();
 });
 
 test('--clearCookiesでは移行せず旧バックアップも削除する', () => {

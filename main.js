@@ -200,21 +200,11 @@ function getCookieFiles() {
 }
 
 async function clearCookies() {
-  // 読み込めている場合はファイルを消してもメモリから書き戻してしまうため、メモリ上のクッキーを先に削除する
+  // DB files were reset before Chromium opened them. Never unlink the live DB:
+  // subsequent Cookie writes must keep the compatible schema created at startup.
   const session = getAppSession();
   await session.clearStorageData({ storages: ['cookies'] });
-  session.flushStorageData();
-
-  // 読み込めていない場合は上記でも消えないので、実ファイルを削除する
-  const files = getCookieFiles();
-  console.log('clear cookies: ', files);
-  for (const file of files) {
-    try {
-      removePathWithRetry(file);
-    } catch (e) {
-      console.error('failed to delete cookie file', file, e);
-    }
-  }
+  await session.cookies.flushStore();
 }
 
 // 必要なDLLが足りないため、Visual C++ 再頒布可能パッケージを案内するダイアログを表示する
@@ -346,7 +336,9 @@ if (gotTheLock) {
     const { prepareCookieMigration } = require('./main-process/cookie-migration');
     cookieMigration = prepareCookieMigration(getCookieFiles()[0], process.argv.includes('--clearCookies'));
   } catch (error) {
-    console.error('Cookie migration preparation failed; continuing without migration:', error);
+    console.error('Cookie migration preparation failed:', error);
+    dialog.showErrorBox('Cookieの移行に失敗しました', 'ログイン情報を保護するため起動を中止します。Cookie DBとバックアップを確認してください。');
+    app.exit(1);
   }
 }
 
