@@ -22,13 +22,13 @@ updates:
       # @n-air-app/* パッケージは内製なので即座に更新可能
       - dependency-name: '@n-air-app/*'
         update-types: ['version-update:semver-major', 'version-update:semver-minor', 'version-update:semver-patch']
-      # @types/nodeはElectron 29が内蔵するNode.js 20.9.0系に合わせて20系に固定する。
-      # メジャー更新(21以上)はElectronのバンドルNode.jsと型定義がずれるため無視する
+      # @types/nodeはElectron 44が内蔵するNode.js 24系に合わせて24系に固定する。
+      # メジャー更新はElectronのバンドルNode.jsと型定義がずれるため無視する
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
-      # electron本体はobs-studio-nodeがネイティブバイナリとしてビルドされている特定バージョンに縛られるため、
-      # obs-studio-node側の追従なしに単独では上げられない。electron-chromedriverはE2Eテストで使うElectron自体の
-      # ChromeDriverであり、常にelectronと同一バージョンに揃える必要があるため合わせて手動更新する
+      # obs-studio-nodeはNode-APIを使うためElectron更新時の再ビルドは必須ではないが、
+      # OBS初期化・入出力・パッケージ後の動作を検証して手動更新する。electron-chromedriverは
+      # E2Eテスト用で常にelectronと同一バージョンに揃える必要があるため合わせて手動更新する
       - dependency-name: 'electron'
       - dependency-name: 'electron-chromedriver'
       # electron-builder/electron-updaterは過去の更新でパッケージング後の生成物が正常に実行できなくなった

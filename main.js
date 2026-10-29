@@ -200,21 +200,11 @@ function getCookieFiles() {
 }
 
 async function clearCookies() {
-  // 読み込めている場合はファイルを消してもメモリから書き戻してしまうため、メモリ上のクッキーを先に削除する
+  // DB files were reset before Chromium opened them. Never unlink the live DB:
+  // subsequent Cookie writes must keep the compatible schema created at startup.
   const session = getAppSession();
   await session.clearStorageData({ storages: ['cookies'] });
-  session.flushStorageData();
-
-  // 読み込めていない場合は上記でも消えないので、実ファイルを削除する
-  const files = getCookieFiles();
-  console.log('clear cookies: ', files);
-  for (const file of files) {
-    try {
-      removePathWithRetry(file);
-    } catch (e) {
-      console.error('failed to delete cookie file', file, e);
-    }
-  }
+  await session.cookies.flushStore();
 }
 
 // 必要なDLLが足りないため、Visual C++ 再頒布可能パッケージを案内するダイアログを表示する
@@ -338,6 +328,18 @@ const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
   app.quit();
+}
+
+let cookieMigration = null;
+if (gotTheLock) {
+  try {
+    const { prepareCookieMigration } = require('./main-process/cookie-migration');
+    cookieMigration = prepareCookieMigration(getCookieFiles()[0], process.argv.includes('--clearCookies'));
+  } catch (error) {
+    console.error('Cookie migration preparation failed:', error);
+    dialog.showErrorBox('Cookieの移行に失敗しました', 'ログイン情報を保護するため起動を中止します。Cookie DBとバックアップを確認してください。');
+    app.exit(1);
+  }
 }
 
 try {
@@ -723,6 +725,15 @@ function initialize(crashHandler) {
       // async 関数は startApp() からなら呼べるのでここで実行する
       await clearCookies();
     } else {
+      if (cookieMigration) {
+        const { importCookies } = require('./main-process/cookie-migration');
+        const result = await importCookies(cookieMigration, getAppSession().cookies);
+        console.log('Cookie migration:', result);
+        if (!result.success && cookieMigration.status !== 'previous-failure') {
+          console.warn('Cookie migration incomplete; login may be required.');
+        }
+        cookieMigration = null;
+      }
       await recollectUserSessionCookie();
     }
     const isDevMode = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
@@ -832,16 +843,15 @@ function initialize(crashHandler) {
       console.error('[RENDERER] render-process-gone:', JSON.stringify(details));
     });
 
-    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-      const levelName = ['verbose', 'info', 'warning', 'error'][level] || 'unknown';
-      if (level >= 2) { // warning or error
+    mainWindow.webContents.on('console-message', ({ level, message, lineNumber, sourceId }) => {
+      if (level === 'warning' || level === 'error') {
         // intlify の fallback/missing 警告は動作上問題ないため除外
         if (message.includes('[intlify] Fall back to translate') ||
             message.includes('[intlify] Not found') ||
             message.includes('modulo syntax is deprecated')) {
           return;
         }
-        console.log(`[RENDERER-CONSOLE][${levelName}] ${message} (${sourceId}:${line})`);
+        console.log(`[RENDERER-CONSOLE][${level}] ${message} (${sourceId}:${lineNumber})`);
       }
     });
 
