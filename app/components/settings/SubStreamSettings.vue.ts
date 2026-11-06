@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import Dropdown from 'components/shared/Dropdown.vue';
-import { clipboard } from 'electron';
 import { $t } from 'services/i18n';
 import { SubStreamService, SubStreamTabID } from 'services/substream/SubStreamService';
 import { defineComponent } from 'vue';
@@ -149,9 +148,10 @@ export default defineComponent({
     toggleCollapsed() {
       this.collapsed = !this.collapsed;
     },
-    pasteKey() {
-      const text = clipboard.readText();
-      if (!text || /\s/.test(text)) return;
+    async pasteKey() {
+      const selectedTab = this.selectedTab;
+      const text = await remote.clipboard.readText();
+      if (this.selectedTab !== selectedTab || !text || /\s/.test(text)) return;
       this.key = text;
     },
     openExternalLink(url: string) {

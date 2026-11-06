@@ -1,6 +1,6 @@
 export interface IClipboardServiceApi {
   copy(): void;
-  paste(duplicateSources?: boolean): void;
+  paste(duplicateSources?: boolean): Promise<void>;
   copyFilters(): void;
   pasteFilters(): void;
   hasData(): boolean;

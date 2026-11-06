@@ -8,6 +8,13 @@ if (process.env.NODE_ENV !== 'test') {
 const path = require('path');
 const electron = require('electron');
 
+// Internal scene copy/paste tests need a stable system clipboard, independent
+// of the runner's desktop. Keep the asynchronous API without touching the OS
+// clipboard, and leave other E2E tests using the real implementation.
+if (process.argv.includes('--fake-system-clipboard')) {
+  electron.clipboard.readText = async () => 'n-air-e2e-system-clipboard';
+}
+
 // Inject fake context menu
 (() => {
   let currentMenu;

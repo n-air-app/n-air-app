@@ -9,7 +9,8 @@ import { getApiClient } from '../helpers/api-client';
 import { SceneBuilder } from '../helpers/scene-builder';
 import { afterAppStart, test, useWebdriver } from '../helpers/webdriver';
 
-useWebdriver({ restartAppAfterEachTest: false });
+// These tests cover N Air's internal copy buffer, not OS text/file pasting.
+useWebdriver({ restartAppAfterEachTest: false, appArgs: '--fake-system-clipboard' });
 
 let sceneBuilder: SceneBuilder;
 let getNode: (name: string) => SceneItemNode;
@@ -43,7 +44,7 @@ test('Simple copy/paste', async (t) => {
 
   selectionService.select([getNodeId('Folder1'), getNodeId('Item2')]);
   clipboardService.copy();
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -67,7 +68,7 @@ test('Copy/paste folder with items', async (t) => {
 
   selectionService.select(getNodeId('Folder2'));
   clipboardService.copy();
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -96,7 +97,7 @@ test('Copy/paste nodes between scene collections', async (t) => {
 
   await sceneCollectionsService.create({ name: 'New Collection' });
 
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -108,7 +109,7 @@ test('Copy/paste nodes between scene collections', async (t) => {
 
   const sourcesCount = sourcesService.getSources().length;
 
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -189,7 +190,7 @@ test('Copy/paste scenes between scene collections', async (t) => {
 
   await sceneCollectionsService.create({ name: 'Collection2' });
 
-  clipboardService.paste();
+  await clipboardService.paste();
 
   t.true(
     sceneBuilder.isEqualTo(`
@@ -225,7 +226,7 @@ test('Copy/paste duplicate sources', async (t) => {
   clipboardService.copy();
   const sourcesCount = selectionService.getSources().length;
 
-  clipboardService.paste(true);
+  await clipboardService.paste(true);
 
   t.true(
     sceneBuilder.isEqualTo(`
