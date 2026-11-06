@@ -34,6 +34,12 @@
 
     <div>
       <div class="section">
+        <ObsBoolInput :value="showLoudnessPanelModel" @input="setShowLoudnessPanel" />
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
         <ObsBoolInput
           :value="pollingPerformanceStatisticsModel"
           @input="setPollingPerformanceStatistics"

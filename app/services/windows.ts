@@ -16,6 +16,7 @@ import AddSource from 'components/sources/AddSource.vue';
 import AddSourceFilter from 'components/sources/AddSourceFilter.vue';
 import AutoCompactConfirmDialog from 'components/sources/AutoCompactConfirmDialog.vue';
 import BrowserSourceInteraction from 'components/sources/BrowserSourceInteraction.vue';
+import LoudnessAdjust from 'components/sources/LoudnessAdjust.vue';
 import RenameSource from 'components/sources/RenameSource.vue';
 import RtvcSourceProperties from 'components/sources/RtvcSourceProperties.vue';
 import SourceFilters from 'components/sources/SourceFilters.vue';
@@ -65,6 +66,7 @@ export function getComponents() {
     NicoliveProgramSelector,
     Informations,
     AutoCompactConfirmDialog,
+    LoudnessAdjust,
     UserInfo,
     BrowserSourceInteraction,
     ModeratorConfirmDialog,

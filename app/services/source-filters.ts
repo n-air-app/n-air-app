@@ -180,6 +180,10 @@ export class SourceFiltersService extends Service {
     setPropertiesFormData(this.getObsFilter(sourceId, filterName), properties);
   }
 
+  updateSettings(sourceId: string, filterName: string, settings: Dictionary<TObsValue>) {
+    this.getObsFilter(sourceId, filterName).update(settings);
+  }
+
   getFilters(sourceId: string): ISourceFilter[] {
     return (
       this.sourcesService
