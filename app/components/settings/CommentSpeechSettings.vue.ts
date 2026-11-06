@@ -219,7 +219,7 @@ export default defineComponent({
         const json = (await (await fetch(`${VoicevoxURL}/speakers`)).json()) as {
           name: string;
           speaker_uuid: string;
-          styles: { id: string; name: string; type: string }[];
+          styles: { id: string; name: string; type?: string }[];
         }[];
         this.isExistVoicevox = true;
 
@@ -229,7 +229,12 @@ export default defineComponent({
           for (const style of item['styles']) {
             const id = style['id'];
             const sn = style['name'];
-            if (id === undefined || sn === undefined || style['type'] !== 'talk') continue;
+            // 旧版のtype省略と、0.26.0で追加された読み上げ用のstreaming_talkにも対応する。
+            if (
+              id === undefined
+              || sn === undefined
+              || (style.type !== undefined && style.type !== 'talk' && style.type !== 'streaming_talk')
+            ) continue;
             const icon = await this.getVoicevoxIcon(id, uuid);
             list.push({ id, uuid, name: `${name} ${sn}`, icon });
           }
