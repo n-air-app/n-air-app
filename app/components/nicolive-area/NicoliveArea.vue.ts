@@ -159,13 +159,16 @@ export default defineComponent({
     },
 
     /**
-     * @param targetProgramId 指定時はその番組を取得する。未指定時は従来通り自動選択し、なければ新規作成する
+     * @param targetProgramId 指定時はその番組だけを取得する（見つからない・終了済みの場合は新規作成せず概要を再取得する）。
+     *   未指定時は従来通り自動選択し、なければ新規作成する
      */
     async prepareProgram(targetProgramId?: string): Promise<void> {
       if (this.isFetching) throw new Error('prepareProgram is running');
       try {
         this.isFetching = true;
         let needsCreate = false;
+        // 指定した番組が既に存在しない・終了済みだった場合（表示中の概要が古い）
+        let staleTarget = false;
         try {
           await NicoliveProgramService.instance().fetchProgram(targetProgramId);
           // fetchProgram 成功後でも status が end の場合は終了済み番組を掴んでいる
@@ -173,7 +176,8 @@ export default defineComponent({
           // programID がセットされたままだと hasProgram=true でパネルが切り替わるためクリアする
           if (NicoliveProgramService.instance().state.status === 'end') {
             NicoliveProgramService.instance().releaseProgram();
-            needsCreate = true;
+            needsCreate = !targetProgramId;
+            if (targetProgramId) staleTarget = true;
           }
         } catch (caught) {
           if (
@@ -181,13 +185,19 @@ export default defineComponent({
             && caught.type === 'logic'
             && caught.reason === 'no_suitable_program'
           ) {
-            needsCreate = true;
+            needsCreate = !targetProgramId;
+            if (targetProgramId) staleTarget = true;
           } else {
             throw caught;
           }
         }
         if (needsCreate) {
           await NicoliveProgramService.instance().createProgram();
+        }
+        if (staleTarget) {
+          // 概要が古かったので、誤って新規作成せず表示を更新する
+          this.isFetching = false;
+          await this.refreshSummary();
         }
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {

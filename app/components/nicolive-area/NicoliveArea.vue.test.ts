@@ -71,6 +71,31 @@ describe('NicoliveArea.prepareProgram', () => {
     expect(programService.createProgram).not.toHaveBeenCalled();
   });
 
+  test('ID指定の番組が見つからない場合は新規作成せず概要を再取得する', async () => {
+    programService.fetchProgram.mockRejectedValue(noSuitableProgram());
+    const refreshSummary = jest.fn().mockResolvedValue(undefined);
+    const ctx: any = { isFetching: false, refreshSummary };
+
+    await NicoliveArea.methods.prepareProgram.call(ctx, 'lv123');
+
+    expect(programService.createProgram).not.toHaveBeenCalled();
+    expect(refreshSummary).toHaveBeenCalledTimes(1);
+    expect(openErrorDialogFromFailure).not.toHaveBeenCalled();
+    expect(ctx.isFetching).toBe(false);
+  });
+
+  test('ID指定の番組が終了済みだった場合は新規作成せず概要を再取得する', async () => {
+    programService.state.status = 'end';
+    const refreshSummary = jest.fn().mockResolvedValue(undefined);
+    const ctx: any = { isFetching: false, refreshSummary };
+
+    await NicoliveArea.methods.prepareProgram.call(ctx, 'lv123');
+
+    expect(programService.releaseProgram).toHaveBeenCalledTimes(1);
+    expect(programService.createProgram).not.toHaveBeenCalled();
+    expect(refreshSummary).toHaveBeenCalledTimes(1);
+  });
+
   test('対象番組がない場合はエラーを表示せず新規作成する', async () => {
     programService.fetchProgram.mockRejectedValue(noSuitableProgram());
 

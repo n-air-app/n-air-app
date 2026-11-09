@@ -16,6 +16,31 @@ export function fakeScheduleKind(): FakeScheduleKind {
   return v === 'current' || v === 'reserved' || v === 'both' ? v : 'none';
 }
 
+/** フェイクモードの番組概要。NAIR_FAKE_SCHEDULE で表示パターンを選ぶ */
+export function fakeScheduleSummary(now = Math.floor(Date.now() / 1000)) {
+  const kind = fakeScheduleKind();
+  return {
+    current: kind === 'current' || kind === 'both'
+      ? {
+        nicoliveProgramId: 'lvDEBUG1',
+        status: 'onAir' as const,
+        title: 'DEBUG放送中の番組',
+        onAirBeginAt: now - 30 * 60,
+        onAirEndAt: now + 30 * 60,
+      }
+      : null,
+    reserved: kind === 'reserved' || kind === 'both'
+      ? {
+        nicoliveProgramId: 'lvDEBUG2',
+        status: 'reserved' as const,
+        title: 'DEBUG予約番組',
+        onAirBeginAt: now + 24 * 60 * 60,
+        onAirEndAt: now + 25 * 60 * 60,
+      }
+      : null,
+  };
+}
+
 export const FakeModeConfig = {
   dummyComment: true,
 };
