@@ -63,6 +63,11 @@ export default defineComponent({
       return NicoliveProgramService.instance().state.panelOpened ?? false;
     },
 
+    /** 放送中・テスト中の番組があるときは新規作成できない */
+    hasCurrentProgram(): boolean {
+      return Boolean(this.summary?.current);
+    },
+
     summaryItems(): ScheduleSummaryItem[] {
       const items: ScheduleSummaryItem[] = [];
       if (this.summary?.current) items.push(this.summary.current);
@@ -127,7 +132,7 @@ export default defineComponent({
      */
     /** 既存番組の有無にかかわらず新規番組を作成する */
     async createNewProgram(): Promise<void> {
-      if (this.isFetching) return;
+      if (this.isFetching || this.hasCurrentProgram) return;
       try {
         this.isFetching = true;
         await NicoliveProgramService.instance().createProgram();
