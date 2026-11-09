@@ -26,13 +26,37 @@
             <i class="icon-namaco"></i>
             このエリアではニコニコ生放送を<br />配信するための機能が利用できます
           </p>
+          <div class="summary" v-if="summary && (summary.current || summary.reserved)">
+            <div class="summary-item" v-for="item in summaryItems" :key="item.nicoliveProgramId">
+              <div class="summary-label">{{ itemLabel(item) }}</div>
+              <div class="summary-title">{{ item.title || t('untitled') }}</div>
+              <div class="summary-time">{{ formatRange(item) }}</div>
+              <button
+                class="button button--primary summary-button"
+                @click="prepareProgram(item.nicoliveProgramId)"
+                :disabled="isFetching"
+              >
+                {{ item.status === 'reserved' ? t('fetchReserved') : t('fetchCurrent') }}
+              </button>
+            </div>
+          </div>
+          <p class="summary-error" v-if="summaryError">{{ t('loadFailed') }}</p>
           <div class="button-wrapper">
             <button
-              class="button button--primary button--prepare-program"
-              @click="prepareProgram"
+              class="button"
+              :class="{ 'button--primary': !summaryItems.length }"
+              @click="createNewProgram"
               :disabled="isFetching"
             >
-              番組を作成/取得する
+              {{ t('create') }}
+            </button>
+            <button
+              class="refresh-button"
+              :title="t('refresh')"
+              @click="refreshSummary"
+              :disabled="isLoadingSummary"
+            >
+              <i class="icon-reload"></i>
             </button>
           </div>
         </template>
@@ -133,6 +157,59 @@
       margin-top: 16px;
     }
   }
+}
+
+.summary {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.summary-item {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  color: var(--color-text);
+  background-color: var(--color-bg-secondary);
+  border-radius: 4px;
+}
+
+.summary-label {
+  font-size: @font-size2;
+  color: var(--color-text-dark);
+}
+
+.summary-title {
+  font-weight: bold;
+  word-break: break-all;
+}
+
+.summary-time {
+  font-size: @font-size2;
+}
+
+.summary-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.refresh-button {
+  align-self: center;
+  padding: 4px;
+  margin-top: 12px;
+  color: var(--color-text-dark);
+
+  &:hover:not(:disabled) {
+    color: var(--color-text-light);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.summary-error {
+  margin-bottom: 16px;
+  font-size: @font-size2;
+  color: var(--color-text-dark);
 }
 
 .comment-area {

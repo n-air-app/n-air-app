@@ -1,4 +1,18 @@
 {
+  "scheduleSummary": {
+    "title": "番組情報",
+    "current": "放送中の番組",
+    "test": "テスト中の番組",
+    "reserved": "予約番組",
+    "untitled": "(タイトル不明)",
+    "schedule": "{start} 〜 {end}",
+    "reservedStart": "開始予定: {start}",
+    "fetchCurrent": "放送中の番組を取得",
+    "fetchReserved": "予約番組を取得",
+    "create": "番組を作成",
+    "refresh": "更新",
+    "loadFailed": "番組情報の確認に失敗しました"
+  },
   "errors": {
     "api": {
       "fetchProgramSchedules": {

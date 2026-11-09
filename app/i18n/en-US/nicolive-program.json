@@ -1,4 +1,18 @@
 {
+  "scheduleSummary": {
+    "title": "Program info",
+    "current": "On air",
+    "test": "In test",
+    "reserved": "Reserved",
+    "untitled": "(Untitled)",
+    "schedule": "{start} - {end}",
+    "reservedStart": "Starts at: {start}",
+    "fetchCurrent": "Get on-air program",
+    "fetchReserved": "Get reserved program",
+    "create": "Create program",
+    "refresh": "Refresh",
+    "loadFailed": "Failed to check program info"
+  },
   "errors": {
     "api": {
       "fetchProgramSchedules": {
