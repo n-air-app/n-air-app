@@ -4,7 +4,7 @@ import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
-import { isFakeMode } from 'util/fakeMode';
+import { fakeScheduleKind, isFakeMode } from 'util/fakeMode';
 
 import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
 import {
@@ -292,7 +292,30 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
    * 番組情報を state に反映せず、放送中(テスト中含む)の番組と直近の予約番組の概要だけを取得する
    */
   async fetchScheduleSummary(): Promise<ScheduleSummary> {
-    if (isFakeMode()) return { current: null, reserved: null };
+    if (isFakeMode()) {
+      const kind = fakeScheduleKind();
+      const now = Math.floor(Date.now() / 1000);
+      return {
+        current: kind === 'current' || kind === 'both'
+          ? {
+            nicoliveProgramId: 'lvDEBUG1',
+            status: 'onAir',
+            title: 'DEBUG放送中の番組',
+            onAirBeginAt: now - 30 * 60,
+            onAirEndAt: now + 30 * 60,
+          }
+          : null,
+        reserved: kind === 'reserved' || kind === 'both'
+          ? {
+            nicoliveProgramId: 'lvDEBUG2',
+            status: 'reserved',
+            title: 'DEBUG予約番組',
+            onAirBeginAt: now + 24 * 60 * 60,
+            onAirEndAt: now + 25 * 60 * 60,
+          }
+          : null,
+      };
+    }
     const schedulesResponse = await this.client.fetchProgramSchedules();
     if (!isOk(schedulesResponse)) {
       throw NicoliveFailure.fromClientError('fetchProgramSchedules', schedulesResponse);
