@@ -311,15 +311,21 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     const toItem = async (s: Schedule | null): Promise<ScheduleSummaryItem | null> => {
       if (!s) return null;
       let title: string | undefined;
+      let status = s.status;
       try {
         const res = await this.client.fetchProgram(s.nicoliveProgramId);
-        if (isOk(res)) title = res.value.title ?? undefined;
+        if (isOk(res)) {
+          title = res.value.title ?? undefined;
+          // 番組表APIは終了の反映が遅れることがあるため、番組情報APIの状態を優先する
+          status = res.value.status;
+        }
       } catch {
         // タイトルが取れなくても概要は表示する
       }
+      if (status === 'end') return null;
       return {
         nicoliveProgramId: s.nicoliveProgramId,
-        status: s.status,
+        status,
         title,
         onAirBeginAt: s.onAirBeginAt,
         onAirEndAt: s.onAirEndAt,
