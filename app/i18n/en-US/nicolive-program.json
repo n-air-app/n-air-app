@@ -11,7 +11,8 @@
     "fetchReserved": "Get reserved program",
     "create": "Create program",
     "refresh": "Refresh",
-    "loadFailed": "Failed to check program info"
+    "loadFailed": "Failed to check program info",
+    "none": "None"
   },
   "errors": {
     "api": {

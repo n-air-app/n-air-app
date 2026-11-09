@@ -80,13 +80,6 @@ export default defineComponent({
       return Boolean(this.summary?.current);
     },
 
-    summaryItems(): ScheduleSummaryItem[] {
-      const items: ScheduleSummaryItem[] = [];
-      if (this.summary?.current) items.push(this.summary.current);
-      if (this.summary?.reserved) items.push(this.summary.reserved);
-      return items;
-    },
-
     isCompactMode(): boolean {
       return CustomizationService.instance().state.compactMode;
     },

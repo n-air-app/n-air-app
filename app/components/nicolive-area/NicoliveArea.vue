@@ -26,39 +26,55 @@
             <i class="icon-namaco"></i>
             このエリアではニコニコ生放送を<br />配信するための機能が利用できます
           </p>
-          <div class="summary" v-if="summary && (summary.current || summary.reserved)">
-            <div class="summary-item" v-for="item in summaryItems" :key="item.nicoliveProgramId">
-              <div class="summary-label">{{ itemLabel(item) }}</div>
-              <div class="summary-title">{{ item.title || t('untitled') }}</div>
-              <div class="summary-time">{{ formatRange(item) }}</div>
-              <button
-                class="button button--primary summary-button"
-                @click="prepareProgram(item.nicoliveProgramId)"
-                :disabled="isFetching"
-              >
-                {{ item.status === 'reserved' ? t('fetchReserved') : t('fetchCurrent') }}
-              </button>
+          <div class="summary">
+            <div class="summary-card">
+              <template v-if="summary && summary.current">
+                <div class="summary-label">{{ itemLabel(summary.current) }}</div>
+                <div class="summary-title">{{ summary.current.title || t('untitled') }}</div>
+                <div class="summary-time">{{ formatRange(summary.current) }}</div>
+                <button
+                  class="button button--primary summary-button"
+                  @click="prepareProgram(summary.current.nicoliveProgramId)"
+                  :disabled="isFetching"
+                >
+                  {{ t('fetchCurrent') }}
+                </button>
+              </template>
+              <div class="summary-center" v-else>
+                <button
+                  class="button button--primary summary-button"
+                  @click="createNewProgram"
+                  :disabled="isFetching || isLoadingSummary"
+                >
+                  {{ t('create') }}
+                </button>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">{{ t('reserved') }}</div>
+              <template v-if="summary && summary.reserved">
+                <div class="summary-title">{{ summary.reserved.title || t('untitled') }}</div>
+                <div class="summary-time">{{ formatRange(summary.reserved) }}</div>
+                <button
+                  class="button button--primary summary-button"
+                  @click="prepareProgram(summary.reserved.nicoliveProgramId)"
+                  :disabled="isFetching"
+                >
+                  {{ t('fetchReserved') }}
+                </button>
+              </template>
+              <div class="summary-center summary-none" v-else>{{ t('none') }}</div>
             </div>
           </div>
           <p class="summary-error" v-if="summaryError">{{ t('loadFailed') }}</p>
-          <div class="button-wrapper">
-            <button
-              class="button"
-              :class="{ 'button--primary': !summaryItems.length }"
-              @click="createNewProgram"
-              :disabled="isFetching || isLoadingSummary || hasCurrentProgram"
-            >
-              {{ t('create') }}
-            </button>
-            <button
-              class="refresh-button"
-              :title="t('refresh')"
-              @click="refreshSummary"
-              :disabled="isLoadingSummary"
-            >
-              <i class="icon-reload"></i>
-            </button>
-          </div>
+          <button
+            class="refresh-button"
+            :title="t('refresh')"
+            @click="refreshSummary"
+            :disabled="isLoadingSummary"
+          >
+            <i class="icon-reload"></i>
+          </button>
         </template>
       </div>
     </div>
@@ -144,32 +160,31 @@
   flex-shrink: 0;
 }
 
-.button-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-width: 200px;
-  padding-bottom: 80px;
-
-  .button {
-    width: 100%;
-
-    & + .button {
-      margin-top: 16px;
-    }
-  }
-}
-
 .summary {
   width: 100%;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
-.summary-item {
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 112px;
   padding: 8px 12px;
   margin-bottom: 8px;
   color: var(--color-text);
   background-color: var(--color-bg-secondary);
   border-radius: 4px;
+}
+
+.summary-center {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-none {
+  color: var(--color-text-dark);
 }
 
 .summary-label {
@@ -187,14 +202,19 @@
 }
 
 .summary-button {
-  width: 100%;
+  align-self: center;
+  min-width: 200px;
   margin-top: 8px;
+}
+
+.summary-center .summary-button {
+  margin-top: 0;
 }
 
 .refresh-button {
   align-self: center;
   padding: 4px;
-  margin-top: 12px;
+  margin-bottom: 80px;
   color: var(--color-text-dark);
 
   &:hover:not(:disabled) {

@@ -11,7 +11,8 @@
     "fetchReserved": "予約番組を取得",
     "create": "番組を作成",
     "refresh": "更新",
-    "loadFailed": "番組情報の確認に失敗しました"
+    "loadFailed": "番組情報の確認に失敗しました",
+    "none": "なし"
   },
   "errors": {
     "api": {
