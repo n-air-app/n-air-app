@@ -46,7 +46,7 @@
               class="button"
               :class="{ 'button--primary': !summaryItems.length }"
               @click="createNewProgram"
-              :disabled="isFetching || hasCurrentProgram"
+              :disabled="isFetching || isLoadingSummary || hasCurrentProgram"
             >
               {{ t('create') }}
             </button>

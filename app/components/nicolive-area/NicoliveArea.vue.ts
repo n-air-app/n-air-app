@@ -148,12 +148,9 @@ export default defineComponent({
       NicoliveProgramService.instance().togglePanelOpened();
     },
 
-    /**
-     * @param targetProgramId 指定時はその番組を取得する。未指定時は従来通り自動選択し、なければ新規作成する
-     */
     /** 既存番組の有無にかかわらず新規番組を作成する */
     async createNewProgram(): Promise<void> {
-      if (this.isFetching || this.hasCurrentProgram) return;
+      if (this.isFetching || this.isLoadingSummary || this.hasCurrentProgram) return;
       try {
         this.isFetching = true;
         await NicoliveProgramService.instance().createProgram();
@@ -168,6 +165,9 @@ export default defineComponent({
       }
     },
 
+    /**
+     * @param targetProgramId 指定時はその番組を取得する。未指定時は従来通り自動選択し、なければ新規作成する
+     */
     async prepareProgram(targetProgramId?: string): Promise<void> {
       if (this.isFetching) throw new Error('prepareProgram is running');
       try {

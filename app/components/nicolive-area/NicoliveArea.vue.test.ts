@@ -190,6 +190,17 @@ describe('NicoliveArea.createNewProgram (放送中の番組がある場合)', ()
   });
 });
 
+describe('NicoliveArea.createNewProgram (概要取得中)', () => {
+  test('新規作成しない', async () => {
+    const context = { isFetching: false, isLoadingSummary: true, hasCurrentProgram: false };
+    programService.createProgram.mockReset();
+
+    await NicoliveArea.methods.createNewProgram.call(context);
+
+    expect(programService.createProgram).not.toHaveBeenCalled();
+  });
+});
+
 describe('NicoliveArea.refreshSummary', () => {
   const summary = { current: null, reserved: null };
 
