@@ -1,4 +1,9 @@
 {
+  "reservedProgram": {
+    "message": "予約番組があります。\n予約開始時間: {startTime}\n予約番組に進むか、新規番組を作成するか選択してください。",
+    "proceed": "予約番組に進む",
+    "createNew": "新規番組作成"
+  },
   "errors": {
     "api": {
       "fetchProgramSchedules": {

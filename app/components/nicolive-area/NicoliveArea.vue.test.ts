@@ -1,8 +1,19 @@
+import * as remote from '@electron/remote';
+import { DateTime } from 'luxon';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
 } from 'services/nicolive-program/NicoliveFailure';
 
+jest.mock('@electron/remote', () => ({
+  dialog: { showMessageBox: jest.fn() },
+  getCurrentWindow: jest.fn(),
+}));
+jest.mock('services/i18n', () => ({
+  $t: (key: string, params?: { startTime: string }) => (
+    params ? `${key}: ${params.startTime}` : key
+  ),
+}));
 jest.mock('components/nicolive-area/CommentViewer.vue', () => ({}));
 jest.mock('components/nicolive-area/ProgramInfo.vue', () => ({}));
 jest.mock('components/nicolive-area/ProgramStatistics.vue', () => ({}));
@@ -21,7 +32,7 @@ jest.mock('services/nicolive-program/NicoliveFailure', () => ({
 }));
 
 const programService = {
-  state: { status: 'onAir' },
+  state: { status: 'onAir', startTime: 1800000000 },
   fetchProgram: jest.fn(),
   createProgram: jest.fn(),
   releaseProgram: jest.fn(),
@@ -50,6 +61,10 @@ describe('NicoliveArea.prepareProgram', () => {
     programService.fetchProgram.mockReset().mockResolvedValue(undefined);
     programService.createProgram.mockReset().mockResolvedValue(undefined);
     programService.releaseProgram.mockReset();
+    jest.mocked(remote.dialog.showMessageBox).mockReset().mockResolvedValue({
+      response: 0,
+      checkboxChecked: false,
+    });
   });
 
   test('既存番組を取得できた場合は新規作成しない', async () => {
@@ -59,6 +74,44 @@ describe('NicoliveArea.prepareProgram', () => {
     expect(programService.createProgram).not.toHaveBeenCalled();
     expect(programService.releaseProgram).not.toHaveBeenCalled();
     expect(openErrorDialogFromFailure).not.toHaveBeenCalled();
+    expect(context.isFetching).toBe(false);
+  });
+
+  test('予約番組に進む場合は開始日時を表示して取得済み番組を保持する', async () => {
+    programService.state.status = 'reserved';
+
+    await prepareProgram(context);
+
+    expect(remote.dialog.showMessageBox).toHaveBeenCalledWith(
+      remote.getCurrentWindow(),
+      expect.objectContaining({
+        message: `nicolive-program.reservedProgram.message: ${DateTime.fromSeconds(programService.state.startTime).toFormat('yyyy/MM/dd HH:mm')}`,
+        buttons: [
+          'nicolive-program.reservedProgram.proceed',
+          'nicolive-program.reservedProgram.createNew',
+        ],
+        defaultId: 0,
+        cancelId: 0,
+      }),
+    );
+    expect(programService.releaseProgram).not.toHaveBeenCalled();
+    expect(programService.createProgram).not.toHaveBeenCalled();
+    expect(context.isFetching).toBe(false);
+  });
+
+  test('予約番組ではなく新規作成を選ぶと取得情報を解放してから作成する', async () => {
+    programService.state.status = 'reserved';
+    jest.mocked(remote.dialog.showMessageBox).mockResolvedValue({
+      response: 1,
+      checkboxChecked: false,
+    });
+    programService.createProgram.mockImplementation(async () => {
+      expect(programService.releaseProgram).toHaveBeenCalledTimes(1);
+    });
+
+    await prepareProgram(context);
+
+    expect(programService.createProgram).toHaveBeenCalledTimes(1);
     expect(context.isFetching).toBe(false);
   });
 
