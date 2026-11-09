@@ -34,8 +34,6 @@ export default defineComponent({
       isLoadingSummary: false,
       summary: null as ScheduleSummary | null,
       summaryError: false,
-      // N Air で終了した番組のID。終了直後は番組表APIがまだ放送中を返すことがあるため除外する
-      endedProgramId: '' as string,
       onWindowFocus: null as (() => void) | null,
     };
   },
@@ -57,12 +55,6 @@ export default defineComponent({
         this.refreshSummary();
       }
     },
-
-    programStatus(status: string) {
-      if (status === 'end') {
-        this.endedProgramId = NicoliveProgramService.instance().state.programID;
-      }
-    },
   },
 
   unmounted() {
@@ -82,10 +74,6 @@ export default defineComponent({
 
     isCompactMode(): boolean {
       return CustomizationService.instance().state.compactMode;
-    },
-
-    programStatus(): string {
-      return NicoliveProgramService.instance().state.status;
     },
 
     hasProgram(): boolean {
@@ -121,12 +109,7 @@ export default defineComponent({
       if (this.isLoadingSummary || this.isFetching || this.hasProgram) return;
       this.isLoadingSummary = true;
       try {
-        const fetched = await NicoliveProgramService.instance().fetchScheduleSummary();
-        const ended = this.endedProgramId;
-        const exclude = (item: ScheduleSummaryItem | null) => (
-          item && item.nicoliveProgramId !== ended ? item : null
-        );
-        this.summary = { current: exclude(fetched.current), reserved: exclude(fetched.reserved) };
+        this.summary = await NicoliveProgramService.instance().fetchScheduleSummary();
         this.summaryError = false;
       } catch (caught) {
         // 自動確認の失敗ではダイアログを出さず、表示だけ控えめに知らせる
