@@ -58,7 +58,7 @@
                 <button
                   class="button button--primary summary-button"
                   @click="prepareProgram(summary.reserved.nicoliveProgramId)"
-                  :disabled="isFetching"
+                  :disabled="isFetching || Boolean(summary.current)"
                 >
                   {{ t('fetchReserved') }}
                 </button>
