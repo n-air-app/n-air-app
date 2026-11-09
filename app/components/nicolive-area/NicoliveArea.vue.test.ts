@@ -199,9 +199,32 @@ describe('NicoliveArea.refreshSummary', () => {
 
     await NicoliveArea.methods.refreshSummary.call(context);
 
-    expect(context.summary).toBe(summary);
+    expect(context.summary).toEqual(summary);
     expect(context.summaryError).toBe(false);
     expect(context.isLoadingSummary).toBe(false);
+  });
+
+  test('N Air で終了した番組は概要から除外する', async () => {
+    const item = (id: string) => ({
+      nicoliveProgramId: id,
+      status: 'onAir',
+      onAirBeginAt: 0,
+      onAirEndAt: 0,
+    });
+    programService.fetchScheduleSummary
+      .mockReset()
+      .mockResolvedValue({ current: item('lv1'), reserved: item('lv2') });
+    const context: any = {
+      isLoadingSummary: false,
+      isFetching: false,
+      hasProgram: false,
+      endedProgramId: 'lv1',
+    };
+
+    await NicoliveArea.methods.refreshSummary.call(context);
+
+    expect(context.summary.current).toBeNull();
+    expect(context.summary.reserved.nicoliveProgramId).toBe('lv2');
   });
 
   test('番組を保持している間は取得しない', async () => {
