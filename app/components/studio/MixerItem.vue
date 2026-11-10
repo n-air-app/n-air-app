@@ -7,6 +7,28 @@
   >
     <div class="title-container">
       <div class="source-name">{{ audioSource.source?.name }}</div>
+      <div v-if="gainDb > 0 || canGainUp" class="gain" :class="{ attention: canGainUp }">
+        <button
+          v-if="gainDb > 0"
+          type="button"
+          class="gain-value"
+          v-tooltip.bottom="gainTooltip"
+          @click.stop="showGainMenu"
+        >
+          {{ $t('audio.gainBadge', { db: gainText }) }}
+        </button>
+        <button
+          v-if="canGainUp"
+          type="button"
+          class="gain-up"
+          :aria-label="$t('audio.gainUp')"
+          v-tooltip.bottom="$t('audio.gainUpTooltip', { db: nextGainText })"
+          @click.stop="gainUp"
+        >
+          <template v-if="gainDb > 0">+</template>
+          <template v-else>{{ $t('audio.gainUpLabel') }}</template>
+        </button>
+      </div>
       <div class="db-value">
         <div v-if="audioSource.fader.deflection == 0">-Inf dB</div>
         <div v-if="audioSource.fader.deflection !== 0">
@@ -87,9 +109,56 @@
   padding: 8px 12px 0;
   color: var(--color-text);
 
+  .title-container {
+    display: flex;
+    align-items: center;
+  }
+
   .source-name {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: @font-size2;
+    white-space: nowrap;
+  }
+
+  .gain {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    height: 18px;
+    margin-left: 6px;
+    overflow: hidden;
+    font-size: @font-size1;
+    color: var(--color-text);
+    white-space: nowrap;
+    border: 1px solid var(--color-border-light);
+    border-radius: 9px;
+
+    // 配信音声が小さく、ここで上げられるときは、ラウドネスパネルと同じ黄色で示す
+    &.attention {
+      color: var(--color-yellow);
+      border-color: currentcolor;
+    }
+
+    button {
+      height: 100%;
+      padding: 0 5px;
+      line-height: 16px;
+      color: inherit;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+
+      &:hover {
+        background: var(--color-bg-secondary);
+      }
+    }
+
+    .gain-value + button {
+      border-left: 1px solid currentcolor;
+    }
   }
 
   .db-value {

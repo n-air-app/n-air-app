@@ -1,13 +1,9 @@
 import * as remote from '@electron/remote';
 import { Subscription } from 'rxjs';
 import { $t } from 'services/i18n';
-import { ILoudness, LoudnessService, LoudnessStatus } from 'services/loudness';
-import { WindowsService } from 'services/windows';
+import { ILoudness, LoudnessLevel, loudnessLevel, LoudnessService, LoudnessStatus } from 'services/loudness';
 import { Menu } from 'util/menus/Menu';
 import { defineComponent } from 'vue';
-
-// 目標との差がこの範囲 (LU) なら「適正」とみなす
-const TOLERANCE_LU = 3;
 
 // メニューで選べる目標値 (LUFS)
 const TARGET_PRESETS = [-14, -15, -16, -18, -23];
@@ -32,8 +28,9 @@ export default defineComponent({
   },
 
   beforeUnmount() {
+    // 計測は止めない。コンパクトモードの切り替えなどで作り直されても、計測を続けるため
+    // (止めるのはパネルを非表示に設定したとき)
     this.subscription?.unsubscribe();
-    LoudnessService.instance().disable();
   },
 
   computed: {
@@ -45,24 +42,12 @@ export default defineComponent({
       return this.loudness?.shortTerm ?? null;
     },
 
-    /** 目標との差 (LU)。正なら大きすぎ、負なら小さすぎ */
-    diff(): number | null {
-      return this.shortTerm === null ? null : this.shortTerm - this.targetLufs;
-    },
-
-    level(): 'none' | 'low' | 'ok' | 'high' {
-      if (this.diff === null) return 'none';
-      if (this.diff < -TOLERANCE_LU) return 'low';
-      if (this.diff > TOLERANCE_LU) return 'high';
-      return 'ok';
+    level(): LoudnessLevel {
+      return loudnessLevel(this.shortTerm, this.targetLufs);
     },
 
     valueText(): string {
       return this.shortTerm === null ? '---' : this.shortTerm.toFixed(1);
-    },
-
-    canAdjust(): boolean {
-      return this.level === 'low' || this.level === 'high';
     },
 
     message(): string {
@@ -90,14 +75,6 @@ export default defineComponent({
         type: 'info',
         message: $t('audio.loudnessHidden'),
         buttons: [$t('common.ok')],
-      });
-    },
-
-    openAdjust() {
-      WindowsService.instance().showWindow({
-        componentName: 'LoudnessAdjust',
-        title: $t('audio.loudnessAdjust.title'),
-        size: { width: 480, height: 380 },
       });
     },
 

@@ -149,40 +149,66 @@ describe('enable / disable', () => {
     expect(values.at(-1)).toEqual({ momentary: -30, shortTerm: null, integrated: null, range: null });
   });
 
-  test('ネストした enable は最後の disable で止まる', async () => {
+  test('enable を繰り返しても計測は作り直さず続ける (パネルの作り直し)', async () => {
     fakePlugin();
     const service = getService();
 
     service.enable();
+    await flush();
     service.enable();
     await flush();
     expect(callsOf('create')).toHaveLength(1);
+    expect(callsOf('destroyAll')).toHaveLength(1);
+  });
 
-    service.disable();
+  test('disable で止め、止まった後はポーリングしない', async () => {
+    fakePlugin();
+    const service = getService();
+    service.enable();
     await flush();
-    expect(callsOf('destroy')).toHaveLength(0);
 
     service.disable();
     await flush();
     expect(callsOf('destroy')).toEqual([['destroy', { meterId: 1 }]]);
     expect(mockClose).toHaveBeenCalled();
 
-    // 止まった後はポーリングしない
     const getCount = callsOf('get').length;
     await clock.tickAsync(1000);
     await flush();
     expect(callsOf('get')).toHaveLength(getCount);
   });
 
-  test('disable を enable より多く呼んでもカウンタが負にならない', async () => {
+  test('パネルを非表示に設定すると止める', async () => {
     fakePlugin();
     const service = getService();
-
-    service.disable();
     service.enable();
     await flush();
 
+    service.setShowPanel(false);
+    await flush();
+    expect(callsOf('destroy')).toEqual([['destroy', { meterId: 1 }]]);
+  });
+
+  test('disable の直後に enable したら止めずに続け、止まった後の enable では再開する', async () => {
+    fakePlugin();
+    const service = getService();
+
+    service.enable();
+    await flush();
+    service.disable();
+    service.enable();
+    await flush();
+    expect(callsOf('destroy')).toHaveLength(0);
     expect(callsOf('create')).toHaveLength(1);
+
+    service.disable();
+    await flush();
+    service.enable();
+    await flush();
+    expect(callsOf('create')).toHaveLength(2);
+    await clock.tickAsync(200);
+    await flush();
+    expect(callsOf('get').at(-1)).toEqual(['get', { meterId: 2 }]);
   });
 
   test('配信トラックが変わったらメーターを作り直す', async () => {
@@ -203,6 +229,32 @@ describe('enable / disable', () => {
     expect(callsOf('destroy')).toEqual([['destroy', { meterId: 1 }]]);
     expect(callsOf('create').at(-1)).toEqual(['create', { type: 'track', track: 2 }]);
     expect(callsOf('get').at(-1)).toEqual(['get', { meterId: 2 }]);
+  });
+});
+
+describe('quiet', () => {
+  test('配信音声が小さいと true、無音 (未確定) の間は保ち、適正になると false', async () => {
+    let shortTerm: number | null = -30;
+    fakePlugin(() => ({ momentary: -30, shortTerm }));
+    const service = getService();
+    const values: boolean[] = [];
+    service.quiet.subscribe((v) => values.push(v));
+
+    service.enable();
+    await flush();
+    await clock.tickAsync(200);
+    await flush();
+    expect(values.at(-1)).toBe(true);
+
+    shortTerm = null;
+    await clock.tickAsync(200);
+    await flush();
+    expect(values.at(-1)).toBe(true);
+
+    shortTerm = -15;
+    await clock.tickAsync(200);
+    await flush();
+    expect(values).toEqual([false, true, false]);
   });
 });
 
@@ -262,59 +314,91 @@ describe('targetLufs', () => {
   });
 });
 
-describe('measureSource', () => {
-  test('ソース単体の pre-fader メーターを作り、有音区間の中央値を返して破棄する', async () => {
-    const momentaries = [-55, -50, -28, -26, -28, -56, -29, -27, -28, -28];
-    let i = 0;
-    fakePlugin(() => ({ momentary: momentaries[Math.min(i++, momentaries.length - 1)] }));
-    const service = getService();
+describe('ゲイン', () => {
+  type Filter = { name: string; type: string; visible: boolean; settings: { db?: number } };
 
-    const promise = service.measureSource('mic-1', 2000);
-    await clock.tickAsync(2500);
+  function getGainService(filters: Filter[]) {
+    const sourceFilters = {
+      getFilters: jest.fn(() => filters),
+      updateSettings: jest.fn((_id: string, name: string, settings: { db: number }) => {
+        filters.find((f) => f.name === name)!.settings = settings;
+      }),
+      setVisibility: jest.fn((_id: string, name: string, visible: boolean) => {
+        filters.find((f) => f.name === name)!.visible = visible;
+      }),
+      suggestName: jest.fn((_id: string, name: string) => name),
+      add: jest.fn((_id: string, type: string, name: string, settings: { db: number }) => {
+        filters.push({ name, type, visible: true, settings });
+      }),
+      setOrder: jest.fn(),
+    };
+    makeSetup({ Mode: 'Simple' })({ injectee: { SourceFiltersService: sourceFilters } });
+    const { LoudnessService } = require('./loudness');
+    const service = LoudnessService.instance() as LoudnessService;
+    // createSetupFunction は injectee をコピーするので、サービスが参照している方を返す
+    return { service, sourceFilters: (service as any).sourceFiltersService as typeof sourceFilters };
+  }
 
-    expect(await promise).toBe(-28);
-    expect(callsOf('create')).toEqual([['create', { type: 'source', source: 'mic-1', postFader: false }]]);
-    expect(callsOf('destroy')).toEqual([['destroy', { meterId: 1 }]]);
+  test('ゲインフィルタがなければ 0', () => {
+    const { service } = getGainService([]);
+    expect(service.getGain('mic')).toBe(0);
   });
 
-  test('ほとんど無音なら null', async () => {
-    fakePlugin(() => ({ momentary: -80 }));
-    const service = getService();
-
-    const promise = service.measureSource('mic-1', 2000);
-    await clock.tickAsync(2500);
-
-    expect(await promise).toBeNull();
-    expect(callsOf('destroy')).toHaveLength(1);
+  test('先頭のゲインフィルタの値を返し、無効なら 0', () => {
+    const filters = [
+      { name: 'ノイズ抑制', type: 'noise_suppress_filter', visible: true, settings: {} },
+      { name: 'ゲイン', type: 'gain_filter', visible: true, settings: { db: 8 } },
+      { name: 'ゲイン 2', type: 'gain_filter', visible: true, settings: { db: 3 } },
+    ];
+    const { service } = getGainService(filters);
+    expect(service.getGain('mic')).toBe(8);
+    filters[1].visible = false;
+    expect(service.getGain('mic')).toBe(0);
   });
 
-  test('ノイズだけ (一定で -35 LUFS のように大きい) なら声なしの null', async () => {
-    fakePlugin(() => ({ momentary: -35 }));
-    const service = getService();
+  test('ゲインフィルタがなければ先頭に追加して上げる', () => {
+    const filters: Filter[] = [{ name: 'ノイズ抑制', type: 'noise_suppress_filter', visible: true, settings: {} }];
+    const { service, sourceFilters } = getGainService(filters);
 
-    const promise = service.measureSource('mic-1', 2000);
-    await clock.tickAsync(2500);
-
-    expect(await promise).toBeNull();
+    expect(service.gainUp('mic')).toBe(6);
+    expect(sourceFilters.add).toHaveBeenCalledWith('mic', 'gain_filter', 'filters.gain', { db: 6 });
+    expect(sourceFilters.setOrder).toHaveBeenCalledWith('mic', 'filters.gain', -1);
   });
 
-  test('値が確定していない (null) 間は無視する', async () => {
-    fakePlugin(() => ({ momentary: null }));
-    const service = getService();
+  test('押すたびに次の段階へ上げ、上限では何もしない', () => {
+    const { service, sourceFilters } = getGainService([]);
 
-    const promise = service.measureSource('mic-1', 1000);
-    await clock.tickAsync(1500);
-
-    expect(await promise).toBeNull();
+    expect(service.gainUp('mic')).toBe(6);
+    expect(service.gainUp('mic')).toBe(12);
+    expect(service.gainUp('mic')).toBe(20);
+    expect(service.gainUp('mic')).toBeNull();
+    expect(service.getGain('mic')).toBe(20);
+    expect(sourceFilters.add).toHaveBeenCalledTimes(1);
   });
 
-  test('接続できなければ null を返し unavailable にする', async () => {
-    mockCallEx.mockRejectedValue(new Error('connect ENOENT'));
-    const service = getService();
-    const statuses: LoudnessStatus[] = [];
-    service.status.subscribe((s) => statuses.push(s));
+  test('既存のゲインフィルタは重複して追加せず、無効なら有効にする', () => {
+    const filters = [{ name: '自分のゲイン', type: 'gain_filter', visible: false, settings: { db: -3 } }];
+    const { service, sourceFilters } = getGainService(filters);
 
-    expect(await service.measureSource('mic-1', 1000)).toBeNull();
-    expect(statuses[statuses.length - 1]).toBe('unavailable');
+    expect(service.gainUp('mic')).toBe(6);
+    expect(sourceFilters.add).not.toHaveBeenCalled();
+    expect(sourceFilters.updateSettings).toHaveBeenCalledWith('mic', '自分のゲイン', { db: 6 });
+    expect(filters[0].visible).toBe(true);
+  });
+
+  test('オフ (0) にしてもゲインフィルタは削除せず 0 dB に戻す', () => {
+    const filters = [{ name: 'ゲイン', type: 'gain_filter', visible: true, settings: { db: 12 } }];
+    const { service, sourceFilters } = getGainService(filters);
+
+    service.setGain('mic', 0);
+    expect(filters).toHaveLength(1);
+    expect(filters[0].settings).toEqual({ db: 0 });
+    expect(sourceFilters.add).not.toHaveBeenCalled();
+  });
+
+  test('ゲインフィルタがないときにオフにしても追加しない', () => {
+    const { service, sourceFilters } = getGainService([]);
+    service.setGain('mic', 0);
+    expect(sourceFilters.add).not.toHaveBeenCalled();
   });
 });

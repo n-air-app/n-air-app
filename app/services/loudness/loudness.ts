@@ -1,13 +1,13 @@
 import * as Sentry from '@sentry/vue';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { AudioService } from 'services/audio';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { $t } from 'services/i18n';
 import { SettingsService } from 'services/settings';
-import { SourceFiltersService } from 'services/source-filters';
+import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { NamedPipeClient } from 'services/substream/NamedPipeClient';
 
-import { IAdjustPlan, MEASURE_DURATION_MS, pickVoiceLevel, planAdjustment } from './loudness-adjust';
+import { loudnessLevel, nextGainStep, nextQuiet } from './loudness-gain';
 
 /**
  * nair-loudness.dll (n-air-app/loudness) と通信してラウドネスを取得する。
@@ -43,7 +43,6 @@ type RpcResult = { [name: string]: any };
 
 export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   @Inject() private settingsService: SettingsService;
-  @Inject() private audioService: AudioService;
   @Inject() private sourceFiltersService: SourceFiltersService;
 
   static defaultState: ILoudnessState = {
@@ -60,7 +59,12 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   private statusSubject = new BehaviorSubject<LoudnessStatus>('stopped');
   status: Observable<LoudnessStatus> = this.statusSubject.asObservable();
 
-  private enableCounter = 0;
+  private quietSubject = new BehaviorSubject<boolean>(false);
+  /** 配信音声が小さい状態か (ミキサーの各ソースでゲインを案内する)。無音の間は直前の状態を保つ */
+  quiet: Observable<boolean> = this.quietSubject.pipe(distinctUntilChanged());
+
+  // 計測するか (enable / disable で切り替える)
+  private running = false;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private meterId: number | null = null;
   private meterTrack: number | null = null;
@@ -77,6 +81,8 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
 
   setShowPanel(showPanel: boolean): void {
     this.SET_SHOW_PANEL(showPanel);
+    // 再表示したときは、パネルの表示 (mount) で enable される
+    if (!showPanel) this.disable();
   }
 
   @mutation()
@@ -94,18 +100,20 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     this.state = { ...this.state, targetLufs };
   }
 
-  /** 計測の有効化 (ネスト対応)。表示するコンポーネントが mount 時に呼ぶ */
+  /**
+   * 計測を始める。パネルが表示されたときに呼ぶ (計測中なら何もしない。使えなかった場合は再接続を試す)。
+   * パネルが作り直されても (コンパクトモードの切り替えなど) 計測を続けるため、パネルが消えても止めない。
+   * 止めるのはパネルを非表示に設定したときだけ
+   */
   enable(): void {
-    this.enableCounter++;
-    if (this.enableCounter > 1) return;
+    this.running = true;
     this.lifecycle = this.lifecycle.then(() => this.start());
   }
 
-  /** 計測の無効化 (ネスト対応)。表示するコンポーネントが unmount 時に呼ぶ */
+  /** 計測を止める */
   disable(): void {
-    if (this.enableCounter <= 0) return;
-    this.enableCounter--;
-    if (this.enableCounter > 0) return;
+    if (!this.running) return;
+    this.running = false;
     this.lifecycle = this.lifecycle.then(() => this.stop());
   }
 
@@ -123,89 +131,48 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   }
 
   /**
-   * 指定ソース単体のラウドネス (pre-fader、フィルタ適用後) を一定時間測り、声の大きさを返す。
-   * 音量の振れ幅が小さい (ノイズだけ・無音) 場合は null。配信用メーターとは別のメーターを一時的に作る
+   * ゲイン (ゲインフィルタ) の現在値 (dB)。ユーザーが自分で追加したゲインフィルタも同じものとして扱う。
+   * 複数あれば先頭のもの。ゲインフィルタがない、または無効なら 0
    */
-  measureSource(sourceId: string, durationMs = MEASURE_DURATION_MS): Promise<number | null> {
-    const run = async (): Promise<number | null> => {
-      let meterId: number;
-      try {
-        const res = await this.call('create', { type: 'source', source: sourceId, postFader: false });
-        meterId = res.meterId;
-      } catch (e) {
-        this.reportUnavailable(e);
-        return null;
-      }
-
-      const samples: number[] = [];
-      try {
-        const endAt = Date.now() + durationMs;
-        while (Date.now() < endAt) {
-          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-          const res = await this.call('get', { meterId });
-          if (typeof res.momentary === 'number') samples.push(res.momentary);
-        }
-      } catch (e) {
-        this.reportUnavailable(e);
-        return null;
-      } finally {
-        try {
-          await this.call('destroy', { meterId });
-        } catch {
-          // 切断済みなら再接続時の destroyAll で片付く
-        }
-      }
-      // 声がある区間が測定時間の 1/8 以上ないと、声が出ていないとみなす
-      const minVoiceSamples = Math.ceil(durationMs / POLL_INTERVAL_MS / 8);
-      return pickVoiceLevel(samples, minVoiceSamples);
-    };
-
-    // 配信用メーターのポーリングと同じ接続を使うので、lifecycle で直列化する
-    const result = this.lifecycle.then(run);
-    this.lifecycle = result.then(
-      () => undefined,
-      () => undefined,
-    );
-    return result;
+  getGain(sourceId: string): number {
+    const filter = this.findGainFilter(sourceId);
+    return filter?.visible ? Number(filter.settings.db ?? 0) : 0;
   }
 
   /**
-   * 測定値 (measureSource の結果) を目標に合わせるよう、フェーダーとゲインフィルタを更新する。
-   * ゲインフィルタが既にあれば値を更新し、なければ先頭 (他のフィルタより前) に追加する
+   * ゲインを設定する。ゲインフィルタがあれば値を更新し (無効なら有効にする)、なければ先頭 (他のフィルタより前) に追加する。
+   * 0 にしてもゲインフィルタは削除しない (ユーザーが自分で追加したものかもしれないため)
    */
-  applyAdjustment(sourceId: string, measuredLufs: number): IAdjustPlan {
-    const audioSource = this.audioService.getSource(sourceId);
-    if (!audioSource) throw new Error(`audio source not found: ${sourceId}`);
-
-    const existing = this.sourceFiltersService
-      .getFilters(sourceId)
-      .find((filter) => filter.type === 'gain_filter');
-    const currentGainDb = existing ? Number(existing.settings.db ?? 0) : null;
-
-    const plan = planAdjustment({
-      measuredLufs,
-      targetLufs: this.targetLufs,
-      faderDb: audioSource.fader.db,
-      currentGainDb,
-    });
-
-    if (plan.gainDb !== null) {
-      if (existing) {
-        this.sourceFiltersService.updateSettings(sourceId, existing.name, { db: plan.gainDb });
-      } else {
-        const name = this.sourceFiltersService.suggestName(sourceId, $t('filters.gain'));
-        this.sourceFiltersService.add(sourceId, 'gain_filter', name, { db: plan.gainDb });
-        const count = this.sourceFiltersService.getFilters(sourceId).length;
-        if (count > 1) this.sourceFiltersService.setOrder(sourceId, name, -(count - 1));
-      }
+  setGain(sourceId: string, db: number): void {
+    if (!Number.isFinite(db)) return;
+    const existing = this.findGainFilter(sourceId);
+    if (existing) {
+      this.sourceFiltersService.updateSettings(sourceId, existing.name, { db });
+      if (!existing.visible && db !== 0) this.sourceFiltersService.setVisibility(sourceId, existing.name, true);
+      return;
     }
-    // 10^(dB/20)。フェーダーは mul (線形) で設定する (db は直接設定しない)
-    audioSource.setMul(Math.pow(10, plan.faderDb / 20));
-    return plan;
+    if (db === 0) return;
+
+    const name = this.sourceFiltersService.suggestName(sourceId, $t('filters.gain'));
+    this.sourceFiltersService.add(sourceId, 'gain_filter', name, { db });
+    const count = this.sourceFiltersService.getFilters(sourceId).length;
+    if (count > 1) this.sourceFiltersService.setOrder(sourceId, name, -(count - 1));
+  }
+
+  /** ゲインを次の段階に上げ、上げた後の値を返す。上限に達していれば何もせず null */
+  gainUp(sourceId: string): number | null {
+    const next = nextGainStep(this.getGain(sourceId));
+    if (next === null) return null;
+    this.setGain(sourceId, next);
+    return next;
+  }
+
+  private findGainFilter(sourceId: string): ISourceFilter | undefined {
+    return this.sourceFiltersService.getFilters(sourceId).find((filter) => filter.type === 'gain_filter');
   }
 
   private async start(): Promise<void> {
-    if (this.enableCounter <= 0) return;
+    if (!this.running || this.meterId !== null) return;
     try {
       // 前回の接続で作ったメーターが残っていても、ここで掃除する
       await this.call('destroyAll');
@@ -219,7 +186,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   }
 
   private async stop(): Promise<void> {
-    if (this.enableCounter > 0) return;
+    if (this.running) return;
     if (this.pollTimer !== null) {
       clearTimeout(this.pollTimer);
       this.pollTimer = null;
@@ -227,6 +194,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     await this.destroyMeter();
     this.client.close();
     this.loudnessSubject.next(EMPTY_LOUDNESS);
+    this.quietSubject.next(false);
     if (this.statusSubject.getValue() !== 'unavailable') {
       this.statusSubject.next('stopped');
     }
@@ -260,7 +228,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   }
 
   private async poll(): Promise<void> {
-    if (this.enableCounter <= 0 || this.meterId === null) return;
+    if (!this.running || this.meterId === null) return;
 
     try {
       // 出力設定で配信トラックが変わっていたらメーターを作り直す
@@ -269,18 +237,21 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
         await this.createMeter();
       }
       const res = await this.call('get', { meterId: this.meterId });
-      this.loudnessSubject.next({
+      const loudness: ILoudness = {
         momentary: res.momentary ?? null,
         shortTerm: res.shortTerm ?? null,
         integrated: res.integrated ?? null,
         range: res.range ?? null,
-      });
+      };
+      this.loudnessSubject.next(loudness);
+      const level = loudnessLevel(loudness.shortTerm, this.targetLufs);
+      this.quietSubject.next(nextQuiet(this.quietSubject.getValue(), level));
     } catch (e) {
       this.reportUnavailable(e);
       return;
     }
 
-    if (this.enableCounter > 0) this.schedulePoll();
+    if (this.running) this.schedulePoll();
   }
 
   private async call(fn: string, arg: RpcResult = {}): Promise<RpcResult> {
@@ -295,6 +266,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     this.meterTrack = null;
     this.client.close();
     this.loudnessSubject.next(EMPTY_LOUDNESS);
+    this.quietSubject.next(false);
     if (this.statusSubject.getValue() === 'unavailable') return;
     this.statusSubject.next('unavailable');
     console.error('LoudnessService: nair-loudness is not available', e);

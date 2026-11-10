@@ -14,6 +14,7 @@ import { Source, SourcesService } from '../../services/sources';
 import { BlendingMethodMenu } from './BlendingMethodMenu';
 import { BlendingModeMenu } from './BlendingModeMenu';
 import { DeinterlaceMenu } from './DeinterlaceMenu';
+import { GainMenu } from './GainMenu';
 import { GroupMenu } from './GroupMenu';
 import { Menu } from './Menu';
 import { ScaleFilteringMenu } from './ScaleFilteringMenu';
@@ -304,6 +305,14 @@ export class EditMenu extends Menu {
 
     if (this.options.showAudioMixerMenu) {
       this.append({ type: 'separator' });
+
+      if (this.source?.audio) {
+        this.append({
+          id: 'Gain',
+          label: $t('audio.gain'),
+          submenu: new GainMenu(this.source.sourceId).menu,
+        });
+      }
 
       this.append({
         id: 'Hide',

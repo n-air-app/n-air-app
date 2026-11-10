@@ -1,23 +1,14 @@
 <template>
   <div class="mixer-loudness" :class="`level-${level}`" v-tooltip.bottom="tooltip" @contextmenu.stop="showMenu">
     <div class="loudness-title">{{ $t('audio.loudness') }}</div>
-    <template v-if="status === 'unavailable'">
-      <div class="value unavailable">{{ $t('audio.loudnessUnavailable') }}</div>
-    </template>
+    <div v-if="status === 'unavailable'" class="value unavailable">{{ $t('audio.loudnessUnavailable') }}</div>
     <template v-else>
       <div class="value">
         <span class="number">{{ valueText }}</span>
         <span class="unit">LUFS</span>
       </div>
+      <div class="message">{{ message }}</div>
     </template>
-    <div class="message">
-      <template v-if="status !== 'unavailable'">
-        <span class="message-text">{{ message }}</span>
-        <button v-if="canAdjust" class="adjust-button" @click.stop="openAdjust">
-          {{ $t('audio.loudnessAdjust.button') }}
-        </button>
-      </template>
-    </div>
     <button
       type="button"
       class="menu-button"
@@ -37,13 +28,19 @@
 @import url('../../styles/index');
 
 .mixer-loudness {
-  position: relative;
+  // 見ながら各ソースの音量を調整できるよう、ミキサーをスクロールしても上に残す。
+  // ミキサーは縦が狭いので 1 行に収める
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  padding: 8px 36px 8px 12px;
+  align-items: center;
+  height: 32px;
+  padding: 0 32px 0 12px;
   font-size: @font-size2;
   color: var(--color-text);
+  white-space: nowrap;
+  background: var(--color-bg-tertiary);
   border-bottom: 1px solid var(--color-border-emphasis-low);
 
   .menu-button {
@@ -67,16 +64,14 @@
     }
   }
 
+  // 見出しと値は常に表示し、幅が足りないときは文言を省略する
   .loudness-title {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 8px;
   }
 
   .value {
-    white-space: nowrap;
+    flex-shrink: 0;
 
     .number {
       font-variant-numeric: tabular-nums;
@@ -94,31 +89,12 @@
   }
 
   .message {
-    display: flex;
-    flex: 0 0 100%;
-    align-items: center;
-    justify-content: flex-end;
-    height: 24px;
-    margin-top: 4px;
-
-    .message-text {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .adjust-button {
-      flex-shrink: 0;
-      height: 24px;
-      padding: 0 8px;
-      margin-left: 8px;
-      color: inherit;
-      cursor: pointer;
-      background: transparent;
-      border: 1px solid currentcolor;
-      border-radius: 4px;
-    }
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
   }
 
   // 色は対処が必要なとき (小さい/大きい) だけ付ける。適正と未確定は通常の文字色のまま。
