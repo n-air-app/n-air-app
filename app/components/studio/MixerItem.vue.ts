@@ -6,15 +6,7 @@ import { AudioSource, IVolmeter } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
-import {
-  ACTIVE_HOLD_MS,
-  ACTIVE_PEAK_DB,
-  canGainUp,
-  formatGainDb,
-  GAIN_MAX_DB,
-  LoudnessService,
-  nextGainStep,
-} from 'services/loudness';
+import { canGainUp, formatGainDb, LoudnessService, nextGainStep, SoundActivity } from 'services/loudness';
 import { SourceFiltersService } from 'services/source-filters';
 import { EditMenu } from 'util/menus/EditMenu';
 import { GainMenu } from 'util/menus/GainMenu';
@@ -42,7 +34,6 @@ export default defineComponent({
       quiet: false,
       // 最近音を出していたか。配信音声が小さい間だけ、ボリュームメーターから判定する
       active: false,
-      lastActiveAt: 0,
       subscription: null as Subscription | null,
       volmeterSubscription: null as Subscription | null,
     };
@@ -103,8 +94,9 @@ export default defineComponent({
       return nextGainStep(this.gainDb) === null ? `${tooltip} ${$t('audio.gainMaxTooltip')}` : tooltip;
     },
 
+    // 「+」は上限未満のときだけ出すので、次の段階は必ずある
     nextGainText(): string {
-      return formatGainDb(nextGainStep(this.gainDb) ?? GAIN_MAX_DB);
+      return formatGainDb(nextGainStep(this.gainDb) ?? this.gainDb);
     },
   },
 
@@ -130,15 +122,11 @@ export default defineComponent({
         return;
       }
       if (this.volmeterSubscription) return;
+      const activity = new SoundActivity();
       this.volmeterSubscription = this.audioSource.getVolmeterStream().subscribe((volmeter: IVolmeter) => {
-        const now = Date.now();
         // フェーダー前のピークで見る (フェーダーを下げていても、音を出しているかは分かる)
-        if (Math.max(...volmeter.inputPeak) > ACTIVE_PEAK_DB) {
-          this.lastActiveAt = now;
-          if (!this.active) this.active = true;
-        } else if (this.active && now - this.lastActiveAt > ACTIVE_HOLD_MS) {
-          this.active = false;
-        }
+        const active = activity.update(volmeter.inputPeak, Date.now());
+        if (active !== this.active) this.active = active;
       });
     },
 

@@ -1,30 +1,4 @@
-import { canGainUp, formatGainDb, IGainGuideInput, loudnessLevel, nextGainStep, nextQuiet } from './loudness-gain';
-
-describe('loudnessLevel', () => {
-  test.each<[number | null, string]>([
-    [null, 'none'],
-    [-15, 'ok'],
-    [-18, 'ok'],
-    [-12, 'ok'],
-    [-18.1, 'low'],
-    [-11.9, 'high'],
-  ])('%p (目標 -15) => %s', (shortTerm, expected) => {
-    expect(loudnessLevel(shortTerm, -15)).toBe(expected);
-  });
-});
-
-describe('nextQuiet', () => {
-  test('小さいで true、適正・大きいで false', () => {
-    expect(nextQuiet(false, 'low')).toBe(true);
-    expect(nextQuiet(true, 'ok')).toBe(false);
-    expect(nextQuiet(true, 'high')).toBe(false);
-  });
-
-  test('未確定 (無音など) では前の状態を保つ', () => {
-    expect(nextQuiet(true, 'none')).toBe(true);
-    expect(nextQuiet(false, 'none')).toBe(false);
-  });
-});
+import { ACTIVE_HOLD_MS, canGainUp, formatGainDb, IGainGuideInput, nextGainStep, SoundActivity } from './loudness-gain';
 
 describe('nextGainStep', () => {
   test.each<[number, number | null]>([
@@ -82,5 +56,24 @@ describe('canGainUp', () => {
 
   test('ゲインが上限なら出さない', () => {
     expect(canGainUp(input({ gainDb: 20 }))).toBe(false);
+  });
+});
+
+describe('SoundActivity', () => {
+  test('ピークが -50 dBFS を超えたら音を出しているとみなす (どれか 1 チャンネルでよい)', () => {
+    const activity = new SoundActivity();
+    expect(activity.update([-60, -60], 0)).toBe(false);
+    expect(activity.update([-60, -40], 100)).toBe(true);
+  });
+
+  test('音が止まっても一定時間は保ち、過ぎたら false', () => {
+    const activity = new SoundActivity();
+    activity.update([-30], 0);
+    expect(activity.update([-80], ACTIVE_HOLD_MS)).toBe(true);
+    expect(activity.update([-80], ACTIVE_HOLD_MS + 1)).toBe(false);
+  });
+
+  test('チャンネルがない (空) なら音なし', () => {
+    expect(new SoundActivity().update([], 0)).toBe(false);
   });
 });

@@ -2,7 +2,7 @@
 
 - issue: https://github.com/n-air-app/n-air-app/issues/1517
 - 目的: 短期ラウドネス (short-term LUFS) を計測し、配信者の音量調整のガイドに使う
-- ステータス: 調査中 (2026-10-23 開始)
+- ステータス: PR #1533 で実装中 (2026-10-23 開始)
 
 ## 1. 要求の整理
 
@@ -213,19 +213,21 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 
 ### 本体側の実装 (このブランチ)
 
-- `app/services/loudness/loudness.ts` `LoudnessService` (PersistentStatefulService, `app-services.ts` 登録済み。`getBoost()` / `setBoost()` / `boostUp()` でブーストも担当)
-  - `enable()` / `disable()` (ネスト対応) で配信トラックのメーターを作成・破棄し、200ms ごとに `get` をポーリング
+- `app/services/loudness/loudness.ts` `LoudnessService` (PersistentStatefulService, `app-services.ts` 登録済み。`getGain()` / `setGain()` / `gainUp()` でゲインも担当)
+  - `enable()` (パネルの表示時) / `disable()` (パネルを非表示に設定したとき) で配信トラックのメーターを作成・破棄し、200ms ごとに `get` をポーリング
   - start / stop / poll は `lifecycle` Promise で直列化
   - 配信トラックは `SettingsService.state.Output` の `Mode` / `TrackIndex` から決める (native を呼ばない)。ポーリング時に変化を検知したらメーターを作り直す
   - 接続できない・エラー応答は `unavailable` にして Sentry に 1 回だけ送る (DLL は同梱前提なので異常扱い。ユーザー判断)
   - 目標値 `targetLufs` (初期値 -15) とパネルの表示状態 (初期値は表示) は state に永続化
-- `app/components/studio/MixerLoudness.vue(.ts)`: ミキサー上部に short-term LUFS と音量の状態を表示。目標 ±3 LU を適正とし、超過・不足は黄色で表示する。メニューから目標値の変更とパネルを閉じる操作ができ、設定の「一般」から再表示できる
-- i18n: `audio.loudness` / `audio.loudnessTooltip` / `audio.loudnessUnavailable` (ja-JP / en-US)
-- テスト: `app/services/loudness/loudness.test.ts` (18 件 pass)。typecheck / eslint / stylelint / i18n チェック pass
+- `app/services/loudness/loudness-level.ts`: 配信音声の大きさの判定 (目標 ±3 LU を適正) と、「小さい」状態の保持
+- `app/services/loudness/loudness-gain.ts`: ゲインの段階、「+」を出す条件、ソースが音を出しているかの判定
+- `app/components/studio/MixerLoudness.vue(.ts)`: ミキサー上部に short-term LUFS と音量の状態を表示。超過・不足は黄色で表示する。メニューから目標値の変更とパネルを閉じる操作ができ、設定の「一般」から再表示できる
+- `app/components/studio/MixerItem.vue(.ts)` / `app/util/menus/GainMenu.ts`: 各ソースのゲイン表示・「+」・段階のメニュー
+- テスト: `app/services/loudness/*.test.ts`
 
 ### 実機確認済みの機能 (2026-10-26)
 
-- ミキサー上部の表示: サイン波 -23 dBFS で `-23.0 LUFS`。目標との差は数値ではなく「音量が小さいです / 大きいです / ちょうどよい音量です」で表示する (ライトなユーザー向け)
+- ミキサー上部の表示: サイン波 -23 dBFS で `-23.0 LUFS`。目標との差は数値ではなく「小さい / 適切 / 大きい」で表示する (ライトなユーザー向け)
   - 色は対処が必要なとき (小さい・大きい) の黄色だけ。アクセシビリティのため赤系は使わない (`--color-accent` は赤系なので適正表示に使わない)
   - ラベルのクラス名に `.label` を使わない (vendor/foundation.min.css の `.label` が水色の背景を当てる)
 - 目標値: 実機ではラウドネス行の右クリックで -14 / -15 / -16 / -18 / -23 LUFS を選択できた。現在はメニューボタンからも選べる。許容幅 ±3 LU は固定
@@ -248,8 +250,8 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 
 ### 次にやること
 
-1. プラグイン `n-air-app/loudness` は public 化し、タグ `0.1.0` で Draft Release (DLL + PDB) を作成済み。Publish して本体 `additional/additional.json` に DLL の URL を追加する (substream と同じく `/node_modules/obs-studio-node/obs-plugins/64bit` へ配置)
-2. 実際の配信音声で目標値の初期値 (-15 LUFS) と許容幅 (±3 LU) を見直す
+1. 実際の配信音声で目標値の初期値 (-15 LUFS) と許容幅 (±3 LU) を見直す
+2. プラグインのソース単位メーター (`type: 'source'`) は、自動調整の廃止で本体から使わなくなった。プラグイン側は残しておいて支障はない
 
 ### 既知の注意点
 
@@ -258,8 +260,7 @@ substream (`release/1.1.x-osn0.25.56`) の構成を雛形にする。
 - [x] DLL の署名: アプリ同梱時のパッケージングで署名されるため、リポジトリ側では不要 (付けても上書きされる)
 - [ ] libebur128 のビルドとライセンス表記 (MIT)
 - [ ] 計算負荷: libebur128 の True Peak モードはオーバーサンプリングで重め。S だけなら軽いはず
-- [ ] UI: ミキサーに LUFS 表示を足すのか、別のガイド UI を作るのか
-- [ ] まず案 A を JS で試作し、実際の配信音声で「magnitude 平均」がどれくらいずれるか確認するか?
+- [x] UI: ミキサー上部に LUFS 表示を足し、各ソースでゲインを案内する形にした
 
 ## 参考
 

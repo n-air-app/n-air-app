@@ -7,7 +7,8 @@ import { SettingsService } from 'services/settings';
 import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { NamedPipeClient } from 'services/substream/NamedPipeClient';
 
-import { loudnessLevel, nextGainStep, nextQuiet } from './loudness-gain';
+import { nextGainStep } from './loudness-gain';
+import { loudnessLevel, nextQuiet } from './loudness-level';
 
 /**
  * nair-loudness.dll (n-air-app/loudness) と通信してラウドネスを取得する。
