@@ -2,7 +2,7 @@ import Popper from 'components/shared/Popper.vue';
 import Slider from 'components/shared/Slider.vue';
 import MixerVolmeter from 'components/studio/MixerVolmeter.vue';
 import { Subscription } from 'rxjs';
-import { AudioSource } from 'services/audio';
+import { AudioSource, IVolmeter } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
 import { CustomizationService } from 'services/customization';
 import { $t } from 'services/i18n';
@@ -130,7 +130,7 @@ export default defineComponent({
         return;
       }
       if (this.volmeterSubscription) return;
-      this.volmeterSubscription = this.audioSource.getVolmeterStream().subscribe((volmeter) => {
+      this.volmeterSubscription = this.audioSource.getVolmeterStream().subscribe((volmeter: IVolmeter) => {
         const now = Date.now();
         // フェーダー前のピークで見る (フェーダーを下げていても、音を出しているかは分かる)
         if (Math.max(...volmeter.inputPeak) > ACTIVE_PEAK_DB) {
