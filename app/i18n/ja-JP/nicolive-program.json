@@ -418,7 +418,7 @@
       "fetchProgram": {
         "no_suitable_program": {
           "title": "番組が存在しません",
-          "message": "［番組作成］ボタンを押して番組を作成してください。\n※チャンネル番組の取得には対応していません。"
+          "message": "取得できる番組が存在しません。\n※チャンネル番組の取得には対応していません。"
         }
       },
       "fetchOnairChannels": {

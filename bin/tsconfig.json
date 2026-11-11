@@ -1,0 +1,18 @@
+{
+  // bin/ の JS スクリプトのうち `// @ts-check` を付けたものを型チェックし、
+  // 依存パッケージの API 変更をリリース前に検出する。
+  // TypeScript はルートの node_modules のものを使う (`pnpm run typecheck:bin`)。
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": ["**/*.js", "**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

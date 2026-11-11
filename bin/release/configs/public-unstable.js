@@ -1,3 +1,5 @@
+// @ts-check
+
 const base = require('./public-stable');
 
 const config = {

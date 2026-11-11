@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="header" v-if="!isCompactMode">
+      <span class="header-title">コメント</span>
       <button
         data-size="md"
         data-variant="sabtle"
@@ -177,10 +178,12 @@
 @import url('./comment/comment');
 
 .container {
+  position: relative;
   display: flex;
   flex-grow: 1;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
   background-color: var(--color-bg-tertiary);
 }
 
@@ -193,6 +196,12 @@
   height: 48px;
   padding: 4px 16px;
   border-bottom: 1px solid var(--color-border-light);
+
+  .header-title {
+    margin-right: auto;
+    font-size: @font-size4;
+    color: var(--color-text-light);
+  }
 
   .divider {
     width: 1px;
@@ -290,7 +299,9 @@
 
 .overlay {
   position: absolute;
-  z-index: @z-index-expand-content; // AreaSwitcherのheaderより大きく
+  top: 0;
+  left: 0;
+  z-index: @z-index-expand-content;
   width: 100%;
   height: 100%;
   background-color: var(--color-bg-tertiary);
