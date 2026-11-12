@@ -17,11 +17,13 @@ export default defineComponent({
     audioSources() {
       return AudioService.instance().getSourcesForCurrentScene();
     },
-    // 配信出力が使う音声トラック(1始まり)。基本モードは常にトラック1、詳細モードは TrackIndex で選ぶ
+    isAdvancedOutput(): boolean {
+      return SettingsService.instance().state.Output?.Mode === 'Advanced';
+    },
+    // 配信出力が使う音声トラック(1始まり)。基本モードはトラック1固定、詳細モードは TrackIndex で選ぶ
     streamingTrack(): number {
-      const output = SettingsService.instance().state.Output;
-      if (output?.Mode !== 'Advanced') return 1;
-      return Number(output.TrackIndex) || 1;
+      if (!this.isAdvancedOutput) return 1;
+      return Number(SettingsService.instance().state.Output.TrackIndex) || 1;
     },
   },
   methods: {

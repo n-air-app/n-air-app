@@ -3,7 +3,14 @@
     <template #content>
       <div class="content">
         <p class="streaming-track-note">
-          {{ $t('audio.streamingTrackNote', { track: streamingTrack }) }}
+          {{
+            $t(
+              isAdvancedOutput
+                ? 'audio.streamingTrackNoteAdvanced'
+                : 'audio.streamingTrackNoteSimple',
+              { track: streamingTrack },
+            )
+          }}
         </p>
         <div
           v-for="audioSource in audioSources"
