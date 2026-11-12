@@ -2,6 +2,9 @@
   <modal-layout :show-controls="false" :bare-content="true" no-scroll>
     <template #content>
       <div class="content">
+        <p class="streaming-track-note">
+          {{ $t('audio.streamingTrackNote', { track: streamingTrack }) }}
+        </p>
         <div
           v-for="audioSource in audioSources"
           :key="audioSource.sourceId"
@@ -43,6 +46,12 @@
   padding: var(--spacing-md);
   overflow-y: auto;
   background-color: var(--color-bg-quinary);
+}
+
+.streaming-track-note {
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-object-emphasis-medium);
 }
 
 .source-card {

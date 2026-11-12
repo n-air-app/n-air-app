@@ -8,6 +8,7 @@
   "monitorOnly": "プレビュー音声あり・配信音声なし",
   "monitorAndOutput": "プレビュー音声あり・配信音声あり",
   "tracks": "トラック",
+  "streamingTrackNote": "配信に使われるのはトラック {track} の音声です（設定 > 出力 の出力モード「詳細」にある「配信する音声トラック」で変更できます）",
   "advancedAudioSettings": "高度な音声設定",
   "mixer": "ミキサー",
   "mute": "ミュート",
