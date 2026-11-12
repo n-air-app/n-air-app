@@ -164,7 +164,7 @@
         "name": null
       },
       "TrackIndex": {
-        "name": null
+        "name": "Streaming Audio Track"
       },
       "Encoder": {
         "name": "Encoder",
@@ -303,7 +303,7 @@
         "m3u8": null
       },
       "RecTracks": {
-        "name": null
+        "name": "Recording Audio Tracks"
       },
       "RecEncoder": {
         "name": "@:settings.Output.Streaming.Encoder.name",
