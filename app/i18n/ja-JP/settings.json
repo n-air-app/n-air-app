@@ -164,7 +164,7 @@
         "name": "エンコーダーのカスタム設定"
       },
       "TrackIndex": {
-        "name": "音声トラック"
+        "name": "配信の音声トラック"
       },
       "Encoder": {
         "name": "エンコーダー",
@@ -303,7 +303,7 @@
         "m3u8": null
       },
       "RecTracks": {
-        "name": "音声トラック"
+        "name": "録画の音声トラック"
       },
       "RecEncoder": {
         "name": "@:settings.Output.Streaming.Encoder.name",
