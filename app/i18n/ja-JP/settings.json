@@ -303,7 +303,7 @@
         "m3u8": null
       },
       "RecTracks": {
-        "name": "録画の音声トラック"
+        "name": "録画する音声トラック"
       },
       "RecEncoder": {
         "name": "@:settings.Output.Streaming.Encoder.name",
