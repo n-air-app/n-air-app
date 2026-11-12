@@ -703,8 +703,10 @@ export class StreamingService
       this.state.streamingStatus === EStreamingState.Starting
       || this.state.streamingStatus === EStreamingState.Ending
     ) {
+      // luxonのtoSeconds()はミリ秒を含む小数を返すため、そのままだと表示が小数になる。
+      // カウントダウン表示として残り秒数を整数に切り上げる(0になるのは遅延時間が経過したときだけ)
       const elapsedTime = DateTime.now().toSeconds() - this.streamingStateChangeTime.toSeconds();
-      return Math.max(this.delaySeconds - elapsedTime, 0);
+      return Math.max(Math.ceil(this.delaySeconds - elapsedTime), 0);
     }
 
     return 0;
