@@ -1194,6 +1194,31 @@ function initialize(crashHandler) {
   });
 
   /**
+   * ヘルプページ(qa.nicovideo.jp)への遷移を、ウィンドウ内ではなく既定のブラウザで開かせる処理
+   * ログイン画面の「ログインできない方」リンクなどが対象
+   **/
+
+  function openHelpPageExternally(e, url) {
+    let urlObj;
+    try {
+      urlObj = new URL(url);
+    } catch {
+      return;
+    }
+    const helpHostname = new URL(devHostsTransformUrl('https://qa.nicovideo.jp')).hostname;
+    if (/^https?:$/.test(urlObj.protocol) && urlObj.hostname === helpHostname) {
+      e.preventDefault();
+      shell.openExternal(url).catch((err) => console.error('shell.openExternal failed:', err));
+    }
+  }
+
+  ipcMain.on('window-openHelpPageExternally', (_event, id) => {
+    const window = BrowserWindow.fromId(id);
+    if (!window || window.webContents.isDestroyed()) return;
+    window.webContents.on('will-navigate', openHelpPageExternally);
+  });
+
+  /**
    * 新ウィンドウ表示は既定のブラウザで開かせる処理
    * rendererプロセスからは処理を止められないのでここに実装がある
    * @see https://github.com/electron/electron/pull/11679#issuecomment-359180722
