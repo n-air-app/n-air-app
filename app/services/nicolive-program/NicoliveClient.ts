@@ -849,6 +849,7 @@ export class NicoliveClient {
         }
       });
       ipcRenderer.send('window-preventLogout', win.id);
+      ipcRenderer.send('window-openTopPageExternally', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = NicoliveClient.liveBaseURL + '/create';
       console.log('Loading URL in createProgram window:', url);
@@ -925,6 +926,7 @@ export class NicoliveClient {
         }
       });
       ipcRenderer.send('window-preventLogout', win.id);
+      ipcRenderer.send('window-openTopPageExternally', win.id);
       ipcRenderer.send('window-preventNewWindow', win.id);
       const url = `${NicoliveClient.liveBaseURL}/edit/${programID}`;
       win.loadURL(url)?.catch((error) => {
