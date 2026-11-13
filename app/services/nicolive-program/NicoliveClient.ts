@@ -237,6 +237,23 @@ export class NicoliveClient {
     );
   }
 
+  /** ニコニコ生放送のトップページ(ヘッダーのロゴリンク先)かどうか */
+  static isTopPage(url: string): boolean {
+    let urlObj: URL;
+    try {
+      urlObj = new URL(url);
+    } catch {
+      return false;
+    }
+    const liveHostname = new URL(NicoliveClient.liveBaseURL).hostname;
+    const live2Hostname = new URL(NicoliveClient.live2BaseURL).hostname;
+    return (
+      /^https?:$/.test(urlObj.protocol)
+      && (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname)
+      && urlObj.pathname === '/'
+    );
+  }
+
   static isAllowedURL(url: string): boolean {
     return (
       url.startsWith(NicoliveClient.live2BaseURL + '/')
@@ -837,6 +854,11 @@ export class NicoliveClient {
         } else if (NicoliveClient.isMyPage(url)) {
           resolve(CreateResult.RESERVED);
           win.close();
+        } else if (NicoliveClient.isTopPage(url)) {
+          // ヘッダーのロゴ等からトップへ出ると番組作成が中断されるため、既定のブラウザで開く
+          resolve(CreateResult.OTHER);
+          remote.shell.openExternal(url);
+          win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
           SentryReport.message('NicoliveClient', 'createProgram', 'createProgram did-navigate to unexpected URL', {
             level: 'warning',
@@ -912,6 +934,10 @@ export class NicoliveClient {
       win.webContents.on('did-navigate', (_event, url) => {
         if (NicoliveClient.isProgramPage(url) || NicoliveClient.isMyPage(url)) {
           resolve(EditResult.EDITED);
+          win.close();
+        } else if (NicoliveClient.isTopPage(url)) {
+          resolve(EditResult.OTHER);
+          remote.shell.openExternal(url);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
           SentryReport.message('NicoliveClient', 'editProgram', 'editProgram did-navigate to unexpected URL', {

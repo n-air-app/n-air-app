@@ -430,6 +430,21 @@ describe('webviews', () => {
     expect(mock.openExternal).toHaveBeenCalledWith('https://example.com');
   });
 
+  test('createProgramでニコ生トップに遷移すると既定のブラウザで開いてwebviewは閉じる', async () => {
+    const mock = setupMock();
+
+    const { NicoliveClient } = require('./NicoliveClient');
+    const client = new NicoliveClient();
+
+    // don't await
+    const result = expect(client.createProgram()).resolves.toBe('OTHER');
+    mock.browserWindow.loadURL(`${nicoliveWeb}/`);
+
+    await result;
+    expect(mock.browserWindow.close).toHaveBeenCalled();
+    expect(mock.openExternal).toHaveBeenCalledWith(`${nicoliveWeb}/`);
+  });
+
   test('createProgramで何もせず画面を閉じても結果が返る', async () => {
     const mock = setupMock();
 
@@ -497,6 +512,21 @@ describe('webviews', () => {
     await result;
     expect(mock.browserWindow.close).toHaveBeenCalled();
     expect(mock.openExternal).toHaveBeenCalledWith('https://example.com');
+  });
+
+  test('editProgramでニコ生トップに遷移すると既定のブラウザで開いてwebviewは閉じる', async () => {
+    const mock = setupMock();
+
+    const { NicoliveClient } = require('./NicoliveClient');
+    const client = new NicoliveClient();
+
+    // don't await
+    const result = expect(client.editProgram(programID)).resolves.toBe('OTHER');
+    mock.browserWindow.loadURL(`${nicoliveWeb}/`);
+
+    await result;
+    expect(mock.browserWindow.close).toHaveBeenCalled();
+    expect(mock.openExternal).toHaveBeenCalledWith(`${nicoliveWeb}/`);
   });
 
   test('editProgramで何もせず画面を閉じても結果が返る', async () => {
