@@ -40,8 +40,7 @@ const osnVersion = getObsStudioNodeVersion();
 ////////////////////////////////////////////////////////////////////////////////
 const electron = require('electron');
 
-const { app, BrowserWindow, ipcMain, dialog, webContents, shell, crashReporter, net } =
-  electron;
+const { app, BrowserWindow, ipcMain, dialog, webContents, shell, crashReporter } = electron;
 const path = require('node:path');
 const fs = require('node:fs');
 const remote = require('@electron/remote/main');
@@ -1328,7 +1327,11 @@ function initialize(crashHandler) {
      * @returns {Promise<import('./app/util/fetchViaMainProcess.ts').MainProcessFetchResponse>}
      * */
     async (_e, url, options) => {
-      return fetchViaElectronNet(net, url, options);
+      // net.fetch は常にデフォルトセッションの cookie jar を使うため、dev-hosts ビルドでは
+      // 本番側の user_session が混ざって dev サーバーに送られ 401 になる。
+      // アプリ用セッション(dev-hosts では persist:dev-hosts)で通信する。本番ビルドは従来と同じデフォルトセッション。
+      const appNet = { fetch: (u, o) => getAppSession().fetch(u, o) };
+      return fetchViaElectronNet(appNet, url, options);
     },
   );
 }

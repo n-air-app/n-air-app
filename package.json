@@ -78,7 +78,7 @@
     "unzip-stream": "^0.3.4",
     "vosk-cli": "https://github.com/n-air-app/vosk-cli/releases/download/1.1.0/vosk-cli-v1.1.0-windows-x64.tar.gz",
     "vue": "^3.5.42",
-    "vue-i18n": "11.4.12",
+    "vue-i18n": "11.4.14",
     "vuex": "4.1.0",
     "xml2js": "^0.6.2"
   },
