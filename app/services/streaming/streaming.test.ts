@@ -1755,3 +1755,77 @@ describe('handleOBSOutputSignalのEncoderError処理', () => {
     );
   });
 });
+
+describe('delaySecondsRemaining', () => {
+  const setupWithDelay = ({
+    DelayEnable,
+    DelaySec,
+    streamingStatus,
+    elapsedMs,
+  }: {
+    DelayEnable: boolean;
+    DelaySec: number;
+    streamingStatus: EStreamingState;
+    elapsedMs: number;
+  }) => {
+    // 実時間の経過でテストが揺れないよう、luxonが参照するDate.nowを固定する
+    const now = Date.parse('2026-01-01T00:00:00.000Z');
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    const injectee = createInjectee();
+    (injectee.SettingsService.state as any).Advanced = { DelayEnable, DelaySec };
+    setup({
+      injectee,
+      state: {
+        StreamingService: {
+          streamingStatus,
+          streamingStatusTime: new Date(now - elapsedMs).toISOString(),
+        },
+      },
+    });
+    const { StreamingService } = require('./streaming');
+    return StreamingService.instance();
+  };
+
+  test.each([EStreamingState.Starting, EStreamingState.Ending])(
+    '%s中は残り秒数を整数に切り上げて返す',
+    (streamingStatus) => {
+      const instance = setupWithDelay({
+        DelayEnable: true,
+        DelaySec: 10,
+        streamingStatus,
+        elapsedMs: 1234,
+      });
+      expect(instance.delaySecondsRemaining).toBe(9);
+    },
+  );
+
+  test('遅延時間を過ぎたら0を返す', () => {
+    const instance = setupWithDelay({
+      DelayEnable: true,
+      DelaySec: 10,
+      streamingStatus: EStreamingState.Starting,
+      elapsedMs: 10500,
+    });
+    expect(instance.delaySecondsRemaining).toBe(0);
+  });
+
+  test('配信遅延が無効なら0を返す', () => {
+    const instance = setupWithDelay({
+      DelayEnable: false,
+      DelaySec: 10,
+      streamingStatus: EStreamingState.Starting,
+      elapsedMs: 1234,
+    });
+    expect(instance.delaySecondsRemaining).toBe(0);
+  });
+
+  test('Live中は0を返す', () => {
+    const instance = setupWithDelay({
+      DelayEnable: true,
+      DelaySec: 10,
+      streamingStatus: EStreamingState.Live,
+      elapsedMs: 1234,
+    });
+    expect(instance.delaySecondsRemaining).toBe(0);
+  });
+});

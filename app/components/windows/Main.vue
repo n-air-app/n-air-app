@@ -53,6 +53,14 @@
   display: flex;
   flex-grow: 1;
   flex-direction: column;
+
+  /* 中身(フッターの配信時間・ボタンラベル等)の幅が増えてもニコ生パネルを押し出さないようにする */
+  min-width: 0;
+}
+
+.nicolive-area {
+  /* ニコ生パネルは固定幅のまま、余り・不足はmain-middle側で吸収する */
+  flex-shrink: 0;
 }
 
 .main-page-container {

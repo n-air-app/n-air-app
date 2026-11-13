@@ -103,7 +103,7 @@ This Open Source Program is forked from Streamlabs OBS, a software originally cr
 
 ## 開発への参加について
 
-N Air はオープンソースであり、どなたでも開発に参加できます。プルリクエストは n-air-development ブランチに出すようお願いいたします。
+N Air はオープンソースであり、どなたでも開発に参加できます。プルリクエストは n-air_development ブランチに出すようお願いいたします。
 
 ## バグ報告
 

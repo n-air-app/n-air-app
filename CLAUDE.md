@@ -157,7 +157,7 @@ test("service behavior", () => {
 ## Git & GitHub Workflow
 
 **Repository:** Always push to and create PRs against `github.com/n-air-app/n-air-app` (NOT the original Streamlabs fork)
-**Target Branch:** Create PRs against `n-air-development` branch (the main development branch)
+**Target Branch:** Create PRs against `n-air_development` branch (the main development branch)
 **Commits:** Standard commit message format, include context about changes
 
 **Push Remote Configuration:** Developers may use different remotes (personal forks vs main repo):

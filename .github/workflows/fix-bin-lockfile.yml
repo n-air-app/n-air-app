@@ -1,0 +1,84 @@
+name: Fix bin lockfile
+
+# dependabot は bin/package.json だけを更新して bin/pnpm-lock.yaml を更新しない
+# (bin/ はルートのワークスペースと独立しており --ignore-workspace が必要なため)。
+# そのPRを探してロックファイルを更新し、CIを起動し直す。
+# PATを使わないため、GITHUB_TOKEN で push した後に test.yml を workflow_dispatch で起動する。
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # 毎日 10:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: fix-bin-lockfile
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Install pnpm
+        run: corepack enable pnpm
+
+      - name: Fix lockfile of dependabot PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # bin/package.json を変更していて bin/pnpm-lock.yaml を変更していない dependabot PR のブランチ
+          branches=$(gh pr list --repo "$REPOSITORY" --state open --author 'app/dependabot' --limit 100 \
+            --json headRefName,files \
+            --jq '.[] | select(.headRefName | startswith("dependabot/npm_and_yarn/bin/"))
+                      | select(any(.files[]; .path == "bin/package.json"))
+                      | select(any(.files[]; .path == "bin/pnpm-lock.yaml") | not)
+                      | .headRefName')
+
+          if [[ -z "$branches" ]]; then
+            echo "対象のPRはありません"
+            exit 0
+          fi
+
+          failed=0
+          while IFS= read -r branch; do
+            echo "::group::$branch"
+            (
+              set -e
+              git fetch origin "$branch"
+              git checkout -f -B "fix-lockfile" "origin/$branch"
+              # 依存パッケージのスクリプトは実行しない (書き込み権限のトークンを持つため)
+              (cd bin && pnpm install --ignore-workspace --no-frozen-lockfile --ignore-scripts)
+              if git diff --quiet -- bin/pnpm-lock.yaml; then
+                echo "ロックファイルに差分なし"
+              else
+                git add bin/pnpm-lock.yaml
+                git commit -m '開発: bin/pnpm-lock.yaml を更新'
+                git push origin "HEAD:refs/heads/$branch"
+                # GITHUB_TOKEN による push ではCIが起動しないため明示的に起動する
+                gh workflow run test.yml --repo "$REPOSITORY" --ref "$branch"
+              fi
+            ) || { echo "::error::$branch の処理に失敗しました"; failed=1; }
+            echo "::endgroup::"
+            git checkout -f -q --detach origin/HEAD 2>/dev/null || true
+          done <<< "$branches"
+
+          exit $failed
