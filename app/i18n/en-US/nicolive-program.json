@@ -1,4 +1,9 @@
 {
+  "reservedProgram": {
+    "message": "You have a reserved program.\nScheduled start time: {startTime}\nChoose whether to proceed to the reserved program or create a new program.",
+    "proceed": "Proceed to reserved program",
+    "createNew": "Create new program"
+  },
   "errors": {
     "api": {
       "fetchProgramSchedules": {
