@@ -1194,6 +1194,35 @@ function initialize(crashHandler) {
   });
 
   /**
+   * ニコ生トップへの遷移は、ウィンドウ内では行わず既定のブラウザで開く
+   * (番組作成・編集中の画面を維持するため、遷移自体を止める)
+   */
+  function openTopPageExternally(e, url) {
+    let urlObj;
+    try {
+      urlObj = new URL(url);
+    } catch {
+      return;
+    }
+    const liveHostname = new URL(devHostsTransformUrl('https://live.nicovideo.jp')).hostname;
+    const live2Hostname = new URL(devHostsTransformUrl('https://live2.nicovideo.jp')).hostname;
+    const isTopPage =
+      /^https?:$/.test(urlObj.protocol) &&
+      (urlObj.hostname === liveHostname || urlObj.hostname === live2Hostname) &&
+      urlObj.pathname === '/';
+    if (isTopPage) {
+      e.preventDefault();
+      shell.openExternal(url).catch((err) => console.error('shell.openExternal failed:', err));
+    }
+  }
+
+  ipcMain.on('window-openTopPageExternally', (event, id) => {
+    const window = BrowserWindow.fromId(id);
+    if (!window || window.webContents.isDestroyed()) return;
+    window.webContents.on('will-navigate', openTopPageExternally);
+  });
+
+  /**
    * ヘルプページ(qa.nicovideo.jp)への遷移を、ウィンドウ内ではなく既定のブラウザで開かせる処理
    * ログイン画面の「ログインできない方」リンクなどが対象
    **/
