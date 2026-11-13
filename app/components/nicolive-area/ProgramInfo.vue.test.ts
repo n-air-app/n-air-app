@@ -5,9 +5,9 @@
  * 以前は isFetching 中は例外を投げてコピーを中断していたが、ユーザーからは
  * 「クリックしても反応しない」ように見えるだけで、例外はどこにも捕捉・表示されていなかった。
  */
-import { clipboard } from 'electron';
+import { clipboard } from '@electron/remote';
 
-jest.mock('electron', () => ({
+jest.mock('@electron/remote', () => ({
   clipboard: { writeText: jest.fn() },
 }));
 

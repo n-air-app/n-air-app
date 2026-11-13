@@ -1,6 +1,5 @@
 import * as remote from '@electron/remote';
 import Popper from 'components/shared/Popper.vue';
-import { clipboard } from 'electron';
 import { DateTime } from 'luxon';
 import { Subscription } from 'rxjs';
 import { HostsService } from 'services/hosts';
@@ -145,13 +144,13 @@ export default defineComponent({
     },
 
     copyProgramURL() {
-      clipboard.writeText(
+      remote.clipboard.writeText(
         HostsService.instance().getWatchPageURL(NicoliveProgramService.instance().state.programID),
       );
     },
 
     copyProgramPassword() {
-      clipboard.writeText(NicoliveProgramService.instance().state.password ?? '');
+      remote.clipboard.writeText(NicoliveProgramService.instance().state.password ?? '');
     },
   },
 });

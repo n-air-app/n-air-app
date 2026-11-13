@@ -1,5 +1,4 @@
 import * as remote from '@electron/remote';
-import { clipboard } from 'electron';
 import { Subscription } from 'rxjs';
 import { CustomizationService } from 'services/customization';
 import { HostsService } from 'services/hosts';
@@ -325,7 +324,7 @@ export default defineComponent({
         id: 'Copy comment content',
         label: 'コメントをコピー',
         click: () => {
-          clipboard.writeText(content);
+          remote.clipboard.writeText(content);
         },
       });
       if (item.type === 'normal') {
@@ -333,7 +332,7 @@ export default defineComponent({
           id: "Copy comment owner's id",
           label: 'ユーザーIDをコピー',
           click: () => {
-            clipboard.writeText(userId);
+            remote.clipboard.writeText(userId);
           },
         });
         if (!item.filtered) {

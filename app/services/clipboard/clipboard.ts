@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 
-import electron from 'electron';
+import { clipboard } from '@electron/remote';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { SceneCollectionsService } from 'services/scene-collections';
 import {
@@ -20,8 +20,6 @@ import { ISource, Source, SourcesService, TPropertiesManager } from 'services/so
 import { Inject } from '../core/injector';
 
 import { IClipboardServiceApi } from './clipboard-api';
-
-const { clipboard } = electron;
 
 interface ISceneNodeInfo {
   folder?: ISceneItemFolder;
@@ -97,11 +95,17 @@ export class ClipboardService
   @Inject() private selectionService: SelectionService;
   @Inject() private sceneCollectionsService: SceneCollectionsService;
 
+  private clipboardReady: Promise<void> = Promise.resolve();
+
   init() {
     this.sceneCollectionsService.collectionWillSwitch.subscribe(() => {
       this.beforeCollectionSwitchHandler();
     });
-    this.SET_SYSTEM_CLIPBOARD(this.fetchSystemClipboard());
+    this.clipboardReady = this.fetchSystemClipboard().then((clipboard) => {
+      this.SET_SYSTEM_CLIPBOARD(clipboard);
+    }).catch((error) => {
+      console.warn('Failed to read clipboard', error);
+    });
   }
 
   @shortcut('Ctrl+C')
@@ -111,11 +115,14 @@ export class ClipboardService
   }
 
   @shortcut('Ctrl+V')
-  paste(duplicateSources = false) {
+  async paste(duplicateSources = false) {
     // アクティブシーンが未確定なタイミング(起動直後やシーンコレクション切替中)では貼り付けできない
-    if (!this.scenesService.activeScene) return;
+    const scene = this.scenesService.activeScene;
+    if (!scene) return;
 
-    const systemClipboard = this.fetchSystemClipboard();
+    await this.clipboardReady;
+    const systemClipboard = await this.fetchSystemClipboard();
+    if (this.scenesService.activeScene?.id !== scene.id) return;
     if (JSON.stringify(this.state.systemClipboard) !== JSON.stringify(systemClipboard)) {
       this.clear();
       this.SET_SYSTEM_CLIPBOARD(systemClipboard);
@@ -182,9 +189,9 @@ export class ClipboardService
     this.SET_UNLOADED_CLIPBOARD_FILTERS([]);
   }
 
-  private fetchSystemClipboard(): ISystemClipboard {
+  private async fetchSystemClipboard(): Promise<ISystemClipboard> {
     let files: string[] = [];
-    const text = clipboard.readText() || '';
+    const text = await clipboard.readText() || '';
     if (!text) files = this.getFiles();
     return { text, files };
   }
