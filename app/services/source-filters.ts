@@ -7,6 +7,7 @@ import {
   TObsValue,
 } from 'components/obs/inputs/ObsInput';
 import { EOrderMovement } from 'obs-studio-node';
+import { Subject } from 'rxjs';
 import { $t } from 'services/i18n';
 import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
 import { SentryReport } from 'util/sentry-report';
@@ -62,6 +63,9 @@ export class SourceFiltersService extends Service {
 
   @Inject()
   windowsService: WindowsService;
+
+  /** フィルタの追加・削除・設定変更・並べ替えがあったソースの ID */
+  filtersChanged = new Subject<string>();
 
   getTypesList(): IObsListOption<TSourceFilterType>[] {
     const obsAvailableTypes = obs.FilterFactory.types();
@@ -154,6 +158,7 @@ export class SourceFiltersService extends Service {
     // There is now 2 references to the filter at that point
     // We need to release one
     obsFilter.release();
+    this.filtersChanged.next(sourceId);
     return filterReference;
   }
 
@@ -173,11 +178,18 @@ export class SourceFiltersService extends Service {
     const obsFilter = this.getObsFilter(sourceId, filterName);
     const source = this.sourcesService.getSource(sourceId)!;
     source.getObsInput().removeFilter(obsFilter);
+    this.filtersChanged.next(sourceId);
   }
 
   setPropertiesFormData(sourceId: string, filterName: string, properties: TObsFormData) {
     if (!filterName) return;
     setPropertiesFormData(this.getObsFilter(sourceId, filterName), properties);
+    this.filtersChanged.next(sourceId);
+  }
+
+  updateSettings(sourceId: string, filterName: string, settings: Dictionary<TObsValue>) {
+    this.getObsFilter(sourceId, filterName).update(settings);
+    this.filtersChanged.next(sourceId);
   }
 
   getFilters(sourceId: string): ISourceFilter[] {
@@ -196,6 +208,7 @@ export class SourceFiltersService extends Service {
 
   setVisibility(sourceId: string, filterName: string, visible: boolean) {
     this.getObsFilter(sourceId, filterName).enabled = visible;
+    this.filtersChanged.next(sourceId);
   }
 
   getAddNewFormData(sourceId: string) {
@@ -252,6 +265,7 @@ export class SourceFiltersService extends Service {
     while (i--) {
       obsInput.setFilterOrder(obsFilter, movement);
     }
+    this.filtersChanged.next(sourceId);
   }
 
   showSourceFilters(sourceId: string, selectedFilterName = '') {
