@@ -8,6 +8,8 @@
   "monitorOnly": "Monitor Only (mute output)",
   "monitorAndOutput": "Monitor and Output",
   "tracks": "Tracks",
+  "streamingTrackNoteSimple": "Streaming uses track {track} (fixed in Simple output mode)",
+  "streamingTrackNoteAdvanced": "Streaming uses track {track} (change in Settings > Output > Streaming)",
   "advancedAudioSettings": "Advanced Audio Settings",
   "mixer": "Mixer",
   "mute": "Mute",

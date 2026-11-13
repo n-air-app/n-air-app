@@ -178,10 +178,12 @@
 @import url('./comment/comment');
 
 .container {
+  position: relative;
   display: flex;
   flex-grow: 1;
   flex-direction: column;
   width: 100%;
+  min-width: 0;
   background-color: var(--color-bg-tertiary);
 }
 
@@ -297,6 +299,8 @@
 
 .overlay {
   position: absolute;
+  top: 0;
+  left: 0;
   z-index: @z-index-expand-content;
   width: 100%;
   height: 100%;

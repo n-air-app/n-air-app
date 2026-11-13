@@ -2,19 +2,19 @@
   <div class="program-statistics">
     <ul class="program-statistics-list">
       <li class="program-statistics-item" v-tooltip.bottom="visitorTooltip">
-        <i class="program-statistics-icon icon-visitor"></i
+        <i class="program-statistics-icon icon-user-small"></i
         ><span class="program-statistics-value">{{ viewers }}</span>
       </li>
       <li class="program-statistics-item" v-tooltip.bottom="commentTooltip">
-        <i class="program-statistics-icon icon-comment"></i
+        <i class="program-statistics-icon icon-comment-fill"></i
         ><span class="program-statistics-value">{{ comments }}</span>
       </li>
       <li class="program-statistics-item" v-tooltip.bottom="adPointTooltip">
-        <i class="program-statistics-icon icon-nicoad"></i
+        <i class="program-statistics-icon icon-nicoad-fill"></i
         ><span class="program-statistics-value">{{ adPoint }}</span>
       </li>
       <li class="program-statistics-item" v-tooltip.bottom="giftPointTooltip">
-        <i class="program-statistics-icon icon-gift"></i
+        <i class="program-statistics-icon icon-gift-fill"></i
         ><span class="program-statistics-value">{{ giftPoint }}</span>
       </li>
     </ul>
@@ -54,14 +54,14 @@
 
 .program-statistics-icon {
   margin-right: 8px;
-  font-size: @font-size2;
-  color: var(--color-text-dark);
+  font-size: var(--font-size-md);
+  color: var(--color-object-emphasis-low);
 }
 
 .program-statistics-value {
   flex-grow: 1;
-  font-size: @font-size2;
-  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  color: var(--color-object-emphasis-medium);
   text-align: center;
 }
 </style>
