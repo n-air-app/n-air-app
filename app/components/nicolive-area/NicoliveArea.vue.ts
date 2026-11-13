@@ -3,8 +3,14 @@ import ProgramInfo from 'components/nicolive-area/ProgramInfo.vue';
 import ProgramStatistics from 'components/nicolive-area/ProgramStatistics.vue';
 import ToolBar from 'components/nicolive-area/ToolBar.vue';
 import PerformanceMetrics from 'components/studio/PerformanceMetrics.vue';
+import { DateTime } from 'luxon';
 import { CustomizationService } from 'services/customization';
-import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
+import { $t } from 'services/i18n';
+import {
+  NicoliveProgramService,
+  ScheduleSummary,
+  ScheduleSummaryItem,
+} from 'services/nicolive-program/nicolive-program';
 import {
   NicoliveFailure,
   openErrorDialogFromFailure,
@@ -25,16 +31,45 @@ export default defineComponent({
   data() {
     return {
       isFetching: false,
+      isLoadingSummary: false,
+      summary: null as ScheduleSummary | null,
+      summaryError: false,
+      onWindowFocus: null as (() => void) | null,
     };
   },
 
+  mounted() {
+    this.onWindowFocus = () => {
+      if (!this.hasProgram) this.refreshSummary();
+    };
+    window.addEventListener('focus', this.onWindowFocus);
+    this.refreshSummary();
+  },
+
+  watch: {
+    // 番組が解放されて初期画面に戻ったときも再取得する
+    hasProgram(has: boolean) {
+      if (!has) {
+        // 古い概要を見せないよう、いったん捨ててから再取得する
+        this.summary = null;
+        this.refreshSummary();
+      }
+    },
+  },
+
   unmounted() {
+    if (this.onWindowFocus) window.removeEventListener('focus', this.onWindowFocus);
     NicoliveProgramService.instance().hidePlaceholder();
   },
 
   computed: {
     opened(): boolean {
       return NicoliveProgramService.instance().state.panelOpened ?? false;
+    },
+
+    /** 放送中・テスト中の番組があるときは新規作成できない */
+    hasCurrentProgram(): boolean {
+      return Boolean(this.summary?.current);
     },
 
     isCompactMode(): boolean {
@@ -51,23 +86,81 @@ export default defineComponent({
   },
 
   methods: {
+    t(key: string): string {
+      return $t(`nicolive-program.scheduleSummary.${key}`);
+    },
+
+    itemLabel(item: ScheduleSummaryItem): string {
+      if (item.status === 'reserved') return this.t('reserved');
+      return this.t(item.status === 'test' ? 'test' : 'current');
+    },
+
+    formatRange(item: ScheduleSummaryItem): string {
+      const fmt = 'yyyy/MM/dd HH:mm';
+      const start = DateTime.fromSeconds(item.onAirBeginAt).toFormat(fmt);
+      if (item.status === 'reserved') {
+        return $t('nicolive-program.scheduleSummary.reservedStart', { start });
+      }
+      const end = DateTime.fromSeconds(item.onAirEndAt).toFormat(fmt);
+      return $t('nicolive-program.scheduleSummary.schedule', { start, end });
+    },
+
+    async refreshSummary(): Promise<void> {
+      if (this.isLoadingSummary || this.isFetching || this.hasProgram) return;
+      this.isLoadingSummary = true;
+      try {
+        this.summary = await NicoliveProgramService.instance().fetchScheduleSummary();
+        this.summaryError = false;
+      } catch (caught) {
+        // 自動確認の失敗ではダイアログを出さず、表示だけ控えめに知らせる
+        console.warn('[NicoliveArea] fetchScheduleSummary failed', caught);
+        this.summaryError = true;
+      } finally {
+        this.isLoadingSummary = false;
+      }
+    },
+
     onToggle(): void {
       NicoliveProgramService.instance().togglePanelOpened();
     },
 
-    async prepareProgram(): Promise<void> {
+    /** 既存番組の有無にかかわらず新規番組を作成する */
+    async createNewProgram(): Promise<void> {
+      if (this.isFetching || this.isLoadingSummary || this.hasCurrentProgram) return;
+      try {
+        this.isFetching = true;
+        await NicoliveProgramService.instance().createProgram();
+      } catch (caught) {
+        if (caught instanceof NicoliveFailure) {
+          await openErrorDialogFromFailure(caught);
+        } else {
+          console.error(caught);
+        }
+      } finally {
+        this.isFetching = false;
+      }
+    },
+
+    /**
+     * @param targetProgramId 指定時はその番組だけを取得する（見つからない・終了済みの場合は新規作成せず概要を再取得する）。
+     *   未指定時は従来通り自動選択し、なければ新規作成する
+     */
+    async prepareProgram(targetProgramId?: string): Promise<void> {
       if (this.isFetching) throw new Error('prepareProgram is running');
       try {
         this.isFetching = true;
         let needsCreate = false;
+        // 指定した番組が既に存在しない・終了済みだった場合（表示中の概要が古い）
+        let staleTarget = false;
         try {
-          await NicoliveProgramService.instance().fetchProgram();
+          await NicoliveProgramService.instance().fetchProgram(targetProgramId);
           // fetchProgram 成功後でも status が end の場合は終了済み番組を掴んでいる
           // (N Air で手動終了した直後はスケジュール API がまだ onAir を返すことがある)
           // programID がセットされたままだと hasProgram=true でパネルが切り替わるためクリアする
           if (NicoliveProgramService.instance().state.status === 'end') {
             NicoliveProgramService.instance().releaseProgram();
-            needsCreate = true;
+            needsCreate = !targetProgramId;
+            if (targetProgramId) staleTarget = true;
           }
         } catch (caught) {
           if (
@@ -75,13 +168,19 @@ export default defineComponent({
             && caught.type === 'logic'
             && caught.reason === 'no_suitable_program'
           ) {
-            needsCreate = true;
+            needsCreate = !targetProgramId;
+            if (targetProgramId) staleTarget = true;
           } else {
             throw caught;
           }
         }
         if (needsCreate) {
           await NicoliveProgramService.instance().createProgram();
+        }
+        if (staleTarget) {
+          // 概要が古かったので、誤って新規作成せず表示を更新する
+          this.isFetching = false;
+          await this.refreshSummary();
         }
       } catch (caught) {
         if (caught instanceof NicoliveFailure) {
