@@ -1,8 +1,6 @@
 <template>
   <div class="nav-container">
-    <div class="nav-item elapsed-time">
-      <time v-tooltip.left="elapsedTimeTooltip">{{ streamingElapsedTime }}</time>
-    </div>
+    <sub-stream-button :locked="locked" />
     <div class="nav-item">
       <button
         :disabled="locked"
@@ -44,7 +42,8 @@
       </button>
     </div>
 
-    <div class="nav-item">
+    <div class="nav-item main-stream-controls">
+      <time class="elapsed-time" v-tooltip.left="elapsedTimeTooltip">{{ streamingElapsedTime }}</time>
       <start-streaming-button :disabled="locked" />
     </div>
   </div>
@@ -57,6 +56,7 @@
 
 .nav-container {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
 }
 
@@ -95,17 +95,19 @@
   }
 }
 
+.main-stream-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .elapsed-time {
   .time-styling();
 
-  margin-right: auto;
-
   // '--:--:--' と '00:00:00' で幅が変わらないよう、数字8桁分 + letter-spacing の幅を確保する
-  time {
-    display: inline-block;
-    min-width: calc(8ch + 0.64em);
-    font-variant-numeric: tabular-nums;
-  }
+  display: inline-block;
+  min-width: calc(8ch + 0.64em);
+  font-variant-numeric: tabular-nums;
 }
 
 .record-button {
