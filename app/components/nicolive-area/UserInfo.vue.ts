@@ -22,15 +22,16 @@ import {
 } from 'services/nicolive-program/NicoliveFailure';
 import { isWrappedChat, WrappedChatWithComponent } from 'services/nicolive-program/WrappedChat';
 import { WindowsService } from 'services/windows';
-import { Component, defineComponent } from 'vue';
+import { Component, defineComponent, markRaw } from 'vue';
 
-const componentMap: { [type in ChatComponentType]: Component } = {
+// data() に入れてもコンポーネント定義がリアクティブ化されないよう markRaw する
+const componentMap: { [type in ChatComponentType]: Component } = markRaw({
   common: CommonComment,
   nicoad: NicoadComment,
   gift: GiftComment,
   emotion: EmotionComment,
   system: SystemMessage,
-};
+});
 
 export default defineComponent({
   name: 'UserInfo',
