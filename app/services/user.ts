@@ -294,6 +294,9 @@ export class UserService extends PersistentStatefulService<IUserServiceState> {
     addClipboardMenu(authWindow);
 
     authWindow.setMenu(null);
+    // ヘルプページへの遷移と、そこから開かれる新規ウィンドウをアプリ内ではなく既定のブラウザで開かせる
+    ipcRenderer.send('window-openHelpPageExternally', authWindow.id);
+    ipcRenderer.send('window-preventNewWindow', authWindow.id);
     authWindow.loadURL(service.authUrl).catch((error) => {
       if (error instanceof Error) {
         SentryReport.error('UserService', 'startAuth', error, {
