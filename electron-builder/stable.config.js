@@ -68,6 +68,9 @@ const config = {
   win: {
     signtoolOptions: {
       publisherName: ['DWANGO Co.,Ltd.'],
+      // SHA1 署名は Windows 7 / Vista 向けで、Electron 29 では不要。
+      // 指定しないと electron-builder は ['sha1', 'sha256'] で2重署名する。
+      signingHashAlgorithms: ['sha256'],
       rfc3161TimeStampServer: 'http://timestamp.digicert.com',
       timeStampServer: 'http://timestamp.digicert.com',
     },
