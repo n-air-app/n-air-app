@@ -188,7 +188,7 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 
 ### コード署名のハッシュアルゴリズム
 
-`electron-builder/stable.config.js`（unstable / internal も継承）では `win.signtoolOptions.signingHashAlgorithms: ['sha256']` を指定し、署名を SHA256 のみにしています。未指定だと electron-builder は `['sha1', 'sha256']` で2重署名し、ファイルごとに signtool とタイムスタンプ取得が2回走るため、署名工程が約2倍かかります。SHA1 署名が必要なのは SHA2 未対応の Windows 7 / Vista だけで、Electron 29 は Windows 10 以上が前提のため不要です。
+`electron-builder/stable.config.js`（unstable / internal も継承）では `win.signtoolOptions.signingHashAlgorithms: ['sha256']` を指定し、署名を SHA256 のみにしています。未指定だと electron-builder は `['sha1', 'sha256']` で2重署名し、ファイルごとに signtool とタイムスタンプ取得が2回走るため、署名工程が約2倍かかります。SHA1 署名が必要なのは SHA2 未対応の Windows 7 / Vista だけで、Electron 23 以降は Windows 7 / 8 / 8.1 のサポートが終了し Windows 10 以上が前提のため、不要です（Electron を上げても、23 未満に戻さない限りこの前提は変わりません）。
 
 - **署名鍵の種類（RSA → ECDSA など）を変えるときは、この設定との整合を確認してください。** `signingHashAlgorithms` はダイジェスト（ファイルハッシュ・タイムスタンプ）のアルゴリズムを固定するもので、署名鍵の種類とは別物です。ただし証明書やツール（Azure Trusted Signing 等の `azureSignOptions` への移行を含む）を変える際は、`signtoolOptions` 自体が使われなくなる／アルゴリズム指定の方法が変わる可能性があります
 - 署名後は `signtool verify /pa /all <file>` で、`Algorithm` が `sha256`、`Timestamp` が `RFC3161` の1行だけになっていることを確認できます
