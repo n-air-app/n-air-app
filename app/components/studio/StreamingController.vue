@@ -99,6 +99,13 @@
   .time-styling();
 
   margin-right: auto;
+
+  // '--:--:--' と '00:00:00' で幅が変わらないよう、数字8桁分 + letter-spacing の幅を確保する
+  time {
+    display: inline-block;
+    min-width: calc(8ch + 0.64em);
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 .record-button {

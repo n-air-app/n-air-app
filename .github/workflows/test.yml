@@ -7,6 +7,11 @@ on:
 
   pull_request:
 
+  # fix-bin-lockfile.yml が GITHUB_TOKEN で push した後にCIを起動するために使う。
+  # GITHUB_TOKEN による push は push/pull_request ワークフローを起動しないが、
+  # workflow_dispatch だけは例外。差分判定ができないため bin のテストのみ実行する。
+  workflow_dispatch:
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -14,8 +19,8 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      app: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.app == 'true' }}
-      bin: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.bin == 'true' }}
+      app: ${{ github.event_name != 'workflow_dispatch' && (steps.filter.outputs.common == 'true' || steps.filter.outputs.app == 'true') }}
+      bin: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.common == 'true' || steps.filter.outputs.bin == 'true' }}
     steps:
       - name: Checkout if push
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -23,6 +28,7 @@ jobs:
 
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         with:
           filters: |
             common:
