@@ -25,7 +25,7 @@ import { SettingsService } from 'services/settings';
 import { SnackbarService } from 'services/snackbar';
 import { SoundDetectorService } from 'services/sound-detector';
 import { Menu } from 'util/menus/Menu';
-import { Component, defineComponent } from 'vue';
+import { Component, defineComponent, markRaw } from 'vue';
 
 import NAirLogo from '../../../media/images/n-air-logo.svg';
 
@@ -39,13 +39,14 @@ import CommentFilter from './CommentFilter.vue';
 import CommentForm from './CommentForm.vue';
 import SoundDetectorButton from './SoundDetectorButton.vue';
 
-const componentMap: { [type in ChatComponentType]: Component } = {
+// data() に入れてもコンポーネント定義がリアクティブ化されないよう markRaw する
+const componentMap: { [type in ChatComponentType]: Component } = markRaw({
   common: CommonComment,
   nicoad: NicoadComment,
   gift: GiftComment,
   emotion: EmotionComment,
   system: SystemMessage,
-};
+});
 
 export default defineComponent({
   name: 'CommentViewer',
