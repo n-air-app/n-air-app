@@ -3,7 +3,8 @@ name: Fix bin lockfile
 # dependabot は bin/package.json だけを更新して bin/pnpm-lock.yaml を更新しない
 # (bin/ はルートのワークスペースと独立しており --ignore-workspace が必要なため)。
 # そのPRを探してロックファイルを更新し、CIを起動し直す。
-# PATを使わないため、GITHUB_TOKEN で push した後に test.yml を workflow_dispatch で起動する。
+# PATを使わないため、GITHUB_TOKEN でコミットした後に test.yml を workflow_dispatch で起動する。
+# コミット署名が必須なので、git push ではなく GraphQL API (createCommitOnBranch) でコミットする。
 
 on:
   schedule:
@@ -70,10 +71,32 @@ jobs:
               if git diff --quiet -- bin/pnpm-lock.yaml; then
                 echo "ロックファイルに差分なし"
               else
-                git add bin/pnpm-lock.yaml
-                git commit -m '開発: bin/pnpm-lock.yaml を更新'
-                git push origin "HEAD:refs/heads/$branch"
-                # GITHUB_TOKEN による push ではCIが起動しないため明示的に起動する
+                # リポジトリはコミット署名必須のため、git push ではなく GraphQL の
+                # createCommitOnBranch でコミットする (GitHub が署名し Verified になる)
+                head_oid=$(git rev-parse HEAD)
+                # base64化したロックファイルは引数長の上限(約128KB)に近づき得るためファイル経由で渡す
+                base64 -w0 bin/pnpm-lock.yaml > "$RUNNER_TEMP/lockfile.b64"
+                jq -n \
+                  --arg repo "$REPOSITORY" \
+                  --arg branch "$branch" \
+                  --arg oid "$head_oid" \
+                  --rawfile contents "$RUNNER_TEMP/lockfile.b64" \
+                  '{
+                    query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid url } } }",
+                    variables: { input: {
+                      branch: { repositoryNameWithOwner: $repo, branchName: $branch },
+                      message: { headline: "開発: bin/pnpm-lock.yaml を更新" },
+                      expectedHeadOid: $oid,
+                      fileChanges: { additions: [{ path: "bin/pnpm-lock.yaml", contents: $contents }] }
+                    } }
+                  }' > "$RUNNER_TEMP/commit-request.json"
+                response=$(gh api graphql --input "$RUNNER_TEMP/commit-request.json")
+                echo "$response"
+                if [[ "$(echo "$response" | jq -r '.data.createCommitOnBranch.commit.oid // empty')" == "" ]]; then
+                  echo "コミットの作成に失敗しました"
+                  exit 1
+                fi
+                # GITHUB_TOKEN によるコミットではCIが起動しないため明示的に起動する
                 gh workflow run test.yml --repo "$REPOSITORY" --ref "$branch"
               fi
             ) || { echo "::error::$branch の処理に失敗しました"; failed=1; }
