@@ -5,11 +5,9 @@ import { Subscription } from 'rxjs';
 import { AudioSource, IVolmeter } from 'services/audio';
 import { CompactModeService } from 'services/compact-mode';
 import { CustomizationService } from 'services/customization';
-import { $t } from 'services/i18n';
-import { canGainUp, formatGainDb, LoudnessService, nextGainStep, SoundActivity } from 'services/loudness';
+import { formatGainDb, LoudnessService, nextGainStep, prevGainStep, SoundActivity } from 'services/loudness';
 import { SourceFiltersService } from 'services/source-filters';
 import { EditMenu } from 'util/menus/EditMenu';
-import { GainMenu } from 'util/menus/GainMenu';
 import { defineComponent, PropType } from 'vue';
 
 // コントロールをまとめるかどうかの幅の閾値
@@ -30,9 +28,9 @@ export default defineComponent({
       resizeObserver: null as ResizeObserver | null,
       // ゲイン (ゲインフィルタ) は OBS 側にあり reactive でないので、変更通知で読み直す
       gainDb: 0,
-      // 配信音声が小さい状態か (ラウドネスパネルの計測から)
-      quiet: false,
-      // 最近音を出していたか。配信音声が小さい間だけ、ボリュームメーターから判定する
+      // 配信音声が目標から外れている (小さい・大きい) か。ゲインの黄色表示に使う
+      offTarget: false,
+      // 最近音を出していたか (ボリュームメーターから判定)
       active: false,
       subscription: null as Subscription | null,
       volmeterSubscription: null as Subscription | null,
@@ -56,7 +54,8 @@ export default defineComponent({
         if (sourceId === this.audioSource.sourceId) this.updateGain();
       }),
     );
-    this.subscription.add(LoudnessService.instance().quiet.subscribe((quiet) => this.setQuiet(quiet)));
+    this.subscription.add(LoudnessService.instance().offTarget.subscribe((offTarget) => (this.offTarget = offTarget)));
+    this.watchActivity();
   },
 
   beforeUnmount() {
@@ -74,29 +73,36 @@ export default defineComponent({
       return CompactModeService.instance().isCompactMode;
     },
 
+    // 音を出しているソース全部に出す。ゲインが 0 以外なら、無音でも戻せるよう出し続ける
+    showGain(): boolean {
+      return this.active || this.gainDb !== 0;
+    },
+
     canGainUp(): boolean {
-      return canGainUp({
-        quiet: this.quiet,
-        active: this.active,
-        muted: this.audioSource.muted,
-        faderDb: this.audioSource.fader.db,
-        gainDb: this.gainDb,
-      });
+      return nextGainStep(this.gainDb) !== null;
+    },
+
+    canGainDown(): boolean {
+      return prevGainStep(this.gainDb) !== null;
     },
 
     gainText(): string {
       return formatGainDb(this.gainDb);
     },
 
-    gainTooltip(): string {
-      const tooltip = $t('audio.gainBadgeTooltip', { db: this.gainText });
+    gainUpTooltip(): string {
+      const next = nextGainStep(this.gainDb);
       // 上限なら、これ以上は OS の入力音量で上げることを案内する
-      return nextGainStep(this.gainDb) === null ? `${tooltip} ${$t('audio.gainMaxTooltip')}` : tooltip;
+      return next === null
+        ? this.$t('audio.gainMaxTooltip')
+        : this.$t('audio.gainUpTooltip', { db: formatGainDb(next) });
     },
 
-    // 「+」は上限未満のときだけ出すので、次の段階は必ずある
-    nextGainText(): string {
-      return formatGainDb(nextGainStep(this.gainDb) ?? this.gainDb);
+    gainDownTooltip(): string {
+      const prev = prevGainStep(this.gainDb);
+      return prev === null
+        ? this.$t('audio.gainMinTooltip')
+        : this.$t('audio.gainDownTooltip', { db: formatGainDb(prev) });
     },
   },
 
@@ -113,15 +119,7 @@ export default defineComponent({
       this.gainDb = LoudnessService.instance().getGain(this.audioSource.sourceId);
     },
 
-    setQuiet(quiet: boolean) {
-      this.quiet = quiet;
-      if (!quiet) {
-        this.volmeterSubscription?.unsubscribe();
-        this.volmeterSubscription = null;
-        this.active = false;
-        return;
-      }
-      if (this.volmeterSubscription) return;
+    watchActivity() {
       const activity = new SoundActivity();
       this.volmeterSubscription = this.audioSource.getVolmeterStream().subscribe((volmeter: IVolmeter) => {
         // フェーダー前のピークで見る (フェーダーを下げていても、音を出しているかは分かる)
@@ -134,8 +132,8 @@ export default defineComponent({
       LoudnessService.instance().gainUp(this.audioSource.sourceId);
     },
 
-    showGainMenu() {
-      new GainMenu(this.audioSource.sourceId).popup();
+    gainDown() {
+      LoudnessService.instance().gainDown(this.audioSource.sourceId);
     },
 
     showSourceMenu(sourceId: string) {

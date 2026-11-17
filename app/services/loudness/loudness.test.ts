@@ -232,13 +232,13 @@ describe('enable / disable', () => {
   });
 });
 
-describe('quiet', () => {
-  test('配信音声が小さいと true、無音 (未確定) の間は保ち、適正になると false', async () => {
+describe('offTarget', () => {
+  test('配信音声が目標から外れると true、無音 (未確定) の間は保ち、適正になると false', async () => {
     let shortTerm: number | null = -30;
     fakePlugin(() => ({ momentary: -30, shortTerm }));
     const service = getService();
     const values: boolean[] = [];
-    service.quiet.subscribe((v) => values.push(v));
+    service.offTarget.subscribe((v) => values.push(v));
 
     service.enable();
     await flush();
@@ -255,6 +255,19 @@ describe('quiet', () => {
     await clock.tickAsync(200);
     await flush();
     expect(values).toEqual([false, true, false]);
+  });
+
+  test('大きすぎるときも true', async () => {
+    fakePlugin(() => ({ momentary: -5, shortTerm: -5 }));
+    const service = getService();
+    const values: boolean[] = [];
+    service.offTarget.subscribe((v) => values.push(v));
+
+    service.enable();
+    await flush();
+    await clock.tickAsync(200);
+    await flush();
+    expect(values.at(-1)).toBe(true);
   });
 });
 
@@ -384,6 +397,24 @@ describe('ゲイン', () => {
     expect(sourceFilters.add).not.toHaveBeenCalled();
     expect(sourceFilters.updateSettings).toHaveBeenCalledWith('mic', '自分のゲイン', { db: 6 });
     expect(filters[0].visible).toBe(true);
+  });
+
+  test('押すたびに前の段階へ下げ、下限では何もしない', () => {
+    const filters = [{ name: 'ゲイン', type: 'gain_filter', visible: true, settings: { db: 6 } }];
+    const { service } = getGainService(filters);
+
+    expect(service.gainDown('mic')).toBe(0);
+    expect(service.gainDown('mic')).toBe(-6);
+    expect(service.gainDown('mic')).toBe(-12);
+    expect(service.gainDown('mic')).toBe(-18);
+    expect(service.gainDown('mic')).toBeNull();
+    expect(service.getGain('mic')).toBe(-18);
+  });
+
+  test('ゲインフィルタがなければ下げるときも先頭に追加する', () => {
+    const { service, sourceFilters } = getGainService([]);
+    expect(service.gainDown('mic')).toBe(-6);
+    expect(sourceFilters.add).toHaveBeenCalledWith('mic', 'gain_filter', 'filters.gain', { db: -6 });
   });
 
   test('オフ (0) にしてもゲインフィルタは削除せず 0 dB に戻す', () => {

@@ -7,26 +7,29 @@
   >
     <div class="title-container">
       <div class="source-name">{{ audioSource.source?.name }}</div>
-      <div v-if="gainDb > 0 || canGainUp" class="gain" :class="{ attention: canGainUp }">
+      <div v-if="showGain" class="gain" :class="{ attention: offTarget }">
         <button
-          v-if="gainDb > 0"
           type="button"
-          class="gain-value"
-          v-tooltip.bottom="gainTooltip"
-          @click.stop="showGainMenu"
+          class="gain-down"
+          :disabled="!canGainDown"
+          :aria-label="$t('audio.gainDown')"
+          v-tooltip.bottom="gainDownTooltip"
+          @click.stop="gainDown"
         >
-          {{ $t('audio.gainBadge', { db: gainText }) }}
+          -
         </button>
+        <span class="gain-value" v-tooltip.bottom="$t('audio.gainValueTooltip', { db: gainText })">
+          {{ gainText }}
+        </span>
         <button
-          v-if="canGainUp"
           type="button"
           class="gain-up"
+          :disabled="!canGainUp"
           :aria-label="$t('audio.gainUp')"
-          v-tooltip.bottom="$t('audio.gainUpTooltip', { db: nextGainText })"
+          v-tooltip.bottom="gainUpTooltip"
           @click.stop="gainUp"
         >
-          <template v-if="gainDb > 0">+</template>
-          <template v-else>{{ $t('audio.gainUpLabel') }}</template>
+          +
         </button>
       </div>
       <div class="db-value">
@@ -111,12 +114,14 @@
 
   .title-container {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
   }
 
+  // 幅が足りないときは、名前を削るより先にゲインや dB 値を2行目へ折り返す
   .source-name {
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 5em;
+    min-width: 5em;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: @font-size2;
@@ -136,10 +141,14 @@
     border: 1px solid var(--color-border-light);
     border-radius: 9px;
 
-    // 配信音声が小さく、ここで上げられるときは、ラウドネスパネルと同じ黄色で示す
+    // 配信音声が目標から外れているときは、ラウドネスパネルと同じ黄色で示す
     &.attention {
       color: var(--color-yellow);
       border-color: currentcolor;
+
+      .gain-value {
+        border-color: currentcolor;
+      }
     }
 
     button {
@@ -151,13 +160,23 @@
       background: transparent;
       border: 0;
 
-      &:hover {
+      &:hover:not(:disabled) {
         background: var(--color-bg-secondary);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: @opacity-disabled;
       }
     }
 
-    .gain-value + button {
-      border-left: 1px solid currentcolor;
+    .gain-value {
+      min-width: 28px;
+      padding: 0 3px;
+      line-height: 16px;
+      text-align: center;
+      border-right: 1px solid var(--color-border-light);
+      border-left: 1px solid var(--color-border-light);
     }
   }
 

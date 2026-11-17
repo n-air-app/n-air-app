@@ -7,8 +7,8 @@ import { SettingsService } from 'services/settings';
 import { ISourceFilter, SourceFiltersService } from 'services/source-filters';
 import { NamedPipeClient } from 'services/substream/NamedPipeClient';
 
-import { nextGainStep } from './loudness-gain';
-import { loudnessLevel, nextQuiet } from './loudness-level';
+import { nextGainStep, prevGainStep } from './loudness-gain';
+import { loudnessLevel, nextOffTarget } from './loudness-level';
 
 /**
  * nair-loudness.dll (n-air-app/loudness) と通信してラウドネスを取得する。
@@ -60,9 +60,9 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
   private statusSubject = new BehaviorSubject<LoudnessStatus>('stopped');
   status: Observable<LoudnessStatus> = this.statusSubject.asObservable();
 
-  private quietSubject = new BehaviorSubject<boolean>(false);
-  /** 配信音声が小さい状態か (ミキサーの各ソースでゲインを案内する)。無音の間は直前の状態を保つ */
-  quiet: Observable<boolean> = this.quietSubject.pipe(distinctUntilChanged());
+  private offTargetSubject = new BehaviorSubject<boolean>(false);
+  /** 配信音声が目標から外れている (小さい・大きい) か。ミキサーのゲインの色分けに使う。無音の間は直前の状態を保つ */
+  offTarget: Observable<boolean> = this.offTargetSubject.pipe(distinctUntilChanged());
 
   // 計測するか (enable / disable で切り替える)
   private running = false;
@@ -168,6 +168,14 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     return next;
   }
 
+  /** ゲインを前の段階に下げ、下げた後の値を返す。下限に達していれば何もせず null */
+  gainDown(sourceId: string): number | null {
+    const prev = prevGainStep(this.getGain(sourceId));
+    if (prev === null) return null;
+    this.setGain(sourceId, prev);
+    return prev;
+  }
+
   private findGainFilter(sourceId: string): ISourceFilter | undefined {
     return this.sourceFiltersService.getFilters(sourceId).find((filter) => filter.type === 'gain_filter');
   }
@@ -195,7 +203,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     await this.destroyMeter();
     this.client.close();
     this.loudnessSubject.next(EMPTY_LOUDNESS);
-    this.quietSubject.next(false);
+    this.offTargetSubject.next(false);
     if (this.statusSubject.getValue() !== 'unavailable') {
       this.statusSubject.next('stopped');
     }
@@ -246,7 +254,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
       };
       this.loudnessSubject.next(loudness);
       const level = loudnessLevel(loudness.shortTerm, this.targetLufs);
-      this.quietSubject.next(nextQuiet(this.quietSubject.getValue(), level));
+      this.offTargetSubject.next(nextOffTarget(this.offTargetSubject.getValue(), level));
     } catch (e) {
       this.reportUnavailable(e);
       return;
@@ -267,7 +275,7 @@ export class LoudnessService extends PersistentStatefulService<ILoudnessState> {
     this.meterTrack = null;
     this.client.close();
     this.loudnessSubject.next(EMPTY_LOUDNESS);
-    this.quietSubject.next(false);
+    this.offTargetSubject.next(false);
     if (this.statusSubject.getValue() === 'unavailable') return;
     this.statusSubject.next('unavailable');
     console.error('LoudnessService: nair-loudness is not available', e);

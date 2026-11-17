@@ -26,14 +26,11 @@
   "loudnessTargetItem": "目標 {target} LUFS",
   "loudnessTargetDefaultItem": "目標 {target} LUFS (既定)",
   "loudnessUnavailable": "計測できません",
-  "gain": "ゲイン (音量の底上げ)",
-  "gainOff": "オフ (0 dB)",
-  "gainItem": "{db} dB",
-  "gainOpenFilters": "フィルターで細かく調整…",
-  "gainBadge": "ゲイン {db}",
-  "gainBadgeTooltip": "ゲインフィルターで音量を {db} dB 底上げしています。クリックで変更できます。大きすぎるときは、ミキサーの音量で下げてください。",
   "gainUp": "ゲインを上げる",
-  "gainUpLabel": "+ ゲイン",
-  "gainUpTooltip": "音量を最大にしても小さいときは、ゲインフィルターで {db} dB に底上げします。大きくなりすぎたら、ミキサーの音量で下げてください。",
-  "gainMaxTooltip": "上限です。これ以上は Windows のサウンド設定で入力音量を上げてください"
+  "gainDown": "ゲインを下げる",
+  "gainUpTooltip": "ゲインフィルターで音量を {db} dB に底上げします。大きくなりすぎたら「-」か、ミキサーの音量で下げてください。",
+  "gainDownTooltip": "ゲインフィルターの音量を {db} dB にします。",
+  "gainValueTooltip": "現在のゲイン {db} dB",
+  "gainMaxTooltip": "上限です。これ以上は Windows のサウンド設定で入力音量を上げてください",
+  "gainMinTooltip": "下限です"
 }

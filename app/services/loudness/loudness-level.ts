@@ -13,11 +13,11 @@ export function loudnessLevel(shortTerm: number | null, targetLufs: number): Lou
 }
 
 /**
- * 配信音声が小さい状態か。小さい (low) で true、適正・大きい (ok / high) で false にする。
- * 未確定 (none、無音など) では前の状態を保つ。話の合間で案内が出たり消えたりしないようにするため
+ * 配信音声が目標から外れている状態か。小さい・大きい (low / high) で true、適正 (ok) で false にする。
+ * 未確定 (none、無音など) では前の状態を保つ。話の合間で表示が出たり消えたりしないようにするため
  */
-export function nextQuiet(prev: boolean, level: LoudnessLevel): boolean {
-  if (level === 'low') return true;
-  if (level === 'ok' || level === 'high') return false;
+export function nextOffTarget(prev: boolean, level: LoudnessLevel): boolean {
+  if (level === 'low' || level === 'high') return true;
+  if (level === 'ok') return false;
   return prev;
 }

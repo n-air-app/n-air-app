@@ -1,9 +1,10 @@
-import { ACTIVE_HOLD_MS, canGainUp, formatGainDb, IGainGuideInput, nextGainStep, SoundActivity } from './loudness-gain';
+import { ACTIVE_HOLD_MS, formatGainDb, nextGainStep, prevGainStep, SoundActivity } from './loudness-gain';
 
 describe('nextGainStep', () => {
   test.each<[number, number | null]>([
+    [-18, -12],
+    [-3, 0],
     [0, 6],
-    [-3, 6],
     [3, 6],
     [6, 12],
     [5.999, 12],
@@ -25,37 +26,19 @@ describe('formatGainDb', () => {
   });
 });
 
-describe('canGainUp', () => {
-  const input = (patch: Partial<IGainGuideInput> = {}): IGainGuideInput => ({
-    quiet: true,
-    active: true,
-    muted: false,
-    faderDb: 0,
-    gainDb: 0,
-    ...patch,
-  });
-
-  test('配信音声が小さく、フェーダーが最大なら上げられる', () => {
-    expect(canGainUp(input())).toBe(true);
-    expect(canGainUp(input({ gainDb: 12 }))).toBe(true);
-  });
-
-  test('配信音声が小さくなければ案内しない', () => {
-    expect(canGainUp(input({ quiet: false }))).toBe(false);
-  });
-
-  test('フェーダーが下がっていれば、まずフェーダーで上げてもらう', () => {
-    expect(canGainUp(input({ faderDb: -6 }))).toBe(false);
-    expect(canGainUp(input({ faderDb: -0.5 }))).toBe(true);
-  });
-
-  test('ミュート中や、音を出していないソースには案内しない', () => {
-    expect(canGainUp(input({ muted: true }))).toBe(false);
-    expect(canGainUp(input({ active: false }))).toBe(false);
-  });
-
-  test('ゲインが上限なら出さない', () => {
-    expect(canGainUp(input({ gainDb: 20 }))).toBe(false);
+describe('prevGainStep', () => {
+  test.each<[number, number | null]>([
+    [20, 12],
+    [12, 6],
+    [6, 0],
+    [0, -6],
+    [3, 0],
+    [-17.9, -18],
+    [-18.001, null],
+    [-18, null],
+    [-25, null],
+  ])('%d => %p', (current, expected) => {
+    expect(prevGainStep(current)).toBe(expected);
   });
 });
 
