@@ -59,6 +59,7 @@ jobs:
               - 'bin/tsconfig.json'
               - 'bin/**/*.js'
               - 'bin/**/*.d.ts'
+              - 'electron-builder/**'
               - 'jest.bin-config.js'
 
   setup-app:
