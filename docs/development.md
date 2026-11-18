@@ -194,6 +194,16 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 - 署名後は `signtool verify /pa /all <file>` で、`Algorithm` が `sha256`、`Timestamp` が `RFC3161` の1行だけになっていることを確認できます
 - 計測値（ローカル署名ビルド、`package:local` に `CERTIFICATE_SUBJECT_NAME` を設定、署名対象 24 ファイル）: 5分24秒 → 3分34秒（約1分50秒短縮）
 
+### 同梱 exe の署名キャッシュ
+
+`CERTIFICATE_SUBJECT_NAME` が設定されているときは、`win.signtoolOptions.sign` に `electron-builder/sign-with-cache.js` を指定し、同梱 exe（obs-studio-node、crash-handler、vosk-cli、n-voice、elevate.exe など）の署名済みファイルをキャッシュします。2回目以降のビルドでは signtool を呼ばずにコピーで済ませます（PIN 入力も不要）。
+
+- キャッシュのキーは「署名前ファイルの sha256」と「入力パスを除いた signtool の引数」（証明書の thumbprint、ハッシュアルゴリズム、タイムスタンプサーバ、`/d` の製品名など）。証明書の更新や stable / unstable / 社内版 / local の違いではキーが変わり、それぞれ初回は全部署名します
+- バージョンが埋め込まれるメイン exe・インストーラ・アンインストーラは毎回署名します
+- キャッシュの場所は `%LOCALAPPDATA%\n-air-app\sign-cache`（`NAIR_SIGN_CACHE_DIR` で変更可）。署名し直したいときはこのディレクトリを削除してください。古いエントリは自動では消えないので、依存更新が続いて大きくなったら削除して構いません
+- ビルドログの `sign cache hit` / `sign cache stored` でキャッシュの利用状況を確認できます
+- 計測値（`package:local`、署名あり）: 初回 3分32秒 → 2回目 2分11秒（同梱 exe 21 ファイルがキャッシュから取得）
+
 ---
 
 ## 設定ファイル一覧
