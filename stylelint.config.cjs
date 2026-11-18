@@ -36,6 +36,7 @@ module.exports = {
       rules: {
         // LESS variables in Vue <style lang="less"> blocks
         'declaration-property-value-no-unknown': null,
+        'value-no-invalid': null, // stylelint 18: LESS variables/functions are reported as invalid
       },
     },
     {
@@ -45,6 +46,7 @@ module.exports = {
       rules: {
         // LESS variables and operations are not recognized by standard CSS validators
         'declaration-property-value-no-unknown': null,
+        'value-no-invalid': null, // stylelint 18: LESS variables/functions are reported as invalid
       },
     },
   ],
