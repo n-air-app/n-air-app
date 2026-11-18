@@ -83,6 +83,9 @@ const config = {
 if (process.env.CERTIFICATE_SUBJECT_NAME) {
   // @ts-expect-error - signtoolOptions は型定義上 readonly だが、動的に設定する必要がある
   config.win.signtoolOptions.certificateSubjectName = process.env.CERTIFICATE_SUBJECT_NAME;
+  // 中身が変わらない同梱 exe の署名結果をキャッシュして、署名し直す時間を省く
+  // @ts-expect-error - 同上
+  config.win.signtoolOptions.sign = require('./sign-with-cache.js').sign;
 }
 
 module.exports = config;
