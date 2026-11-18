@@ -202,7 +202,7 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 - バージョンが埋め込まれるメイン exe・インストーラ・アンインストーラは毎回署名します
 - キャッシュの場所は `%LOCALAPPDATA%\n-air-app\sign-cache`（`NAIR_SIGN_CACHE_DIR` で変更可）。署名し直したいときはこのディレクトリを削除してください。古いエントリは自動では消えないので、依存更新が続いて大きくなったら削除して構いません
 - ビルドログの `sign cache hit` / `sign cache stored` でキャッシュの利用状況を確認できます
-- 計測値（`package:local`、署名あり）: 初回 3分32秒 → 2回目 2分11秒（同梱 exe 21 ファイルがキャッシュから取得）
+- 計測値（`package:local`、署名あり）: 初回 3分22秒 → 2回目 2分11秒（同梱 exe 21 ファイルがキャッシュから取得、約70秒短縮）
 
 ---
 
