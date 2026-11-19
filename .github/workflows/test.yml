@@ -346,8 +346,8 @@ jobs:
       - name: Compile production
         run: pnpm run compile:production
 
-      - name: Package local
-        run: pnpm run package:local -- --publish never
+      - name: Package (CI)
+        run: pnpm run package:ci -- --publish never
 
       - name: Check installer size
         shell: pwsh
