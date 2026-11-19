@@ -13,6 +13,6 @@
     "types": ["node"],
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["**/*.js", "**/*.d.ts"],
+  "include": ["**/*.js", "**/*.d.ts", "../electron-builder/*.js"],
   "exclude": ["node_modules"]
 }

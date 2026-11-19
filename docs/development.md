@@ -163,6 +163,28 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 | `pnpm format`        | ESLint fix + Stylelint fix                                              |
 | `pnpm screentest`    | ビジュアルリグレッションテスト                                          |
 
+### ネイティブホットキーの実動作テスト（Windows x64）
+
+`test/e2e/hotkeys.ts` は通常の E2E スイート（`pnpm test`）の1つです。
+テスト用の N Air にシーン切り替えホットキーを1件登録し、Windows の `SendInput`
+で F24 を1回押下・解放して、対象のシーンがアクティブになることを確認します。
+実物の `node-libuiohook` とアプリのホットキーサービスを通るテストです。
+
+このテストだけ実行する場合:
+
+```powershell
+pnpm run compile-tests
+node --test --test-force-exit --test-concurrency=1 test-dist\test\e2e\hotkeys.js
+```
+
+ほかの E2E テストと同様、事前に `pnpm run compile` でアプリをビルドしてください。
+
+- 対話可能な Windows デスクトップと Windows PowerShell が必要です。
+- **F24 の入力はデスクトップ全体に届きます。他アプリに F24 の割り当てがないことを確認してください。**
+  実行中は修飾キーを押さず、他のキー操作を控えてください。
+- 既存の E2E ヘルパーの一時プロファイルで起動し、通常使用の設定は変更しません。
+- ホットキーの登録は API 経由です。設定画面でのキー割り当て操作自体は対象外です。
+
 ### パッケージビルド
 
 | スクリプト                       | 用途                                                                                                            |
@@ -193,6 +215,16 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 - **署名鍵の種類（RSA → ECDSA など）を変えるときは、この設定との整合を確認してください。** `signingHashAlgorithms` はダイジェスト（ファイルハッシュ・タイムスタンプ）のアルゴリズムを固定するもので、署名鍵の種類とは別物です。ただし証明書やツール（Azure Trusted Signing 等の `azureSignOptions` への移行を含む）を変える際は、`signtoolOptions` 自体が使われなくなる／アルゴリズム指定の方法が変わる可能性があります
 - 署名後は `signtool verify /pa /all <file>` で、`Algorithm` が `sha256`、`Timestamp` が `RFC3161` の1行だけになっていることを確認できます
 - 計測値（ローカル署名ビルド、`package:local` に `CERTIFICATE_SUBJECT_NAME` を設定、署名対象 24 ファイル）: 5分24秒 → 3分34秒（約1分50秒短縮）
+
+### 同梱 exe の署名キャッシュ
+
+`CERTIFICATE_SUBJECT_NAME` が設定されているときは、`win.signtoolOptions.sign` に `electron-builder/sign-with-cache.js` を指定し、同梱 exe（obs-studio-node、crash-handler、vosk-cli、n-voice、elevate.exe など）の署名済みファイルをキャッシュします。2回目以降のビルドでは signtool を呼ばずにコピーで済ませます（PIN 入力も不要）。
+
+- キャッシュのキーは「署名前ファイルの sha256」と「入力パスを除いた signtool の引数」（証明書の thumbprint、ハッシュアルゴリズム、タイムスタンプサーバ、`/d` の製品名など）。証明書の更新や stable / unstable / 社内版 / local の違いではキーが変わり、それぞれ初回は全部署名します
+- バージョンが埋め込まれるメイン exe・インストーラ・アンインストーラは毎回署名します
+- キャッシュの場所は `%LOCALAPPDATA%\n-air-app\sign-cache`（`NAIR_SIGN_CACHE_DIR` で変更可）。署名し直したいときはこのディレクトリを削除してください。古いエントリは自動では消えないので、依存更新が続いて大きくなったら削除して構いません
+- ビルドログの `sign cache hit` / `sign cache stored` でキャッシュの利用状況を確認できます
+- 計測値（`package:local`、署名あり）: 初回 3分22秒 → 2回目 2分11秒（同梱 exe 21 ファイルがキャッシュから取得、約70秒短縮）
 
 ---
 

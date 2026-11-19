@@ -66,7 +66,7 @@
     "long": "^5.3.2",
     "luxon": "^3.7.2",
     "node-fontinfo": "https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz",
-    "node-libuiohook": "https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz",
+    "node-libuiohook": "https://slobs-node-libuiohook.s3-us-west-2.amazonaws.com/node-libuiohook-1.1.21-win64.tar.gz",
     "obs-studio-node": "https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz",
     "protobufjs": "^8.8.1",
     "rxjs": "^7.8.2",
