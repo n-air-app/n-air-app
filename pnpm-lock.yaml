@@ -57,8 +57,8 @@ importers:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz
         version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-fontinfo-1.1.12-win64.tar.gz
       node-libuiohook:
-        specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz
-        version: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz
+        specifier: https://slobs-node-libuiohook.s3-us-west-2.amazonaws.com/node-libuiohook-1.1.21-win64.tar.gz
+        version: https://slobs-node-libuiohook.s3-us-west-2.amazonaws.com/node-libuiohook-1.1.21-win64.tar.gz
       obs-studio-node:
         specifier: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz
         version: '@streamlabs/obs-studio-node@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/osn-0.25.56-release-win64.tar.gz'
@@ -4344,8 +4344,8 @@ packages:
   node-int64@0.4.0:
     resolution: {integrity: sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==}
 
-  node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz:
-    resolution: {tarball: https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz}
+  node-libuiohook@https://slobs-node-libuiohook.s3-us-west-2.amazonaws.com/node-libuiohook-1.1.21-win64.tar.gz:
+    resolution: {integrity: sha512-xVC/RmLYDa1nCTvDQkdjZUBJubBIGgv2OtG4945cGmOjrGrC4ZV3h+0X1KhaVgEHMVAwXPuzgg2UyXbtVMS6KA==, tarball: https://slobs-node-libuiohook.s3-us-west-2.amazonaws.com/node-libuiohook-1.1.21-win64.tar.gz}
     version: 0.0.9
 
   node-releases@2.0.63:
@@ -10836,7 +10836,7 @@ snapshots:
 
   node-int64@0.4.0: {}
 
-  node-libuiohook@https://github.com/n-air-app/native-deps/releases/download/osn0.25.56/node-libuiohook-1.1.17-win64.tar.gz:
+  node-libuiohook@https://slobs-node-libuiohook.s3-us-west-2.amazonaws.com/node-libuiohook-1.1.21-win64.tar.gz:
     dependencies:
       node-addon-api: 7.1.1
 
