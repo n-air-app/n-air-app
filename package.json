@@ -23,6 +23,7 @@
     "package": "pnpm run package:public-stable",
     "package:internal-stable": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-stable.config.js",
     "package:internal-unstable": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/internal-unstable.config.js",
+    "package:ci": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/ci.config.js",
     "package:local": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/local.config.js",
     "package:local:install": "pnpm run compile:production && pnpm run package:local && pnpm run install:dist",
     "package:public-stable": "shx rm -rf dist && pnpm install --dir bin --ignore-workspace && node bin/convert-to-shiftjis.js AGREEMENT && electron-builder build -w --x64 --config electron-builder/stable.config.js",
