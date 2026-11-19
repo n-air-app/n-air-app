@@ -812,6 +812,26 @@ function initialize(crashHandler) {
       mainWindow.maximize();
     }
     mainWindow.removeMenu();
+
+    // Pre-initialize the child window before loading mainWindow URL
+    // to avoid race condition where renderer calls getWindowIds before childWindow exists (N-AIR-APP-GRZ)
+    childWindow = new BrowserWindow({
+      parent: mainWindow,
+      minimizable: false,
+      show: false,
+      frame: false,
+      backgroundColor: '#17242D',
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        ...(devHostsPartition ? { partition: devHostsPartition } : {}),
+      },
+    });
+
+    remote.enable(childWindow.webContents);
+
+    childWindow.removeMenu();
+
     mainWindow.loadURL(`${global.indexUrl}?windowId=main`);
 
     // Open DevTools in development mode if configured
@@ -932,24 +952,6 @@ function initialize(crashHandler) {
       // setTimeout でイベントループに逃がし送信完了の猶予を与える。
       exitWithCrashHandlerCleanup();
     });
-
-    // Pre-initialize the child window
-    childWindow = new BrowserWindow({
-      parent: mainWindow,
-      minimizable: false,
-      show: false,
-      frame: false,
-      backgroundColor: '#17242D', // これいる?
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-        ...(devHostsPartition ? { partition: devHostsPartition } : {}),
-      },
-    });
-
-    remote.enable(childWindow.webContents);
-
-    childWindow.removeMenu();
 
     // The child window is never closed, it just hides in the
     // background until it is needed.
