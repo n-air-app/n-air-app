@@ -163,6 +163,28 @@ NAIR_DEV_HOSTS=1 pnpm compile:production && pnpm package:internal-stable
 | `pnpm format`        | ESLint fix + Stylelint fix                                              |
 | `pnpm screentest`    | ビジュアルリグレッションテスト                                          |
 
+### ネイティブホットキーの実動作テスト（Windows x64）
+
+`test/e2e/hotkeys.ts` は通常の E2E スイート（`pnpm test`）の1つです。
+テスト用の N Air にシーン切り替えホットキーを1件登録し、Windows の `SendInput`
+で F24 を1回押下・解放して、対象のシーンがアクティブになることを確認します。
+実物の `node-libuiohook` とアプリのホットキーサービスを通るテストです。
+
+このテストだけ実行する場合:
+
+```powershell
+pnpm run compile-tests
+node --test --test-force-exit --test-concurrency=1 test-dist\test\e2e\hotkeys.js
+```
+
+ほかの E2E テストと同様、事前に `pnpm run compile` でアプリをビルドしてください。
+
+- 対話可能な Windows デスクトップと Windows PowerShell が必要です。
+- **F24 の入力はデスクトップ全体に届きます。他アプリに F24 の割り当てがないことを確認してください。**
+  実行中は修飾キーを押さず、他のキー操作を控えてください。
+- 既存の E2E ヘルパーの一時プロファイルで起動し、通常使用の設定は変更しません。
+- ホットキーの登録は API 経由です。設定画面でのキー割り当て操作自体は対象外です。
+
 ### パッケージビルド
 
 | スクリプト                       | 用途                                                                                                            |
