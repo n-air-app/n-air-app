@@ -30,6 +30,7 @@ const config = {
     'assets',
   ],
   detectUpdateChannel: false,
+  compression: 'store', // NSIS圧縮を無効化（ASARは既に圧縮済みのためサイズ影響なし、ビルド高速化）
   afterPack: async (context) => {
     const localesDir = path.join(context.appOutDir, 'locales');
     if (fs.existsSync(localesDir)) {
