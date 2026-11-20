@@ -714,6 +714,7 @@
   "keyframeInterval": "キーフレーム間隔(秒)",
   "encoderPreset": "エンコーダープリセット",
   "pollingPerformanceStatistics": "パフォーマンス統計情報（ビットレート・FPS・ドロップフレーム数）を取得する",
+  "showLoudnessPanel": "ミキサーにラウドネスパネルを表示する",
   "pollingPerformanceStatisticsDescription": "配信が不安定な場合は無効にしてみてください。",
   "enableTcpApi": "TCP API を有効にする",
   "enableTcpApiDescription": "外部ツールが 127.0.0.1:28194 経由でN Airを操作できるようにします。信頼できないローカルプロセスからもアクセス可能になるため、外部ツール連携を使わない場合はオフのままにしてください。",
