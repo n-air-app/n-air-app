@@ -1,7 +1,33 @@
 import { spawn } from 'node:child_process';
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 500;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // DOM/WebDriver key events do not reach the native global keyboard hook.
-export function pressF24(): Promise<void> {
+export async function pressF24(): Promise<void> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await pressF24Once();
+      return;
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      if (attempt < MAX_RETRIES) {
+        console.warn(`pressF24 attempt ${attempt} failed, retrying in ${RETRY_DELAY_MS}ms: ${lastError.message}`);
+        await sleep(RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+function pressF24Once(): Promise<void> {
   const script = `
 $ErrorActionPreference = 'Stop'
 Add-Type -TypeDefinition @'
