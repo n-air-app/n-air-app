@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@electron/remote':
         specifier: 2.1.4
-        version: 2.1.4(electron@44.10.2)
+        version: 2.1.4(electron@44.11.2)
       '@n-air-app/n-voice-package':
         specifier: ^1.0.3
         version: 1.0.3
@@ -145,14 +145,14 @@ importers:
         specifier: ^7.1.5
         version: 7.1.5(webpack@5.112.2)
       electron:
-        specifier: 44.10.2
-        version: 44.10.2
+        specifier: 44.11.2
+        version: 44.11.2
       electron-builder:
         specifier: 26.17.0
         version: 26.17.0(electron-builder-squirrel-windows@26.17.0)
       electron-chromedriver:
-        specifier: 44.10.2
-        version: 44.10.2
+        specifier: 44.11.2
+        version: 44.11.2
       eslint:
         specifier: ^10.14.0
         version: 10.14.0(jiti@2.7.0)
@@ -2679,8 +2679,8 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
-  electron-chromedriver@44.10.2:
-    resolution: {integrity: sha512-qAfYFvpExc4XkybJYFM93JUqKBKxTm6DHWj8Yc8LB9nFt6UeMxVqGEdELX1hLTGb7xRBairbjoO+dFTVK4fanQ==}
+  electron-chromedriver@44.11.2:
+    resolution: {integrity: sha512-FFSDDHKRdTD9W49x9UJPlVNDXcaIIM/Z+rwVqwTjrCHBkO/pNNcgYOWs08OeqMTESWeiXScFPax5YbQgLXwwjA==}
     engines: {node: '>=10.12.0'}
     hasBin: true
 
@@ -2701,8 +2701,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@44.10.2:
-    resolution: {integrity: sha512-Bz+GV+9Xj++3RW95NYfzp5Wgivf61BgWTPBxYTOUETytVB1uLUAOdSM39Dn/V3PGYeGTE6LYeCTR5SCiu3BR2A==}
+  electron@44.11.2:
+    resolution: {integrity: sha512-bzHeYOsrQenm2BCsmqMiP6DU0rKZTgkJCKFzQLldZEV09WgaKlwXyJemP3uVTpvK03T0cRqEXR5Ok4jsHhJHKw==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -6418,9 +6418,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@electron/remote@2.1.4(electron@44.10.2)':
+  '@electron/remote@2.1.4(electron@44.11.2)':
     dependencies:
-      electron: 44.10.2
+      electron: 44.11.2
 
   '@electron/universal@2.0.3':
     dependencies:
@@ -8855,7 +8855,7 @@ snapshots:
       - electron-builder-squirrel-windows
       - supports-color
 
-  electron-chromedriver@44.10.2:
+  electron-chromedriver@44.11.2:
     dependencies:
       '@electron/get': 2.0.3
       extract-zip: 2.0.1
@@ -8908,7 +8908,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@44.10.2:
+  electron@44.11.2:
     dependencies:
       '@electron-internal/extract-zip': 1.0.8
       '@electron/get': 5.1.0
