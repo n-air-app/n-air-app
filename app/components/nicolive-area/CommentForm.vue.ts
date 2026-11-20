@@ -109,7 +109,7 @@ export default defineComponent({
       if (text.length === 0) return;
 
       const isPermanent = event.ctrlKey;
-      if (this.isCommentSending) throw new Error('sendOperatorComment is running');
+      if (this.isCommentSending) return;
 
       try {
         this.isCommentSending = true;
