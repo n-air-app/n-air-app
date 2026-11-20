@@ -46,17 +46,6 @@
         </span>
       </span>
     </span>
-
-    <span
-      class="performance-metric-wrapper substream-status"
-      v-if="!isCompactMode && subStreamUse && subStreamStatus"
-    >
-      <span class="performance-metric">
-        <span class="performance-metric__value"
-        >{{ $t('settings.SubStream.name') }}: {{ subStreamStatus }}</span
-        >
-      </span>
-    </span>
   </div>
 </template>
 

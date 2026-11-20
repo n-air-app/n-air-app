@@ -4,7 +4,6 @@ import { $t } from 'services/i18n';
 import { PerformanceService } from 'services/performance';
 import { SettingsService } from 'services/settings';
 import { StreamingService } from 'services/streaming';
-import { SubStreamService } from 'services/substream/SubStreamService';
 import { UserService } from 'services/user';
 import { defineComponent } from 'vue';
 
@@ -15,9 +14,6 @@ export default defineComponent({
     return {
       visitorTooltip: $t('common.numberOfVisitors'),
       commentTooltip: $t('common.numberOfComments'),
-      subStreamStatus: '',
-      subStreamUse: false,
-      subStreamFetching: false,
     };
   },
 
@@ -120,26 +116,4 @@ export default defineComponent({
     },
   },
 
-  mounted() {
-    this.subStreamFetching = true;
-    this.reloadSubStreamStatus();
-  },
-
-  beforeUnmount() {
-    this.subStreamFetching = false;
-  },
-
-  methods: {
-    async reloadSubStreamStatus() {
-      this.subStreamUse = SubStreamService.instance().state.use;
-      if (this.subStreamUse) {
-        const status = await SubStreamService.instance().getStatus();
-        this.subStreamStatus = status.displayStatus;
-      } else {
-        this.subStreamStatus = '';
-      }
-      if (!this.subStreamFetching) return;
-      window.setTimeout(() => this.reloadSubStreamStatus(), 1000);
-    },
-  },
 });
