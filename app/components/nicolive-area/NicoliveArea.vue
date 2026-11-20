@@ -26,15 +26,55 @@
             <i class="icon-namaco"></i>
             このエリアではニコニコ生放送を<br />配信するための機能が利用できます
           </p>
-          <div class="button-wrapper">
-            <button
-              class="button button--primary button--prepare-program"
-              @click="prepareProgram"
-              :disabled="isFetching"
-            >
-              番組を作成/取得する
-            </button>
+          <div class="summary">
+            <div class="summary-card">
+              <template v-if="summary && summary.current">
+                <div class="summary-label">{{ itemLabel(summary.current) }}</div>
+                <div class="summary-title">{{ summary.current.title || t('untitled') }}</div>
+                <div class="summary-time">{{ formatRange(summary.current) }}</div>
+                <button
+                  class="button button--primary summary-button"
+                  @click="prepareProgram(summary.current.nicoliveProgramId)"
+                  :disabled="isFetching"
+                >
+                  {{ t('fetchCurrent') }}
+                </button>
+              </template>
+              <div class="summary-center" v-else>
+                <button
+                  class="button button--primary summary-button"
+                  @click="createNewProgram"
+                  :disabled="isFetching || isLoadingSummary"
+                >
+                  {{ t('create') }}
+                </button>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">{{ t('reserved') }}</div>
+              <template v-if="summary && summary.reserved">
+                <div class="summary-title">{{ summary.reserved.title || t('untitled') }}</div>
+                <div class="summary-time">{{ formatRange(summary.reserved) }}</div>
+                <button
+                  class="button button--primary summary-button"
+                  @click="prepareProgram(summary.reserved.nicoliveProgramId)"
+                  :disabled="isFetching || Boolean(summary.current)"
+                >
+                  {{ t('fetchReserved') }}
+                </button>
+              </template>
+              <div class="summary-center summary-none" v-else>{{ t('none') }}</div>
+            </div>
           </div>
+          <p class="summary-error" v-if="summaryError">{{ t('loadFailed') }}</p>
+          <button
+            class="refresh-button"
+            :title="t('refresh')"
+            @click="refreshSummary"
+            :disabled="isLoadingSummary"
+          >
+            <i class="icon-reload"></i>
+          </button>
         </template>
       </div>
     </div>
@@ -120,19 +160,76 @@
   flex-shrink: 0;
 }
 
-.button-wrapper {
+.summary {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.summary-card {
   display: flex;
   flex-direction: column;
+  min-height: 112px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  color: var(--color-text);
+  background-color: var(--color-bg-secondary);
+  border-radius: 4px;
+}
+
+.summary-center {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-none {
+  color: var(--color-text-dark);
+}
+
+.summary-label {
+  font-size: @font-size2;
+  color: var(--color-text-dark);
+}
+
+.summary-title {
+  font-weight: bold;
+  word-break: break-all;
+}
+
+.summary-time {
+  font-size: @font-size2;
+}
+
+.summary-button {
+  align-self: center;
   min-width: 200px;
-  padding-bottom: 80px;
+  margin-top: 8px;
+}
 
-  .button {
-    width: 100%;
+.summary-center .summary-button {
+  margin-top: 0;
+}
 
-    & + .button {
-      margin-top: 16px;
-    }
+.refresh-button {
+  align-self: center;
+  padding: 4px;
+  margin-bottom: 80px;
+  color: var(--color-text-dark);
+
+  &:hover:not(:disabled) {
+    color: var(--color-text-light);
   }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.summary-error {
+  margin-bottom: 16px;
+  font-size: @font-size2;
+  color: var(--color-text-dark);
 }
 
 .comment-area {

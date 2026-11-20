@@ -9,6 +9,7 @@ jest.mock('components/nicolive-area/ProgramStatistics.vue', () => ({}));
 jest.mock('components/nicolive-area/ToolBar.vue', () => ({}));
 jest.mock('components/studio/PerformanceMetrics.vue', () => ({}));
 jest.mock('services/customization', () => ({}));
+jest.mock('services/i18n', () => ({ $t: (key: string) => key }));
 jest.mock('services/nicolive-program/NicoliveFailure', () => ({
   NicoliveFailure: class {
     constructor(
@@ -25,6 +26,7 @@ const programService = {
   fetchProgram: jest.fn(),
   createProgram: jest.fn(),
   releaseProgram: jest.fn(),
+  fetchScheduleSummary: jest.fn(),
 };
 jest.mock('services/nicolive-program/nicolive-program', () => ({
   NicoliveProgramService: { instance: () => programService },
@@ -60,6 +62,38 @@ describe('NicoliveArea.prepareProgram', () => {
     expect(programService.releaseProgram).not.toHaveBeenCalled();
     expect(openErrorDialogFromFailure).not.toHaveBeenCalled();
     expect(context.isFetching).toBe(false);
+  });
+
+  test('番組IDを指定した場合はそのIDで取得する', async () => {
+    await NicoliveArea.methods.prepareProgram.call(context, 'lv123');
+
+    expect(programService.fetchProgram).toHaveBeenCalledWith('lv123');
+    expect(programService.createProgram).not.toHaveBeenCalled();
+  });
+
+  test('ID指定の番組が見つからない場合は新規作成せず概要を再取得する', async () => {
+    programService.fetchProgram.mockRejectedValue(noSuitableProgram());
+    const refreshSummary = jest.fn().mockResolvedValue(undefined);
+    const ctx: any = { isFetching: false, refreshSummary };
+
+    await NicoliveArea.methods.prepareProgram.call(ctx, 'lv123');
+
+    expect(programService.createProgram).not.toHaveBeenCalled();
+    expect(refreshSummary).toHaveBeenCalledTimes(1);
+    expect(openErrorDialogFromFailure).not.toHaveBeenCalled();
+    expect(ctx.isFetching).toBe(false);
+  });
+
+  test('ID指定の番組が終了済みだった場合は新規作成せず概要を再取得する', async () => {
+    programService.state.status = 'end';
+    const refreshSummary = jest.fn().mockResolvedValue(undefined);
+    const ctx: any = { isFetching: false, refreshSummary };
+
+    await NicoliveArea.methods.prepareProgram.call(ctx, 'lv123');
+
+    expect(programService.releaseProgram).toHaveBeenCalledTimes(1);
+    expect(programService.createProgram).not.toHaveBeenCalled();
+    expect(refreshSummary).toHaveBeenCalledTimes(1);
   });
 
   test('対象番組がない場合はエラーを表示せず新規作成する', async () => {
@@ -153,5 +187,76 @@ describe('NicoliveArea.prepareProgram', () => {
     finishFetch();
     await pending;
     expect(context.isFetching).toBe(false);
+  });
+});
+
+describe('NicoliveArea.createNewProgram', () => {
+  test('既存番組を取得せず新規作成する', async () => {
+    const context = { isFetching: false };
+    programService.fetchProgram.mockReset();
+    programService.createProgram.mockReset().mockResolvedValue(undefined);
+
+    await NicoliveArea.methods.createNewProgram.call(context);
+
+    expect(programService.createProgram).toHaveBeenCalledTimes(1);
+    expect(programService.fetchProgram).not.toHaveBeenCalled();
+    expect(context.isFetching).toBe(false);
+  });
+});
+
+describe('NicoliveArea.createNewProgram (放送中の番組がある場合)', () => {
+  test('新規作成しない', async () => {
+    const context = { isFetching: false, hasCurrentProgram: true };
+    programService.createProgram.mockReset();
+
+    await NicoliveArea.methods.createNewProgram.call(context);
+
+    expect(programService.createProgram).not.toHaveBeenCalled();
+  });
+});
+
+describe('NicoliveArea.createNewProgram (概要取得中)', () => {
+  test('新規作成しない', async () => {
+    const context = { isFetching: false, isLoadingSummary: true, hasCurrentProgram: false };
+    programService.createProgram.mockReset();
+
+    await NicoliveArea.methods.createNewProgram.call(context);
+
+    expect(programService.createProgram).not.toHaveBeenCalled();
+  });
+});
+
+describe('NicoliveArea.refreshSummary', () => {
+  const summary = { current: null, reserved: null };
+
+  test('概要を取得して保持する', async () => {
+    programService.fetchScheduleSummary.mockReset().mockResolvedValue(summary);
+    const context: any = { isLoadingSummary: false, isFetching: false, hasProgram: false };
+
+    await NicoliveArea.methods.refreshSummary.call(context);
+
+    expect(context.summary).toBe(summary);
+    expect(context.summaryError).toBe(false);
+    expect(context.isLoadingSummary).toBe(false);
+  });
+
+  test('番組を保持している間は取得しない', async () => {
+    programService.fetchScheduleSummary.mockReset();
+    const context: any = { isLoadingSummary: false, isFetching: false, hasProgram: true };
+
+    await NicoliveArea.methods.refreshSummary.call(context);
+
+    expect(programService.fetchScheduleSummary).not.toHaveBeenCalled();
+  });
+
+  test('失敗してもダイアログは出さずエラー表示にする', async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    programService.fetchScheduleSummary.mockReset().mockRejectedValue(new Error('x'));
+    const context: any = { isLoadingSummary: false, isFetching: false, hasProgram: false };
+
+    await NicoliveArea.methods.refreshSummary.call(context);
+
+    expect(context.summaryError).toBe(true);
+    expect(context.isLoadingSummary).toBe(false);
   });
 });
