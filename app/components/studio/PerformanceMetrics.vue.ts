@@ -35,7 +35,8 @@ export default defineComponent({
     },
 
     outputResolution() {
-      return SettingsService.instance().state.Video.Output;
+      // OBS IPC切断時は state.Video が undefined になる
+      return SettingsService.instance().state.Video?.Output ?? '--';
     },
 
     frameRate() {
@@ -44,7 +45,9 @@ export default defineComponent({
     },
 
     targetFrameRate() {
+      // OBS IPC切断時は state.Video が undefined になる
       const Video = SettingsService.instance().state.Video;
+      if (!Video) return '--';
 
       // FPSType and related values (FPSCommon, FPSInt, ...) are not guaranteed to be synchronized.
       // So we detect the current type from given values.

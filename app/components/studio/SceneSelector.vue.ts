@@ -153,7 +153,10 @@ export default defineComponent({
 
     removeScene(id?: string) {
       this.makeActive(id || this.activeSceneId!);
-      const name = ScenesService.instance().activeScene.name;
+      // OBS IPC切断時は activeScene が null になる
+      const activeScene = ScenesService.instance().activeScene;
+      if (!activeScene) return;
+      const name = activeScene.name;
       remote.dialog
         .showMessageBox(remote.getCurrentWindow(), {
           type: 'warning',

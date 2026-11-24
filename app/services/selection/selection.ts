@@ -348,7 +348,8 @@ export class Selection {
   }
 
   getLastSelected(): TSceneNode | null {
-    return this.getScene().getNode(this.state.lastSelectedId);
+    // OBS IPC切断時は getScene() が null になる
+    return this.getScene()?.getNode(this.state.lastSelectedId) ?? null;
   }
 
   getLastSelectedId(): string {
