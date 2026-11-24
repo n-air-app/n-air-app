@@ -292,7 +292,11 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     const obsAudioInput = obs.InputFactory.create('wasapi_input_capture', uuidv4());
     const obsAudioOutput = obs.InputFactory.create('wasapi_output_capture', uuidv4());
 
-    (obsAudioInput.properties.get('device_id') as obs.IListProperty).details.items.forEach((item) => {
+    // OBS IPC切断時は properties が null になる
+    const inputDeviceList = (obsAudioInput.properties?.get('device_id') as obs.IListProperty | undefined)?.details?.items;
+    const outputDeviceList = (obsAudioOutput.properties?.get('device_id') as obs.IListProperty | undefined)?.details?.items;
+
+    inputDeviceList?.forEach((item) => {
       devices.push({
         id: item.value as string,
         description: item.name,
@@ -300,15 +304,13 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
       });
     });
 
-    (obsAudioOutput.properties.get('device_id') as obs.IListProperty).details.items.forEach(
-      (item) => {
-        devices.push({
-          id: item.value as string,
-          description: item.name,
-          type: 'output',
-        });
-      },
-    );
+    outputDeviceList?.forEach((item) => {
+      devices.push({
+        id: item.value as string,
+        description: item.name,
+        type: 'output',
+      });
+    });
 
     obsAudioInput.release();
     obsAudioOutput.release();
