@@ -1,4 +1,3 @@
-// stateful-service と injector は video.ts が import するものを先にモックする
 import type { IVideoInfo } from '../../../obs-api';
 
 jest.mock('services/core/stateful-service', () => ({
@@ -10,10 +9,6 @@ jest.mock('services/core/stateful-service', () => ({
   },
   mutation: () => (_target: any, _key: string, descriptor: any) => descriptor,
 }));
-jest.mock('services/core/injector', () => ({
-  Inject: () => (_target: any, _key: string) => {},
-}));
-jest.mock('services/settings', () => ({ SettingsService: class {} }));
 jest.mock('util/getKeys', () => ({
   getKeys: (obj: any) => Object.keys(obj),
 }));
