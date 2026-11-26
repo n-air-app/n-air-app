@@ -8,7 +8,16 @@ const path = require('node:path');
 const { Octokit } = require('@octokit/rest');
 const sh = require('shelljs');
 const colors = require('colors/safe');
-const { log, info, error, executeCmd } = require('./scripts/log');
+const {
+  log,
+  info,
+  error,
+  executeCmd,
+  startPhase,
+  endPhase,
+  withTimingAsync,
+  printTimingSummary,
+} = require('./scripts/log');
 const { confirm } = require('./scripts/prompt');
 const { checkEnv, getTagCommitId } = require('./scripts/util');
 const {
@@ -239,11 +248,15 @@ async function runScript({
       sh.rm('-rf', 'node_modules');
     }
 
+    startPhase('pnpm install');
     info('Installing pnpm packages...');
     executeCmd('pnpm install --frozen-lockfile');
+    endPhase('pnpm install');
 
+    startPhase('compile:production');
     info('Compiling assets...');
     executeCmd('pnpm run compile:production');
+    endPhase('compile:production');
 
     if (devHostsIndex > 0) {
       info('Preparing dev-hosts config...');
@@ -261,11 +274,14 @@ async function runScript({
       info(`Copied ${path.relative(projectRoot, srcPath)} to dev-hosts.json`);
     }
 
+    startPhase('electron-builder package');
     info('Making the package...');
     executeCmd(`pnpm run package:${releaseEnvironment}-${releaseChannel}`);
+    endPhase('electron-builder package');
   }
 
   if (!skipBuild) {
+    startPhase('Sentry debug-files upload');
     info('Uploading debug symbols to Sentry...');
     // Upload PDB files for native modules so that native crash stack traces can be symbolicated.
     // node_modules/ contains PDB files built with RelWithDebInfo from the native-deps release.
@@ -277,11 +293,14 @@ async function runScript({
       'node_modules/crash-handler/',
     ].join(' ');
     executeCmd(`npx @sentry/cli debug-files upload ${sentryCliArgs}`);
+    endPhase('Sentry debug-files upload');
   }
 
+  startPhase('git push');
   info('Pushing to the repository...');
   executeCmd(`git push ${target.remote} ${target.branch}`);
   executeCmd(`git push ${target.remote} ${newTag}`);
+  endPhase('git push');
 
   info(`version: ${newVersion}`);
 
@@ -311,24 +330,26 @@ async function runScript({
     // そうでない場合、アップロード中で存在していないファイルをlatestYmlが指す時間が発生し、
     // electron-updaterがエラーとなってしまう可能性がある
 
-    info('uploading artifacts to s3...');
-    await uploadS3File({
-      name: path.basename(binaryFilePath),
-      bucketName: upload.s3BucketName,
-      filePath: binaryFilePath,
-      keyPrefix: upload.s3KeyPrefix,
-    });
-    await uploadS3File({
-      name: path.basename(blockmapFilePath),
-      bucketName: upload.s3BucketName,
-      filePath: blockmapFilePath,
-      keyPrefix: upload.s3KeyPrefix,
-    });
-    await uploadS3File({
-      name: path.basename(latestYmlFilePath),
-      bucketName: upload.s3BucketName,
-      filePath: latestYmlFilePath,
-      keyPrefix: upload.s3KeyPrefix,
+    await withTimingAsync('S3 upload', async () => {
+      info('uploading artifacts to s3...');
+      await uploadS3File({
+        name: path.basename(binaryFilePath),
+        bucketName: upload.s3BucketName,
+        filePath: binaryFilePath,
+        keyPrefix: upload.s3KeyPrefix,
+      });
+      await uploadS3File({
+        name: path.basename(blockmapFilePath),
+        bucketName: upload.s3BucketName,
+        filePath: blockmapFilePath,
+        keyPrefix: upload.s3KeyPrefix,
+      });
+      await uploadS3File({
+        name: path.basename(latestYmlFilePath),
+        bucketName: upload.s3BucketName,
+        filePath: latestYmlFilePath,
+        keyPrefix: upload.s3KeyPrefix,
+      });
     });
   } else {
     info('uploading artifacts to s3: SKIP');
@@ -337,90 +358,95 @@ async function runScript({
   // upload to the github directly via GitHub API...
 
   if (enableUploadToGitHub) {
-    const octokit = new Octokit({
-      baseUrl: target.host,
-      auth: `token ${upload.githubToken}`,
-    });
-
-    info(`creating release ${newTag}...`);
-    const draft = false;
-    const releaseParams = {
-      owner: target.organization,
-      repo: target.repository,
-      tag_name: newTag,
-      name: newTag,
-      body: patchNote.notes,
-      draft,
-      prerelease: releaseChannel !== 'stable',
-    };
-
-    /**
-     * @type { import('@octokit/rest').RestEndpointMethodTypes["repos"]["createRelease"]["response"] |
-     *  import('@octokit/rest').RestEndpointMethodTypes["repos"]["updateRelease"]["response"]
-     * }
-     */
-    let result = await octokit.repos.createRelease({
-      ...releaseParams,
-      draft: true,
-    });
-
-    await uploadToGithub({
-      octokit,
-      owner: releaseParams.owner,
-      repo: releaseParams.repo,
-      release_id: result.data.id,
-      url: result.data.upload_url,
-      pathname: latestYmlFilePath,
-      contentType: 'application/json',
-    });
-
-    await uploadToGithub({
-      octokit,
-      owner: releaseParams.owner,
-      repo: releaseParams.repo,
-      release_id: result.data.id,
-      url: result.data.upload_url,
-      pathname: blockmapFilePath,
-      contentType: 'application/octet-stream',
-    });
-
-    await uploadToGithub({
-      octokit,
-      owner: releaseParams.owner,
-      repo: releaseParams.repo,
-      release_id: result.data.id,
-      url: result.data.upload_url,
-      pathname: binaryFilePath,
-      contentType: 'application/octet-stream',
-    });
-
-    if (!draft) {
-      info(`publishing release ${newTag}...`);
-      const release_id = result.data.id;
-      result = await octokit.repos.updateRelease({
-        ...releaseParams,
-        release_id,
-        draft: false,
+    await withTimingAsync('GitHub Release', async () => {
+      const octokit = new Octokit({
+        baseUrl: target.host,
+        auth: `token ${upload.githubToken}`,
       });
-    }
 
-    // open release edit page on github
-    const editUrl = draft ? result.data.html_url.replace('/tag/', '/edit/') : result.data.html_url;
-    executeCmd(`start ${editUrl}`);
-    await postReleaseToSlack({
-      version: newVersion,
-      environment: releaseEnvironment,
-      channel: releaseChannel,
-      link: editUrl,
-      notes: patchNote.notes,
+      info(`creating release ${newTag}...`);
+      const draft = false;
+      const releaseParams = {
+        owner: target.organization,
+        repo: target.repository,
+        tag_name: newTag,
+        name: newTag,
+        body: patchNote.notes,
+        draft,
+        prerelease: releaseChannel !== 'stable',
+      };
+
+      /**
+       * @type { import('@octokit/rest').RestEndpointMethodTypes["repos"]["createRelease"]["response"] |
+       *  import('@octokit/rest').RestEndpointMethodTypes["repos"]["updateRelease"]["response"]
+       * }
+       */
+      let result = await octokit.repos.createRelease({
+        ...releaseParams,
+        draft: true,
+      });
+
+      await uploadToGithub({
+        octokit,
+        owner: releaseParams.owner,
+        repo: releaseParams.repo,
+        release_id: result.data.id,
+        url: result.data.upload_url,
+        pathname: latestYmlFilePath,
+        contentType: 'application/json',
+      });
+
+      await uploadToGithub({
+        octokit,
+        owner: releaseParams.owner,
+        repo: releaseParams.repo,
+        release_id: result.data.id,
+        url: result.data.upload_url,
+        pathname: blockmapFilePath,
+        contentType: 'application/octet-stream',
+      });
+
+      await uploadToGithub({
+        octokit,
+        owner: releaseParams.owner,
+        repo: releaseParams.repo,
+        release_id: result.data.id,
+        url: result.data.upload_url,
+        pathname: binaryFilePath,
+        contentType: 'application/octet-stream',
+      });
+
+      if (!draft) {
+        info(`publishing release ${newTag}...`);
+        const release_id = result.data.id;
+        result = await octokit.repos.updateRelease({
+          ...releaseParams,
+          release_id,
+          draft: false,
+        });
+      }
+
+      // open release edit page on github
+      const editUrl = draft
+        ? result.data.html_url.replace('/tag/', '/edit/')
+        : result.data.html_url;
+      executeCmd(`start ${editUrl}`);
+      await postReleaseToSlack({
+        version: newVersion,
+        environment: releaseEnvironment,
+        channel: releaseChannel,
+        link: editUrl,
+        notes: patchNote.notes,
+      });
+
+      info(`finally, release Version ${newVersion} on the browser!`);
     });
-
-    info(`finally, release Version ${newVersion} on the browser!`);
   } else {
     info('uploading to GitHub: SKIP');
   }
 
-  // done.
+  // Print timing summary at the end
+  printTimingSummary();
 }
 
 async function releaseRoutine() {
