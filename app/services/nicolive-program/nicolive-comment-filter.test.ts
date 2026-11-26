@@ -15,10 +15,6 @@ const setup = createSetupFunction({
   },
 });
 
-jest.mock('services/nicolive-program/nicolive-program', () => ({
-  NicoliveProgramStateService: {},
-}));
-
 // NicoliveFailureが依存している
 jest.mock('services/i18n', () => ({}));
 
