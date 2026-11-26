@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 N Air is an Electron-based desktop streaming application for niconico live streaming, forked from Streamlabs OBS. It combines Vue.js frontend with native OBS streaming capabilities, specifically tailored for Japanese live streaming needs.
 
-**Tech Stack:** Electron 44.11.2, Vue.js 3.5.34, TypeScript 5.5.4, OBS Studio Node, Webpack 5
+**Tech Stack:** Electron 44.11.5, Vue.js 3.5.34, TypeScript 5.5.4, OBS Studio Node, Webpack 5
 
 ## Development Commands
 
@@ -190,7 +190,7 @@ test("service behavior", () => {
 **Native Modules:** Several native dependencies hosted on GitHub releases (obs-studio-node, font-manager, etc.)
 **Package Manager:** Must use pnpm (managed via Corepack), lockfiles committed (pnpm-lock.yaml at root and bin/)
 **Node Version:** Requires Node.js >=24.14.0 <25 for running build tooling (webpack, pnpm scripts, tests). The exact version is pinned in `.node-version` at the repo root, which CI (`actions/setup-node`'s `node-version-file`) and version managers that support it (fnm, nvm, nodenv, Volta) read directly — with fnm/nvm's `cd`-hook enabled, the correct version is selected automatically when entering the repo.
-**`@types/node` version:** Intentionally pinned to the Node.js 24 major (see `.github/dependabot.yml` ignore rule), independent of the tooling Node version above. `app/` code runs inside Electron's bundled Node.js runtime, not the tooling Node — Electron 44.11.2 bundles Node.js 24.22.2, so `@types/node` must track that major to avoid type-checking against Node APIs that don't actually exist in the running Electron process. Bump this only alongside an Electron major upgrade that changes the bundled Node version.
+**`@types/node` version:** Intentionally pinned to the Node.js 24 major (see `.github/dependabot.yml` ignore rule), independent of the tooling Node version above. `app/` code runs inside Electron's bundled Node.js runtime, not the tooling Node — Electron 44.11.5 bundles Node.js 24.22.3, so `@types/node` must track that major to avoid type-checking against Node APIs that don't actually exist in the running Electron process. Bump this only alongside an Electron major upgrade that changes the bundled Node version.
 **Manually-managed dependencies:** `electron`, `electron-chromedriver`, `electron-builder`, `electron-updater`, `@sentry/electron`, and `@sentry/vue` are excluded from Dependabot (see `.github/dependabot.yml` ignore rule) and must be updated manually, each for a different reason:
 - `electron`: obs-studio-node 0.25.56 uses Node-API (NAPI_VERSION=7), so a different Electron major does not necessarily require rebuilding it. The initial native-addon verification was performed with Electron 44.5.1: its distributed binary and the other native addons loaded successfully, including OSN IPC and renderer/@electron/remote access. The earlier verification is historical evidence, not a claim that the full manual verification was repeated with the currently pinned version. This does not guarantee full OBS/streaming compatibility: manually verify startup, sources, recording/streaming, shutdown, and packaged output before releasing an Electron upgrade.
 - `electron-chromedriver`: the ChromeDriver build for E2E tests, which must always match the `electron` version exactly — bumped together with it.
