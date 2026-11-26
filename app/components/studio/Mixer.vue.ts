@@ -33,12 +33,48 @@ export default defineComponent({
     },
 
     handleRightClick() {
+      const audioService = AudioService.instance();
+      const hiddenSources = audioService.getHiddenSourcesForCurrentScene();
+
+      // 非表示ソースがなければメニューを出さない
+      if (hiddenSources.length === 0) {
+        return;
+      }
+
       const menu = new Menu();
-      menu.append({
-        id: 'Unhide All',
-        label: $t('sources.unhideAll'),
-        click: () => AudioService.instance().unhideAllSourcesForCurrentScene(),
-      });
+
+      // 非表示ソースが1つの場合は直接表示する項目を出す
+      if (hiddenSources.length === 1) {
+        const source = hiddenSources[0];
+        menu.append({
+          id: `Unhide ${source.sourceId}`,
+          label: `${$t('sources.showHiddenSource')}: ${source.name}`,
+          click: () => source.setHidden(false),
+        });
+      } else {
+        // 複数の場合はサブメニューで個別選択可能に
+        menu.append({
+          id: 'Show Hidden Sources',
+          label: $t('sources.showHiddenSource'),
+          submenu: [
+            // 個別のソース
+            ...hiddenSources.map((source) => ({
+              id: `Unhide ${source.sourceId}`,
+              label: source.name,
+              click: () => source.setHidden(false),
+            })),
+            // セパレーター
+            { type: 'separator' as const },
+            // すべて表示
+            {
+              id: 'Unhide All',
+              label: $t('sources.unhideAll'),
+              click: () => audioService.unhideAllSourcesForCurrentScene(),
+            },
+          ],
+        });
+      }
+
       menu.popup();
     },
   },

@@ -231,6 +231,12 @@ export class AudioService extends StatefulService<IAudioSourcesState> implements
     return audioSources;
   }
 
+  getHiddenSourcesForCurrentScene(): AudioSource[] {
+    return this.getSourcesForCurrentScene().filter(
+      (source) => source.mixerHidden && source.isControlledViaObs,
+    );
+  }
+
   getSourcesForScene(sceneId: string): AudioSource[] {
     const scene = this.scenesService.getScene(sceneId);
     if (!scene) {
