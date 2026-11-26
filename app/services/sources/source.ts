@@ -1,7 +1,6 @@
 import { TObsFormData } from 'components/obs/inputs/ObsInput';
 import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
-import { ScenesService } from 'services/scenes';
 import Utils from 'services/utils';
 import { assertIsDefined } from 'util/properties-type-guards';
 import { assertObsObjectDefined } from 'util/sentry-obs-breadcrumb';
@@ -38,9 +37,6 @@ export class Source implements ISourceApi {
   propertiesManagerType: TPropertiesManager;
 
   state: ISource;
-
-  @Inject()
-  scenesService: ScenesService;
 
   getObsInput(): obs.IInput {
     const input = obs.InputFactory.fromName(this.sourceId);

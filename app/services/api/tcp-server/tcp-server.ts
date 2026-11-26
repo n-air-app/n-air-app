@@ -12,7 +12,6 @@ import {
 } from 'services/api/jsonrpc/index';
 import { Inject, mutation, PersistentStatefulService } from 'services/core';
 import { SceneCollectionsService } from 'services/scene-collections';
-import { UsageStatisticsService } from 'services/usage-statistics';
 import Utils from 'services/utils';
 
 import { InternalApiService } from '../internal-api';
@@ -70,7 +69,6 @@ export class TcpServerService
   };
 
   @Inject() private jsonrpcService: JsonrpcService;
-  @Inject() private usageStatisticsService: UsageStatisticsService;
   @Inject() private internalApiService: InternalApiService;
   private clients: Dictionary<IClient> = {};
   private nextClientId = 1;

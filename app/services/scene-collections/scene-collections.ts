@@ -16,7 +16,6 @@ import { SceneItem, ScenesService } from 'services/scenes';
 import { SettingsService } from 'services/settings';
 import { SourcesService } from 'services/sources';
 import { TransitionsService } from 'services/transitions';
-import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
 import { WindowsService } from 'services/windows';
 import { SentryReport } from 'util/sentry-report';
@@ -84,7 +83,6 @@ export class SceneCollectionsService extends Service implements ISceneCollection
   @Inject() appService: AppService;
   @Inject() hotkeysService: HotkeysService;
   @Inject() windowsService: WindowsService;
-  @Inject() userService: UserService;
   @Inject() tcpServerService: TcpServerService;
   @Inject() transitionsService: TransitionsService;
   @Inject() dismissablesService: DismissablesService;

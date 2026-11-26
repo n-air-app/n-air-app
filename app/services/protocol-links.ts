@@ -4,7 +4,6 @@ import * as Sentry from '@sentry/electron/renderer';
 import electron from 'electron';
 import { Inject } from 'services/core/injector';
 import { Service } from 'services/core/service';
-import { NavigationService } from 'services/navigation';
 
 import { SettingsCategory, SettingsService } from './settings';
 import Utils from './utils';
@@ -20,7 +19,6 @@ interface IProtocolLinkInfo {
 }
 
 export class ProtocolLinksService extends Service {
-  @Inject() navigationService: NavigationService;
   @Inject() settingsService: SettingsService;
 
   // Maps base URL components to handler function names

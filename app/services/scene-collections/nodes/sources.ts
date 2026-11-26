@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/vue';
 import * as fi from 'node-fontinfo';
 import { AudioService, DEFAULT_AUDIO_MIXERS } from 'services/audio';
-import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
 import { ScenesService } from 'services/scenes';
 import {
@@ -60,7 +59,6 @@ export interface ISourceInfo {
 export class SourcesNode extends Node<ISchema, {}> {
   schemaVersion = 3;
 
-  @Inject() private fontLibraryService: FontLibraryService;
   @Inject() private sourcesService: SourcesService;
   @Inject() private audioService: AudioService;
   @Inject() private scenesService: ScenesService;

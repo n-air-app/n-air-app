@@ -26,7 +26,6 @@ export interface IDisplayOptions {
 }
 
 export class Display {
-  @Inject() settingsService: SettingsService;
   @Inject() videoService: VideoService;
   @Inject() windowsService: WindowsService;
   @Inject() selectionService: SelectionService;

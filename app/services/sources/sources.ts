@@ -11,7 +11,6 @@ import { $t } from 'services/i18n';
 import { IPCWrapper } from 'services/ipc-wrapper';
 import { NVoiceCharacterTypes } from 'services/nvoice-character';
 import { ISceneItem, ScenesService } from 'services/scenes';
-import { UserService } from 'services/user';
 import { uuidv4 } from 'services/utils';
 import { IWindowOptions, WindowsService } from 'services/windows';
 import { getKeys } from 'util/getKeys';
@@ -73,7 +72,6 @@ export class SourcesService extends StatefulService<ISourcesState> implements IS
   @Inject() private scenesService: ScenesService;
   @Inject() private windowsService: WindowsService;
   @Inject() private audioService: AudioService;
-  @Inject() private userService: UserService;
   @Inject() private rtvcStateService: RtvcStateService;
 
   /**

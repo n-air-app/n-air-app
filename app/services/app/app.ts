@@ -8,24 +8,20 @@ import { mutation, StatefulService } from 'services/core/stateful-service';
 import { CrashReporterService } from 'services/crash-reporter';
 import { CustomizationService } from 'services/customization';
 import { FileManagerService } from 'services/file-manager';
-import { HotkeysService } from 'services/hotkeys';
 import { InformationsService } from 'services/informations';
 import { NicoliveClient } from 'services/nicolive-program/NicoliveClient';
 import { OnboardingService } from 'services/onboarding';
 import { PatchNotesService } from 'services/patch-notes';
 import { ProtocolLinksService } from 'services/protocol-links';
 import { SceneCollectionsService } from 'services/scene-collections';
-import { ScenesService } from 'services/scenes';
 import { VideoSettingsService } from 'services/settings-v2';
 import { ShortcutsService } from 'services/shortcuts';
-import { SourcesService } from 'services/sources';
 import { StreamingService } from 'services/streaming';
 import { TranscriptionService } from 'services/transcription/transcription';
 import { TransitionsService } from 'services/transitions';
 import { UsageStatisticsService } from 'services/usage-statistics';
 import { UserService } from 'services/user';
 import Utils, { uuidv4 } from 'services/utils';
-import { VideoService } from 'services/video';
 import { WindowsService } from 'services/windows';
 import { sleep } from 'util/sleep';
 
@@ -45,7 +41,6 @@ interface IAppState {
 export class AppService extends StatefulService<IAppState> {
   @Inject() onboardingService: OnboardingService;
   @Inject() sceneCollectionsService: SceneCollectionsService;
-  @Inject() hotkeysService: HotkeysService;
   @Inject() userService: UserService;
   @Inject() shortcutsService: ShortcutsService;
   @Inject() patchNotesService: PatchNotesService;
@@ -67,9 +62,6 @@ export class AppService extends StatefulService<IAppState> {
   private skipSavingOnShutdown = false;
 
   @Inject() transitionsService: TransitionsService;
-  @Inject() sourcesService: SourcesService;
-  @Inject() scenesService: ScenesService;
-  @Inject() videoService: VideoService;
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private ipcServerService: IpcServerService;
   @Inject() private tcpServerService: TcpServerService;
