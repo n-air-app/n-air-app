@@ -6,10 +6,8 @@ import { IObsListInput, TObsFormData, TObsValue } from 'components/obs/inputs/Ob
 import * as fi from 'node-fontinfo';
 import { EFontStyle } from 'obs-studio-node';
 import { Inject } from 'services/core/injector';
-import { CustomizationService } from 'services/customization';
 import { FontLibraryService } from 'services/font-library';
 import { $t } from 'services/i18n';
-import { UserService } from 'services/user';
 
 import { PropertiesManager } from './properties-manager';
 
@@ -27,8 +25,6 @@ export interface IDefaultManagerSettings {
  */
 export class DefaultManager extends PropertiesManager {
   @Inject() fontLibraryService: FontLibraryService;
-  @Inject() userService: UserService;
-  @Inject() customizationService: CustomizationService;
 
   settings: IDefaultManagerSettings;
 

@@ -1,7 +1,5 @@
 import debounce from 'lodash/debounce';
 import { Subject } from 'rxjs';
-import { Inject } from 'services/core/injector';
-import { SettingsService } from 'services/settings';
 import { getKeys } from 'util/getKeys';
 import { markObsOp } from 'util/sentry-obs-breadcrumb';
 
@@ -61,8 +59,6 @@ export function isVideoInfoEqual(a: IVideoInfo | null | undefined, b: IVideoInfo
 }
 
 export class VideoSettingsService extends StatefulService<IVideoSetting> {
-  //@Inject() dualOutputService: DualOutputService;
-  @Inject() settingsService: SettingsService;
 
   initialState = {
     horizontal: null as IVideoInfo | null,

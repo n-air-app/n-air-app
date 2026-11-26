@@ -2,7 +2,6 @@ import { distinctUntilChanged, filter, map, Subject } from 'rxjs';
 import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { NicoliveProgramService } from 'services/nicolive-program/nicolive-program';
-import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { isFakeMode } from 'util/fakeMode';
 
 import { isOk, NicoliveClient } from './NicoliveClient';
@@ -16,7 +15,6 @@ interface INicoliveCommentFilterState {
 
 export class NicoliveCommentFilterService extends StatefulService<INicoliveCommentFilterState> {
   @Inject() private nicoliveProgramService: NicoliveProgramService;
-  @Inject('NicoliveProgramStateService') private stateService: NicoliveProgramStateService;
 
   private client = new NicoliveClient();
 

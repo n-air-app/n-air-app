@@ -1,7 +1,5 @@
-import { Inject } from '../../core/injector';
-import { EBlendingMethod, EBlendingMode, EScaleType, ScenesService } from '../../scenes';
+import { EBlendingMethod, EBlendingMode, EScaleType } from '../../scenes';
 import { Scene } from '../../scenes/scene';
-import { SourcesService } from '../../sources';
 
 import { HotkeysNode } from './hotkeys';
 import { Node } from './node';
@@ -46,12 +44,6 @@ interface IContext {
 
 export class SceneItemsNode extends Node<ISchema, {}> {
   schemaVersion = 1;
-
-  @Inject('SourcesService')
-  sourcesService: SourcesService;
-
-  @Inject('ScenesService')
-  scenesService: ScenesService;
 
   getItems(context: IContext) {
     return context.scene.getNodes().slice().reverse();

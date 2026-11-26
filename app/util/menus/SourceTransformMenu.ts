@@ -1,15 +1,11 @@
 import { $t } from 'services/i18n';
-import { ScenesService } from 'services/scenes';
 import { SelectionService } from 'services/selection';
-import { VideoService } from 'services/video';
 
 import { Inject } from '../../services/core/injector';
 
 import { Menu } from './Menu';
 
 export class SourceTransformMenu extends Menu {
-  @Inject() private scenesService: ScenesService;
-  @Inject() private videoService: VideoService;
   @Inject() private selectionService: SelectionService;
 
   constructor() {

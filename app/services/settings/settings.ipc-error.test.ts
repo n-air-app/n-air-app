@@ -16,7 +16,6 @@ jest.mock('services/core/injector', () => ({
 jest.mock('services/app', () => ({ AppService: class {} }));
 jest.mock('services/audio', () => ({ AudioService: class {}, E_AUDIO_CHANNELS: {} }));
 jest.mock('services/dismissables', () => ({ DismissablesService: class {}, EDismissable: {} }));
-jest.mock('services/nicolive-program/nicolive-comment-synthesizer', () => ({ NicoliveCommentSynthesizerService: class {} }));
 jest.mock('services/nicolive-program/state', () => ({ NicoliveProgramStateService: class {} }));
 jest.mock('services/obs-ipc-health', () => ({ ObsIpcHealthService: class {} }));
 jest.mock('services/sound-detector', () => ({ SoundDetectorService: class {} }));

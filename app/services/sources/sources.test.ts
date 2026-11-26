@@ -79,7 +79,6 @@ const setup = createSetupFunction({
     AudioService: {
       getSource: jest.fn(),
     },
-    UserService: {},
     RtvcStateService: {
       didAddSource: jest.fn(),
       didRemoveSource: jest.fn(),

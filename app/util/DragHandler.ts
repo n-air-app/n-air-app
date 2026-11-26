@@ -1,5 +1,5 @@
 import { Inject } from 'services/core/injector';
-import { SceneItem, ScenesService } from 'services/scenes';
+import { SceneItem } from 'services/scenes';
 import { SelectionService } from 'services/selection';
 import { SettingsService } from 'services/settings';
 import { VideoService } from 'services/video';
@@ -54,7 +54,6 @@ interface IDragHandlerOptions {
 // Encapsulates logic for dragging sources in the overlay editor
 export class DragHandler {
   @Inject() private settingsService: SettingsService;
-  @Inject() private scenesService: ScenesService;
   @Inject() private videoService: VideoService;
   @Inject() private windowsService: WindowsService;
   @Inject() private selectionService: SelectionService;

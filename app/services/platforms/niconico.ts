@@ -9,7 +9,6 @@ import { NicoliveFailure } from 'services/nicolive-program/NicoliveFailure';
 import { SettingsService } from 'services/settings';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
-import { WindowsService } from 'services/windows';
 import { FakeUserAuth, isFakeMode } from 'util/fakeMode';
 import { fetchViaMainProcess } from 'util/fetchViaMainProcess';
 import { RequestError } from 'util/RequestError';
@@ -50,7 +49,6 @@ export class NiconicoService extends Service implements IPlatformService {
   @Inject() settingsService: SettingsService;
   @Inject() userService: UserService;
   @Inject() streamingService: StreamingService;
-  @Inject() windowsService: WindowsService;
 
   authWindowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 800,

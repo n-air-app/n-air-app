@@ -19,7 +19,6 @@ jest.mock('services/core', () => ({
   Inject: () => (_target: any, _key: string) => {},
 }));
 jest.mock('services/scene-collections', () => ({ SceneCollectionsService: class {} }));
-jest.mock('services/usage-statistics', () => ({ UsageStatisticsService: class {} }));
 jest.mock('../internal-api', () => ({ InternalApiService: class {} }));
 
 describe('TcpServerService', () => {

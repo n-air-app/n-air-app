@@ -13,7 +13,6 @@ const setup = createSetupFunction({
         subscribe() {},
       },
     },
-    WindowsService: {},
   },
 });
 
@@ -22,7 +21,6 @@ jest.mock('services/core/injector');
 jest.mock('services/streaming', () => ({}));
 jest.mock('services/user', () => ({}));
 jest.mock('services/settings', () => ({}));
-jest.mock('services/windows', () => ({}));
 jest.mock('services/i18n', () => ({
   $t: (x: any) => x,
 }));
@@ -100,7 +98,6 @@ test('setupStreamSettingsでストリーム情報がとれた場合', async () =
   const updatePlatformChannelId = jest.fn();
   const getSettingsFormData = jest.fn();
   const setSettings = jest.fn();
-  const showWindow = jest.fn();
 
   getSettingsFormData.mockReturnValue([
     {
@@ -120,9 +117,6 @@ test('setupStreamSettingsでストリーム情報がとれた場合', async () =
     SettingsService: {
       getSettingsFormData,
       setSettings,
-    },
-    WindowsService: {
-      showWindow,
     },
   };
 

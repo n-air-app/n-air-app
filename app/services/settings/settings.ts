@@ -17,7 +17,6 @@ import { AudioService, E_AUDIO_CHANNELS } from 'services/audio';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { DismissablesService, EDismissable } from 'services/dismissables';
 import { $t } from 'services/i18n';
-import { NicoliveCommentSynthesizerService } from 'services/nicolive-program/nicolive-comment-synthesizer';
 import { NicoliveProgramStateService } from 'services/nicolive-program/state';
 import { ObsIpcHealthService } from 'services/obs-ipc-health';
 import { SoundDetectorService } from 'services/sound-detector';
@@ -142,7 +141,6 @@ export class SettingsService
   @Inject() videoSettingsService: VideoSettingsService;
   @Inject() private dismissablesService: DismissablesService;
   @Inject() private nicoliveProgramStateService: NicoliveProgramStateService;
-  @Inject() private nicoliveCommentSynthesizerService: NicoliveCommentSynthesizerService;
   @Inject() private soundDetectorService: SoundDetectorService;
 
   init() {
