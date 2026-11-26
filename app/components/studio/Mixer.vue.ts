@@ -53,25 +53,28 @@ export default defineComponent({
         });
       } else {
         // 複数の場合はサブメニューで個別選択可能に
+        const submenu = new Menu();
+        // 個別のソース
+        hiddenSources.forEach((source) => {
+          submenu.append({
+            id: `Unhide ${source.sourceId}`,
+            label: source.name,
+            click: () => source.setHidden(false),
+          });
+        });
+        // セパレーター
+        submenu.append({ type: 'separator' });
+        // すべて表示
+        submenu.append({
+          id: 'Unhide All',
+          label: $t('sources.unhideAll'),
+          click: () => audioService.unhideAllSourcesForCurrentScene(),
+        });
+
         menu.append({
           id: 'Show Hidden Sources',
           label: $t('sources.showHiddenSource'),
-          submenu: [
-            // 個別のソース
-            ...hiddenSources.map((source) => ({
-              id: `Unhide ${source.sourceId}`,
-              label: source.name,
-              click: () => source.setHidden(false),
-            })),
-            // セパレーター
-            { type: 'separator' as const },
-            // すべて表示
-            {
-              id: 'Unhide All',
-              label: $t('sources.unhideAll'),
-              click: () => audioService.unhideAllSourcesForCurrentScene(),
-            },
-          ],
+          submenu: submenu.menu,
         });
       }
 
