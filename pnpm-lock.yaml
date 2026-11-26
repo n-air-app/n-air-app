@@ -232,8 +232,8 @@ importers:
         specifier: ^18.0.0
         version: 18.0.0
       stylelint-config-recess-order:
-        specifier: ^7.10.0
-        version: 7.10.0(stylelint-order@8.1.3(stylelint@18.0.0))(stylelint@18.0.0)
+        specifier: ^7.10.1
+        version: 7.10.1(stylelint-order@8.1.3(stylelint@18.0.0))(stylelint@18.0.0)
       stylelint-config-standard:
         specifier: ^41.0.0
         version: 41.0.0(stylelint@18.0.0)
@@ -3252,6 +3252,9 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  graceful-fs@4.2.12:
+    resolution: {integrity: sha512-iuyGF2E4oafQfPsRrG2wtY2ILupMhvtdrhzrxB+0VcjsPpSPttpfYdjnGFGsTi5MaJFjI1jOKHPQ6UTbTj9TAw==}
+
   grapheme-splitter@1.0.4:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
 
@@ -5231,10 +5234,10 @@ packages:
     peerDependencies:
       webpack: ^5.27.0
 
-  stylelint-config-recess-order@7.10.0:
-    resolution: {integrity: sha512-sFQHOOwNYt8upCv4B7tY1EZ+iC1A7nTV7FbzsJOLdsoueFceMinE3Vf4cJPJj82raSZlfMa5ZOyheMRAh6vj6g==}
+  stylelint-config-recess-order@7.10.1:
+    resolution: {integrity: sha512-8/+9lu69ju2mVjFnpK/JBYlTaBG59A6TeE/+C/PMMSF16Ai9LojUBV6aOz3o62Z4y6Ia44u8n4gzJZxy2Cq/EQ==}
     peerDependencies:
-      stylelint: ^16.18.0 || ^17.0.0
+      stylelint: ^16.18.0 || ^17.0.0 || ^18.0.0
       stylelint-order: ^7.0.0 || ^8.0.0
 
   stylelint-config-recommended@19.0.0:
@@ -9395,7 +9398,7 @@ snapshots:
 
   fs-extra@7.0.1:
     dependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.12
       jsonfile: 4.0.0
       universalify: 0.1.2
 
@@ -9569,6 +9572,8 @@ snapshots:
       responselike: 2.0.1
 
   graceful-fs@4.2.11: {}
+
+  graceful-fs@4.2.12: {}
 
   grapheme-splitter@1.0.4: {}
 
@@ -11738,7 +11743,7 @@ snapshots:
     dependencies:
       webpack: 5.112.2(postcss@8.5.32)(webpack-cli@7.3.1)
 
-  stylelint-config-recess-order@7.10.0(stylelint-order@8.1.3(stylelint@18.0.0))(stylelint@18.0.0):
+  stylelint-config-recess-order@7.10.1(stylelint-order@8.1.3(stylelint@18.0.0))(stylelint@18.0.0):
     dependencies:
       stylelint: 18.0.0
       stylelint-order: 8.1.3(stylelint@18.0.0)
