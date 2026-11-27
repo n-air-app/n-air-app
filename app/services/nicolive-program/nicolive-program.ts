@@ -4,7 +4,7 @@ import { Inject } from 'services/core/injector';
 import { mutation, StatefulService } from 'services/core/stateful-service';
 import { EStreamingState, StreamingService } from 'services/streaming';
 import { UserService } from 'services/user';
-import { isFakeMode } from 'util/fakeMode';
+import { fakeScheduleSummary, isFakeMode } from 'util/fakeMode';
 
 import { MAX_PROGRAM_DURATION_SECONDS } from './nicolive-constants';
 import {
@@ -22,6 +22,23 @@ import { NicoliveProgramStateService } from './state';
 
 type Schedules = ProgramSchedules['data'];
 export type Schedule = Schedules[0];
+
+export interface ScheduleSummaryItem {
+  nicoliveProgramId: string;
+  status: Schedule['status'];
+  /** 番組タイトル。取得できなかった場合は undefined */
+  title?: string;
+  /** 放送開始(予定)時刻 (秒) */
+  onAirBeginAt: number;
+  /** 放送終了予定時刻 (秒) */
+  onAirEndAt: number;
+}
+
+/** パネル初期画面に表示する、放送中/テスト中の番組と直近の予約番組 */
+export interface ScheduleSummary {
+  current: ScheduleSummaryItem | null;
+  reserved: ScheduleSummaryItem | null;
+}
 
 type ProgramState = {
   programID: string;
@@ -271,7 +288,60 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
     return programPassword.ok ? programPassword.value.password : undefined;
   }
 
-  async fetchProgram(): Promise<void> {
+  /**
+   * 番組情報を state に反映せず、放送中(テスト中含む)の番組と直近の予約番組の概要だけを取得する
+   */
+  async fetchScheduleSummary(): Promise<ScheduleSummary> {
+    if (isFakeMode()) return fakeScheduleSummary();
+    const schedulesResponse = await this.client.fetchProgramSchedules();
+    if (!isOk(schedulesResponse)) {
+      throw NicoliveFailure.fromClientError('fetchProgramSchedules', schedulesResponse);
+    }
+    const userSchedules = schedulesResponse.value.filter((s) => s.socialGroupId.startsWith('co'));
+    const currentSchedule = userSchedules.find((s) => s.status === 'test' || s.status === 'onAir')
+      ?? null;
+    let reservedSchedule: Schedule | null = null;
+    for (const s of userSchedules) {
+      if (s.status !== 'reserved') continue;
+      if (!reservedSchedule || s.onAirBeginAt < reservedSchedule.onAirBeginAt) {
+        reservedSchedule = s;
+      }
+    }
+
+    const toItem = async (s: Schedule | null): Promise<ScheduleSummaryItem | null> => {
+      if (!s) return null;
+      let title: string | undefined;
+      let status = s.status;
+      try {
+        const res = await this.client.fetchProgram(s.nicoliveProgramId);
+        if (isOk(res)) {
+          title = res.value.title ?? undefined;
+          // 番組表APIは終了の反映が遅れることがあるため、番組情報APIの状態を優先する
+          status = res.value.status;
+        }
+      } catch {
+        // タイトルが取れなくても概要は表示する
+      }
+      if (status === 'end') return null;
+      return {
+        nicoliveProgramId: s.nicoliveProgramId,
+        status,
+        title,
+        onAirBeginAt: s.onAirBeginAt,
+        onAirEndAt: s.onAirEndAt,
+      };
+    };
+    const [current, reserved] = await Promise.all([
+      toItem(currentSchedule),
+      toItem(reservedSchedule),
+    ]);
+    return { current, reserved };
+  }
+
+  /**
+   * @param targetProgramId 指定した場合、スケジュールからの自動選択を行わずその番組を取得する
+   */
+  async fetchProgram(targetProgramId?: string): Promise<void> {
     this.setState({ isFetching: true });
     if (isFakeMode()) {
       const now = Math.floor(Date.now() / 1000);
@@ -295,7 +365,9 @@ export class NicoliveProgramService extends StatefulService<INicoliveProgramStat
         throw NicoliveFailure.fromClientError('fetchProgramSchedules', schedulesResponse);
       }
 
-      const programSchedule = NicoliveProgramService.findSuitableProgram(schedulesResponse.value);
+      const programSchedule = targetProgramId
+        ? schedulesResponse.value.find((s) => s.nicoliveProgramId === targetProgramId) ?? null
+        : NicoliveProgramService.findSuitableProgram(schedulesResponse.value);
 
       if (!programSchedule) {
         this.setState({ status: 'end' });

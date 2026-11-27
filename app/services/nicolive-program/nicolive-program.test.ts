@@ -293,6 +293,49 @@ NicoliveFailure {
   `);
 });
 
+describe('fetchScheduleSummary', () => {
+  const sched = (id: string, status: string, begin = 100) => ({
+    nicoliveProgramId: id,
+    testBeginAt: begin - 10,
+    onAirBeginAt: begin,
+    onAirEndAt: begin + 1000,
+    socialGroupId: 'co1',
+    status,
+  });
+
+  function prepare(schedules: any[], infoStatus: Record<string, string>) {
+    setup();
+    const { instance } = setupInstance({ mockSetState: true });
+    instance.client.fetchProgramSchedules = jest.fn().mockResolvedValue({ ok: true, value: schedules });
+    instance.client.fetchProgram = jest.fn().mockImplementation(async (id: string) => ({
+      ok: true,
+      value: { title: `title-${id}`, status: infoStatus[id] },
+    }));
+    return instance;
+  }
+
+  test('放送中と直近の予約番組を返す', async () => {
+    const instance = prepare(
+      [sched('lv1', 'onAir'), sched('lv3', 'reserved', 300), sched('lv2', 'reserved', 200)],
+      { lv1: 'onAir', lv2: 'reserved', lv3: 'reserved' },
+    );
+
+    const result = await instance.fetchScheduleSummary();
+
+    expect(result.current?.nicoliveProgramId).toBe('lv1');
+    expect(result.current?.title).toBe('title-lv1');
+    expect(result.reserved?.nicoliveProgramId).toBe('lv2');
+  });
+
+  test('番組表が放送中でも番組情報が終了済みなら除外する', async () => {
+    const instance = prepare([sched('lv1', 'onAir')], { lv1: 'end' });
+
+    const result = await instance.fetchScheduleSummary();
+
+    expect(result).toEqual({ current: null, reserved: null });
+  });
+});
+
 test('fetchProgram:testのときはshowPlaceholderをtrueにする', async () => {
   setup();
   const { instance, setState } = setupInstance({ mockSetState: true });
