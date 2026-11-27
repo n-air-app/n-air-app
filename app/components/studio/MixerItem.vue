@@ -7,6 +7,31 @@
   >
     <div class="title-container">
       <div class="source-name">{{ audioSource.source?.name }}</div>
+      <div v-if="showGain" class="gain" :class="{ attention: offTarget }">
+        <button
+          type="button"
+          class="gain-down"
+          :disabled="!canGainDown"
+          :aria-label="$t('audio.gainDown')"
+          v-tooltip.bottom="gainDownTooltip"
+          @click.stop="gainDown"
+        >
+          -
+        </button>
+        <span class="gain-value" v-tooltip.bottom="$t('audio.gainValueTooltip', { db: gainText })">
+          {{ gainText }}
+        </span>
+        <button
+          type="button"
+          class="gain-up"
+          :disabled="!canGainUp"
+          :aria-label="$t('audio.gainUp')"
+          v-tooltip.bottom="gainUpTooltip"
+          @click.stop="gainUp"
+        >
+          +
+        </button>
+      </div>
       <div class="db-value">
         <div v-if="audioSource.fader.deflection == 0">-Inf dB</div>
         <div v-if="audioSource.fader.deflection !== 0">
@@ -87,9 +112,72 @@
   padding: 8px 12px 0;
   color: var(--color-text);
 
+  .title-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  // 幅が足りないときは、名前を削るより先にゲインや dB 値を2行目へ折り返す
   .source-name {
-    flex: 1;
+    flex: 1 1 5em;
+    min-width: 5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: @font-size2;
+    white-space: nowrap;
+  }
+
+  .gain {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    height: 18px;
+    margin-left: 6px;
+    overflow: hidden;
+    font-size: @font-size1;
+    color: var(--color-text);
+    white-space: nowrap;
+    border: 1px solid var(--color-border-light);
+    border-radius: 9px;
+
+    // 配信音声が目標から外れているときは、ラウドネスパネルと同じ黄色で示す
+    &.attention {
+      color: var(--color-yellow);
+      border-color: currentcolor;
+
+      .gain-value {
+        border-color: currentcolor;
+      }
+    }
+
+    button {
+      height: 100%;
+      padding: 0 5px;
+      line-height: 16px;
+      color: inherit;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+
+      &:hover:not(:disabled) {
+        background: var(--color-bg-secondary);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: @opacity-disabled;
+      }
+    }
+
+    .gain-value {
+      min-width: 28px;
+      padding: 0 3px;
+      line-height: 16px;
+      text-align: center;
+      border-right: 1px solid var(--color-border-light);
+      border-left: 1px solid var(--color-border-light);
+    }
   }
 
   .db-value {
