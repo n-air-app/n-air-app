@@ -836,6 +836,9 @@ export class NicoliveClient {
           win.close();
         } else if (NicoliveClient.isMyPage(url)) {
           resolve(CreateResult.RESERVED);
+          // 予約完了後、または予約済み番組との重複エラーの「マイページで確認」から遷移してくる。
+          // どちらでも予約内容を確認できるよう、マイページを既定のブラウザで開く
+          remote.shell.openExternal(url);
           win.close();
         } else if (!NicoliveClient.isAllowedURL(url)) {
           SentryReport.message('NicoliveClient', 'createProgram', 'createProgram did-navigate to unexpected URL', {

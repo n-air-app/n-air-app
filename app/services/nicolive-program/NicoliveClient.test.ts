@@ -414,6 +414,34 @@ describe('webviews', () => {
     expect(mock.browserWindow.close).toHaveBeenCalled();
   });
 
+  test('createProgramでマイページに遷移するとマイページを既定のブラウザで開く', async () => {
+    const mock = setupMock();
+
+    const { NicoliveClient } = require('./NicoliveClient');
+    const client = new NicoliveClient();
+
+    // don't await
+    const result = expect(client.createProgram()).resolves.toBe('RESERVED');
+    mock.browserWindow.loadURL(`${nicoliveWeb}/my`);
+
+    await result;
+    expect(mock.openExternal).toHaveBeenCalledWith(`${nicoliveWeb}/my`);
+  });
+
+  test('createProgramで番組ページに遷移したときは既定のブラウザを開かない', async () => {
+    const mock = setupMock();
+
+    const { NicoliveClient } = require('./NicoliveClient');
+    const client = new NicoliveClient();
+
+    // don't await
+    const result = expect(client.createProgram()).resolves.toBe('CREATED');
+    mock.browserWindow.loadURL(`${nicoliveWeb}/watch/${programID}`);
+
+    await result;
+    expect(mock.openExternal).not.toHaveBeenCalled();
+  });
+
   test('createProgramでニコ生外に出ると既定のブラウザで開いてwebviewは閉じる', async () => {
     const openExternal = jest.fn();
     const mock = setupMock();
