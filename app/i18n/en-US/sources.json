@@ -58,6 +58,7 @@
   "createSourceProjector": "Create Source Projector",
   "useGoogleFont": "Use Google Font",
   "unhideAll": "Unhide All",
+  "showHiddenSource": "Show Hidden Source",
   "interactiveCrop": "Crop on display",
   "selectCroppingArea": "Drag the area to capture",
   "pressEscapeToCancel": "Press Esc to cancel",
