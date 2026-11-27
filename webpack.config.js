@@ -148,7 +148,7 @@ module.exports = function (env, argv) {
         'sentry-defs': './sentry-defs.js',
       },
       plugins: [definePlugin],
-      target: 'electron29-main',
+      target: 'electron44-main',
     },
     {
       ...createCommonConfig('renderer'),
@@ -199,7 +199,7 @@ module.exports = function (env, argv) {
 
       devtool: 'source-map',
 
-      target: 'electron29-renderer',
+      target: 'electron44-renderer',
 
       resolve: {
         extensions: ['.js', '.ts', '.vue'],
